@@ -1,0 +1,42 @@
+// Pixel-art pieces for the HTML interface, so the HUD and menus share the chunky, dithered look of
+// the 3D world: tiny textures and icons drawn on canvases, shown pixelated through CSS variables.
+const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
+
+/** an 8x8 dithered tile between two colours, with a few dirt pixels */
+function tile(a, b, dirt, seed) {
+  const cv = document.createElement('canvas'); cv.width = cv.height = 8;
+  const c = cv.getContext('2d');
+  let s = seed;
+  const rnd = () => ((s = (s * 16807) % 2147483647) / 2147483647);
+  for (let y = 0; y < 8; y++) for (let x = 0; x < 8; x++) {
+    c.fillStyle = BAYER[(y % 4) * 4 + (x % 4)] < 6 ? b : a;
+    if (rnd() < 0.06) c.fillStyle = dirt;
+    c.fillRect(x, y, 1, 1);
+  }
+  return cv.toDataURL();
+}
+
+const ICON_COLS = { '#': '#2a1608', y: '#f0c030', Y: '#fff0a0', o: '#b07810', W: '#e8f0ff', w: '#98a8d8', R: '#e04838', r: '#a82a20', S: '#f4ecd0', s: '#c8b890', G: '#5ec45a' };
+const ICONS = {
+  coin: ['..###..', '.#yYy#.', '#yYyyy#', '#yyyyo#', '#yyyoo#', '.#ooo#.', '..###..'],
+  sun: ['y..y..y', '.yyyyy.', '.yYYYy.', 'yyYYYyy', '.yYYYy.', '.yyyyy.', 'y..y..y'],
+  moon: ['..WWW..', '.WWw...', 'WWw....', 'WWw....', 'WWw....', '.WWw...', '..WWW..'],
+  flag: ['#RRRR..', '#RRRRR.', '#rRRR..', '#......', '#......', '#......', '#......'],
+  hull: ['.##.##.', '#RR#RR#', '#RRRRR#', '#RRRRr#', '.#RRr#.', '..#r#..', '...#...'],
+  sail: ['...#...', '...#S..', '...#SS.', '...#SSs', '...#Ss.', '#######', '.#####.'],
+};
+function icon(rows) {
+  const cv = document.createElement('canvas'); cv.width = cv.height = 7;
+  const c = cv.getContext('2d');
+  rows.forEach((row, y) => [...row].forEach((ch, x) => { if (ICON_COLS[ch]) { c.fillStyle = ICON_COLS[ch]; c.fillRect(x, y, 1, 1); } }));
+  return cv.toDataURL();
+}
+
+export function installPixelUI() {
+  const root = document.documentElement.style;
+  root.setProperty('--pxpanel', `url(${tile('rgba(20,18,44,0.86)', 'rgba(30,28,62,0.86)', 'rgba(8,6,18,0.9)', 7)})`);
+  root.setProperty('--pxmenu', `url(${tile('#1b1538', '#241c4c', '#0e0a20', 11)})`);
+  root.setProperty('--pxbtn', `url(${tile('#2c2160', '#352870', '#1a1240', 13)})`);
+  const css = Object.entries(ICONS).map(([k, rows]) => `.ico.${k} { background-image: url(${icon(rows)}); }`).join('\n');
+  const st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
+}

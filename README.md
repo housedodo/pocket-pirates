@@ -48,4 +48,4 @@ Dread only depends on distance from home; it does not build up over time (only t
 - [docs/concept/](docs/concept/): in-engine concept frames (`concept-sheet.png`)
 
 ## Fonts
-The logbook uses Caveat, Gloria Hallelujah and Pixelify Sans (all SIL Open Font License), bundled in `public/fonts/` so the game works offline.
+The interface uses Pixelify Sans (SIL Open Font License), bundled in `public/fonts/` so the game works offline.

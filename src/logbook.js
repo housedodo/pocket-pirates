@@ -34,15 +34,15 @@ function sketcher(c, seed) {
   return {
     r, j,
     line(pts, o = {}) {
-      const { closed = true, col = INK, w = 1.3, passes = 2, amp = 1.1, alpha = 1 } = o;
-      c.strokeStyle = col; c.lineCap = 'round'; c.lineJoin = 'round';
-      for (let i = 0; i < passes; i++) { c.lineWidth = w * (0.6 + r() * 0.6); c.globalAlpha = alpha * (0.6 + r() * 0.4); path(pts, closed, amp); c.stroke(); }
+      const { closed = true, col = INK, w = 1.3, alpha = 1 } = o, amp = Math.max(1.2, o.amp || 1.1) * 2;
+      c.strokeStyle = col; c.lineCap = 'square'; c.lineJoin = 'miter';
+      // no thin lines: every stroke is at least two map pixels wide, drawn once, rough
+      c.lineWidth = Math.max(4, w * 3) * (0.85 + r() * 0.3); c.globalAlpha = alpha * (0.75 + r() * 0.25); path(pts, closed, amp); c.stroke();
       c.globalAlpha = 1;
     },
     wash(pts, col, a = 0.6, amp = 1.8) {
       c.fillStyle = col;
-      c.globalAlpha = a; path(pts, true, amp); c.fill();
-      const ox = j(2), oz = j(2); c.globalAlpha = a * 0.45; path(pts.map((p) => [p[0] + ox, p[1] + oz]), true, amp * 1.6); c.fill(); // misregistered second coat
+      c.globalAlpha = Math.min(1, a * 1.25); path(pts, true, amp * 1.5); c.fill();
       c.globalAlpha = 1;
     },
     hatch(pts, o = {}) {
@@ -50,157 +50,92 @@ function sketcher(c, seed) {
       let x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9;
       for (const [x, y] of pts) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); }
       c.save(); c.beginPath(); pts.forEach((p, i) => (i ? c.lineTo(p[0], p[1]) : c.moveTo(p[0], p[1]))); c.closePath(); c.clip();
-      c.strokeStyle = col; c.lineWidth = 0.8; c.globalAlpha = a;
+      c.strokeStyle = col; c.lineWidth = 3; c.globalAlpha = a; c.lineCap = 'square';
       const L = (x1 - x0) + (y1 - y0), dx = Math.cos(ang), dy = Math.sin(ang);
-      for (let t = -L; t < L; t += gap + j(1)) {
+      for (let t = -L; t < L; t += gap * 2.6 + j(2)) {
         const cx = (x0 + x1) / 2 + t * dy, cy = (y0 + y1) / 2 - t * dx;
         c.beginPath(); c.moveTo(cx - dx * L + j(1), cy - dy * L + j(1)); c.lineTo(cx + dx * L + j(1), cy + dy * L + j(1)); c.stroke();
       }
       c.restore(); c.globalAlpha = 1;
     },
     text(str, x, y, o = {}) {
-      const { font = 'italic 700 12px Georgia, serif', col = INK, halo = true } = o;
-      c.save(); c.translate(x + j(1), y + j(1)); c.rotate(j(0.06)); c.font = font; c.textAlign = 'center';
-      if (halo) { c.strokeStyle = 'rgba(232,214,166,0.85)'; c.lineWidth = 3; c.strokeText(str, 0, 0); }
+      const { col = INK, halo = true } = o;
+      const font = (o.font || '700 12px Georgia, serif').replace('italic ', '').replace(/(\d+)px/, (m, n) => `${Math.round(n * 1.35)}px`).replace(/Georgia, serif|Georgia/, '"Pixelify Sans", monospace');
+      c.save(); c.translate(x + j(1.5), y + j(1.5)); c.rotate(j(0.04)); c.font = font; c.textAlign = 'center';
+      if (halo) { c.strokeStyle = 'rgba(232,214,166,0.9)'; c.lineWidth = 6; c.lineJoin = 'miter'; c.strokeText(str, 0, 0); }
       c.fillStyle = col; c.globalAlpha = 0.85 + r() * 0.15; c.fillText(str, 0, 0); c.restore(); c.globalAlpha = 1;
     },
   };
 }
-// the cover: worn leather as a low-poly mesh (each facet lit from the top-left), stitched edge, brass corners
-function lowPolyCover() {
-  const CW = 1000, CH = 600, cv = document.createElement('canvas'); cv.width = CW; cv.height = CH;
-  const c = cv.getContext('2d'), r = mulberry32(404), NX = 14, NY = 8, P = [];
-  for (let y = 0; y <= NY; y++) for (let x = 0; x <= NX; x++) {
-    const edge = x === 0 || y === 0 || x === NX || y === NY;
-    P.push([x / NX * CW + (edge ? 0 : (r() - 0.5) * 40), y / NY * CH + (edge ? 0 : (r() - 0.5) * 40), r() * 60]);
-  }
-  const at = (x, y) => P[y * (NX + 1) + x], L = [-0.5, -0.6, 0.62];
-  const face = (a, b, d) => {
-    const u = [b[0] - a[0], b[1] - a[1], b[2] - a[2]], v = [d[0] - a[0], d[1] - a[1], d[2] - a[2]];
-    const n = [u[1] * v[2] - u[2] * v[1], u[2] * v[0] - u[0] * v[2], u[0] * v[1] - u[1] * v[0]], len = Math.hypot(...n) || 1;
-    const k = Math.abs((n[0] * L[0] + n[1] * L[1] + n[2] * L[2]) / len), sh = 0.45 + k * 0.85 + (r() - 0.5) * 0.12;
-    c.fillStyle = `rgb(${92 * sh | 0},${54 * sh | 0},${26 * sh | 0})`;
-    c.beginPath(); c.moveTo(a[0], a[1]); c.lineTo(b[0], b[1]); c.lineTo(d[0], d[1]); c.closePath(); c.fill();
-    c.strokeStyle = c.fillStyle; c.lineWidth = 1; c.stroke();
-  };
-  for (let y = 0; y < NY; y++) for (let x = 0; x < NX; x++) {
-    const a = at(x, y), b = at(x + 1, y), d = at(x + 1, y + 1), e = at(x, y + 1);
-    if ((x + y) % 2) { face(a, b, d); face(a, d, e); } else { face(a, b, e); face(b, d, e); }
-  }
-  for (let i = 0; i < 400; i++) { c.fillStyle = `rgba(${r() > 0.5 ? '20,10,4' : '180,130,80'},${r() * 0.18})`; c.fillRect(r() * CW, r() * CH, 1 + r() * 30, 1); } // scuffs
-  for (let i = 0; i < 25; i++) { c.fillStyle = 'rgba(20,10,4,0.18)'; c.beginPath(); c.ellipse(r() * CW, r() * CH, 10 + r() * 40, 6 + r() * 20, r() * 3, 0, 7); c.fill(); } // worn patches
-  c.strokeStyle = 'rgba(232,200,140,0.55)'; c.lineWidth = 2; c.setLineDash([7, 6]); c.strokeRect(9, 9, CW - 18, CH - 18); c.setLineDash([]);
-  const corner = (x, y, sx, sy) => {
-    const pts = [[x, y], [x + sx * 46, y], [x, y + sy * 46]];
-    const tri = (a, b, d, col) => { c.fillStyle = col; c.beginPath(); c.moveTo(...a); c.lineTo(...b); c.lineTo(...d); c.closePath(); c.fill(); };
-    const m = [x + sx * 15, y + sy * 15];
-    tri(pts[0], pts[1], m, '#e2c47a'); tri(pts[0], m, pts[2], '#a8873c'); tri(pts[1], pts[2], m, '#c9a85c');
-    c.fillStyle = '#5a4012'; c.beginPath(); c.arc(x + sx * 10, y + sy * 10, 2.5, 0, 7); c.fill();
-  };
-  corner(0, 0, 1, 1); corner(CW, 0, -1, 1); corner(0, CH, 1, -1); corner(CW, CH, -1, -1);
-  const g = c.createLinearGradient(CW / 2 - 40, 0, CW / 2 + 40, 0); // spine bulge
-  g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(0.5, 'rgba(0,0,0,0.35)'); g.addColorStop(1, 'rgba(0,0,0,0)');
-  c.fillStyle = g; c.fillRect(CW / 2 - 40, 0, 80, CH);
-  return cv.toDataURL();
-}
-// ---- book designs: small canvases, shown pixelated -----------------------------------------------
+// ---- the book: a battered pixel tome. Cover and pages are drawn on small canvases (dithered, scratched,
+// stained, with torn transparent edges) and shown pixelated.
 const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
 const mkCanvas = (w, h) => { const cv = document.createElement('canvas'); cv.width = w; cv.height = h; return [cv, cv.getContext('2d')]; };
-/** jittery pencil/ink line on a tiny canvas */
-function scrawl(c, r, pts, col, w = 1) {
-  c.strokeStyle = col; c.lineWidth = w; c.lineCap = 'round';
-  for (let pass = 0; pass < 2; pass++) {
-    c.beginPath();
-    pts.forEach((p, i) => { const x = p[0] + (r() - 0.5) * 1.4, y = p[1] + (r() - 0.5) * 1.4; i ? c.lineTo(x, y) : c.moveTo(x, y); });
-    c.stroke();
+const dith = (x, y) => BAYER[(y % 4) * 4 + (x % 4)] / 16 - 0.5;
+/** pixel line */
+function pline(c, x0, y0, x1, y1, col) {
+  const n = Math.max(1, Math.ceil(Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0))));
+  c.fillStyle = col;
+  for (let i = 0; i <= n; i++) c.fillRect(Math.round(x0 + (x1 - x0) * i / n), Math.round(y0 + (y1 - y0) * i / n), 1, 1);
+}
+/** a dithered blob: solid in the middle, broken up toward the edge */
+function pblob(c, r, x, y, rad, col) {
+  c.fillStyle = col;
+  for (let yy = -rad; yy <= rad; yy++) for (let xx = -rad; xx <= rad; xx++) {
+    const d = Math.hypot(xx, yy * 1.3) / rad + (r() - 0.5) * 0.35;
+    if (d < 0.6 || (d < 1 && dith(x + xx + 99, y + yy + 99) > d - 0.75)) c.fillRect(Math.round(x + xx), Math.round(y + yy), 1, 1);
   }
 }
-function doodles(c, r, w, h, col) {
-  const spiral = (x, y, n) => scrawl(c, r, Array.from({ length: 30 }, (_, i) => [x + Math.cos(i * 0.6) * i * n / 30, y + Math.sin(i * 0.6) * i * n / 30]), col);
-  const skull = (x, y) => { scrawl(c, r, Array.from({ length: 13 }, (_, i) => [x + Math.cos(i / 12 * 6.28) * 6, y + Math.sin(i / 12 * 6.28) * 5]), col); c.fillStyle = col; c.fillRect(x - 3, y - 1, 2, 2); c.fillRect(x + 1, y - 1, 2, 2); scrawl(c, r, [[x - 3, y + 6], [x + 3, y + 6]], col); };
-  const tally = (x, y) => { for (let i = 0; i < 4; i++) scrawl(c, r, [[x + i * 3, y], [x + i * 3 + 1, y + 9]], col); scrawl(c, r, [[x - 2, y + 7], [x + 12, y + 2]], col); };
-  const star = (x, y) => scrawl(c, r, [0, 2, 4, 1, 3, 0].map((k) => [x + Math.cos(k * 1.2566 - 1.57) * 6, y + Math.sin(k * 1.2566 - 1.57) * 6]), col);
-  const xmark = (x, y) => { scrawl(c, r, [[x - 4, y - 4], [x + 4, y + 4]], col); scrawl(c, r, [[x + 4, y - 4], [x - 4, y + 4]], col); };
-  const wave = (x, y) => scrawl(c, r, Array.from({ length: 12 }, (_, i) => [x + i * 3, y + Math.sin(i) * 2]), col);
-  const all = [spiral, skull, tally, star, xmark, wave, star, wave, xmark, spiral];
-  all.forEach((f, i) => f(14 + r() * (w - 28), 12 + r() * (h - 24), 5 + r() * 4));
+/** nibble the outline away: torn, chipped edges (deeper at the corners) */
+function tear(c, r, w, h, depth) {
+  for (let x = 0; x < w; x++) for (const y of [0, h - 1]) { const d = Math.floor(r() * r() * depth); c.clearRect(x, y < 1 ? 0 : h - d, 1, d); }
+  for (let y = 0; y < h; y++) for (const x of [0, w - 1]) { const d = Math.floor(r() * r() * depth); c.clearRect(x < 1 ? 0 : w - d, y, d, 1); }
+  for (const [cx, cy] of [[0, 0], [w, 0], [0, h], [w, h]]) for (let i = 0; i < 6; i++) { const k = 1 + Math.floor(r() * 3); c.clearRect(cx ? cx - k - i * r() : i * r(), cy ? cy - k : 0, k, k); }
 }
-const BOOKS = {
-  scribble: { // a cloth-bound journal that has been doodled all over, ruled pages with ink and pencil
-    cover() {
-      const [cv, c] = mkCanvas(250, 150), r = mulberry32(31);
-      for (let y = 0; y < 150; y++) for (let x = 0; x < 250; x++) { const k = 0.8 + r() * 0.25 + (((x + y) % 4 === 0) ? -0.06 : 0); c.fillStyle = `rgb(${110 * k | 0},${74 * k | 0},${44 * k | 0})`; c.fillRect(x, y, 1, 1); }
-      for (let i = 0; i < 14; i++) { c.fillStyle = 'rgba(30,18,8,0.2)'; c.beginPath(); c.ellipse(r() * 250, r() * 150, 6 + r() * 20, 4 + r() * 10, r() * 3, 0, 7); c.fill(); }
-      doodles(c, r, 250, 150, 'rgba(240,222,180,0.55)');
-      scrawl(c, r, [[5, 5], [245, 4], [246, 145], [4, 146], [5, 5]], 'rgba(240,222,180,0.7)');
-      c.fillStyle = 'rgba(0,0,0,0.3)'; c.fillRect(120, 0, 10, 150);
-      return cv.toDataURL();
-    },
-    page() {
-      const [cv, c] = mkCanvas(240, 140), r = mulberry32(32);
-      for (let y = 0; y < 140; y++) for (let x = 0; x < 240; x++) {
-        const g = Math.abs(x - 119.5) / 120, edge = Math.min(x, 239 - x, y, 139 - y);
-        let k = 0.93 + r() * 0.06 - (g < 0.06 ? (0.06 - g) * 4 : 0) - (edge < 4 ? (4 - edge) * 0.03 : 0);
-        c.fillStyle = `rgb(${236 * k | 0},${224 * k | 0},${190 * k | 0})`; c.fillRect(x, y, 1, 1);
-      }
-      c.fillStyle = 'rgba(80,120,170,0.28)'; for (let y = 14; y < 136; y += 6) { c.fillRect(6, y, 108, 1); c.fillRect(126, y, 108, 1); }
-      c.fillStyle = 'rgba(190,60,50,0.35)'; c.fillRect(16, 2, 1, 136); c.fillRect(136, 2, 1, 136);
-      for (let i = 0; i < 5; i++) { c.fillStyle = 'rgba(80,70,60,0.08)'; c.beginPath(); c.ellipse(r() * 240, r() * 140, 6 + r() * 12, 3 + r() * 6, r() * 3, 0, 7); c.fill(); }
-      c.strokeStyle = 'rgba(120,70,30,0.25)'; c.lineWidth = 1.5; c.beginPath(); c.arc(200, 110, 11, 0.3, 5.6); c.stroke();
-      doodles(c, r, 240, 140, 'rgba(70,70,90,0.12)');
-      return cv.toDataURL();
-    },
-  },
-  pixel: { // a chunky dithered tome: everything snapped to a coarse pixel grid
-    cover() {
-      const [cv, c] = mkCanvas(150, 90), r = mulberry32(41), pal = ['#24120a', '#3e2414', '#5a361c', '#7a4c26'];
-      const blobs = Array.from({ length: 10 }, () => [r() * 150, r() * 90, 15 + r() * 25, r()]);
-      for (let y = 0; y < 90; y++) for (let x = 0; x < 150; x++) {
-        let v = 0.45; for (const [bx, by, br, bv] of blobs) v += (bv - 0.5) * Math.max(0, 1 - Math.hypot(x - bx, y - by) / br);
-        v += (1 - Math.min(1, Math.min(x, 149 - x, y, 89 - y) / 10)) * -0.25 - (Math.abs(x - 74.5) < 3 ? 0.3 : 0);
-        const q = v * 3 + (BAYER[(y % 4) * 4 + (x % 4)] / 16 - 0.5);
-        c.fillStyle = pal[Math.max(0, Math.min(3, Math.round(q)))]; c.fillRect(x, y, 1, 1);
-      }
-      c.fillStyle = '#c9a85c'; for (let x = 5; x < 145; x += 3) { c.fillRect(x, 3, 1, 1); c.fillRect(x, 86, 1, 1); } for (let y = 5; y < 86; y += 3) { c.fillRect(3, y, 1, 1); c.fillRect(146, y, 1, 1); }
-      const gold = ['#f0d890', '#c9a85c', '#8a6a28'];
-      const corner = (x0, y0, sx, sy) => { for (let i = 0; i < 9; i++) for (let j = 0; j < 9 - i; j++) { c.fillStyle = gold[i + j < 3 ? 0 : i + j < 7 ? 1 : 2]; c.fillRect(sx > 0 ? x0 + i : x0 - i - 1, sy > 0 ? y0 + j : y0 - j - 1, 1, 1); } };
-      corner(0, 0, 1, 1); corner(150, 0, -1, 1); corner(0, 90, 1, -1); corner(150, 90, -1, -1);
-      return cv.toDataURL();
-    },
-    page() {
-      const [cv, c] = mkCanvas(160, 90), r = mulberry32(42), pal = ['#9a8250', '#c4aa70', '#dcc58e', '#ecdcae'];
-      for (let y = 0; y < 90; y++) for (let x = 0; x < 160; x++) {
-        const g = Math.abs(x - 79.5) / 80, edge = Math.min(x, 159 - x, y, 89 - y);
-        const v = 3 - (g < 0.08 ? (0.08 - g) * 30 : 0) - (edge < 3 ? (3 - edge) * 0.4 : 0) - (r() < 0.04 ? 1 : 0);
-        c.fillStyle = pal[Math.max(0, Math.min(3, Math.round(v + BAYER[(y % 4) * 4 + (x % 4)] / 16 - 0.5)))]; c.fillRect(x, y, 1, 1);
-      }
-      return cv.toDataURL();
-    },
-  },
-  charcoal: { // a battered black sketchbook with chalk scratches and smudged charcoal pages
-    cover() {
-      const [cv, c] = mkCanvas(200, 120), r = mulberry32(51);
-      for (let y = 0; y < 120; y++) for (let x = 0; x < 200; x++) { const k = 0.85 + r() * 0.3; c.fillStyle = `rgb(${62 * k | 0},${60 * k | 0},${66 * k | 0})`; c.fillRect(x, y, 1, 1); }
-      for (let i = 0; i < 70; i++) { const x = r() * 200, y = r() * 120, a = r() * 6.28, l = 3 + r() * 14; scrawl(c, r, [[x, y], [x + Math.cos(a) * l, y + Math.sin(a) * l]], `rgba(220,220,225,${0.08 + r() * 0.2})`); }
-      doodles(c, r, 200, 120, 'rgba(235,235,240,0.45)');
-      scrawl(c, r, [[4, 4], [196, 3], [197, 116], [3, 117], [4, 4]], 'rgba(235,235,240,0.6)');
-      for (let i = 0; i < 8; i++) { c.fillStyle = 'rgba(200,200,210,0.06)'; c.beginPath(); c.ellipse(r() * 200, r() * 120, 8 + r() * 20, 4 + r() * 10, r() * 3, 0, 7); c.fill(); }
-      c.fillStyle = 'rgba(0,0,0,0.4)'; c.fillRect(96, 0, 8, 120);
-      return cv.toDataURL();
-    },
-    page() {
-      const [cv, c] = mkCanvas(220, 130), r = mulberry32(52);
-      for (let y = 0; y < 130; y++) for (let x = 0; x < 220; x++) { const g = Math.abs(x - 109.5) / 110, k = 0.9 + r() * 0.08 - (g < 0.05 ? (0.05 - g) * 5 : 0); c.fillStyle = `rgb(${232 * k | 0},${228 * k | 0},${218 * k | 0})`; c.fillRect(x, y, 1, 1); }
-      for (let i = 0; i < 9; i++) { const x = r() * 220, y = r() * 130, g = c.createRadialGradient(x, y, 1, x, y, 10 + r() * 16); g.addColorStop(0, 'rgba(40,40,45,0.18)'); g.addColorStop(1, 'rgba(40,40,45,0)'); c.fillStyle = g; c.fillRect(x - 30, y - 30, 60, 60); }
-      for (let i = 0; i < 4; i++) { const x = r() * 220, y = r() * 130; for (let k = 0; k < 5; k++) scrawl(c, r, [[x + k * 2, y], [x + k * 2 + 6, y + 8]], 'rgba(30,30,35,0.15)'); }
-      return cv.toDataURL();
-    },
-  },
-  leather: { cover: () => lowPolyCover(), page: null },
-};
-export const BOOK_STYLES = ['scribble', 'pixel', 'charcoal', 'leather'];
-export const BOOK_NAMES = { scribble: 'Scribbled journal', pixel: 'Pixel tome', charcoal: 'Charcoal sketchbook', leather: 'Low-poly leather' };
+function pixelCover() {
+  const W0 = 150, H0 = 90, [cv, c] = mkCanvas(W0, H0), r = mulberry32(41), pal = ['#20100a', '#3a2214', '#55331c', '#744824'];
+  const blobs = Array.from({ length: 12 }, () => [r() * W0, r() * H0, 12 + r() * 25, r()]);
+  for (let y = 0; y < H0; y++) for (let x = 0; x < W0; x++) {
+    let v = 0.45; for (const [bx, by, br, bv] of blobs) v += (bv - 0.5) * Math.max(0, 1 - Math.hypot(x - bx, y - by) / br);
+    v += (1 - Math.min(1, Math.min(x, W0 - 1 - x, y, H0 - 1 - y) / 10)) * -0.3 - (Math.abs(x - 74.5) < 3 ? 0.35 : 0) + (r() - 0.5) * 0.25;
+    c.fillStyle = pal[Math.max(0, Math.min(3, Math.round(v * 3 + dith(x, y))))]; c.fillRect(x, y, 1, 1);
+  }
+  for (let i = 0; i < 40; i++) { const x = r() * W0, y = r() * H0, a = r() * 6.28, l = 2 + r() * 9; pline(c, x, y, x + Math.cos(a) * l, y + Math.sin(a) * l, r() < 0.7 ? '#8a6038' : '#140a06'); } // scratches
+  for (let i = 0; i < 7; i++) pblob(c, r, r() * W0, r() * H0, 2 + r() * 5, 'rgba(14,7,4,0.55)');                                                // stains
+  c.fillStyle = '#b8954c'; for (let x = 6; x < W0 - 6; x += 3) if (r() > 0.15) { c.fillRect(x, 4, 1, 1); c.fillRect(x, H0 - 5, 1, 1); }          // stitching, a few missing
+  for (let y = 6; y < H0 - 6; y += 3) if (r() > 0.15) { c.fillRect(4, y, 1, 1); c.fillRect(W0 - 5, y, 1, 1); }
+  const gold = ['#e8cc84', '#b8954c', '#7a5a24', '#4a3410'];
+  const corner = (x0, y0, sx, sy) => { for (let i = 0; i < 10; i++) for (let j = 0; j < 10 - i; j++) { if (r() < 0.08) continue; c.fillStyle = gold[i + j < 3 ? 0 : i + j < 6 ? 1 : i + j < 9 ? 2 : 3]; c.fillRect(sx > 0 ? x0 + i : x0 - i - 1, sy > 0 ? y0 + j : y0 - j - 1, 1, 1); } };
+  corner(0, 0, 1, 1); corner(W0, 0, -1, 1); corner(0, H0, 1, -1); corner(W0, H0, -1, -1);
+  tear(c, r, W0, H0, 3);
+  return cv.toDataURL();
+}
+function pixelPage() {
+  const W0 = 160, H0 = 90, [cv, c] = mkCanvas(W0, H0), r = mulberry32(42), pal = ['#8a7044', '#b49a62', '#d2ba84', '#e6d4a4'];
+  for (let y = 0; y < H0; y++) for (let x = 0; x < W0; x++) {
+    const g = Math.abs(x - 79.5) / 80, edge = Math.min(x, W0 - 1 - x, y, H0 - 1 - y);
+    const v = 3 - (g < 0.08 ? (0.08 - g) * 30 : 0) - (edge < 4 ? (4 - edge) * 0.45 : 0) - (r() < 0.06 ? 1 : 0) + (r() - 0.5) * 0.3;
+    c.fillStyle = pal[Math.max(0, Math.min(3, Math.round(v + dith(x, y))))]; c.fillRect(x, y, 1, 1);
+  }
+  for (let i = 0; i < 18; i++) pblob(c, r, r() * W0, r() * H0, 1 + r() * 2.5, 'rgba(120,80,40,0.35)');                           // foxing
+  for (let i = 0; i < 3; i++) { const x = [6, W0 - 7, 72][i] + r() * 6, y = [5 + r() * 6, H0 - 9, H0 - 6][i]; pblob(c, r, x, y, 2 + r() * 2, '#2a1608'); for (let k = 0; k < 6; k++) c.fillRect(x + (r() - 0.5) * 12, y + (r() - 0.5) * 10, 1, 1); } // ink blots
+  { const x = 128, y = 66, rr = 8; c.fillStyle = 'rgba(110,60,20,0.5)'; for (let a = 0.4; a < 5.8; a += 0.08) c.fillRect(Math.round(x + Math.cos(a) * rr), Math.round(y + Math.sin(a) * rr * 0.9), 1, 1); } // coffee ring
+  pline(c, 20, 0, 58, H0, 'rgba(255,248,225,0.25)'); pline(c, 21, 0, 59, H0, 'rgba(90,60,30,0.2)');                                   // crease
+  for (let i = 0; i < 9; i++) for (let j = 0; j < 9 - i; j++) { c.fillStyle = (i + j) % 2 ? '#b49a62' : '#d2ba84'; c.fillRect(W0 - 1 - i, H0 - 1 - j, 1, 1); } // dog-ear
+  pline(c, W0 - 10, H0 - 1, W0 - 1, H0 - 10, '#6a5230');
+  tear(c, r, W0, H0, 3);
+  return cv.toDataURL();
+}
 
+/** posterise the chart with an ordered dither: hard pixel edges, a gritty printed look */
+function pixelate(c, w, h) {
+  const img = c.getImageData(0, 0, w, h), d = img.data;
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const i = (y * w + x) * 4, t = (BAYER[(y % 4) * 4 + (x % 4)] / 16 - 0.5) * 34;
+    for (let k = 0; k < 3; k++) d[i + k] = Math.max(0, Math.min(255, Math.round((d[i + k] + t) / 34) * 34));
+  }
+  c.putImageData(img, 0, 0);
+}
 const stars = (n) => '★'.repeat(n) + '☆'.repeat(3 - n);
 const ent = (title, sub = '', right = '', cls = '') => `<div class="ent ${cls}"><b>${title}</b>${right ? `<span class="r">${right}</span>` : ''}${sub ? `<small>${sub}</small>` : ''}</div>`;
 const h3 = (t) => `<h3>${t}</h3>`;
@@ -217,7 +152,7 @@ export class Logbook {
     this.num = document.getElementById('pgNum');
     this.page = 0;
     this.parch = null;
-    this.setStyle('scribble');
+    this.paintBook();
     this.tabsEl.innerHTML = TABS.map(([id, label, icon], i) => `<button data-tab="${id}" title="${label} (${i + 1})"><span>${icon}</span><em>${label}</em></button>`).join('');
     this.tabsEl.addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) this.open(b.dataset.tab); });
     document.getElementById('logClose').addEventListener('click', () => deps.close());
@@ -225,14 +160,11 @@ export class Logbook {
     document.getElementById('pgNext').addEventListener('click', () => this.turn(1));
   }
 
-  /** book look: 'scribble' | 'pixel' | 'charcoal' | 'leather' (covers and pages are drawn here, small, and shown pixelated) */
-  setStyle(style) {
-    this.style = BOOKS[style] ? style : 'scribble';
-    this.root.dataset.book = this.style;
-    const b = BOOKS[this.style], book = this.root.querySelector('.book');
-    book.style.backgroundImage = `url(${b.cover()})`;
-    book.querySelector('.spread').style.backgroundImage = b.page ? `url(${b.page()})` : '';
-    if (this.c && this.tab === 'map') this.drawMap();
+  /** paint the cover and pages (small pixel canvases, shown pixelated) */
+  paintBook() {
+    const book = this.root.querySelector('.book');
+    book.style.backgroundImage = `url(${pixelCover()})`;
+    book.querySelector('.spread').style.setProperty('--page', `url(${pixelPage()})`);
   }
 
   open(tab = this.tab) {
@@ -377,9 +309,9 @@ export class Logbook {
 
   // ------------------------------------------------------------ map
   renderMap() {
-    this.body.innerHTML = `<div class="mapwrap"><canvas id="mapCv" width="${W}" height="${H}"></canvas>
+    this.body.innerHTML = `<div class="mapwrap"><canvas id="mapCv" width="${W / 2}" height="${H / 2}"></canvas>
       <div class="mapctl"><button id="mz+">+</button><button id="mz-">&minus;</button><button id="mc" title="Centre on ship">◎</button></div></div>
-      <div class="legend">drag to pan · wheel to zoom · <b>⌂</b> harbour &nbsp;<b>▯</b> arch (treasure) &nbsp;<b style="color:#b02818">?</b> rumour &nbsp;<b style="color:#d07010">⚑</b> delivery &nbsp;<b style="color:#b07010">▣</b> crates</div>`;
+      <div class="legend">drag to pan · wheel to zoom · <b style="color:#b02818">?</b> rumour · <b style="color:#d07010">flag</b> delivery · <b style="color:#8a5a30">box</b> lost crates</div>`;
     const cv = document.getElementById('mapCv');
     this.cv = cv; this.c = cv.getContext('2d');
     const v = this.view;
@@ -459,6 +391,7 @@ export class Logbook {
   drawMap() {
     const { state, world, ship, seed } = this.d, c = this.c, v = this.view, sc = v.sc;
     if (!c) return;
+    c.setTransform(0.5, 0, 0, 0.5, 0, 0);   // drawn in 880x470 chart space onto a half-size canvas, shown pixelated
     const X = (wx) => W / 2 + (wx - v.cx) * sc, Z = (wz) => H / 2 + (wz - v.cz) * sc;
     c.drawImage(this.parchment(), 0, 0);
 
@@ -568,23 +501,31 @@ export class Logbook {
     const g = c.createRadialGradient(W / 2, H / 2, H * 0.42, W / 2, H / 2, H * 0.9);
     g.addColorStop(0, 'rgba(70,40,15,0)'); g.addColorStop(1, 'rgba(70,40,15,0.5)');
     c.fillStyle = g; c.fillRect(0, 0, W, H);
-    { const sk = sketcher(c, 3); sk.line(rectP(6, 6, W - 12, H - 12), { w: 2.6, amp: 1.4 }); sk.line(rectP(11, 11, W - 22, H - 22), { w: 1, passes: 1, amp: 1.2, alpha: 0.8 }); }
+    { const sk = sketcher(c, 3); sk.line(rectP(8, 8, W - 16, H - 16), { w: 3, amp: 1.4 }); }
+    c.setTransform(1, 0, 0, 1, 0, 0);
+    pixelate(c, W / 2, H / 2);
   }
 
   drawIsland(c, d, px, pz, sc, state) {
-    const N = 14, base = LAND[d.type] || '#ecd69c', sk = sketcher(c, d.seed * 7 + 1);
+    // low-poly: a handful of rough corners, each facet a flat shade (lit from the top-left)
+    const N = 8, base = LAND[d.type] || '#ecd69c', sk = sketcher(c, d.seed * 7 + 1);
     const pts = [], inner = [];
     for (let i = 0; i < N; i++) {
-      const th = (i / N) * Math.PI * 2, r = shoreR(d, th) * sc;
+      const th = (i / N) * Math.PI * 2 + sk.j(0.2), r = shoreR(d, th) * sc * (0.9 + sk.r() * 0.2);
       pts.push([px + Math.cos(th) * r, pz + Math.sin(th) * r]);
-      inner.push([px + Math.cos(th) * r * 0.55, pz + Math.sin(th) * r * 0.55]);
+      inner.push([px + Math.cos(th + 0.3) * r * 0.5, pz + Math.sin(th + 0.3) * r * 0.5]);
     }
     const ring = (k) => pts.map((p) => [px + (p[0] - px) * k, pz + (p[1] - pz) * k]);
-    sk.line(ring(1.28), { col: '#3a6a78', w: 0.9, passes: 1, amp: 1.6, alpha: 0.55 });   // old-chart coastal ripples
-    sk.line(ring(1.55), { col: '#3a6a78', w: 0.8, passes: 1, amp: 2, alpha: 0.3 });
-    sk.wash(pts, base, 0.75);
-    if (d.type === 'jungle' || d.type === 'rocky' || d.type === 'treasure') sk.wash(inner, d.type === 'rocky' ? '#9a9486' : '#6aa456', 0.6, 2.5);
-    sk.hatch(pts, { a: 0.2, gap: 3.4 + sc });
+    c.setLineDash([10, 10]); sk.line(ring(1.4), { col: '#3a6a78', w: 1.4, alpha: 0.45 }); c.setLineDash([]);   // coastal ripple
+    const top = [px + sk.j(3 * sc), pz - 2 * sc + sk.j(3 * sc)];
+    const fan = (P, col) => P.forEach((p, i) => {
+      const q = P[(i + 1) % P.length], mid = Math.atan2((p[1] + q[1]) / 2 - pz, (p[0] + q[0]) / 2 - px);
+      c.fillStyle = shade(col, 0.82 + 0.26 * Math.max(0, -Math.cos(mid + 0.8)) + sk.j(0.04));
+      c.beginPath(); c.moveTo(top[0], top[1]); c.lineTo(p[0], p[1]); c.lineTo(q[0], q[1]); c.closePath(); c.fill();
+      c.strokeStyle = c.fillStyle; c.lineWidth = 2; c.stroke();
+    });
+    fan(pts, base);
+    if (d.type === 'jungle' || d.type === 'rocky' || d.type === 'treasure') fan(inner, d.type === 'rocky' ? '#9a9486' : '#6aa456');
     sk.line(pts, { w: 1.5 });
 
     if (sc < 0.2) return;

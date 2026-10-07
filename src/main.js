@@ -14,7 +14,7 @@ import { Fauna } from './fauna.js';
 import { Traffic } from './traffic.js';
 import { SeaFeatures } from './seafeatures.js';
 import { makeJob, findRumour, repOf, friendLevel, discount, bearingName, nearby, RUMOUR_COST, commissionsFor, questProgress, questNeed, questTitle, QUEST_ICON, questIcon, FRUITS, fruitOf, fruitName, plural } from './jobs.js';
-import { Logbook, BOOK_STYLES, BOOK_NAMES } from './logbook.js';
+import { Logbook } from './logbook.js';
 import { sectorAt, sectorInfo, sectorCoord, FACTIONS } from './sectors.js';
 import { KINDS } from './traffic.js';
 import { Fishing, fishById } from './fishing.js';
@@ -24,6 +24,7 @@ import { GROUPS, DEFAULT_CUSTOM, byId } from './customize.js';
 import { Wind } from './wind.js';
 import { WindFX } from './windfx.js';
 import { drawWind, PX } from './windmeters.js';
+import { installPixelUI } from './pixelui.js';
 import { applyTimeOfDay, DAY_LENGTH, tod } from './daynight.js';
 import { UPGRADES, MAX_LEVEL, computeMods, shipwrightLine } from './upgrades.js';
 import { Abyss, EFFECTS, WATCHER_STYLES, WATCHER_NAMES } from './abyss.js';
@@ -37,9 +38,7 @@ const store = {
 };
 const saved = params.get('fresh') ? null : store.get(SAVE_KEY);
 const settings = Object.assign({ muted: false, musicOff: false, windStyle: 'dial', hud: 'classic', tracker: true, abyss: {} }, store.get(SETTINGS_KEY) || {});
-const HUD_THEMES = ['classic', 'driftwood', 'parchment', 'brass'];
-const HUD_NAMES = { classic: 'Classic blue', driftwood: 'Driftwood planks', parchment: 'Parchment scrolls', brass: 'Brass & leather' };
-document.body.dataset.theme = settings.hud;
+installPixelUI();
 const state = {
   seed: parseInt(params.get('seed') || (saved && saved.seed) || '1337', 10),
   gold: (saved && saved.gold) || 0,
@@ -140,7 +139,7 @@ if (params.get('hud') === '0') $('hud').classList.add('hidden');
 function toast(text, dark = false, ms = 5200) {
   const el = document.createElement('div');
   el.className = 'toast panel txt' + (dark ? ' dark' : '');
-  el.textContent = text;
+  const sp = document.createElement('span'); sp.textContent = text; el.appendChild(sp);
   toastsEl.appendChild(el);
   while (toastsEl.children.length > 3) toastsEl.firstChild.remove();
   setTimeout(() => el.remove(), ms);
@@ -361,9 +360,6 @@ $('abBack').addEventListener('click', showPauseMain);
 $('abAll').addEventListener('click', () => { const any = EFFECTS.some((f) => settings.abyss[f.id] === false); for (const f of EFFECTS) settings.abyss[f.id] = any; store.set(SETTINGS_KEY, settings); renderAbyssMenu(); });
 $('abForce').addEventListener('click', () => { abyss.stopTest(); if (forced === 1) forced = null; else { forced = 1; dread = 1; } renderAbyssMenu(); });
 $('pbLog').addEventListener('click', () => { logTab = 'map'; openModal('chart'); });
-function refreshStyleButtons() { $('pbHud').textContent = `Interface: ${HUD_NAMES[settings.hud]}`; }
-$('pbHud').addEventListener('click', () => { settings.hud = HUD_THEMES[(HUD_THEMES.indexOf(settings.hud) + 1) % HUD_THEMES.length]; document.body.dataset.theme = settings.hud; store.set(SETTINGS_KEY, settings); refreshStyleButtons(); $('pbHud').focus(); });
-refreshStyleButtons();
 $('pbMusic').addEventListener('click', () => {
   audio.setMusic(!audio.musicOn);
   settings.musicOff = !audio.musicOn; store.set(SETTINGS_KEY, settings);
@@ -815,14 +811,6 @@ const logbook = new Logbook({ abyss, state, world, ship, seed: state.seed, toast
   dropQuest: (id) => { state.quests = state.quests.filter((q) => q.id !== id); sea.syncQuests(state.quests); toast('Commission dropped.'); },
   skipGoal: () => { const g = objectives.current; if (!g) return; if (g.onDone) g.onDone({ state, world, ship, giveMap }); state.goals.i++; toast('Goal skipped.'); } });
 
-function setBook(style) {
-  logbook.setStyle(style);
-  settings.book = logbook.style; store.set(SETTINGS_KEY, settings);
-  $('bookStyle').textContent = `Book: ${BOOK_NAMES[logbook.style]}`;
-}
-$('bookStyle').addEventListener('click', () => setBook(BOOK_STYLES[(BOOK_STYLES.indexOf(logbook.style) + 1) % BOOK_STYLES.length]));
-setBook(settings.book || 'scribble');
-
 // ---------------------------------------------------------------- main loop
 const GLASS = new THREE.Color('#07030d');
 const camPos = new THREE.Vector3(), camLook = new THREE.Vector3(), _v = new THREE.Vector3();
@@ -955,7 +943,7 @@ function frame() {
   } else lastNear = null;
   const placeTxt = lastNear ? lastNear.desc.name : sec.name;
   const placeOut = abyss.hud('place', placeTxt);
-  if (placeOut !== placeShown) { placeShown = placeOut; $('placeline').textContent = placeOut; $('placeline').style.borderColor = lastNear ? '' : sec.faction.color; }
+  if (placeOut !== placeShown) { placeShown = placeOut; $('placeline').innerHTML = ''; const sp = document.createElement('span'); sp.textContent = placeOut; $('placeline').appendChild(sp); $('placeline').style.setProperty('--pxedge', lastNear ? '#120c1c' : sec.faction.color); }
 
   const tgt = getInteract();
   if (dig && live) {
@@ -1028,7 +1016,6 @@ function frame() {
 window.__game = {
   setDread(v) { forced = v; dread = v; },
   setTime(t) { state.time = t; },
-  setStyle(hud, book) { if (hud) { settings.hud = hud; document.body.dataset.theme = hud; } if (book) setBook(book); },
   setCam(p, z) { if (p !== undefined) { pitch = pitchT = p; } if (z !== undefined) { zoom = zoomT = z; } },
   setOverride(o) { camOverride = o; },
   teleport(x, z, h) { ship.pos.set(x, 0, z); ship.heading = h; camHeading = h; },
