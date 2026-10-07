@@ -13,14 +13,13 @@ import { smoothstep, clamp } from './util.js';
 export const EFFECTS = [
   { id: 'calm', name: 'Glass calm', desc: 'The sea goes mirror-flat. Your reflection does not quite match you.' },
   { id: 'hud', name: 'Corrupted HUD', desc: 'Place names rewrite themselves, the clock runs backwards, the gold whispers.' },
-  { id: 'wind', name: 'Mad wind meter', desc: 'The needle spins, the ring flickers and the mission arrow points at you.' },
+  { id: 'wind', name: 'Mad wind meter', desc: 'The needle spins and the ring flickers as if the wind came from everywhere.' },
   { id: 'mara', name: 'Mara breaks', desc: 'Her lines glitch, she says things she should not, then stops answering.' },
-  { id: 'eye', name: 'The Eye watches', desc: 'The star-eye follows you. Lighthouses turn their beams on you, then die.' },
-  { id: 'watchers', name: 'Watchers', desc: 'Figures stand on every shore, slowly turning to face you. Then nobody moves.' },
+  { id: 'lights', name: 'Lighthouses stare', desc: 'Every lighthouse swings its beam down onto your ship, holds it there, then goes dark.' },
+  { id: 'watchers', name: 'Watchers', desc: 'Figures on the shores turn to face you. Four looks, from subtle to scary (Style button).' },
   { id: 'map', name: 'Living map', desc: 'The chart draws itself: islands crawl and places you never saw appear.' },
   { id: 'loop', name: 'Time loop', desc: 'Two black suns. Every so often the last twenty seconds happen again.' },
   { id: 'ocean', name: 'Wrong ocean', desc: 'Waves run backwards, the horizon tilts, the sails fight the wind.' },
-  { id: 'ghost', name: 'Ghost ship', desc: 'A pale copy of your ship sails beside you, a moment behind. Turn the camera to look at it and it is gone.' },
   { id: 'catch', name: 'Wrong catches', desc: 'Your line brings up memories; chests hold things you already own.' },
   { id: 'leviathan', name: 'Leviathan & the Eye', desc: 'Vast arches rise at the horizon. Linger too long and the Eye awakens (ending).' },
 ];
@@ -53,12 +52,36 @@ const pick = (a) => a[Math.floor(Math.random() * a.length)];
 const corrupt = (s, amt) => [...s].map((ch) => (ch !== ' ' && Math.random() < amt ? pick(GLITCH) : ch)).join('');
 const ramp = (t, a, b, len) => clamp(Math.min((t - a) / 2.5, (b - t) / 2.5, 1), 0, 1) * (len > 0 ? 1 : 0); // 0..1 with soft edges
 
-function watcherGeo() {
+// Watcher looks, from barely-there to properly scary
+export const WATCHER_STYLES = ['far', 'pale', 'tall', 'waders'];
+export const WATCHER_NAMES = { far: 'Distant shapes (subtle)', pale: 'Pale villagers', tall: 'Tall thin ones', waders: 'Waders (scary)' };
+function watcherGeo(style) {
   const b = new Builder();
-  b.cyl(0, 0, 0, 0.34, 0.22, 1.25, 5, '#cfc6dc', TILE.white, true);
-  b.blob(0, 1.5, 0, 0.24, 0.28, 0.24, '#d8d0e4', TILE.bone, 0.05, 3);
-  b.box(-0.09, 1.52, 0.2, 0.08, 0.06, 0.06, '#ffffff', TILE.spore);
-  b.box(0.09, 1.52, 0.2, 0.08, 0.06, 0.06, '#ffffff', TILE.spore);
+  if (style === 'far') {          // small dark silhouettes, no faces
+    b.cyl(0, 0, 0, 0.3, 0.2, 1.1, 4, '#2c2632', TILE.white, true);
+    b.blob(0, 1.3, 0, 0.2, 0.24, 0.2, '#2c2632', TILE.white, 0.05, 3);
+  } else if (style === 'pale') {  // pale villagers with little glowing eyes
+    b.cyl(0, 0, 0, 0.34, 0.22, 1.25, 5, '#cfc6dc', TILE.white, true);
+    b.blob(0, 1.5, 0, 0.24, 0.28, 0.24, '#d8d0e4', TILE.bone, 0.05, 3);
+    b.box(-0.09, 1.52, 0.2, 0.08, 0.06, 0.06, '#ffffff', TILE.spore);
+    b.box(0.09, 1.52, 0.2, 0.08, 0.06, 0.06, '#ffffff', TILE.spore);
+  } else if (style === 'tall') {  // far too tall, arms to the knees, head tipped
+    b.cyl(0, 0, 0, 0.12, 0.1, 2.2, 4, '#b8b0c4', TILE.white, true);       // legs
+    b.cyl(0, 2.2, 0, 0.28, 0.18, 1.6, 4, '#a8a0b6', TILE.white, true);    // torso
+    for (const sx of [-1, 1]) { b.push(sx * 0.32, 3.7, 0, 0, 1, 1, 1, 0, sx * 0.08); b.cyl(0, -2.6, 0, 0.06, 0.07, 2.6, 4, '#a8a0b6', TILE.white, true); b.pop(); }
+    b.push(0, 4.1, 0, 0, 1, 1, 1, 0, 0.35);
+    b.blob(0, 0.3, 0, 0.22, 0.36, 0.22, '#e8e2f0', TILE.bone, 0.05, 5);
+    b.box(-0.08, 0.36, 0.18, 0.05, 0.05, 0.05, '#ffffff', TILE.spore); b.box(0.08, 0.36, 0.18, 0.05, 0.05, 0.05, '#ffffff', TILE.spore);
+    b.pop();
+  } else {                        // waders: hunched, half in the sea, eyes and a wide glowing mouth
+    b.cyl(0, -1.2, 0, 0.5, 0.36, 1.9, 5, '#3a2e48', TILE.white, true);
+    b.push(0, 0.55, 0.12, 0, 1, 1, 1, 0.45);
+    b.blob(0, 0.3, 0, 0.42, 0.46, 0.4, '#d8cce8', TILE.bone, 0.08, 7);
+    for (const sx of [-0.18, 0.18]) b.box(sx, 0.42, 0.34, 0.18, 0.14, 0.1, '#ffffff', TILE.spore);
+    b.box(0, 0.08, 0.36, 0.42, 0.12, 0.1, '#ffffff', TILE.spore);
+    b.pop();
+    for (const sx of [-1, 1]) { b.push(sx * 0.48, 0.5, 0.1, 0, 1, 1, 1, 0.5, sx * 0.4); b.cyl(0, -1.6, 0, 0.09, 0.12, 1.6, 4, '#3a2e48', TILE.white, true); b.pop(); }
+  }
   return b.geometry();
 }
 
@@ -69,7 +92,7 @@ export class Abyss {
     this.k = 0;              // 0..1 how "full" the dread is
     this.solo = null;        // effect being tried on its own
     this.t = 0;
-    this.history = [];       // ship positions (time loop + ghost)
+    this.history = [];       // ship positions (time loop)
     this.histT = 0;
     // timers / windows for periodic events
     this.calm = { next: 20, a: -1, b: -1 };
@@ -92,14 +115,8 @@ export class Abyss {
     this.refl.scale.y = -1; this.refl.visible = false; scene.add(this.refl);
     this.under = new THREE.Mesh(new THREE.PlaneGeometry(900, 900).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0x05020a, fog: false }));
     this.under.visible = false; scene.add(this.under); // the black below the glass
-    // 10 - ghost copy of the player's ship
-    this.ghostMat = psxMaterial({ map: getAtlas(), color: 0xd8c8ff, transparent: true, opacity: 0, depthWrite: false, side: THREE.DoubleSide, fog: false, key: 'AbG' });
-    this.ghost = new THREE.Group();
-    for (const g of [G.hull, G.mast]) this.ghost.add(new THREE.Mesh(g, this.ghostMat));
-    const gs = new THREE.Mesh(G.sail, this.ghostMat); gs.position.set(0, 1.0, -0.3); gs.rotation.y = 0.5; this.ghost.add(gs);
-    this.ghost.rotation.order = 'YXZ'; this.ghost.visible = false; scene.add(this.ghost);
     // 6 - watchers
-    this.wGeo = watcherGeo();
+    this.wGeos = {};
     this.watchers = new Map(); // island id -> [{mesh, delay}]
     this.wScan = 0;
     // 12 - leviathan arches + the Eye
@@ -129,7 +146,7 @@ export class Abyss {
     const t = this.t;
     if (id === 'calm') { this.calm.a = t + 1; this.calm.b = t + 26; }
     if (id === 'mara') { this.maraT = 20; this.d.mate.say(pick(MARA_LINES), true); }
-    if (id === 'eye') this.light.t0 = t + 1;
+    if (id === 'lights') this.light.t0 = t + 1;
     if (id === 'watchers') this.clearWatchers();
     if (id === 'loop') this.loopT = 9;
     if (id === 'leviathan') this.lev.next = 2;
@@ -143,7 +160,7 @@ export class Abyss {
     this.k = smoothstep(0.86, 0.97, c.dread);
     const live = c.live;
 
-    // ship history (for the loop and the ghost)
+    // ship history (for the time loop)
     this.histT -= dt;
     if (live && this.histT <= 0) { this.histT = 0.2; this.history.push({ x: ship.pos.x, z: ship.pos.z, h: ship.heading }); if (this.history.length > 160) this.history.shift(); }
 
@@ -176,9 +193,9 @@ export class Abyss {
       if (this.maraT <= 0 && !mate.busy) { mate.say(pick(MARA_LINES), true); this.maraT = 30 + Math.random() * 25; }
     }
 
-    // 5 eye + lighthouses: stare 10s, dead 7s, normal 20s
+    // 5 lighthouses: stare 10s, dead 7s, normal 20s
     this.lightPhase = null;
-    if (this.on('eye')) {
+    if (this.on('lights')) {
       const u = ((t - this.light.t0) % 37 + 37) % 37;
       this.lightPhase = u < 10 ? 'stare' : u < 17 ? 'dead' : null;
     }
@@ -207,8 +224,6 @@ export class Abyss {
     // 9 wrong ocean: sails
     ship.wrongSails = this.on('ocean') ? 1 : 0;
 
-    // 10 ghost
-    this.updateGhost(dt, c);
 
     // 12 leviathan + ending
     this.updateLeviathan(dt, c);
@@ -221,9 +236,7 @@ export class Abyss {
   roll(t) { return this.on('ocean') ? Math.sin(t * 0.31) * 0.11 + Math.sin(t * 0.13) * 0.05 : 0; }
   windDir(dir) { return dir + this.spin; }
   windFloor(f) { return this.on('wind') ? Math.random() : f; }
-  get arrowAtYou() { return this.on('wind') && Math.sin(this.t * 0.4) > -0.3; }
-  get eyeYaw() { return this.on('eye'); }
-  get lookUp() { return this.lightPhase === 'stare' || this.archUp > 0.4 || !!this.ending; } // the camera is pulled up to look
+  get lookUp() { return this.archUp > 0.4 || !!this.ending; } // the camera is pulled up to look
   get sun2() { return this.on('loop'); }
 
   hud(field, value) {
@@ -277,7 +290,16 @@ export class Abyss {
   clearWatchers() { for (const list of this.watchers.values()) for (const w of list) this.d.scene.remove(w.mesh); this.watchers.clear(); }
   updateWatchers(dt, c) {
     if (!this.on('watchers')) { if (this.watchers.size) this.clearWatchers(); return; }
-    const { ship, world, scene } = this.d;
+    const { ship, world, scene, settings } = this.d;
+    const style = WATCHER_STYLES.includes(settings.watcherStyle) ? settings.watcherStyle : 'pale';
+    if (style !== this.wStyle) { this.clearWatchers(); this.wStyle = style; this.wScan = 0; }
+    const geo = this.wGeos[style] || (this.wGeos[style] = watcherGeo(style));
+    const add = (list, x, y, z, sc, i) => {
+      const mesh = new THREE.Mesh(geo, mats.props);
+      mesh.position.set(x, y, z); mesh.rotation.y = Math.random() * Math.PI * 2; mesh.scale.setScalar(sc);
+      scene.add(mesh);
+      list.push({ mesh, y, delay: 1.5 + i * 0.35 + Math.random() * 0.6, step: 0, ph: Math.random() * 6 });
+    };
     this.wScan -= dt;
     if (this.wScan <= 0) {
       this.wScan = 1.5;
@@ -287,48 +309,53 @@ export class Abyss {
         if (Math.hypot(dsc.x - ship.pos.x, dsc.z - ship.pos.z) > 190) continue;
         keep.add(dsc.id);
         if (this.watchers.has(dsc.id)) continue;
-        const n = Math.max(3, Math.round(dsc.r / 2.6)), list = [];
+        const list = [];
+        const n = style === 'far' ? 2 + Math.round(dsc.r / 10) : style === 'tall' ? 2 + Math.round(dsc.r / 8) : Math.max(3, Math.round(dsc.r / 2.6));
         for (let i = 0; i < n; i++) {
-          const th = (i / n) * Math.PI * 2 + Math.random() * 0.3, rr = shoreR(dsc, th) * (0.8 + Math.random() * 0.08);
+          const th = (i / n) * Math.PI * 2 + Math.random() * 0.3;
+          if (style === 'waders') { // standing in the shallows around the island
+            const rr = shoreR(dsc, th) * (1.12 + Math.random() * 0.25);
+            add(list, dsc.x + Math.cos(th) * rr, -0.35, dsc.z + Math.sin(th) * rr, 1.5 + Math.random() * 0.4, i);
+            continue;
+          }
+          const rr = shoreR(dsc, th) * (style === 'far' ? 0.45 + Math.random() * 0.25 : 0.8 + Math.random() * 0.08);
           const lx = Math.cos(th) * rr, lz = Math.sin(th) * rr, h = Math.max(0.3, terrainHeight(dsc, lx, lz));
-          const mesh = new THREE.Mesh(this.wGeo, mats.props);
-          mesh.position.set(dsc.x + lx, h - 0.05, dsc.z + lz);
-          mesh.rotation.y = Math.random() * Math.PI * 2;
-          mesh.scale.setScalar(1.3 + Math.random() * 0.4);
-          scene.add(mesh);
-          list.push({ mesh, delay: 1.5 + i * 0.35 + Math.random() * 0.6, step: 0 });
+          add(list, dsc.x + lx, h - 0.05, dsc.z + lz, style === 'far' ? 0.9 : style === 'tall' ? 1.1 : 1.3 + Math.random() * 0.4, i);
         }
         this.watchers.set(dsc.id, list);
       }
+      if (style === 'waders') { // and out in open water, in the cells around you
+        const C = 70, ccx = Math.round(ship.pos.x / C), ccz = Math.round(ship.pos.z / C);
+        for (let dz = -1; dz <= 1; dz++) for (let dx = -1; dx <= 1; dx++) {
+          const k = `sea${ccx + dx},${ccz + dz}`;
+          keep.add(k);
+          if (this.watchers.has(k)) continue;
+          const list = [];
+          if (Math.random() < 0.6) for (let i = 0, m = 1 + Math.floor(Math.random() * 3); i < m; i++) {
+            const x = (ccx + dx) * C + (Math.random() - 0.5) * C, z = (ccz + dz) * C + (Math.random() - 0.5) * C;
+            if (Math.hypot(x - ship.pos.x, z - ship.pos.z) < 25 || world.nearest(x, z, 6)) continue;
+            add(list, x, -0.5, z, 1.6 + Math.random() * 0.4, i);
+          }
+          this.watchers.set(k, list);
+        }
+      }
       for (const [id, list] of this.watchers) if (!keep.has(id)) { for (const w of list) scene.remove(w.mesh); this.watchers.delete(id); }
     }
-    // they turn to face you in sudden little steps, one after another
     for (const list of this.watchers.values()) for (const w of list) {
+      if (style === 'waders') { // they bob in the swell, and slip under if you sail right up to them
+        const near = Math.hypot(ship.pos.x - w.mesh.position.x, ship.pos.z - w.mesh.position.z) < 12;
+        w.sink = Math.max(0, Math.min(1, (w.sink || 0) + (near ? dt : -dt * 0.3)));
+        w.mesh.position.y = w.y + Math.sin(this.t * 1.3 + w.ph) * 0.12 - w.sink * 3.5;
+      }
       w.delay -= dt;
       if (w.delay > 0) continue;
-      w.step -= dt;
+      const want = Math.atan2(ship.pos.x - w.mesh.position.x, ship.pos.z - w.mesh.position.z);
+      if (style === 'far') { w.mesh.rotation.y += Math.atan2(Math.sin(want - w.mesh.rotation.y), Math.cos(want - w.mesh.rotation.y)) * Math.min(1, dt * 0.4); continue; }
+      w.step -= dt;            // the others turn to face you in sudden little steps, one after another
       if (w.step > 0) continue;
       w.step = 0.9 + Math.random() * 0.8;
-      w.mesh.rotation.y = Math.atan2(ship.pos.x - w.mesh.position.x, ship.pos.z - w.mesh.position.z);
+      w.mesh.rotation.y = want;
     }
-  }
-
-  updateGhost(dt, c) {
-    const { ship } = this.d;
-    const H = this.history, on = this.on('ghost') && H.length > 8;
-    let target = 0;
-    if (on) {
-      const p = H[H.length - 7];           // it copies your steering a moment late, just off to starboard
-      const h = ship.heading, gx = ship.pos.x + Math.cos(h) * 12 - Math.sin(h) * 2, gz = ship.pos.z + Math.sin(h) * 12 + Math.cos(h) * 2;
-      target = Math.abs(c.camYaw) < 0.9 ? 0.45 : 0; // turn the camera to look at it and it is gone
-      this.ghost.position.x += (gx - this.ghost.position.x) * Math.min(1, dt * 3);
-      this.ghost.position.z += (gz - this.ghost.position.z) * Math.min(1, dt * 3);
-      this.ghost.position.y = 0.2 + Math.sin(this.t * 0.9) * 0.15;
-      this.ghost.rotation.set(Math.sin(this.t * 0.7) * 0.05, -p.h, Math.sin(this.t * 0.5) * 0.08);
-    }
-    const o = this.ghostMat.opacity + (target - this.ghostMat.opacity) * Math.min(1, dt * (target ? 1.5 : 4));
-    this.ghostMat.opacity = o * (0.85 + Math.random() * 0.15);
-    this.ghost.visible = this.ghostMat.opacity > 0.02;
   }
 
   updateLeviathan(dt, c) {

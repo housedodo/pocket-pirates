@@ -26,7 +26,7 @@ import { WindFX } from './windfx.js';
 import { drawWind, WIND_STYLES, WIND_NAMES } from './windmeters.js';
 import { applyTimeOfDay, DAY_LENGTH, tod } from './daynight.js';
 import { UPGRADES, MAX_LEVEL, computeMods, shipwrightLine } from './upgrades.js';
-import { Abyss, EFFECTS } from './abyss.js';
+import { Abyss, EFFECTS, WATCHER_STYLES, WATCHER_NAMES } from './abyss.js';
 
 // ---------------------------------------------------------------- params, save, settings
 const params = new URLSearchParams(location.search);
@@ -343,7 +343,9 @@ $('pbBack').addEventListener('click', showPauseMain);
 // full-dread effects: switch each one on/off, or try one on its own
 function renderAbyssMenu() {
   const on = (id) => settings.abyss[id] !== false;
-  $('abList').innerHTML = EFFECTS.map((f, i) => `<div class="abrow"><button class="abtog ${on(f.id) ? 'on' : ''}" data-id="${f.id}">${on(f.id) ? 'ON' : 'OFF'}</button><div class="abtxt"><b>${i + 1}. ${f.name}</b><small>${f.desc}</small></div><button class="abtry" data-id="${f.id}">Try</button>${f.id === 'leviathan' ? '<button class="abtry" data-end="1">Ending</button>' : ''}</div>`).join('');
+  $('abList').innerHTML = EFFECTS.map((f, i) => `<div class="abrow"><button class="abtog ${on(f.id) ? 'on' : ''}" data-id="${f.id}">${on(f.id) ? 'ON' : 'OFF'}</button><div class="abtxt"><b>${i + 1}. ${f.name}</b><small>${f.desc}</small></div><button class="abtry" data-id="${f.id}">Try</button>${f.id === 'leviathan' ? '<button class="abtry" data-end="1">Ending</button>' : ''}${f.id === 'watchers' ? `<button class="abstyle">${WATCHER_NAMES[settings.watcherStyle || 'pale']}</button>` : ''}</div>`).join('');
+  const st = $('abList').querySelector('.abstyle');
+  if (st) st.addEventListener('click', () => { const i = WATCHER_STYLES.indexOf(settings.watcherStyle || 'pale'); settings.watcherStyle = WATCHER_STYLES[(i + 1) % WATCHER_STYLES.length]; store.set(SETTINGS_KEY, settings); renderAbyssMenu(); $('abList').querySelector('.abstyle').focus(); });
   $('abList').querySelectorAll('.abtog').forEach((b) => b.addEventListener('click', () => { settings.abyss[b.dataset.id] = !on(b.dataset.id); store.set(SETTINGS_KEY, settings); renderAbyssMenu(); }));
   $('abList').querySelectorAll('.abtry').forEach((b) => b.addEventListener('click', () => {
     forced = 1; dread = 1; abyss.k = 1;
@@ -516,22 +518,14 @@ function drawCompass(w, heading) {
   drawWind(settings.windStyle, compass, windView, heading, performance.now() / 1000, jobA);
 }
 
-// mission tracker (Q) + the faceted arrow that points at the tracked target
-const trackerEl = $('tracker'), arrowEl = $('goalarrow'), arrowCv = $('goalCv'), arrowDist = $('goaldist');
-(function paintArrow() {
-  const c = arrowCv.getContext('2d'); c.clearRect(0, 0, 96, 96);
-  const pts = (a) => { c.beginPath(); a.forEach(([x, y], i) => (i ? c.lineTo(x, y) : c.moveTo(x, y))); c.closePath(); };
-  pts([[48, 6], [82, 78], [48, 62], [14, 78]]); c.fillStyle = '#ffb040'; c.fill();
-  pts([[48, 6], [82, 78], [48, 62]]); c.fillStyle = '#ffd77a'; c.fill();
-  pts([[48, 6], [14, 78], [48, 62]]); c.fillStyle = '#d9781c'; c.fill();
-  pts([[48, 6], [82, 78], [48, 62], [14, 78]]); c.lineWidth = 4; c.strokeStyle = '#2a1608'; c.lineJoin = 'miter'; c.stroke();
-})();
+// mission tracker (Q)
+const trackerEl = $('tracker');
 let trackerHtml = null;
 function updateTracker() {
   trackNow = trackTarget();
   const show = settings.tracker !== false && started && !modal;
   trackerEl.style.display = show ? 'block' : 'none';
-  if (!show) { arrowEl.style.display = 'none'; return; }
+  if (!show) return;
   const rows = [];
   const g = objectives.current;
   if (g) rows.push(`<div class="trow main"><i class="ico flag"></i>${g.title}</div>`);
@@ -540,27 +534,6 @@ function updateTracker() {
   const html = rows.length ? abyss.hud('track', rows.join('')) + '<div class="thint">[Q] hide</div>' : '';
   if (html !== trackerHtml) { trackerHtml = html; trackerEl.innerHTML = html; }
   trackerEl.style.display = html ? 'block' : 'none';
-  const atYou = abyss.arrowAtYou;  // full dread: the arrow points at you instead
-  const t = atYou ? { x: ship.pos.x, z: ship.pos.z, label: 'YOU' } : trackNow, W = window.innerWidth, H = window.innerHeight;
-  if (!t) { arrowEl.style.display = 'none'; return; }
-  const dist = Math.hypot(t.x - ship.pos.x, t.z - ship.pos.z);
-  if (dist < 30 && !atYou) { arrowEl.style.display = 'none'; return; }
-  _v.set(t.x, 6, t.z).project(camera);
-  let sx = (_v.x * 0.5 + 0.5) * W, sy = (-_v.y * 0.5 + 0.5) * H;
-  const behind = _v.z > 1;
-  if (behind) { sx = W - sx; sy = H - sy; }
-  const mx = 54, my = 70, cx = W / 2, cy = H / 2;
-  const inside = !behind && sx > mx && sx < W - mx && sy > my && sy < H - my;
-  let rot;
-  if (inside) { rot = 180; sy -= 40; }
-  else {
-    const dx = sx - cx, dy = sy - cy, k = Math.min((W / 2 - mx) / Math.max(1e-3, Math.abs(dx)), (H / 2 - my) / Math.max(1e-3, Math.abs(dy)));
-    sx = cx + dx * k; sy = cy + dy * k; rot = Math.atan2(dy, dx) * 180 / Math.PI + 90;
-  }
-  arrowEl.style.display = 'block';
-  arrowEl.style.left = `${sx}px`; arrowEl.style.top = `${sy}px`;
-  arrowCv.style.transform = `rotate(${rot}deg) scale(${1 + Math.sin(performance.now() / 160) * 0.08})`;
-  arrowDist.textContent = atYou ? 'YOU' : `${t.label} ${Math.round(dist)}`;
 }
 
 // ---------------------------------------------------------------- game state
@@ -941,7 +914,7 @@ function frame() {
   mats.beam.color.set('#ffe080').lerp(new THREE.Color('#ff50d0'), smoothstep(0.5, 0.8, dread));
   mats.beam.opacity = 0.1 + 0.3 * tod.night;
   mats.wake.color.set(0xffffff).lerp(new THREE.Color(0.35, 1, 0.9), tod.night * 0.9).lerp(new THREE.Color(1, 0.4, 0.95), tod.night * smoothstep(0.55, 0.9, dread) * 0.8);
-  sky.update(dt, camera, stage, wind.dir, tod, { rainbow: weather.rainbow, eyeYaw: abyss.eyeYaw ? camHeading + camYaw : null, sun2: abyss.sun2 });
+  sky.update(dt, camera, stage, wind.dir, tod, { rainbow: weather.rainbow, sun2: abyss.sun2 });
   ocean.material.opacity = 1 - 0.7 * abyss.seeThrough;
   if (abyss.seeThrough > 0) { U.uDeep.value.lerp(GLASS, 0.8 * abyss.seeThrough); U.uShallow.value.lerp(GLASS, 0.7 * abyss.seeThrough); }
   ocean.update(camera.position.x, camera.position.z);

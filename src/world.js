@@ -610,8 +610,11 @@ export class Island {
         if (isl.stare) { // full dread: every beam swings round to point at the ship
           const want = Math.atan2(-(isl.stare.z - bz), isl.stare.x - bx);
           beam.rotation.y += Math.atan2(Math.sin(want - beam.rotation.y), Math.cos(want - beam.rotation.y)) * 0.08;
-          beam.scale.x = Math.min(7, Math.max(1, Math.hypot(isl.stare.x - bx, isl.stare.z - bz) / 44)); // long enough to reach you
-        } else { beam.rotation.y = t * 0.9 + ph; beam.scale.x = 1; }
+          const dist = Math.hypot(isl.stare.x - bx, isl.stare.z - bz), drop = extra.beam.y - 1.2;
+          beam.rotation.z += (-Math.atan2(drop, dist) - beam.rotation.z) * 0.08;           // tipped down onto the deck
+          beam.scale.x = Math.min(7, Math.max(1, Math.hypot(dist, drop) / 44));          // long enough to reach you
+          beam.scale.y = beam.scale.z = 0.6;
+        } else { beam.rotation.y = t * 0.9 + ph; beam.rotation.z *= 0.9; beam.scale.set(1, 1, 1); }
       });
     }
   }

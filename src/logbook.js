@@ -7,7 +7,7 @@ import { MAIN_GOALS, SIDE_GOALS } from './objectives.js';
 import { FISH } from './fishing.js';
 import { GROUPS, byId } from './customize.js';
 
-// The captain's log: an open book. Tabs are bookmark ribbons hanging out of the top, content flows over two pages
+// The captain's log: an old low-poly book. Tabs are cloth bookmarks sticking out of the right side, content flows over two pages
 // (turn with the arrows below / Up and Down), and the Map is a hand-inked low-poly chart.
 const TABS = [['map', 'Map', '🧭'], ['goals', 'Goals', '⚓'], ['quests', 'Quests', '📜'], ['riddles', 'Riddles', '🗝'], ['rumours', 'Rumours', '🗣'], ['journal', 'Journal', '📖'], ['ship', 'Ship', '⛵'], ['standing', 'Standing', '⭐']];
 const W = 880, H = 470;
@@ -16,6 +16,93 @@ const INK = '#3a2210';
 const hex = (c) => [parseInt(c.slice(1, 3), 16), parseInt(c.slice(3, 5), 16), parseInt(c.slice(5, 7), 16)];
 const shade = (c, k) => { const [r, g, b] = hex(c); return `rgb(${Math.max(0, Math.min(255, r * k)) | 0},${Math.max(0, Math.min(255, g * k)) | 0},${Math.max(0, Math.min(255, b * k)) | 0})`; };
 const LAND = { sand: '#ecd69c', jungle: '#92c274', rocky: '#b7ad9c', treasure: '#ecd69c', harbour: '#dcb877' };
+// ---- hand-drawn look: every line is drawn twice, a little off, with wobbly sub-segments; fills are
+// uneven watercolour washes with pencil hatching. Seeded, so a drawing does not boil while you pan.
+const circ = (x, y, r, n = 12) => Array.from({ length: n }, (_, i) => [x + Math.cos((i / n) * 6.2832) * r, y + Math.sin((i / n) * 6.2832) * r]);
+const rectP = (x, y, w, h) => [[x, y], [x + w, y], [x + w, y + h], [x, y + h]];
+function sketcher(c, seed) {
+  const r = mulberry32(seed | 0), j = (a) => (r() - 0.5) * 2 * a;
+  const path = (pts, closed, amp) => {
+    const P = closed ? [...pts, pts[0]] : pts;
+    c.beginPath();
+    P.forEach((p, i) => {
+      if (!i) { c.moveTo(p[0] + j(amp), p[1] + j(amp)); return; }
+      const q = P[i - 1];
+      for (let k = 1; k <= 3; k++) { const t = k / 3; c.lineTo(q[0] + (p[0] - q[0]) * t + j(amp), q[1] + (p[1] - q[1]) * t + j(amp)); }
+    });
+  };
+  return {
+    r, j,
+    line(pts, o = {}) {
+      const { closed = true, col = INK, w = 1.3, passes = 2, amp = 1.1, alpha = 1 } = o;
+      c.strokeStyle = col; c.lineCap = 'round'; c.lineJoin = 'round';
+      for (let i = 0; i < passes; i++) { c.lineWidth = w * (0.6 + r() * 0.6); c.globalAlpha = alpha * (0.6 + r() * 0.4); path(pts, closed, amp); c.stroke(); }
+      c.globalAlpha = 1;
+    },
+    wash(pts, col, a = 0.6, amp = 1.8) {
+      c.fillStyle = col;
+      c.globalAlpha = a; path(pts, true, amp); c.fill();
+      const ox = j(2), oz = j(2); c.globalAlpha = a * 0.45; path(pts.map((p) => [p[0] + ox, p[1] + oz]), true, amp * 1.6); c.fill(); // misregistered second coat
+      c.globalAlpha = 1;
+    },
+    hatch(pts, o = {}) {
+      const { col = INK, gap = 4, a = 0.25, ang = 0.9 } = o;
+      let x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9;
+      for (const [x, y] of pts) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); }
+      c.save(); c.beginPath(); pts.forEach((p, i) => (i ? c.lineTo(p[0], p[1]) : c.moveTo(p[0], p[1]))); c.closePath(); c.clip();
+      c.strokeStyle = col; c.lineWidth = 0.8; c.globalAlpha = a;
+      const L = (x1 - x0) + (y1 - y0), dx = Math.cos(ang), dy = Math.sin(ang);
+      for (let t = -L; t < L; t += gap + j(1)) {
+        const cx = (x0 + x1) / 2 + t * dy, cy = (y0 + y1) / 2 - t * dx;
+        c.beginPath(); c.moveTo(cx - dx * L + j(1), cy - dy * L + j(1)); c.lineTo(cx + dx * L + j(1), cy + dy * L + j(1)); c.stroke();
+      }
+      c.restore(); c.globalAlpha = 1;
+    },
+    text(str, x, y, o = {}) {
+      const { font = 'italic 700 12px Georgia, serif', col = INK, halo = true } = o;
+      c.save(); c.translate(x + j(1), y + j(1)); c.rotate(j(0.06)); c.font = font; c.textAlign = 'center';
+      if (halo) { c.strokeStyle = 'rgba(232,214,166,0.85)'; c.lineWidth = 3; c.strokeText(str, 0, 0); }
+      c.fillStyle = col; c.globalAlpha = 0.85 + r() * 0.15; c.fillText(str, 0, 0); c.restore(); c.globalAlpha = 1;
+    },
+  };
+}
+// the cover: worn leather as a low-poly mesh (each facet lit from the top-left), stitched edge, brass corners
+function lowPolyCover() {
+  const CW = 1000, CH = 600, cv = document.createElement('canvas'); cv.width = CW; cv.height = CH;
+  const c = cv.getContext('2d'), r = mulberry32(404), NX = 14, NY = 8, P = [];
+  for (let y = 0; y <= NY; y++) for (let x = 0; x <= NX; x++) {
+    const edge = x === 0 || y === 0 || x === NX || y === NY;
+    P.push([x / NX * CW + (edge ? 0 : (r() - 0.5) * 40), y / NY * CH + (edge ? 0 : (r() - 0.5) * 40), r() * 60]);
+  }
+  const at = (x, y) => P[y * (NX + 1) + x], L = [-0.5, -0.6, 0.62];
+  const face = (a, b, d) => {
+    const u = [b[0] - a[0], b[1] - a[1], b[2] - a[2]], v = [d[0] - a[0], d[1] - a[1], d[2] - a[2]];
+    const n = [u[1] * v[2] - u[2] * v[1], u[2] * v[0] - u[0] * v[2], u[0] * v[1] - u[1] * v[0]], len = Math.hypot(...n) || 1;
+    const k = Math.abs((n[0] * L[0] + n[1] * L[1] + n[2] * L[2]) / len), sh = 0.45 + k * 0.85 + (r() - 0.5) * 0.12;
+    c.fillStyle = `rgb(${92 * sh | 0},${54 * sh | 0},${26 * sh | 0})`;
+    c.beginPath(); c.moveTo(a[0], a[1]); c.lineTo(b[0], b[1]); c.lineTo(d[0], d[1]); c.closePath(); c.fill();
+    c.strokeStyle = c.fillStyle; c.lineWidth = 1; c.stroke();
+  };
+  for (let y = 0; y < NY; y++) for (let x = 0; x < NX; x++) {
+    const a = at(x, y), b = at(x + 1, y), d = at(x + 1, y + 1), e = at(x, y + 1);
+    if ((x + y) % 2) { face(a, b, d); face(a, d, e); } else { face(a, b, e); face(b, d, e); }
+  }
+  for (let i = 0; i < 400; i++) { c.fillStyle = `rgba(${r() > 0.5 ? '20,10,4' : '180,130,80'},${r() * 0.18})`; c.fillRect(r() * CW, r() * CH, 1 + r() * 30, 1); } // scuffs
+  for (let i = 0; i < 25; i++) { c.fillStyle = 'rgba(20,10,4,0.18)'; c.beginPath(); c.ellipse(r() * CW, r() * CH, 10 + r() * 40, 6 + r() * 20, r() * 3, 0, 7); c.fill(); } // worn patches
+  c.strokeStyle = 'rgba(232,200,140,0.55)'; c.lineWidth = 2; c.setLineDash([7, 6]); c.strokeRect(9, 9, CW - 18, CH - 18); c.setLineDash([]);
+  const corner = (x, y, sx, sy) => {
+    const pts = [[x, y], [x + sx * 46, y], [x, y + sy * 46]];
+    const tri = (a, b, d, col) => { c.fillStyle = col; c.beginPath(); c.moveTo(...a); c.lineTo(...b); c.lineTo(...d); c.closePath(); c.fill(); };
+    const m = [x + sx * 15, y + sy * 15];
+    tri(pts[0], pts[1], m, '#e2c47a'); tri(pts[0], m, pts[2], '#a8873c'); tri(pts[1], pts[2], m, '#c9a85c');
+    c.fillStyle = '#5a4012'; c.beginPath(); c.arc(x + sx * 10, y + sy * 10, 2.5, 0, 7); c.fill();
+  };
+  corner(0, 0, 1, 1); corner(CW, 0, -1, 1); corner(0, CH, 1, -1); corner(CW, CH, -1, -1);
+  const g = c.createLinearGradient(CW / 2 - 40, 0, CW / 2 + 40, 0); // spine bulge
+  g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(0.5, 'rgba(0,0,0,0.35)'); g.addColorStop(1, 'rgba(0,0,0,0)');
+  c.fillStyle = g; c.fillRect(CW / 2 - 40, 0, 80, CH);
+  return cv.toDataURL();
+}
 const stars = (n) => '★'.repeat(n) + '☆'.repeat(3 - n);
 const ent = (title, sub = '', right = '', cls = '') => `<div class="ent ${cls}"><b>${title}</b>${right ? `<span class="r">${right}</span>` : ''}${sub ? `<small>${sub}</small>` : ''}</div>`;
 const h3 = (t) => `<h3>${t}</h3>`;
@@ -32,6 +119,7 @@ export class Logbook {
     this.num = document.getElementById('pgNum');
     this.page = 0;
     this.parch = null;
+    this.root.querySelector('.book').style.backgroundImage = `url(${lowPolyCover()})`;
     this.tabsEl.innerHTML = TABS.map(([id, label, icon], i) => `<button data-tab="${id}" title="${label} (${i + 1})"><span>${icon}</span><em>${label}</em></button>`).join('');
     this.tabsEl.addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) this.open(b.dataset.tab); });
     document.getElementById('logClose').addEventListener('click', () => deps.close());
@@ -207,10 +295,55 @@ export class Logbook {
   parchment() {
     if (this.parch) return this.parch;
     const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
-    const c = cv.getContext('2d'), r = mulberry32(55);
-    c.fillStyle = '#e8d6a6'; c.fillRect(0, 0, W, H);
-    for (let i = 0; i < 160; i++) { c.fillStyle = `rgba(${r() > 0.5 ? '140,100,50' : '255,245,210'},${0.03 + r() * 0.05})`; c.beginPath(); c.ellipse(r() * W, r() * H, 20 + r() * 90, 14 + r() * 60, r() * 3, 0, 7); c.fill(); }
-    for (let i = 0; i < 500; i++) { c.fillStyle = `rgba(110,75,35,${r() * 0.12})`; c.fillRect(r() * W, r() * H, 1 + r() * 2, 1); }
+    const c = cv.getContext('2d'), r = mulberry32(55), sk = sketcher(c, 9);
+    c.fillStyle = '#e2cd9a'; c.fillRect(0, 0, W, H);
+    for (let i = 0; i < 180; i++) { c.fillStyle = `rgba(${r() > 0.5 ? '140,100,50' : '255,245,210'},${0.03 + r() * 0.06})`; c.beginPath(); c.ellipse(r() * W, r() * H, 20 + r() * 90, 14 + r() * 60, r() * 3, 0, 7); c.fill(); }
+    for (let i = 0; i < 900; i++) { c.fillStyle = `rgba(110,75,35,${r() * 0.14})`; c.fillRect(r() * W, r() * H, 1 + r() * 3, 1); }   // fibres
+    // water stains with dark tide-lines
+    for (let i = 0; i < 4; i++) {
+      const x = r() * W, y = r() * H, rr = 30 + r() * 70, pts = circ(x, y, rr, 16).map(([px, py]) => [px + (r() - 0.5) * rr * 0.4, py + (r() - 0.5) * rr * 0.4]);
+      sk.wash(pts, 'rgba(150,105,50,1)', 0.07, 6); sk.line(pts, { col: 'rgba(120,75,30,1)', w: 1.6, alpha: 0.35, amp: 3, passes: 1 });
+    }
+    // a coffee-mug ring, half a ring next to it
+    for (const [x, y, a0, a1] of [[W * 0.78, H * 0.22, 0, 6.2], [W * 0.84, H * 0.3, 2.2, 5.4]]) {
+      c.strokeStyle = 'rgba(110,60,20,0.28)'; c.lineWidth = 4; c.beginPath(); c.arc(x, y, 34, a0, a1); c.stroke();
+      c.lineWidth = 1.2; c.strokeStyle = 'rgba(90,45,15,0.3)'; c.beginPath(); c.arc(x, y, 36.5, a0, a1 - 0.6); c.stroke();
+    }
+    // fold creases: a dark valley with a rubbed, lighter ridge beside it
+    for (const [x0, y0, x1, y1] of [[W / 2, 0, W / 2 + 6, H], [0, H / 2, W, H / 2 - 4]]) {
+      for (const [col, off, w] of [['rgba(80,50,20,0.28)', 0, 1.4], ['rgba(255,248,225,0.35)', 2, 2.5], ['rgba(80,50,20,0.1)', -3, 4]]) {
+        c.strokeStyle = col; c.lineWidth = w; c.beginPath();
+        for (let k = 0; k <= 20; k++) { const t = k / 20, x = x0 + (x1 - x0) * t + (y0 === 0 ? off : 0) + (r() - 0.5), y = y0 + (y1 - y0) * t + (x0 === 0 ? off : 0) + (r() - 0.5); k ? c.lineTo(x, y) : c.moveTo(x, y); }
+        c.stroke();
+      }
+    }
+    // graphite smudges and erased scribbles
+    for (let i = 0; i < 6; i++) {
+      const x = r() * W, y = r() * H, g = c.createRadialGradient(x, y, 2, x, y, 30 + r() * 30);
+      g.addColorStop(0, 'rgba(70,65,60,0.13)'); g.addColorStop(1, 'rgba(70,65,60,0)'); c.fillStyle = g; c.fillRect(x - 70, y - 70, 140, 140);
+    }
+    for (let i = 0; i < 5; i++) {
+      const x = r() * W, y = r() * H, pts = Array.from({ length: 7 }, (_, k) => [x + k * 6 + r() * 4, y + (k % 2 ? 6 : -6) + r() * 3]);
+      sk.line(pts, { closed: false, col: '#6a6460', w: 1, alpha: 0.25, passes: 1 });
+    }
+    // pencil notes somebody left
+    const notes = ['calm here', 'fish?', '12 fathoms', 'x nothing', 'reef!', '40 + 15 = 55', 'ask Perrin', 'gulls', '?'];
+    for (let i = 0; i < 7; i++) sk.text(notes[i % notes.length], 40 + r() * (W - 80), 30 + r() * (H - 60), { font: `italic ${10 + (r() * 3 | 0)}px Georgia, serif`, col: 'rgba(80,72,64,0.5)', halo: false });
+    for (let i = 0; i < 3; i++) { const x = 60 + r() * (W - 120), y = 40 + r() * (H - 80); sk.line([[x, y], [x + 30 + r() * 40, y + (r() - 0.5) * 30]], { closed: false, col: '#6a6460', alpha: 0.35, w: 1, passes: 1 }); }
+    // ink blots and spatter
+    for (let i = 0; i < 3; i++) {
+      const x = r() * W, y = r() * H, rr = 3 + r() * 6;
+      sk.wash(circ(x, y, rr, 9).map(([px, py]) => [px + (r() - 0.5) * rr, py + (r() - 0.5) * rr]), '#2a1608', 0.65, 1);
+      for (let k = 0; k < 6; k++) { c.fillStyle = 'rgba(42,22,8,0.5)'; c.beginPath(); c.arc(x + (r() - 0.5) * rr * 6, y + (r() - 0.5) * rr * 6, r() * 1.6, 0, 7); c.fill(); }
+    }
+    // worn, darkened edges and a dog-eared corner
+    for (let i = 0; i < 260; i++) {
+      const side = i % 4, t = r(), d = r() * r() * 26;
+      const x = side === 0 ? t * W : side === 1 ? W - d : side === 2 ? t * W : d, y = side === 0 ? d : side === 1 ? t * H : side === 2 ? H - d : t * H;
+      c.fillStyle = `rgba(90,55,20,${0.05 + r() * 0.08})`; c.beginPath(); c.arc(x, y, 3 + r() * 9, 0, 7); c.fill();
+    }
+    c.fillStyle = 'rgba(245,232,200,0.9)'; c.beginPath(); c.moveTo(W, H - 34); c.lineTo(W - 34, H); c.lineTo(W - 30, H - 30); c.closePath(); c.fill();
+    c.strokeStyle = 'rgba(90,55,20,0.45)'; c.lineWidth = 1; c.stroke();
     this.parch = cv;
     return cv;
   }
@@ -227,16 +360,16 @@ export class Logbook {
     c.lineWidth = 1.4; c.setLineDash([8, 6]);
     for (let sz = sz0; sz <= sz1; sz++) for (let sx = sx0; sx <= sx1; sx++) {
       const info = sectorInfo(sx, sz, seed), L = X(sx * SECTOR - SECTOR / 2), T = Z(sz * SECTOR - SECTOR / 2), S = SECTOR * sc;
-      if (seen.has(info.id)) { c.fillStyle = info.faction.color + '22'; c.fillRect(L, T, S, S); }
-      c.strokeStyle = 'rgba(74,46,24,0.45)'; c.strokeRect(L, T, S, S);
+      const sk = sketcher(c, hash2(sx, sz, 31));
+      if (seen.has(info.id)) sk.wash(rectP(L + 4, T + 4, S - 8, S - 8), info.faction.color, 0.08, 6);
+      c.setLineDash([6, 7]); sk.line(rectP(L, T, S, S), { col: '#4a2e18', w: 1.2, passes: 1, amp: 1.5, alpha: 0.5 }); c.setLineDash([]);
     }
-    c.setLineDash([]);
 
     c.strokeStyle = 'rgba(60,110,130,0.35)'; c.lineWidth = 1.2;
     for (let gz = Math.floor(z0 / 70); gz <= z1 / 70; gz++) for (let gx = Math.floor(x0 / 70); gx <= x1 / 70; gx++) {
       const h = hash2(gx, gz, 77); if (h % 3 !== 0) continue;
       const px = X(gx * 70 + (h % 40)), pz = Z(gz * 70 + ((h >> 8) % 40));
-      c.beginPath(); c.moveTo(px - 7, pz); c.quadraticCurveTo(px - 3.5, pz - 4, px, pz); c.quadraticCurveTo(px + 3.5, pz + 4, px + 7, pz); c.stroke();
+      sketcher(c, h).line([[px - 7, pz], [px - 3.5, pz - 3], [px, pz], [px + 3.5, pz + 3], [px + 7, pz]], { closed: false, col: '#3c6e82', w: 1.1, passes: 1, amp: 0.6, alpha: 0.5 });
     }
 
     const labels = [];
@@ -276,105 +409,115 @@ export class Logbook {
       if (!this.warpRaf) this.warpRaf = requestAnimationFrame(() => { this.warpRaf = 0; if (this.tab === 'map' && document.getElementById('chart').classList.contains('open')) this.drawMap(); });
     }
     c.font = 'italic 700 12px Georgia, serif'; c.textAlign = 'center';
-    for (const [name, lx, lz] of labels) { c.strokeStyle = 'rgba(232,214,166,0.92)'; c.lineWidth = 3; c.strokeText(name, lx, lz); c.fillStyle = INK; c.fillText(name, lx, lz); }
+    for (const [name, lx, lz] of labels) sketcher(c, hash2(lx | 0, name.length, 5)).text(name, lx, lz);
 
     c.font = 'italic 700 17px Georgia, serif';
     for (let sz = sz0; sz <= sz1; sz++) for (let sx = sx0; sx <= sx1; sx++) {
       const info = sectorInfo(sx, sz, seed), cx = X(sx * SECTOR), cz = Z(sz * SECTOR - SECTOR / 2) + 22;
-      if (!seen.has(info.id)) { c.fillStyle = 'rgba(74,46,24,0.3)'; c.fillText('~ uncharted ~', cx, cz); continue; }
-      c.fillStyle = 'rgba(74,46,24,0.75)'; c.fillText(info.name, cx, cz);
-      c.font = 'italic 12px Georgia, serif'; c.fillStyle = info.faction.color; c.fillText(info.faction.name, cx, cz + 15); c.font = 'italic 700 17px Georgia, serif';
+      const sk = sketcher(c, hash2(sx, sz, 8));
+      if (!seen.has(info.id)) { sk.text('~ uncharted ~', cx, cz, { font: 'italic 700 17px Georgia, serif', col: 'rgba(74,46,24,0.3)', halo: false }); continue; }
+      sk.text(info.name, cx, cz, { font: 'italic 700 17px Georgia, serif', col: 'rgba(74,46,24,0.75)', halo: false });
+      sk.text(info.faction.name, cx, cz + 15, { font: 'italic 12px Georgia, serif', col: info.faction.color, halo: false });
     }
 
     for (const r of Object.values(state.rumoured)) {
       if (r.found) continue;
       const px = X(r.x), pz = Z(r.z);
-      c.setLineDash([3, 3]); c.strokeStyle = '#b02818'; c.lineWidth = 1.5; c.beginPath(); c.arc(px, pz, 15, 0, 7); c.stroke(); c.setLineDash([]);
-      c.fillStyle = '#b02818'; c.font = 'bold 18px Georgia, serif'; c.textAlign = 'center'; c.fillText('?', px, pz + 6);
+      const sk = sketcher(c, hash2(r.x, r.z, 3));
+      sk.line(circ(px, pz, 15, 10), { col: '#b02818', w: 1.5, amp: 1.6 });
+      sk.text('?', px, pz + 6, { font: 'bold 18px Georgia, serif', col: '#b02818', halo: false });
     }
     for (const q of state.quests) if (q.type === 'crates') {
       const px = X(q.center.x), pz = Z(q.center.z);
-      c.setLineDash([5, 4]); c.strokeStyle = '#a06a10'; c.lineWidth = 1.6; c.beginPath(); c.arc(px, pz, 70 * sc, 0, 7); c.stroke(); c.setLineDash([]);
-      c.fillStyle = '#8a5a30'; c.fillRect(px - 7, pz - 6, 14, 12); c.strokeStyle = INK; c.strokeRect(px - 7, pz - 6, 14, 12); c.fillStyle = '#ffd23a'; c.fillRect(px - 2, pz - 2, 4, 4);
+      const sk = sketcher(c, hash2(q.center.x | 0, q.center.z | 0, 4));
+      c.setLineDash([5, 5]); sk.line(circ(px, pz, 70 * sc, 18), { col: '#a06a10', w: 1.4, passes: 1, amp: 2.5 }); c.setLineDash([]);
+      sk.wash(rectP(px - 7, pz - 6, 14, 12), '#8a5a30', 0.8, 0.8); sk.line(rectP(px - 7, pz - 6, 14, 12), { w: 1.2, amp: 1.1 });
+      sk.line([[px - 7, pz - 6], [px + 7, pz + 6]], { closed: false, w: 0.9, passes: 1 });
     }
     if (state.job) {
-      const px = X(state.job.x), pz = Z(state.job.z);
-      c.strokeStyle = INK; c.lineWidth = 2; c.beginPath(); c.moveTo(px, pz); c.lineTo(px, pz - 24); c.stroke();
-      c.fillStyle = '#d07010'; c.beginPath(); c.moveTo(px, pz - 24); c.lineTo(px + 15, pz - 18); c.lineTo(px, pz - 12); c.closePath(); c.fill(); c.stroke();
+      const px = X(state.job.x), pz = Z(state.job.z), sk = sketcher(c, 77);
+      sk.line([[px, pz], [px, pz - 24]], { closed: false, w: 1.6 });
+      sk.wash([[px, pz - 24], [px + 15, pz - 18], [px, pz - 12]], '#d07010', 0.85, 0.8); sk.line([[px, pz - 24], [px + 15, pz - 18], [px, pz - 12]], { w: 1.2, amp: 1.1 });
     }
 
     c.save(); c.translate(X(ship.pos.x), Z(ship.pos.z)); c.rotate(ship.heading);
-    c.fillStyle = '#8a4a26'; c.strokeStyle = INK; c.lineWidth = 1.5;
-    c.beginPath(); c.moveTo(0, -11); c.lineTo(6, 4); c.lineTo(3, 9); c.lineTo(-3, 9); c.lineTo(-6, 4); c.closePath(); c.fill(); c.stroke();
-    c.fillStyle = '#fff4d8'; c.beginPath(); c.moveTo(0, -8); c.lineTo(8, 2); c.lineTo(0, 2); c.closePath(); c.fill(); c.stroke();
+    { const sk = sketcher(c, 12), hull = [[0, -11], [6, 4], [3, 9], [-3, 9], [-6, 4]], sail = [[0, -8], [8, 2], [0, 2]];
+      sk.wash(hull, '#8a4a26', 0.9, 0.5); sk.line(hull, { w: 1.4, amp: 0.6 }); sk.wash(sail, '#fff4d8', 0.95, 0.4); sk.line(sail, { w: 1.1, amp: 0.5 }); }
     c.restore();
 
-    c.save(); c.translate(70, H - 70);
-    c.strokeStyle = INK; c.fillStyle = 'rgba(74,46,24,0.8)'; c.lineWidth = 1.4;
-    for (let i = 0; i < 8; i++) { c.rotate(Math.PI / 4); c.beginPath(); c.moveTo(0, 0); c.lineTo(5, -(i % 2 ? 18 : 34)); c.lineTo(0, -(i % 2 ? 24 : 44)); c.closePath(); if (i % 2 === 0) c.fill(); else c.stroke(); }
-    c.restore();
-    c.fillStyle = INK; c.font = 'bold 15px Georgia, serif'; c.textAlign = 'center'; c.fillText('N', 70, H - 120);
+    { // a hand-drawn compass rose
+      const sk = sketcher(c, 21), cx = 70, cy = H - 70;
+      sk.line(circ(cx, cy, 30, 14), { w: 1, passes: 2, amp: 1.2, alpha: 0.7 });
+      for (let i = 0; i < 8; i++) {
+        const a = (i / 8) * Math.PI * 2 - Math.PI / 2, L = i % 2 ? 22 : 42, side = a + 0.25;
+        const tip = [cx + Math.cos(a) * L, cy + Math.sin(a) * L], s1 = [cx + Math.cos(side) * 6, cy + Math.sin(side) * 6];
+        if (i % 2 === 0) sk.wash([[cx, cy], s1, tip], '#4a2e18', 0.75, 0.6);
+        sk.line([[cx, cy], s1, tip], { w: 1.1, amp: 0.7 });
+      }
+      sk.text('N', cx, cy - 48, { font: 'bold 15px Georgia, serif', halo: false });
+    }
 
     const g = c.createRadialGradient(W / 2, H / 2, H * 0.42, W / 2, H / 2, H * 0.9);
     g.addColorStop(0, 'rgba(70,40,15,0)'); g.addColorStop(1, 'rgba(70,40,15,0.5)');
     c.fillStyle = g; c.fillRect(0, 0, W, H);
-    c.strokeStyle = INK; c.lineWidth = 3; c.strokeRect(5, 5, W - 10, H - 10);
-    c.lineWidth = 1; c.strokeRect(10, 10, W - 20, H - 20);
+    { const sk = sketcher(c, 3); sk.line(rectP(6, 6, W - 12, H - 12), { w: 2.6, amp: 1.4 }); sk.line(rectP(11, 11, W - 22, H - 22), { w: 1, passes: 1, amp: 1.2, alpha: 0.8 }); }
   }
 
   drawIsland(c, d, px, pz, sc, state) {
-    const N = 18, base = LAND[d.type] || '#ecd69c';
-    const pts = [], pts2 = [], wash = [];
+    const N = 14, base = LAND[d.type] || '#ecd69c', sk = sketcher(c, d.seed * 7 + 1);
+    const pts = [], inner = [];
     for (let i = 0; i < N; i++) {
       const th = (i / N) * Math.PI * 2, r = shoreR(d, th) * sc;
       pts.push([px + Math.cos(th) * r, pz + Math.sin(th) * r]);
-      pts2.push([px + Math.cos(th) * r * 0.55, pz + Math.sin(th) * r * 0.55]);
-      wash.push([px + Math.cos(th) * r * 1.35, pz + Math.sin(th) * r * 1.35]);
+      inner.push([px + Math.cos(th) * r * 0.55, pz + Math.sin(th) * r * 0.55]);
     }
-    const poly = (p) => { c.beginPath(); p.forEach((q, i) => (i ? c.lineTo(q[0], q[1]) : c.moveTo(q[0], q[1]))); c.closePath(); };
-    poly(wash); c.fillStyle = 'rgba(110,190,200,0.35)'; c.fill();
-    for (let i = 0; i < N; i++) {
-      const j = (i + 1) % N, k = 0.86 + ((hash2(i, d.seed, 3) % 100) / 100) * 0.24 + (i % 2 ? 0.05 : -0.05);
-      c.beginPath(); c.moveTo(px, pz); c.lineTo(pts[i][0], pts[i][1]); c.lineTo(pts[j][0], pts[j][1]); c.closePath();
-      c.fillStyle = shade(base, k); c.fill();
-    }
-    if (d.type === 'jungle' || d.type === 'rocky' || d.type === 'treasure') {
-      const inner = d.type === 'rocky' ? '#9a9486' : '#6aa456';
-      for (let i = 0; i < N; i++) {
-        const j = (i + 1) % N, k = 0.85 + ((hash2(i, d.seed, 9) % 100) / 100) * 0.3;
-        c.beginPath(); c.moveTo(px, pz); c.lineTo(pts2[i][0], pts2[i][1]); c.lineTo(pts2[j][0], pts2[j][1]); c.closePath();
-        c.fillStyle = shade(inner, k); c.fill();
-      }
-    }
-    poly(pts); c.strokeStyle = INK; c.lineWidth = 1.6; c.lineJoin = 'round'; c.stroke();
+    const ring = (k) => pts.map((p) => [px + (p[0] - px) * k, pz + (p[1] - pz) * k]);
+    sk.line(ring(1.28), { col: '#3a6a78', w: 0.9, passes: 1, amp: 1.6, alpha: 0.55 });   // old-chart coastal ripples
+    sk.line(ring(1.55), { col: '#3a6a78', w: 0.8, passes: 1, amp: 2, alpha: 0.3 });
+    sk.wash(pts, base, 0.75);
+    if (d.type === 'jungle' || d.type === 'rocky' || d.type === 'treasure') sk.wash(inner, d.type === 'rocky' ? '#9a9486' : '#6aa456', 0.6, 2.5);
+    sk.hatch(pts, { a: 0.2, gap: 3.4 + sc });
+    sk.line(pts, { w: 1.5 });
 
     if (sc < 0.2) return;
     const s = Math.max(0.7, sc * 2.4);
-    c.lineWidth = 1.2; c.strokeStyle = INK;
+    const house = (hx, hz, col) => {
+      const body = rectP(hx - 4 * s, hz - s, 8 * s, 6 * s), roof = [[hx - 5 * s, hz - s], [hx, hz - 6 * s], [hx + 5 * s, hz - s]];
+      sk.wash(body, '#f0e0b0', 0.8, 0.8); sk.line(body, { w: 1.1, amp: 1 });
+      sk.wash(roof, col, 0.75, 0.8); sk.line(roof, { w: 1.1, amp: 1 });
+    };
+    const tower = (lx, lz, k) => {
+      const body = [[lx - 2.6 * k, lz + 2 * k], [lx - 1.8 * k, lz - 10 * k], [lx + 1.8 * k, lz - 10 * k], [lx + 2.6 * k, lz + 2 * k]];
+      sk.wash(body, '#f4f0e6', 0.85, 0.6); sk.line(body, { w: 1.1, amp: 1 });
+      sk.line([[lx - 2.2 * k, lz - 5 * k], [lx + 2.2 * k, lz - 5 * k]], { closed: false, col: '#b03a2a', w: 1.6, passes: 1 });
+      sk.wash(circ(lx, lz - 12 * k, 2 * k, 6), '#e8b838', 0.9, 0.5);
+      for (let i = 0; i < 4; i++) { const a = -1.2 + i * 0.8; sk.line([[lx + Math.cos(a) * 3 * k, lz - 12 * k + Math.sin(a) * 3 * k], [lx + Math.cos(a) * 6 * k, lz - 12 * k + Math.sin(a) * 6 * k]], { closed: false, col: '#c08a20', w: 0.8, passes: 1 }); }
+    };
+    const palm = (hx, hz) => {
+      sk.line([[hx, hz + 5 * s], [hx + 0.5 * s, hz], [hx + 1.2 * s, hz - 4 * s]], { closed: false, w: 1.2, passes: 2 });
+      sk.wash(circ(hx + 1.2 * s, hz - 4.5 * s, 3.5 * s, 7), '#4a9a40', 0.55, 1.2);
+      for (const a of [-2.8, -2.1, -1.4, -0.7, 0]) sk.line([[hx + 1.2 * s, hz - 4 * s], [hx + 1.2 * s + Math.cos(a) * 6 * s, hz - 4 * s + Math.sin(a) * 4 * s + 2 * s]], { closed: false, col: '#2e5a24', w: 1, passes: 1, amp: 0.8 });
+    };
     if (d.type === 'harbour') {
-      for (const [ox, oz, col] of [[-9, 0, '#c0483c'], [3, -4, '#3c78c8'], [10, 5, '#d09a30']]) {
-        const hx = px + ox * s, hz = pz + oz * s;
-        c.fillStyle = '#f0e0b0'; c.fillRect(hx - 4 * s, hz - 1 * s, 8 * s, 6 * s); c.strokeRect(hx - 4 * s, hz - 1 * s, 8 * s, 6 * s);
-        c.fillStyle = col; c.beginPath(); c.moveTo(hx - 5 * s, hz - 1 * s); c.lineTo(hx, hz - 6 * s); c.lineTo(hx + 5 * s, hz - 1 * s); c.closePath(); c.fill(); c.stroke();
-      }
-      if (hasLighthouse(d)) { const lx = px - 14 * s, lz = pz - 8 * s; c.fillStyle = '#f4f0e6'; c.fillRect(lx - 2.5 * s, lz - 10 * s, 5 * s, 12 * s); c.strokeRect(lx - 2.5 * s, lz - 10 * s, 5 * s, 12 * s); c.fillStyle = '#e8b838'; c.fillRect(lx - 2 * s, lz - 13 * s, 4 * s, 3 * s); }
+      for (const [ox, oz, col] of [[-9, 0, '#c0483c'], [3, -4, '#3c78c8'], [10, 5, '#d09a30']]) house(px + ox * s, pz + oz * s, col);
+      if (hasLighthouse(d)) tower(px - 14 * s, pz - 6 * s, s);
     } else if (d.type === 'jungle' || d.type === 'sandbar') {
       const n = d.type === 'jungle' ? 3 : 1;
-      for (let i = 0; i < n; i++) {
-        const hx = px + (i - 1) * 9 * s, hz = pz + ((i * 5) % 7 - 3) * s;
-        c.beginPath(); c.moveTo(hx, hz + 5 * s); c.lineTo(hx + 1 * s, hz - 3 * s); c.stroke();
-        c.fillStyle = '#4a9a40'; for (const a of [-2.6, -1.9, -1.2, -0.5]) { c.beginPath(); c.moveTo(hx + s, hz - 3 * s); c.lineTo(hx + s + Math.cos(a) * 7 * s, hz - 3 * s + Math.sin(a) * 5 * s + 2 * s); c.lineTo(hx + s + Math.cos(a + 0.4) * 4 * s, hz - 3 * s + Math.sin(a + 0.4) * 3 * s); c.closePath(); c.fill(); }
-      }
+      for (let i = 0; i < n; i++) palm(px + (i - (n - 1) / 2) * 9 * s, pz + ((i * 5) % 7 - 3) * s);
     } else if (d.type === 'rocky') {
       for (const [ox, oz, h] of [[-6, 3, 9], [2, 0, 13], [9, 4, 8]]) {
-        const hx = px + ox * s, hz = pz + oz * s;
-        c.fillStyle = '#8a8478'; c.beginPath(); c.moveTo(hx - 5 * s, hz + 4 * s); c.lineTo(hx, hz - h * s); c.lineTo(hx + 5 * s, hz + 4 * s); c.closePath(); c.fill(); c.stroke();
-        c.fillStyle = '#f4f0e6'; c.beginPath(); c.moveTo(hx - 1.6 * s, hz - (h - 4) * s); c.lineTo(hx, hz - h * s); c.lineTo(hx + 1.6 * s, hz - (h - 4) * s); c.closePath(); c.fill();
+        const hx = px + ox * s, hz = pz + oz * s, peak = [[hx - 5 * s, hz + 4 * s], [hx, hz - h * s], [hx + 5 * s, hz + 4 * s]];
+        sk.wash(peak, '#8a8478', 0.7, 0.8); sk.hatch([[hx, hz - h * s], [hx + 5 * s, hz + 4 * s], [hx, hz + 4 * s]], { a: 0.45, gap: 2 }); sk.line(peak, { w: 1.2, amp: 1.1 });
       }
-      if (hasLighthouse(d)) { const lx = px + 12 * s, lz = pz - 6 * s; c.fillStyle = '#f4f0e6'; c.fillRect(lx - 2 * s, lz - 8 * s, 4 * s, 10 * s); c.strokeRect(lx - 2 * s, lz - 8 * s, 4 * s, 10 * s); c.fillStyle = '#e8b838'; c.fillRect(lx - 1.6 * s, lz - 11 * s, 3.2 * s, 3 * s); }
+      if (hasLighthouse(d)) tower(px + 12 * s, pz - 4 * s, s * 0.85);
     } else if (d.type === 'treasure') {
-      if (state.dug.has(d.id)) { c.fillStyle = '#8a5a30'; c.fillRect(px - 5 * s, pz - 3 * s, 10 * s, 6 * s); c.strokeRect(px - 5 * s, pz - 3 * s, 10 * s, 6 * s); c.fillStyle = '#ffd23a'; c.fillRect(px - 1 * s, pz - 1 * s, 2 * s, 2 * s); }
-      else { c.fillStyle = '#9a948a'; c.fillRect(px - 6 * s, pz - 8 * s, 3 * s, 12 * s); c.fillRect(px + 3 * s, pz - 8 * s, 3 * s, 12 * s); c.fillRect(px - 7 * s, pz - 10 * s, 14 * s, 3 * s); c.strokeRect(px - 7 * s, pz - 10 * s, 14 * s, 3 * s); }
+      if (state.dug.has(d.id)) {
+        const box = rectP(px - 5 * s, pz - 3 * s, 10 * s, 6 * s);
+        sk.wash(box, '#8a5a30', 0.85, 0.6); sk.line(box, { w: 1.1, amp: 1 }); sk.wash(circ(px, pz, 1.4 * s, 5), '#ffd23a', 1, 0.3);
+      } else {
+        for (const ox of [-6, 3]) { const leg = rectP(px + ox * s, pz - 8 * s, 3 * s, 12 * s); sk.wash(leg, '#a8a294', 0.8, 0.6); sk.line(leg, { w: 1.1, amp: 1 }); }
+        const top = rectP(px - 7 * s, pz - 10.5 * s, 14 * s, 3 * s); sk.wash(top, '#a8a294', 0.8, 0.6); sk.line(top, { w: 1.1, amp: 1 });
+      }
     }
   }
 }

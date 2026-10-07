@@ -1,8 +1,9 @@
 // Wind meters for the HUD. All of them are top-down: the ship is fixed in the middle, the
 // wind blows toward w.dir (clockwise from north). Styles: dial (wood + cloth streamer),
 // pennant (low-poly flag), rose (faceted wind rose), sock (low-poly windsock).
-export const WIND_STYLES = ['dial', 'pennant', 'rose', 'sock'];
-export const WIND_NAMES = { dial: 'Wooden dial', pennant: 'Low-poly pennant', rose: 'Faceted wind rose', sock: 'Windsock' };
+export const WIND_STYLES = ['dial', 'pennant', 'rose', 'sock', 'arrow', 'vane', 'ticks', 'chalk', 'needle'];
+export const WIND_NAMES = { dial: 'Wooden dial', pennant: 'Low-poly pennant', rose: 'Faceted wind rose', sock: 'Windsock',
+  arrow: 'Plain arrow', vane: 'Ink weather vane', ticks: 'Tick ring', chalk: 'Chalk sketch', needle: 'Brass needle' };
 
 const S = 132, M = S / 2;
 const tri = (c, a, b, d, col, stroke) => { c.beginPath(); c.moveTo(a[0], a[1]); c.lineTo(b[0], b[1]); c.lineTo(d[0], d[1]); c.closePath(); c.fillStyle = col; c.fill(); if (stroke) { c.strokeStyle = stroke; c.lineWidth = 0.8; c.stroke(); } };
@@ -148,7 +149,108 @@ function sock(c, w, heading, t, jobA) {
   finish(c, w, heading, t, jobA);
 }
 
+// ------------------------------------------------------------------ simple, one or two colour meters
+/** the same information as the coloured ring, in a single colour: a thin arc over the headings
+ *  that sail well, a tick for the nose and a hollow tick toward the mission */
+function plain(c, w, heading, col, jobA, r = 50) {
+  const floor = w.floor == null ? 0.27 : w.floor;
+  c.strokeStyle = col; c.lineWidth = 6; c.lineCap = 'butt';
+  for (let i = 0; i < 36; i++) {
+    const a0 = (i / 36) * 6.2832, a1 = ((i + 1) / 36) * 6.2832;
+    const eff = 1 - (1 - floor) * smooth(0.35 * Math.PI, Math.PI, Math.abs(angDiff((a0 + a1) / 2, w.dir)));
+    if (eff < 0.72) continue;
+    c.beginPath(); c.arc(M, M, r, a0 - Math.PI / 2, a1 - Math.PI / 2 + 0.01); c.stroke();
+  }
+  c.save(); c.translate(M, M); c.rotate(heading);
+  c.fillStyle = col; c.beginPath(); c.moveTo(0, -r - 9); c.lineTo(6, -r + 2); c.lineTo(-6, -r + 2); c.closePath(); c.fill();
+  c.restore();
+  if (jobA != null) {
+    c.save(); c.translate(M, M); c.rotate(jobA);
+    c.strokeStyle = col; c.lineWidth = 2; c.beginPath(); c.moveTo(0, -r - 10); c.lineTo(5, -r - 1); c.lineTo(-5, -r - 1); c.closePath(); c.stroke();
+    c.restore();
+  }
+}
+function shipDot(c, heading, col) {
+  c.save(); c.translate(M, M); c.rotate(heading);
+  c.fillStyle = col; c.beginPath(); c.moveTo(0, -8); c.lineTo(5, 6); c.lineTo(-5, 6); c.closePath(); c.fill();
+  c.restore();
+}
+function arrow(c, w, heading, t, jobA) {
+  const col = '#f4ead0';
+  c.strokeStyle = 'rgba(20,10,4,.5)'; c.lineWidth = 6; c.beginPath(); c.arc(M, M, 42, 0, 7); c.stroke();
+  c.strokeStyle = col; c.lineWidth = 2; c.beginPath(); c.arc(M, M, 42, 0, 7); c.stroke();
+  c.save(); c.translate(M, M); c.rotate(w.dir);
+  const L = 18 + w.strength * 12;
+  c.strokeStyle = 'rgba(20,10,4,.5)'; c.lineWidth = 7; c.beginPath(); c.moveTo(0, L); c.lineTo(0, -L); c.stroke();
+  c.strokeStyle = col; c.lineWidth = 3; c.beginPath(); c.moveTo(0, L); c.lineTo(0, -L); c.stroke();
+  c.fillStyle = col; c.beginPath(); c.moveTo(0, -L - 9); c.lineTo(8, -L + 3); c.lineTo(-8, -L + 3); c.closePath(); c.fill();
+  c.restore();
+  plain(c, w, heading, col, jobA, 42);
+}
+function vane(c, w, heading, t, jobA) {
+  const ink = '#2a1608', paper = '#e8d6a6';
+  c.fillStyle = paper; c.beginPath(); c.arc(M, M, 46, 0, 7); c.fill();
+  c.strokeStyle = ink; c.lineWidth = 2; c.stroke();
+  for (let i = 0; i < 4; i++) { const a = i * Math.PI / 2; c.beginPath(); c.moveTo(M + Math.sin(a) * 38, M - Math.cos(a) * 38); c.lineTo(M + Math.sin(a) * 45, M - Math.cos(a) * 45); c.stroke(); }
+  c.font = 'bold 10px Georgia, serif'; c.textAlign = 'center'; c.fillStyle = ink; c.fillText('N', M, M - 27);
+  c.save(); c.translate(M, M); c.rotate(w.dir + Math.sin(t * 3) * 0.03 * (1 + (w.gust || 0) * 8));
+  c.fillStyle = ink; c.beginPath(); // arrow head, shaft, feathered tail
+  c.moveTo(0, -34); c.lineTo(7, -22); c.lineTo(1.5, -22); c.lineTo(1.5, 16); c.lineTo(8, 30); c.lineTo(0, 24); c.lineTo(-8, 30); c.lineTo(-1.5, 16); c.lineTo(-1.5, -22); c.lineTo(-7, -22); c.closePath(); c.fill();
+  c.restore();
+  c.fillStyle = paper; c.beginPath(); c.arc(M, M, 3.5, 0, 7); c.fill(); c.strokeStyle = ink; c.lineWidth = 1.5; c.stroke();
+  plain(c, w, heading, '#2a1608', jobA, 46);
+}
+function ticks(c, w, heading, t, jobA) {
+  const col = '#f4ead0', dim = 'rgba(244,234,208,.45)';
+  for (let i = 0; i < 32; i++) {
+    const a = (i / 32) * 6.2832, big = i % 8 === 0, r0 = big ? 32 : 36;
+    c.strokeStyle = 'rgba(20,10,4,.45)'; c.lineWidth = big ? 5 : 4; c.beginPath(); c.moveTo(M + Math.sin(a) * r0, M - Math.cos(a) * r0); c.lineTo(M + Math.sin(a) * 42, M - Math.cos(a) * 42); c.stroke();
+    c.strokeStyle = big ? col : dim; c.lineWidth = big ? 2.5 : 1.5; c.stroke();
+  }
+  // the wind is a single bright notch on the ring, plus a short tail on the other side
+  c.save(); c.translate(M, M); c.rotate(w.dir);
+  c.fillStyle = col; c.beginPath(); c.moveTo(0, -44); c.lineTo(7, -30); c.lineTo(-7, -30); c.closePath(); c.fill();
+  c.strokeStyle = col; c.lineWidth = 2; c.setLineDash([3, 3]); c.beginPath(); c.moveTo(0, 30); c.lineTo(0, -26); c.stroke(); c.setLineDash([]);
+  c.restore();
+  shipDot(c, heading, col);
+  plain(c, w, heading, col, jobA, 42);
+}
+function chalk(c, w, heading, t, jobA) {
+  const col = 'rgba(250,246,236,.9)';
+  const jit = (k) => Math.sin(k * 12.9898 + Math.floor(t * 4) * 7.1) * 1.2; // the strokes shimmer a little
+  c.strokeStyle = col; c.lineCap = 'round'; c.lineWidth = 2;
+  for (let pass = 0; pass < 2; pass++) {
+    c.beginPath();
+    for (let i = 0; i <= 28; i++) { const a = (i / 28) * 6.2832 + pass * 0.1, r = 43 + jit(i + pass * 40); i ? c.lineTo(M + Math.sin(a) * r, M - Math.cos(a) * r) : c.moveTo(M + Math.sin(a) * r, M - Math.cos(a) * r); }
+    c.stroke();
+  }
+  c.save(); c.translate(M, M); c.rotate(w.dir);
+  const L = 18 + w.strength * 12;
+  for (let pass = 0; pass < 2; pass++) {
+    c.beginPath(); c.moveTo(jit(1 + pass), L); c.lineTo(jit(2 + pass), -L);
+    c.moveTo(-8 + jit(3 + pass), -L + 9); c.lineTo(jit(4), -L - 2); c.lineTo(8 + jit(5 + pass), -L + 9);
+    c.stroke();
+  }
+  c.restore();
+  c.save(); c.translate(M, M); c.rotate(heading);
+  c.beginPath(); c.moveTo(0, -8); c.lineTo(5 + jit(9), 6); c.lineTo(-5, 6 + jit(8)); c.closePath(); c.stroke();
+  c.restore();
+  plain(c, w, heading, col, jobA, 43);
+}
+function needle(c, w, heading, t, jobA) {
+  const brass = '#d6b25a', dark = '#5a4012';
+  c.strokeStyle = dark; c.lineWidth = 6; c.beginPath(); c.arc(M, M, 44, 0, 7); c.stroke();
+  c.strokeStyle = brass; c.lineWidth = 3; c.stroke();
+  c.save(); c.translate(M, M); c.rotate(w.dir + Math.sin(t * 2.3) * 0.02);
+  const L = 34;
+  c.fillStyle = brass; c.beginPath(); c.moveTo(0, -L); c.lineTo(5, 0); c.lineTo(0, L * 0.55); c.lineTo(-5, 0); c.closePath(); c.fill();
+  c.fillStyle = dark; c.beginPath(); c.moveTo(0, -L); c.lineTo(5, 0); c.lineTo(0, 0); c.closePath(); c.fill();
+  c.restore();
+  c.fillStyle = brass; c.beginPath(); c.arc(M, M, 4, 0, 7); c.fill();
+  plain(c, w, heading, brass, jobA, 44);
+}
+
 export function drawWind(style, c, w, heading, t, jobA) {
   c.clearRect(0, 0, S, S);
-  ({ dial, pennant, rose, sock }[style] || dial)(c, w, heading, t, jobA);
+  ({ dial, pennant, rose, sock, arrow, vane, ticks, chalk, needle }[style] || dial)(c, w, heading, t, jobA);
 }

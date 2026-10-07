@@ -28,13 +28,15 @@ npm run build      # static build in dist/
 Wind matters and shifts over time: sailing downwind is fast, straight into it is slow. A day/night cycle runs (5 min per day). Earn gold from treasure, wrecks, salvage, charting and delivery jobs, then buy ship upgrades at any harbour. Weather, wildlife and other ships roam the sea, and lighthouses only light at night. The game synthesises its own sound; drop files in `public/audio/` to replace it. Touch devices get on-screen buttons.
 
 ## Full dread (testing the effects)
-The worst water (far from home, or forced with key `5`) has twelve extra effects. Pause (Esc) → **Full-dread effects (test)** lists them all:
+The worst water (far from home, or forced with key `5`) has ten extra effects. Pause (Esc) → **Full-dread effects (test)** lists them all:
 - **ON/OFF** switches each effect (saved), **All on / off** flips them all.
 - **Try** jumps straight to full dread with only that effect running (press `0` in game to stop).
 - **Go to full dread now** runs every effect that is ON together.
 - Leviathan has an extra **Ending** button that plays the "Eye awakens" sequence (it also triggers on its own after ~2.5 minutes at full dread).
 
-1 Glass calm · 2 Corrupted HUD · 3 Mad wind meter · 4 Mara breaks · 5 The Eye watches · 6 Watchers · 7 Living map · 8 Time loop · 9 Wrong ocean · 10 Ghost ship · 11 Wrong catches · 12 Leviathan & the Eye
+Glass calm · Corrupted HUD · Mad wind meter · Mara breaks · Lighthouses stare · Watchers (4 styles: distant shapes, pale villagers, tall thin ones, waders) · Living map · Time loop · Wrong ocean · Wrong catches · Leviathan & the Eye
+
+Dread only depends on distance from home; it does not build up over time (only the leviathan ending is time-based).
 
 ## Debug / preview
 - `1`-`5` force a dread stage, `0` returns to automatic (dread rises with distance from home), `[` `]` shift the hour, `` ` `` shows a debug line.

@@ -114,21 +114,22 @@ Real audio files (synthesised stand-ins ship now), trading, landing on islands, 
 
 
 ## HUD, tracker & grime pass
-- The HUD is only gold, time and place (island name when near, else sector). Missions live in a tracker toggled with **Q** and a faceted orange arrow (screen-edge or floating over the target) points at the tracked delivery, crate search area or main goal.
-- The captain's log tabs are cloth bookmark ribbons hanging from the top of the book.
+- The HUD is only gold, time and place (island name when near, else sector). Missions live in a tracker toggled with **Q**; the only direction hint is a small marker on the wind meter.
+- Wind meters: four detailed ones (dial, pennant, rose, windsock) and five plain one-colour ones (arrow, ink vane, tick ring, chalk, brass needle).
+- The captain's log is an old low-poly leather book (faceted cover, brass corners, page stack) with cloth bookmarks sticking out of its side; the labels are stamped into the cloth.
+- The chart is drawn like a used sketch: wobbly double ink lines, watercolour washes, pencil hatching, folds, stains, smudges and pencil notes.
 - Everything is deliberately grubby: stained/mossy atlas textures, per-face dirt in the baked vertex colours, a shader speckle + waterline wetness, clutter (barrels, crates, nets, washing lines, driftwood, fallen logs, mossy rocks) and worn ship details (cannons, anchor, ratlines).
 
 ## Full dread (`src/abyss.js`)
-Twelve effects that only run at dread >= ~0.9, each switchable in the pause menu and testable on its own ("Try"):
+Ten effects (the star-eye and ghost ship were cut) that only run at dread >= ~0.9, each switchable in the pause menu and testable on its own ("Try"):
 1. **Glass calm** - waves flatten, the sea turns into see-through black glass over a mirrored copy of the ship that slowly turns the wrong way.
 2. **Corrupted HUD** - place names glitch or lie ("TURN BACK"), the clock runs backwards, the gold counter whispers, tracker rows rewrite.
 3. **Mad wind meter** - needle spins, efficiency ring flickers, the mission arrow points at the player ("YOU").
 4. **Mara breaks** - glitching portrait/text, broken lines every ~40s, hints go unanswered.
-5. **The Eye watches** - the star-eye turns to stay in front of you and the camera is pulled up to meet it; lighthouse beams swing onto the ship (and stretch to reach it), then go dark.
-6. **Watchers** - pale figures on every nearby shore turn, one by one in little jerks, to face the ship.
+5. **Lighthouses stare** - every lighthouse beam swings round and tips down onto the deck, holds, then the lamps die.
+6. **Watchers** - four looks chosen with the Style button: distant dark shapes that slowly turn (subtle), pale villagers, far-too-tall thin figures, and waders standing in the sea with glowing eyes and mouths that sink when you get close (scary).
 7. **Living map** - the chart draws island by island, islands crawl, phantom isles ("Where you drowned") and a red "TURN BACK" appear.
 8. **Time loop** - a second, pale sun at the horizon; every ~90s the ship and clock jump back up to 20 seconds.
 9. **Wrong ocean** - wave animation runs backwards, the horizon tilts, the sails and flag swing against the wind.
-10. **Ghost ship** - a translucent copy sails off your starboard side; it vanishes when you turn the camera towards it.
 11. **Wrong catches** - fishing brings up memories (your own compass, Mara's hat); chests and wrecks hold your earlier loot "again".
 12. **Leviathan & the Eye** - giant dark arches rise from the sea ahead; after ~150s at full dread (or via the Ending button) a huge eye opens in the sky, the screen whites out and you wake near Harbour Tama.

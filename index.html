@@ -15,7 +15,7 @@
     :root { --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .16 0 0 0 0 .1 0 0 0 0 .05 0 0 0 1.1 -.42'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
     .panel { position: relative; }
     .panel::before { content: ""; position: absolute; inset: 0; background: var(--grain), linear-gradient(100deg, transparent 60%, rgba(30,18,6,.18)); background-size: 120px 120px, auto; pointer-events: none; image-rendering: pixelated; opacity: .6; }
-    .book::before { content: ""; position: absolute; inset: 0; background: var(--grain); background-size: 120px 120px; opacity: .4; pointer-events: none; border-radius: 6px; }
+    .book::before { content: ""; position: absolute; inset: 0; background: var(--grain); background-size: 120px 120px; opacity: .25; pointer-events: none; }
     .book .spread::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: var(--grain), radial-gradient(circle at 78% 82%, transparent 0 22px, rgba(110,60,20,.22) 23px 26px, transparent 27px), radial-gradient(ellipse at 20% 12%, rgba(120,70,20,.16), transparent 40%), radial-gradient(ellipse at 92% 94%, rgba(60,30,8,.3), transparent 28%), linear-gradient(90deg, rgba(60,35,10,.22), transparent 8% 92%, rgba(60,35,10,.22)); background-size: 120px 120px, auto, auto, auto, auto; opacity: .5; mix-blend-mode: multiply; }
     .panel { background: var(--panel); border: 2px solid var(--edge); box-shadow: 3px 3px 0 rgba(0,0,0,.45); padding: 6px 10px; }
     #hud { position: fixed; inset: 0; pointer-events: none; }
@@ -40,8 +40,9 @@
 
     #chart, .modal { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; background: rgba(8, 6, 22, .72); z-index: 4; }
     #chart.open, .modal.open { display: flex; }
-    .book { position: relative; width: min(1080px, 98vw); height: min(540px, 82vh); margin-top: 68px; padding: 16px 16px 12px 16px; background: linear-gradient(135deg, #6a3f1c, #4a2a12); border: 4px solid #2a1608; border-radius: 10px; box-shadow: 0 10px 0 rgba(0,0,0,.45), inset 0 0 0 3px #8a5a2c; display: flex; flex-direction: column; font-family: "Palatino Linotype", "Book Antiqua", Palatino, Georgia, serif; color: #3a2210; }
-    .book .spread { position: relative; flex: 1; min-height: 0; background: linear-gradient(90deg, #efdfb2 0%, #e4d29f 46%, #c4aa70 49.4%, #a98f58 50%, #c4aa70 50.6%, #e4d29f 54%, #efdfb2 100%); border: 2px solid #2a1608; border-radius: 4px; box-shadow: inset 0 0 40px rgba(110,70,20,.35); padding: 16px 30px; overflow: hidden; }
+    .bookwrap { position: relative; margin-right: 96px; filter: drop-shadow(0 10px 0 rgba(0,0,0,.45)); }
+    .book { position: relative; width: min(1000px, calc(97vw - 110px)); height: min(600px, 90vh); padding: 26px 28px 14px; background: #4a2a12 center / 100% 100% no-repeat; clip-path: polygon(0 14px, 9px 3px, 30% 0, 70% 6px, calc(100% - 12px) 0, 100% 16px, calc(100% - 3px) 45%, 100% calc(100% - 12px), calc(100% - 14px) 100%, 60% calc(100% - 4px), 12px 100%, 0 calc(100% - 10px), 4px 55%); display: flex; flex-direction: column; font-family: "Palatino Linotype", "Book Antiqua", Palatino, Georgia, serif; color: #3a2210; }
+    .book .spread { position: relative; flex: 1; min-height: 0; background: linear-gradient(90deg, #ead8a8 0%, #e2cf9a 44%, #c4aa70 49.2%, #8e7444 50%, #c4aa70 50.8%, #e2cf9a 56%, #ead8a8 100%); border: 1px solid #5a3a1a; box-shadow: inset 0 0 40px rgba(110,70,20,.35), 0 0 0 2px #e4d2a2, 2px 3px 0 2px #c8b07a, 4px 5px 0 2px #a8905a, 6px 7px 0 2px #8a7244, -2px 3px 0 2px #c8b07a, -4px 5px 0 2px #a8905a, -6px 7px 0 2px #8a7244; padding: 16px 30px; overflow: hidden; }
     #logBody { height: 100%; }
     #logBody.cols { column-count: 2; column-gap: 56px; column-fill: auto; overflow-x: hidden; overflow-y: hidden; font-weight: 600; font-size: 15px; line-height: 1.35; }
     #logBody.full { overflow: hidden; }
@@ -66,25 +67,27 @@
     #logBody button.mini { margin: 4px 0 0; padding: 3px 10px; font: 700 12px Georgia, serif; background: #c9a85c; border: 2px solid #6b4a2e; color: #3a2210; cursor: pointer; }
     .ent button.mini { margin: 3px 0 0; padding: 1px 8px; font-size: 11px; opacity: .85; }
     #logBody h3.brk { break-before: column; margin-top: 0 !important; }
-    .ribbons { position: absolute; left: 44px; top: -62px; display: flex; gap: 7px; z-index: 2; }
-    .ribbons button { position: relative; width: 46px; height: 82px; padding: 5px 0 0; display: flex; flex-direction: column; align-items: center; gap: 3px; font: 800 12px Georgia, serif; color: #fbeec6; text-shadow: 1px 1px 0 rgba(0,0,0,.6); border: none; cursor: pointer; background: var(--rb, #8a2a1c); clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 88%, 0 100%); filter: drop-shadow(2px 3px 0 rgba(0,0,0,.45)); transition: transform .12s; }
-    .ribbons button::before { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(90deg, rgba(0,0,0,.12) 0 2px, transparent 2px 6px), linear-gradient(90deg, rgba(255,255,255,.22) 0 10%, transparent 10% 90%, rgba(0,0,0,.28) 90%); pointer-events: none; }
-    .ribbons button::after { content: ""; position: absolute; left: 4px; right: 4px; top: 2px; bottom: 16px; border: 1px dashed rgba(255,235,190,.4); pointer-events: none; clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); }
-    .ribbons button span { font-size: 17px; line-height: 1; filter: saturate(.7); }
-    .ribbons button em { font-style: normal; writing-mode: vertical-rl; letter-spacing: 0; font-size: 10px; margin-top: 1px; }
-    .ribbons button:hover { transform: translateY(5px); }
-    .ribbons button.on { transform: translateY(14px); color: #3a2210; text-shadow: none; --rb: #e2bd58 !important; }
-    .ribbons button:nth-child(8n+1) { --rb: #8a2a1c; } .ribbons button:nth-child(8n+2) { --rb: #2f5d8a; } .ribbons button:nth-child(8n+3) { --rb: #5a7a2c; } .ribbons button:nth-child(8n+4) { --rb: #6a3a7a; }
-    .ribbons button:nth-child(8n+5) { --rb: #b0642a; } .ribbons button:nth-child(8n+6) { --rb: #2e7a72; } .ribbons button:nth-child(8n+7) { --rb: #8a6a22; } .ribbons button:nth-child(8n+8) { --rb: #7a2a4a; }
+    /* bookmarks: cloth ribbons slipped between the pages, sticking out of the right-hand side;
+       the label is stamped into the cloth (debossed), not stuck on */
+    .ribbons { position: absolute; right: -96px; top: 40px; bottom: 60px; display: flex; flex-direction: column; justify-content: flex-start; gap: 8px; z-index: -1; }
+    .ribbons button { position: relative; width: 156px; height: 34px; margin-left: 0; padding: 0 22px 0 68px; display: flex; align-items: center; border: none; cursor: pointer; background: linear-gradient(176deg, color-mix(in srgb, var(--rb) 82%, #fff) 0 46%, var(--rb) 46% 74%, color-mix(in srgb, var(--rb) 72%, #000) 74%); clip-path: polygon(0 3px, 92% 0, 100% 2px, 86% 50%, 100% calc(100% - 1px), 90% 100%, 0 calc(100% - 2px)); transition: transform .15s; transform: rotate(var(--tilt, 0deg)); }
+    .ribbons button::before { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(0deg, rgba(0,0,0,.14) 0 1px, transparent 1px 3px), var(--grain); background-size: auto, 90px 90px; opacity: .7; pointer-events: none; }
+    .ribbons button span { display: none; }
+    .ribbons button em { position: relative; font: italic 700 12px Georgia, serif; font-variant: small-caps; letter-spacing: .09em; color: color-mix(in srgb, var(--rb) 45%, #000); text-shadow: 0 1px 0 rgba(255,240,210,.28), 0 -1px 0 rgba(0,0,0,.35); }
+    .ribbons button:hover { transform: translateX(5px) rotate(var(--tilt, 0deg)); }
+    .ribbons button.on { transform: translateX(14px) rotate(var(--tilt, 0deg)); }
+    .ribbons button.on em { color: #f2dc9a; text-shadow: 0 1px 0 rgba(0,0,0,.6); }
+    .ribbons button:nth-child(8n+1) { --rb: #7a2418; --tilt: -1.5deg; } .ribbons button:nth-child(8n+2) { --rb: #2a4e72; --tilt: 1deg; } .ribbons button:nth-child(8n+3) { --rb: #4e6a26; --tilt: -.5deg; } .ribbons button:nth-child(8n+4) { --rb: #5a3268; --tilt: 1.8deg; }
+    .ribbons button:nth-child(8n+5) { --rb: #94541f; --tilt: -1deg; } .ribbons button:nth-child(8n+6) { --rb: #2a6a62; --tilt: .6deg; } .ribbons button:nth-child(8n+7) { --rb: #7a5e1c; --tilt: -1.8deg; } .ribbons button:nth-child(8n+8) { --rb: #6a2440; --tilt: 1.2deg; }
     .bookbar { display: flex; align-items: center; gap: 10px; margin-top: 8px; color: #f0dca8; font: 700 13px Georgia, serif; }
     .bookbar .keys { flex: 1; opacity: .8; text-align: center; font-weight: 600; }
-    .bookbar button { padding: 5px 12px; font: 800 14px Georgia, serif; background: #c9a85c; border: 2px solid #2a1608; color: #3a2210; cursor: pointer; }
+    .bookbar button { padding: 5px 14px; font: italic 800 14px Georgia, serif; background: linear-gradient(170deg, #e2c47a 0 48%, #b8964c 48%); border: none; color: #4a2e10; text-shadow: 0 1px 0 rgba(255,240,200,.5); cursor: pointer; clip-path: polygon(5px 0, calc(100% - 5px) 0, 100% 5px, 100% calc(100% - 5px), calc(100% - 5px) 100%, 5px 100%, 0 calc(100% - 5px), 0 5px); }
     .mapwrap { position: relative; width: fit-content; max-width: 100%; margin: 0 auto; }
-    .mapwrap canvas { height: calc(min(540px, 82vh) - 132px); width: auto; max-width: 100%; aspect-ratio: 880 / 470; display: block; margin: 0 auto; border: 3px solid #3a2210; cursor: grab; touch-action: none; }
+    .mapwrap canvas { height: calc(min(600px, 90vh) - 150px); width: auto; max-width: 100%; aspect-ratio: 880 / 470; display: block; margin: 0 auto; border: 3px solid #3a2210; cursor: grab; touch-action: none; }
     .mapctl { position: absolute; right: 10px; top: 10px; display: flex; flex-direction: column; gap: 4px; }
     .mapctl button { width: 30px; height: 30px; font: 800 17px Georgia, serif; background: #ecdcae; border: 2px solid #3a2210; cursor: pointer; color: #3a2210; }
     .legend { margin-top: 4px; font: 700 12px Georgia, serif; text-align: center; }
-    @media (max-width: 760px) { .ribbons { left: 8px; gap: 3px; } .ribbons button { width: 34px; } .ribbons button em { display: none; } #logBody.cols { column-count: 1; } }
+    @media (max-width: 760px) { .ribbons { right: -40px; } .ribbons button { width: 80px; padding-left: 30px; } .ribbons button em { font-size: 10px; } #logBody.cols { column-count: 1; } }
     .hbtabs { display: flex; gap: 4px; margin-bottom: 6px; }
     .hbtabs button { margin: 0; padding: 6px 4px; font-size: 14px; }
     .hbtabs button.on { background: #4a38a0; outline: 2px solid var(--gold); }
@@ -146,9 +149,6 @@
     #tracker .trow { padding: 1px 0; } #tracker .trow.main { color: #ffd23a; font-weight: 700; }
     [data-theme="parchment"] #tracker .trow.main { color: #8a4a00; }
     #tracker .thint { font-size: 10px; opacity: .55; text-align: right; }
-    #goalarrow { position: absolute; width: 0; height: 0; display: none; pointer-events: none; z-index: 4; }
-    #goalarrow canvas { position: absolute; left: -32px; top: -32px; width: 64px; height: 64px; filter: drop-shadow(2px 3px 0 rgba(0,0,0,.5)); }
-    #goaldist { position: absolute; left: -70px; width: 140px; top: 30px; text-align: center; font: 800 12px Georgia, serif; color: #ffd77a; text-shadow: 1px 1px 0 #2a1608, -1px -1px 0 #2a1608, 1px -1px 0 #2a1608, -1px 1px 0 #2a1608; }
     /* full dread */
     #abyssTag { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); display: none; font-size: 12px; color: #ffb0ea; border-color: #ff70d0; }
     #mate.glitch { animation: mglitch .22s steps(2) infinite; border-color: #ff70d0; }
@@ -166,6 +166,7 @@
     #pauseAbyss .tip { font-size: 12px; }
     .abtop { display: flex; gap: 6px; } .abtop button { flex: 1; }
     .abrow { display: flex; align-items: center; gap: 8px; padding: 4px 0; border-bottom: 1px dashed #fff7d633; }
+    .abrow { flex-wrap: wrap; } #pauseAbyss .abstyle { flex-basis: 100% !important; width: 100% !important; font-size: 11px !important; }
     .abrow .abtxt { flex: 1; text-align: left; } .abrow .abtxt b { display: block; font-size: 13px; } .abrow small { font-size: 11px; opacity: .8; }
     #pauseAbyss .abrow button { width: auto; margin: 0; padding: 4px 8px; font-size: 12px; flex: none; }
     #pauseAbyss .abtog { min-width: 46px; opacity: .55; } #pauseAbyss .abtog.on { opacity: 1; color: #ff9ae0; }
@@ -216,7 +217,6 @@
       <div class="panel" id="tracker"></div>
     </div>
     <div id="compass" class="windbox"><canvas id="compassCv" width="132" height="132"></canvas></div>
-    <div id="goalarrow"><canvas id="goalCv" width="96" height="96"></canvas><span id="goaldist"></span></div>
     <div id="sailbar" class="panel txt"><div><i class="ico sail"></i></div><div class="bar"><div class="fill" id="sailfill"></div></div></div>
     <div id="combatbox" class="panel txt"><div><i class="ico hull"></i><span id="hptxt"></span></div><div class="bar"><div class="fill" id="hpfill"></div></div><div id="ammotxt"></div><div class="bar thin"><div class="fill" id="reloadfill"></div></div></div>
     <div id="ebar" class="panel txt" style="display:none"><span id="ename"></span><div class="bar"><div class="fill" id="efill"></div></div></div>
@@ -230,11 +230,10 @@
   </div>
   <div id="hit"></div><div id="fade"></div>
   <div id="yardmodal" class="modal yard"><div class="menu" id="yardWide"><h2>Shipyard</h2><p class="quote" id="yardLine">Paint, canvas and carved wood. All the finest vanity.</p><div class="goldline">Gold: <b id="yardGold"></b></div><div id="yardBody"></div><button id="yardClose">Done</button></div></div>
-  <div id="chart" class="modal"><div class="book">
-    <div class="ribbons" id="logTabs"></div>
+  <div id="chart" class="modal"><div class="bookwrap"><div class="ribbons" id="logTabs"></div><div class="book">
     <div class="spread"><div id="logBody" class="cols"></div></div>
     <div class="bookbar"><button id="pgPrev">&#9666;</button><span id="pgNum" style="min-width:48px;text-align:center"></span><button id="pgNext">&#9656;</button><span class="keys">&larr; &rarr; tabs &middot; &uarr; &darr; pages &middot; 1-8</span><button id="logClose">Close [M]</button></div>
-  </div></div>
+  </div></div></div>
   <div id="shipmodal" class="modal"><div class="menu" id="shWide"><h2 id="shName"></h2><p class="quote" id="shLine"></p><div class="goldline">Gold: <b id="shGold"></b></div><div id="shList"></div><button id="shClose">Wave goodbye</button></div></div>
   <div id="harbour" class="modal"><div class="menu" id="hbWide"><h2 id="hbName"></h2><p class="quote" id="hbLine"></p><div class="goldline">Gold: <b id="hbGold"></b></div><div class="hbtabs" id="hbTabs"><button data-t="board">Board</button><button data-t="market">Market</button><button data-t="wright">Shipwright</button></div><div id="hbPane"></div><button id="hbClose">Set sail [E]</button></div></div>
   <div id="pause" class="modal"><div class="menu">
