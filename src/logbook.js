@@ -240,13 +240,40 @@ export class Logbook {
     }
 
     const labels = [];
+    const warp = this.d.abyss ? this.d.abyss.mapWarp() : null; // full dread: the chart draws itself
+    let n = 0;
     for (const id of Object.keys(state.discovered)) {
       const [cx, cz] = id.split(',').map(Number), d = world.desc(cx, cz);
       if (!d) continue;
-      const px = X(d.x), pz = Z(d.z);
+      let px = X(d.x), pz = Z(d.z);
+      if (warp) {
+        if (warp.since < n++ * 0.18) continue;
+        const h = hash2(cx, cz, 9) % 100;
+        px += Math.sin(warp.t * 0.35 + h) * 26; pz += Math.cos(warp.t * 0.27 + h * 1.7) * 20;
+      }
       if (px < -60 || px > W + 60 || pz < -60 || pz > H + 60) continue;
       this.drawIsland(c, d, px, pz, sc, state);
-      labels.push([d.name, px, pz + d.r * sc * 1.15 + 11]);
+      labels.push([warp && (hash2(cx, cz, Math.floor(warp.t / 3)) % 5 === 0) ? 'not here' : d.name, px, pz + d.r * sc * 1.15 + 11]);
+    }
+    if (warp) {
+      for (const ph of warp.phantoms) {
+        if (warp.since < 1.2) continue;
+        const px = X(ph.x) + Math.sin(warp.t * 0.5) * 10, pz = Z(ph.z);
+        c.globalAlpha = Math.min(1, (warp.since - 1.2) / 2);
+        this.drawIsland(c, ph, px, pz, sc, state);
+        labels.push([ph.name, px, pz + ph.r * sc * 1.15 + 11]);
+        c.globalAlpha = 1;
+      }
+      if (warp.since > 2.5) {
+        c.save(); c.translate(X(ship.pos.x), Z(ship.pos.z)); c.rotate(-0.25 + Math.sin(warp.t * 0.3) * 0.05);
+        c.globalAlpha = Math.min(0.75, (warp.since - 2.5) / 3);
+        c.font = 'italic 700 34px Georgia, serif'; c.fillStyle = '#7a1a3a'; c.textAlign = 'center';
+        c.fillText('TURN BACK', 0, -60);
+        c.strokeStyle = '#7a1a3a'; c.lineWidth = 3; c.beginPath(); c.ellipse(0, 0, 44, 20, 0, 0, 7); c.stroke();
+        c.beginPath(); c.arc(0, 0, 9, 0, 7); c.fillStyle = '#7a1a3a'; c.fill();
+        c.restore(); c.globalAlpha = 1;
+      }
+      if (!this.warpRaf) this.warpRaf = requestAnimationFrame(() => { this.warpRaf = 0; if (this.tab === 'map' && document.getElementById('chart').classList.contains('open')) this.drawMap(); });
     }
     c.font = 'italic 700 12px Georgia, serif'; c.textAlign = 'center';
     for (const [name, lx, lz] of labels) { c.strokeStyle = 'rgba(232,214,166,0.92)'; c.lineWidth = 3; c.strokeText(name, lx, lz); c.fillStyle = INK; c.fillText(name, lx, lz); }

@@ -605,7 +605,14 @@ export class Island {
       this.group.add(beam); this.geos.push(g);
       this.beam = beam;
       const ph = rng() * 6;
-      this.anim.push((t) => { beam.rotation.y = t * 0.9 + ph; });
+      const bx = d.x + extra.beam.x, bz = d.z + extra.beam.z;
+      this.anim.push((t, isl) => {
+        if (isl.stare) { // full dread: every beam swings round to point at the ship
+          const want = Math.atan2(-(isl.stare.z - bz), isl.stare.x - bx);
+          beam.rotation.y += Math.atan2(Math.sin(want - beam.rotation.y), Math.cos(want - beam.rotation.y)) * 0.08;
+          beam.scale.x = Math.min(7, Math.max(1, Math.hypot(isl.stare.x - bx, isl.stare.z - bz) / 44)); // long enough to reach you
+        } else { beam.rotation.y = t * 0.9 + ph; beam.scale.x = 1; }
+      });
     }
   }
   setLit(on) {
@@ -679,7 +686,7 @@ export class World {
       } else if (isl.mood !== dark) { isl.mood = dark; isl.setMood(dark); }
     }
   }
-  tick(t, tod) { for (const isl of this.islands.values()) { isl.tod = tod; for (const f of isl.anim) f(t, isl); } }
+  tick(t, tod) { for (const isl of this.islands.values()) { isl.tod = tod; isl.stare = this.stare; for (const f of isl.anim) f(t, isl); } }
 
   collide(pos, radius) {
     let hit = false;

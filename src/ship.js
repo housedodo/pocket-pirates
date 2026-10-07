@@ -311,8 +311,9 @@ export class Ship {
     this.root.rotation.set(pitch, -h, roll);
 
     // sails follow the wind
-    const sgn = this.rel >= 0 ? 1 : -1;
-    const swing = lerp(1.4, 0.1, Math.abs(this.rel) / Math.PI) * sgn;
+    let sgn = this.rel >= 0 ? 1 : -1;
+    let swing = lerp(1.4, 0.1, Math.abs(this.rel) / Math.PI) * sgn;
+    if (this.wrongSails) { sgn = -sgn; swing = -swing + Math.sin(t * 0.6) * 0.9; } // full dread: the sails fight the wind
     this.sailPivot.rotation.y += (swing - this.sailPivot.rotation.y) * Math.min(1, dt * 2.5);
     const flat = 0.14 + 0.86 * this.trim;
     const k = this.mods.sailScale;
@@ -321,7 +322,7 @@ export class Ship {
     this.jib.scale.x += (sgn - this.jib.scale.x) * Math.min(1, dt * 2.5);
     this.jib.scale.y = flat;
     this.jib.position.y = (1 - flat) * 0;
-    this.flag.rotation.y = Math.PI - this.rel + Math.sin(t * 9) * 0.18;
+    this.flag.rotation.y = Math.PI - this.rel + Math.sin(t * 9) * 0.18 + (this.wrongSails ? Math.PI : 0);
     this.flagBright.visible = !dark;
     this.flagDark.visible = dark;
 

@@ -26,6 +26,7 @@ import { WindFX } from './windfx.js';
 import { drawWind, WIND_STYLES, WIND_NAMES } from './windmeters.js';
 import { applyTimeOfDay, DAY_LENGTH, tod } from './daynight.js';
 import { UPGRADES, MAX_LEVEL, computeMods, shipwrightLine } from './upgrades.js';
+import { Abyss, EFFECTS } from './abyss.js';
 
 // ---------------------------------------------------------------- params, save, settings
 const params = new URLSearchParams(location.search);
@@ -35,7 +36,7 @@ const store = {
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* private mode etc. */ } },
 };
 const saved = params.get('fresh') ? null : store.get(SAVE_KEY);
-const settings = Object.assign({ muted: false, musicOff: false, windStyle: 'dial', hud: 'classic', tracker: true }, store.get(SETTINGS_KEY) || {});
+const settings = Object.assign({ muted: false, musicOff: false, windStyle: 'dial', hud: 'classic', tracker: true, abyss: {} }, store.get(SETTINGS_KEY) || {});
 const HUD_THEMES = ['classic', 'driftwood', 'parchment', 'brass'];
 const HUD_NAMES = { classic: 'Classic blue', driftwood: 'Driftwood planks', parchment: 'Parchment scrolls', brass: 'Brass & leather' };
 document.body.dataset.theme = settings.hud;
@@ -91,6 +92,7 @@ scene.fog = new THREE.Fog(0xbfeaff, 90, 330);
 const camera = new THREE.PerspectiveCamera(62, 1, 0.5, 1600);
 
 const ocean = new Ocean();
+ocean.material.transparent = true; ocean.mesh.renderOrder = -1; // can turn see-through (glass calm)
 scene.add(ocean.mesh);
 const sky = new Sky(scene);
 const world = new World(scene, state.seed, state.dug);
@@ -177,12 +179,21 @@ function giveMap(id, from) {
   toast(`${from} gave you a treasure riddle for ${d.name}. Saved in your log: Riddles tab.`, false, 8000);
 }
 const objectives = new Objectives({ state, world, ship, toast: (t, d) => toast(t, d), giveMap });
+const abyss = new Abyss({ scene, ship, world, sky, settings, state, mate: objectives.mate, toast: (t, d, ms) => toast(t, d, ms), fade: $('fade'),
+  onEnding: () => {
+    forced = null; dread = 0.02; abyss.k = 0;
+    ship.pos.set(0, 0, -25); ship.heading = 0; ship.speed = 0; camHeading = 0; yawT = 0;
+    state.stats.awakened = (state.stats.awakened || 0) + 1;
+    objectives.mate.queue.length = 0;
+    objectives.mate.say('Captain? Captain! You were asleep at the wheel. For how long, I... let us just go home.');
+  } });
 const fishing = new Fishing(scene, ship, {
   toast: (t) => toast(t),
   getCtx: () => ({ bonus: Math.max(0, ship.mods.lootMul - 1) }),
   onStart: () => toast('Line cast. Wait for a bite...', false, 2500),
   onBite: (f) => { toast(f.dark ? 'Something heavy takes the bait!' : 'A bite!', f.dark, 1500); },
   onCatch: (f) => {
+    f = abyss.wrongCatch(f);
     state.catch.push(f); state.stats.fish++;
     const l = state.fishLog[f.id] || (state.fishLog[f.id] = { count: 0, best: 0 });
     l.count++; l.best = Math.max(l.best, f.kg);
@@ -208,7 +219,7 @@ function openModal(name) {
   if (fishing.active) fishing.cancel();
   ({ pause: pauseEl, chart: chartEl, harbour: harbourEl, ship: shipEl, yard: yardEl })[name].classList.add('open');
   if (name === 'pause') { showPauseMain(); }
-  if (name === 'chart') logbook.open(logTab);
+  if (name === 'chart') { abyss.onMapOpen(ship); logbook.open(logTab); }
   if (name === 'harbour') renderHarbour();
   if (name === 'ship') renderShipTrade();
   if (name === 'yard') renderYard();
@@ -239,7 +250,7 @@ window.addEventListener('keydown', (e) => {
   if (!started) { begin(); return; }
   if (e.code === 'Escape' || e.code === 'KeyP') {
     e.preventDefault();
-    if (modal === 'pause') { if ($('pauseControls').style.display !== 'none') showPauseMain(); else closeModal(); }
+    if (modal === 'pause') { if ($('pauseControls').style.display !== 'none' || $('pauseAbyss').style.display !== 'none') showPauseMain(); else closeModal(); }
     else if (modal) closeModal(); else openModal('pause');
     return;
   }
@@ -282,13 +293,13 @@ window.addEventListener('keydown', (e) => {
   keys.add(e.code);
   if (e.code === 'Space') { if (fishing.active) { fishing.hold = true; fishing.press(true); } else fireCannons(); }
   if (e.code === 'KeyC') fishing.press();
-  if (e.code === 'KeyY') objectives.askHint(dread);
+  if (e.code === 'KeyY' && !abyss.maraHint()) objectives.askHint(dread);
   if (e.code === 'Enter') objectives.mate.skip();
   if (e.code === 'KeyE') tryInteract();
   if (e.code === 'KeyH') $('hud').classList.toggle('hidden');
   if (e.code === 'KeyQ' && !modal) { settings.tracker = settings.tracker === false; store.set(SETTINGS_KEY, settings); }
   if (e.code === 'Backquote') debugEl.style.display = debugEl.style.display === 'block' ? 'none' : 'block';
-  if (e.code === 'Digit0') forced = null;
+  if (e.code === 'Digit0') { forced = null; abyss.stopTest(); }
   if (/^Digit[1-5]$/.test(e.code)) forced = (parseInt(e.code.slice(5), 10) - 1) / 4;
   if (e.code === 'BracketRight') state.time = (state.time + 1 / 24) % 1;
   if (e.code === 'BracketLeft') state.time = (state.time - 1 / 24 + 1) % 1;
@@ -321,7 +332,7 @@ $('tP').addEventListener('pointerdown', (e) => { begin(); if (modal) closeModal(
 // ---------------------------------------------------------------- pause menu
 if (!AUDIO_ENABLED) { $('pbSound').style.display = 'none'; $('pbMusic').style.display = 'none'; }
 function showPauseMain() {
-  $('pauseMain').style.display = 'block'; $('pauseControls').style.display = 'none';
+  $('pauseMain').style.display = 'block'; $('pauseControls').style.display = 'none'; $('pauseAbyss').style.display = 'none';
   $('pbSound').textContent = `Sound: ${audio.muted ? 'off' : 'on'}`;
   $('pbMusic').textContent = `Music: ${audio.musicOn ? 'on' : 'off'}`;
   $('pbResume').focus();
@@ -329,6 +340,24 @@ function showPauseMain() {
 $('pbResume').addEventListener('click', () => closeModal());
 $('pbControls').addEventListener('click', () => { $('pauseMain').style.display = 'none'; $('pauseControls').style.display = 'block'; $('pbBack').focus(); });
 $('pbBack').addEventListener('click', showPauseMain);
+// full-dread effects: switch each one on/off, or try one on its own
+function renderAbyssMenu() {
+  const on = (id) => settings.abyss[id] !== false;
+  $('abList').innerHTML = EFFECTS.map((f, i) => `<div class="abrow"><button class="abtog ${on(f.id) ? 'on' : ''}" data-id="${f.id}">${on(f.id) ? 'ON' : 'OFF'}</button><div class="abtxt"><b>${i + 1}. ${f.name}</b><small>${f.desc}</small></div><button class="abtry" data-id="${f.id}">Try</button>${f.id === 'leviathan' ? '<button class="abtry" data-end="1">Ending</button>' : ''}</div>`).join('');
+  $('abList').querySelectorAll('.abtog').forEach((b) => b.addEventListener('click', () => { settings.abyss[b.dataset.id] = !on(b.dataset.id); store.set(SETTINGS_KEY, settings); renderAbyssMenu(); }));
+  $('abList').querySelectorAll('.abtry').forEach((b) => b.addEventListener('click', () => {
+    forced = 1; dread = 1; abyss.k = 1;
+    if (b.dataset.end) { abyss.solo = 'leviathan'; abyss.startEnding(); closeModal(); return; }
+    const id = b.dataset.id;
+    abyss.trigger(id); closeModal();
+    if (id === 'map') setTimeout(() => { logTab = 'map'; openModal('chart'); }, 150);
+  }));
+  $('abForce').textContent = forced === 1 ? 'Back to automatic dread' : 'Go to full dread now (all ON effects)';
+}
+$('pbAbyss').addEventListener('click', () => { $('pauseMain').style.display = 'none'; $('pauseAbyss').style.display = 'block'; renderAbyssMenu(); $('abBack').focus(); });
+$('abBack').addEventListener('click', showPauseMain);
+$('abAll').addEventListener('click', () => { const any = EFFECTS.some((f) => settings.abyss[f.id] === false); for (const f of EFFECTS) settings.abyss[f.id] = any; store.set(SETTINGS_KEY, settings); renderAbyssMenu(); });
+$('abForce').addEventListener('click', () => { abyss.stopTest(); if (forced === 1) forced = null; else { forced = 1; dread = 1; } renderAbyssMenu(); });
 $('pbLog').addEventListener('click', () => { logTab = 'map'; openModal('chart'); });
 function refreshStyleButtons() { $('pbWind').textContent = `Wind meter: ${WIND_NAMES[settings.windStyle]}`; $('pbHud').textContent = `Interface: ${HUD_NAMES[settings.hud]}`; }
 $('pbWind').addEventListener('click', () => { settings.windStyle = WIND_STYLES[(WIND_STYLES.indexOf(settings.windStyle) + 1) % WIND_STYLES.length]; store.set(SETTINGS_KEY, settings); refreshStyleButtons(); $('pbWind').focus(); });
@@ -483,7 +512,7 @@ function trackTarget() {
 let trackNow = null;
 function drawCompass(w, heading) {
   const jobA = trackNow ? Math.atan2(trackNow.x - ship.pos.x, -(trackNow.z - ship.pos.z)) : null;
-  windView.dir = w.dir; windView.strength = w.strength; windView.gust = w.gust; windView.floor = ship.mods.floor;
+  windView.dir = abyss.windDir(w.dir); windView.strength = w.strength; windView.gust = w.gust; windView.floor = abyss.windFloor(ship.mods.floor);
   drawWind(settings.windStyle, compass, windView, heading, performance.now() / 1000, jobA);
 }
 
@@ -508,13 +537,14 @@ function updateTracker() {
   if (g) rows.push(`<div class="trow main"><i class="ico flag"></i>${g.title}</div>`);
   if (state.job) rows.push(`<div class="trow">\u{1F4EE} ${state.job.toName}</div>`);
   for (const q of state.quests) rows.push(`<div class="trow">${questIcon(q)} ${questTitle(q, dread)} <b>${questProgress(q, state)}/${questNeed(q)}</b></div>`);
-  const html = rows.length ? rows.join('') + '<div class="thint">[Q] hide</div>' : '';
+  const html = rows.length ? abyss.hud('track', rows.join('')) + '<div class="thint">[Q] hide</div>' : '';
   if (html !== trackerHtml) { trackerHtml = html; trackerEl.innerHTML = html; }
   trackerEl.style.display = html ? 'block' : 'none';
-  const t = trackNow, W = window.innerWidth, H = window.innerHeight;
+  const atYou = abyss.arrowAtYou;  // full dread: the arrow points at you instead
+  const t = atYou ? { x: ship.pos.x, z: ship.pos.z, label: 'YOU' } : trackNow, W = window.innerWidth, H = window.innerHeight;
   if (!t) { arrowEl.style.display = 'none'; return; }
   const dist = Math.hypot(t.x - ship.pos.x, t.z - ship.pos.z);
-  if (dist < 30) { arrowEl.style.display = 'none'; return; }
+  if (dist < 30 && !atYou) { arrowEl.style.display = 'none'; return; }
   _v.set(t.x, 6, t.z).project(camera);
   let sx = (_v.x * 0.5 + 0.5) * W, sy = (-_v.y * 0.5 + 0.5) * H;
   const behind = _v.z > 1;
@@ -530,7 +560,7 @@ function updateTracker() {
   arrowEl.style.display = 'block';
   arrowEl.style.left = `${sx}px`; arrowEl.style.top = `${sy}px`;
   arrowCv.style.transform = `rotate(${rot}deg) scale(${1 + Math.sin(performance.now() / 160) * 0.08})`;
-  arrowDist.textContent = `${t.label} ${Math.round(dist)}`;
+  arrowDist.textContent = atYou ? 'YOU' : `${t.label} ${Math.round(dist)}`;
 }
 
 // ---------------------------------------------------------------- game state
@@ -608,7 +638,7 @@ function tryInteract() {
           toast(state.attempts[d.id] >= 2 ? 'Nothing here but sand. Reread the riddle in your log (Journal) and try another shore.' : 'The crew digs and finds only sand and crabs. Wrong shore!', false, 6000);
           return;
         }
-        const loot = lootFor(mulberry32(hash2(d.seed, 7, state.seed)), d.dread);
+        const loot = abyss.wrongLoot(lootFor(mulberry32(hash2(d.seed, 7, state.seed)), d.dread), state);
         loot.value = Math.round(loot.value * ship.mods.lootMul);
         state.dug.add(d.id); tg.isl.setDug(true); state.stats.treasures++; state.stats.solved++;
         state.gold += loot.value; state.loot.push(loot);
@@ -630,7 +660,7 @@ function tryInteract() {
   } else if (tg.kind === 'wreck' && !dig) {
     const o = tg.o;
     dig = { key: tg.key, t: 0, need: 3.4 * ship.mods.digTime * (state.buffs.dig > 0 ? 0.7 : 1), done: () => {
-      const loot = lootFor(mulberry32(o.rngSeed), o.dread);
+      const loot = abyss.wrongLoot(lootFor(mulberry32(o.rngSeed), o.dread), state);
       loot.value = Math.round(loot.value * 1.3 * ship.mods.lootMul);
       loot.name = `From the wreck: ${loot.name}`;
       o.salvaged = true; state.collected.add(o.id); state.stats.wrecks++;
@@ -661,7 +691,7 @@ function hailShip(sh) {
   if (sh.hostile && sh.hp > 0) { sh.state = 'open'; tradeShip = sh; openModal('ship'); return; }
   if (sh.mode === 'derelict') {
     sh.state = 'done';
-    const loot = lootFor(rng, dread); loot.value = Math.round(loot.value * 0.6);
+    const loot = abyss.wrongLoot(lootFor(rng, dread), state); loot.value = Math.round(loot.value * 0.6);
     loot.name = `From the drifting ${KINDS[sh.kind].label}: ${loot.name}`;
     state.gold += loot.value; state.loot.push(loot);
     toast(`You board the empty ship and find: ${loot.name} (+${loot.value}g)`, true, 7000);
@@ -806,16 +836,18 @@ function sinkPlayer() {
     toast(`The Pearl went under. A fisherman dragged you to ${tgt.name}. You lost ${lost} gold; the hull is repaired.`, false, 8000);
   }, 1100);
 }
-$('pbHint').addEventListener('click', () => { closeModal(); objectives.askHint(dread); });
+$('pbHint').addEventListener('click', () => { closeModal(); if (!abyss.maraHint()) objectives.askHint(dread); });
 
 // ---------------------------------------------------------------- captain's log
-const logbook = new Logbook({ state, world, ship, seed: state.seed, toast: (t) => toast(t), close: () => closeModal(), mate: objectives.mate, dread: () => dread,
+const logbook = new Logbook({ abyss, state, world, ship, seed: state.seed, toast: (t) => toast(t), close: () => closeModal(), mate: objectives.mate, dread: () => dread,
   dropQuest: (id) => { state.quests = state.quests.filter((q) => q.id !== id); sea.syncQuests(state.quests); toast('Commission dropped.'); },
   skipGoal: () => { const g = objectives.current; if (!g) return; if (g.onDone) g.onDone({ state, world, ship, giveMap }); state.goals.i++; toast('Goal skipped.'); } });
 
 // ---------------------------------------------------------------- main loop
+const GLASS = new THREE.Color('#07030d');
 const camPos = new THREE.Vector3(), camLook = new THREE.Vector3(), _v = new THREE.Vector3();
 let camHeading = ship.heading;
+let lookUpK = 0;
 let camOverride = null; // { pos:[x,y,z], look:[x,y,z] } for concept shots
 let lastTs = performance.now();
 
@@ -868,19 +900,24 @@ function frame() {
   weather.update(dt, wind.t, dread, wind.dir, wind.strength, camera, tod);
   weather.apply(stage);
   stage.fogFar += ship.mods.fogBonus; stage.fogNear += ship.mods.fogBonus * 0.5;
+  abyss.update(dt, { dread, live, camera, camYaw, ch: camHeading + camYaw });
+  stage.wave *= abyss.waveMul;
+  const waveT = abyss.waveTime(stepT);
 
   // ---- world
   const first = world.islands.size === 0;
   world.update(ship.pos.x, ship.pos.z, dark, first ? 200 : 2);
-  world.setLit(tod.sunHeight < 0.12 || weather.darkness > 0.6);
+  const lp = abyss.lightPhase;
+  world.setLit(lp === 'stare' ? true : lp === 'dead' ? false : tod.sunHeight < 0.12 || weather.darkness > 0.6);
+  world.stare = lp === 'stare' ? ship.pos : null;
   world.tick(tNow, tod);
   horror.update(tNow, dread, ship.pos.x, ship.pos.z);
-  ship.place(dt, stepT, stage.wave, dark, tod.night);
+  ship.place(dt, waveT, stage.wave, dark, tod.night);
   const lifeCtx = { ship, dread, wave: stage.wave, audio, wind: windNow, stage, tod };
   if (live) state.stats.dist += ship.speed * dt;
   windfx.update(dt, tNow, windNow.dir, windNow.strength, ship.pos, tod.night, Math.min(1, weather.rain * 1.5));
-  fishing.update(dt, stepT, { wave: stage.wave, dread, night: tod.night });
-  combat.update(dt, stepT, { ship, traffic, wave: stage.wave, onHitEnemy, onHitPlayer: hurtPlayer });
+  fishing.update(dt, waveT, { wave: stage.wave, dread, night: tod.night });
+  combat.update(dt, waveT, { ship, traffic, wave: stage.wave, onHitEnemy, onHitPlayer: hurtPlayer });
   if (live && tNow - lastHit > 12 && state.hp < ship.mods.maxHp) state.hp = Math.min(ship.mods.maxHp, state.hp + dt);
   objectives.update(dt, dread);
   if (live) {
@@ -889,13 +926,13 @@ function frame() {
     for (const [k, v] of [['stage2', 0.25], ['stage3', 0.5], ['stage4', 0.75], ['stage5', 0.95]]) if (dread >= v) objectives.remark(k, dread);
     if (traffic.ships.some((x) => x.hostile && x.engaged)) objectives.remark('raider');
   }
-  fauna.update(dt, stepT, lifeCtx);
-  traffic.update(dt, stepT, lifeCtx);
-  sea.update(dt, stepT, lifeCtx);
+  fauna.update(dt, waveT, lifeCtx);
+  traffic.update(dt, waveT, lifeCtx);
+  sea.update(dt, waveT, lifeCtx);
 
   // ---- global shader state
   scene.fog.color.copy(stage.fog); scene.fog.near = stage.fogNear; scene.fog.far = stage.fogFar;
-  U.uDread.value = dread; U.uTime.value = stepT; U.uLight.value = stage.light; U.uWave.value = stage.wave;
+  U.uDread.value = dread; U.uTime.value = waveT; U.uLight.value = stage.light; U.uWave.value = stage.wave;
   U.uDeep.value.copy(stage.deep); U.uShallow.value.copy(stage.shallow);
   U.uSnap.value.set(post.internal.w * 0.5 * stage.snap, post.internal.h * 0.5 * stage.snap);
   mats.shallow.color.copy(stage.shallow).lerp(new THREE.Color(1, 1, 1), 0.25);
@@ -904,25 +941,30 @@ function frame() {
   mats.beam.color.set('#ffe080').lerp(new THREE.Color('#ff50d0'), smoothstep(0.5, 0.8, dread));
   mats.beam.opacity = 0.1 + 0.3 * tod.night;
   mats.wake.color.set(0xffffff).lerp(new THREE.Color(0.35, 1, 0.9), tod.night * 0.9).lerp(new THREE.Color(1, 0.4, 0.95), tod.night * smoothstep(0.55, 0.9, dread) * 0.8);
-  sky.update(dt, camera, stage, wind.dir, tod, { rainbow: weather.rainbow });
+  sky.update(dt, camera, stage, wind.dir, tod, { rainbow: weather.rainbow, eyeYaw: abyss.eyeYaw ? camHeading + camYaw : null, sun2: abyss.sun2 });
+  ocean.material.opacity = 1 - 0.7 * abyss.seeThrough;
+  if (abyss.seeThrough > 0) { U.uDeep.value.lerp(GLASS, 0.8 * abyss.seeThrough); U.uShallow.value.lerp(GLASS, 0.7 * abyss.seeThrough); }
   ocean.update(camera.position.x, camera.position.z);
 
   // ---- camera
   zoomT = Math.min(zoomT, ship.mods.zoomMax);
   zoom += (zoomT - zoom) * Math.min(1, rawDt * 5);
   pitch += (pitchT - pitch) * Math.min(1, rawDt * 5);
+  lookUpK += ((abyss.lookUp ? 1 : 0) - lookUpK) * Math.min(1, rawDt * 0.6);
+  const pitchNow = pitch + (0.3 - pitch) * lookUpK;
   camHeading += angleDiff(camHeading, ship.heading) * Math.min(1, rawDt * 1.6);
   camYaw += (yawT - camYaw) * Math.min(1, rawDt * 7);
   const ch = camHeading + camYaw;
   const fx = Math.sin(ch), fz = -Math.cos(ch);
-  const back = zoom * Math.cos(pitch), up = zoom * Math.sin(pitch);
+  const back = zoom * Math.cos(pitchNow), up = zoom * Math.sin(pitchNow);
   camPos.set(ship.pos.x - fx * back, up + 1, ship.pos.z - fz * back);
-  camLook.set(ship.pos.x + fx * zoom * 0.2, 1.5, ship.pos.z + fz * zoom * 0.2);
+  camLook.set(ship.pos.x + fx * zoom * 0.2, 1.5 + lookUpK * 9, ship.pos.z + fz * zoom * 0.2);
   if (shake > 0) { shake = Math.max(0, shake - rawDt * 1.8); camPos.x += Math.sin(tNow * 70) * shake; camPos.y += Math.cos(tNow * 63) * shake * 0.7; }
   if (dread > 0.85 && live) { const s = (dread - 0.85) * 0.5; camPos.x += Math.sin(tNow * 31) * s; camPos.y += Math.sin(tNow * 23 + 1) * s; }
   if (camOverride) { camPos.set(...camOverride.pos); camLook.set(...camOverride.look); }
   camera.position.copy(camPos);
   camera.lookAt(camLook);
+  if (live || params.get('shot')) camera.rotateZ(abyss.roll(tNow));
   camera.updateMatrixWorld();
 
   // ---- discovery / interaction / dig
@@ -932,7 +974,8 @@ function frame() {
     lastNear = nearAny;
   } else lastNear = null;
   const placeTxt = lastNear ? lastNear.desc.name : sec.name;
-  if (placeTxt !== placeShown) { placeShown = placeTxt; $('placeline').textContent = placeTxt; $('placeline').style.borderColor = lastNear ? '' : sec.faction.color; }
+  const placeOut = abyss.hud('place', placeTxt);
+  if (placeOut !== placeShown) { placeShown = placeOut; $('placeline').textContent = placeOut; $('placeline').style.borderColor = lastNear ? '' : sec.faction.color; }
 
   const tgt = getInteract();
   if (dig && live) {
@@ -957,8 +1000,10 @@ function frame() {
   } else promptEl.style.display = 'none';
 
   // ---- HUD
-  goldEl.textContent = state.gold;
-  $('clocktxt').textContent = tod.clock;
+  goldEl.textContent = abyss.hud('gold', String(state.gold));
+  $('clocktxt').textContent = abyss.hud('clock', tod.clock);
+  $('abyssTag').style.display = abyss.solo ? 'block' : 'none';
+  if (abyss.solo) $('abyssTag').textContent = `Testing: ${EFFECTS.find((f) => f.id === abyss.solo).name}  \u00b7  0 = stop`;
   updateTracker();
   $('clockicon').className = `ico ${tod.sunElev > 0 ? 'sun' : 'moon'}`;
   $('sailfill').style.width = `${Math.round(ship.trim * 100)}%`;
@@ -1007,7 +1052,7 @@ window.__game = {
   setCam(p, z) { if (p !== undefined) { pitch = pitchT = p; } if (z !== undefined) { zoom = zoomT = z; } },
   setOverride(o) { camOverride = o; },
   teleport(x, z, h) { ship.pos.set(x, 0, z); ship.heading = h; camHeading = h; },
-  ship, world, state, begin, scene, camera, horror, renderer, wind, weather, fauna, traffic, sea, audio, fishing, combat, objectives, hurtPlayer, openModal, closeModal, buyUpgrade, refreshMods,
+  abyss, ship, world, state, begin, scene, camera, horror, renderer, wind, weather, fauna, traffic, sea, audio, fishing, combat, objectives, hurtPlayer, openModal, closeModal, buyUpgrade, refreshMods,
 };
 if (params.get('autostart')) begin();
 frame();

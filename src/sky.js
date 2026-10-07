@@ -59,7 +59,18 @@ export class Sky {
     this.eyeStars = new THREE.Points(eg, this.eyeMat);
     this.eyeStars.renderOrder = -25;
     this.eyeStars.frustumCulled = false;
-    this.group.add(this.eyeStars);
+    this.eyeGroup = new THREE.Group();
+    this.eyeGroup.rotation.order = 'YXZ';
+    this.eyeTilt = 0;
+    this.eyeGroup.add(this.eyeStars);
+    this.group.add(this.eyeGroup);
+    this.eyeYaw = 0;
+    // a second sun for the time-loop effect (two suns setting at once)
+    this.sun2 = new THREE.Group();
+    this.sun2.add(new THREE.Mesh(this.corona.geometry, this.coronaMat), new THREE.Mesh(this.sun.geometry, new THREE.MeshBasicMaterial({ color: 0xffe4ff, fog: false, depthWrite: false, depthTest: false })));
+    this.sun2.children.forEach((m, i) => { m.renderOrder = -21 + i; });
+    this.sun2.visible = false;
+    this.group.add(this.sun2);
 
     // moon
     this.moonMat = new THREE.MeshBasicMaterial({ color: 0xdfe8ff, fog: false, depthWrite: false, depthTest: false });
@@ -150,6 +161,24 @@ export class Sky {
 
     this.starMat.opacity = Math.max(stage.stars, tod.night * 0.95);
     this.eyeMat.opacity = smoothstep(0.8, 1.0, stage.dread);
+    // full dread: the eye turns to stay in front of you, and blinks
+    if (fx.eyeYaw != null) {
+      const want = -fx.eyeYaw;
+      this.eyeYaw += Math.atan2(Math.sin(want - this.eyeYaw), Math.cos(want - this.eyeYaw)) * Math.min(1, dt * 1.5);
+      this.eyeMat.size = 3; this.eyeMat.opacity = 1;
+      this.blink = (this.blink || 0) - dt;
+      if (this.blink < -0.18) this.blink = 3 + Math.random() * 5;
+      this.eyeGroup.scale.y = this.blink < 0 ? 0.92 : 1;
+      this.eyeTilt += (-0.42 - this.eyeTilt) * Math.min(1, dt * 0.8); // sinks down to stare over the horizon
+      this.eyeGroup.rotation.set(this.eyeTilt + (this.blink < 0 ? 0.03 : 0), this.eyeYaw, 0);
+    } else { this.eyeYaw *= 0.98; this.eyeTilt *= 0.98; this.eyeGroup.rotation.set(this.eyeTilt, this.eyeYaw, 0); this.eyeGroup.scale.y = 1; this.eyeMat.size = 2; }
+    this.sun2.visible = !!fx.sun2;
+    if (fx.sun2) {
+      const az = tod.sunAz + 1.3, el = Math.max(0.05, Math.min(0.2, tod.sunElev)), d2 = R * 0.9;
+      this.sun2.position.set(Math.sin(az) * Math.cos(el) * d2, Math.sin(el) * d2, -Math.cos(az) * Math.cos(el) * d2);
+      this.sun2.lookAt(cam.position);
+      this.sun2.scale.setScalar(stage.sunSize * 1.2);
+    }
 
     // rainbow opposite the sun
     const rb = fx.rainbow || 0;

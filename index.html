@@ -149,6 +149,27 @@
     #goalarrow { position: absolute; width: 0; height: 0; display: none; pointer-events: none; z-index: 4; }
     #goalarrow canvas { position: absolute; left: -32px; top: -32px; width: 64px; height: 64px; filter: drop-shadow(2px 3px 0 rgba(0,0,0,.5)); }
     #goaldist { position: absolute; left: -70px; width: 140px; top: 30px; text-align: center; font: 800 12px Georgia, serif; color: #ffd77a; text-shadow: 1px 1px 0 #2a1608, -1px -1px 0 #2a1608, 1px -1px 0 #2a1608, -1px 1px 0 #2a1608; }
+    /* full dread */
+    #abyssTag { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); display: none; font-size: 12px; color: #ffb0ea; border-color: #ff70d0; }
+    #mate.glitch { animation: mglitch .22s steps(2) infinite; border-color: #ff70d0; }
+    #mate.glitch #matetxt { color: #ffc0ec; text-shadow: 2px 0 rgba(0,224,255,.55), -2px 0 rgba(255,0,160,.55); }
+    #mate.glitch .face { color: #ff50c8; }
+    @keyframes mglitch { 0% { margin-left: 0; filter: none; } 50% { margin-left: 3px; filter: hue-rotate(40deg) contrast(1.3); } }
+    #awaken { position: fixed; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: flex-end; padding-bottom: 18vh; gap: 10px; pointer-events: none; z-index: 40; background: radial-gradient(ellipse at 50% 40%, transparent 35%, rgba(10,0,16,.85)); transition: background 2s; }
+    #awaken.show { display: flex; }
+    body.awakening #hud { opacity: 0; transition: opacity 1.5s; }
+    #awaken.white { background: #fff6fc; }
+    #awaken p { margin: 0; font: italic 700 22px Georgia, serif; color: #ffd8f4; text-shadow: 0 0 12px #ff30c8, 2px 2px 0 #000; animation: awfade 2s ease-out; text-align: center; max-width: 80vw; }
+    #awaken.white p { color: #3a2030; text-shadow: none; }
+    #awaken p.big { font-size: 44px; letter-spacing: .2em; font-style: normal; }
+    @keyframes awfade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; } }
+    #pauseAbyss .tip { font-size: 12px; }
+    .abtop { display: flex; gap: 6px; } .abtop button { flex: 1; }
+    .abrow { display: flex; align-items: center; gap: 8px; padding: 4px 0; border-bottom: 1px dashed #fff7d633; }
+    .abrow .abtxt { flex: 1; text-align: left; } .abrow .abtxt b { display: block; font-size: 13px; } .abrow small { font-size: 11px; opacity: .8; }
+    #pauseAbyss .abrow button { width: auto; margin: 0; padding: 4px 8px; font-size: 12px; flex: none; }
+    #pauseAbyss .abtog { min-width: 46px; opacity: .55; } #pauseAbyss .abtog.on { opacity: 1; color: #ff9ae0; }
+    #pauseAbyss .menu, #pause .menu { max-width: min(620px, 94vw); }
     .ico { display: inline-block; width: 17px; height: 17px; vertical-align: -3px; margin-right: 6px; }
     .ico.coin { background: conic-gradient(from 20deg, #ffe680, #d9a82a, #fff2a8, #c8981c, #ffe680, #e0b030); clip-path: polygon(50% 0, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%); }
     .ico.flag { background: conic-gradient(from 30deg, #f0705a, #c03428, #e8503c, #a82a20); clip-path: polygon(14% 0, 26% 0, 26% 22%, 94% 44%, 26% 66%, 26% 100%, 14% 100%); }
@@ -205,6 +226,7 @@
     <div id="toasts"></div>
     <div id="help" class="txt panel">A/D steer &middot; W/S sails &middot; E interact<br>M chart &middot; Esc pause &middot; drag = tilt &middot; wheel = zoom &middot; H hide HUD</div>
     <div id="debug" class="panel txt"></div>
+    <div id="abyssTag" class="panel txt"></div>
   </div>
   <div id="hit"></div><div id="fade"></div>
   <div id="yardmodal" class="modal yard"><div class="menu" id="yardWide"><h2>Shipyard</h2><p class="quote" id="yardLine">Paint, canvas and carved wood. All the finest vanity.</p><div class="goldline">Gold: <b id="yardGold"></b></div><div id="yardBody"></div><button id="yardClose">Done</button></div></div>
@@ -217,7 +239,13 @@
   <div id="harbour" class="modal"><div class="menu" id="hbWide"><h2 id="hbName"></h2><p class="quote" id="hbLine"></p><div class="goldline">Gold: <b id="hbGold"></b></div><div class="hbtabs" id="hbTabs"><button data-t="board">Board</button><button data-t="market">Market</button><button data-t="wright">Shipwright</button></div><div id="hbPane"></div><button id="hbClose">Set sail [E]</button></div></div>
   <div id="pause" class="modal"><div class="menu">
     <div id="pauseMain"><h2>PAUSED</h2>
-      <button id="pbResume">Resume</button><button id="pbHint">Ask Mara for a hint</button><button id="pbControls">Controls</button><button id="pbLog">Captain's log</button><button id="pbWind">Wind meter: Wooden dial</button><button id="pbHud">Interface: Classic blue</button><button id="pbSound">Sound: on</button><button id="pbMusic">Music: on</button>
+      <button id="pbResume">Resume</button><button id="pbHint">Ask Mara for a hint</button><button id="pbControls">Controls</button><button id="pbLog">Captain's log</button><button id="pbWind">Wind meter: Wooden dial</button><button id="pbHud">Interface: Classic blue</button><button id="pbAbyss">Full-dread effects (test)</button><button id="pbSound">Sound: on</button><button id="pbMusic">Music: on</button>
+    </div>
+    <div id="pauseAbyss" style="display:none"><h2>FULL DREAD</h2>
+      <p class="tip">These only happen in the very worst water. Switch each one on or off, or press <b>Try</b> to jump to full dread with just that effect. Press <b>0</b> in game to stop a test.</p>
+      <div class="abtop"><button id="abForce">Go to full dread now</button><button id="abAll">All on / off</button></div>
+      <div id="abList"></div>
+      <button id="abBack">Back</button>
     </div>
     <div id="pauseControls" style="display:none"><h2>CONTROLS</h2>
       <table>
