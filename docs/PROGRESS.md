@@ -94,7 +94,13 @@ For how things must look, see `STYLE.md`; for how systems work, see `DESIGN.md`.
 12. **The island that moves:** one island is in a different place every time it is charted. It is resting
     on something.
 
-## 4. Main story: seeds for the brainstorm
+## 4. Main story
+The worked-out story (main story, Old Perrin, Mara's village, the island that moves, how they connect and
+the build plan in six parts) lives in the shared story doc, which the user edits:
+https://claude.ai/code/artifact/577e89fb-db92-4c7b-8108-25b3f56573e4
+Read it before building any story part. The seeds below were the starting point.
+
+### Original seeds
 - The sea is a closed eyelid. Dread is the Eye stirring in its sleep; the full-dread effects are
   its dreams leaking.
 - The lady keeps it asleep by throwing the die. Each low roll is a moment it nearly woke, and she writes it
