@@ -16,7 +16,7 @@ function tile(a, b, dirt, seed) {
   return cv.toDataURL();
 }
 
-const ICON_COLS = { '#': '#2a1608', y: '#f0c030', Y: '#fff0a0', o: '#b07810', W: '#e8f0ff', w: '#98a8d8', R: '#e04838', r: '#a82a20', S: '#f4ecd0', s: '#c8b890', G: '#5ec45a' };
+const ICON_COLS = { p: '#ff30c8', '#': '#2a1608', y: '#f0c030', Y: '#fff0a0', o: '#b07810', W: '#e8f0ff', w: '#98a8d8', R: '#e04838', r: '#a82a20', S: '#f4ecd0', s: '#c8b890', G: '#5ec45a' };
 const ICONS = {
   coin: ['..###..', '.#yYy#.', '#yYyyy#', '#yyyyo#', '#yyyoo#', '.#ooo#.', '..###..'],
   sun: ['y..y..y', '.yyyyy.', '.yYYYy.', 'yyYYYyy', '.yYYYy.', '.yyyyy.', 'y..y..y'],
@@ -25,8 +25,12 @@ const ICONS = {
   hull: ['.##.##.', '#RR#RR#', '#RRRRR#', '#RRRRr#', '.#RRr#.', '..#r#..', '...#...'],
   sail: ['...#...', '...#S..', '...#SS.', '...#SSs', '...#Ss.', '#######', '.#####.'],
 };
+const SPRITES = { // Mara's portrait, 8x8, shown at 4x (the world's pixel size)
+  anchor: ['...SS...', '..S..S..', '...SS...', '.SSSSSS.', '...SS...', 'S..SS..S', 'SS.SS.SS', '.SSSSSS.'],
+  eye: ['........', '..####..', '.#WWWW#.', '#WWppWW#', '#WWppWW#', '.#WWWW#.', '..####..', '........'],
+};
 function icon(rows) {
-  const cv = document.createElement('canvas'); cv.width = cv.height = 7;
+  const cv = document.createElement('canvas'); cv.width = rows[0].length; cv.height = rows.length;
   const c = cv.getContext('2d');
   rows.forEach((row, y) => [...row].forEach((ch, x) => { if (ICON_COLS[ch]) { c.fillStyle = ICON_COLS[ch]; c.fillRect(x, y, 1, 1); } }));
   return cv.toDataURL();
@@ -38,5 +42,6 @@ export function installPixelUI() {
   root.setProperty('--pxmenu', `url(${tile('#1b1538', '#241c4c', '#0e0a20', 11)})`);
   root.setProperty('--pxbtn', `url(${tile('#2c2160', '#352870', '#1a1240', 13)})`);
   const css = Object.entries(ICONS).map(([k, rows]) => `.ico.${k} { background-image: url(${icon(rows)}); }`).join('\n');
+  for (const [k, rows] of Object.entries(SPRITES)) root.setProperty(`--px-${k}`, `url(${icon(rows)})`);
   const st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
 }

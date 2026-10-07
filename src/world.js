@@ -334,6 +334,40 @@ function lighthouse(A, extra, lx, ly, lz, tall = 1) {
   extra.beam = { x: lx, y: ly + 10.2 * tall, z: lz };
 }
 
+// The dark hut (a storyline location): crooked, black-tarred, one sick purple window, bones on poles.
+// Lives in builder A so it looks the same in both moods.
+function darkHut(d, rng, A) {
+  let th = (hash2(d.seed, 3, 9) % 628) / 100, x = 0, z = 0, h = 0;
+  for (let k = 0; k < 12; k++) {
+    const t = 0.55, xx = Math.cos(th) * shoreR(d, th) * t, zz = Math.sin(th) * shoreR(d, th) * t, hh = terrainHeight(d, xx, zz);
+    if (hh > 0.6) { x = xx; z = zz; h = hh; break; }
+    th += 0.5;
+  }
+  d.hutPos = { x, z, y: h, th };
+  const ry = Math.atan2(Math.cos(th), Math.sin(th));   // door looks out to sea
+  A.push(x, h - 0.2, z, ry, 1, 1, 1, 0.04, -0.06);      // a little crooked
+  for (const [sx, sz] of [[-1.4, -1.2], [1.4, -1.2], [-1.4, 1.2], [1.4, 1.2]]) A.cyl(sx, -0.6, sz, 0.14, 0.12, 1.4, 4, '#1c1418', TILE.bark); // stilts
+  A.box(0, 0.6, 0, 3.4, 2.4, 3.0, '#4a3c42', TILE.planks, TILE.planks, '#2a2026');
+  A.box(0, 0.6, 1.55, 3.6, 0.2, 0.3, '#1a1216', TILE.planks);                                       // porch board
+  A.push(0, 3.0, 0, 0, 1, 1, 1, 0, 0.08); A.gable(0, 0, 0, 4.0, 1.9, 3.6, '#2c2228', TILE.roof, '#3a2e34'); A.pop();
+  A.box(-0.5, 0.65, 1.52, 0.85, 1.6, 0.08, '#0c080a', TILE.white);                                  // door, open a crack
+  A.box(0.95, 1.5, 1.52, 0.55, 0.5, 0.06, '#ffffff', TILE.spore);                                   // the window glows
+  A.box(0.95, 1.5, -1.52, 0.4, 0.4, 0.06, '#ffffff', TILE.spore);
+  A.box(-1.0, 3.7, -0.5, 0.35, 1.4, 0.35, '#3a3036', TILE.stone);                                   // bent chimney
+  A.pop();
+  // bones and a skull on poles, a dead tree, a ring of pale stones
+  for (let i = 0; i < 3; i++) {
+    const a = th + (i - 1) * 0.6, px = x + Math.cos(a) * 4.5, pz = z + Math.sin(a) * 4.5, ph = Math.max(0.3, terrainHeight(d, px, pz));
+    A.box(px, ph - 0.2, pz, 0.12, 2.2, 0.12, '#2a2026', TILE.bark);
+    A.blob(px, ph + 2.15, pz, 0.28, 0.3, 0.28, '#e8e0d0', TILE.bone, 0.08, i + 4);
+    A.box(px, ph + 1.4, pz, 0.7, 0.08, 0.08, '#d8d0c0', TILE.bone);
+  }
+  { const a = th + 2.2, px = x + Math.cos(a) * 5, pz = z + Math.sin(a) * 5, ph = Math.max(0.3, terrainHeight(d, px, pz));
+    A.cyl(px, ph - 0.2, pz, 0.3, 0.12, 4.2, 5, '#2a2024', TILE.bark, false);
+    for (let k = 0; k < 4; k++) { A.push(px, ph + 2.5 + k * 0.4, pz, k * 1.7, 1, 1, 1, 0, 1.0); A.cyl(0, 0, 0, 0.08, 0.02, 1.6, 3, '#2a2024', TILE.bark, false); A.pop(); } }
+  for (let i = 0; i < 9; i++) { const a = (i / 9) * Math.PI * 2, px = x + Math.cos(a) * 3.2 + Math.cos(th) * 1.8, pz = z + Math.sin(a) * 3.2 + Math.sin(th) * 1.8; A.blob(px, Math.max(0.2, terrainHeight(d, px, pz)) + 0.1, pz, 0.3, 0.22, 0.3, '#cfc8d8', TILE.stone, 0.2, i); }
+}
+
 function decorate(d, rng, A, B, D, extra) {
   const T = d.type;
   const palms = (n, t0, t1, hMin = 0.8, s0 = 0.9) => {
@@ -377,6 +411,7 @@ function decorate(d, rng, A, B, D, extra) {
     if (T === 'treasure') scatter(2, 0.3, 0.8, 0.6, (p) => stump(A, p[0], p[1], p[2]));
   }
   if (T === 'rocky') scatter(4, 0.2, 0.9, 0.3, (p) => mossRock(A, p[0], p[1], p[2], 0.9 + rng() * 0.8, rng));
+  if (d.hut) darkHut(d, rng, A);
   switch (T) {
     case 'sandbar':
       palms(1 + Math.floor(rng() * 3), 0.0, 0.6, 0.45, 0.8);
@@ -651,7 +686,19 @@ export class World {
     this.islands = new Map();
     this.dark = false;
     this.lit = false;
+    // the dark hut: one island, 4-6 cells out (well past the fog from where you start)
+    let best = null, bh = Infinity;
+    for (let cz = -6; cz <= 6; cz++) for (let cx = -6; cx <= 6; cx++) {
+      const ring = Math.max(Math.abs(cx), Math.abs(cz));
+      if (ring < 4) continue;
+      const d = this.desc(cx, cz);
+      if (!d || (d.type !== 'jungle' && d.type !== 'rocky')) continue;
+      const h = hash2(cx, cz, seed + 77);
+      if (h < bh) { bh = h; best = d; }
+    }
+    if (best) { best.hut = true; this.hutId = best.id; }
   }
+  get hutDesc() { if (!this.hutId) return null; const [cx, cz] = this.hutId.split(',').map(Number); return this.desc(cx, cz); }
   setLit(on) {
     if (on === this.lit) return;
     this.lit = on;

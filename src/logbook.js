@@ -547,6 +547,11 @@ export class Logbook {
       sk.wash(circ(hx + 1.2 * s, hz - 4.5 * s, 3.5 * s, 7), '#4a9a40', 0.55, 1.2);
       for (const a of [-2.8, -2.1, -1.4, -0.7, 0]) sk.line([[hx + 1.2 * s, hz - 4 * s], [hx + 1.2 * s + Math.cos(a) * 6 * s, hz - 4 * s + Math.sin(a) * 4 * s + 2 * s]], { closed: false, col: '#2e5a24', w: 1, passes: 1, amp: 0.8 });
     };
+    if (d.hut) { // the dark hut: a black crooked shape with one purple window
+      const hx = px + 8 * s, hz = pz - 2 * s, body = [[hx - 5 * s, hz + 4 * s], [hx - 4 * s, hz - 3 * s], [hx + 4 * s, hz - 2 * s], [hx + 5 * s, hz + 4 * s]];
+      sk.wash(body, '#1e1619', 1, 0.6); sk.wash([[hx - 6 * s, hz - 2 * s], [hx - 1 * s, hz - 8 * s], [hx + 5.5 * s, hz - 1.5 * s]], '#120c0e', 1, 0.6);
+      c.fillStyle = '#c030a0'; c.fillRect(hx + 1 * s, hz - 1 * s, 2.5 * s, 2.5 * s);
+    }
     if (d.type === 'harbour') {
       for (const [ox, oz, col] of [[-9, 0, '#c0483c'], [3, -4, '#3c78c8'], [10, 5, '#d09a30']]) house(px + ox * s, pz + oz * s, col);
       if (hasLighthouse(d)) tower(px - 14 * s, pz - 6 * s, s);

@@ -15,6 +15,7 @@ import { Traffic } from './traffic.js';
 import { SeaFeatures } from './seafeatures.js';
 import { makeJob, findRumour, repOf, friendLevel, discount, bearingName, nearby, RUMOUR_COST, commissionsFor, questProgress, questNeed, questTitle, QUEST_ICON, questIcon, FRUITS, fruitOf, fruitName, plural } from './jobs.js';
 import { Logbook } from './logbook.js';
+import { Hut } from './hut.js';
 import { sectorAt, sectorInfo, sectorCoord, FACTIONS } from './sectors.js';
 import { KINDS } from './traffic.js';
 import { Fishing, fishById } from './fishing.js';
@@ -72,6 +73,7 @@ const state = {
   fishLog: (saved && saved.fishLog) || {},
   goals: Object.assign({ i: 0, side: {}, started: false }, (saved && saved.goals) || {}),
   hints: (saved && saved.hints) || {},
+  hut: (saved && saved.hut) || null,          // the dark hut storyline: every throw is remembered
   pos: (saved && saved.pos) || { x: 0, z: 0, h: 0 },
 };
 if (params.has('x')) state.pos = { x: +params.get('x'), z: +params.get('z') || 0, h: +params.get('h') || 0 };
@@ -201,11 +203,24 @@ const fishing = new Fishing(scene, ship, {
   },
 });
 
+// ---------------------------------------------------------------- the dark hut (storyline minigame)
+let glitchT = 0, preGlitch = 0;
+const hut = new Hut({ state,
+  onWin: (n) => { if (n === 20) toast('A natural twenty. Somewhere far below, something is disappointed.', true, 5000); },
+  onFail: () => { preGlitch = dread; glitchT = 0.75; hutEl.classList.add('glitching'); shake = 0.4; },
+  onClose: () => closeModal() });
+function hutLeft() {
+  const h = state.hut;
+  if (!h) return;
+  if (h.visits === 1) objectives.mate.say('I did not like that, Captain. She never blinked. Not once.', true);
+  else if (h.fails === 3 && !h.toldThree) { h.toldThree = true; objectives.mate.say('Three times now. Captain... what is she writing down?', true); }
+}
+
 // ---------------------------------------------------------------- modal state (pause / chart / harbour)
 let modal = null; // null | 'pause' | 'chart' | 'harbour' | 'ship'
 let logTab = 'map';
 let tradeShip = null;
-const yardEl = $('yardmodal');
+const yardEl = $('yardmodal'), hutEl = $('hutmodal');
 let harbourIsl = null;
 const keys = new Set();
 let started = false;
@@ -216,19 +231,21 @@ function openModal(name) {
   modal = name;
   keys.clear();
   if (fishing.active) fishing.cancel();
-  ({ pause: pauseEl, chart: chartEl, harbour: harbourEl, ship: shipEl, yard: yardEl })[name].classList.add('open');
+  ({ pause: pauseEl, chart: chartEl, harbour: harbourEl, ship: shipEl, yard: yardEl, hut: hutEl })[name].classList.add('open');
   if (name === 'pause') { showPauseMain(); }
   if (name === 'chart') { abyss.onMapOpen(ship); logbook.open(logTab); }
   if (name === 'harbour') renderHarbour();
   if (name === 'ship') renderShipTrade();
   if (name === 'yard') renderYard();
+  if (name === 'hut') hut.open();
   audio.play(name === 'pause' ? 'pause' : 'ui');
   audio.setPaused(name === 'pause');
 }
 function closeModal(silent = false) {
   if (!modal) return;
-  pauseEl.classList.remove('open'); chartEl.classList.remove('open'); harbourEl.classList.remove('open'); shipEl.classList.remove('open'); yardEl.classList.remove('open');
+  pauseEl.classList.remove('open'); chartEl.classList.remove('open'); harbourEl.classList.remove('open'); shipEl.classList.remove('open'); yardEl.classList.remove('open'); hutEl.classList.remove('open');
   if (modal === 'pause') audio.setPaused(false);
+  if (modal === 'hut') hutLeft();
   modal = null; harbourIsl = null;
   if (!silent) lastTs = performance.now();
 }
@@ -258,6 +275,11 @@ window.addEventListener('keydown', (e) => {
     const i = btns.indexOf(document.activeElement);
     if (e.code === 'ArrowDown') { btns[(i + 1) % btns.length].focus(); e.preventDefault(); }
     if (e.code === 'ArrowUp') { btns[(i - 1 + btns.length) % btns.length].focus(); e.preventDefault(); }
+    return;
+  }
+  if (modal === 'hut') {
+    if (e.code === 'Space') { e.preventDefault(); hut.roll(); }
+    if (e.code === 'KeyE') closeModal();
     return;
   }
   if (modal === 'ship') {
@@ -547,6 +569,8 @@ function fireCannons() {
 }
 
 function getInteract() {
+  const hi = world.nearest(ship.pos.x, ship.pos.z, 18);
+  if (hi && hi.desc.hut) return { kind: 'hut', key: 'hut', isl: hi };
   const isl = world.nearest(ship.pos.x, ship.pos.z, 16, ['harbour', 'treasure']);
   if (isl) return { kind: isl.desc.type, key: isl.desc.id, isl };
   if (sea.nearWreck) return { kind: 'wreck', key: sea.nearWreck.o.id, o: sea.nearWreck.o };
@@ -574,6 +598,7 @@ function tryInteract() {
   if (!started || modal) return;
   const tg = getInteract();
   if (!tg) return;
+  if (tg.kind === 'hut') { openModal('hut'); return; }
   if (tg.kind === 'harbour') {
     const d = tg.isl.desc, rep = repOf(state, d.id);
     if (!rep.last || Date.now() - rep.last > 120000) rep.visits++;
@@ -861,6 +886,7 @@ function frame() {
   const target = forced !== null ? forced : dreadAtDistance(Math.hypot(ship.pos.x, ship.pos.z));
   dread += (target - dread) * Math.min(1, rawDt * (forced !== null ? 1.2 : 0.4));
   if (params.get('shot')) dread = target;
+  if (glitchT > 0) { glitchT -= rawDt; dread = 1; if (glitchT <= 0) { dread = preGlitch; hutEl.classList.remove('glitching'); } } // the hut's bad throw
   dark = dread > DARK_THRESHOLD;
   const stage = sampleStage(dread);
   applyTimeOfDay(stage, state.time, dread);
@@ -959,7 +985,7 @@ function frame() {
     if (dig) { promptTxt.textContent = 'Digging...'; promptBar.style.display = 'block'; }
     else {
       promptBar.style.display = 'none';
-      promptTxt.textContent = tgt.kind === 'harbour' ? `[E] Visit ${tgt.isl.desc.name}`
+      promptTxt.textContent = tgt.kind === 'hut' ? '[E] Knock on the dark hut' : tgt.kind === 'harbour' ? `[E] Visit ${tgt.isl.desc.name}`
         : tgt.kind === 'treasure' ? (tgt.isl.dug ? 'Already plundered' : !state.riddles[tgt.isl.desc.id] ? '[E] Study the ancient arch inscription' : '[E] Dig on this shore')
         : tgt.kind === 'fruit' ? (state.harvest[tgt.isl.desc.id] != null && state.harvest[tgt.isl.desc.id] >= state.dayN ? 'Picked clean for today' : `[E] Pick ${plural(fruitName(fruitOf(tgt.isl.desc), tgt.isl.desc.dread), 2)}`)
         : tgt.kind === 'ship' ? (tgt.s.mode === 'derelict' ? `[E] Board the drifting ${KINDS[tgt.s.kind].label}` : tgt.s.mode === 'ghost' ? '[E] Hail the pale ship' : `[E] Hail the ${tgt.s.name}`)
@@ -978,6 +1004,7 @@ function frame() {
   drawCompass(wind, ship.heading);
   if (tNow > 18) helpEl.style.opacity = '0';
   if (modal === 'harbour') { $('hbGold').textContent = state.gold; }
+  if (modal === 'hut') hut.update(rawDt);
   if (modal === 'ship') { $('shGold').textContent = state.gold; }
   if (debugEl.style.display === 'block') debugEl.textContent = `tris ${renderer.info.render.triangles} calls ${renderer.info.render.calls}  dread ${dread.toFixed(2)} stage ${stage.index + 1} ${forced !== null ? '(forced)' : '(auto)'}  time ${tod.clock}  pos ${ship.pos.x | 0},${ship.pos.z | 0}  spd ${ship.speed.toFixed(1)}  islands ${world.islands.size}`;
 
@@ -1001,7 +1028,7 @@ function frame() {
   // ---- save
   if (tNow - lastSave > 4 && !params.get('fresh')) {
     lastSave = tNow;
-    store.set(SAVE_KEY, { seed: state.seed, gold: state.gold, dug: [...state.dug], discovered: state.discovered, loot: state.loot, upgrades: state.upgrades, collected: [...state.collected], notes: state.notes, rumoured: state.rumoured, rep: state.rep, job: state.job, serial: state.serial, sectorsSeen: state.sectorsSeen, jobHistory: state.jobHistory, buffs: state.buffs, stats: state.stats, quests: state.quests, fruit: state.fruit, harvest: state.harvest, dayN: state.dayN, hp: state.hp, ammo: state.ammo, custom: state.custom, owned: [...state.owned], riddles: state.riddles, attempts: state.attempts, catch: state.catch, fishLog: state.fishLog, goals: state.goals, hints: state.hints, time: state.time, windT: wind.t, pos: { x: ship.pos.x, z: ship.pos.z, h: ship.heading } });
+    store.set(SAVE_KEY, { seed: state.seed, gold: state.gold, dug: [...state.dug], discovered: state.discovered, loot: state.loot, upgrades: state.upgrades, collected: [...state.collected], notes: state.notes, rumoured: state.rumoured, rep: state.rep, job: state.job, serial: state.serial, sectorsSeen: state.sectorsSeen, jobHistory: state.jobHistory, buffs: state.buffs, stats: state.stats, quests: state.quests, fruit: state.fruit, harvest: state.harvest, dayN: state.dayN, hp: state.hp, ammo: state.ammo, custom: state.custom, owned: [...state.owned], riddles: state.riddles, attempts: state.attempts, catch: state.catch, fishLog: state.fishLog, hut: state.hut, goals: state.goals, hints: state.hints, time: state.time, windT: wind.t, pos: { x: ship.pos.x, z: ship.pos.z, h: ship.heading } });
   }
 
   // ---- render
@@ -1019,7 +1046,7 @@ window.__game = {
   setCam(p, z) { if (p !== undefined) { pitch = pitchT = p; } if (z !== undefined) { zoom = zoomT = z; } },
   setOverride(o) { camOverride = o; },
   teleport(x, z, h) { ship.pos.set(x, 0, z); ship.heading = h; camHeading = h; },
-  abyss, ship, world, state, begin, scene, camera, horror, renderer, wind, weather, fauna, traffic, sea, audio, fishing, combat, objectives, hurtPlayer, openModal, closeModal, buyUpgrade, refreshMods,
+  abyss, hut, ship, world, state, begin, scene, camera, horror, renderer, wind, weather, fauna, traffic, sea, audio, fishing, combat, objectives, hurtPlayer, openModal, closeModal, buyUpgrade, refreshMods,
 };
 if (params.get('autostart')) begin();
 frame();

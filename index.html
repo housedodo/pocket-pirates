@@ -114,6 +114,17 @@
     #chart[data-book="pixel"] .ribbons button:nth-child(3n+1) { margin-left: 6px; } #chart[data-book="pixel"] .ribbons button:nth-child(3n+2) { margin-left: -4px; }
     #chart[data-book="pixel"] .ent { background: rgba(255,248,220,.18); border-left: 4px solid rgba(58,34,16,.55); }
     #chart[data-book="pixel"] .ent.cur { background: rgba(255,210,80,.28); border-left-color: #a8301c; }
+    /* the dark hut */
+    #hutWide { width: min(460px, 94vw); --pxedge: #3a1838; }
+    #hutmodal { background: rgba(4, 2, 10, .86); }
+    #hutWide h2 { color: #d8b0e8; }
+    #dieCv { display: block; width: 216px; height: 216px; margin: 0 auto 6px; image-rendering: pixelated; filter: drop-shadow(4px 8px 0 rgba(0,0,0,.6)); }
+    #hutTxt { min-height: 3em; }
+    #hutmodal.glitching { background: transparent; }
+    #hutmodal.glitching .menu { animation: mglitch .12s steps(2) infinite; filter: hue-rotate(80deg) contrast(1.4); }
+    /* Mara's portrait: a pixel anchor (an eye when she breaks) */
+    #mateface { width: 32px; height: 32px; flex: none; background: var(--px-anchor) 0 0 / 100% 100% no-repeat; image-rendering: pixelated; filter: drop-shadow(4px 4px 0 #120c1c); }
+    #mateface.eye { background-image: var(--px-eye); }
     .mapwrap { position: relative; width: fit-content; max-width: 100%; margin: 0 auto; }
     .mapwrap canvas { height: calc(min(600px, 90vh) - 150px); width: auto; max-width: 100%; aspect-ratio: 880 / 470; display: block; margin: 0 auto; border: 3px solid #3a2210; cursor: grab; touch-action: none; }
     .mapctl { position: absolute; right: 10px; top: 10px; display: flex; flex-direction: column; gap: 4px; }
@@ -265,7 +276,7 @@
     <div id="sailbar" class="panel txt"><div><i class="ico sail"></i></div><div class="bar"><div class="fill" id="sailfill"></div></div></div>
     <div id="combatbox" class="panel txt"><div><i class="ico hull"></i><span id="hptxt"></span></div><div class="bar"><div class="fill" id="hpfill"></div></div><div id="ammotxt"></div><div class="bar thin"><div class="fill" id="reloadfill"></div></div></div>
     <div id="ebar" class="panel txt" style="display:none"><span id="ename"></span><div class="bar"><div class="fill" id="efill"></div></div></div>
-    <div id="mate" class="panel txt" style="display:none"><span class="face" id="mateface">&#9875;</span><div style="flex:1"><b>Mara, first mate</b><div id="matetxt"></div></div><span id="matemore">&#9662;</span></div>
+    <div id="mate" class="panel txt" style="display:none"><span class="face" id="mateface"></span><div style="flex:1"><b>Mara, first mate</b><div id="matetxt"></div></div><span id="matemore">&#9662;</span></div>
     <div id="fishui" class="panel txt" style="display:none"><div id="fishmsg"></div><div id="fishbar" style="display:none"><div id="fishtrack"><div id="fishzone"></div><div id="fishmark"></div></div><div id="fishprogwrap"><div id="fishprog"></div></div></div></div>
     <div id="prompt" class="panel txt"><div id="prompttxt"></div><div class="bar"><i></i></div></div>
     <div id="toasts"></div>
@@ -279,6 +290,7 @@
     <div class="spread"><div id="logBody" class="cols"></div></div>
     <div class="bookbar"><button id="pgPrev">&#9666;</button><span id="pgNum" style="min-width:48px;text-align:center"></span><button id="pgNext">&#9656;</button><span class="keys">left/right: tabs &middot; up/down: pages &middot; 1-8</span><button id="logClose">Close [M]</button></div>
   </div></div></div>
+  <div id="hutmodal" class="modal"><div class="menu" id="hutWide"><h2>THE DARK HUT</h2><canvas id="dieCv" width="72" height="72"></canvas><p class="quote" id="hutTxt"></p><button id="hutRoll">Throw the die [Space]</button><button id="hutLeave">Leave [E]</button></div></div>
   <div id="shipmodal" class="modal"><div class="menu" id="shWide"><h2 id="shName"></h2><p class="quote" id="shLine"></p><div class="goldline">Gold: <b id="shGold"></b></div><div id="shList"></div><button id="shClose">Wave goodbye</button></div></div>
   <div id="harbour" class="modal"><div class="menu" id="hbWide"><h2 id="hbName"></h2><p class="quote" id="hbLine"></p><div class="goldline">Gold: <b id="hbGold"></b></div><div class="hbtabs" id="hbTabs"><button data-t="board">Board</button><button data-t="market">Market</button><button data-t="wright">Shipwright</button></div><div id="hbPane"></div><button id="hbClose">Set sail [E]</button></div></div>
   <div id="pause" class="modal"><div class="menu">

@@ -27,6 +27,9 @@ npm run build      # static build in dist/
 
 Wind matters and shifts over time: sailing downwind is fast, straight into it is slow. A day/night cycle runs (5 min per day). Earn gold from treasure, wrecks, salvage, charting and delivery jobs, then buy ship upgrades at any harbour. Weather, wildlife and other ships roam the sea, and lighthouses only light at night. The game synthesises its own sound; drop files in `public/audio/` to replace it. Touch devices get on-screen buttons.
 
+## The dark hut
+Somewhere out past the fog there is an island with a black hut on stilts. Knock (E). The old woman inside lets you throw her twenty-sided die once a day: 11 or more wins a small prize, 9 or less... she writes something down. Every throw is remembered. Story notes: `docs/PROGRESS.md`; style rules: `docs/STYLE.md`.
+
 ## Full dread (testing the effects)
 The worst water (far from home, or forced with key `5`) has ten extra effects. Pause (Esc) → **Full-dread effects (test)** lists them all:
 - **ON/OFF** switches each effect (saved), **All on / off** flips them all.

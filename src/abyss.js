@@ -187,7 +187,7 @@ export class Abyss {
     const mate = this.d.mate;
     const maraOn = this.on('mara');
     mate.el.classList.toggle('glitch', maraOn);
-    mate.face.textContent = maraOn ? '◉' : '⚓';
+    mate.face.classList.toggle('eye', maraOn);
     if (maraOn && live) {
       this.maraT -= dt;
       if (this.maraT <= 0 && !mate.busy) { mate.say(pick(MARA_LINES), true); this.maraT = 30 + Math.random() * 25; }
