@@ -23,8 +23,8 @@
     #stats { position: absolute; left: 12px; top: 12px; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; font-size: 15px; }
     #near { color: #bff; min-height: 1.2em; font-size: 13px; }
     #gold b { color: var(--gold); }
-    .windbox { position: absolute; right: 10px; top: 8px; width: 138px; text-align: center; font: italic 700 13px Georgia, serif; color: #f6e6b8; text-shadow: 1px 1px 0 #2a1608, -1px -1px 0 #2a1608, 1px -1px 0 #2a1608, -1px 1px 0 #2a1608; }
-    .windbox canvas { width: 132px; height: 132px; display: block; margin: 0 auto 0; filter: drop-shadow(2px 3px 2px rgba(0,0,0,.55)); }
+    .windbox { position: absolute; right: 8px; top: 6px; width: 150px; text-align: center; font: italic 700 13px Georgia, serif; color: #f6e6b8; text-shadow: 1px 1px 0 #2a1608, -1px -1px 0 #2a1608, 1px -1px 0 #2a1608, -1px 1px 0 #2a1608; }
+    .windbox canvas { width: 144px; height: 144px; display: block; margin: 0 auto 0; image-rendering: pixelated; }
     #sailbar { position: absolute; right: 12px; top: 176px; width: 124px; font-size: 12px; text-align: center; }
     #sailbar .bar { height: 10px; background: #0007; border: 2px solid var(--edge); margin-top: 3px; }
     #sailbar .fill { height: 100%; width: 70%; background: var(--gold); }
@@ -82,6 +82,60 @@
     .bookbar { display: flex; align-items: center; gap: 10px; margin-top: 8px; color: #f0dca8; font: 700 13px Georgia, serif; }
     .bookbar .keys { flex: 1; opacity: .8; text-align: center; font-weight: 600; }
     .bookbar button { padding: 5px 14px; font: italic 800 14px Georgia, serif; background: linear-gradient(170deg, #e2c47a 0 48%, #b8964c 48%); border: none; color: #4a2e10; text-shadow: 0 1px 0 rgba(255,240,200,.5); cursor: pointer; clip-path: polygon(5px 0, calc(100% - 5px) 0, 100% 5px, 100% calc(100% - 5px), calc(100% - 5px) 100%, 5px 100%, 0 calc(100% - 5px), 0 5px); }
+    /* handwriting / pixel fonts for the logbook (SIL Open Font License, bundled in public/fonts) */
+    @font-face { font-family: "Caveat"; src: url("/fonts/caveat.woff2") format("woff2"); font-weight: 400 700; font-display: swap; }
+    @font-face { font-family: "Gloria Hallelujah"; src: url("/fonts/gloria.woff2") format("woff2"); font-weight: 400; font-display: swap; }
+    @font-face { font-family: "Pixelify Sans"; src: url("/fonts/pixelify.woff2") format("woff2"); font-weight: 400 700; font-display: swap; }
+    /* ---- book designs (#chart[data-book]); leather is the base look above */
+    #chart:not([data-book="leather"]) .book { background-size: 100% 100%; image-rendering: pixelated; clip-path: polygon(0 8px, 8px 8px, 8px 0, calc(100% - 8px) 0, calc(100% - 8px) 8px, 100% 8px, 100% calc(100% - 8px), calc(100% - 8px) calc(100% - 8px), calc(100% - 8px) 100%, 8px 100%, 8px calc(100% - 8px), 0 calc(100% - 8px)); }
+    #chart:not([data-book="leather"]) .book::before { display: none; }
+    #chart:not([data-book="leather"]) .book .spread { background-size: 100% 100%; image-rendering: pixelated; border: none; box-shadow: 4px 4px 0 #1a0e06, -4px 4px 0 #1a0e06, 0 8px 0 #1a0e06; }
+    #chart:not([data-book="leather"]) .book .spread::after { opacity: .25; }
+    #chart:not([data-book="leather"]) .mapwrap canvas { image-rendering: auto; }
+    #chart:not([data-book="leather"]) .ribbons button { background: linear-gradient(180deg, color-mix(in srgb, var(--rb) 80%, #fff) 0 50%, var(--rb) 50%); }
+    /* scribbled journal: ink handwriting that wobbles, doodled cloth cover */
+    #chart[data-book="scribble"] #logBody, #chart[data-book="scribble"] .legend { font-family: "Caveat", "Segoe Print", "Bradley Hand", cursive; color: #23284a; }
+    #chart[data-book="scribble"] #logBody.cols { font-size: 21px; font-weight: 500; line-height: 1.12; filter: url(#rough); }
+    #chart[data-book="scribble"] #logBody h3 { font: 700 30px "Caveat", cursive; font-variant: normal; letter-spacing: 0; border-bottom: none; text-decoration: underline wavy rgba(35,40,74,.5); text-underline-offset: 5px; transform: rotate(-1deg); }
+    #chart[data-book="scribble"] .ent { background: none; border-left: none; border-bottom: 1.5px dashed rgba(35,40,74,.3); padding: 1px 4px; }
+    #chart[data-book="scribble"] .ent:nth-child(odd) { transform: rotate(-.4deg); } #chart[data-book="scribble"] .ent:nth-child(even) { transform: rotate(.35deg); }
+    #chart[data-book="scribble"] .ent b { font-size: 23px; font-weight: 700; } #chart[data-book="scribble"] .ent small { font-size: 19px; font-weight: 500; }
+    #chart[data-book="scribble"] .ent.cur { background: rgba(255,220,90,.35); }
+    #chart[data-book="scribble"] .riddle { background: none; border: 2px solid rgba(35,40,74,.5); border-radius: 14px 4px 16px 6px; }
+    #chart[data-book="scribble"] .riddle p { font-size: 24px; font-weight: 700; font-style: normal; }
+    #chart[data-book="scribble"] .ribbons button { filter: url(#roughBig); }
+    #chart[data-book="scribble"] .ribbons button em { font: 700 19px "Caveat", cursive; font-variant: normal; letter-spacing: 0; color: rgba(20,14,10,.75); text-shadow: none; transform: rotate(-3deg); }
+    #chart[data-book="scribble"] .ribbons button.on em { color: #fff2c8; }
+    #chart[data-book="scribble"] .bookbar { font: 700 18px "Caveat", cursive; }
+    #chart[data-book="scribble"] .bookbar button, #chart[data-book="scribble"] .mapctl button, #chart[data-book="scribble"] #logBody button.mini { font: 700 18px "Caveat", cursive; background: rgba(240,220,168,.15); color: #f0dca8; border: 2px solid #f0dca8; border-radius: 12px 3px 10px 4px; clip-path: none; text-shadow: none; filter: url(#rough); }
+    #chart[data-book="scribble"] .mapctl button, #chart[data-book="scribble"] #logBody button.mini { color: #23284a; border-color: #23284a; }
+    #chart[data-book="scribble"] .legend { font-size: 17px; }
+    /* pixel tome: chunky pixel font with hard edges, dithered paper and cover */
+    #chart[data-book="pixel"] #logBody, #chart[data-book="pixel"] .legend, #chart[data-book="pixel"] .bookbar { font-family: "Pixelify Sans", "Courier New", monospace; }
+    #chart[data-book="pixel"] #logBody.cols, #chart[data-book="pixel"] .ribbons, #chart[data-book="pixel"] .bookbar, #chart[data-book="pixel"] .legend { filter: url(#crisp); }
+    #chart[data-book="pixel"] #logBody.cols { font-size: 16px; font-weight: 400; line-height: 1.25; }
+    #chart[data-book="pixel"] #logBody h3 { font: 600 21px "Pixelify Sans", monospace; font-variant: normal; letter-spacing: .04em; border-bottom: 4px dashed rgba(58,34,16,.5); }
+    #chart[data-book="pixel"] .ent { border-left-width: 4px; background: rgba(255,248,220,.25); box-shadow: 0 4px 0 rgba(58,34,16,.12); }
+    #chart[data-book="pixel"] .ent b { font-weight: 600; font-size: 16px; } #chart[data-book="pixel"] .ent small { font-weight: 400; font-size: 14px; }
+    #chart[data-book="pixel"] .riddle p { font-style: normal; font-size: 18px; font-weight: 600; }
+    #chart[data-book="pixel"] .ribbons button { clip-path: polygon(0 0, 100% 0, 100% 34%, 88% 34%, 88% 66%, 100% 66%, 100% 100%, 0 100%); transform: none; }
+    #chart[data-book="pixel"] .ribbons button::before { background: repeating-linear-gradient(90deg, rgba(0,0,0,.18) 0 4px, transparent 4px 8px); opacity: .5; }
+    #chart[data-book="pixel"] .ribbons button em { font: 600 14px "Pixelify Sans", monospace; font-variant: normal; color: #f4e6c0; text-shadow: 2px 2px 0 rgba(0,0,0,.55); }
+    #chart[data-book="pixel"] .ribbons button:hover { transform: translateX(4px); } #chart[data-book="pixel"] .ribbons button.on { transform: translateX(12px); }
+    #chart[data-book="pixel"] .bookbar button, #chart[data-book="pixel"] .mapctl button, #chart[data-book="pixel"] #logBody button.mini { font: 600 15px "Pixelify Sans", monospace; background: #c9a85c; color: #2a1608; clip-path: none; text-shadow: none; border: none; box-shadow: 0 -3px 0 #2a1608, 0 3px 0 #2a1608, -3px 0 0 #2a1608, 3px 0 0 #2a1608, inset 0 -3px 0 #8a6a28; }
+    /* charcoal sketchbook: black boards, smudged paper, messy marker handwriting */
+    #chart[data-book="charcoal"] #logBody, #chart[data-book="charcoal"] .legend, #chart[data-book="charcoal"] .bookbar { font-family: "Gloria Hallelujah", "Comic Sans MS", cursive; color: #1e1e22; }
+    #chart[data-book="charcoal"] #logBody.cols { font-size: 14px; font-weight: 400; line-height: 1.35; filter: url(#rough); }
+    #chart[data-book="charcoal"] #logBody h3 { font: 400 21px "Gloria Hallelujah", cursive; font-variant: normal; letter-spacing: 0; border-bottom: 3px solid rgba(30,30,34,.55); transform: rotate(.8deg); }
+    #chart[data-book="charcoal"] .ent { background: rgba(30,30,34,.04); border-left: 3px solid rgba(30,30,34,.55); }
+    #chart[data-book="charcoal"] .ent b { font-weight: 400; font-size: 15px; } #chart[data-book="charcoal"] .ent small { font-weight: 400; font-size: 12px; }
+    #chart[data-book="charcoal"] .ent.cur { border-left-color: #a02a20; background: rgba(160,42,32,.08); }
+    #chart[data-book="charcoal"] .riddle { background: none; border: 2px solid rgba(30,30,34,.5); }
+    #chart[data-book="charcoal"] .riddle p { font-style: normal; font-weight: 400; font-size: 16px; }
+    #chart[data-book="charcoal"] .ribbons button { filter: url(#roughBig) saturate(.45) brightness(.85); }
+    #chart[data-book="charcoal"] .ribbons button em { font: 400 13px "Gloria Hallelujah", cursive; font-variant: normal; letter-spacing: 0; color: rgba(240,240,240,.85); text-shadow: none; }
+    #chart[data-book="charcoal"] .bookbar { color: #d8d8dc; }
+    #chart[data-book="charcoal"] .bookbar button, #chart[data-book="charcoal"] .mapctl button, #chart[data-book="charcoal"] #logBody button.mini { font: 400 14px "Gloria Hallelujah", cursive; background: #e8e6e0; color: #1e1e22; clip-path: none; text-shadow: none; border: 2px solid #1e1e22; filter: url(#rough); }
     .mapwrap { position: relative; width: fit-content; max-width: 100%; margin: 0 auto; }
     .mapwrap canvas { height: calc(min(600px, 90vh) - 150px); width: auto; max-width: 100%; aspect-ratio: 880 / 470; display: block; margin: 0 auto; border: 3px solid #3a2210; cursor: grab; touch-action: none; }
     .mapctl { position: absolute; right: 10px; top: 10px; display: flex; flex-direction: column; gap: 4px; }
@@ -208,6 +262,11 @@
   </style>
 </head>
 <body>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <filter id="rough" x="-2%" y="-2%" width="104%" height="104%"><feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves="2" seed="4" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2.6" xChannelSelector="R" yChannelSelector="G"/></filter>
+    <filter id="roughBig" x="-5%" y="-10%" width="110%" height="120%"><feTurbulence type="fractalNoise" baseFrequency="0.07" numOctaves="2" seed="9" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="5" xChannelSelector="R" yChannelSelector="G"/></filter>
+    <filter id="crisp"><feComponentTransfer><feFuncA type="discrete" tableValues="0 1"/></feComponentTransfer></filter>
+  </svg>
   <canvas id="game"></canvas>
   <div id="hud">
     <div id="stats" class="txt">
@@ -216,7 +275,7 @@
       <div class="panel" id="placeline"></div>
       <div class="panel" id="tracker"></div>
     </div>
-    <div id="compass" class="windbox"><canvas id="compassCv" width="132" height="132"></canvas></div>
+    <div id="compass" class="windbox"><canvas id="compassCv" width="36" height="36"></canvas></div>
     <div id="sailbar" class="panel txt"><div><i class="ico sail"></i></div><div class="bar"><div class="fill" id="sailfill"></div></div></div>
     <div id="combatbox" class="panel txt"><div><i class="ico hull"></i><span id="hptxt"></span></div><div class="bar"><div class="fill" id="hpfill"></div></div><div id="ammotxt"></div><div class="bar thin"><div class="fill" id="reloadfill"></div></div></div>
     <div id="ebar" class="panel txt" style="display:none"><span id="ename"></span><div class="bar"><div class="fill" id="efill"></div></div></div>
@@ -232,13 +291,13 @@
   <div id="yardmodal" class="modal yard"><div class="menu" id="yardWide"><h2>Shipyard</h2><p class="quote" id="yardLine">Paint, canvas and carved wood. All the finest vanity.</p><div class="goldline">Gold: <b id="yardGold"></b></div><div id="yardBody"></div><button id="yardClose">Done</button></div></div>
   <div id="chart" class="modal"><div class="bookwrap"><div class="ribbons" id="logTabs"></div><div class="book">
     <div class="spread"><div id="logBody" class="cols"></div></div>
-    <div class="bookbar"><button id="pgPrev">&#9666;</button><span id="pgNum" style="min-width:48px;text-align:center"></span><button id="pgNext">&#9656;</button><span class="keys">&larr; &rarr; tabs &middot; &uarr; &darr; pages &middot; 1-8</span><button id="logClose">Close [M]</button></div>
+    <div class="bookbar"><button id="pgPrev">&#9666;</button><span id="pgNum" style="min-width:48px;text-align:center"></span><button id="pgNext">&#9656;</button><span class="keys">&larr; &rarr; tabs &middot; &uarr; &darr; pages &middot; 1-8</span><button id="bookStyle">Book</button><button id="logClose">Close [M]</button></div>
   </div></div></div>
   <div id="shipmodal" class="modal"><div class="menu" id="shWide"><h2 id="shName"></h2><p class="quote" id="shLine"></p><div class="goldline">Gold: <b id="shGold"></b></div><div id="shList"></div><button id="shClose">Wave goodbye</button></div></div>
   <div id="harbour" class="modal"><div class="menu" id="hbWide"><h2 id="hbName"></h2><p class="quote" id="hbLine"></p><div class="goldline">Gold: <b id="hbGold"></b></div><div class="hbtabs" id="hbTabs"><button data-t="board">Board</button><button data-t="market">Market</button><button data-t="wright">Shipwright</button></div><div id="hbPane"></div><button id="hbClose">Set sail [E]</button></div></div>
   <div id="pause" class="modal"><div class="menu">
     <div id="pauseMain"><h2>PAUSED</h2>
-      <button id="pbResume">Resume</button><button id="pbHint">Ask Mara for a hint</button><button id="pbControls">Controls</button><button id="pbLog">Captain's log</button><button id="pbWind">Wind meter: Wooden dial</button><button id="pbHud">Interface: Classic blue</button><button id="pbAbyss">Full-dread effects (test)</button><button id="pbSound">Sound: on</button><button id="pbMusic">Music: on</button>
+      <button id="pbResume">Resume</button><button id="pbHint">Ask Mara for a hint</button><button id="pbControls">Controls</button><button id="pbLog">Captain's log</button><button id="pbHud">Interface: Classic blue</button><button id="pbAbyss">Full-dread effects (test)</button><button id="pbSound">Sound: on</button><button id="pbMusic">Music: on</button>
     </div>
     <div id="pauseAbyss" style="display:none"><h2>FULL DREAD</h2>
       <p class="tip">These only happen in the very worst water. Switch each one on or off, or press <b>Try</b> to jump to full dread with just that effect. Press <b>0</b> in game to stop a test.</p>

@@ -46,3 +46,6 @@ Dread only depends on distance from home; it does not build up over time (only t
 - [docs/DESIGN.md](docs/DESIGN.md): design, how it works, tunables, **backlog**
 - [docs/AUDIO.md](docs/AUDIO.md): sound ideas, guidelines and the cue list (drop files in `public/audio/`)
 - [docs/concept/](docs/concept/): in-engine concept frames (`concept-sheet.png`)
+
+## Fonts
+The logbook uses Caveat, Gloria Hallelujah and Pixelify Sans (all SIL Open Font License), bundled in `public/fonts/` so the game works offline.

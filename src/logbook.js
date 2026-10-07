@@ -103,6 +103,104 @@ function lowPolyCover() {
   c.fillStyle = g; c.fillRect(CW / 2 - 40, 0, 80, CH);
   return cv.toDataURL();
 }
+// ---- book designs: small canvases, shown pixelated -----------------------------------------------
+const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
+const mkCanvas = (w, h) => { const cv = document.createElement('canvas'); cv.width = w; cv.height = h; return [cv, cv.getContext('2d')]; };
+/** jittery pencil/ink line on a tiny canvas */
+function scrawl(c, r, pts, col, w = 1) {
+  c.strokeStyle = col; c.lineWidth = w; c.lineCap = 'round';
+  for (let pass = 0; pass < 2; pass++) {
+    c.beginPath();
+    pts.forEach((p, i) => { const x = p[0] + (r() - 0.5) * 1.4, y = p[1] + (r() - 0.5) * 1.4; i ? c.lineTo(x, y) : c.moveTo(x, y); });
+    c.stroke();
+  }
+}
+function doodles(c, r, w, h, col) {
+  const spiral = (x, y, n) => scrawl(c, r, Array.from({ length: 30 }, (_, i) => [x + Math.cos(i * 0.6) * i * n / 30, y + Math.sin(i * 0.6) * i * n / 30]), col);
+  const skull = (x, y) => { scrawl(c, r, Array.from({ length: 13 }, (_, i) => [x + Math.cos(i / 12 * 6.28) * 6, y + Math.sin(i / 12 * 6.28) * 5]), col); c.fillStyle = col; c.fillRect(x - 3, y - 1, 2, 2); c.fillRect(x + 1, y - 1, 2, 2); scrawl(c, r, [[x - 3, y + 6], [x + 3, y + 6]], col); };
+  const tally = (x, y) => { for (let i = 0; i < 4; i++) scrawl(c, r, [[x + i * 3, y], [x + i * 3 + 1, y + 9]], col); scrawl(c, r, [[x - 2, y + 7], [x + 12, y + 2]], col); };
+  const star = (x, y) => scrawl(c, r, [0, 2, 4, 1, 3, 0].map((k) => [x + Math.cos(k * 1.2566 - 1.57) * 6, y + Math.sin(k * 1.2566 - 1.57) * 6]), col);
+  const xmark = (x, y) => { scrawl(c, r, [[x - 4, y - 4], [x + 4, y + 4]], col); scrawl(c, r, [[x + 4, y - 4], [x - 4, y + 4]], col); };
+  const wave = (x, y) => scrawl(c, r, Array.from({ length: 12 }, (_, i) => [x + i * 3, y + Math.sin(i) * 2]), col);
+  const all = [spiral, skull, tally, star, xmark, wave, star, wave, xmark, spiral];
+  all.forEach((f, i) => f(14 + r() * (w - 28), 12 + r() * (h - 24), 5 + r() * 4));
+}
+const BOOKS = {
+  scribble: { // a cloth-bound journal that has been doodled all over, ruled pages with ink and pencil
+    cover() {
+      const [cv, c] = mkCanvas(250, 150), r = mulberry32(31);
+      for (let y = 0; y < 150; y++) for (let x = 0; x < 250; x++) { const k = 0.8 + r() * 0.25 + (((x + y) % 4 === 0) ? -0.06 : 0); c.fillStyle = `rgb(${110 * k | 0},${74 * k | 0},${44 * k | 0})`; c.fillRect(x, y, 1, 1); }
+      for (let i = 0; i < 14; i++) { c.fillStyle = 'rgba(30,18,8,0.2)'; c.beginPath(); c.ellipse(r() * 250, r() * 150, 6 + r() * 20, 4 + r() * 10, r() * 3, 0, 7); c.fill(); }
+      doodles(c, r, 250, 150, 'rgba(240,222,180,0.55)');
+      scrawl(c, r, [[5, 5], [245, 4], [246, 145], [4, 146], [5, 5]], 'rgba(240,222,180,0.7)');
+      c.fillStyle = 'rgba(0,0,0,0.3)'; c.fillRect(120, 0, 10, 150);
+      return cv.toDataURL();
+    },
+    page() {
+      const [cv, c] = mkCanvas(240, 140), r = mulberry32(32);
+      for (let y = 0; y < 140; y++) for (let x = 0; x < 240; x++) {
+        const g = Math.abs(x - 119.5) / 120, edge = Math.min(x, 239 - x, y, 139 - y);
+        let k = 0.93 + r() * 0.06 - (g < 0.06 ? (0.06 - g) * 4 : 0) - (edge < 4 ? (4 - edge) * 0.03 : 0);
+        c.fillStyle = `rgb(${236 * k | 0},${224 * k | 0},${190 * k | 0})`; c.fillRect(x, y, 1, 1);
+      }
+      c.fillStyle = 'rgba(80,120,170,0.28)'; for (let y = 14; y < 136; y += 6) { c.fillRect(6, y, 108, 1); c.fillRect(126, y, 108, 1); }
+      c.fillStyle = 'rgba(190,60,50,0.35)'; c.fillRect(16, 2, 1, 136); c.fillRect(136, 2, 1, 136);
+      for (let i = 0; i < 5; i++) { c.fillStyle = 'rgba(80,70,60,0.08)'; c.beginPath(); c.ellipse(r() * 240, r() * 140, 6 + r() * 12, 3 + r() * 6, r() * 3, 0, 7); c.fill(); }
+      c.strokeStyle = 'rgba(120,70,30,0.25)'; c.lineWidth = 1.5; c.beginPath(); c.arc(200, 110, 11, 0.3, 5.6); c.stroke();
+      doodles(c, r, 240, 140, 'rgba(70,70,90,0.12)');
+      return cv.toDataURL();
+    },
+  },
+  pixel: { // a chunky dithered tome: everything snapped to a coarse pixel grid
+    cover() {
+      const [cv, c] = mkCanvas(150, 90), r = mulberry32(41), pal = ['#24120a', '#3e2414', '#5a361c', '#7a4c26'];
+      const blobs = Array.from({ length: 10 }, () => [r() * 150, r() * 90, 15 + r() * 25, r()]);
+      for (let y = 0; y < 90; y++) for (let x = 0; x < 150; x++) {
+        let v = 0.45; for (const [bx, by, br, bv] of blobs) v += (bv - 0.5) * Math.max(0, 1 - Math.hypot(x - bx, y - by) / br);
+        v += (1 - Math.min(1, Math.min(x, 149 - x, y, 89 - y) / 10)) * -0.25 - (Math.abs(x - 74.5) < 3 ? 0.3 : 0);
+        const q = v * 3 + (BAYER[(y % 4) * 4 + (x % 4)] / 16 - 0.5);
+        c.fillStyle = pal[Math.max(0, Math.min(3, Math.round(q)))]; c.fillRect(x, y, 1, 1);
+      }
+      c.fillStyle = '#c9a85c'; for (let x = 5; x < 145; x += 3) { c.fillRect(x, 3, 1, 1); c.fillRect(x, 86, 1, 1); } for (let y = 5; y < 86; y += 3) { c.fillRect(3, y, 1, 1); c.fillRect(146, y, 1, 1); }
+      const gold = ['#f0d890', '#c9a85c', '#8a6a28'];
+      const corner = (x0, y0, sx, sy) => { for (let i = 0; i < 9; i++) for (let j = 0; j < 9 - i; j++) { c.fillStyle = gold[i + j < 3 ? 0 : i + j < 7 ? 1 : 2]; c.fillRect(sx > 0 ? x0 + i : x0 - i - 1, sy > 0 ? y0 + j : y0 - j - 1, 1, 1); } };
+      corner(0, 0, 1, 1); corner(150, 0, -1, 1); corner(0, 90, 1, -1); corner(150, 90, -1, -1);
+      return cv.toDataURL();
+    },
+    page() {
+      const [cv, c] = mkCanvas(160, 90), r = mulberry32(42), pal = ['#9a8250', '#c4aa70', '#dcc58e', '#ecdcae'];
+      for (let y = 0; y < 90; y++) for (let x = 0; x < 160; x++) {
+        const g = Math.abs(x - 79.5) / 80, edge = Math.min(x, 159 - x, y, 89 - y);
+        const v = 3 - (g < 0.08 ? (0.08 - g) * 30 : 0) - (edge < 3 ? (3 - edge) * 0.4 : 0) - (r() < 0.04 ? 1 : 0);
+        c.fillStyle = pal[Math.max(0, Math.min(3, Math.round(v + BAYER[(y % 4) * 4 + (x % 4)] / 16 - 0.5)))]; c.fillRect(x, y, 1, 1);
+      }
+      return cv.toDataURL();
+    },
+  },
+  charcoal: { // a battered black sketchbook with chalk scratches and smudged charcoal pages
+    cover() {
+      const [cv, c] = mkCanvas(200, 120), r = mulberry32(51);
+      for (let y = 0; y < 120; y++) for (let x = 0; x < 200; x++) { const k = 0.85 + r() * 0.3; c.fillStyle = `rgb(${62 * k | 0},${60 * k | 0},${66 * k | 0})`; c.fillRect(x, y, 1, 1); }
+      for (let i = 0; i < 70; i++) { const x = r() * 200, y = r() * 120, a = r() * 6.28, l = 3 + r() * 14; scrawl(c, r, [[x, y], [x + Math.cos(a) * l, y + Math.sin(a) * l]], `rgba(220,220,225,${0.08 + r() * 0.2})`); }
+      doodles(c, r, 200, 120, 'rgba(235,235,240,0.45)');
+      scrawl(c, r, [[4, 4], [196, 3], [197, 116], [3, 117], [4, 4]], 'rgba(235,235,240,0.6)');
+      for (let i = 0; i < 8; i++) { c.fillStyle = 'rgba(200,200,210,0.06)'; c.beginPath(); c.ellipse(r() * 200, r() * 120, 8 + r() * 20, 4 + r() * 10, r() * 3, 0, 7); c.fill(); }
+      c.fillStyle = 'rgba(0,0,0,0.4)'; c.fillRect(96, 0, 8, 120);
+      return cv.toDataURL();
+    },
+    page() {
+      const [cv, c] = mkCanvas(220, 130), r = mulberry32(52);
+      for (let y = 0; y < 130; y++) for (let x = 0; x < 220; x++) { const g = Math.abs(x - 109.5) / 110, k = 0.9 + r() * 0.08 - (g < 0.05 ? (0.05 - g) * 5 : 0); c.fillStyle = `rgb(${232 * k | 0},${228 * k | 0},${218 * k | 0})`; c.fillRect(x, y, 1, 1); }
+      for (let i = 0; i < 9; i++) { const x = r() * 220, y = r() * 130, g = c.createRadialGradient(x, y, 1, x, y, 10 + r() * 16); g.addColorStop(0, 'rgba(40,40,45,0.18)'); g.addColorStop(1, 'rgba(40,40,45,0)'); c.fillStyle = g; c.fillRect(x - 30, y - 30, 60, 60); }
+      for (let i = 0; i < 4; i++) { const x = r() * 220, y = r() * 130; for (let k = 0; k < 5; k++) scrawl(c, r, [[x + k * 2, y], [x + k * 2 + 6, y + 8]], 'rgba(30,30,35,0.15)'); }
+      return cv.toDataURL();
+    },
+  },
+  leather: { cover: () => lowPolyCover(), page: null },
+};
+export const BOOK_STYLES = ['scribble', 'pixel', 'charcoal', 'leather'];
+export const BOOK_NAMES = { scribble: 'Scribbled journal', pixel: 'Pixel tome', charcoal: 'Charcoal sketchbook', leather: 'Low-poly leather' };
+
 const stars = (n) => '★'.repeat(n) + '☆'.repeat(3 - n);
 const ent = (title, sub = '', right = '', cls = '') => `<div class="ent ${cls}"><b>${title}</b>${right ? `<span class="r">${right}</span>` : ''}${sub ? `<small>${sub}</small>` : ''}</div>`;
 const h3 = (t) => `<h3>${t}</h3>`;
@@ -119,12 +217,22 @@ export class Logbook {
     this.num = document.getElementById('pgNum');
     this.page = 0;
     this.parch = null;
-    this.root.querySelector('.book').style.backgroundImage = `url(${lowPolyCover()})`;
+    this.setStyle('scribble');
     this.tabsEl.innerHTML = TABS.map(([id, label, icon], i) => `<button data-tab="${id}" title="${label} (${i + 1})"><span>${icon}</span><em>${label}</em></button>`).join('');
     this.tabsEl.addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) this.open(b.dataset.tab); });
     document.getElementById('logClose').addEventListener('click', () => deps.close());
     document.getElementById('pgPrev').addEventListener('click', () => this.turn(-1));
     document.getElementById('pgNext').addEventListener('click', () => this.turn(1));
+  }
+
+  /** book look: 'scribble' | 'pixel' | 'charcoal' | 'leather' (covers and pages are drawn here, small, and shown pixelated) */
+  setStyle(style) {
+    this.style = BOOKS[style] ? style : 'scribble';
+    this.root.dataset.book = this.style;
+    const b = BOOKS[this.style], book = this.root.querySelector('.book');
+    book.style.backgroundImage = `url(${b.cover()})`;
+    book.querySelector('.spread').style.backgroundImage = b.page ? `url(${b.page()})` : '';
+    if (this.c && this.tab === 'map') this.drawMap();
   }
 
   open(tab = this.tab) {

@@ -14,7 +14,7 @@ import { Fauna } from './fauna.js';
 import { Traffic } from './traffic.js';
 import { SeaFeatures } from './seafeatures.js';
 import { makeJob, findRumour, repOf, friendLevel, discount, bearingName, nearby, RUMOUR_COST, commissionsFor, questProgress, questNeed, questTitle, QUEST_ICON, questIcon, FRUITS, fruitOf, fruitName, plural } from './jobs.js';
-import { Logbook } from './logbook.js';
+import { Logbook, BOOK_STYLES, BOOK_NAMES } from './logbook.js';
 import { sectorAt, sectorInfo, sectorCoord, FACTIONS } from './sectors.js';
 import { KINDS } from './traffic.js';
 import { Fishing, fishById } from './fishing.js';
@@ -23,7 +23,7 @@ import { Objectives } from './objectives.js';
 import { GROUPS, DEFAULT_CUSTOM, byId } from './customize.js';
 import { Wind } from './wind.js';
 import { WindFX } from './windfx.js';
-import { drawWind, WIND_STYLES, WIND_NAMES } from './windmeters.js';
+import { drawWind, PX } from './windmeters.js';
 import { applyTimeOfDay, DAY_LENGTH, tod } from './daynight.js';
 import { UPGRADES, MAX_LEVEL, computeMods, shipwrightLine } from './upgrades.js';
 import { Abyss, EFFECTS, WATCHER_STYLES, WATCHER_NAMES } from './abyss.js';
@@ -134,7 +134,7 @@ const promptEl = $('prompt'), promptTxt = $('prompttxt'), promptBar = promptEl.q
 const toastsEl = $('toasts'), debugEl = $('debug'), helpEl = $('help');
 const chartEl = $('chart'), harbourEl = $('harbour'), pauseEl = $('pause'), shipEl = $('shipmodal');
 const compass = $('compassCv').getContext('2d');
-$('compassCv').width = 132; $('compassCv').height = 132;
+$('compassCv').width = PX; $('compassCv').height = PX;
 if (params.get('hud') === '0') $('hud').classList.add('hidden');
 
 function toast(text, dark = false, ms = 5200) {
@@ -361,8 +361,7 @@ $('abBack').addEventListener('click', showPauseMain);
 $('abAll').addEventListener('click', () => { const any = EFFECTS.some((f) => settings.abyss[f.id] === false); for (const f of EFFECTS) settings.abyss[f.id] = any; store.set(SETTINGS_KEY, settings); renderAbyssMenu(); });
 $('abForce').addEventListener('click', () => { abyss.stopTest(); if (forced === 1) forced = null; else { forced = 1; dread = 1; } renderAbyssMenu(); });
 $('pbLog').addEventListener('click', () => { logTab = 'map'; openModal('chart'); });
-function refreshStyleButtons() { $('pbWind').textContent = `Wind meter: ${WIND_NAMES[settings.windStyle]}`; $('pbHud').textContent = `Interface: ${HUD_NAMES[settings.hud]}`; }
-$('pbWind').addEventListener('click', () => { settings.windStyle = WIND_STYLES[(WIND_STYLES.indexOf(settings.windStyle) + 1) % WIND_STYLES.length]; store.set(SETTINGS_KEY, settings); refreshStyleButtons(); $('pbWind').focus(); });
+function refreshStyleButtons() { $('pbHud').textContent = `Interface: ${HUD_NAMES[settings.hud]}`; }
 $('pbHud').addEventListener('click', () => { settings.hud = HUD_THEMES[(HUD_THEMES.indexOf(settings.hud) + 1) % HUD_THEMES.length]; document.body.dataset.theme = settings.hud; store.set(SETTINGS_KEY, settings); refreshStyleButtons(); $('pbHud').focus(); });
 refreshStyleButtons();
 $('pbMusic').addEventListener('click', () => {
@@ -515,7 +514,7 @@ let trackNow = null;
 function drawCompass(w, heading) {
   const jobA = trackNow ? Math.atan2(trackNow.x - ship.pos.x, -(trackNow.z - ship.pos.z)) : null;
   windView.dir = abyss.windDir(w.dir); windView.strength = w.strength; windView.gust = w.gust; windView.floor = abyss.windFloor(ship.mods.floor);
-  drawWind(settings.windStyle, compass, windView, heading, performance.now() / 1000, jobA);
+  drawWind(compass, windView, heading, performance.now() / 1000, jobA);
 }
 
 // mission tracker (Q)
@@ -816,6 +815,14 @@ const logbook = new Logbook({ abyss, state, world, ship, seed: state.seed, toast
   dropQuest: (id) => { state.quests = state.quests.filter((q) => q.id !== id); sea.syncQuests(state.quests); toast('Commission dropped.'); },
   skipGoal: () => { const g = objectives.current; if (!g) return; if (g.onDone) g.onDone({ state, world, ship, giveMap }); state.goals.i++; toast('Goal skipped.'); } });
 
+function setBook(style) {
+  logbook.setStyle(style);
+  settings.book = logbook.style; store.set(SETTINGS_KEY, settings);
+  $('bookStyle').textContent = `Book: ${BOOK_NAMES[logbook.style]}`;
+}
+$('bookStyle').addEventListener('click', () => setBook(BOOK_STYLES[(BOOK_STYLES.indexOf(logbook.style) + 1) % BOOK_STYLES.length]));
+setBook(settings.book || 'scribble');
+
 // ---------------------------------------------------------------- main loop
 const GLASS = new THREE.Color('#07030d');
 const camPos = new THREE.Vector3(), camLook = new THREE.Vector3(), _v = new THREE.Vector3();
@@ -1021,7 +1028,7 @@ function frame() {
 window.__game = {
   setDread(v) { forced = v; dread = v; },
   setTime(t) { state.time = t; },
-  setStyle(hud, wind) { if (hud) { settings.hud = hud; document.body.dataset.theme = hud; } if (wind) settings.windStyle = wind; },
+  setStyle(hud, book) { if (hud) { settings.hud = hud; document.body.dataset.theme = hud; } if (book) setBook(book); },
   setCam(p, z) { if (p !== undefined) { pitch = pitchT = p; } if (z !== undefined) { zoom = zoomT = z; } },
   setOverride(o) { camOverride = o; },
   teleport(x, z, h) { ship.pos.set(x, 0, z); ship.heading = h; camHeading = h; },

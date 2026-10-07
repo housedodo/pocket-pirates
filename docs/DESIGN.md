@@ -115,8 +115,9 @@ Real audio files (synthesised stand-ins ship now), trading, landing on islands, 
 
 ## HUD, tracker & grime pass
 - The HUD is only gold, time and place (island name when near, else sector). Missions live in a tracker toggled with **Q**; the only direction hint is a small marker on the wind meter.
-- Wind meters: four detailed ones (dial, pennant, rose, windsock) and five plain one-colour ones (arrow, ink vane, tick ring, chalk, brass needle).
-- The captain's log is an old low-poly leather book (faceted cover, brass corners, page stack) with cloth bookmarks sticking out of its side; the labels are stamped into the cloth.
+- Wind meter: a single pixel-art tick ring (36x36 canvas shown 4x, the same pixel size as the world) with an N at north, a bright arc over the headings that sail well, the wind arrow, a bow tick and an orange mission dot.
+- The captain's log has four book designs (button in the book's bottom bar): Scribbled journal (default; doodled cloth cover, ruled pages, wobbly Caveat handwriting), Pixel tome (dithered pixel cover and pages, Pixelify Sans with hard edges), Charcoal sketchbook (black boards, smudged paper, Gloria Hallelujah) and the low-poly leather book. Covers and pages are drawn on small canvases and shown pixelated; the messy ink is an SVG displacement filter.
+- The original book is an old low-poly leather book (faceted cover, brass corners, page stack) with cloth bookmarks sticking out of its side; the labels are stamped into the cloth.
 - The chart is drawn like a used sketch: wobbly double ink lines, watercolour washes, pencil hatching, folds, stains, smudges and pencil notes.
 - Everything is deliberately grubby: stained/mossy atlas textures, per-face dirt in the baked vertex colours, a shader speckle + waterline wetness, clutter (barrels, crates, nets, washing lines, driftwood, fallen logs, mossy rocks) and worn ship details (cannons, anchor, ratlines).
 
