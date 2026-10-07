@@ -4,6 +4,7 @@ import { TILE } from './textures.js';
 import { mats } from './psx.js';
 import { waveHeight } from './ocean.js';
 import { clamp, lerp, smoothstep, angleDiff } from './util.js';
+import { computeMods } from './upgrades.js';
 
 export const MAX_SPEED = 11;
 const SECTIONS = [
@@ -139,6 +140,23 @@ export class Ship {
     }
     this.puffTimer = 0;
 
+    // lantern glow on the water (visible at night)
+    const pos = [], col = [], segs = 20, rings = 4;
+    const v = (i, r) => { const a = (i / segs) * Math.PI * 2; return [Math.cos(a) * r / rings, 0, Math.sin(a) * r / rings, 1, 1, 1, Math.pow(1 - r / rings, 1.5)]; };
+    const pv = (q) => { pos.push(q[0], q[1], q[2]); col.push(q[3], q[4], q[5], q[6]); };
+    for (let r = 0; r < rings; r++) for (let i = 0; i < segs; i++) {
+      const a = v(i, r), b = v(i + 1, r), c = v(i + 1, r + 1), d = v(i, r + 1);
+      pv(a); pv(c); pv(b); pv(a); pv(d); pv(c);
+    }
+    const gg = new THREE.BufferGeometry();
+    gg.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+    gg.setAttribute('color', new THREE.Float32BufferAttribute(col, 4));
+    this.glow = new THREE.Mesh(gg, mats.glow);
+    this.glow.renderOrder = 3;
+    this.glow.frustumCulled = false;
+    scene.add(this.glow);
+    this.mods = computeMods({});
+
     this.pos = new THREE.Vector3();
     this.heading = 0;
     this.speed = 0;
@@ -155,19 +173,19 @@ export class Ship {
 
     // wind
     const a = Math.abs(angleDiff(this.heading, wind.dir));
-    this.eff = 1 - 0.8 * smoothstep(0.35 * Math.PI, Math.PI, a);
+    this.eff = 1 - (1 - this.mods.floor) * smoothstep(0.35 * Math.PI, Math.PI, a);
     this.rel = angleDiff(this.heading, wind.dir);
-    const target = MAX_SPEED * this.eff * this.trim * wind.strength;
+    const target = MAX_SPEED * this.mods.speed * this.eff * this.trim * wind.strength;
     const rate = target > this.speed ? 0.5 : 0.7;
     this.speed += (target - this.speed) * Math.min(1, rate * dt);
 
-    this.heading += this.rudder * (0.28 + 0.8 * clamp(this.speed / 6, 0, 1)) * dt;
+    this.heading += this.rudder * this.mods.turn * (0.28 + 0.8 * clamp(this.speed / 6, 0, 1)) * dt;
     this.pos.x += Math.sin(this.heading) * this.speed * dt;
     this.pos.z -= Math.cos(this.heading) * this.speed * dt;
   }
 
   // call after collision resolution
-  place(dt, t, wave, dark) {
+  place(dt, t, wave, dark, night = 0) {
     const h = this.heading;
     const fx = Math.sin(h), fz = -Math.cos(h), rx = Math.cos(h), rz = Math.sin(h);
     const p = this.pos;
@@ -183,7 +201,8 @@ export class Ship {
     const swing = lerp(1.4, 0.1, Math.abs(this.rel) / Math.PI) * sgn;
     this.sailPivot.rotation.y += (swing - this.sailPivot.rotation.y) * Math.min(1, dt * 2.5);
     const flat = 0.14 + 0.86 * this.trim;
-    this.sailPivot.scale.set(1, flat, 1);
+    const k = this.mods.sailScale;
+    this.sailPivot.scale.set(k, flat * k, k);
     this.sail.scale.x += (sgn - this.sail.scale.x) * Math.min(1, dt * 2.5);
     this.jib.scale.x += (sgn - this.jib.scale.x) * Math.min(1, dt * 2.5);
     this.jib.scale.y = flat;
@@ -191,6 +210,12 @@ export class Ship {
     this.flag.rotation.y = Math.PI - this.rel + Math.sin(t * 9) * 0.18;
     this.flagBright.visible = !dark;
     this.flagDark.visible = dark;
+
+    // lantern glow
+    const L = this.mods.lantern;
+    this.glow.position.set(p.x, 0.8, p.z);
+    this.glow.scale.setScalar(5 + 3 * L);
+    mats.glow.opacity = (0.12 + 0.34 * night * (0.6 + 0.2 * L)) * (L === 0 ? 0.6 : 1);
 
     // wake
     this.puffTimer -= dt;

@@ -20,6 +20,7 @@ getting stranger is scarier than new horror music.
 | File | Notes |
 |---|---|
 | `sea` | constant water bed under everything; louder as the ship speeds up |
+| `amb_night` | night bed (crickets-on-water, creaks), fades in after sunset on top of the stage ambience |
 | `amb_1` .. `amb_5` | ambience per stage, 30-60 s, cross-faded by dread |
 | `music_1` .. `music_5` | music per stage, e.g. 32 bars at 90-100 bpm, cross-faded by dread |
 
@@ -36,6 +37,8 @@ getting stranger is scarier than new horror music.
 | `ui` | opening the chart |
 | `whisper` | random, from stage 3 on (pitch is randomised +-15%) |
 | `stage_up` | crossing into a new dread stage (a low sting) |
+| `buy` | buying a ship upgrade (coin + hammer) |
+| `pause` | opening the pause menu |
 
 ## Format guidelines
 - 44.1 kHz, OGG Vorbis ~96-128 kbps; mono for SFX, stereo for music/ambience.

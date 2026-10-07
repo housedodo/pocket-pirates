@@ -6,10 +6,11 @@ const STAGES = 5;
 export const CUES = {
   loops: [
     'sea',                                                 // constant water bed (volume follows speed)
+    'amb_night',                                           // night bed, fades in after sunset
     ...Array.from({ length: STAGES }, (_, i) => `amb_${i + 1}`),   // ambience per dread stage, cross-faded
     ...Array.from({ length: STAGES }, (_, i) => `music_${i + 1}`), // music per dread stage, cross-faded
   ],
-  oneShots: ['creak', 'splash', 'bump', 'dig', 'treasure', 'discover', 'harbour', 'ui', 'whisper', 'stage_up'],
+  oneShots: ['creak', 'splash', 'bump', 'dig', 'treasure', 'discover', 'harbour', 'ui', 'whisper', 'stage_up', 'buy', 'pause'],
 };
 
 export class AudioBus {
@@ -19,6 +20,16 @@ export class AudioBus {
     this.loops = new Map();
     this.whisperTimer = 8;
     this.lastStage = 0;
+    this.muted = false;
+  }
+
+  setMuted(m) {
+    this.muted = m;
+    if (this.master) this.master.gain.value = m ? 0 : 0.8;
+  }
+  setPaused(p) {
+    if (!this.ctx) return;
+    if (p) this.ctx.suspend(); else this.ctx.resume();
   }
 
   async start() {
@@ -27,7 +38,7 @@ export class AudioBus {
     if (!AC) return;
     this.ctx = new AC();
     this.master = this.ctx.createGain();
-    this.master.gain.value = 0.8;
+    this.master.gain.value = this.muted ? 0 : 0.8;
     this.master.connect(this.ctx.destination);
     await Promise.all([...CUES.loops, ...CUES.oneShots].map((k) => this.load(k)));
     for (const k of CUES.loops) this.startLoop(k);
@@ -74,7 +85,7 @@ export class AudioBus {
     src.start();
   }
 
-  update(dt, dread, speedFrac) {
+  update(dt, dread, speedFrac, night = 0) {
     if (!this.ctx) return;
     for (let i = 0; i < STAGES; i++) {
       const w = Math.max(0, 1 - Math.abs(dread * (STAGES - 1) - i)); // triangular cross-fade
@@ -82,6 +93,7 @@ export class AudioBus {
       this.setLoop(`music_${i + 1}`, w * 0.7);
     }
     this.setLoop('sea', 0.35 + speedFrac * 0.5);
+    this.setLoop('amb_night', night * 0.8);
     const stage = Math.min(STAGES - 1, Math.floor(dread * STAGES));
     if (stage > this.lastStage) this.play('stage_up');
     this.lastStage = stage;

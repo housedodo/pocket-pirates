@@ -25,13 +25,22 @@ If the game outgrows the browser, the design, generators and shaders port over; 
 | `world.js` | Streamed 110-unit cells -> island descriptors -> terrain + props. Deterministic from the seed |
 | `builder.js` | Flat-shaded triangle builder (lighting baked into vertex colours) |
 | `ocean.js` / `sky.js` | Wave-displaced ocean (same function on CPU for bobbing), sky, black sun, star "eye", clouds |
-| `ship.js` | Procedural ship, wind-based sailing model, wake |
+| `ship.js` | Procedural ship, wind-based sailing model, upgrade modifiers, wake, lantern glow |
+| `wind.js` | Wandering wind: big heading swings over minutes + gusts, announced when it shifts |
+| `daynight.js` | Day/night layered on the dread palette (5 min per day): sun, moon, stars, dusk colours, light level |
+| `upgrades.js` | 5 ship upgrades x 3 levels (sails, rudder, lantern, spyglass, crew), costs and effects |
 | `horror.js` | Tentacles that rise between islands at high dread |
 | `lore.js` | Names, harbour gossip and loot that drift from cosy to cosmic |
 | `audio.js` | Optional drop-in audio, cross-faded per dread stage |
 
 Every island has a bright decor set and a "wrong" decor set (dead palms, glowing fungus, monoliths with eyes, a totem in town).
 They swap at dread 0.5, and terrain colours blend to a second vertex colour set.
+
+## Systems added after the slice
+- **Upgrades:** buy at any harbour (E). Gold comes from treasure (+ crew bonus) and +15 per newly charted isle. Sails = speed and upwind ability, Rudder = turning, Lantern = night glow, Spyglass = view distance and zoom, Crew = dig speed and loot value.
+- **Wind:** direction swings up to ~150 degrees over several minutes, strength gusts 45-125%. Waves scale with it. HUD shows where it comes from and the sail efficiency.
+- **Day/night:** `DAY_LENGTH` in `daynight.js`. Windows, lanterns, fungus and eyes ignore the light level so they glow at night; the lighthouse beam gets stronger.
+- **Pause menu:** Esc/P (also on tab blur). Simulation, time of day and audio freeze while any menu is open.
 
 ## Dread stages
 | # | Name | Feel | World signs |
@@ -48,7 +57,7 @@ They swap at dread 0.5, and terrain colours blend to a second vertex colour set.
 - `CELL`, spawn probability and type weights in `world.js`; `MAX_SPEED` in `ship.js`.
 
 ## Not in the slice yet
-Combat (deliberately), audio files (hooks exist), ship upgrades, trading, landing on islands, weather, ghost ships, an ending, title/menu polish.
+Combat (deliberately), audio files (hooks exist), trading, landing on islands, weather (storms/fog banks), ghost ships, an ending, title/menu polish.
 
 ## Backlog
 **Alternative directions to revisit**
@@ -56,12 +65,12 @@ Combat (deliberately), audio files (hooks exist), ship upgrades, trading, landin
 - **C. Pure sandbox:** no story, just sailing, collecting and slow corruption. Quickest to build.
 
 **Game ideas**
-- Ship upgrades (hull, sails, lantern, spyglass range) bought with loot
+- More upgrades: hull (collision/storm resistance), cargo, cannons later
 - Trading and selling relics; harbour NPC quests; riddle/map treasure hunts
 - Light combat later: ghost ships, sea creatures; cannons
 - Fishing, friendly dolphins/whales early (which turn wrong later)
 - Sanity/Dread meter driven by choices, not just distance; lantern/harbours restore it
-- Day/night cycle, storms, fog banks, whirlpools
+- Storms, fog banks, whirlpools; dread interacting with the night (stranger things after dark)
 - Landing on islands (walkable beach/town), cave mouths, interiors
 - Procedural wrecks, message-in-a-bottle lore, a longer logbook
 - Ending(s): seal it, join it, or turn back to a subtly wrong home

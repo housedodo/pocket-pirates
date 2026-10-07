@@ -47,7 +47,7 @@ export class Ocean {
           vec2 blk = floor(vWP.xz * 1.1);
           vec3 jn = normalize(fn + vec3(fract(sin(dot(blk, vec2(12.9898, 78.233))) * 43758.5453) - 0.5, 0.0, fract(sin(dot(blk, vec2(39.346, 11.135))) * 24634.6345) - 0.5) * 0.5);
           float spec = step(0.9985, dot(jn, normalize(uSunDir + vd)));
-          diffuseColor.rgb = wcol * diff + spec * uSunColor * 0.6;`,
+          diffuseColor.rgb = wcol * diff * uLight + spec * uSunColor * 0.6;`,
       },
     });
     this.mesh = new THREE.Mesh(geo, this.material);

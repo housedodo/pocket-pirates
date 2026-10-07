@@ -34,17 +34,17 @@ export class Sky {
 
     // stars (+ one very wrong constellation: an eye)
     const rng = mulberry32(99);
-    const pts = [];
+    const pts = [], eye = [];
     const dir = (az, el, r = R * 0.96) => [Math.sin(az) * Math.cos(el) * r, Math.sin(el) * r, -Math.cos(az) * Math.cos(el) * r];
     for (let i = 0; i < 260; i++) pts.push(...dir(rng() * Math.PI * 2, 0.08 + rng() * 1.4));
     const EYE_AZ = 0.0, EYE_EL = 0.62;
     for (let i = 0; i < 46; i++) {
       const a = (i / 46) * Math.PI * 2;
-      pts.push(...dir(EYE_AZ + Math.cos(a) * 0.34, EYE_EL + Math.sin(a) * 0.1));
+      eye.push(...dir(EYE_AZ + Math.cos(a) * 0.34, EYE_EL + Math.sin(a) * 0.1));
     }
     for (let i = 0; i < 10; i++) {
       const a = (i / 10) * Math.PI * 2;
-      pts.push(...dir(EYE_AZ + Math.cos(a) * 0.035, EYE_EL + Math.sin(a) * 0.055));
+      eye.push(...dir(EYE_AZ + Math.cos(a) * 0.035, EYE_EL + Math.sin(a) * 0.055));
     }
     const sg = new THREE.BufferGeometry();
     sg.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
@@ -53,6 +53,19 @@ export class Sky {
     this.stars.renderOrder = -25;
     this.stars.frustumCulled = false;
     this.group.add(this.stars);
+    const eg = new THREE.BufferGeometry();
+    eg.setAttribute('position', new THREE.Float32BufferAttribute(eye, 3));
+    this.eyeMat = new THREE.PointsMaterial({ color: 0xffd0ff, size: 2, sizeAttenuation: false, transparent: true, opacity: 0, fog: false, depthWrite: false, depthTest: false });
+    this.eyeStars = new THREE.Points(eg, this.eyeMat);
+    this.eyeStars.renderOrder = -25;
+    this.eyeStars.frustumCulled = false;
+    this.group.add(this.eyeStars);
+
+    // moon
+    this.moonMat = new THREE.MeshBasicMaterial({ color: 0xdfe8ff, fog: false, depthWrite: false, depthTest: false });
+    this.moon = new THREE.Mesh(new THREE.CircleGeometry(26, 14), this.moonMat);
+    this.moon.renderOrder = -20;
+    this.group.add(this.moon);
 
     // clouds: flat-bottomed low-poly puffs that drift with the wind
     const ico = new THREE.IcosahedronGeometry(1, 0);
@@ -85,22 +98,35 @@ export class Sky {
     this.sunDir = new THREE.Vector3();
   }
 
-  update(dt, cam, stage, windDir) {
+  update(dt, cam, stage, windDir, tod) {
     this.group.position.copy(cam.position);
     this.domeMat.uniforms.uTop.value.copy(stage.skyTop);
     this.domeMat.uniforms.uHorizon.value.copy(stage.skyHorizon);
 
-    const az = 0.55, el = stage.sunElev;
-    this.sunDir.set(Math.sin(az) * Math.cos(el), Math.sin(el), -Math.cos(az) * Math.cos(el));
-    this.sunHolder.position.copy(this.sunDir).multiplyScalar(R * 0.9);
-    this.sunHolder.lookAt(cam.position);
-    this.sunHolder.scale.setScalar(stage.sunSize);
+    const place = (obj, az, el) => {
+      this.sunDir.set(Math.sin(az) * Math.cos(el), Math.sin(el), -Math.cos(az) * Math.cos(el));
+      obj.position.copy(this.sunDir).multiplyScalar(R * 0.9);
+      obj.lookAt(cam.position);
+    };
+    place(this.sunHolder, tod.sunAz, tod.sunElev);
+    this.sunDirV = this.sunDirV || new THREE.Vector3();
+    this.sunDirV.copy(this.sunDir);
+    this.sunHolder.visible = tod.sunElev > -0.08;
+    this.sunHolder.scale.setScalar(stage.sunSize * (1 + 0.35 * tod.twilight));
     this.sunMat.color.copy(stage.sun);
     this.coronaMat.opacity = smoothstep(0.78, 1.0, stage.dread);
-    U.uSunDir.value.copy(this.sunDir);
-    U.uSunColor.value.copy(stage.sun).lerp(new THREE.Color(1, 0.4, 0.85), smoothstep(0.8, 1, stage.dread));
+    place(this.moon, tod.moonAz, tod.moonElev);
+    const moonDir = this.sunDir.clone();
+    this.moon.visible = tod.moonElev > -0.08;
+    this.moonMat.color.set('#dfe8ff').lerp(stage.sun, 0.15 * stage.dread);
 
-    this.starMat.opacity = stage.stars;
+    // the light that makes glints on the water: sun by day, moon by night
+    const dayish = smoothstep(-0.05, 0.12, tod.sunElev);
+    U.uSunDir.value.copy(moonDir).lerp(this.sunDirV, dayish).normalize();
+    U.uSunColor.value.copy(stage.sun).lerp(new THREE.Color(0.3, 0.38, 0.7), 1 - dayish).lerp(new THREE.Color(1, 0.4, 0.85), smoothstep(0.8, 1, stage.dread) * dayish);
+
+    this.starMat.opacity = Math.max(stage.stars, tod.night * 0.95);
+    this.eyeMat.opacity = smoothstep(0.8, 1.0, stage.dread);
 
     this.cloudMat.color.copy(stage.cloud);
     const wx = Math.sin(windDir), wz = -Math.cos(windDir);
