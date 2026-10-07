@@ -7,7 +7,7 @@ import { MAIN_GOALS, SIDE_GOALS } from './objectives.js';
 import { FISH } from './fishing.js';
 import { GROUPS, byId } from './customize.js';
 
-// The captain's log: an open book. Tabs are ribbons on the edge, content flows over two pages
+// The captain's log: an open book. Tabs are bookmark ribbons hanging out of the top, content flows over two pages
 // (turn with the arrows below / Up and Down), and the Map is a hand-inked low-poly chart.
 const TABS = [['map', 'Map', '🧭'], ['goals', 'Goals', '⚓'], ['quests', 'Quests', '📜'], ['riddles', 'Riddles', '🗝'], ['rumours', 'Rumours', '🗣'], ['journal', 'Journal', '📖'], ['ship', 'Ship', '⛵'], ['standing', 'Standing', '⭐']];
 const W = 880, H = 470;

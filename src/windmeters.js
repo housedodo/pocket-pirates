@@ -23,9 +23,37 @@ function ship(c, heading, col = '#e8d6a0') {
   tri(c, hull[0], hull[1], hull[4], col, '#2a1608'); tri(c, hull[1], hull[2], hull[3], '#c8b27a', '#2a1608'); tri(c, hull[1], hull[3], hull[4], '#b49e68', '#2a1608');
   c.restore();
 }
-function jobFlag(c, a) {
+const smooth = (a, b, x) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+const angDiff = (a, b) => { let d = (b - a) % 6.2832; if (d > Math.PI) d -= 6.2832; if (d < -Math.PI) d += 6.2832; return d; };
+/** coloured ring: if the nose pointed here, how well would she sail? green good, red in irons */
+function ring(c, w, heading) {
+  const N = 24, r0 = 40, r1 = 48, floor = w.floor == null ? 0.27 : w.floor;
+  for (let i = 0; i < N; i++) {
+    const a0 = (i / N) * 6.2832 - Math.PI / 2, a1 = ((i + 1) / N) * 6.2832 - Math.PI / 2, am = (a0 + a1) / 2;
+    const nose = am + Math.PI / 2;                                  // heading angle (clockwise from north) for this slice
+    const eff = 1 - (1 - floor) * smooth(0.35 * Math.PI, Math.PI, Math.abs(angDiff(nose, w.dir)));
+    const col = eff > 0.72 ? (i % 2 ? '#5ec45a' : '#4aa84a') : eff > 0.42 ? (i % 2 ? '#e0c844' : '#c8ae34') : (i % 2 ? '#e0584a' : '#c04034');
+    const p = (a, r) => [M + Math.cos(a) * r, M + Math.sin(a) * r];
+    tri(c, p(a0, r0), p(a1, r0), p(a0, r1), col, 'rgba(20,10,4,.55)');
+    tri(c, p(a1, r0), p(a1, r1), p(a0, r1), col, 'rgba(20,10,4,.55)');
+  }
+}
+function noseMark(c, heading) {
+  c.save(); c.translate(M, M); c.rotate(heading);
+  tri(c, [0, -53], [9, -38], [-9, -38], '#fff4d8', '#2a1608');
+  tri(c, [0, -53], [9, -38], [0, -42], '#d8c8a0');
+  c.restore();
+}
+function finish(c, w, heading, t, jobA) {
+  ring(c, w, heading); noseMark(c, heading); jobFlag(c, jobA, t);
+}
+function jobFlag(c, a, t = 0) {
   if (a == null) return;
-  c.save(); c.translate(M, M); c.rotate(a); tri(c, [0, -58], [7, -49], [-7, -49], '#ff9a3a', '#2a1608'); c.restore();
+  const k = 1 + Math.sin(t * 5) * 0.12;
+  c.save(); c.translate(M, M); c.rotate(a);
+  tri(c, [0, -63 * k], [12, -50], [-12, -50], '#ffb040', '#2a1608');
+  tri(c, [0, -63 * k], [12, -50], [0, -54], '#d87810');
+  c.restore();
 }
 
 // ------------------------------------------------------------------ dial
@@ -37,7 +65,6 @@ function dial(c, w, heading, t, jobA) {
   for (let i = -3; i <= 3; i++) { c.beginPath(); c.arc(M, M, 46 - Math.abs(i) * 6, 0.3 + i * 0.12, 2.6 + i * 0.12); c.stroke(); }
   c.lineWidth = 5; c.strokeStyle = '#d6b25a'; c.beginPath(); c.arc(M, M, 53, 0, 7); c.stroke();
   c.lineWidth = 2; c.strokeStyle = '#8a6420'; c.beginPath(); c.arc(M, M, 56, 0, 7); c.stroke();
-  c.setLineDash([3, 4]); c.lineWidth = 3; c.strokeStyle = '#e8d6a0'; c.beginPath(); c.arc(M, M, 48, 0, 7); c.stroke(); c.setLineDash([]);
   northMark(c);
   ship(c, heading);
   c.save(); c.translate(M, M); c.rotate(w.dir);
@@ -48,7 +75,7 @@ function dial(c, w, heading, t, jobA) {
   c.closePath(); c.fillStyle = '#d6483a'; c.fill(); c.strokeStyle = '#4a1610'; c.lineWidth = 1.2; c.stroke();
   c.strokeStyle = '#f4ecd0'; c.lineWidth = 2; c.beginPath(); for (let i = 3; i <= N; i += 4) { c.moveTo(e[i][0] - e[i][2], e[i][1]); c.lineTo(e[i][0] + e[i][2], e[i][1]); } c.stroke();
   c.restore();
-  jobFlag(c, jobA);
+  finish(c, w, heading, t, jobA);
 }
 
 // ------------------------------------------------------------------ low-poly pennant on a driftwood hex plate
@@ -74,17 +101,12 @@ function pennant(c, w, heading, t, jobA) {
   // brass hex cap on the mast
   const cap = ngon(6, 5, 0);
   for (let i = 0; i < 6; i++) tri(c, [M, M], cap[i], cap[(i + 1) % 6], i % 2 ? '#e8d28a' : '#c8aa58', '#2a1608');
-  jobFlag(c, jobA);
+  finish(c, w, heading, t, jobA);
 }
 
 // ------------------------------------------------------------------ faceted wind rose on a slate octagon
 function rose(c, w, heading, t, jobA) {
   plate(c, 8, 54, ['#52616a', '#46545e', '#5c6c76', '#3e4c56']);
-  // 16 tick triangles
-  for (let i = 0; i < 16; i++) {
-    const a = (i / 16) * 6.2832 - Math.PI / 2, r0 = 47, r1 = i % 2 ? 43 : 40, d = 0.05;
-    tri(c, [M + Math.cos(a - d) * r0, M + Math.sin(a - d) * r0], [M + Math.cos(a + d) * r0, M + Math.sin(a + d) * r0], [M + Math.cos(a) * r1, M + Math.sin(a) * r1], '#e8d6a0');
-  }
   // the star: 8 faceted points
   for (let i = 0; i < 8; i++) {
     const a = (i / 8) * 6.2832 - Math.PI / 2, long = i % 2 === 0, L = long ? 36 : 24, base = 7;
@@ -100,30 +122,30 @@ function rose(c, w, heading, t, jobA) {
   tri(c, [4, 0], [0, -L], [0, -L * 0.2], '#b8321f', '#4a1610');
   tri(c, [-9, -L + 9], [9, -L + 9], [0, -L - 8], '#f9a28a', '#4a1610');
   c.restore();
-  jobFlag(c, jobA);
+  finish(c, w, heading, t, jobA);
 }
 
 // ------------------------------------------------------------------ low-poly windsock on a teal plate
 function sock(c, w, heading, t, jobA) {
-  plate(c, 12, 54, ['#2f7f8a', '#3a929e', '#2a7080', '#348896']);
+  plate(c, 8, 54, ['#2f7f8a', '#3a929e', '#2a7080', '#348896']);
   northMark(c);
   ship(c, heading, '#cfe8e8');
   c.save(); c.translate(M, M); c.rotate(w.dir);
-  const N = 7, seg = 7 + w.strength * 3.5, amp = 2 + w.strength * 3 + (w.gust || 0) * 18;
-  let prev = { x: 0, y: 0, hw: 8 };
+  // four chunky segments, wobbling in steps so it stays angular
+  const N = 4, seg = 12 + w.strength * 4, amp = 2 + w.strength * 3 + (w.gust || 0) * 16;
+  let prev = { x: 0, y: 0, hw: 9 };
   for (let i = 1; i <= N; i++) {
-    const u = i / N, y = -i * seg, x = Math.sin(u * 6 - t * (5 + w.strength * 5)) * amp * u, hw = 8 * (1 - u * 0.72);
-    const a = i % 2 ? '#e8503c' : '#f4ecd0', b = i % 2 ? '#c03626' : '#d8cfae';
+    const u = i / N, y = -i * seg, x = Math.round(Math.sin(u * 4 - t * (4 + w.strength * 4)) * amp * u / 2) * 2, hw = 9 * (1 - u * 0.6);
+    const a = i % 2 ? '#e8503c' : '#f4ecd0', b = i % 2 ? '#bc3424' : '#d4cba8';
     const L0 = [prev.x - prev.hw, prev.y], R0 = [prev.x + prev.hw, prev.y], L1 = [x - hw, y], R1 = [x + hw, y];
-    tri(c, L0, R0, L1, a, 'rgba(40,10,6,.55)');
-    tri(c, R0, R1, L1, b, 'rgba(40,10,6,.55)');
+    tri(c, L0, R0, L1, a, 'rgba(40,10,6,.65)');
+    tri(c, R0, R1, L1, b, 'rgba(40,10,6,.65)');
     prev = { x, y, hw };
   }
   c.restore();
-  // pole base
-  const base = ngon(8, 5, 0);
-  for (let i = 0; i < 8; i++) tri(c, [M, M], base[i], base[(i + 1) % 8], i % 2 ? '#e8d28a' : '#b8964c', '#2a1608');
-  jobFlag(c, jobA);
+  const base = ngon(6, 5, 0);
+  for (let i = 0; i < 6; i++) tri(c, [M, M], base[i], base[(i + 1) % 6], i % 2 ? '#e8d28a' : '#b8964c', '#2a1608');
+  finish(c, w, heading, t, jobA);
 }
 
 export function drawWind(style, c, w, heading, t, jobA) {

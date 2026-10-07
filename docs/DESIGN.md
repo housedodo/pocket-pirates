@@ -40,7 +40,7 @@ They swap at dread 0.5, and terrain colours blend to a second vertex colour set.
 
 ## Systems added after the slice
 - **Upgrades:** buy at any harbour (E). Gold comes from treasure (+ crew bonus) and +15 per newly charted isle. Sails = speed and upwind ability, Rudder = turning, Lantern = night glow, Spyglass = view distance and zoom, Crew = dig speed and loot value.
-- **Wind:** direction swings up to ~150 degrees over several minutes, strength gusts 45-125%. Waves scale with it. HUD shows where it comes from and the sail efficiency.
+- **Wind:** direction swings up to ~150 degrees over several minutes, strength gusts 45-125%. Waves scale with it. The wind meter (dial / pennant / rose / windsock, chosen in the pause menu) shows where it blows, a green-yellow-red ring around it shows how well the ship's nose would sail in each direction, a cream marker is the nose, and an orange marker points at the tracked mission.
 - **Day/night:** `DAY_LENGTH` in `daynight.js`. Windows, lanterns, fungus and eyes ignore the light level so they glow at night; the lighthouse beam gets stronger.
 - **Pause menu:** Esc/P (also on tab blur). Simulation, time of day and audio freeze while any menu is open.
 
@@ -111,3 +111,9 @@ Real audio files (synthesised stand-ins ship now), trading, landing on islands, 
 - Ending(s): seal it, join it, or turn back to a subtly wrong home
 - Save slots, settings menu, gamepad, accessibility (reduce flicker/wobble option)
 - Procedural fallback audio if no files are supplied
+
+
+## HUD, tracker & grime pass
+- The HUD is only gold, time and place (island name when near, else sector). Missions live in a tracker toggled with **Q** and a faceted orange arrow (screen-edge or floating over the target) points at the tracked delivery, crate search area or main goal.
+- The captain's log tabs are cloth bookmark ribbons hanging from the top of the book.
+- Everything is deliberately grubby: stained/mossy atlas textures, per-face dirt in the baked vertex colours, a shader speckle + waterline wetness, clutter (barrels, crates, nets, washing lines, driftwood, fallen logs, mossy rocks) and worn ship details (cannons, anchor, ratlines).

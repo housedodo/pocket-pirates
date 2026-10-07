@@ -19,10 +19,11 @@ npm run build      # static build in dist/
 | Y | ask Mara (first mate) for a hint |
 | E | interact: harbour (shipwright, job board, rumours), dig for treasure, salvage wrecks, hail passing ships |
 | Esc or P | pause menu (resume, controls, log, sound) |
-| M | captain's log: Map, Jobs, Rumours, Journal, Ship, Standing, Goals, Quests, Riddles, Rumours, Journal, Ship, Standing (tabs 1-8 or arrows; Up/Down turn pages; J opens Quests) |
+| M | captain's log, tabs are bookmark ribbons: Map, Goals, Quests, Riddles, Rumours, Journal, Ship, Standing (tabs 1-8 or arrows; Up/Down turn pages; J opens Quests) |
 | mouse drag | tilt (up/down) and orbit around the boat (sideways); Z / X also orbit, V resets, R / F tilt |
 | wheel | zoom |
 | H | hide HUD |
+| Q | show / hide the mission tracker and the orange target arrow |
 
 Wind matters and shifts over time: sailing downwind is fast, straight into it is slow. A day/night cycle runs (5 min per day). Earn gold from treasure, wrecks, salvage, charting and delivery jobs, then buy ship upgrades at any harbour. Weather, wildlife and other ships roam the sea, and lighthouses only light at night. The game synthesises its own sound; drop files in `public/audio/` to replace it. Touch devices get on-screen buttons.
 

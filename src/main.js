@@ -35,7 +35,7 @@ const store = {
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* private mode etc. */ } },
 };
 const saved = params.get('fresh') ? null : store.get(SAVE_KEY);
-const settings = Object.assign({ muted: false, musicOff: false, windStyle: 'dial', hud: 'classic' }, store.get(SETTINGS_KEY) || {});
+const settings = Object.assign({ muted: false, musicOff: false, windStyle: 'dial', hud: 'classic', tracker: true }, store.get(SETTINGS_KEY) || {});
 const HUD_THEMES = ['classic', 'driftwood', 'parchment', 'brass'];
 const HUD_NAMES = { classic: 'Classic blue', driftwood: 'Driftwood planks', parchment: 'Parchment scrolls', brass: 'Brass & leather' };
 document.body.dataset.theme = settings.hud;
@@ -127,8 +127,8 @@ resize();
 
 // ---------------------------------------------------------------- DOM helpers
 const $ = (id) => document.getElementById(id);
-const goldEl = $('gold').querySelector('b'), foundEl = $('found').querySelector('b');
-const nearEl = $('near'), promptEl = $('prompt'), promptTxt = $('prompttxt'), promptBar = promptEl.querySelector('.bar'), promptFill = promptBar.querySelector('i');
+const goldEl = $('gold').querySelector('b');
+const promptEl = $('prompt'), promptTxt = $('prompttxt'), promptBar = promptEl.querySelector('.bar'), promptFill = promptBar.querySelector('i');
 const toastsEl = $('toasts'), debugEl = $('debug'), helpEl = $('help');
 const chartEl = $('chart'), harbourEl = $('harbour'), pauseEl = $('pause'), shipEl = $('shipmodal');
 const compass = $('compassCv').getContext('2d');
@@ -263,7 +263,7 @@ window.addEventListener('keydown', (e) => {
     else if (e.code === 'ArrowUp' || e.code === 'PageUp') logbook.turn(-1);
     else if (/^Digit[1-8]$/.test(e.code)) logbook.tabByIndex(parseInt(e.code.slice(5), 10) - 1);
     else if (e.code === 'KeyM') closeModal();
-    else if (e.code === 'KeyJ') { if (logbook.tab === 'jobs') closeModal(); else logbook.open('jobs'); }
+    else if (e.code === 'KeyJ') { if (logbook.tab === 'quests') closeModal(); else logbook.open('quests'); }
     logTab = logbook.tab;
     return;
   }
@@ -275,7 +275,7 @@ window.addEventListener('keydown', (e) => {
     return;
   }
   if (e.code === 'KeyM') { logTab = 'map'; openModal('chart'); return; }
-  if (e.code === 'KeyJ') { logTab = 'jobs'; openModal('chart'); return; }
+  if (e.code === 'KeyJ') { logTab = 'quests'; openModal('chart'); return; }
   if (modal) return;
   if (e.code === 'Space') e.preventDefault();
   if (e.repeat) return;
@@ -286,6 +286,7 @@ window.addEventListener('keydown', (e) => {
   if (e.code === 'Enter') objectives.mate.skip();
   if (e.code === 'KeyE') tryInteract();
   if (e.code === 'KeyH') $('hud').classList.toggle('hidden');
+  if (e.code === 'KeyQ' && !modal) { settings.tracker = settings.tracker === false; store.set(SETTINGS_KEY, settings); }
   if (e.code === 'Backquote') debugEl.style.display = debugEl.style.display === 'block' ? 'none' : 'block';
   if (e.code === 'Digit0') forced = null;
   if (/^Digit[1-5]$/.test(e.code)) forced = (parseInt(e.code.slice(5), 10) - 1) / 4;
@@ -463,9 +464,73 @@ function buyUpgrade(id) {
 }
 
 // ---------------------------------------------------------------- compass & HUD
+const windView = { dir: 0, strength: 1, gust: 0, floor: 0.27 };
+function trackTarget() {
+  if (state.job) return { x: state.job.x, z: state.job.z, label: state.job.toName };
+  for (const q of state.quests) {
+    if (q.type !== 'crates') continue;
+    const open = q.crates.filter((c) => !c.got);
+    if (!open.length) continue;
+    if (Math.hypot(q.center.x - ship.pos.x, q.center.z - ship.pos.z) > 75) return { x: q.center.x, z: q.center.z, label: 'Lost crates' };
+    let best = open[0];
+    for (const c of open) if (Math.hypot(c.x - ship.pos.x, c.z - ship.pos.z) < Math.hypot(best.x - ship.pos.x, best.z - ship.pos.z)) best = c;
+    return { x: best.x, z: best.z, label: 'Crate' };
+  }
+  const g = objectives.current, cell = g && ({ harbour: [0, -1], dig: [1, -1] })[g.id];
+  if (cell) { const d = world.desc(cell[0], cell[1]); if (d) return { x: d.x, z: d.z, label: d.name }; }
+  return null;
+}
+let trackNow = null;
 function drawCompass(w, heading) {
-  const jobA = state.job ? Math.atan2(state.job.x - ship.pos.x, -(state.job.z - ship.pos.z)) : null;
-  drawWind(settings.windStyle, compass, w, heading, performance.now() / 1000, jobA);
+  const jobA = trackNow ? Math.atan2(trackNow.x - ship.pos.x, -(trackNow.z - ship.pos.z)) : null;
+  windView.dir = w.dir; windView.strength = w.strength; windView.gust = w.gust; windView.floor = ship.mods.floor;
+  drawWind(settings.windStyle, compass, windView, heading, performance.now() / 1000, jobA);
+}
+
+// mission tracker (Q) + the faceted arrow that points at the tracked target
+const trackerEl = $('tracker'), arrowEl = $('goalarrow'), arrowCv = $('goalCv'), arrowDist = $('goaldist');
+(function paintArrow() {
+  const c = arrowCv.getContext('2d'); c.clearRect(0, 0, 96, 96);
+  const pts = (a) => { c.beginPath(); a.forEach(([x, y], i) => (i ? c.lineTo(x, y) : c.moveTo(x, y))); c.closePath(); };
+  pts([[48, 6], [82, 78], [48, 62], [14, 78]]); c.fillStyle = '#ffb040'; c.fill();
+  pts([[48, 6], [82, 78], [48, 62]]); c.fillStyle = '#ffd77a'; c.fill();
+  pts([[48, 6], [14, 78], [48, 62]]); c.fillStyle = '#d9781c'; c.fill();
+  pts([[48, 6], [82, 78], [48, 62], [14, 78]]); c.lineWidth = 4; c.strokeStyle = '#2a1608'; c.lineJoin = 'miter'; c.stroke();
+})();
+let trackerHtml = null;
+function updateTracker() {
+  trackNow = trackTarget();
+  const show = settings.tracker !== false && started && !modal;
+  trackerEl.style.display = show ? 'block' : 'none';
+  if (!show) { arrowEl.style.display = 'none'; return; }
+  const rows = [];
+  const g = objectives.current;
+  if (g) rows.push(`<div class="trow main"><i class="ico flag"></i>${g.title}</div>`);
+  if (state.job) rows.push(`<div class="trow">\u{1F4EE} ${state.job.toName}</div>`);
+  for (const q of state.quests) rows.push(`<div class="trow">${questIcon(q)} ${questTitle(q, dread)} <b>${questProgress(q, state)}/${questNeed(q)}</b></div>`);
+  const html = rows.length ? rows.join('') + '<div class="thint">[Q] hide</div>' : '';
+  if (html !== trackerHtml) { trackerHtml = html; trackerEl.innerHTML = html; }
+  trackerEl.style.display = html ? 'block' : 'none';
+  const t = trackNow, W = window.innerWidth, H = window.innerHeight;
+  if (!t) { arrowEl.style.display = 'none'; return; }
+  const dist = Math.hypot(t.x - ship.pos.x, t.z - ship.pos.z);
+  if (dist < 30) { arrowEl.style.display = 'none'; return; }
+  _v.set(t.x, 6, t.z).project(camera);
+  let sx = (_v.x * 0.5 + 0.5) * W, sy = (-_v.y * 0.5 + 0.5) * H;
+  const behind = _v.z > 1;
+  if (behind) { sx = W - sx; sy = H - sy; }
+  const mx = 54, my = 70, cx = W / 2, cy = H / 2;
+  const inside = !behind && sx > mx && sx < W - mx && sy > my && sy < H - my;
+  let rot;
+  if (inside) { rot = 180; sy -= 40; }
+  else {
+    const dx = sx - cx, dy = sy - cy, k = Math.min((W / 2 - mx) / Math.max(1e-3, Math.abs(dx)), (H / 2 - my) / Math.max(1e-3, Math.abs(dy)));
+    sx = cx + dx * k; sy = cy + dy * k; rot = Math.atan2(dy, dx) * 180 / Math.PI + 90;
+  }
+  arrowEl.style.display = 'block';
+  arrowEl.style.left = `${sx}px`; arrowEl.style.top = `${sy}px`;
+  arrowCv.style.transform = `rotate(${rot}deg) scale(${1 + Math.sin(performance.now() / 160) * 0.08})`;
+  arrowDist.textContent = `${t.label} ${Math.round(dist)}`;
 }
 
 // ---------------------------------------------------------------- game state
@@ -474,7 +539,7 @@ let dark = dread > DARK_THRESHOLD;
 let dig = null;     // { isl, t }
 let tNow = 0;
 let curSector = null;
-let lastSave = 0, lastNear = null, lastHour = Math.floor(state.time * 24);
+let placeShown = '', lastSave = 0, lastNear = null, lastHour = Math.floor(state.time * 24);
 const shipInput = { steer: 0, sail: 0 };
 
 function fireCannons() {
@@ -773,8 +838,6 @@ function frame() {
     curSector = sec.id;
     if (!state.sectorsSeen.includes(sec.id)) state.sectorsSeen.push(sec.id);
     if (live) toast(`Entering ${sec.name}: ${sec.faction.name} waters`, sec.dread > 0.5, 5000);
-    $('sectorline').textContent = `${sec.name} \u00b7 ${sec.faction.name}`;
-    $('sectorline').style.borderColor = sec.faction.color;
   }
   const windNow = { dir: wind.dir, strength: Math.min(1.4, wind.strength * (1 + 0.25 * weather.storm)) };
   if (live && wind.shifted()) toast(`The wind is shifting: now from the ${wind.fromName}`, false, 4200);
@@ -866,8 +929,10 @@ function frame() {
   const nearAny = world.nearest(ship.pos.x, ship.pos.z, 30);
   if (nearAny) {
     if (live) discover(nearAny);
-    if (lastNear !== nearAny) { nearEl.textContent = nearAny.desc.name; lastNear = nearAny; }
-  } else if (lastNear) { nearEl.textContent = ''; lastNear = null; }
+    lastNear = nearAny;
+  } else lastNear = null;
+  const placeTxt = lastNear ? lastNear.desc.name : sec.name;
+  if (placeTxt !== placeShown) { placeShown = placeTxt; $('placeline').textContent = placeTxt; $('placeline').style.borderColor = lastNear ? '' : sec.faction.color; }
 
   const tgt = getInteract();
   if (dig && live) {
@@ -893,23 +958,19 @@ function frame() {
 
   // ---- HUD
   goldEl.textContent = state.gold;
-  foundEl.textContent = Object.keys(state.discovered).length;
-  $('clocktxt').textContent = `${tod.clock}  ${weather.label}`;
-  const jl = $('jobline');
-  if (state.job) { jl.style.display = 'block'; jl.textContent = `Deliver to ${state.job.toName}: ${Math.round(Math.hypot(state.job.x - ship.pos.x, state.job.z - ship.pos.z))}`; } else jl.style.display = 'none';
+  $('clocktxt').textContent = tod.clock;
+  updateTracker();
   $('clockicon').className = `ico ${tod.sunElev > 0 ? 'sun' : 'moon'}`;
   $('sailfill').style.width = `${Math.round(ship.trim * 100)}%`;
-  $('eff').textContent = `wind ${Math.round(ship.eff * 100)}%`;
-  $('windtxt').textContent = wind.feel;
   drawCompass(wind, ship.heading);
   if (tNow > 18) helpEl.style.opacity = '0';
   if (modal === 'harbour') { $('hbGold').textContent = state.gold; }
   if (modal === 'ship') { $('shGold').textContent = state.gold; }
   if (debugEl.style.display === 'block') debugEl.textContent = `tris ${renderer.info.render.triangles} calls ${renderer.info.render.calls}  dread ${dread.toFixed(2)} stage ${stage.index + 1} ${forced !== null ? '(forced)' : '(auto)'}  time ${tod.clock}  pos ${ship.pos.x | 0},${ship.pos.z | 0}  spd ${ship.speed.toFixed(1)}  islands ${world.islands.size}`;
 
-  $('hptxt').textContent = `${Math.round(state.hp)}/${ship.mods.maxHp}`;
+  $('hptxt').textContent = '';
   $('hpfill').style.width = `${Math.max(0, (state.hp / ship.mods.maxHp) * 100)}%`;
-  $('ammotxt').textContent = `Cannonballs: ${state.ammo}`;
+  $('ammotxt').textContent = `\u25cf ${state.ammo}`;
   $('reloadfill').style.width = `${100 - Math.min(100, (combat.reload / ship.mods.reload) * 100)}%`;
   const tgtE = combat.target(ship, traffic, 110);
   const eb = $('ebar');
@@ -917,10 +978,6 @@ function frame() {
     _v.set(tgtE.x, 5 * KINDS[tgtE.kind].scale + 3, tgtE.z).project(camera);
     if (_v.z < 1) { eb.style.display = 'block'; eb.style.left = `${(_v.x * 0.5 + 0.5) * window.innerWidth}px`; eb.style.top = `${(-_v.y * 0.5 + 0.5) * window.innerHeight}px`; $('ename').textContent = tgtE.name; $('efill').style.width = `${Math.max(0, (tgtE.hp / tgtE.maxHp) * 100)}%`; } else eb.style.display = 'none';
   } else eb.style.display = 'none';
-  const ql = $('questline'), q0 = state.quests[0];
-  if (q0) { ql.style.display = 'block'; ql.textContent = `${questIcon(q0)} ${questTitle(q0, dread)} ${questProgress(q0, state)}/${questNeed(q0)}${state.quests.length > 1 ? `  (+${state.quests.length - 1})` : ''}`; } else ql.style.display = 'none';
-  const gcur = objectives.current, gl = $('goalline');
-  if (gcur) { gl.style.display = 'block'; gl.textContent = `Goal: ${gcur.title}. ${gcur.text}`; } else gl.style.display = 'none';
   if (live) {
     const near = world.nearest(ship.pos.x, ship.pos.z, 45);
     audio.update(dt, { dread, speed: ship.speed / 11, night: tod.night, wind: wind.strength, rain: weather.rain, storm: weather.storm, surf: near ? clamp(1 - world.lastEdge / 45, 0, 1) : 0 });

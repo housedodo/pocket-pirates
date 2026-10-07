@@ -195,6 +195,15 @@ function house(A, B, x, y, z, ry, rng) {
   A.gable(0, h, 0, w + 0.6, 1.4 + rng() * 0.5, dep + 0.6, roof, TILE.roof, wall);
   A.box(w * 0.28, h + 0.9, -dep * 0.2, 0.55, 1.1, 0.55, '#a89a88', TILE.stone);
   A.box(-w * 0.2, 0, dep / 2 + 0.01, 0.9, 1.5, 0.12, '#7a4e2c', TILE.planks);
+  A.box(-w * 0.2, -0.05, dep / 2 + 0.35, 1.2, 0.18, 0.7, '#8a8070', TILE.stone);            // doorstep
+  for (const sx of [-1, 1]) A.box(sx * (w / 2 - 0.35), 0.95, dep / 2 + 0.03, 0.5, 0.78, 0.05, '#4a7a6a', TILE.planks); // shutters
+  A.box(-w / 2 + 0.3, 0.9, dep / 2 + 0.12, 0.9, 0.18, 0.28, '#6b4a2e', TILE.planks);          // window box
+  A.blob(-w / 2 + 0.3, 1.12, dep / 2 + 0.12, 0.38, 0.14, 0.12, '#4a8a38', TILE.white, 0.3, 3);
+  if (rng() < 0.7) barrel(A, w * 0.42, 0, dep / 2 + 0.55, 0.9);
+  if (rng() < 0.5) crateBox(A, -w * 0.46, 0, dep / 2 + 0.6, rng() * 3, 0.8);
+  A.box(w / 2 + 0.02, 0.2, -dep * 0.25, 0.05, h - 0.2, 0.18, '#5a6a6a', TILE.stone);            // drainpipe
+  A.blob(w * 0.12, h + 1.15, dep * 0.1, 0.45, 0.05, 0.4, '#8a5a3a', TILE.roof, 0.25, 6);       // patched tiles
+  A.blob(-w * 0.3, h + 0.7, -dep * 0.12, 0.5, 0.06, 0.4, '#6a8a4a', TILE.white, 0.3, 8);       // moss
   A.pop();
   if (rng() < 0.6) { // flag pole + pennant (only while it is still a happy town)
     B.push(x, y + h + 1.4, z, ry);
@@ -204,6 +213,86 @@ function house(A, B, x, y, z, ry, rng) {
   }
 }
 const pickCol = (rng, arr) => arr[Math.floor(rng() * arr.length) % arr.length];
+
+
+// ---- grubby little clutter: the stuff that makes a place look lived-in (and a bit dirty)
+function barrel(b, x, y, z, s = 1, col = '#8a5a30') {
+  b.cyl(x, y, z, 0.42 * s, 0.34 * s, 0.9 * s, 6, col, TILE.planks, true);
+  b.cyl(x, y + 0.2 * s, z, 0.45 * s, 0.45 * s, 0.07 * s, 6, '#3a2a1c', TILE.stone, false);
+  b.cyl(x, y + 0.62 * s, z, 0.44 * s, 0.44 * s, 0.07 * s, 6, '#3a2a1c', TILE.stone, false);
+}
+function crateBox(b, x, y, z, ry, s = 1, col = '#a07040') {
+  b.push(x, y, z, ry);
+  b.box(0, 0, 0, 0.9 * s, 0.8 * s, 0.9 * s, col, TILE.planks);
+  b.box(0, 0.8 * s, 0, 0.96 * s, 0.07 * s, 0.96 * s, '#5a3a20', TILE.planks);
+  b.pop();
+}
+function ropeCoil(b, x, y, z, s = 1) {
+  b.cyl(x, y, z, 0.5 * s, 0.46 * s, 0.14 * s, 7, '#b8955a', TILE.rope, true);
+  b.cyl(x, y + 0.14 * s, z, 0.38 * s, 0.34 * s, 0.14 * s, 7, '#a88548', TILE.rope, true);
+}
+function fishRack(b, x, y, z, ry) {
+  b.push(x, y, z, ry);
+  for (const sx of [-1.1, 1.1]) b.box(sx, 0, 0, 0.12, 1.6, 0.12, '#5a3e24', TILE.bark);
+  b.box(0, 1.5, 0, 2.5, 0.08, 0.1, '#6b4a2e', TILE.bark);
+  for (let i = 0; i < 4; i++) b.box(-0.8 + i * 0.52, 0.85, 0, 0.14, 0.62, 0.05, i % 2 ? '#8a9aa8' : '#a8b4bc', TILE.bone);
+  b.pop();
+}
+function washing(b, x, y, z, ry, rng) {
+  b.push(x, y, z, ry);
+  for (const sx of [-1.5, 1.5]) b.box(sx, 0, 0, 0.1, 1.9, 0.1, '#5a3e24', TILE.bark);
+  b.box(0, 1.75, 0, 3.1, 0.04, 0.04, '#d8d0b0', TILE.rope);
+  for (let i = 0; i < 3; i++) b.quad([-1.1 + i, 1.74, 0], [-0.6 + i, 1.74, 0], [-0.6 + i, 1.05, 0.02], [-1.1 + i, 1.05 - rng() * 0.15, 0.02], pickCol(rng, SHIRTS), TILE.flag);
+  b.pop();
+}
+function fence(b, x, y, z, ry, n = 4) {
+  b.push(x, y, z, ry);
+  for (let i = 0; i < n; i++) b.box(i * 0.9, 0, 0, 0.14, 0.8 - (i % 2) * 0.12, 0.14, '#7a5a3a', TILE.planks);
+  b.box((n - 1) * 0.45, 0.5, 0, (n - 1) * 0.9 + 0.2, 0.08, 0.06, '#6a4a2c', TILE.planks);
+  b.pop();
+}
+function beachedBoat(b, x, y, z, ry) {
+  b.push(x, y, z, ry, 1, 1, 1, 0, 0.18);
+  b.box(0, 0, 0, 1.5, 0.5, 3.6, '#c8d0c4', TILE.planks);
+  b.box(0, 0.45, 0, 1.15, 0.05, 3.1, '#4a3a2a', TILE.planks);
+  b.box(0.2, 0.2, 0.6, 0.1, 0.5, 1.2, '#c8c0a0', TILE.bone);
+  b.pop();
+}
+function driftwood(b, x, y, z, ry, len = 2.2) {
+  b.push(x, y + 0.15, z, ry, 1, 1, 1, 0, Math.PI / 2);
+  b.cyl(0, -len / 2, 0, 0.16, 0.12, len, 4, '#c8b894', TILE.bark, true);
+  b.pop();
+}
+function shell(b, x, y, z, rng) {
+  b.blob(x, y + 0.08, z, 0.17, 0.1, 0.17, rng() > 0.5 ? '#ffd8c4' : '#f4ecd8', TILE.white, 0.15, x);
+}
+function fern(b, x, y, z, rng) {
+  for (let i = 0; i < 4; i++) {
+    const a = i * 1.57 + rng() * 0.5;
+    b.tri([x, y + 0.05, z], [x + Math.cos(a + 0.35) * 0.9, y + 0.5, z + Math.sin(a + 0.35) * 0.9], [x + Math.cos(a - 0.35) * 0.9, y + 0.5, z + Math.sin(a - 0.35) * 0.9], '#4a8a38', TILE.white);
+  }
+}
+function flowers(b, x, y, z, rng) {
+  const col = pickCol(rng, ['#f0d040', '#e85a8a', '#f4f0e0', '#c078e0']);
+  for (let i = 0; i < 4; i++) {
+    const px = x + (rng() - 0.5) * 1.3, pz = z + (rng() - 0.5) * 1.3;
+    b.cyl(px, y, pz, 0.025, 0.025, 0.3, 3, '#3a7a2c', TILE.white, false);
+    b.blob(px, y + 0.34, pz, 0.1, 0.07, 0.1, col, TILE.white, 0.1, i);
+  }
+}
+function stump(b, x, y, z) {
+  b.cyl(x, y - 0.05, z, 0.38, 0.32, 0.5, 5, '#6a4a30', TILE.bark, true, '#c8a070');
+}
+function fallenLog(b, x, y, z, ry) {
+  b.push(x, y + 0.28, z, ry, 1, 1, 1, 0, Math.PI / 2);
+  b.cyl(0, -1.4, 0, 0.3, 0.26, 2.8, 5, '#6a4a30', TILE.bark, true, '#c8a070');
+  b.pop();
+  b.blob(x + Math.cos(ry) * 0.2, y + 0.42, z + 0.3, 0.45, 0.14, 0.3, '#5a8a3a', TILE.white, 0.2, 2); // moss
+}
+function mossRock(b, x, y, z, r, rng) {
+  b.blob(x, y + 0.2, z, r, r * 0.7, r, '#cfc9bf', TILE.stone, 0.25, x + z);
+  b.blob(x, y + r * 0.62, z, r * 0.65, r * 0.2, r * 0.65, '#6a9a4a', TILE.white, 0.3, 4);
+}
 
 function monolith(D, x, y, z, h = 3.2, w = 0.9) {
   D.cyl(x, y - 0.3, z, w, w * 0.62, h, 4, '#ffffff', TILE.void, true);
@@ -274,6 +363,20 @@ function decorate(d, rng, A, B, D, extra) {
     const fc = FRUITS[fruitOf(d)].color, nf = T === 'jungle' ? 7 : 3;
     for (let i = 0; i < nf; i++) { const p = spot(d, rng, 0.15, 0.85, 0.5); if (p) B.blob(p[0], p[1] + 0.4, p[2], 0.34, 0.34, 0.34, fc, TILE.white, 0.05, i); }
   }
+  const scatter = (n, t0, t1, hMin, fn) => { for (let i = 0; i < n; i++) { const p = spot(d, rng, t0, t1, hMin); if (p) fn(p); } };
+  if (T === 'jungle') {
+    scatter(7, 0.2, 0.85, 0.7, (p) => fern(A, p[0], p[1], p[2], rng));
+    scatter(4, 0.25, 0.85, 0.7, (p) => flowers(B, p[0], p[1], p[2], rng));
+    scatter(2, 0.3, 0.8, 0.7, (p) => fallenLog(A, p[0], p[1], p[2], rng() * 3));
+    scatter(2, 0.3, 0.8, 0.7, (p) => stump(A, p[0], p[1], p[2]));
+    scatter(2, 0.4, 0.9, 0.5, (p) => mossRock(A, p[0], p[1], p[2], 0.7 + rng() * 0.5, rng));
+  }
+  if (T === 'sandbar' || T === 'treasure') {
+    scatter(5, 0.55, 1.0, 0.15, (p) => shell(A, p[0], p[1], p[2], rng));
+    scatter(2, 0.6, 1.0, 0.15, (p) => driftwood(A, p[0], p[1], p[2], rng() * 3));
+    if (T === 'treasure') scatter(2, 0.3, 0.8, 0.6, (p) => stump(A, p[0], p[1], p[2]));
+  }
+  if (T === 'rocky') scatter(4, 0.2, 0.9, 0.3, (p) => mossRock(A, p[0], p[1], p[2], 0.9 + rng() * 0.8, rng));
   switch (T) {
     case 'sandbar':
       palms(1 + Math.floor(rng() * 3), 0.0, 0.6, 0.45, 0.8);
@@ -371,6 +474,18 @@ function decorate(d, rng, A, B, D, extra) {
       A.box(0, 0.4, -0.2, 0.1, 2.6, 0.1, '#ffffff', TILE.bark);
       A.pop();
       A.pop();
+      // quayside clutter
+      for (let i = 0; i < 6; i++) {
+        const th = dockTh + (rng() - 0.5) * 1.1, rho = shoreR(d, th) * (0.5 + rng() * 0.3), x = Math.cos(th) * rho, z = Math.sin(th) * rho;
+        const k = i % 3;
+        if (k === 0) { barrel(A, x, d.H - 0.1, z, 0.9 + rng() * 0.3); barrel(A, x + 0.8, d.H - 0.1, z + 0.2, 0.8); }
+        else if (k === 1) { crateBox(A, x, d.H - 0.1, z, rng() * 3); crateBox(A, x + 0.1, d.H + 0.7, z, rng() * 3, 0.8); }
+        else ropeCoil(A, x, d.H - 0.1, z, 1.1);
+      }
+      for (let i = 0; i < 2; i++) { const th = dockTh + Math.PI * 0.5 + i * Math.PI * 0.9 + rng() * 0.4, rho = shoreR(d, th) * 0.62; fishRack(A, Math.cos(th) * rho, d.H - 0.1, Math.sin(th) * rho, rng() * 3); }
+      { const th = dockTh + 1.6 + rng() * 0.8, rho = shoreR(d, th) * 0.5; washing(A, Math.cos(th) * rho, d.H - 0.1, Math.sin(th) * rho, rng() * 3, rng); }
+      { const th = dockTh - 1.4 - rng() * 0.6, rho = shoreR(d, th) * 0.86; fence(A, Math.cos(th) * rho, d.H - 0.1, Math.sin(th) * rho, th + 1.57, 5); }
+      { const th = dockTh + 0.7 + rng() * 0.5, rho = shoreR(d, th) * 0.97, h = terrainHeight(d, Math.cos(th) * rho, Math.sin(th) * rho); if (h > 0.1) beachedBoat(A, Math.cos(th) * rho, h, Math.sin(th) * rho, th + 1.57); }
       // people: idlers always, a crowd while it's cheerful, silent watchers at the shore when it isn't
       for (let i = 0; i < 4; i++) {
         const th = rng() * Math.PI * 2, rho = shoreR(d, th) * (0.18 + rng() * 0.3);

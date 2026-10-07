@@ -11,6 +11,12 @@
     html, body { margin: 0; height: 100%; background: #0b0820; overflow: hidden; font-family: "Courier New", ui-monospace, monospace; color: var(--ink); -webkit-user-select: none; user-select: none; touch-action: none; }
     canvas#game { position: fixed; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; display: block; }
     .txt { font-weight: 700; letter-spacing: .06em; text-shadow: 2px 2px 0 var(--shadow), -1px -1px 0 var(--shadow), 1px -1px 0 var(--shadow), -1px 1px 0 var(--shadow); }
+    /* grunge: speckle + stains over every panel, the book and its pages */
+    :root { --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .16 0 0 0 0 .1 0 0 0 0 .05 0 0 0 1.1 -.42'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+    .panel { position: relative; }
+    .panel::before { content: ""; position: absolute; inset: 0; background: var(--grain), linear-gradient(100deg, transparent 60%, rgba(30,18,6,.18)); background-size: 120px 120px, auto; pointer-events: none; image-rendering: pixelated; opacity: .6; }
+    .book::before { content: ""; position: absolute; inset: 0; background: var(--grain); background-size: 120px 120px; opacity: .4; pointer-events: none; border-radius: 6px; }
+    .book .spread::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: var(--grain), radial-gradient(circle at 78% 82%, transparent 0 22px, rgba(110,60,20,.22) 23px 26px, transparent 27px), radial-gradient(ellipse at 20% 12%, rgba(120,70,20,.16), transparent 40%), radial-gradient(ellipse at 92% 94%, rgba(60,30,8,.3), transparent 28%), linear-gradient(90deg, rgba(60,35,10,.22), transparent 8% 92%, rgba(60,35,10,.22)); background-size: 120px 120px, auto, auto, auto, auto; opacity: .5; mix-blend-mode: multiply; }
     .panel { background: var(--panel); border: 2px solid var(--edge); box-shadow: 3px 3px 0 rgba(0,0,0,.45); padding: 6px 10px; }
     #hud { position: fixed; inset: 0; pointer-events: none; }
     #hud.hidden > * { display: none !important; }
@@ -34,7 +40,7 @@
 
     #chart, .modal { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; background: rgba(8, 6, 22, .72); z-index: 4; }
     #chart.open, .modal.open { display: flex; }
-    .book { position: relative; width: min(1080px, 98vw); height: min(620px, 94vh); padding: 16px 116px 12px 16px; background: linear-gradient(135deg, #6a3f1c, #4a2a12); border: 4px solid #2a1608; border-radius: 10px; box-shadow: 0 10px 0 rgba(0,0,0,.45), inset 0 0 0 3px #8a5a2c; display: flex; flex-direction: column; font-family: "Palatino Linotype", "Book Antiqua", Palatino, Georgia, serif; color: #3a2210; }
+    .book { position: relative; width: min(1080px, 98vw); height: min(540px, 82vh); margin-top: 68px; padding: 16px 16px 12px 16px; background: linear-gradient(135deg, #6a3f1c, #4a2a12); border: 4px solid #2a1608; border-radius: 10px; box-shadow: 0 10px 0 rgba(0,0,0,.45), inset 0 0 0 3px #8a5a2c; display: flex; flex-direction: column; font-family: "Palatino Linotype", "Book Antiqua", Palatino, Georgia, serif; color: #3a2210; }
     .book .spread { position: relative; flex: 1; min-height: 0; background: linear-gradient(90deg, #efdfb2 0%, #e4d29f 46%, #c4aa70 49.4%, #a98f58 50%, #c4aa70 50.6%, #e4d29f 54%, #efdfb2 100%); border: 2px solid #2a1608; border-radius: 4px; box-shadow: inset 0 0 40px rgba(110,70,20,.35); padding: 16px 30px; overflow: hidden; }
     #logBody { height: 100%; }
     #logBody.cols { column-count: 2; column-gap: 56px; column-fill: auto; overflow-x: hidden; overflow-y: hidden; font-weight: 600; font-size: 15px; line-height: 1.35; }
@@ -60,19 +66,25 @@
     #logBody button.mini { margin: 4px 0 0; padding: 3px 10px; font: 700 12px Georgia, serif; background: #c9a85c; border: 2px solid #6b4a2e; color: #3a2210; cursor: pointer; }
     .ent button.mini { margin: 3px 0 0; padding: 1px 8px; font-size: 11px; opacity: .85; }
     #logBody h3.brk { break-before: column; margin-top: 0 !important; }
-    .ribbons { position: absolute; right: 6px; top: 30px; display: flex; flex-direction: column; gap: 5px; z-index: 2; }
-    .ribbons button { width: 92px; padding: 6px 6px 6px 8px; text-align: left; font: 800 13px Georgia, serif; color: #f6e6b8; background: linear-gradient(90deg, #8a2a1c, #b03a28); border: 2px solid #2a1608; border-left: none; border-radius: 0 8px 8px 0; cursor: pointer; box-shadow: 2px 2px 0 rgba(0,0,0,.4); transition: transform .1s; }
-    .ribbons button em { font-style: normal; margin-left: 4px; }
-    .ribbons button.on { transform: translateX(-8px); background: linear-gradient(90deg, #c9a14a, #ecd070); color: #3a2210; }
+    .ribbons { position: absolute; left: 44px; top: -62px; display: flex; gap: 7px; z-index: 2; }
+    .ribbons button { position: relative; width: 46px; height: 82px; padding: 5px 0 0; display: flex; flex-direction: column; align-items: center; gap: 3px; font: 800 12px Georgia, serif; color: #fbeec6; text-shadow: 1px 1px 0 rgba(0,0,0,.6); border: none; cursor: pointer; background: var(--rb, #8a2a1c); clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 88%, 0 100%); filter: drop-shadow(2px 3px 0 rgba(0,0,0,.45)); transition: transform .12s; }
+    .ribbons button::before { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(90deg, rgba(0,0,0,.12) 0 2px, transparent 2px 6px), linear-gradient(90deg, rgba(255,255,255,.22) 0 10%, transparent 10% 90%, rgba(0,0,0,.28) 90%); pointer-events: none; }
+    .ribbons button::after { content: ""; position: absolute; left: 4px; right: 4px; top: 2px; bottom: 16px; border: 1px dashed rgba(255,235,190,.4); pointer-events: none; clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); }
+    .ribbons button span { font-size: 17px; line-height: 1; filter: saturate(.7); }
+    .ribbons button em { font-style: normal; writing-mode: vertical-rl; letter-spacing: 0; font-size: 10px; margin-top: 1px; }
+    .ribbons button:hover { transform: translateY(5px); }
+    .ribbons button.on { transform: translateY(14px); color: #3a2210; text-shadow: none; --rb: #e2bd58 !important; }
+    .ribbons button:nth-child(8n+1) { --rb: #8a2a1c; } .ribbons button:nth-child(8n+2) { --rb: #2f5d8a; } .ribbons button:nth-child(8n+3) { --rb: #5a7a2c; } .ribbons button:nth-child(8n+4) { --rb: #6a3a7a; }
+    .ribbons button:nth-child(8n+5) { --rb: #b0642a; } .ribbons button:nth-child(8n+6) { --rb: #2e7a72; } .ribbons button:nth-child(8n+7) { --rb: #8a6a22; } .ribbons button:nth-child(8n+8) { --rb: #7a2a4a; }
     .bookbar { display: flex; align-items: center; gap: 10px; margin-top: 8px; color: #f0dca8; font: 700 13px Georgia, serif; }
     .bookbar .keys { flex: 1; opacity: .8; text-align: center; font-weight: 600; }
     .bookbar button { padding: 5px 12px; font: 800 14px Georgia, serif; background: #c9a85c; border: 2px solid #2a1608; color: #3a2210; cursor: pointer; }
-    .mapwrap { position: relative; }
-    .mapwrap canvas { width: 100%; height: auto; display: block; border: 3px solid #3a2210; cursor: grab; touch-action: none; }
+    .mapwrap { position: relative; width: fit-content; max-width: 100%; margin: 0 auto; }
+    .mapwrap canvas { height: calc(min(540px, 82vh) - 132px); width: auto; max-width: 100%; aspect-ratio: 880 / 470; display: block; margin: 0 auto; border: 3px solid #3a2210; cursor: grab; touch-action: none; }
     .mapctl { position: absolute; right: 10px; top: 10px; display: flex; flex-direction: column; gap: 4px; }
     .mapctl button { width: 30px; height: 30px; font: 800 17px Georgia, serif; background: #ecdcae; border: 2px solid #3a2210; cursor: pointer; color: #3a2210; }
     .legend { margin-top: 4px; font: 700 12px Georgia, serif; text-align: center; }
-    @media (max-width: 760px) { .ribbons { position: static; flex-direction: row; flex-wrap: wrap; order: -1; margin-bottom: 6px; } .ribbons button { width: auto; border-left: 2px solid #2a1608; border-radius: 8px; } .ribbons button em { display: none; } .ribbons button.on { transform: none; } #logBody.cols { column-count: 1; } }
+    @media (max-width: 760px) { .ribbons { left: 8px; gap: 3px; } .ribbons button { width: 34px; } .ribbons button em { display: none; } #logBody.cols { column-count: 1; } }
     .hbtabs { display: flex; gap: 4px; margin-bottom: 6px; }
     .hbtabs button { margin: 0; padding: 6px 4px; font-size: 14px; }
     .hbtabs button.on { background: #4a38a0; outline: 2px solid var(--gold); }
@@ -129,6 +141,14 @@
     .yardgrp { font-weight: 700; margin-top: 6px; color: var(--gold); }
     .yardgrp small { color: var(--ink); opacity: .7; font-weight: 400; }
     /* low-poly icons: faceted shapes from conic gradients + clip-path */
+    #placeline { font-size: 13px; border-left-width: 6px; }
+    #tracker { font-size: 13px; max-width: 280px; padding: 5px 9px; display: none; }
+    #tracker .trow { padding: 1px 0; } #tracker .trow.main { color: #ffd23a; font-weight: 700; }
+    [data-theme="parchment"] #tracker .trow.main { color: #8a4a00; }
+    #tracker .thint { font-size: 10px; opacity: .55; text-align: right; }
+    #goalarrow { position: absolute; width: 0; height: 0; display: none; pointer-events: none; z-index: 4; }
+    #goalarrow canvas { position: absolute; left: -32px; top: -32px; width: 64px; height: 64px; filter: drop-shadow(2px 3px 0 rgba(0,0,0,.5)); }
+    #goaldist { position: absolute; left: -70px; width: 140px; top: 30px; text-align: center; font: 800 12px Georgia, serif; color: #ffd77a; text-shadow: 1px 1px 0 #2a1608, -1px -1px 0 #2a1608, 1px -1px 0 #2a1608, -1px 1px 0 #2a1608; }
     .ico { display: inline-block; width: 17px; height: 17px; vertical-align: -3px; margin-right: 6px; }
     .ico.coin { background: conic-gradient(from 20deg, #ffe680, #d9a82a, #fff2a8, #c8981c, #ffe680, #e0b030); clip-path: polygon(50% 0, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%); }
     .ico.flag { background: conic-gradient(from 30deg, #f0705a, #c03428, #e8503c, #a82a20); clip-path: polygon(14% 0, 26% 0, 26% 22%, 94% 44%, 26% 66%, 26% 100%, 14% 100%); }
@@ -169,18 +189,15 @@
   <canvas id="game"></canvas>
   <div id="hud">
     <div id="stats" class="txt">
-      <div class="panel" id="gold"><i class="ico coin"></i>Gold <b>0</b></div>
-      <div class="panel" id="found"><i class="ico flag"></i>Isles charted <b>0</b></div>
-      <div class="panel" id="sectorline" style="font-size:12px;border-color:#fff7d655;max-width:260px"></div>
+      <div class="panel" id="gold"><i class="ico coin"></i><b>0</b></div>
       <div class="panel" id="clock"><i class="ico sun" id="clockicon"></i><b id="clocktxt">08:00</b></div>
-      <div class="panel" id="jobline" style="display:none;font-size:12px"></div>
-      <div class="panel" id="questline" style="display:none;font-size:12px;max-width:300px"></div>
-      <div class="panel" id="goalline" style="display:none;font-size:12px;max-width:300px;border-color:#ffd23a88"></div>
-      <div id="near"></div>
+      <div class="panel" id="placeline"></div>
+      <div class="panel" id="tracker"></div>
     </div>
-    <div id="compass" class="windbox"><canvas id="compassCv" width="132" height="132"></canvas><div id="windtxt">Fresh breeze</div></div></div>
-    <div id="sailbar" class="panel txt"><div><i class="ico sail"></i>SAILS</div><div class="bar"><div class="fill" id="sailfill"></div></div><div id="eff"></div></div>
-    <div id="combatbox" class="panel txt"><div><i class="ico hull"></i>HULL <span id="hptxt"></span></div><div class="bar"><div class="fill" id="hpfill"></div></div><div id="ammotxt"></div><div class="bar thin"><div class="fill" id="reloadfill"></div></div></div>
+    <div id="compass" class="windbox"><canvas id="compassCv" width="132" height="132"></canvas></div>
+    <div id="goalarrow"><canvas id="goalCv" width="96" height="96"></canvas><span id="goaldist"></span></div>
+    <div id="sailbar" class="panel txt"><div><i class="ico sail"></i></div><div class="bar"><div class="fill" id="sailfill"></div></div></div>
+    <div id="combatbox" class="panel txt"><div><i class="ico hull"></i><span id="hptxt"></span></div><div class="bar"><div class="fill" id="hpfill"></div></div><div id="ammotxt"></div><div class="bar thin"><div class="fill" id="reloadfill"></div></div></div>
     <div id="ebar" class="panel txt" style="display:none"><span id="ename"></span><div class="bar"><div class="fill" id="efill"></div></div></div>
     <div id="mate" class="panel txt" style="display:none"><span class="face" id="mateface">&#9875;</span><div style="flex:1"><b>Mara, first mate</b><div id="matetxt"></div></div><span id="matemore">&#9662;</span></div>
     <div id="fishui" class="panel txt" style="display:none"><div id="fishmsg"></div><div id="fishbar" style="display:none"><div id="fishtrack"><div id="fishzone"></div><div id="fishmark"></div></div><div id="fishprogwrap"><div id="fishprog"></div></div></div></div>
@@ -207,9 +224,10 @@
         <tr><td>A / D, &larr; &rarr;</td><td>Steer</td></tr>
         <tr><td>W / S, &uarr; &darr;</td><td>Set / reef the sails</td></tr>
         <tr><td>E</td><td>Visit a harbour (shipwright, upgrades) / dig for treasure</td></tr>
-        <tr><td>M / J</td><td>Captain's log (map, jobs, rumours, journal, ship, standing, goals)</td></tr>
+        <tr><td>M / J</td><td>Captain's log: M = map, J = quests (tabs on the bookmarks)</td></tr>
         <tr><td>C</td><td>Fishing: cast, hook the fish, pull in. Hold Space to reel</td></tr>
         <tr><td>Space</td><td>Fire cannons at an attacking raider (auto-aimed)</td></tr>
+        <tr><td>Q</td><td>Show / hide the current missions</td></tr>
         <tr><td>Y</td><td>Ask Mara for a hint</td></tr>
         <tr><td>Esc or P</td><td>Pause</td></tr>
         <tr><td>Mouse drag, R / F</td><td>Tilt camera; drag sideways (or Z / X) to look around the boat, V resets</td></tr>

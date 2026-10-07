@@ -23,6 +23,7 @@ attribute vec3 colorB;
 `;
 const FRAG_HEAD = /* glsl */`
 uniform float uLight;
+uniform float uDread;
 `;
 
 let atlas = null, grit = null;
@@ -36,21 +37,26 @@ export const getGrit = () => grit || (grit = makeGrit());
  *  - global light level multiplies everything except glowing texels (windows, lanterns, eyes)
  */
 export function psxMaterial(opts = {}) {
-  const { dark = false, vertex, fragmentColor, key = '', ...params } = opts;
+  const { dark = false, grime = false, vertex, fragmentColor, key = '', ...params } = opts;
   const m = new THREE.MeshBasicMaterial(params);
-  if (dark) m.defines = { USE_DARKCOL: '' };
-  m.customProgramCacheKey = () => `psx${dark ? 'D' : ''}${key}`;
+  if (dark || grime) m.defines = Object.assign({}, dark ? { USE_DARKCOL: '' } : {}, grime ? { USE_GRIME: '' } : {});
+  m.customProgramCacheKey = () => `psx${dark ? 'D' : ''}${grime ? 'G' : ''}${key}`;
   m.onBeforeCompile = (shader) => {
     Object.assign(shader.uniforms, U);
     let v = shader.vertexShader;
     v = v.replace('#include <common>', `#include <common>\n${VERT_HEAD}${vertex ? vertex.head : ''}`);
     if (vertex && vertex.begin) v = v.replace('#include <begin_vertex>', vertex.begin);
     if (dark) v = v.replace('#include <color_vertex>', '#include <color_vertex>\n#ifdef USE_DARKCOL\nvColor = vec4(mix(color.rgb, colorB, smoothstep(0.3, 0.85, uDread)), 1.0);\n#endif');
+    if (grime) v = v.replace('#include <common>', '#include <common>\nvarying vec3 vGW;');
     v = v.replace('#include <project_vertex>', `#include <project_vertex>
+      ${grime ? 'vGW = (modelMatrix * vec4(transformed, 1.0)).xyz;' : ''}
       gl_Position.xy = floor(gl_Position.xy / gl_Position.w * uSnap + 0.5) / uSnap * gl_Position.w;`);
     shader.vertexShader = v;
 
     let f = shader.fragmentShader;
+    if (grime) f = f.replace('#include <common>', `#include <common>
+      varying vec3 vGW;
+      float gh(vec3 p) { return fract(sin(dot(p, vec3(12.9898, 78.233, 37.719))) * 43758.5453); }`);
     f = f.replace('#include <common>', `#include <common>\n${FRAG_HEAD}${fragmentColor ? fragmentColor.head : ''}`);
     f = f.replace('#include <map_fragment>', `#include <map_fragment>
       float glow = 0.0;
@@ -60,6 +66,17 @@ export function psxMaterial(opts = {}) {
       #endif`);
     f = f.replace('#include <color_fragment>', `#include <color_fragment>
       diffuseColor.rgb *= mix(uLight, 1.0, glow);
+      #ifdef USE_GRIME
+        {
+          vec3 q = floor(vGW * 1.6);
+          float n = gh(q), n2 = gh(floor(vGW * 0.45) + 7.0);
+          float dirt = step(0.76, n) * 0.15 + step(0.55, n2) * 0.04;
+          float wet = smoothstep(0.7, -0.1, vGW.y);
+          vec3 g = diffuseColor.rgb * (1.0 - dirt * (1.0 + uDread * 0.8));
+          g = mix(g, g * vec3(0.66, 0.58, 0.46), wet * 0.5);
+          diffuseColor.rgb = mix(g, diffuseColor.rgb, glow);
+        }
+      #endif
       ${fragmentColor ? fragmentColor.body : ''}`);
     shader.fragmentShader = f;
   };
@@ -70,10 +87,10 @@ export function psxMaterial(opts = {}) {
 export const mats = {};
 export function initMaterials() {
   const a = getAtlas();
-  mats.terrain = psxMaterial({ map: getGrit(), vertexColors: true, dark: true });
-  mats.props = psxMaterial({ map: a, vertexColors: true, dark: true, alphaTest: 0.5, side: THREE.DoubleSide });
+  mats.terrain = psxMaterial({ map: getGrit(), vertexColors: true, dark: true, grime: true });
+  mats.props = psxMaterial({ map: a, vertexColors: true, dark: true, grime: true, alphaTest: 0.5, side: THREE.DoubleSide });
   mats.flagP = psxMaterial({ map: a, vertexColors: true, dark: true, alphaTest: 0.5, side: THREE.DoubleSide });
-  mats.sail = psxMaterial({ map: a, vertexColors: true, dark: true, side: THREE.DoubleSide, key: 'S' });
+  mats.sail = psxMaterial({ map: a, vertexColors: true, dark: true, grime: true, side: THREE.DoubleSide, key: 'S' });
   mats.shallow = psxMaterial({ vertexColors: true, transparent: true, depthWrite: false, key: 'A' });
   mats.foam = psxMaterial({ color: 0xffffff, transparent: true, opacity: 0.5, depthWrite: false, vertexColors: true, key: 'F' });
   mats.beam = psxMaterial({ color: 0xffe080, transparent: true, opacity: 0.16, depthWrite: false, side: THREE.DoubleSide, fog: false, key: 'B', fragmentColor: { head: '', body: 'diffuseColor.rgb /= max(uLight, 0.05);' } });

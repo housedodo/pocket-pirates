@@ -66,6 +66,30 @@ function buildHull(colors = {}) {
   b.cyl(-0.7, 0.55, 0.4, 0.34, 0.34, 0.7, 6, '#ffffff', TILE.planks);
   b.cyl(0.65, 0.55, 0.9, 0.34, 0.34, 0.7, 6, '#ffffff', TILE.planks);
   b.box(0.55, 0.55, -1.8, 0.8, 0.7, 0.8, '#ffffff', TILE.planks);
+  // worn details: cannons, anchor, rope coil, ratlines, patched planks
+  for (const sd of [-1, 1]) {
+    for (const cz of [-0.7, 0.5]) {
+      b.push(sd * 1.2, 0.72, cz, 0, 1, 1, 1, 0, -sd * Math.PI / 2);
+      b.cyl(0, -0.2, 0, 0.17, 0.12, 0.7, 5, '#2c2a30', TILE.stone, true);
+      b.pop();
+      b.cyl(sd * 0.9, 0.5, cz, 0.2, 0.2, 0.2, 5, '#4a3020', TILE.planks);
+    }
+    b.box(sd * 1.12, 0.55, -2.0, 0.08, 0.5, 0.5, '#5a3a22', TILE.planks);       // patch
+    b.blob(sd * 0.78, -0.3, 0.3, 0.12, 0.08, 0.2, '#b8c0a8', TILE.stone, 0.4, sd + 2); // barnacles
+    b.blob(sd * 0.7, -0.35, -1.3, 0.14, 0.08, 0.16, '#a0b098', TILE.stone, 0.4, sd + 4);
+    for (const ry of [1.4, 2.3, 3.2]) { // ratlines up to the mast
+      const k = (ry - 1.0) / 4.2;
+      b.quad([sd * (1.0 - k * 0.85), ry, -0.35], [sd * (1.0 - k * 0.85), ry + 0.06, -0.35], [sd * (1.0 - (k + 0.28) * 0.85), ry + 0.9, -0.35], [sd * (1.0 - (k + 0.28) * 0.85), ry + 0.84, -0.35], '#c8b078', TILE.rope);
+    }
+    b.quad([sd * 1.0, 0.95, -0.3], [sd * 1.0, 0.95, -0.4], [sd * 0.14, 5.5, -0.4], [sd * 0.14, 5.5, -0.3], '#a89060', TILE.rope);
+  }
+  b.cyl(0.35, 0.8, -2.7, 0.4, 0.36, 0.14, 7, '#b8955a', TILE.rope, true);
+  b.cyl(0.35, 0.94, -2.7, 0.3, 0.26, 0.14, 7, '#a88548', TILE.rope, true);
+  b.push(-0.95, 1.1, -2.6, 0.4);                                              // anchor
+  b.box(0, 0, 0, 0.1, 0.8, 0.1, '#2c2a30', TILE.stone);
+  b.box(0, 0.7, 0, 0.5, 0.08, 0.08, '#2c2a30', TILE.stone);
+  b.box(0, 0, 0, 0.5, 0.08, 0.08, '#2c2a30', TILE.stone);
+  b.pop();
   return b;
 }
 

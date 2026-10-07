@@ -134,6 +134,30 @@ export function makeAtlas() {
   // sand
   fill(TILE.sand, 236, 214, 150, 12);
 
+
+  // ---- grime pass: stains, rain streaks, scratches, damp edges, moss. Keeps glowing windows clean.
+  const stain = (t, x, y, w, h, col, a) => { const [ox, oy] = tilePos(t); g.globalAlpha = a; g.fillStyle = col; g.fillRect(ox + x, oy + y, w, h); g.globalAlpha = 1; };
+  const dirty = (t, o = {}) => {
+    const { blotch = 9, streak = 4, moss = 0, scratch = 6, edge = 0.16, clear = null } = o;
+    const ok = (y, h) => !clear || y + h < clear[0] || y > clear[1];
+    for (let i = 0; i < blotch; i++) { const w = 4 + ((R(0, 10)) | 0) * 2, h = 2 + ((R(0, 5)) | 0) * 2, y = (R(0, T - h) | 0) & ~1; if (ok(y, h)) stain(t, (R(0, T - w) | 0) & ~1, y, w, h, 'rgb(48,34,20)', R(0.1, 0.24)); }
+    for (let i = 0; i < streak; i++) { const x = (R(0, T) | 0) & ~1, h = 12 + ((R(0, 30)) | 0), y = (R(0, T - h) | 0) & ~1; if (ok(y, h)) stain(t, x, y, 2, h, 'rgb(40,32,26)', R(0.14, 0.28)); }
+    for (let i = 0; i < scratch; i++) { const w = 4 + ((R(0, 12)) | 0), y = R(0, T) | 0; if (ok(y, 1)) stain(t, R(0, T - w) | 0, y, w, 1, 'rgb(250,240,214)', R(0.1, 0.2)); }
+    if (moss) for (let x = 0; x < T; x += 2) { const hgt = ((Math.sin(x * 0.7 + t) + 1) * 0.5 * moss * 14) | 0; if (hgt > 1) stain(t, x, T - hgt, 2, hgt, 'rgb(70,110,40)', 0.34); }
+    stain(t, 0, 0, T, 2, 'rgb(30,20,12)', edge); stain(t, 0, T - 2, T, 2, 'rgb(30,20,12)', edge * 1.4);
+    stain(t, 0, 0, 2, T, 'rgb(30,20,12)', edge * 0.8); stain(t, T - 2, 0, 2, T, 'rgb(30,20,12)', edge * 0.8);
+  };
+  dirty(TILE.planks, { blotch: 12, streak: 3, scratch: 10, edge: 0.2 });
+  dirty(TILE.wall, { blotch: 8, streak: 6, moss: 0.5, scratch: 4, clear: [15, 43] });
+  dirty(TILE.roof, { blotch: 10, streak: 2, moss: 0.35, scratch: 3 });
+  dirty(TILE.stone, { blotch: 12, streak: 4, moss: 0.8, scratch: 8 });
+  dirty(TILE.bark, { blotch: 8, streak: 2, scratch: 3 });
+  dirty(TILE.sail, { blotch: 10, streak: 5, scratch: 0, edge: 0.1 });
+  dirty(TILE.rope, { blotch: 6, streak: 0, scratch: 0, edge: 0.1 });
+  dirty(TILE.bone, { blotch: 5, streak: 1, scratch: 5, edge: 0.1 });
+  dirty(TILE.sand, { blotch: 12, streak: 0, scratch: 0, edge: 0 });
+  dirty(TILE.flag, { blotch: 6, streak: 3, scratch: 0, edge: 0.1 });
+
   const tex = new THREE.CanvasTexture(c);
   tex.magFilter = THREE.NearestFilter;
   tex.minFilter = THREE.NearestFilter;
@@ -155,6 +179,10 @@ export function makeGrit() {
   for (let i = 0; i < 70; i++) {
     g.fillStyle = 'rgb(168,168,168)';
     g.fillRect((rng() * 62) | 0, (rng() * 62) | 0, 2, 2);
+  }
+  for (let i = 0; i < 14; i++) {
+    g.fillStyle = 'rgb(150,142,128)';
+    g.fillRect((rng() * 56) | 0 & ~1, (rng() * 58) | 0 & ~1, 4 + ((rng() * 3) | 0) * 2, 2 + ((rng() * 2) | 0) * 2);
   }
   const tex = new THREE.CanvasTexture(c);
   tex.magFilter = THREE.NearestFilter;

@@ -24,6 +24,7 @@ export class Builder {
     this.darkSame = false; // true: the dark-mood colour equals the normal colour (for dark-only props)
     this.ambient = 0.5;   // higher = flatter lighting (sails, flags)
     this.ref = null;       // when set, faces are wound to point away from this local point
+    this.grime = 0.09;     // per-face dirt: random darkening + a warm brown shift
     this.uvFn = null;      // optional (worldPos) => [u, v] override (terrain)
   }
   get m() { return this.stack[this.stack.length - 1]; }
@@ -57,9 +58,15 @@ export class Builder {
     if (this.doubleSided) d = Math.abs(d);
     const shade = Math.min(1.05, this.ambient + (1.05 - this.ambient) * Math.max(0, d) + 0.08 * _n.y);
     const cc = toColor(col);
-    const cr = cc.r * shade, cg = cc.g * shade, cbl = cc.b * shade;
+    let gj = 0;
+    if (this.grime > 0) {
+      const sx = (_v[0].x + _v[1].x + _v[2].x) * 4.1, sy = (_v[0].y + _v[1].y + _v[2].y) * 7.3, sz = (_v[0].z + _v[1].z + _v[2].z) * 5.7;
+      const hh = Math.sin(sx * 12.9898 + sy * 78.233 + sz * 37.719) * 43758.5453; gj = (hh - Math.floor(hh)) * this.grime;
+    }
+    const gs = 1 - gj;
+    const cr = cc.r * shade * gs, cg = cc.g * shade * (gs - gj * 0.25), cbl = cc.b * shade * (gs - gj * 0.6);
     const dc = dark ? toColor(dark) : this.darkSame ? cc : darken(cc);
-    const dr = dc.r * shade, dg = dc.g * shade, db = dc.b * shade;
+    const dr = dc.r * shade * gs, dg = dc.g * shade * gs, db = dc.b * shade * gs;
     const { u0, v0, du } = tileUV(tile);
     for (let i = 0; i < 3; i++) {
       this.p.push(_v[i].x, _v[i].y, _v[i].z);
