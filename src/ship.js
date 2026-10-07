@@ -97,20 +97,26 @@ function buildJib() {
 
 const meshOf = (b, mat) => new THREE.Mesh(b.geometry(), mat);
 
+// geometry is built once and shared with NPC ships
+let GEOS = null;
+export function shipGeos() {
+  return GEOS || (GEOS = { hull: buildHull().geometry(), sail: buildMainsail().geometry(), jib: buildJib().geometry() });
+}
+
 export class Ship {
   constructor(scene) {
     this.root = new THREE.Group();
     this.root.rotation.order = 'YXZ';
     scene.add(this.root);
-    this.root.add(meshOf(buildHull(), mats.props));
+    this.root.add(new THREE.Mesh(shipGeos().hull, mats.props));
 
     this.sailPivot = new THREE.Group();
     this.sailPivot.position.set(0, 1.0, -0.3);
-    this.sail = meshOf(buildMainsail(), mats.sail);
+    this.sail = new THREE.Mesh(shipGeos().sail, mats.sail);
     this.sailPivot.add(this.sail);
     this.root.add(this.sailPivot);
 
-    this.jib = meshOf(buildJib(), mats.sail);
+    this.jib = new THREE.Mesh(shipGeos().jib, mats.sail);
     this.root.add(this.jib);
 
     // pennant (bright: red, dark: black skull)
@@ -133,7 +139,7 @@ export class Ship {
     this.puffGeo.setAttribute('color', new THREE.Float32BufferAttribute(new Float32Array(7 * 4).fill(1), 4));
     this.puffs = [];
     for (let i = 0; i < 30; i++) {
-      const m = new THREE.Mesh(this.puffGeo, mats.foam);
+      const m = new THREE.Mesh(this.puffGeo, mats.wake);
       m.visible = false; m.renderOrder = 2;
       scene.add(m);
       this.puffs.push({ m, life: 0, max: 1, size: 1 });

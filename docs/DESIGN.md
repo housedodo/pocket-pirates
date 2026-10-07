@@ -42,6 +42,22 @@ They swap at dread 0.5, and terrain colours blend to a second vertex colour set.
 - **Day/night:** `DAY_LENGTH` in `daynight.js`. Windows, lanterns, fungus and eyes ignore the light level so they glow at night; the lighthouse beam gets stronger.
 - **Pause menu:** Esc/P (also on tab blur). Simulation, time of day and audio freeze while any menu is open.
 
+## A living sea (all of it goes wrong with dread)
+| System | Cheerful | Wrong |
+|---|---|---|
+| Gulls (`fauna.js`) | circle islands, cry | hang motionless and turn to watch you -> crows circling backwards -> a ring of silent crows above your ship |
+| Dolphins | leap beside the ship, splash | circle silently without breaking the surface -> pale, tail-first leaps -> gone |
+| Whales | surface far off, spout, dive | a huge shadow slides under the keel |
+| Ships (`traffic.js`) | fishing boats and merchants sail by and wave | drifting derelicts with lamps lit -> pale translucent ghost ships |
+| Harbour life (`world.js`) | people walk the dock, crowds in the square (they go home at night) | silent figures stand at the shore facing the sea |
+| Weather (`weather.js`) | showers, rainbow after rain | storms, fog banks, lightning that sometimes reveals a shape in the water |
+| Night sky | shooting stars | they fall upward |
+| Sea features (`seafeatures.js`) | salvage barrels, messages in bottles, wrecks to salvage (E), glowing shoals, whirlpools | stranger loot and notes, magenta glow |
+
+Other systems: **jobs** (delivery contracts from harbour boards, tracked on the compass), **rumours** (40g, reveals a treasure isle on your chart) and **harbour reputation** (visits and deliveries earn up to 3 stars = up to 15% off upgrades).
+**Lighthouses** only shine when it is dark: the sun below ~7 degrees (about 17:30 to 06:30) or during a storm. By day the lamp is dark and the beam is off.
+**Sound** is synthesised in `synth.js` (every cue, music included); real files override it per cue.
+
 ## Dread stages
 | # | Name | Feel | World signs |
 |---|---|---|---|
@@ -57,7 +73,7 @@ They swap at dread 0.5, and terrain colours blend to a second vertex colour set.
 - `CELL`, spawn probability and type weights in `world.js`; `MAX_SPEED` in `ship.js`.
 
 ## Not in the slice yet
-Combat (deliberately), audio files (hooks exist), trading, landing on islands, weather (storms/fog banks), ghost ships, an ending, title/menu polish.
+Combat (deliberately), real audio files (synthesised stand-ins ship now), trading, landing on islands, an ending, title/menu polish.
 
 ## Backlog
 **Alternative directions to revisit**

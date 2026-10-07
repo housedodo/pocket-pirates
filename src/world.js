@@ -210,6 +210,14 @@ function mushroom(D, x, y, z, s = 1) {
   D.blob(x, y + 0.85 * s, z, 0.6 * s, 0.34 * s, 0.6 * s, '#ffffff', TILE.spore, 0.1, x * 3 + z);
 }
 
+const SHIRTS = ['#d24a3e', '#3c78c8', '#e8c040', '#2f9a8a', '#c86a2a', '#9a6ad0', '#f0f0e8'];
+const SKINS = ['#e8b88a', '#c98e64', '#8a5a3a', '#f2cfa8'];
+function person(b, x, y, z, rng, col, hat = true) {
+  b.cyl(x, y, z, 0.3, 0.2, 0.95, 5, col || pickCol(rng, SHIRTS), TILE.white, true);
+  b.blob(x, y + 1.15, z, 0.2, 0.22, 0.2, pickCol(rng, SKINS), TILE.white, 0.05, x + z);
+  if (hat) b.cyl(x, y + 1.3, z, 0.34, 0.1, 0.2, 5, rng() > 0.5 ? '#6b4a2e' : '#f0e4c0', TILE.white, true);
+}
+
 function chest(b, x, y, z, ry, open) {
   b.push(x, y, z, ry);
   b.box(0, 0, 0, 1.3, 0.6, 0.85, '#9a6a3a', TILE.planks);
@@ -305,7 +313,7 @@ function decorate(d, rng, A, B, D, extra) {
       const lx = Math.cos(lth) * lr, lz = Math.sin(lth) * lr, ly = d.H - 0.2;
       for (let s = 0; s < 4; s++) A.cyl(lx, ly + s * 2.3, lz, 1.9 - s * 0.16, 1.9 - (s + 1) * 0.16, 2.3, 8, s % 2 ? '#f4f0e6' : '#d8403a', TILE.white, false);
       A.cyl(lx, ly + 9.2, lz, 2.2, 2.2, 0.35, 8, '#5a4a40', TILE.planks);
-      A.cyl(lx, ly + 9.55, lz, 1.0, 1.0, 1.3, 6, '#ffffff', TILE.glow, false);
+      extra.lamp = { x: lx, y: ly + 9.55, z: lz };
       A.cyl(lx, ly + 10.85, lz, 1.5, 0, 1.2, 6, '#c0382f', TILE.roof);
       extra.beam = { x: lx, y: ly + 10.2, z: lz };
       // dock
@@ -328,6 +336,23 @@ function decorate(d, rng, A, B, D, extra) {
       A.box(0, 0.4, -0.2, 0.1, 2.6, 0.1, '#ffffff', TILE.bark);
       A.pop();
       A.pop();
+      // people: idlers always, a crowd while it's cheerful, silent watchers at the shore when it isn't
+      for (let i = 0; i < 4; i++) {
+        const th = rng() * Math.PI * 2, rho = shoreR(d, th) * (0.18 + rng() * 0.3);
+        person(A, Math.cos(th) * rho, d.H - 0.1, Math.sin(th) * rho, rng);
+      }
+      for (let i = 0; i < 7; i++) {
+        const th = rng() * Math.PI * 2, rho = shoreR(d, th) * (0.12 + rng() * 0.45);
+        person(B, Math.cos(th) * rho, d.H - 0.1, Math.sin(th) * rho, rng);
+      }
+      const nW = 11;
+      for (let i = 0; i < nW; i++) {
+        const th = (i / nW) * Math.PI * 2 + rng() * 0.2, rho = shoreR(d, th) * 0.8;
+        if (Math.abs(angleDiff(th, dockTh)) < 0.25) continue;
+        const x = Math.cos(th) * rho, z = Math.sin(th) * rho;
+        person(D, x, d.H - 0.1, z, rng, '#c8c8e8', false);
+      }
+      extra.walkers = [0, 1, 2].map((i) => ({ th: dockTh, z0: R * 0.5, z1: R + 10, off: (i - 1) * 0.55, phase: rng() * 40, speed: 0.55 + rng() * 0.3, col: pickCol(rng, SHIRTS), rng: rng() }));
       // dark mood: a totem in the middle of the square
       D.box(0, d.H - 0.2, 0, 1.4, 1.6, 1.4, '#ffffff', TILE.void);
       D.box(0, d.H + 1.4, 0, 1.1, 1.6, 1.1, '#ffffff', TILE.void);
@@ -406,6 +431,36 @@ export class Island {
       this.setDug(dug);
     }
 
+    this.walkers = [];
+    for (const w of extra.walkers || []) {
+      const pb = new Builder();
+      person(pb, 0, 0, 0, mulberry32(Math.floor(w.rng * 1e6)), w.col);
+      const mesh = new THREE.Mesh(pb.geometry(), mats.props);
+      this.group.add(mesh); this.geos.push(mesh.geometry);
+      this.walkers.push({ mesh, w });
+    }
+    if (this.walkers.length) {
+      this.anim.push((t, isl) => {
+        const show = !isl.isDark && (!isl.tod || isl.tod.night < 0.65);
+        for (const { mesh, w } of isl.walkers) {
+          mesh.visible = show;
+          if (!show) continue;
+          const u = ((t * w.speed + w.phase) % 2 + 2) % 2, k = u < 1 ? u : 2 - u, dir = u < 1 ? 1 : -1;
+          const r = w.z0 + (w.z1 - w.z0) * k, c = Math.cos(w.th), sn = Math.sin(w.th);
+          mesh.position.set(c * r - sn * w.off, 0.86 + Math.abs(Math.sin(t * 9 + w.phase)) * 0.07, sn * r + c * w.off);
+          mesh.rotation.y = Math.atan2(c * dir, sn * dir);
+        }
+      });
+    }
+
+    if (extra.lamp) {
+      const L = extra.lamp, on = new Builder(), off = new Builder();
+      on.cyl(L.x, L.y, L.z, 1.0, 1.0, 1.3, 6, '#ffffff', TILE.glow, false);
+      off.cyl(L.x, L.y, L.z, 1.0, 1.0, 1.3, 6, '#4a4450', TILE.stone, false);
+      this.lampOn = add(on, mats.props);
+      this.lampOff = add(off, mats.props);
+    }
+
     if (extra.beam) {
       const g = new THREE.ConeGeometry(2.6, 46, 6, 1, true);
       g.rotateZ(Math.PI / 2); g.translate(23, 0, 0);
@@ -413,9 +468,16 @@ export class Island {
       beam.position.set(extra.beam.x, extra.beam.y, extra.beam.z);
       beam.renderOrder = 3;
       this.group.add(beam); this.geos.push(g);
+      this.beam = beam;
       const ph = rng() * 6;
       this.anim.push((t) => { beam.rotation.y = t * 0.9 + ph; });
     }
+  }
+  setLit(on) {
+    this.lit = on;
+    if (this.lampOn) this.lampOn.visible = on;
+    if (this.lampOff) this.lampOff.visible = !on;
+    if (this.beam) this.beam.visible = on;
   }
   setDug(v) { this.dug = v; this.refresh(); }
   setMood(dark) { this.isDark = dark; this.refresh(); }
@@ -443,6 +505,12 @@ export class World {
     this.descs = new Map();
     this.islands = new Map();
     this.dark = false;
+    this.lit = false;
+  }
+  setLit(on) {
+    if (on === this.lit) return;
+    this.lit = on;
+    for (const isl of this.islands.values()) isl.setLit(on);
   }
   desc(cx, cz) {
     const k = `${cx},${cz}`;
@@ -461,6 +529,7 @@ export class World {
         if (!d) continue;
         const isl = new Island(d, this.dug.has(d.id));
         isl.setMood(dark);
+        isl.setLit(this.lit);
         this.scene.add(isl.group);
         this.islands.set(k, isl);
         built++;
@@ -475,7 +544,7 @@ export class World {
       } else if (isl.mood !== dark) { isl.mood = dark; isl.setMood(dark); }
     }
   }
-  tick(t) { for (const isl of this.islands.values()) for (const f of isl.anim) f(t); }
+  tick(t, tod) { for (const isl of this.islands.values()) { isl.tod = tod; for (const f of isl.anim) f(t, isl); } }
 
   collide(pos, radius) {
     let hit = false;
@@ -502,6 +571,7 @@ export class World {
       const edge = Math.hypot(dx, dz) - shoreR(d, Math.atan2(dz, dx));
       if (edge < range && edge < bd) { bd = edge; best = isl; }
     }
+    this.lastEdge = bd;
     return best;
   }
 }

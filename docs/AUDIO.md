@@ -1,7 +1,9 @@
 # Audio guide
 
-You are making the sounds. The game loads whatever it finds in `public/audio/` and silently skips anything
-missing, so you can add files one at a time. Names must match exactly; `.ogg` preferred (`.mp3`/`.wav` also work).
+**The game makes its own sound out of the box** (`src/synth.js` synthesises every cue below, lo-fi on purpose).
+You are making the real sounds: put a file in `public/audio/` and it replaces the synthesised version of that cue,
+one cue at a time. Names must match exactly; `.ogg` preferred (`.mp3`/`.wav` also work).
+The pause menu has Sound and Music toggles.
 
 ## Tone: "shanty that slowly forgets how to be a shanty"
 Pick one short, simple melody (8-16 bars). Play it five ways, one per dread stage. The *same* tune
@@ -20,6 +22,9 @@ getting stranger is scarier than new horror music.
 | File | Notes |
 |---|---|
 | `sea` | constant water bed under everything; louder as the ship speeds up |
+| `surf` | breaking waves; fades in when you are close to an island shore |
+| `wind` | wind bed; louder with wind strength and storms |
+| `rain` | rain bed; follows rain intensity |
 | `amb_night` | night bed (crickets-on-water, creaks), fades in after sunset on top of the stage ambience |
 | `amb_1` .. `amb_5` | ambience per stage, 30-60 s, cross-faded by dread |
 | `music_1` .. `music_5` | music per stage, e.g. 32 bars at 90-100 bpm, cross-faded by dread |
@@ -39,6 +44,13 @@ getting stranger is scarier than new horror music.
 | `stage_up` | crossing into a new dread stage (a low sting) |
 | `buy` | buying a ship upgrade (coin + hammer) |
 | `pause` | opening the pause menu |
+| `thunder` | after lightning (delayed 0.3-2.5 s) |
+| `horn` | a passing ship greets you |
+| `gull` | gulls near an island (only while they still sound like gulls) |
+| `dolphin` | dolphins leaping |
+| `whale` | a whale surfaces (and, pitched down, the shadow under the keel) |
+| `bell` | harbour clock on the hour, when you are close to a harbour |
+| `bottle` | picking up a message in a bottle |
 
 ## Format guidelines
 - 44.1 kHz, OGG Vorbis ~96-128 kbps; mono for SFX, stereo for music/ambience.

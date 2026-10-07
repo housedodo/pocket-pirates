@@ -45,6 +45,8 @@
     .menu .tip { margin: 10px 0 4px; font-size: 13px; opacity: .85; line-height: 1.5; }
     .menu .quote { white-space: pre-line; font-style: italic; font-size: 14px; opacity: .9; margin: 0 0 10px; line-height: 1.45; text-align: center; }
     .menu .goldline { text-align: center; margin-bottom: 6px; } .menu .goldline b { color: var(--gold); }
+    .job { padding: 8px 0; border-bottom: 1px solid #fff7d622; font-size: 13px; line-height: 1.5; }
+    .job button { display: inline-block; width: auto; margin: 4px 0 0; padding: 5px 10px; font-size: 13px; }
     .up { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; padding: 8px 0; border-bottom: 1px solid #fff7d622; align-items: center; }
     .up .nm { font-weight: 700; } .up .pips { color: var(--gold); letter-spacing: .2em; }
     .up .ds { font-size: 12px; opacity: .85; grid-column: 1; }
@@ -77,6 +79,7 @@
       <div class="panel" id="gold">&#9875; Gold <b>0</b></div>
       <div class="panel" id="found">Isles charted: <b>0</b></div>
       <div class="panel" id="clock"><span id="clockicon">&#9728;</span> <b id="clocktxt">08:00</b></div>
+      <div class="panel" id="jobline" style="display:none;font-size:12px"></div>
       <div id="near"></div>
     </div>
     <div id="compass" class="panel txt"><canvas id="compassCv" width="54" height="54"></canvas><div id="windtxt">WIND</div></div>
@@ -87,10 +90,10 @@
     <div id="debug" class="panel txt"></div>
   </div>
   <div id="chart"><div class="sheet"><canvas id="chartCv" width="300" height="300"></canvas><div class="list" id="chartList"></div></div></div>
-  <div id="harbour" class="modal"><div class="menu" id="hbWide"><h2 id="hbName"></h2><p class="quote" id="hbLine"></p><div class="goldline">Gold: <b id="hbGold"></b></div><div id="hbList"></div><button id="hbClose">Set sail [E]</button></div></div>
+  <div id="harbour" class="modal"><div class="menu" id="hbWide"><h2 id="hbName"></h2><p class="quote" id="hbLine"></p><div class="goldline">Gold: <b id="hbGold"></b></div><div id="hbRep" style="text-align:center;font-size:13px;margin-bottom:6px"></div><div id="hbJob"></div><div id="hbRumour"></div><div id="hbList"></div><button id="hbClose">Set sail [E]</button></div></div>
   <div id="pause" class="modal"><div class="menu">
     <div id="pauseMain"><h2>PAUSED</h2>
-      <button id="pbResume">Resume</button><button id="pbControls">Controls</button><button id="pbLog">Captain's log</button><button id="pbSound">Sound: on</button>
+      <button id="pbResume">Resume</button><button id="pbControls">Controls</button><button id="pbLog">Captain's log</button><button id="pbSound">Sound: on</button><button id="pbMusic">Music: on</button>
     </div>
     <div id="pauseControls" style="display:none"><h2>CONTROLS</h2>
       <table>

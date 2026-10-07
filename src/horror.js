@@ -22,7 +22,7 @@ function getSegGeo() {
   return g;
 }
 
-class Tentacle {
+export class Tentacle {
   constructor(x, z, rng) {
     this.root = new THREE.Group();
     this.root.position.set(x, -40, z);

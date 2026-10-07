@@ -65,3 +65,42 @@ export function lootFor(rng, dread) {
   const [name, value] = pick(rng, dark ? LOOT_DARK : LOOT_BRIGHT);
   return { name, value, dark };
 }
+
+// ---- messages in bottles, floating salvage
+const NOTES = [
+  [ // sunny
+    'Dear finder: the fishing is wonderful at Port Tama. Come for the rum, stay for the sunsets. -M.',
+    'If you read this, you owe me a drink. I threw it from a very nice boat.',
+    'Day 12. Spirits high. We have named the parrot "Admiral". It disagrees.',
+    'To whoever finds this: the best treasure is the friends we sail with. Also a chest of gold on a small cay, north-east. Mostly the friends.',
+  ],
+  [ // off
+    'Day 20. The gulls have stopped following the boat. Cook says it\'s the weather. There is no weather.',
+    'Same sunset three nights running. Everyone agrees. Nobody minds. That bothers me.',
+    'We counted the crew this morning. Eleven. We are ten. Please advise.',
+  ],
+  [ // wrong
+    'The compass points at the water now, not north. Down. We have stopped looking at it.',
+    'Do not trust the harbour lights after midnight. They know your name already.',
+    'The fish have started to look at us. I want to be clear: they are looking at us.',
+  ],
+  [ // eerie
+    'I have been writing this note for nine days. It is the same note. I think I am the bottle.',
+    'Dont follow the singing. It is not coming from the water. It is coming from underneath the water.',
+    'The stars are doing something. Please tell me you can see it too.',
+  ],
+  [ // cosmic
+    'y o u  a r e  n e a r l y  h e r e',
+    'We are not lost. We have always been exactly here. It was the sea that moved.',
+    'Turn back. Or do not. It has already decided and it is not unkind about it.',
+  ],
+];
+export const bottleNote = (rng, idx) => pick(rng, NOTES[Math.min(4, idx)]);
+
+const BARRELS_BRIGHT = [['barrel of rum', 25], ['crate of oranges', 18], ['barrel of salted fish', 15], ['chest of silver spoons', 35]];
+const BARRELS_DARK = [['barrel of black water', 30], ['crate of teeth', 22], ['barrel that hums', 40], ['sack of wet stars', 45]];
+export function barrelLoot(rng, dread) {
+  const dark = rng() < smoothstep(0.35, 0.8, dread);
+  const [name, value] = pick(rng, dark ? BARRELS_DARK : BARRELS_BRIGHT);
+  return { name, value, dark };
+}
