@@ -3,9 +3,12 @@ import { SECTOR, sectorInfo, FACTIONS, sectorCoord } from './sectors.js';
 import { UPGRADES, MAX_LEVEL } from './upgrades.js';
 import { friendLevel, bearingName } from './jobs.js';
 import { mulberry32, hash2 } from './util.js';
+import { MAIN_GOALS, SIDE_GOALS } from './objectives.js';
+import { FISH } from './fishing.js';
+import { GROUPS, byId } from './customize.js';
 
 // The captain's log: tabbed book. The Map tab draws a hand-inked, low-poly parchment chart.
-const TABS = [['map', 'Map'], ['jobs', 'Jobs'], ['rumours', 'Rumours'], ['journal', 'Journal'], ['ship', 'Ship'], ['standing', 'Standing']];
+const TABS = [['map', 'Map'], ['jobs', 'Jobs'], ['rumours', 'Rumours'], ['journal', 'Journal'], ['ship', 'Ship'], ['standing', 'Standing'], ['goals', 'Goals']];
 const W = 760, H = 520;
 const INK = '#4a2e18';
 
@@ -38,7 +41,7 @@ export class Logbook {
   tabByIndex(i) { if (TABS[i]) this.open(TABS[i][0]); }
 
   render() {
-    const fn = { map: this.renderMap, jobs: this.renderJobs, rumours: this.renderRumours, journal: this.renderJournal, ship: this.renderShip, standing: this.renderStanding }[this.tab];
+    const fn = { map: this.renderMap, jobs: this.renderJobs, rumours: this.renderRumours, journal: this.renderJournal, ship: this.renderShip, standing: this.renderStanding, goals: this.renderGoals }[this.tab];
     fn.call(this);
   }
 
@@ -57,6 +60,25 @@ export class Logbook {
     this.body.innerHTML = html;
     const b = document.getElementById('abandon');
     if (b) b.addEventListener('click', () => { state.job = null; this.d.toast('Job abandoned.'); this.render(); });
+  }
+
+  renderGoals() {
+    const { state } = this.d, g = state.goals, ctx = { state };
+    let html = '<h3>Main goals</h3>';
+    MAIN_GOALS.forEach((m, i) => {
+      const done = i < g.i, cur = i === g.i;
+      html += `<div class="card ${done ? 'dim' : ''}"><b>${done ? '&#10003; ' : cur ? '&#9654; ' : ''}${m.title}</b> <span style="float:right">${m.reward}g</span><br>${done ? '<small>Done.</small>' : cur || i === g.i + 1 ? m.text : '<i>???</i>'}${cur ? '<br><button id="skipGoal" class="mini">Skip this goal</button>' : ''}</div>`;
+    });
+    html += '<h3>Optional goals</h3>';
+    for (const sgl of SIDE_GOALS) {
+      const done = !!g.side[sgl.id];
+      html += `<div class="card ${done ? 'dim' : ''}"><b>${done ? '&#10003; ' : '&#9675; '}${sgl.title}</b> <span style="float:right">${sgl.reward}g</span><br>${sgl.text}</div>`;
+    }
+    const st = state.stats;
+    html += `<h3>Stats</h3><div class="row">Distance sailed <span>${Math.round(st.dist)}</span></div><div class="row">Fish caught <span>${st.fish}</span></div><div class="row">Treasures dug <span>${st.treasures}</span></div><div class="row">Wrecks salvaged <span>${st.wrecks}</span></div><div class="row">Raiders sunk <span>${st.sunk}</span></div><div class="row">Deliveries <span>${st.deliveries}</span></div>`;
+    this.body.innerHTML = html;
+    const b = document.getElementById('skipGoal');
+    if (b) b.addEventListener('click', () => { this.d.skipGoal(); this.render(); });
   }
 
   renderRumours() {
@@ -84,6 +106,12 @@ export class Logbook {
     if (!isl.length) html += '<div class="card dim">Nothing charted yet. Go and look!</div>';
     html += `<h3>Treasures &amp; salvage (${state.loot.length})</h3>`;
     html += state.loot.length ? state.loot.slice(-12).reverse().map((l) => `<div class="row ${l.dark ? 'dk' : ''}">&bull; ${l.name} <span>${l.value}g</span></div>`).join('') : '<div class="card dim">None yet. Look for a red X, or a wreck.</div>';
+    const rid = Object.entries(state.riddles);
+    html += `<h3>Treasure riddles (${rid.length})</h3>`;
+    html += rid.length ? rid.map(([id, text]) => { const [cx, cz] = id.split(',').map(Number), dd = this.d.world.desc(cx, cz); return `<div class="card ${state.dug.has(id) ? 'dim' : ''}"><b>${dd ? dd.name : id}</b> ${state.dug.has(id) ? '<span class="ok">dug up &#10003;</span>' : ''}<br><i>"${text}"</i></div>`; }).join('') : '<div class="card dim">None yet. Treasure isles have an arch with an inscription: sail close and press E to study it.</div>';
+    const caught = FISH.filter((f) => state.fishLog[f.id]);
+    html += `<h3>Fish log (${caught.length}/${FISH.length})</h3>`;
+    html += caught.length ? caught.map((f) => { const l = state.fishLog[f.id]; return `<div class="row ${f.dark ? 'dk' : ''}">${f.name} <span>x${l.count} &middot; best ${l.best}kg</span></div>`; }).join('') : '<div class="card dim">Nothing caught yet. Slow down and press C.</div>';
     html += `<h3>Messages in bottles (${state.notes.length})</h3>`;
     html += state.notes.length ? state.notes.map((n) => `<div class="card ${n.dark ? 'dk' : ''}"><i>"${n.text}"</i></div>`).join('') : '<div class="card dim">None yet.</div>';
     this.body.innerHTML = html;
@@ -97,6 +125,8 @@ export class Logbook {
       const lv = state.upgrades[u.id];
       html += `<div class="card"><b>${u.name}</b> <span class="pips">${'■'.repeat(lv)}${'□'.repeat(MAX_LEVEL - lv)}</span><br><small>${lv ? u.text[lv - 1] : 'Stock fittings.'}</small></div>`;
     }
+    html += '<h3>Looks</h3>' + GROUPS.map(([g, label, list]) => `<div class="row">${label} <span>${byId(list, state.custom[g]).name}</span></div>`).join('');
+    html += `<h3>Combat</h3><div class="row">Hull <span>${Math.round(state.hp)}/${this.d.ship.mods.maxHp}</span></div><div class="row">Cannonballs <span>${state.ammo}</span></div>`;
     const act = [];
     if (b.speed > 0) act.push(`Fresh supplies: +15% speed (${Math.ceil(b.speed)}s)`);
     if (b.dig > 0) act.push(`Rum rations: faster digging (${Math.ceil(b.dig)}s)`);
@@ -296,7 +326,8 @@ export class Logbook {
       }
       if (hasLighthouse(d)) { const lx = px + 12 * s, lz = pz - 6 * s; c.fillStyle = '#f4f0e6'; c.fillRect(lx - 2 * s, lz - 8 * s, 4 * s, 10 * s); c.strokeRect(lx - 2 * s, lz - 8 * s, 4 * s, 10 * s); c.fillStyle = '#e8b838'; c.fillRect(lx - 1.6 * s, lz - 11 * s, 3.2 * s, 3 * s); }
     } else if (d.type === 'treasure') {
-      if (!state.dug.has(d.id)) { c.strokeStyle = '#b02818'; c.lineWidth = 2.6; const m = d.marker || { x: 0, z: 0 }, hx = px + m.x * sc, hz = pz + m.z * sc; c.beginPath(); c.moveTo(hx - 6 * s, hz - 6 * s); c.lineTo(hx + 6 * s, hz + 6 * s); c.moveTo(hx + 6 * s, hz - 6 * s); c.lineTo(hx - 6 * s, hz + 6 * s); c.stroke(); }
+      if (state.dug.has(d.id)) { c.fillStyle = '#8a5a30'; c.fillRect(px - 5 * s, pz - 3 * s, 10 * s, 6 * s); c.strokeRect(px - 5 * s, pz - 3 * s, 10 * s, 6 * s); c.fillStyle = '#ffd23a'; c.fillRect(px - 1 * s, pz - 1 * s, 2 * s, 2 * s); c.strokeStyle = '#2a7a3a'; c.lineWidth = 2; c.beginPath(); c.moveTo(px + 6 * s, pz - 6 * s); c.lineTo(px + 9 * s, pz - 2 * s); c.lineTo(px + 14 * s, pz - 10 * s); c.stroke(); }
+      else { c.fillStyle = '#9a948a'; c.fillRect(px - 6 * s, pz - 8 * s, 3 * s, 12 * s); c.fillRect(px + 3 * s, pz - 8 * s, 3 * s, 12 * s); c.fillRect(px - 7 * s, pz - 10 * s, 14 * s, 3 * s); c.strokeRect(px - 7 * s, pz - 10 * s, 14 * s, 3 * s); }
     }
   }
 }

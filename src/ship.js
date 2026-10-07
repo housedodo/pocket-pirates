@@ -5,6 +5,7 @@ import { mats } from './psx.js';
 import { waveHeight } from './ocean.js';
 import { clamp, lerp, smoothstep, angleDiff } from './util.js';
 import { computeMods } from './upgrades.js';
+import { HULLS, SAILS, FLAGS, byId, DEFAULT_CUSTOM } from './customize.js';
 
 export const MAX_SPEED = 11;
 const SECTIONS = [
@@ -17,7 +18,8 @@ const SECTIONS = [
   { z: -3.9, w: 0.05, deck: 1.75, keel: 0.25 },
 ];
 
-function buildHull() {
+const mulHex = (hex, k) => '#' + [1, 3, 5].map((i) => Math.min(255, Math.round(parseInt(hex.slice(i, i + 2), 16) * k)).toString(16).padStart(2, '0')).join('');
+function buildHull(colors = {}) {
   const b = new Builder();
   b.doubleSided = true;
   const P = SECTIONS.map((s) => {
@@ -30,7 +32,7 @@ function buildHull() {
       fr: [s.w * 0.84, s.deck - 0.38, s.z], fl: [-s.w * 0.84, s.deck - 0.38, s.z],
     };
   });
-  const upper = '#c4733a', lower = '#8a5028', deckC = '#ffffff';
+  const upper = colors.upper || '#c4733a', lower = colors.lower || '#8a5028', deckC = '#ffffff';
   for (let i = 0; i < P.length - 1; i++) {
     const a = P[i], c = P[i + 1];
     b.quad(a.tr, a.mr, c.mr, c.tr, upper, TILE.planks);
@@ -39,10 +41,10 @@ function buildHull() {
     b.quad(a.ml, c.ml, c.bl, a.bl, lower, TILE.planks);
     b.quad(a.bl, c.bl, c.br, a.br, lower, TILE.planks);
     // rim, inner wall, deck
-    b.quad(a.tr, c.tr, c.ir, a.ir, '#7a4222', TILE.planks);
-    b.quad(a.tl, a.il, c.il, c.tl, '#7a4222', TILE.planks);
-    b.quad(a.ir, c.ir, c.fr, a.fr, '#8a5a30', TILE.planks);
-    b.quad(a.il, a.fl, c.fl, c.il, '#8a5a30', TILE.planks);
+    b.quad(a.tr, c.tr, c.ir, a.ir, colors.upper ? mulHex(upper, 0.6) : '#7a4222', TILE.planks);
+    b.quad(a.tl, a.il, c.il, c.tl, colors.upper ? mulHex(upper, 0.6) : '#7a4222', TILE.planks);
+    b.quad(a.ir, c.ir, c.fr, a.fr, colors.upper ? mulHex(upper, 0.78) : '#8a5a30', TILE.planks);
+    b.quad(a.il, a.fl, c.fl, c.il, colors.upper ? mulHex(upper, 0.78) : '#8a5a30', TILE.planks);
     b.quad(a.fl, a.fr, c.fr, c.fl, deckC, TILE.planks);
   }
   const s = SECTIONS[0], p0 = P[0];
@@ -125,6 +127,46 @@ function buildCanoe() { // narrow dugout with an outrigger and a tiny mast
   b.cyl(0, 0.3, -0.2, 0.08, 0.06, 3.0, 5, '#ffffff', TILE.bark, false);
   return b;
 }
+const HULL_CACHE = {};
+export function hullGeo(id) {
+  if (id === 'oak') return shipGeos().hull;
+  if (!HULL_CACHE[id]) { const h = byId(HULLS, id); HULL_CACHE[id] = buildHull({ upper: h.upper, lower: h.lower }).geometry(); }
+  return HULL_CACHE[id];
+}
+
+// small figureheads, built on demand
+function buildFigure(id) {
+  if (id === 'none') return null;
+  const b = new Builder(); b.doubleSided = true;
+  if (id === 'parrot') {
+    b.blob(0, 0.1, 0.1, 0.34, 0.5, 0.34, '#e03a30', TILE.white, 0.1, 1);
+    b.blob(0, 0.65, -0.1, 0.22, 0.22, 0.22, '#e8a020', TILE.white, 0.1, 2);
+    b.tri([0, 0.65, -0.3], [0.07, 0.6, -0.08], [-0.07, 0.6, -0.08], '#ffd23a');
+    b.tri([0.3, 0.2, 0.1], [0.75, 0.05, 0.4], [0.3, -0.15, 0.2], '#3c78c8'); b.tri([-0.3, 0.2, 0.1], [-0.75, 0.05, 0.4], [-0.3, -0.15, 0.2], '#3c78c8');
+  } else if (id === 'mermaid') {
+    b.blob(0, -0.1, 0.1, 0.22, 0.22, 0.75, '#3fa89a', TILE.white, 0.1, 3);
+    b.cyl(0, 0.0, -0.45, 0.2, 0.15, 0.6, 6, '#e8b88a', TILE.white);
+    b.blob(0, 0.78, -0.45, 0.18, 0.2, 0.18, '#e8b88a', TILE.white, 0.05, 4);
+    b.blob(0, 0.78, -0.25, 0.3, 0.32, 0.22, '#e8a020', TILE.white, 0.1, 5);
+    b.tri([0, -0.1, 0.8], [0.45, 0.15, 1.2], [0.05, 0.0, 0.95], '#3fa89a'); b.tri([0, -0.1, 0.8], [-0.45, 0.15, 1.2], [-0.05, 0.0, 0.95], '#3fa89a');
+  } else if (id === 'dolphin') {
+    b.push(0, 0.2, 0, 0, 1, 1, 1, Math.PI / 2 - 0.5);
+    b.cyl(0, -0.8, 0, 0.08, 0.28, 1.7, 5, '#7f9db6', TILE.white, true);
+    b.cyl(0, 0.9, 0, 0.2, 0.06, 0.6, 5, '#9fb8cc', TILE.white, true);
+    b.pop();
+    b.tri([0, 0.4, 0.2], [0, 0.4, 0.55], [0, 0.85, 0.5], '#5f7d96');
+  } else if (id === 'lion') {
+    for (let i = 0; i < 8; i++) { const a = (i / 8) * 6.28; b.blob(Math.cos(a) * 0.4, 0.4 + Math.sin(a) * 0.4, 0.05, 0.22, 0.22, 0.2, '#b8741c', TILE.white, 0.15, i); }
+    b.blob(0, 0.4, -0.2, 0.36, 0.36, 0.3, '#e0aa3a', TILE.white, 0.08, 9);
+    b.blob(0, 0.28, -0.5, 0.14, 0.1, 0.14, '#6b3a1e', TILE.white, 0.05, 10);
+  } else if (id === 'skull') {
+    b.blob(0, 0.4, -0.2, 0.38, 0.4, 0.38, '#ffffff', TILE.bone, 0.06, 11);
+    b.box(-0.14, 0.42, -0.5, 0.14, 0.16, 0.08, '#1a1420', TILE.white); b.box(0.14, 0.42, -0.5, 0.14, 0.16, 0.08, '#1a1420', TILE.white);
+    b.blob(0, 0.02, -0.3, 0.26, 0.15, 0.22, '#ffffff', TILE.bone, 0.06, 12);
+  }
+  return b.geometry();
+}
+
 let GEOS = null;
 export function shipGeos() {
   return GEOS || (GEOS = { hull: buildHull().geometry(), sail: buildMainsail().geometry(), jib: buildJib().geometry(), mast: buildMast().geometry(), castle: buildCastle().geometry(), canoe: buildCanoe().geometry() });
@@ -135,7 +177,10 @@ export class Ship {
     this.root = new THREE.Group();
     this.root.rotation.order = 'YXZ';
     scene.add(this.root);
-    this.root.add(new THREE.Mesh(shipGeos().hull, mats.props));
+    this.hullMesh = new THREE.Mesh(shipGeos().hull, mats.props);
+    this.root.add(this.hullMesh);
+    this.figureGroup = new THREE.Group(); this.figureGroup.position.set(0, 1.7, -3.9); this.figureGroup.scale.setScalar(1.5); this.root.add(this.figureGroup);
+    this.custom = { ...DEFAULT_CUSTOM };
 
     this.sailPivot = new THREE.Group();
     this.sailPivot.position.set(0, 1.0, -0.3);
@@ -155,7 +200,7 @@ export class Ship {
     const db = new Builder(); db.doubleSided = true;
     db.box(0, -0.1, 0, 0.08, 0.5, 0.08, '#ffffff', TILE.bark);
     db.quad([0, 0.55, 0], [0, -0.2, 0], [0, -0.2, 1.4], [0, 0.55, 1.4], '#ffffff', TILE.skull);
-    this.flagBright = meshOf(fb, mats.props);
+    this.flagBright = meshOf(fb, mats.flagP);
     this.flagDark = meshOf(db, mats.props);
     this.flagDark.visible = false;
     this.flag.add(this.flagBright, this.flagDark);
@@ -198,6 +243,17 @@ export class Ship {
     this.rudder = 0;
     this.eff = 1;
     this.rel = 0;
+  }
+
+  setCustom(c) {
+    this.custom = { ...DEFAULT_CUSTOM, ...c };
+    this.hullMesh.geometry = hullGeo(this.custom.hull);
+    const sl = byId(SAILS, this.custom.sail);
+    mats.sail.color.setRGB(...sl.tint);
+    mats.flagP.color.set(byId(FLAGS, this.custom.flag).color);
+    for (const ch of [...this.figureGroup.children]) { this.figureGroup.remove(ch); ch.geometry.dispose(); }
+    const g = buildFigure(this.custom.figure);
+    if (g) this.figureGroup.add(new THREE.Mesh(g, mats.props));
   }
 
   update(dt, input, wind, t) {

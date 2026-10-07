@@ -14,9 +14,12 @@ npm run build      # static build in dist/
 |---|---|
 | A / D (or arrows) | steer |
 | W / S | set / reef sails |
+| C | fish: cast, hook the bite, pull in (hold Space to reel) |
+| Space | fire cannons at an attacking raider (auto-aimed) |
+| Y | ask Mara (first mate) for a hint |
 | E | interact: harbour (shipwright, job board, rumours), dig for treasure, salvage wrecks, hail passing ships |
 | Esc or P | pause menu (resume, controls, log, sound) |
-| M | captain's log: Map, Jobs, Rumours, Journal, Ship, Standing (tabs: 1-6 or arrows; J opens Jobs) |
+| M | captain's log: Map, Jobs, Rumours, Journal, Ship, Standing, Goals (tabs 1-7 or arrows; J opens Jobs) |
 | mouse drag / R F | tilt camera (third-person <-> top-down) |
 | wheel | zoom |
 | H | hide HUD |

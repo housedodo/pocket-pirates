@@ -4,7 +4,7 @@ import { Builder } from './builder.js';
 import { TILE } from './textures.js';
 import { mats, psxMaterial, getAtlas } from './psx.js';
 import { waveHeight } from './ocean.js';
-import { angleDiff, lerp } from './util.js';
+import { angleDiff, lerp, clamp } from './util.js';
 import { sectorAt, FACTIONS } from './sectors.js';
 
 // Other vessels on the sea. A handful of different designs, each sailing under the colours of
@@ -17,6 +17,9 @@ export const KINDS = {
   galleon:  { label: 'galleon',         scale: 1.3,  speed: [3.5, 5],   hull: [1.35, 1.3, 1.5],  masts: [{ z: null, s: 1.2 }, { z: 1.9, s: 0.95, extra: true }, { z: -2.7, s: 0.8, extra: true }], jib: false, castle: true },
   canoe:    { label: 'outrigger canoe', scale: 0.8,  speed: [2.8, 4],   hull: [1, 1, 1],         masts: [], jib: false, canoe: true },
 };
+
+const HP = { fisher: 30, merchant: 55, schooner: 50, galleon: 95, canoe: 20 };
+const armed = (s, hostile) => Object.assign(s, { hostile, hp: HP[s.kind], maxHp: HP[s.kind], engaged: false, fireCd: 2 + Math.random() * 2, circle: Math.random() < 0.5 ? -1 : 1, sinking: false, sinkT: 0 });
 
 let flagGeo = null;
 function getFlagGeo() {
@@ -96,22 +99,23 @@ export class Traffic {
     const aim = Math.atan2(ship.pos.x - x + (Math.random() - 0.5) * 200, -(ship.pos.z - z + (Math.random() - 0.5) * 200));
     const parts = this.build(kind, faction, mode === 'ghost');
     this.scene.add(parts.root);
-    this.ships.push({
+    const hostile = mode === 'live' && faction.id === 'reef' && Math.random() < 0.6;
+    this.ships.push(armed({
       ...parts, id: this.nextId++, kind, mode, faction, sector, x, z, heading: aim,
       speed: mode === 'live' ? K.speed[0] + Math.random() * (K.speed[1] - K.speed[0]) : mode === 'derelict' ? 1.2 : 3.2,
       age: 0, sgn: 1, roll: Math.random(), state: 'none', seed: Math.floor(Math.random() * 1e9),
-      name: `${faction.name} ${K.label}`,
-    });
+      name: `${faction.name} ${hostile ? 'raider' : K.label}`,
+    }, hostile));
   }
 
   /** place a specific ship (also used by tests) */
-  spawnAt(kind, factionId, x, z, heading, mode = 'live', speed = null) {
+  spawnAt(kind, factionId, x, z, heading, mode = 'live', speed = null, hostile = false) {
     const K = KINDS[kind], faction = FACTIONS[factionId], parts = this.build(kind, faction, mode === 'ghost');
     this.scene.add(parts.root);
-    const s = {
+    const s = armed({
       ...parts, id: this.nextId++, kind, mode, faction, sector: sectorAt(x, z, this.seed), x, z, heading,
-      speed: speed === null ? (mode === 'live' ? K.speed[0] : 1.2) : speed, age: 0, sgn: 1, roll: Math.random(), state: 'none', seed: Math.floor(Math.random() * 1e9), name: `${faction.name} ${K.label}`,
-    };
+      speed: speed === null ? (mode === 'live' ? K.speed[0] : 1.2) : speed, age: 0, sgn: 1, roll: Math.random(), state: 'none', seed: Math.floor(Math.random() * 1e9), name: `${faction.name} ${hostile ? 'raider' : K.label}`,
+    }, hostile);
     this.ships.push(s);
     return s;
   }
@@ -120,7 +124,7 @@ export class Traffic {
   nearestHail(x, z, range = 24) {
     let best = null, bd = range;
     for (const s of this.ships) {
-      if (s.state !== 'none') continue;
+      if (s.state !== 'none' || s.sinking) continue;
       const d = Math.hypot(s.x - x, s.z - z) - 2 * KINDS[s.kind].scale;
       if (d < bd) { bd = d; best = s; }
     }
@@ -139,6 +143,17 @@ export class Traffic {
     for (let i = this.ships.length - 1; i >= 0; i--) {
       const s = this.ships[i], K = KINDS[s.kind];
       s.age += dt;
+      if (s.sinking) { s.sinkT += dt; s.speed *= Math.max(0, 1 - dt); if (s.sinkT > 5) { this.scene.remove(s.root); this.ships.splice(i, 1); continue; } }
+      else if (s.hostile) {
+        const dx = ship.pos.x - s.x, dz = ship.pos.z - s.z, dd = Math.hypot(dx, dz);
+        s.engaged = dd < 85;
+        if (dd < 170) {
+          let want = Math.atan2(dx, -dz);
+          if (dd < 50) want += s.circle * 1.45;
+          s.heading += clamp(angleDiff(s.heading, want), -0.7 * dt, 0.7 * dt);
+          s.speed = K.speed[1] * 0.95;
+        }
+      }
       if (s.mode === 'derelict') s.heading += Math.sin(s.age * 0.07 + i) * 0.03 * dt;
       s.x += Math.sin(s.heading) * s.speed * dt; s.z -= Math.cos(s.heading) * s.speed * dt;
       if (s.mode !== 'ghost') {
@@ -164,6 +179,7 @@ export class Traffic {
         if (sl.jib) { sl.jib.scale.x = s.sgn; sl.jib.scale.y = flat; }
       }
       s.flag.rotation.y = Math.PI - rel + Math.sin(t * 8 + i) * 0.2;
+      if (s.sinking) { s.root.position.y -= s.sinkT * 0.9; s.root.rotation.z += s.sinkT * 0.25; s.root.rotation.x += s.sinkT * 0.1; }
     }
   }
 }

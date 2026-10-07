@@ -4,7 +4,7 @@ import { TILE } from './textures.js';
 import { mats } from './psx.js';
 import { hash2, mulberry32, fbm, clamp, angleDiff } from './util.js';
 import { dreadAtDistance } from './palette.js';
-import { makeName } from './lore.js';
+import { makeName, makePuzzle } from './lore.js';
 
 export const CELL = 110;
 const LOAD_R = 4, UNLOAD_R = 6;
@@ -50,7 +50,10 @@ export function describeCell(cx, cz, seed) {
   const amp = type === 'sandbar' ? 1.6 : 1;
   const lobes = [(0.08 + rng() * 0.1) * amp, (0.05 + rng() * 0.08) * amp, (0.03 + rng() * 0.05) * amp, rng() * 6.28, rng() * 6.28, rng() * 6.28];
   const nameRng = mulberry32(hash2(cx, cz, seed + 5));
-  return { id: key, type, x, z, r, H, lobes, seed: hash2(cx, cz, seed + 1) & 0xffff, name: makeName(nameRng, type, dread), dread };
+  const name = makeName(nameRng, type, dread);
+  const desc = { id: key, type, x, z, r, H, lobes, seed: hash2(cx, cz, seed + 1) & 0xffff, name, dread };
+  if (type === 'treasure') desc.puzzle = makePuzzle(mulberry32(hash2(cx, cz, seed + 31)), name, dread);
+  return desc;
 }
 
 export function shoreR(d, th) {
@@ -303,9 +306,25 @@ function decorate(d, rng, A, B, D, extra) {
       A.box(-0.4, 3.2, 0, 3.6, 0.7, 0.9, '#ffffff', TILE.stone);
       A.pop();
       D.push(ap[0], ap[1] - 0.2, ap[2], 0); D.box(0, 0, 0.1, 0.9, 1.2, 0.9, '#ffffff', TILE.void); D.pop();
-      // the X
-      const mp = spot(d, rng, 0.35, 0.65, 0.7, 60) || [d.r * 0.4, terrainHeight(d, d.r * 0.4, 0), 0, 0];
-      d.marker = { x: mp[0], z: mp[2], y: mp[1] };
+      // the chest's hiding place is decided by the island's riddle (see lore.makePuzzle)
+      {
+        const pz = d.puzzle;
+        let place = null;
+        if (pz.kind === 'palm') {
+          for (const t of [0.82, 0.74, 0.66]) {
+            const px = Math.cos(pz.angle) * shoreR(d, pz.angle) * t, pzz = Math.sin(pz.angle) * shoreR(d, pz.angle) * t, ph = terrainHeight(d, px, pzz);
+            if (ph > 0.5) { palm(A, B, D, px, ph, pzz, rng, 1.7); place = [px - Math.cos(pz.angle) * 3, pzz - Math.sin(pz.angle) * 3]; break; }
+          }
+        }
+        if (!place) {
+          for (let k = 0; k < 40 && !place; k++) {
+            const th = pz.angle + (rng() - 0.5) * 0.7, t = 0.4 + rng() * 0.3, x = Math.cos(th) * shoreR(d, th) * t, zz = Math.sin(th) * shoreR(d, th) * t;
+            if (terrainHeight(d, x, zz) > 0.7) place = [x, zz];
+          }
+        }
+        if (!place) place = [Math.cos(pz.angle) * d.r * 0.4, Math.sin(pz.angle) * d.r * 0.4];
+        d.marker = { x: place[0], z: place[1], y: terrainHeight(d, place[0], place[1]) };
+      }
       shrooms(3);
       cult(4, 0.62);
       for (let i = 0; i < 2; i++) { const p = spot(d, rng, 0.2, 0.9, 0.6); if (p) D.blob(p[0], p[1] + 0.2, p[2], 0.45, 0.28, 0.7, '#ffffff', TILE.bone, 0.25, i); }
@@ -419,21 +438,6 @@ export class Island {
 
     if (d.type === 'treasure' && d.marker) {
       const m = d.marker;
-      const X = new Builder(), Xd = new Builder();
-      Xd.darkSame = true;
-      for (const rot of [Math.PI / 4, -Math.PI / 4]) {
-        X.push(m.x, m.y + 0.05, m.z, rot);
-        X.box(0, 0, 0, 0.8, 0.1, 5.6, '#e02820', TILE.white);
-        X.pop();
-        Xd.push(m.x, m.y + 0.05, m.z, rot);
-        Xd.box(0, 0, 0, 0.8, 0.1, 5.6, '#ffffff', TILE.spore);
-        Xd.pop();
-      }
-      X.box(m.x + 2.6, m.y, m.z, 0.14, 4.2, 0.14, '#6b4a2e', TILE.bark);
-      X.tri([m.x + 2.6, m.y + 4.2, m.z], [m.x + 2.6, m.y + 3.3, m.z], [m.x + 3.9, m.y + 3.75, m.z], '#e02820', TILE.flag);
-      Xd.box(m.x + 2.6, m.y, m.z, 0.14, 4.2, 0.14, '#ffffff', TILE.void);
-      this.marker = add(X, mats.props);
-      this.markerDark = add(Xd, mats.props);
       const G = new Builder();
       G.blob(m.x, m.y - 0.05, m.z, 1.4, 0.2, 1.1, '#4a3322', TILE.white, 0.2, 2);
       chest(G, m.x, m.y, m.z, 0.5, true);

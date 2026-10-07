@@ -72,6 +72,7 @@ export function initMaterials() {
   const a = getAtlas();
   mats.terrain = psxMaterial({ map: getGrit(), vertexColors: true, dark: true });
   mats.props = psxMaterial({ map: a, vertexColors: true, dark: true, alphaTest: 0.5, side: THREE.DoubleSide });
+  mats.flagP = psxMaterial({ map: a, vertexColors: true, dark: true, alphaTest: 0.5, side: THREE.DoubleSide });
   mats.sail = psxMaterial({ map: a, vertexColors: true, dark: true, side: THREE.DoubleSide, key: 'S' });
   mats.shallow = psxMaterial({ vertexColors: true, transparent: true, depthWrite: false, key: 'A' });
   mats.foam = psxMaterial({ color: 0xffffff, transparent: true, opacity: 0.5, depthWrite: false, vertexColors: true, key: 'F' });

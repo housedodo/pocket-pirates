@@ -112,3 +112,36 @@ export function makeSectorName(rng, dread) {
   if (dread > 0.72 || rng() < smoothstep(0.4, 0.85, dread) * 0.7) return `${pick(rng, ['The', 'The', 'Maw of the'])} ${pick(rng, ELD1)}${pick(rng, ELD2)} ${pick(rng, ['Deep', 'Reach', 'Expanse'])}`;
   return `${pick(rng, SEC_ADJ)} ${pick(rng, SEC_NOUN)}`;
 }
+
+// ---- treasure riddles: each treasure isle hides its chest on one particular shore
+const RIDDLES = {
+  east: [
+    ['Where the sun is born, the chest lies sleeping.', 'Greet the morning at the shore it greets first. Dig there.'],
+    ['Where the sun is born, and bleeds.', 'The shore that watches the dawn will not blink. Dig beneath its stare.'],
+  ],
+  west: [
+    ['Where the day goes to die, something shiny waits.', 'The shore that swallows the sun keeps my treasure.'],
+    ['Where the light is eaten each evening: dig there, and be quick.', 'The setting sun has been feeding on this place for years. Dig where it eats.'],
+  ],
+  north: [
+    ['Seek the shore the pole star never leaves.', 'Look where the compass needle points; the chest lies on that side.'],
+    ['Seek the shore that the cold star watches. It watches back.', 'North, always north, where the needle leans toward something that leans back.'],
+  ],
+  south: [
+    ['Turn your back on the pole star. There.', 'The shore opposite the needle is where I buried it.'],
+    ['The shore that faces away from every star. Dig there, and do not look up.', 'South, where the compass turns away from itself.'],
+  ],
+  palm: [
+    ['One palm bows alone to the sea. Dig at its root.', 'Where the lone palm leans out over the water, three paces inland.'],
+    ['One tree bows to the water as if listening. Dig where it listens.', 'The palm that leans toward the sea is not leaning; it is being pulled.'],
+  ],
+};
+export const PUZZLE_ANGLE = { east: 0, south: Math.PI / 2, west: Math.PI, north: -Math.PI / 2 };
+export function makePuzzle(rng, name, dread) {
+  const kinds = ['east', 'west', 'north', 'south', 'palm'];
+  const kind = kinds[Math.floor(rng() * kinds.length)];
+  const dark = dread > 0.45 ? 1 : 0;
+  const line = RIDDLES[kind][dark][Math.floor(rng() * 2)];
+  const angle = kind === 'palm' ? rng() * Math.PI * 2 : PUZZLE_ANGLE[kind] + (rng() - 0.5) * 0.3;
+  return { kind, angle, text: line, name };
+}

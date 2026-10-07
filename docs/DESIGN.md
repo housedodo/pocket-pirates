@@ -62,6 +62,13 @@ Other systems: **jobs** (delivery contracts from harbour boards, tracked on the 
 **Lighthouses** only shine when it is dark: the sun below ~7 degrees (about 17:30 to 06:30) or during a storm. By day the lamp is dark and the beam is off.
 **Sound** is synthesised in `synth.js` (every cue, music included); real files override it per cue.
 
+## Starter adventure (first mate, fishing, riddles, looks, combat)
+- **First mate and goals** (`objectives.js`): Mara talks you through a short main chain (sail, make landfall, follow the riddle, spend your loot, deliver a job, chart 6 isles, cross into a new sector) and reacts to events (dusk, storms, raiders, rising dread; she gets more unsettled as it goes on). Seven optional side goals complete themselves. Y or the pause menu asks for a hint; goals can be skipped in the Goals tab.
+- **Fishing** (`fishing.js`): C casts (slow down first), wait for a bite, hook it, then hold Space to keep the marker in the green zone. 11 species, harder ones later; dark species appear with dread and at night. Sell at harbours (reputation adds a bonus); fish log in the Journal.
+- **Treasure riddles** (`lore.makePuzzle`, `world.js`): the chest is no longer marked. Each treasure isle's arch carries a riddle (sunrise/sunset/pole star/lone palm) naming the shore where the chest is buried. Study the arch (E), sail to the right shore, dig. Wrong shores cost a few seconds. Riddles also come from Perrin (the starter map) and are kept in the Journal.
+- **Ship looks** (`customize.js`): hull paint, sail colour, pennant and figurehead (parrot, dolphin, mermaid, lion, skull) at harbour shipyards. Some figureheads are earned (catch fish, salvage a wreck, earn 3 stars, sink a raider).
+- **Combat** (`combat.js`, strictly optional): only some Reef Brotherhood ships are raiders. They chase when you are close, circle and fire; you can outrun them, parley (pay tribute, bluff) or fight. Space auto-aims a broadside at the nearest raider. Hull strength and cannon upgrades at the shipwright; cannonballs from harbours or wrecks of raiders. If your hull goes, you wake up at the nearest harbour with 25% less gold (no game over).
+
 ## Dread stages
 | # | Name | Feel | World signs |
 |---|---|---|---|
@@ -77,7 +84,7 @@ Other systems: **jobs** (delivery contracts from harbour boards, tracked on the 
 - `CELL`, spawn probability and type weights in `world.js`; `MAX_SPEED` in `ship.js`.
 
 ## Not in the slice yet
-Combat (deliberately), real audio files (synthesised stand-ins ship now), trading, landing on islands, an ending, title/menu polish.
+Real audio files (synthesised stand-ins ship now), trading, landing on islands, an ending, title/menu polish.
 
 ## Backlog
 **Alternative directions to revisit**

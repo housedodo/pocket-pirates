@@ -17,6 +17,10 @@ import { makeJob, findRumour, repOf, friendLevel, discount, bearingName, nearby,
 import { Logbook } from './logbook.js';
 import { sectorAt, sectorInfo, sectorCoord, FACTIONS } from './sectors.js';
 import { KINDS } from './traffic.js';
+import { Fishing, fishById } from './fishing.js';
+import { Combat } from './combat.js';
+import { Objectives } from './objectives.js';
+import { GROUPS, DEFAULT_CUSTOM, byId } from './customize.js';
 import { Wind } from './wind.js';
 import { applyTimeOfDay, DAY_LENGTH, tod } from './daynight.js';
 import { UPGRADES, MAX_LEVEL, computeMods, shipwrightLine } from './upgrades.js';
@@ -48,6 +52,17 @@ const state = {
   sectorsSeen: (saved && saved.sectorsSeen) || [],
   jobHistory: (saved && saved.jobHistory) || [],
   buffs: (saved && saved.buffs) || { speed: 0, dig: 0 },
+  stats: Object.assign({ dist: 0, harbours: 0, deliveries: 0, fish: 0, wrecks: 0, bottles: 0, sunk: 0, hails: 0, solved: 0, treasures: 0, cosmetics: 0 }, (saved && saved.stats) || {}),
+  hp: saved && saved.hp != null ? saved.hp : 100,
+  ammo: saved && saved.ammo != null ? saved.ammo : 15,
+  custom: Object.assign({}, DEFAULT_CUSTOM, (saved && saved.custom) || {}),
+  owned: new Set((saved && saved.owned) || []),
+  riddles: (saved && saved.riddles) || {},
+  attempts: (saved && saved.attempts) || {},
+  catch: (saved && saved.catch) || [],
+  fishLog: (saved && saved.fishLog) || {},
+  goals: Object.assign({ i: 0, side: {}, started: false }, (saved && saved.goals) || {}),
+  hints: (saved && saved.hints) || {},
   pos: (saved && saved.pos) || { x: 0, z: 0, h: 0 },
 };
 if (params.has('x')) state.pos = { x: +params.get('x'), z: +params.get('z') || 0, h: +params.get('h') || 0 };
@@ -79,11 +94,13 @@ const weather = new Weather(scene);
 const fauna = new Fauna(scene, world);
 const traffic = new Traffic(scene, world, state.seed);
 const sea = new SeaFeatures(scene, world, state.seed, state.collected);
+const combat = new Combat(scene, fauna);
 audio.musicOn = !settings.musicOff;
 
 ship.pos.set(state.pos.x, 0, state.pos.z);
 ship.heading = state.pos.h;
-const refreshMods = () => { ship.mods = computeMods(state.upgrades); };
+const refreshMods = () => { ship.mods = computeMods(state.upgrades); state.hp = Math.min(state.hp, ship.mods.maxHp); };
+ship.setCustom(state.custom);
 refreshMods();
 
 function resize() {
@@ -125,7 +142,7 @@ sea.onEvent = (e) => {
     audio.play('splash', { vol: 0.5 });
   } else if (e.type === 'bottle') {
     const text = bottleNote(mulberry32(hash2(e.o.x | 0, e.o.z | 0, state.seed + 3)), Math.min(4, Math.floor(e.o.dread * 5)));
-    state.notes.push({ text, dark: idx >= 2 });
+    state.notes.push({ text, dark: idx >= 2 }); state.stats.bottles++;
     toast(`Message in a bottle: "${text}"`, idx >= 2, 10000);
     audio.play('bottle');
   } else if (e.type === 'whirl') {
@@ -134,10 +151,34 @@ sea.onEvent = (e) => {
   }
 };
 
+// ---------------------------------------------------------------- goals, fishing
+function giveMap(id, from) {
+  const [cx, cz] = id.split(',').map(Number), d = world.desc(cx, cz);
+  if (!d || !d.puzzle) return;
+  state.riddles[id] = d.puzzle.text;
+  state.rumoured[id] = state.rumoured[id] || { name: d.name, x: Math.round(d.x), z: Math.round(d.z), source: from, found: false };
+  toast(`${from} gave you a treasure riddle for ${d.name}. See your log (M, Journal).`, false, 8000);
+}
+const objectives = new Objectives({ state, world, ship, toast: (t, d) => toast(t, d), giveMap });
+const fishing = new Fishing(scene, ship, {
+  toast: (t) => toast(t),
+  getCtx: () => ({ bonus: Math.max(0, ship.mods.lootMul - 1) }),
+  onStart: () => toast('Line cast. Wait for a bite...', false, 2500),
+  onBite: (f) => { toast(f.dark ? 'Something heavy takes the bait!' : 'A bite!', f.dark, 1500); },
+  onCatch: (f) => {
+    state.catch.push(f); state.stats.fish++;
+    const l = state.fishLog[f.id] || (state.fishLog[f.id] = { count: 0, best: 0 });
+    l.count++; l.best = Math.max(l.best, f.kg);
+    toast(`Caught: ${f.name}, ${f.kg}kg (worth ${f.value}g)${l.count === 1 ? ' - new species!' : ''}`, f.dark, 6000);
+    if (f.dark) objectives.remark('darkfish', dread);
+  },
+});
+
 // ---------------------------------------------------------------- modal state (pause / chart / harbour)
 let modal = null; // null | 'pause' | 'chart' | 'harbour' | 'ship'
 let logTab = 'map';
 let tradeShip = null;
+const yardEl = $('yardmodal');
 let harbourIsl = null;
 const keys = new Set();
 let started = false;
@@ -147,17 +188,19 @@ function openModal(name) {
   closeModal(true);
   modal = name;
   keys.clear();
-  ({ pause: pauseEl, chart: chartEl, harbour: harbourEl, ship: shipEl })[name].classList.add('open');
+  if (fishing.active) fishing.cancel();
+  ({ pause: pauseEl, chart: chartEl, harbour: harbourEl, ship: shipEl, yard: yardEl })[name].classList.add('open');
   if (name === 'pause') { showPauseMain(); }
   if (name === 'chart') logbook.open(logTab);
   if (name === 'harbour') renderHarbour();
   if (name === 'ship') renderShipTrade();
+  if (name === 'yard') renderYard();
   audio.play(name === 'pause' ? 'pause' : 'ui');
   audio.setPaused(name === 'pause');
 }
 function closeModal(silent = false) {
   if (!modal) return;
-  pauseEl.classList.remove('open'); chartEl.classList.remove('open'); harbourEl.classList.remove('open'); shipEl.classList.remove('open');
+  pauseEl.classList.remove('open'); chartEl.classList.remove('open'); harbourEl.classList.remove('open'); shipEl.classList.remove('open'); yardEl.classList.remove('open');
   if (modal === 'pause') audio.setPaused(false);
   modal = null; harbourIsl = null;
   if (!silent) lastTs = performance.now();
@@ -171,6 +214,7 @@ function begin() {
   started = true;
   titleEl.style.display = 'none';
   audio.start();
+  if (!params.get('nomate')) objectives.start();
 }
 let forced = params.has('dread') ? clamp(parseFloat(params.get('dread')), 0, 1) : null;
 
@@ -198,7 +242,7 @@ window.addEventListener('keydown', (e) => {
   if (modal === 'chart') {
     if (e.code === 'ArrowRight') logbook.step(1);
     else if (e.code === 'ArrowLeft') logbook.step(-1);
-    else if (/^Digit[1-6]$/.test(e.code)) logbook.tabByIndex(parseInt(e.code.slice(5), 10) - 1);
+    else if (/^Digit[1-7]$/.test(e.code)) logbook.tabByIndex(parseInt(e.code.slice(5), 10) - 1);
     else if (e.code === 'KeyM') closeModal();
     else if (e.code === 'KeyJ') { if (logbook.tab === 'jobs') closeModal(); else logbook.open('jobs'); }
     logTab = logbook.tab;
@@ -213,8 +257,12 @@ window.addEventListener('keydown', (e) => {
   if (e.code === 'KeyM') { logTab = 'map'; openModal('chart'); return; }
   if (e.code === 'KeyJ') { logTab = 'jobs'; openModal('chart'); return; }
   if (modal) return;
+  if (e.code === 'Space') e.preventDefault();
   if (e.repeat) return;
   keys.add(e.code);
+  if (e.code === 'Space') { if (fishing.active) { fishing.hold = true; fishing.press(true); } else fireCannons(); }
+  if (e.code === 'KeyC') fishing.press();
+  if (e.code === 'KeyY') objectives.askHint(dread);
   if (e.code === 'KeyE') tryInteract();
   if (e.code === 'KeyH') $('hud').classList.toggle('hidden');
   if (e.code === 'Backquote') debugEl.style.display = debugEl.style.display === 'block' ? 'none' : 'block';
@@ -223,7 +271,7 @@ window.addEventListener('keydown', (e) => {
   if (e.code === 'BracketRight') state.time = (state.time + 1 / 24) % 1;
   if (e.code === 'BracketLeft') state.time = (state.time - 1 / 24 + 1) % 1;
 });
-window.addEventListener('keyup', (e) => keys.delete(e.code));
+window.addEventListener('keyup', (e) => { keys.delete(e.code); if (e.code === 'Space') fishing.hold = false; });
 window.addEventListener('blur', () => { if (started && !modal && !params.get('shot')) openModal('pause'); });
 titleEl.addEventListener('pointerdown', begin);
 
@@ -242,6 +290,9 @@ for (const [id, k] of [['tL', 'L'], ['tR', 'R'], ['tU', 'U'], ['tD', 'D']]) {
   el.addEventListener('pointerup', up); el.addEventListener('pointerleave', up); el.addEventListener('pointercancel', up);
 }
 $('tE').addEventListener('pointerdown', (e) => { begin(); if (modal === 'harbour') closeModal(); else tryInteract(); e.preventDefault(); });
+$('tC').addEventListener('pointerdown', (e) => { begin(); if (fishing.active) { fishing.hold = true; fishing.press(true); } else fishing.press(); e.preventDefault(); });
+$('tC').addEventListener('pointerup', () => { fishing.hold = false; });
+$('tX').addEventListener('pointerdown', (e) => { begin(); fireCannons(); e.preventDefault(); });
 $('tP').addEventListener('pointerdown', (e) => { begin(); if (modal) closeModal(); else openModal('pause'); e.preventDefault(); });
 
 // ---------------------------------------------------------------- pause menu
@@ -305,6 +356,16 @@ function renderHarbour() {
     audio.play('buy'); renderHarbour();
   });
 
+  const sellVal = Math.round(state.catch.reduce((a, f) => a + f.value, 0) * (1 + 0.05 * lvl));
+  const ammoCost = Math.ceil(25 * discount(rep));
+  $('hbExtra').innerHTML = `<div class="job"><b>Dock market:</b><br>
+    ${state.catch.length ? `<button id="sellCatch">Sell catch (${state.catch.length} fish) +${sellVal}g</button>` : '<small>No fish to sell: slow down at sea and press C to fish.</small>'}
+    <button id="buyAmmo" ${state.gold >= ammoCost ? '' : 'disabled'}>10 cannonballs ${ammoCost}g (have ${state.ammo})</button>
+    <button id="openYard">Shipyard: paint &amp; figureheads</button></div>`;
+  const sc = $('sellCatch');
+  if (sc) sc.addEventListener('click', () => { state.gold += sellVal; toast(`Sold ${state.catch.length} fish for ${sellVal} gold.`); state.catch.length = 0; audio.play('buy'); renderHarbour(); });
+  $('buyAmmo').addEventListener('click', () => { if (state.gold < ammoCost) return; state.gold -= ammoCost; state.ammo += 10; audio.play('buy'); renderHarbour(); });
+  $('openYard').addEventListener('click', () => openModal('yard'));
   $('hbList').innerHTML = UPGRADES.map((u, i) => {
     const lv = state.upgrades[u.id], maxed = lv >= MAX_LEVEL;
     const cost = maxed ? 0 : upCost(u, lv, rep);
@@ -324,6 +385,7 @@ function buyUpgrade(id) {
   state.gold -= cost;
   state.upgrades[id] = lv + 1;
   refreshMods();
+  if (id === 'hull') state.hp = ship.mods.maxHp;
   audio.play('buy');
   toast(`${u.name} upgraded to level ${lv + 1}`, dread > 0.5);
   renderHarbour();
@@ -365,6 +427,12 @@ let curSector = null;
 let lastSave = 0, lastNear = null, lastHour = Math.floor(state.time * 24);
 const shipInput = { steer: 0, sail: 0 };
 
+function fireCannons() {
+  const r = combat.playerFire(ship, traffic, state, ship.mods);
+  if (r === 'ammo') { toast('Out of cannonballs! Buy more at a harbour.'); objectives.remark('noammo'); }
+  else if (r === 'target') objectives.remark('notarget');
+}
+
 function getInteract() {
   const isl = world.nearest(ship.pos.x, ship.pos.z, 16, ['harbour', 'treasure']);
   if (isl) return { kind: isl.desc.type, key: isl.desc.id, isl };
@@ -381,6 +449,7 @@ function completeJobIfHere(d) {
   repOf(state, d.id).deliveries++; repOf(state, j.fromId).deliveries++;
   state.serial[j.fromId] = (state.serial[j.fromId] || 0) + 1;
   state.jobHistory.push({ item: j.item, to: d.name, reward: j.reward });
+  state.stats.deliveries++;
   toast(`Delivered ${j.item} to ${d.name}: +${j.reward} gold`, j.dark, 7000);
   audio.play('treasure');
   state.job = null;
@@ -395,6 +464,8 @@ function tryInteract() {
     if (!rep.last || Date.now() - rep.last > 120000) rep.visits++;
     rep.last = Date.now();
     completeJobIfHere(d);
+    state.stats.harbours++;
+    if (state.hp < ship.mods.maxHp) { state.hp = ship.mods.maxHp; toast('The harbour crew patches up your hull for free.', false, 3000); }
     const rng = mulberry32(hash2(d.seed, Math.floor(tNow / 8), 3));
     const idx = Math.min(4, Math.floor(dread * 5)), lvl = friendLevel(rep);
     const hello = idx >= 3 ? 'We remember you. We always remember you.' : lvl >= 3 ? 'Our favourite captain! Your usual discount, of course.' : rep.visits > 1 ? 'Back again, captain!' : 'A new face. Welcome!';
@@ -405,15 +476,30 @@ function tryInteract() {
     audio.play('harbour');
   } else if (tg.kind === 'treasure' && !tg.isl.dug && !dig) {
     const d = tg.isl.desc;
-    dig = { key: tg.key, t: 0, need: 2.6 * ship.mods.digTime * (state.buffs.dig > 0 ? 0.7 : 1), done: () => {
-      const loot = lootFor(mulberry32(hash2(d.seed, 7, state.seed)), d.dread);
-      loot.value = Math.round(loot.value * ship.mods.lootMul);
-      state.dug.add(d.id); tg.isl.setDug(true);
-      state.gold += loot.value; state.loot.push(loot);
-      toast(`Treasure! ${loot.name} (+${loot.value} gold)`, loot.dark, 7000);
-      audio.play('treasure');
-    } };
-    audio.play('dig');
+    if (!state.riddles[d.id]) {
+      dig = { key: tg.key, t: 0, need: 2.2, done: () => {
+        state.riddles[d.id] = d.puzzle.text;
+        toast(`The arch inscription reads: "${d.puzzle.text}"`, d.dread > 0.5, 11000);
+        objectives.remark('riddle');
+      } };
+      audio.play('dig');
+    } else {
+      dig = { key: tg.key, t: 0, need: 2.6 * ship.mods.digTime * (state.buffs.dig > 0 ? 0.7 : 1), done: () => {
+        const ang = Math.atan2(ship.pos.z - d.z, ship.pos.x - d.x);
+        if (Math.abs(angleDiff(ang, d.puzzle.angle)) > 0.85) {
+          state.attempts[d.id] = (state.attempts[d.id] || 0) + 1;
+          toast(state.attempts[d.id] >= 2 ? 'Nothing here but sand. Reread the riddle in your log (Journal) and try another shore.' : 'The crew digs and finds only sand and crabs. Wrong shore!', false, 6000);
+          return;
+        }
+        const loot = lootFor(mulberry32(hash2(d.seed, 7, state.seed)), d.dread);
+        loot.value = Math.round(loot.value * ship.mods.lootMul);
+        state.dug.add(d.id); tg.isl.setDug(true); state.stats.treasures++; state.stats.solved++;
+        state.gold += loot.value; state.loot.push(loot);
+        toast(`Treasure! ${loot.name} (+${loot.value} gold)`, loot.dark, 7000);
+        audio.play('treasure');
+      } };
+      audio.play('dig');
+    }
   } else if (tg.kind === 'ship') {
     hailShip(tg.s);
   } else if (tg.kind === 'wreck' && !dig) {
@@ -422,7 +508,7 @@ function tryInteract() {
       const loot = lootFor(mulberry32(o.rngSeed), o.dread);
       loot.value = Math.round(loot.value * 1.3 * ship.mods.lootMul);
       loot.name = `From the wreck: ${loot.name}`;
-      o.salvaged = true; state.collected.add(o.id);
+      o.salvaged = true; state.collected.add(o.id); state.stats.wrecks++;
       state.gold += loot.value; state.loot.push(loot);
       toast(`Salvaged! ${loot.name} (+${loot.value} gold)`, loot.dark, 7000);
       audio.play('treasure');
@@ -446,6 +532,8 @@ const REFUSALS = ['The crew glances at you and looks away.', 'A sailor waves you
 
 function hailShip(sh) {
   const rng = mulberry32(sh.seed);
+  state.stats.hails++;
+  if (sh.hostile && sh.hp > 0) { sh.state = 'open'; tradeShip = sh; openModal('ship'); return; }
   if (sh.mode === 'derelict') {
     sh.state = 'done';
     const loot = lootFor(rng, dread); loot.value = Math.round(loot.value * 0.6);
@@ -472,6 +560,11 @@ const FACTION_GREET = {
 };
 function shipOffers(sh) {
   if (sh.offers) return sh.offers;
+  if (sh.hostile) return (sh.offers = [
+    { id: 'tribute', label: 'Pay tribute', cost: 30 + Math.round(KINDS[sh.kind].scale * 15), desc: 'they take the coin and let you pass in peace', used: false },
+    { id: 'bluff', label: 'Bluff', cost: 0, desc: 'they may believe you have a fleet behind you (45%)... or open fire', used: false },
+    { id: 'defy', label: 'Defy them', cost: 0, desc: 'press Space to fire once they are in range', used: false },
+  ]);
   const rng = mulberry32(sh.seed + 11), pool = [];
   if (findRumour(world, { x: sh.x, z: sh.z }, state)) pool.push({ id: 'chart', label: 'Sea-chart scrap', cost: 35, desc: 'marks a treasure isle on your map' });
   pool.push({ id: 'supplies', label: 'Fresh supplies', cost: 25, desc: '+15% speed for 3 minutes' });
@@ -486,7 +579,7 @@ function shipOffers(sh) {
 function renderShipTrade() {
   const sh = tradeShip;
   $('shName').textContent = sh.name;
-  $('shLine').textContent = FACTION_GREET[sh.faction.id] || 'Ahoy!';
+  $('shLine').textContent = sh.hostile ? 'The raider captain grins: "Nice ship. Shame if something happened to it. A little tribute, perhaps?"' : (FACTION_GREET[sh.faction.id] || 'Ahoy!');
   $('shGold').textContent = state.gold;
   $('shList').innerHTML = shipOffers(sh).map((o, i) => `<div class="up"><div><span class="nm">${i + 1}. ${o.label}</span></div>
     <button data-i="${i}" ${o.used || state.gold < o.cost ? 'disabled' : ''}>${o.used ? 'Done' : o.cost ? `${o.cost}g` : 'Free'}</button><div class="ds">${o.desc}</div></div>`).join('');
@@ -497,7 +590,12 @@ function doOffer(i) {
   if (!o || o.used || state.gold < o.cost) return;
   const rng = mulberry32(sh.seed + 77 + i);
   const idx = Math.min(4, Math.floor(dread * 5));
-  if (o.id === 'chart') {
+  if (o.id === 'tribute') { sh.hostile = false; sh.engaged = false; toast('The raiders take your coin, grinning, and sail on.'); }
+  else if (o.id === 'bluff') {
+    if (Math.random() < 0.45) { sh.hostile = false; sh.engaged = false; toast('The raiders squint at the horizon, then think better of it.'); }
+    else { sh.fireCd = 0.3; toast('They laugh, and open fire!'); }
+  } else if (o.id === 'defy') { toast('You hoist your colours. Fire when ready (Space).'); }
+  else if (o.id === 'chart') {
     const r = findRumour(world, { x: sh.x, z: sh.z }, state);
     if (!r) return;
     state.rumoured[r.d.id] = { name: r.d.name, x: Math.round(r.d.x), z: Math.round(r.d.z), source: `the ${sh.name}`, found: false };
@@ -534,11 +632,63 @@ function discover(isl) {
   audio.play('discover');
 }
 
+// ---------------------------------------------------------------- shipyard (cosmetics)
+function renderYard() {
+  $('yardGold').textContent = state.gold;
+  $('yardBody').innerHTML = GROUPS.map(([g, label, list]) => `<div class="yardgrp">${label}</div><div class="swatches">${list.map((o) => {
+    const key = `${g}:${o.id}`, owned = !o.cost || state.owned.has(key), locked = o.ok && !o.ok(state), on = state.custom[g] === o.id;
+    const col = g === 'hull' ? o.upper : g === 'flag' ? o.color : g === 'sail' ? `rgb(${o.tint.map((v) => Math.min(255, v * 235) | 0)})` : '#caa';
+    return `<button data-g="${g}" data-id="${o.id}" class="${on ? 'on' : ''}" ${locked || (!owned && state.gold < o.cost) ? 'disabled' : ''} title="${locked ? o.req : ''}"><span class="dot" style="background:${col}"></span>${o.name}${on ? '' : owned ? '' : locked ? ` <small>(${o.req})</small>` : ` ${o.cost}g`}</button>`;
+  }).join('')}</div>`).join('');
+  $('yardBody').querySelectorAll('button').forEach((b) => b.addEventListener('click', () => {
+    const g = b.dataset.g, list = GROUPS.find((x) => x[0] === g)[2], o = byId(list, b.dataset.id), key = `${g}:${o.id}`;
+    if (o.cost && !state.owned.has(key)) { if (state.gold < o.cost) return; state.gold -= o.cost; state.owned.add(key); state.stats.cosmetics++; audio.play('buy'); }
+    state.custom[g] = o.id; ship.setCustom(state.custom); renderYard();
+  }));
+}
+$('yardClose').addEventListener('click', () => closeModal());
+yardEl.addEventListener('pointerdown', (e) => { if (e.target === yardEl) closeModal(); });
+
+// ---------------------------------------------------------------- combat helpers
+let lastHit = -99, shake = 0;
+function hurtPlayer(dmg) {
+  const d = Math.max(1, Math.round(dmg));
+  state.hp -= d; lastHit = tNow; shake = 0.7;
+  $('hit').classList.add('on'); setTimeout(() => $('hit').classList.remove('on'), 140);
+  if (state.hp < 35) objectives.remark('lowhp', dread);
+  if (state.hp <= 0) sinkPlayer();
+}
+function onHitEnemy(s, dmg) {
+  s.hp -= dmg;
+  if (s.hp > 0) return;
+  s.sinking = true; s.hostile = false; s.state = 'done'; s.engaged = false;
+  const gold = Math.round((45 + Math.random() * 70) * KINDS[s.kind].scale), balls = 3 + Math.floor(Math.random() * 4);
+  state.gold += gold; state.ammo += balls; state.stats.sunk++;
+  toast(`Raider sunk! +${gold} gold, +${balls} cannonballs`, false, 6000);
+  if (state.stats.sunk === 1) toast('Unlocked: skull figurehead (see the shipyard).', false, 5000);
+}
+function sinkPlayer() {
+  state.hp = ship.mods.maxHp;
+  const lost = Math.round(state.gold * 0.25);
+  state.gold -= lost;
+  traffic.ships.filter((x) => x.hostile).forEach((x) => { x.hostile = false; x.engaged = false; });
+  const hs = nearby(world, ship.pos.x, ship.pos.z, 0, 1500, 'harbour').sort((a, b) => a.dist - b.dist)[0];
+  const tgt = hs ? { x: hs.d.x, z: hs.d.z + hs.d.r * 1.7, name: hs.d.name } : { x: 0, z: 0, name: 'Tama' };
+  $('fade').classList.add('on');
+  setTimeout(() => {
+    ship.pos.set(tgt.x, 0, tgt.z); ship.heading = 0; ship.speed = 0; camHeading = 0;
+    $('fade').classList.remove('on');
+    toast(`The Pearl went under. A fisherman dragged you to ${tgt.name}. You lost ${lost} gold; the hull is repaired.`, false, 8000);
+  }, 1100);
+}
+$('pbHint').addEventListener('click', () => { closeModal(); objectives.askHint(dread); });
+
 // ---------------------------------------------------------------- captain's log
-const logbook = new Logbook({ state, world, ship, seed: state.seed, toast: (t) => toast(t), close: () => closeModal() });
+const logbook = new Logbook({ state, world, ship, seed: state.seed, toast: (t) => toast(t), close: () => closeModal(),
+  skipGoal: () => { const g = objectives.current; if (!g) return; if (g.onDone) g.onDone({ state, world, ship, giveMap }); state.goals.i++; toast('Goal skipped.'); } });
 
 // ---------------------------------------------------------------- main loop
-const camPos = new THREE.Vector3(), camLook = new THREE.Vector3();
+const camPos = new THREE.Vector3(), camLook = new THREE.Vector3(), _v = new THREE.Vector3();
 let camHeading = ship.heading;
 let camOverride = null; // { pos:[x,y,z], look:[x,y,z] } for concept shots
 let lastTs = performance.now();
@@ -600,6 +750,17 @@ function frame() {
   horror.update(tNow, dread, ship.pos.x, ship.pos.z);
   ship.place(dt, stepT, stage.wave, dark, tod.night);
   const lifeCtx = { ship, dread, wave: stage.wave, audio, wind: windNow, stage, tod };
+  if (live) state.stats.dist += ship.speed * dt;
+  fishing.update(dt, stepT, { wave: stage.wave, dread, night: tod.night });
+  combat.update(dt, stepT, { ship, traffic, wave: stage.wave, onHitEnemy, onHitPlayer: hurtPlayer });
+  if (live && tNow - lastHit > 12 && state.hp < ship.mods.maxHp) state.hp = Math.min(ship.mods.maxHp, state.hp + dt);
+  objectives.update(dt, dread);
+  if (live) {
+    if (tod.night > 0.35 || tod.twilight > 0.6) objectives.remark('dusk');
+    if (weather.storm > 0.4) objectives.remark('storm'); else if (weather.rain > 0.4) objectives.remark('rain'); else if (weather.fog > 0.5) objectives.remark('fog');
+    for (const [k, v] of [['stage2', 0.25], ['stage3', 0.5], ['stage4', 0.75], ['stage5', 0.95]]) if (dread >= v) objectives.remark(k, dread);
+    if (traffic.ships.some((x) => x.hostile && x.engaged)) objectives.remark('raider');
+  }
   fauna.update(dt, stepT, lifeCtx);
   traffic.update(dt, stepT, lifeCtx);
   sea.update(dt, stepT, lifeCtx);
@@ -627,6 +788,7 @@ function frame() {
   const back = zoom * Math.cos(pitch), up = zoom * Math.sin(pitch);
   camPos.set(ship.pos.x - fx * back, up + 1, ship.pos.z - fz * back);
   camLook.set(ship.pos.x + fx * zoom * 0.2, 1.5, ship.pos.z + fz * zoom * 0.2);
+  if (shake > 0) { shake = Math.max(0, shake - rawDt * 1.8); camPos.x += Math.sin(tNow * 70) * shake; camPos.y += Math.cos(tNow * 63) * shake * 0.7; }
   if (dread > 0.85 && live) { const s = (dread - 0.85) * 0.5; camPos.x += Math.sin(tNow * 31) * s; camPos.y += Math.sin(tNow * 23 + 1) * s; }
   if (camOverride) { camPos.set(...camOverride.pos); camLook.set(...camOverride.look); }
   camera.position.copy(camPos);
@@ -655,7 +817,7 @@ function frame() {
     else {
       promptBar.style.display = 'none';
       promptTxt.textContent = tgt.kind === 'harbour' ? `[E] Visit ${tgt.isl.desc.name}`
-        : tgt.kind === 'treasure' ? (tgt.isl.dug ? 'Already plundered' : '[E] Send the crew ashore to dig')
+        : tgt.kind === 'treasure' ? (tgt.isl.dug ? 'Already plundered' : !state.riddles[tgt.isl.desc.id] ? '[E] Study the ancient arch inscription' : '[E] Dig on this shore')
         : tgt.kind === 'ship' ? (tgt.s.mode === 'derelict' ? `[E] Board the drifting ${KINDS[tgt.s.kind].label}` : tgt.s.mode === 'ghost' ? '[E] Hail the pale ship' : `[E] Hail the ${tgt.s.name}`)
         : '[E] Salvage the wreck';
     }
@@ -677,6 +839,18 @@ function frame() {
   if (modal === 'ship') { $('shGold').textContent = state.gold; }
   if (debugEl.style.display === 'block') debugEl.textContent = `tris ${renderer.info.render.triangles} calls ${renderer.info.render.calls}  dread ${dread.toFixed(2)} stage ${stage.index + 1} ${forced !== null ? '(forced)' : '(auto)'}  time ${tod.clock}  pos ${ship.pos.x | 0},${ship.pos.z | 0}  spd ${ship.speed.toFixed(1)}  islands ${world.islands.size}`;
 
+  $('hptxt').textContent = `${Math.round(state.hp)}/${ship.mods.maxHp}`;
+  $('hpfill').style.width = `${Math.max(0, (state.hp / ship.mods.maxHp) * 100)}%`;
+  $('ammotxt').textContent = `Cannonballs: ${state.ammo}`;
+  $('reloadfill').style.width = `${100 - Math.min(100, (combat.reload / ship.mods.reload) * 100)}%`;
+  const tgtE = combat.target(ship, traffic, 110);
+  const eb = $('ebar');
+  if (tgtE && live) {
+    _v.set(tgtE.x, 5 * KINDS[tgtE.kind].scale + 3, tgtE.z).project(camera);
+    if (_v.z < 1) { eb.style.display = 'block'; eb.style.left = `${(_v.x * 0.5 + 0.5) * window.innerWidth}px`; eb.style.top = `${(-_v.y * 0.5 + 0.5) * window.innerHeight}px`; $('ename').textContent = tgtE.name; $('efill').style.width = `${Math.max(0, (tgtE.hp / tgtE.maxHp) * 100)}%`; } else eb.style.display = 'none';
+  } else eb.style.display = 'none';
+  const gcur = objectives.current, gl = $('goalline');
+  if (gcur) { gl.style.display = 'block'; gl.textContent = `Goal: ${gcur.title}. ${gcur.text}`; } else gl.style.display = 'none';
   if (live) {
     const near = world.nearest(ship.pos.x, ship.pos.z, 45);
     audio.update(dt, { dread, speed: ship.speed / 11, night: tod.night, wind: wind.strength, rain: weather.rain, storm: weather.storm, surf: near ? clamp(1 - world.lastEdge / 45, 0, 1) : 0 });
@@ -687,7 +861,7 @@ function frame() {
   // ---- save
   if (tNow - lastSave > 4 && !params.get('fresh')) {
     lastSave = tNow;
-    store.set(SAVE_KEY, { seed: state.seed, gold: state.gold, dug: [...state.dug], discovered: state.discovered, loot: state.loot, upgrades: state.upgrades, collected: [...state.collected], notes: state.notes, rumoured: state.rumoured, rep: state.rep, job: state.job, serial: state.serial, sectorsSeen: state.sectorsSeen, jobHistory: state.jobHistory, buffs: state.buffs, time: state.time, windT: wind.t, pos: { x: ship.pos.x, z: ship.pos.z, h: ship.heading } });
+    store.set(SAVE_KEY, { seed: state.seed, gold: state.gold, dug: [...state.dug], discovered: state.discovered, loot: state.loot, upgrades: state.upgrades, collected: [...state.collected], notes: state.notes, rumoured: state.rumoured, rep: state.rep, job: state.job, serial: state.serial, sectorsSeen: state.sectorsSeen, jobHistory: state.jobHistory, buffs: state.buffs, stats: state.stats, hp: state.hp, ammo: state.ammo, custom: state.custom, owned: [...state.owned], riddles: state.riddles, attempts: state.attempts, catch: state.catch, fishLog: state.fishLog, goals: state.goals, hints: state.hints, time: state.time, windT: wind.t, pos: { x: ship.pos.x, z: ship.pos.z, h: ship.heading } });
   }
 
   // ---- render
@@ -705,7 +879,7 @@ window.__game = {
   setCam(p, z) { if (p !== undefined) { pitch = pitchT = p; } if (z !== undefined) { zoom = zoomT = z; } },
   setOverride(o) { camOverride = o; },
   teleport(x, z, h) { ship.pos.set(x, 0, z); ship.heading = h; camHeading = h; },
-  ship, world, state, begin, scene, camera, horror, renderer, wind, weather, fauna, traffic, sea, audio, openModal, closeModal, buyUpgrade, refreshMods,
+  ship, world, state, begin, scene, camera, horror, renderer, wind, weather, fauna, traffic, sea, audio, fishing, combat, objectives, hurtPlayer, openModal, closeModal, buyUpgrade, refreshMods,
 };
 if (params.get('autostart')) begin();
 frame();
