@@ -1,6 +1,6 @@
 # Audio guide
 
-**The game makes its own sound out of the box** (`src/synth.js` synthesises every cue below, lo-fi on purpose).
+**Sound is currently switched off** (`AUDIO_ENABLED = false` in `src/audio.js`). When on, the game makes its own sound out of the box (`src/synth.js` synthesises every cue below, lo-fi on purpose).
 You are making the real sounds: put a file in `public/audio/` and it replaces the synthesised version of that cue,
 one cue at a time. Names must match exactly; `.ogg` preferred (`.mp3`/`.wav` also work).
 The pause menu has Sound and Music toggles.

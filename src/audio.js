@@ -3,6 +3,9 @@
 // See docs/AUDIO.md for the cue list and design notes.
 import { canSynth, synth } from './synth.js';
 
+// Master switch: sound is off for now. Set to true to bring back synthesised audio / your own files.
+export const AUDIO_ENABLED = false;
+
 const STAGES = 5;
 export const CUES = {
   loops: [
@@ -41,7 +44,7 @@ export class AudioBus {
   }
 
   async start() {
-    if (this.ctx) return;
+    if (!AUDIO_ENABLED || this.ctx) return;
     const AC = window.AudioContext || window.webkitAudioContext;
     if (!AC) return;
     this.ctx = new AC();

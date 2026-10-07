@@ -7,7 +7,7 @@ import { Sky } from './sky.js';
 import { World } from './world.js';
 import { Ship } from './ship.js';
 import { Horror } from './horror.js';
-import { AudioBus } from './audio.js';
+import { AudioBus, AUDIO_ENABLED } from './audio.js';
 import { gossip, lootFor, bottleNote, barrelLoot } from './lore.js';
 import { Weather } from './weather.js';
 import { Fauna } from './fauna.js';
@@ -225,6 +225,7 @@ $('tE').addEventListener('pointerdown', (e) => { begin(); if (modal === 'harbour
 $('tP').addEventListener('pointerdown', (e) => { begin(); if (modal) closeModal(); else openModal('pause'); e.preventDefault(); });
 
 // ---------------------------------------------------------------- pause menu
+if (!AUDIO_ENABLED) { $('pbSound').style.display = 'none'; $('pbMusic').style.display = 'none'; }
 function showPauseMain() {
   $('pauseMain').style.display = 'block'; $('pauseControls').style.display = 'none';
   $('pbSound').textContent = `Sound: ${audio.muted ? 'off' : 'on'}`;
