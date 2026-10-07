@@ -5,6 +5,7 @@ import { mats } from './psx.js';
 import { hash2, mulberry32, fbm, clamp, angleDiff } from './util.js';
 import { dreadAtDistance } from './palette.js';
 import { makeName, makePuzzle } from './lore.js';
+import { FRUITS, fruitOf } from './fruit.js';
 
 export const CELL = 110;
 const LOAD_R = 4, UNLOAD_R = 6;
@@ -268,6 +269,11 @@ function decorate(d, rng, A, B, D, extra) {
     for (let i = 0; i < n; i++) { const p = spot(d, rng, 0.2, 0.9, 0.6); if (p) B.blob(p[0], p[1] + 0.35, p[2], 0.9, 0.7, 0.9, rng() > 0.5 ? COL.g2 : COL.g1, TILE.white, 0.2, i); }
   };
 
+  // a few bright fruit on the ground/in the bushes, so you can tell what an island grows
+  if (T === 'jungle' || T === 'sandbar') {
+    const fc = FRUITS[fruitOf(d)].color, nf = T === 'jungle' ? 7 : 3;
+    for (let i = 0; i < nf; i++) { const p = spot(d, rng, 0.15, 0.85, 0.5); if (p) B.blob(p[0], p[1] + 0.4, p[2], 0.34, 0.34, 0.34, fc, TILE.white, 0.05, i); }
+  }
   switch (T) {
     case 'sandbar':
       palms(1 + Math.floor(rng() * 3), 0.0, 0.6, 0.45, 0.8);

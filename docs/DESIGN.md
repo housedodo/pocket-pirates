@@ -69,6 +69,14 @@ Other systems: **jobs** (delivery contracts from harbour boards, tracked on the 
 - **Ship looks** (`customize.js`): hull paint, sail colour, pennant and figurehead (parrot, dolphin, mermaid, lion, skull) at harbour shipyards. Some figureheads are earned (catch fish, salvage a wreck, earn 3 stars, sink a raider).
 - **Combat** (`combat.js`, strictly optional): only some Reef Brotherhood ships are raiders. They chase when you are close, circle and fire; you can outrun them, parley (pay tribute, bluff) or fight. Space auto-aims a broadside at the nearest raider. Hull strength and cannon upgrades at the shipwright; cannonballs from harbours or wrecks of raiders. If your hull goes, you wake up at the nearest harbour with 25% less gold (no game over).
 
+## Commissions, fruit and the log (second pass)
+- **Commissions** (`jobs.commissionsFor`): each harbour board posts a delivery plus two errands, up to 3 held at once: catch specific fish, bring a fruit, recover floating crates from a marked search area, sink raiders, spot dolphins/whales. Hand in at the board (Board tab); rewards also build reputation.
+- **Fruit** (`fruit.js`): jungle and sandbar islands grow one kind each (fruit is visible on the island). E picks 2-4 (once per in-game day per island). Sell at the Market or use for commissions.
+- **Captain's log** is now an open book: tabs for Map, Goals, Quests, Riddles, Rumours, Journal, Ship, Standing; short entries over two pages, page turn with the arrows. **Riddles** have their own tab.
+- **Wind** is shown as a wooden dial with a cloth streamer (gusts make it snap), a word like "Fresh breeze" instead of numbers, and faint wisps drifting across the sea. Gusts add a few degrees of wobble within the prevailing direction.
+- **Camera** orbits the boat (drag sideways, Z/X) and eases back behind it after a few seconds.
+- **Mara** types her lines out letter by letter with a bobbing portrait; click or Enter skips; the next goal is announced a few seconds after she finishes.
+
 ## Dread stages
 | # | Name | Feel | World signs |
 |---|---|---|---|

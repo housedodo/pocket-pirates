@@ -12,15 +12,15 @@ export const FISH = [
   // id, name, weight(rarity), difficulty, price/kg, kg range, dread range, night only, dark?
   { id: 'sardine', name: 'Sardine', w: 10, diff: 0.2, price: 5, kg: [0.1, 0.4], min: 0, max: 0.75 },
   { id: 'snapper', name: 'Red snapper', w: 8, diff: 0.35, price: 7, kg: [0.8, 3], min: 0, max: 0.7 },
-  { id: 'mahi', name: 'Mahi-mahi', w: 4, diff: 0.5, price: 9, kg: [2, 9], min: 0, max: 0.65 },
-  { id: 'tuna', name: 'Bluefin tuna', w: 2.5, diff: 0.68, price: 12, kg: [8, 40], min: 0, max: 0.6 },
-  { id: 'sword', name: 'Swordfish', w: 1, diff: 0.85, price: 16, kg: [20, 80], min: 0, max: 0.6 },
-  { id: 'grouper', name: 'Golden grouper', w: 0.5, diff: 0.6, price: 40, kg: [3, 12], min: 0, max: 0.5 },
+  { id: 'mahi', name: 'Mahi-mahi', w: 4, diff: 0.5, price: 7, kg: [2, 9], min: 0, max: 0.65 },
+  { id: 'tuna', name: 'Bluefin tuna', w: 2.5, diff: 0.68, price: 3, kg: [8, 40], min: 0, max: 0.6 },
+  { id: 'sword', name: 'Swordfish', w: 1, diff: 0.85, price: 4, kg: [20, 80], min: 0, max: 0.6 },
+  { id: 'grouper', name: 'Golden grouper', w: 0.5, diff: 0.6, price: 14, kg: [3, 12], min: 0, max: 0.5 },
   { id: 'lantern', name: 'Pale lanternfish', w: 5, diff: 0.4, price: 14, kg: [0.2, 1], min: 0.3, max: 1, night: true, dark: true },
   { id: 'eel', name: 'Glass eel that remembers', w: 4, diff: 0.55, price: 20, kg: [1, 4], min: 0.35, max: 1, dark: true },
-  { id: 'pike', name: 'Many-eyed pike', w: 3, diff: 0.7, price: 24, kg: [3, 10], min: 0.5, max: 1, dark: true },
+  { id: 'pike', name: 'Many-eyed pike', w: 3, diff: 0.7, price: 12, kg: [3, 10], min: 0.5, max: 1, dark: true },
   { id: 'key', name: 'A fish shaped like a key', w: 1, diff: 0.75, price: 60, kg: [0.5, 2], min: 0.55, max: 1, dark: true },
-  { id: 'angler', name: 'Drowned angler', w: 1.5, diff: 0.9, price: 50, kg: [10, 50], min: 0.7, max: 1, night: true, dark: true },
+  { id: 'angler', name: 'Drowned angler', w: 1.5, diff: 0.9, price: 6, kg: [10, 50], min: 0.7, max: 1, night: true, dark: true },
 ];
 export const fishById = (id) => FISH.find((f) => f.id === id);
 
@@ -111,6 +111,7 @@ export class Fishing {
       if (this.timer > 1.3) { this.cancel(this.fish.dark ? 'Whatever bit has lost interest.' : 'The fish spat the hook.'); return; }
     } else if (this.mode === 'reel') {
       this.reel(dt);
+      if (this.mode === 'idle') return;
       dip = Math.sin(t * 18) * 0.12;
     }
     this.bobber.position.set(p.x, w + 0.15 + dip + Math.sin(t * 2.2) * 0.04, p.z);

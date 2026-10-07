@@ -73,6 +73,9 @@ export const SIDE_GOALS = [
   { id: 'wreck', title: 'Salvage rights', reward: 40, text: 'Find a wreck and salvage it (E).', check: (c) => c.state.stats.wrecks >= 1 },
   { id: 'paint', title: 'A touch of style', reward: 20, text: 'Buy something at a shipyard: paint, sails, a pennant, a figurehead.', check: (c) => c.state.stats.cosmetics >= 1 },
   { id: 'riddle', title: 'Riddle me this', reward: 50, text: 'Solve a second treasure riddle: study the arch on a treasure isle, then dig the right shore.', check: (c) => c.state.stats.solved >= 2 },
+  { id: 'fruit', title: 'Fresh from the tree', reward: 20, text: 'Press E near a jungle or sandbar isle to pick its fruit.', check: (c) => c.state.stats.fruitPicked >= 1 },
+  { id: 'errand', title: 'Odd jobs', reward: 40, text: 'Finish a commission from a harbour board (fish, fruit, crates...).', check: (c) => (c.state.stats.commissions || 0) >= 1 },
+  { id: 'dolphin', title: 'Friends of the sea', reward: 20, text: 'Spot a pod of dolphins.', check: (c) => c.state.stats.dolphins >= 1 },
   { id: 'raider', title: 'Teach a raider a lesson', reward: 60, text: 'Optional: sink a raider. Space fires your cannons.', check: (c) => c.state.stats.sunk >= 1 },
 ];
 
@@ -98,21 +101,51 @@ export class Mate {
   constructor() {
     this.el = document.getElementById('mate');
     this.txt = document.getElementById('matetxt');
-    this.queue = []; this.cur = null; this.t = 0;
+    this.face = document.getElementById('mateface');
+    this.more = document.getElementById('matemore');
+    this.queue = []; this.cur = null; this.shown = 0; this.acc = 0; this.wait = -1;
+    this.history = [];
+    this.el.addEventListener('pointerdown', () => this.skip());
   }
-  say(text, dark = false) {
-    this.queue.push({ text, dark, ms: Math.max(3.5, 2 + text.length * 0.05) });
+  say(text, dark = false) { this.queue.push({ text, dark }); }
+  get busy() { return !!this.cur || this.queue.length > 0; }
+  /** click / Enter: finish typing, or move on to the next line */
+  skip() {
+    if (!this.cur) return;
+    if (this.shown < this.cur.text.length) { this.shown = this.cur.text.length; this.render(); this.wait = this.holdTime(); }
+    else this.wait = 0;
+  }
+  holdTime() { return 2.2 + this.cur.text.length * 0.04; }
+  render() {
+    this.txt.textContent = this.cur.text.slice(0, this.shown);
+    this.more.style.visibility = this.shown >= this.cur.text.length ? 'visible' : 'hidden';
   }
   update(dt) {
     if (!this.cur && this.queue.length) {
-      this.cur = this.queue.shift(); this.t = this.cur.ms;
-      this.txt.textContent = this.cur.text;
+      this.cur = this.queue.shift(); this.shown = 0; this.acc = 0; this.wait = -1;
+      this.history.push(this.cur.text); if (this.history.length > 14) this.history.shift();
       this.el.classList.toggle('dark', this.cur.dark);
-      this.el.style.display = 'flex';
+      this.el.style.display = 'flex'; this.render();
     }
-    if (this.cur) {
-      this.t -= dt;
-      if (this.t <= 0) { this.cur = null; if (!this.queue.length) this.el.style.display = 'none'; }
+    if (!this.cur) return;
+    const len = this.cur.text.length;
+    if (this.shown < len) {
+      this.acc += dt;
+      for (;;) {
+        const prev = this.cur.text[Math.max(0, this.shown - 1)];
+        const delay = ',;:'.includes(prev) ? 0.16 : '.!?'.includes(prev) ? 0.34 : 0.032;
+        if (this.acc < delay || this.shown >= len) break;
+        this.acc -= delay; this.shown++;
+      }
+      this.render();
+      // Undertale-style: the portrait bobs and tilts while she talks, a little jolt on each few letters
+      const k = Math.floor(this.shown / 3) % 2;
+      this.face.style.transform = k ? 'rotate(-10deg) translateY(-3px) scale(1.06)' : 'rotate(9deg) translateY(1px) scale(0.98)';
+      if (this.shown >= len) this.wait = this.holdTime();
+    } else {
+      this.face.style.transform = '';
+      this.wait -= dt;
+      if (this.wait <= 0) { this.cur = null; if (!this.queue.length) this.el.style.display = 'none'; }
     }
   }
 }
@@ -123,6 +156,8 @@ export class Objectives {
     this.mate = new Mate();
     this.timer = 0;
     this.hintI = 0;
+    this.pending = null;   // next goal whose intro has not been told yet
+    this.gap = 0;
   }
   get state() { return this.d.state; }
   get current() { return MAIN_GOALS[this.state.goals.i] || null; }
@@ -151,25 +186,36 @@ export class Objectives {
 
   complete(goal, side) {
     this.d.state.gold += goal.reward;
-    this.d.toast(`Goal complete: ${goal.title} (+${goal.reward} gold)`);
+    this.d.toast(`Goal complete: ${goal.title} (+${goal.reward} gold)`, false, 7000);
     if (side) this.state.goals.side[goal.id] = true;
   }
 
   update(dt, dread) {
     this.mate.update(dt);
+    // the next goal is only announced a few seconds after Mara has finished talking
+    if (this.pending) {
+      if (!this.mate.busy) {
+        this.gap -= dt;
+        if (this.gap <= 0) {
+          const next = this.pending; this.pending = null;
+          for (const l of next.intro) this.mate.say(l, dread > 0.6);
+        }
+      }
+      return;
+    }
     this.timer -= dt;
     if (this.timer > 0) return;
     this.timer = 0.5;
     const c = this.d, g = this.state.goals;
     const cur = this.current;
-    if (cur && cur.check(c)) {
+    if (cur && cur.check(c) && !this.mate.busy) {
       this.complete(cur, false);
       for (const l of cur.outro || []) this.mate.say(l, dread > 0.6);
       if (cur.onDone) cur.onDone(c);
       g.i++; this.hintI = 0;
       const next = this.current;
-      if (next) for (const l of next.intro) this.mate.say(l, dread > 0.6);
-      else this.mate.say('That is everything I know how to teach you, Captain. From here on the sea is yours. Check the Goals tab for more to do.');
+      if (next) { this.pending = next; this.gap = 7; }
+      else this.mate.say('That is everything I know how to teach you, Captain. From here on the sea is yours. The Goals tab has more to do.');
     }
     for (const s of SIDE_GOALS) if (!g.side[s.id] && s.check(c)) this.complete(s, true);
   }

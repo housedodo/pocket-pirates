@@ -194,6 +194,7 @@ export class Fauna {
           this.dolphins.forEach((d, i) => {
             d.u = -i * 0.28; d.sx = bx + rx * i * 2.4; d.sz = bz + rz * i * 2.4; d.vx = Math.sin(ang) * spd; d.vz = -Math.cos(ang) * spd; d.entered = false; d.exited = false;
           });
+          if (dolMood === 'jump' && this.onSpot) this.onSpot('dolphins');
         }
       }
       const D = 1.5, H = 3.2;
@@ -276,13 +277,14 @@ export class Fauna {
       this.whaleTimer = rnd(120, 230);
       const a = ship.heading + rnd(-1.2, 1.2), dist = rnd(70, 120);
       this.whaleData = { x: sx + Math.sin(a) * dist, z: sz - Math.cos(a) * dist, h: a + rnd(1, 2) * (Math.random() < 0.5 ? 1 : -1) };
-      this.whaleT = 0; this.spoutT = 2;
+      this.whaleT = 0; this.spoutT = 2; this.whaleData.spotted = false;
       audio.play('whale', { vol: 0.6 });
     }
     if (this.whaleT >= 0 && this.whaleData) {
       const w = this.whaleData; this.whaleT += dt;
       const T = this.whaleT, DUR = 26;
       w.x += Math.sin(w.h) * 2.2 * dt; w.z -= Math.cos(w.h) * 2.2 * dt;
+      if (!w.spotted && T > 3 && Math.hypot(w.x - sx, w.z - sz) < 110) { w.spotted = true; if (this.onSpot) this.onSpot('whales'); }
       const rise = smoothstep(0, 3, T), dive = smoothstep(DUR - 5, DUR, T);
       this.whale.visible = true;
       this.whale.position.set(w.x, waveHeight(w.x, w.z, t, wave) - 2.5 + rise * 2.1 - dive * 3.5, w.z);

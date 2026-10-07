@@ -19,8 +19,8 @@ npm run build      # static build in dist/
 | Y | ask Mara (first mate) for a hint |
 | E | interact: harbour (shipwright, job board, rumours), dig for treasure, salvage wrecks, hail passing ships |
 | Esc or P | pause menu (resume, controls, log, sound) |
-| M | captain's log: Map, Jobs, Rumours, Journal, Ship, Standing, Goals (tabs 1-7 or arrows; J opens Jobs) |
-| mouse drag / R F | tilt camera (third-person <-> top-down) |
+| M | captain's log: Map, Jobs, Rumours, Journal, Ship, Standing, Goals, Quests, Riddles, Rumours, Journal, Ship, Standing (tabs 1-8 or arrows; Up/Down turn pages; J opens Quests) |
+| mouse drag | tilt (up/down) and orbit around the boat (sideways); Z / X also orbit, V resets, R / F tilt |
 | wheel | zoom |
 | H | hide HUD |
 

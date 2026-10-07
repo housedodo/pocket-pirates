@@ -17,9 +17,9 @@
     #stats { position: absolute; left: 12px; top: 12px; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; font-size: 15px; }
     #near { color: #bff; min-height: 1.2em; font-size: 13px; }
     #gold b { color: var(--gold); }
-    #compass { position: absolute; right: 12px; top: 12px; width: 124px; text-align: center; font-size: 12px; padding: 4px; }
-    #compass canvas { width: 108px; height: 108px; display: block; margin: 0 auto 2px; image-rendering: pixelated; }
-    #sailbar { position: absolute; right: 12px; top: 164px; width: 124px; font-size: 12px; text-align: center; }
+    .windbox { position: absolute; right: 10px; top: 8px; width: 138px; text-align: center; font: italic 700 13px Georgia, serif; color: #f6e6b8; text-shadow: 1px 1px 0 #2a1608, -1px -1px 0 #2a1608, 1px -1px 0 #2a1608, -1px 1px 0 #2a1608; }
+    .windbox canvas { width: 132px; height: 132px; display: block; margin: 0 auto 0; filter: drop-shadow(2px 3px 2px rgba(0,0,0,.55)); }
+    #sailbar { position: absolute; right: 12px; top: 176px; width: 124px; font-size: 12px; text-align: center; }
     #sailbar .bar { height: 10px; background: #0007; border: 2px solid var(--edge); margin-top: 3px; }
     #sailbar .fill { height: 100%; width: 70%; background: var(--gold); }
     #prompt { position: absolute; left: 50%; bottom: 84px; transform: translateX(-50%); font-size: 16px; text-align: center; display: none; }
@@ -34,28 +34,53 @@
 
     #chart, .modal { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; background: rgba(8, 6, 22, .72); z-index: 4; }
     #chart.open, .modal.open { display: flex; }
-    .logbook { width: min(820px, 96vw); max-height: 94vh; display: flex; flex-direction: column; padding: 10px 12px 12px; background: #d9bf86; color: #3a2412; border: 4px solid #6b4a2e; box-shadow: 6px 6px 0 rgba(0,0,0,.5); font-family: Georgia, "Times New Roman", serif; }
-    .logbook .tabs { display: flex; gap: 4px; margin-bottom: 8px; flex-wrap: wrap; }
-    .logbook .tabs button { flex: 1; min-width: 80px; padding: 7px 6px; font: 700 14px Georgia, serif; color: #3a2412; background: #c4a86a; border: 2px solid #6b4a2e; cursor: pointer; }
-    .logbook .tabs button.on { background: #f0dfae; border-bottom-color: #f0dfae; }
-    .logbook #logBody { overflow: auto; padding: 4px 6px; min-height: 200px; font-size: 14px; line-height: 1.45; }
-    .logbook h3 { margin: 10px 0 4px; font-size: 16px; border-bottom: 1px solid #6b4a2e66; }
-    .logbook .card { background: #ecdcae; border: 1px solid #6b4a2e66; padding: 7px 10px; margin: 6px 0; }
-    .logbook .card.dim { opacity: .7; font-style: italic; }
-    .logbook .card.dk, .logbook .row.dk { color: #7a2a6a; }
-    .logbook .row { display: flex; justify-content: space-between; gap: 10px; padding: 2px 4px; border-bottom: 1px dotted #6b4a2e55; }
-    .logbook .row span { opacity: .85; text-align: right; }
-    .logbook .ok { color: #2a7a3a; font-weight: 700; }
-    .logbook .pips { color: #a06a10; letter-spacing: .15em; }
-    .logbook .fac { display: inline-block; width: 11px; height: 11px; border: 1px solid #3a2412; vertical-align: -1px; }
-    .logbook button.mini { margin-top: 6px; padding: 4px 10px; font: 13px Georgia, serif; background: #c4a86a; border: 1px solid #6b4a2e; cursor: pointer; }
-    .logbook .logfoot { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; font-size: 12px; opacity: .85; }
-    .logbook .logfoot button { padding: 6px 14px; font: 700 14px Georgia, serif; background: #c4a86a; border: 2px solid #6b4a2e; cursor: pointer; }
+    .book { position: relative; width: min(1080px, 98vw); height: min(620px, 94vh); padding: 16px 116px 12px 16px; background: linear-gradient(135deg, #6a3f1c, #4a2a12); border: 4px solid #2a1608; border-radius: 10px; box-shadow: 0 10px 0 rgba(0,0,0,.45), inset 0 0 0 3px #8a5a2c; display: flex; flex-direction: column; font-family: "Palatino Linotype", "Book Antiqua", Palatino, Georgia, serif; color: #3a2210; }
+    .book .spread { position: relative; flex: 1; min-height: 0; background: linear-gradient(90deg, #efdfb2 0%, #e4d29f 46%, #c4aa70 49.4%, #a98f58 50%, #c4aa70 50.6%, #e4d29f 54%, #efdfb2 100%); border: 2px solid #2a1608; border-radius: 4px; box-shadow: inset 0 0 40px rgba(110,70,20,.35); padding: 16px 30px; overflow: hidden; }
+    #logBody { height: 100%; }
+    #logBody.cols { column-count: 2; column-gap: 56px; column-fill: auto; overflow-x: hidden; overflow-y: hidden; font-weight: 600; font-size: 15px; line-height: 1.35; }
+    #logBody.full { overflow: hidden; }
+    #logBody h3 { margin: 0 0 6px; font-size: 18px; font-variant: small-caps; letter-spacing: .1em; text-align: center; border-bottom: 2px solid #3a221055; padding-bottom: 2px; break-after: avoid; }
+    #logBody h3:not(:first-child) { margin-top: 12px; }
+    .ent { position: relative; padding: 5px 8px; margin: 4px 0; background: rgba(255, 248, 220, .38); border-left: 4px solid #8a5a2c; break-inside: avoid; }
+    .ent b { font-weight: 800; font-size: 15px; }
+    .ent .r { float: right; font-weight: 800; color: #8a5a10; }
+    .ent small { display: block; font-weight: 600; font-size: 13px; opacity: .85; }
+    .ent.cur { border-left-color: #c0392b; background: rgba(255, 230, 160, .75); }
+    .ent.done { opacity: .55; } .ent.dim { opacity: .55; font-style: italic; } .ent.dk, .riddle.dk { color: #7a2a6a; }
+    .ent .n { position: absolute; right: 8px; bottom: 3px; font-weight: 800; }
+    .pbar { display: block; height: 7px; margin-top: 4px; background: #0003; border: 1px solid #3a2210; }
+    .pbar b { display: block; height: 100%; background: #2f9a4a; }
+    .riddle { padding: 8px 10px; margin: 6px 0; background: rgba(255, 248, 220, .5); border: 2px solid #8a5a2c66; break-inside: avoid; }
+    .riddle p { margin: 4px 0; font-size: 17px; font-style: italic; font-weight: 700; line-height: 1.3; }
+    .riddle.done { opacity: .6; } .riddle.dim { opacity: .65; }
+    .riddle small { display: block; font-weight: 700; }
+    #logBody .ok { color: #2a7a3a; font-weight: 800; }
+    #logBody .pips { color: #a06a10; letter-spacing: .12em; }
+    #logBody .fac { display: inline-block; width: 11px; height: 11px; border: 1px solid #3a2210; vertical-align: -1px; }
+    #logBody button.mini { margin: 4px 0 0; padding: 3px 10px; font: 700 12px Georgia, serif; background: #c9a85c; border: 2px solid #6b4a2e; color: #3a2210; cursor: pointer; }
+    .ent button.mini { margin: 3px 0 0; padding: 1px 8px; font-size: 11px; opacity: .85; }
+    #logBody h3.brk { break-before: column; margin-top: 0 !important; }
+    .ribbons { position: absolute; right: 6px; top: 30px; display: flex; flex-direction: column; gap: 5px; z-index: 2; }
+    .ribbons button { width: 92px; padding: 6px 6px 6px 8px; text-align: left; font: 800 13px Georgia, serif; color: #f6e6b8; background: linear-gradient(90deg, #8a2a1c, #b03a28); border: 2px solid #2a1608; border-left: none; border-radius: 0 8px 8px 0; cursor: pointer; box-shadow: 2px 2px 0 rgba(0,0,0,.4); transition: transform .1s; }
+    .ribbons button em { font-style: normal; margin-left: 4px; }
+    .ribbons button.on { transform: translateX(-8px); background: linear-gradient(90deg, #c9a14a, #ecd070); color: #3a2210; }
+    .bookbar { display: flex; align-items: center; gap: 10px; margin-top: 8px; color: #f0dca8; font: 700 13px Georgia, serif; }
+    .bookbar .keys { flex: 1; opacity: .8; text-align: center; font-weight: 600; }
+    .bookbar button { padding: 5px 12px; font: 800 14px Georgia, serif; background: #c9a85c; border: 2px solid #2a1608; color: #3a2210; cursor: pointer; }
     .mapwrap { position: relative; }
-    .mapwrap canvas { width: 100%; height: auto; display: block; border: 3px solid #6b4a2e; cursor: grab; touch-action: none; }
+    .mapwrap canvas { width: 100%; height: auto; display: block; border: 3px solid #3a2210; cursor: grab; touch-action: none; }
     .mapctl { position: absolute; right: 10px; top: 10px; display: flex; flex-direction: column; gap: 4px; }
-    .mapctl button { width: 32px; height: 32px; font: 700 18px Georgia, serif; background: #ecdcae; border: 2px solid #6b4a2e; cursor: pointer; color: #3a2412; }
-    .legend { margin-top: 6px; font-size: 12px; }
+    .mapctl button { width: 30px; height: 30px; font: 800 17px Georgia, serif; background: #ecdcae; border: 2px solid #3a2210; cursor: pointer; color: #3a2210; }
+    .legend { margin-top: 4px; font: 700 12px Georgia, serif; text-align: center; }
+    @media (max-width: 760px) { .ribbons { position: static; flex-direction: row; flex-wrap: wrap; order: -1; margin-bottom: 6px; } .ribbons button { width: auto; border-left: 2px solid #2a1608; border-radius: 8px; } .ribbons button em { display: none; } .ribbons button.on { transform: none; } #logBody.cols { column-count: 1; } }
+    .hbtabs { display: flex; gap: 4px; margin-bottom: 6px; }
+    .hbtabs button { margin: 0; padding: 6px 4px; font-size: 14px; }
+    .hbtabs button.on { background: #4a38a0; outline: 2px solid var(--gold); }
+    #hbPane { min-height: 220px; max-height: 46vh; overflow: auto; }
+    .sec { font-weight: 700; color: var(--gold); font-size: 13px; margin: 8px 0 2px; letter-spacing: .08em; }
+    .qrow { display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; padding: 6px 0; border-bottom: 1px solid #fff7d622; align-items: center; font-size: 13px; }
+    .qrow button { margin: 0; width: auto; padding: 5px 10px; font-size: 13px; grid-row: 1 / 3; grid-column: 2; }
+    .qrow small { opacity: .8; }
     #shWide { width: min(520px, 94vw); }
     .menu { min-width: min(420px, 92vw); max-width: 94vw; max-height: 92vh; overflow: auto; padding: 18px 20px; background: #1d1640; border: 4px solid #fff7d655; box-shadow: 6px 6px 0 rgba(0,0,0,.5); }
     .menu h2 { margin: 0 0 12px; font-size: 24px; letter-spacing: .14em; color: var(--gold); text-align: center; }
@@ -75,14 +100,17 @@
     .up .ds { font-size: 12px; opacity: .85; grid-column: 1; }
     .up button { grid-column: 2; grid-row: 1 / 3; width: 118px; margin: 0; padding: 8px 6px; font-size: 14px; }
     #harbour.dark .menu { border-color: #ff70d0; }
-    #combatbox { position: absolute; right: 12px; top: 232px; width: 124px; font-size: 12px; text-align: center; }
+    #combatbox { position: absolute; right: 12px; top: 244px; width: 124px; font-size: 12px; text-align: center; }
     #combatbox .bar, #ebar .bar { height: 9px; background: #0007; border: 2px solid var(--edge); margin: 3px 0; }
     #combatbox .bar.thin { height: 5px; }
     #combatbox .fill { height: 100%; background: #d84a3c; width: 100%; } #reloadfill { background: #8fe6ff !important; }
     #ebar { position: absolute; font-size: 11px; transform: translate(-50%, -100%); padding: 3px 6px; width: 130px; text-align: center; }
     #ebar .fill { height: 100%; background: #e8483c; width: 100%; }
     #mate { position: absolute; left: 50%; bottom: 124px; transform: translateX(-50%); width: min(520px, 92vw); gap: 10px; align-items: center; font-size: 14px; line-height: 1.4; }
-    #mate .face { font-size: 30px; } #mate b { color: #ffd23a; font-size: 12px; } #mate.dark { border-color: #ff70d0; } #mate.dark b { color: #ff9ae0; }
+    #mate { cursor: pointer; }
+    #mate .face { font-size: 34px; transition: transform .07s; display: inline-block; }
+    #matemore { color: #ffd23a; animation: blink .8s steps(2) infinite; align-self: flex-end; }
+    #mate .face { font-size: 34px; } #mate b { color: #ffd23a; font-size: 12px; } #mate.dark { border-color: #ff70d0; } #mate.dark b { color: #ff9ae0; }
     #fishui { position: absolute; left: 50%; bottom: 250px; transform: translateX(-50%); width: min(460px, 92vw); text-align: center; pointer-events: auto; touch-action: none; }
     #fishmsg { font-size: 15px; } #fishmsg.blink { animation: blink .5s steps(2) infinite; color: #ffd23a; }
     #fishtrack { position: relative; height: 26px; margin: 8px 0 4px; background: #0a2a4a; border: 2px solid var(--edge); }
@@ -123,14 +151,15 @@
       <div class="panel" id="sectorline" style="font-size:12px;border-color:#fff7d655;max-width:260px"></div>
       <div class="panel" id="clock"><span id="clockicon">&#9728;</span> <b id="clocktxt">08:00</b></div>
       <div class="panel" id="jobline" style="display:none;font-size:12px"></div>
+      <div class="panel" id="questline" style="display:none;font-size:12px;max-width:300px"></div>
       <div class="panel" id="goalline" style="display:none;font-size:12px;max-width:300px;border-color:#ffd23a88"></div>
       <div id="near"></div>
     </div>
-    <div id="compass" class="panel txt"><canvas id="compassCv" width="54" height="54"></canvas><div id="windtxt">WIND</div></div>
+    <div id="compass" class="windbox"><canvas id="compassCv" width="132" height="132"></canvas><div id="windtxt">Fresh breeze</div></div></div>
     <div id="sailbar" class="panel txt"><div>SAILS</div><div class="bar"><div class="fill" id="sailfill"></div></div><div id="eff"></div></div>
     <div id="combatbox" class="panel txt"><div>HULL <span id="hptxt"></span></div><div class="bar"><div class="fill" id="hpfill"></div></div><div id="ammotxt"></div><div class="bar thin"><div class="fill" id="reloadfill"></div></div></div>
     <div id="ebar" class="panel txt" style="display:none"><span id="ename"></span><div class="bar"><div class="fill" id="efill"></div></div></div>
-    <div id="mate" class="panel txt" style="display:none"><span class="face">&#9875;</span><div><b>Mara, first mate</b><div id="matetxt"></div></div></div>
+    <div id="mate" class="panel txt" style="display:none"><span class="face" id="mateface">&#9875;</span><div style="flex:1"><b>Mara, first mate</b><div id="matetxt"></div></div><span id="matemore">&#9662;</span></div>
     <div id="fishui" class="panel txt" style="display:none"><div id="fishmsg"></div><div id="fishbar" style="display:none"><div id="fishtrack"><div id="fishzone"></div><div id="fishmark"></div></div><div id="fishprogwrap"><div id="fishprog"></div></div></div></div>
     <div id="prompt" class="panel txt"><div id="prompttxt"></div><div class="bar"><i></i></div></div>
     <div id="toasts"></div>
@@ -139,13 +168,13 @@
   </div>
   <div id="hit"></div><div id="fade"></div>
   <div id="yardmodal" class="modal yard"><div class="menu" id="yardWide"><h2>Shipyard</h2><p class="quote" id="yardLine">Paint, canvas and carved wood. All the finest vanity.</p><div class="goldline">Gold: <b id="yardGold"></b></div><div id="yardBody"></div><button id="yardClose">Done</button></div></div>
-  <div id="chart" class="modal"><div class="logbook">
-    <div class="tabs" id="logTabs"></div>
-    <div id="logBody"></div>
-    <div class="logfoot"><span>&larr; &rarr; or 1-7 switch tab</span><button id="logClose">Close [M]</button></div>
+  <div id="chart" class="modal"><div class="book">
+    <div class="ribbons" id="logTabs"></div>
+    <div class="spread"><div id="logBody" class="cols"></div></div>
+    <div class="bookbar"><button id="pgPrev">&#9666;</button><span id="pgNum" style="min-width:48px;text-align:center"></span><button id="pgNext">&#9656;</button><span class="keys">&larr; &rarr; tabs &middot; &uarr; &darr; pages &middot; 1-8</span><button id="logClose">Close [M]</button></div>
   </div></div>
   <div id="shipmodal" class="modal"><div class="menu" id="shWide"><h2 id="shName"></h2><p class="quote" id="shLine"></p><div class="goldline">Gold: <b id="shGold"></b></div><div id="shList"></div><button id="shClose">Wave goodbye</button></div></div>
-  <div id="harbour" class="modal"><div class="menu" id="hbWide"><h2 id="hbName"></h2><p class="quote" id="hbLine"></p><div class="goldline">Gold: <b id="hbGold"></b></div><div id="hbRep" style="text-align:center;font-size:13px;margin-bottom:6px"></div><div id="hbJob"></div><div id="hbRumour"></div><div id="hbExtra"></div><div id="hbList"></div><button id="hbClose">Set sail [E]</button></div></div>
+  <div id="harbour" class="modal"><div class="menu" id="hbWide"><h2 id="hbName"></h2><p class="quote" id="hbLine"></p><div class="goldline">Gold: <b id="hbGold"></b></div><div class="hbtabs" id="hbTabs"><button data-t="board">Board</button><button data-t="market">Market</button><button data-t="wright">Shipwright</button></div><div id="hbPane"></div><button id="hbClose">Set sail [E]</button></div></div>
   <div id="pause" class="modal"><div class="menu">
     <div id="pauseMain"><h2>PAUSED</h2>
       <button id="pbResume">Resume</button><button id="pbHint">Ask Mara for a hint</button><button id="pbControls">Controls</button><button id="pbLog">Captain's log</button><button id="pbSound">Sound: on</button><button id="pbMusic">Music: on</button>
@@ -160,7 +189,7 @@
         <tr><td>Space</td><td>Fire cannons at an attacking raider (auto-aimed)</td></tr>
         <tr><td>Y</td><td>Ask Mara for a hint</td></tr>
         <tr><td>Esc or P</td><td>Pause</td></tr>
-        <tr><td>Mouse drag, R / F</td><td>Tilt camera (third person &harr; top-down)</td></tr>
+        <tr><td>Mouse drag, R / F</td><td>Tilt camera; drag sideways (or Z / X) to look around the boat, V resets</td></tr>
         <tr><td>Mouse wheel</td><td>Zoom</td></tr>
         <tr><td>H</td><td>Hide the HUD</td></tr>
         <tr><td>Touch</td><td>On-screen buttons</td></tr>

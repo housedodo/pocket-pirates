@@ -12,10 +12,15 @@ import { dreadAtDistance } from './palette.js';
 // half-sunk wrecks, whirlpools and glowing shoals.
 const RADIUS = 3;
 
-let barrelGeo, bottleGeo, wreckExtraGeo, whirlGeo, discGeo;
+let crateGeo, barrelGeo, bottleGeo, wreckExtraGeo, whirlGeo, discGeo;
 function geos() {
   if (barrelGeo) return;
   let b = new Builder(); b.doubleSided = true;
+  b.box(0, -0.25, 0, 1.2, 0.95, 1.2, '#ffffff', TILE.planks);
+  b.box(0, 0.7, 0, 1.3, 0.12, 1.3, '#8a5a30', TILE.planks);
+  b.box(0, 0.82, 0, 0.5, 0.35, 0.5, '#ffffff', TILE.glow);
+  crateGeo = b.geometry();
+  b = new Builder(); b.doubleSided = true;
   b.cyl(0, -0.2, 0, 0.45, 0.45, 0.85, 6, '#ffffff', TILE.planks);
   b.cyl(0, 0.05, 0, 0.5, 0.5, 0.1, 6, '#3a3a40', TILE.white, false);
   b.cyl(0, 0.4, 0, 0.5, 0.5, 0.1, 6, '#3a3a40', TILE.white, false);
@@ -75,6 +80,22 @@ export class SeaFeatures {
     this.whirlMat = psxMaterial({ color: 0xffffff, vertexColors: true, transparent: true, depthWrite: false, side: THREE.DoubleSide, key: 'Wp' });
     this.shoalMat = psxMaterial({ color: 0xffffff, vertexColors: true, transparent: true, depthWrite: false, side: THREE.DoubleSide, key: 'Sl', fragmentColor: { head: '', body: 'diffuseColor.rgb /= max(uLight, 0.05);' } });
     this.whirlTold = false;
+    this.qcrates = [];
+  }
+
+  /** floating crates belonging to active crate commissions */
+  syncQuests(quests) {
+    for (const c of this.qcrates) this.scene.remove(c.mesh);
+    this.qcrates = [];
+    for (const q of quests) {
+      if (q.type !== 'crates') continue;
+      q.crates.forEach((c, i) => {
+        if (c.got) return;
+        const mesh = new THREE.Mesh(crateGeo, mats.props);
+        this.scene.add(mesh);
+        this.qcrates.push({ q, i, c, mesh, phase: i * 2.1 });
+      });
+    }
   }
 
   free(x, z, margin) {
@@ -135,6 +156,16 @@ export class SeaFeatures {
     // colours
     this.whirlMat.color.setRGB(1, 1, 1).lerp(new THREE.Color(1, 0.4, 0.9), smoothstep(0.6, 0.9, stage.dread));
     this.shoalMat.color.copy(stage.shallow).lerp(new THREE.Color(1, 1, 1), 0.3).lerp(new THREE.Color(0.2, 1, 0.9), tod.night * 0.9).lerp(new THREE.Color(0.9, 0.3, 1), tod.night * smoothstep(0.55, 0.9, stage.dread) * 0.8);
+
+    for (let i = this.qcrates.length - 1; i >= 0; i--) {
+      const k = this.qcrates[i], c = k.c;
+      k.mesh.position.set(c.x, waveHeight(c.x, c.z, t, wave) + 0.2, c.z);
+      k.mesh.rotation.set(Math.sin(t * 1.2 + k.phase) * 0.15, t * 0.15 + k.phase, Math.cos(t * 1.0 + k.phase) * 0.15);
+      if (Math.hypot(c.x - ship.pos.x, c.z - ship.pos.z) < 5.2) {
+        c.got = true; this.scene.remove(k.mesh); this.qcrates.splice(i, 1);
+        if (this.onEvent) this.onEvent({ type: 'qcrate', q: k.q, i: k.i });
+      }
+    }
 
     this.nearWreck = null;
     for (const [k, items] of this.cells) {
