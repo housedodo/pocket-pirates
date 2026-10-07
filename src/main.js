@@ -23,6 +23,7 @@ import { Objectives } from './objectives.js';
 import { GROUPS, DEFAULT_CUSTOM, byId } from './customize.js';
 import { Wind } from './wind.js';
 import { WindFX } from './windfx.js';
+import { drawWind, WIND_STYLES, WIND_NAMES } from './windmeters.js';
 import { applyTimeOfDay, DAY_LENGTH, tod } from './daynight.js';
 import { UPGRADES, MAX_LEVEL, computeMods, shipwrightLine } from './upgrades.js';
 
@@ -34,7 +35,10 @@ const store = {
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* private mode etc. */ } },
 };
 const saved = params.get('fresh') ? null : store.get(SAVE_KEY);
-const settings = store.get(SETTINGS_KEY) || { muted: false, musicOff: false };
+const settings = Object.assign({ muted: false, musicOff: false, windStyle: 'dial', hud: 'classic' }, store.get(SETTINGS_KEY) || {});
+const HUD_THEMES = ['classic', 'driftwood', 'parchment', 'brass'];
+const HUD_NAMES = { classic: 'Classic blue', driftwood: 'Driftwood planks', parchment: 'Parchment scrolls', brass: 'Brass & leather' };
+document.body.dataset.theme = settings.hud;
 const state = {
   seed: parseInt(params.get('seed') || (saved && saved.seed) || '1337', 10),
   gold: (saved && saved.gold) || 0,
@@ -325,6 +329,10 @@ $('pbResume').addEventListener('click', () => closeModal());
 $('pbControls').addEventListener('click', () => { $('pauseMain').style.display = 'none'; $('pauseControls').style.display = 'block'; $('pbBack').focus(); });
 $('pbBack').addEventListener('click', showPauseMain);
 $('pbLog').addEventListener('click', () => { logTab = 'map'; openModal('chart'); });
+function refreshStyleButtons() { $('pbWind').textContent = `Wind meter: ${WIND_NAMES[settings.windStyle]}`; $('pbHud').textContent = `Interface: ${HUD_NAMES[settings.hud]}`; }
+$('pbWind').addEventListener('click', () => { settings.windStyle = WIND_STYLES[(WIND_STYLES.indexOf(settings.windStyle) + 1) % WIND_STYLES.length]; store.set(SETTINGS_KEY, settings); refreshStyleButtons(); $('pbWind').focus(); });
+$('pbHud').addEventListener('click', () => { settings.hud = HUD_THEMES[(HUD_THEMES.indexOf(settings.hud) + 1) % HUD_THEMES.length]; document.body.dataset.theme = settings.hud; store.set(SETTINGS_KEY, settings); refreshStyleButtons(); $('pbHud').focus(); });
+refreshStyleButtons();
 $('pbMusic').addEventListener('click', () => {
   audio.setMusic(!audio.musicOn);
   settings.musicOff = !audio.musicOn; store.set(SETTINGS_KEY, settings);
@@ -456,49 +464,8 @@ function buyUpgrade(id) {
 
 // ---------------------------------------------------------------- compass & HUD
 function drawCompass(w, heading) {
-  const c = compass, S = 132, m = S / 2, t = performance.now() / 1000;
-  c.clearRect(0, 0, S, S);
-  // wooden dial in a brass-and-rope frame
-  const wood = c.createRadialGradient(m - 8, m - 10, 4, m, m, 52);
-  wood.addColorStop(0, '#7a5230'); wood.addColorStop(1, '#3e2614');
-  c.fillStyle = wood; c.beginPath(); c.arc(m, m, 52, 0, 7); c.fill();
-  c.strokeStyle = 'rgba(20,10,4,.35)'; c.lineWidth = 1;
-  for (let i = -3; i <= 3; i++) { c.beginPath(); c.arc(m, m, 46 - Math.abs(i) * 6, 0.3 + i * 0.12, 2.6 + i * 0.12); c.stroke(); }
-  c.lineWidth = 5; c.strokeStyle = '#d6b25a'; c.beginPath(); c.arc(m, m, 53, 0, 7); c.stroke();
-  c.lineWidth = 2; c.strokeStyle = '#8a6420'; c.beginPath(); c.arc(m, m, 56, 0, 7); c.stroke();
-  c.setLineDash([3, 4]); c.lineWidth = 3; c.strokeStyle = '#e8d6a0'; c.beginPath(); c.arc(m, m, 48, 0, 7); c.stroke(); c.setLineDash([]);
-  // north: a little brass diamond
-  c.fillStyle = '#f2dc9a'; c.beginPath(); c.moveTo(m, 6); c.lineTo(m + 4, 12); c.lineTo(m, 18); c.lineTo(m - 4, 12); c.closePath(); c.fill();
-  c.fillStyle = '#e8d6a0'; for (const a of [Math.PI / 2, Math.PI, -Math.PI / 2]) c.fillRect(m + Math.cos(a) * 49 - 1.5, m + Math.sin(a) * 49 - 1.5, 3, 3);
-  // the ship
-  c.save(); c.translate(m, m); c.rotate(heading);
-  c.fillStyle = '#e8d6a0'; c.strokeStyle = '#2a1608'; c.lineWidth = 1.5;
-  c.beginPath(); c.moveTo(0, -12); c.lineTo(6, 4); c.lineTo(3, 10); c.lineTo(-3, 10); c.lineTo(-6, 4); c.closePath(); c.fill(); c.stroke();
-  c.restore();
-  // the wind: a cloth streamer that flies downwind; gusts make it snap
-  c.save(); c.translate(m, m); c.rotate(w.dir);
-  const len = 24 + w.strength * 16, amp = 2.5 + w.strength * 3 + (w.gust || 0) * 20, N = 14;
-  const edge = (k) => { const pts = []; for (let i = 0; i <= N; i++) { const u = i / N, y = -u * len, x = Math.sin(u * 7 - t * (5 + w.strength * 4) + k) * amp * u; pts.push([x, y, (1 - u * 0.85) * 6]); } return pts; };
-  const e = edge(0);
-  c.beginPath(); e.forEach(([x, y, hw], i) => (i ? c.lineTo(x + hw, y) : c.moveTo(x + hw, y)));
-  for (let i = N; i >= 0; i--) c.lineTo(e[i][0] - e[i][2], e[i][1]);
-  c.closePath(); c.fillStyle = '#d6483a'; c.fill(); c.strokeStyle = '#4a1610'; c.lineWidth = 1.2; c.stroke();
-  c.strokeStyle = '#f4ecd0'; c.lineWidth = 2; c.beginPath(); for (let i = 3; i <= N; i += 4) { c.moveTo(e[i][0] - e[i][2], e[i][1]); c.lineTo(e[i][0] + e[i][2], e[i][1]); } c.stroke();
-  c.restore();
-  // soft curls drifting past, like gusts on the water
-  c.save(); c.translate(m, m); c.rotate(w.dir); c.strokeStyle = 'rgba(240,230,200,.35)'; c.lineWidth = 1.6; c.lineCap = 'round';
-  for (let k = 0; k < 3; k++) {
-    const u = ((t * (0.18 + w.strength * 0.15) + k / 3) % 1), y = -14 - u * 34, x = (k - 1) * 17;
-    c.globalAlpha = Math.sin(u * Math.PI) * 0.8;
-    c.beginPath(); c.moveTo(x - 5, y + 3); c.quadraticCurveTo(x, y - 4, x + 5, y + 1); c.stroke();
-  }
-  c.restore();
-  // delivery marker: a little orange flag on the rim
-  if (state.job) {
-    const a = Math.atan2(state.job.x - ship.pos.x, -(state.job.z - ship.pos.z));
-    c.save(); c.translate(m, m); c.rotate(a); c.fillStyle = '#ff9a3a'; c.strokeStyle = '#2a1608'; c.lineWidth = 1.2;
-    c.beginPath(); c.moveTo(0, -57); c.lineTo(7, -50); c.lineTo(-7, -50); c.closePath(); c.fill(); c.stroke(); c.restore();
-  }
+  const jobA = state.job ? Math.atan2(state.job.x - ship.pos.x, -(state.job.z - ship.pos.z)) : null;
+  drawWind(settings.windStyle, compass, w, heading, performance.now() / 1000, jobA);
 }
 
 // ---------------------------------------------------------------- game state
@@ -930,7 +897,7 @@ function frame() {
   $('clocktxt').textContent = `${tod.clock}  ${weather.label}`;
   const jl = $('jobline');
   if (state.job) { jl.style.display = 'block'; jl.textContent = `Deliver to ${state.job.toName}: ${Math.round(Math.hypot(state.job.x - ship.pos.x, state.job.z - ship.pos.z))}`; } else jl.style.display = 'none';
-  $('clockicon').innerHTML = tod.sunElev > 0 ? '&#9728;' : '&#9790;';
+  $('clockicon').className = `ico ${tod.sunElev > 0 ? 'sun' : 'moon'}`;
   $('sailfill').style.width = `${Math.round(ship.trim * 100)}%`;
   $('eff').textContent = `wind ${Math.round(ship.eff * 100)}%`;
   $('windtxt').textContent = wind.feel;
@@ -979,6 +946,7 @@ function frame() {
 window.__game = {
   setDread(v) { forced = v; dread = v; },
   setTime(t) { state.time = t; },
+  setStyle(hud, wind) { if (hud) { settings.hud = hud; document.body.dataset.theme = hud; } if (wind) settings.windStyle = wind; },
   setCam(p, z) { if (p !== undefined) { pitch = pitchT = p; } if (z !== undefined) { zoom = zoomT = z; } },
   setOverride(o) { camOverride = o; },
   teleport(x, z, h) { ship.pos.set(x, 0, z); ship.heading = h; camHeading = h; },
