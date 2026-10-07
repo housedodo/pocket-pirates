@@ -33,7 +33,30 @@
     #debug { position: absolute; left: 50%; top: 6px; transform: translateX(-50%); font-size: 12px; display: none; }
 
     #chart, .modal { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; background: rgba(8, 6, 22, .72); z-index: 4; }
-    .modal.open { display: flex; }
+    #chart.open, .modal.open { display: flex; }
+    .logbook { width: min(820px, 96vw); max-height: 94vh; display: flex; flex-direction: column; padding: 10px 12px 12px; background: #d9bf86; color: #3a2412; border: 4px solid #6b4a2e; box-shadow: 6px 6px 0 rgba(0,0,0,.5); font-family: Georgia, "Times New Roman", serif; }
+    .logbook .tabs { display: flex; gap: 4px; margin-bottom: 8px; flex-wrap: wrap; }
+    .logbook .tabs button { flex: 1; min-width: 80px; padding: 7px 6px; font: 700 14px Georgia, serif; color: #3a2412; background: #c4a86a; border: 2px solid #6b4a2e; cursor: pointer; }
+    .logbook .tabs button.on { background: #f0dfae; border-bottom-color: #f0dfae; }
+    .logbook #logBody { overflow: auto; padding: 4px 6px; min-height: 200px; font-size: 14px; line-height: 1.45; }
+    .logbook h3 { margin: 10px 0 4px; font-size: 16px; border-bottom: 1px solid #6b4a2e66; }
+    .logbook .card { background: #ecdcae; border: 1px solid #6b4a2e66; padding: 7px 10px; margin: 6px 0; }
+    .logbook .card.dim { opacity: .7; font-style: italic; }
+    .logbook .card.dk, .logbook .row.dk { color: #7a2a6a; }
+    .logbook .row { display: flex; justify-content: space-between; gap: 10px; padding: 2px 4px; border-bottom: 1px dotted #6b4a2e55; }
+    .logbook .row span { opacity: .85; text-align: right; }
+    .logbook .ok { color: #2a7a3a; font-weight: 700; }
+    .logbook .pips { color: #a06a10; letter-spacing: .15em; }
+    .logbook .fac { display: inline-block; width: 11px; height: 11px; border: 1px solid #3a2412; vertical-align: -1px; }
+    .logbook button.mini { margin-top: 6px; padding: 4px 10px; font: 13px Georgia, serif; background: #c4a86a; border: 1px solid #6b4a2e; cursor: pointer; }
+    .logbook .logfoot { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; font-size: 12px; opacity: .85; }
+    .logbook .logfoot button { padding: 6px 14px; font: 700 14px Georgia, serif; background: #c4a86a; border: 2px solid #6b4a2e; cursor: pointer; }
+    .mapwrap { position: relative; }
+    .mapwrap canvas { width: 100%; height: auto; display: block; border: 3px solid #6b4a2e; cursor: grab; touch-action: none; }
+    .mapctl { position: absolute; right: 10px; top: 10px; display: flex; flex-direction: column; gap: 4px; }
+    .mapctl button { width: 32px; height: 32px; font: 700 18px Georgia, serif; background: #ecdcae; border: 2px solid #6b4a2e; cursor: pointer; color: #3a2412; }
+    .legend { margin-top: 6px; font-size: 12px; }
+    #shWide { width: min(520px, 94vw); }
     .menu { min-width: min(420px, 92vw); max-width: 94vw; max-height: 92vh; overflow: auto; padding: 18px 20px; background: #1d1640; border: 4px solid #fff7d655; box-shadow: 6px 6px 0 rgba(0,0,0,.5); }
     .menu h2 { margin: 0 0 12px; font-size: 24px; letter-spacing: .14em; color: var(--gold); text-align: center; }
     .menu button, .btn { display: block; width: 100%; margin: 8px 0; padding: 10px 12px; font: 700 16px "Courier New", monospace; letter-spacing: .08em; color: var(--ink); background: #2c2160; border: 2px solid var(--edge); cursor: pointer; text-align: center; }
@@ -56,12 +79,6 @@
     #tP { position: fixed; top: 12px; left: 50%; margin-left: -24px; width: 48px; height: 40px; display: none; z-index: 3; font: 700 16px monospace; color: var(--ink); background: var(--panel); border: 2px solid var(--edge); }
     @media (pointer: coarse) { #tP { display: block; } }
 
-    #chart.open { display: flex; }
-    #chart .sheet { display: flex; gap: 14px; max-width: 96vw; max-height: 92vh; padding: 14px; background: #d9bf86; color: #3a2412; border: 4px solid #6b4a2e; box-shadow: 6px 6px 0 rgba(0,0,0,.5); }
-    #chart canvas { width: min(60vh, 56vw); height: min(60vh, 56vw); image-rendering: pixelated; background: #2a8fc0; border: 3px solid #6b4a2e; }
-    #chart .list { width: 250px; overflow: auto; font-size: 13px; line-height: 1.4; }
-    #chart h2 { margin: 0 0 6px; font-size: 17px; }
-    #chart .loot { color: #7a2a6a; }
     #title { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; background: radial-gradient(circle at 50% 40%, rgba(60, 130, 210, .55), rgba(11, 8, 32, .92)); text-align: center; z-index: 5; cursor: pointer; }
     #title h1 { font-size: clamp(34px, 8vw, 78px); margin: 0; letter-spacing: .12em; color: var(--gold); }
     #title p { margin: 0; font-size: clamp(13px, 2.4vw, 18px); }
@@ -78,6 +95,7 @@
     <div id="stats" class="txt">
       <div class="panel" id="gold">&#9875; Gold <b>0</b></div>
       <div class="panel" id="found">Isles charted: <b>0</b></div>
+      <div class="panel" id="sectorline" style="font-size:12px;border-color:#fff7d655;max-width:260px"></div>
       <div class="panel" id="clock"><span id="clockicon">&#9728;</span> <b id="clocktxt">08:00</b></div>
       <div class="panel" id="jobline" style="display:none;font-size:12px"></div>
       <div id="near"></div>
@@ -89,7 +107,12 @@
     <div id="help" class="txt panel">A/D steer &middot; W/S sails &middot; E interact<br>M chart &middot; Esc pause &middot; drag = tilt &middot; wheel = zoom &middot; H hide HUD</div>
     <div id="debug" class="panel txt"></div>
   </div>
-  <div id="chart"><div class="sheet"><canvas id="chartCv" width="300" height="300"></canvas><div class="list" id="chartList"></div></div></div>
+  <div id="chart" class="modal"><div class="logbook">
+    <div class="tabs" id="logTabs"></div>
+    <div id="logBody"></div>
+    <div class="logfoot"><span>&larr; &rarr; or 1-6 switch tab</span><button id="logClose">Close [M]</button></div>
+  </div></div>
+  <div id="shipmodal" class="modal"><div class="menu" id="shWide"><h2 id="shName"></h2><p class="quote" id="shLine"></p><div class="goldline">Gold: <b id="shGold"></b></div><div id="shList"></div><button id="shClose">Wave goodbye</button></div></div>
   <div id="harbour" class="modal"><div class="menu" id="hbWide"><h2 id="hbName"></h2><p class="quote" id="hbLine"></p><div class="goldline">Gold: <b id="hbGold"></b></div><div id="hbRep" style="text-align:center;font-size:13px;margin-bottom:6px"></div><div id="hbJob"></div><div id="hbRumour"></div><div id="hbList"></div><button id="hbClose">Set sail [E]</button></div></div>
   <div id="pause" class="modal"><div class="menu">
     <div id="pauseMain"><h2>PAUSED</h2>

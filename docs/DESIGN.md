@@ -25,6 +25,8 @@ If the game outgrows the browser, the design, generators and shaders port over; 
 | `world.js` | Streamed 110-unit cells -> island descriptors -> terrain + props. Deterministic from the seed |
 | `builder.js` | Flat-shaded triangle builder (lighting baked into vertex colours) |
 | `ocean.js` / `sky.js` | Wave-displaced ocean (same function on CPU for bobbing), sky, black sun, star "eye", clouds |
+| `sectors.js` | 550-unit sectors, each with a name and a faction (Crown Traders, Free Cays, Reef Brotherhood, Lantern Guild; The Drowned far out). Ships wear their sector's colours |
+| `logbook.js` | The tabbed captain's log, incl. the hand-inked low-poly parchment map (pan, zoom, sectors, rumours, job flag) |
 | `ship.js` | Procedural ship, wind-based sailing model, upgrade modifiers, wake, lantern glow |
 | `wind.js` | Wandering wind: big heading swings over minutes + gusts, announced when it shifts |
 | `daynight.js` | Day/night layered on the dread palette (5 min per day): sun, moon, stars, dusk colours, light level |
@@ -48,11 +50,13 @@ They swap at dread 0.5, and terrain colours blend to a second vertex colour set.
 | Gulls (`fauna.js`) | circle islands, cry | hang motionless and turn to watch you -> crows circling backwards -> a ring of silent crows above your ship |
 | Dolphins | leap beside the ship, splash | circle silently without breaking the surface -> pale, tail-first leaps -> gone |
 | Whales | surface far off, spout, dive | a huge shadow slides under the keel |
-| Ships (`traffic.js`) | fishing boats and merchants sail by and wave | drifting derelicts with lamps lit -> pale translucent ghost ships |
+| Ships (`traffic.js`) | few and varied (fishing boat, merchant brig, schooner, galleon, outrigger canoe) in their sector's colours; hail them with E, but not everyone wants to talk: a hidden roll vs. your reputation with nearby harbours (+ faction mood). Offers: chart scraps, supplies, rum, news, tall tales, messages | drifting derelicts with lamps lit -> pale translucent ghost ships |
 | Harbour life (`world.js`) | people walk the dock, crowds in the square (they go home at night) | silent figures stand at the shore facing the sea |
 | Weather (`weather.js`) | showers, rainbow after rain | storms, fog banks, lightning that sometimes reveals a shape in the water |
 | Night sky | shooting stars | they fall upward |
 | Sea features (`seafeatures.js`) | salvage barrels, messages in bottles, wrecks to salvage (E), glowing shoals, whirlpools | stranger loot and notes, magenta glow |
+
+Population is deliberately sparse (at most ~2 ships, a few gulls, rare dolphins/whales) so the sea feels big. Only about a third of harbours and a few lone crags have a lighthouse.
 
 Other systems: **jobs** (delivery contracts from harbour boards, tracked on the compass), **rumours** (40g, reveals a treasure isle on your chart) and **harbour reputation** (visits and deliveries earn up to 3 stars = up to 15% off upgrades).
 **Lighthouses** only shine when it is dark: the sun below ~7 degrees (about 17:30 to 06:30) or during a storm. By day the lamp is dark and the beam is off.

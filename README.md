@@ -14,9 +14,9 @@ npm run build      # static build in dist/
 |---|---|
 | A / D (or arrows) | steer |
 | W / S | set / reef sails |
-| E | interact (harbour shipwright / upgrades, dig for treasure) |
+| E | interact: harbour (shipwright, job board, rumours), dig for treasure, salvage wrecks, hail passing ships |
 | Esc or P | pause menu (resume, controls, log, sound) |
-| M | captain's log + sea chart |
+| M | captain's log: Map, Jobs, Rumours, Journal, Ship, Standing (tabs: 1-6 or arrows; J opens Jobs) |
 | mouse drag / R F | tilt camera (third-person <-> top-down) |
 | wheel | zoom |
 | H | hide HUD |

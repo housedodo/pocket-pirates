@@ -104,3 +104,11 @@ export function barrelLoot(rng, dread) {
   const [name, value] = pick(rng, dark ? BARRELS_DARK : BARRELS_BRIGHT);
   return { name, value, dark };
 }
+
+// ---- sector (region) names
+const SEC_ADJ = ['Windward', 'Sunlit', 'Golden', 'Quiet', 'Pearl', 'Coral', 'Salt', 'Lazy', 'Emerald', 'Cinder', 'Gilded', 'Misty'];
+const SEC_NOUN = ['Reaches', 'Shoals', 'Straits', 'Banks', 'Sound', 'Cays', 'Passage', 'Waters', 'Flats'];
+export function makeSectorName(rng, dread) {
+  if (dread > 0.72 || rng() < smoothstep(0.4, 0.85, dread) * 0.7) return `${pick(rng, ['The', 'The', 'Maw of the'])} ${pick(rng, ELD1)}${pick(rng, ELD2)} ${pick(rng, ['Deep', 'Reach', 'Expanse'])}`;
+  return `${pick(rng, SEC_ADJ)} ${pick(rng, SEC_NOUN)}`;
+}

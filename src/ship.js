@@ -98,9 +98,36 @@ function buildJib() {
 const meshOf = (b, mat) => new THREE.Mesh(b.geometry(), mat);
 
 // geometry is built once and shared with NPC ships
+function buildMast() {
+  const b = new Builder(); b.doubleSided = true;
+  b.cyl(0, 0.5, 0, 0.16, 0.1, 6.4, 5, '#ffffff', TILE.bark, false);
+  b.cyl(0, 5.2, 0, 0.55, 0.45, 0.32, 6, '#ffffff', TILE.planks);
+  return b;
+}
+function buildCastle() { // stern castle for galleons
+  const b = new Builder(); b.doubleSided = true;
+  b.box(0, 0.9, 2.4, 2.3, 1.4, 1.9, '#ffffff', TILE.wall, TILE.planks, '#7a4222');
+  b.box(0, 2.3, 2.5, 2.5, 0.2, 2.1, '#6b3a1e', TILE.planks);
+  b.box(0, 0.9, -3.0, 1.6, 0.9, 1.4, '#ffffff', TILE.planks, TILE.planks, '#7a4222');
+  return b;
+}
+function buildCanoe() { // narrow dugout with an outrigger and a tiny mast
+  const b = new Builder(); b.doubleSided = true;
+  b.push(0, 0.2, 0, 0, 1, 1, 1, Math.PI / 2);
+  b.cyl(0, -2.0, 0, 0.1, 0.38, 4.0, 5, '#c28a52', TILE.planks, true);
+  b.pop();
+  b.tri([0, 0.6, -2], [0.3, 0.4, -1.4], [-0.3, 0.4, -1.4], '#a06a3a', TILE.planks);
+  b.push(1.5, 0.35, 0, 0, 1, 1, 1, Math.PI / 2);
+  b.cyl(0, -1.4, 0, 0.1, 0.16, 2.8, 5, '#e8d8b0', TILE.planks, true);
+  b.pop();
+  b.box(0.75, 0.55, -0.7, 1.5, 0.08, 0.1, '#6b4a2e', TILE.bark);
+  b.box(0.75, 0.55, 0.7, 1.5, 0.08, 0.1, '#6b4a2e', TILE.bark);
+  b.cyl(0, 0.3, -0.2, 0.08, 0.06, 3.0, 5, '#ffffff', TILE.bark, false);
+  return b;
+}
 let GEOS = null;
 export function shipGeos() {
-  return GEOS || (GEOS = { hull: buildHull().geometry(), sail: buildMainsail().geometry(), jib: buildJib().geometry() });
+  return GEOS || (GEOS = { hull: buildHull().geometry(), sail: buildMainsail().geometry(), jib: buildJib().geometry(), mast: buildMast().geometry(), castle: buildCastle().geometry(), canoe: buildCanoe().geometry() });
 }
 
 export class Ship {
@@ -162,6 +189,7 @@ export class Ship {
     this.glow.frustumCulled = false;
     scene.add(this.glow);
     this.mods = computeMods({});
+    this.buff = 1;      // temporary speed bonus (bought supplies)
 
     this.pos = new THREE.Vector3();
     this.heading = 0;
@@ -181,7 +209,7 @@ export class Ship {
     const a = Math.abs(angleDiff(this.heading, wind.dir));
     this.eff = 1 - (1 - this.mods.floor) * smoothstep(0.35 * Math.PI, Math.PI, a);
     this.rel = angleDiff(this.heading, wind.dir);
-    const target = MAX_SPEED * this.mods.speed * this.eff * this.trim * wind.strength;
+    const target = MAX_SPEED * this.mods.speed * this.buff * this.eff * this.trim * wind.strength;
     const rate = target > this.speed ? 0.5 : 0.7;
     this.speed += (target - this.speed) * Math.min(1, rate * dt);
 

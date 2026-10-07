@@ -13,7 +13,10 @@ import { Weather } from './weather.js';
 import { Fauna } from './fauna.js';
 import { Traffic } from './traffic.js';
 import { SeaFeatures } from './seafeatures.js';
-import { makeJob, findRumour, repOf, friendLevel, discount, bearingName, RUMOUR_COST } from './jobs.js';
+import { makeJob, findRumour, repOf, friendLevel, discount, bearingName, nearby, RUMOUR_COST } from './jobs.js';
+import { Logbook } from './logbook.js';
+import { sectorAt, sectorInfo, sectorCoord, FACTIONS } from './sectors.js';
+import { KINDS } from './traffic.js';
 import { Wind } from './wind.js';
 import { applyTimeOfDay, DAY_LENGTH, tod } from './daynight.js';
 import { UPGRADES, MAX_LEVEL, computeMods, shipwrightLine } from './upgrades.js';
@@ -42,6 +45,9 @@ const state = {
   rep: (saved && saved.rep) || {},
   job: (saved && saved.job) || null,
   serial: (saved && saved.serial) || {},
+  sectorsSeen: (saved && saved.sectorsSeen) || [],
+  jobHistory: (saved && saved.jobHistory) || [],
+  buffs: (saved && saved.buffs) || { speed: 0, dig: 0 },
   pos: (saved && saved.pos) || { x: 0, z: 0, h: 0 },
 };
 if (params.has('x')) state.pos = { x: +params.get('x'), z: +params.get('z') || 0, h: +params.get('h') || 0 };
@@ -71,7 +77,7 @@ audio.muted = settings.muted;
 const wind = new Wind(state.windT);
 const weather = new Weather(scene);
 const fauna = new Fauna(scene, world);
-const traffic = new Traffic(scene, world);
+const traffic = new Traffic(scene, world, state.seed);
 const sea = new SeaFeatures(scene, world, state.seed, state.collected);
 audio.musicOn = !settings.musicOff;
 
@@ -95,7 +101,7 @@ const $ = (id) => document.getElementById(id);
 const goldEl = $('gold').querySelector('b'), foundEl = $('found').querySelector('b');
 const nearEl = $('near'), promptEl = $('prompt'), promptTxt = $('prompttxt'), promptBar = promptEl.querySelector('.bar'), promptFill = promptBar.querySelector('i');
 const toastsEl = $('toasts'), debugEl = $('debug'), helpEl = $('help');
-const chartEl = $('chart'), harbourEl = $('harbour'), pauseEl = $('pause');
+const chartEl = $('chart'), harbourEl = $('harbour'), pauseEl = $('pause'), shipEl = $('shipmodal');
 const compass = $('compassCv').getContext('2d');
 $('compassCv').width = 108; $('compassCv').height = 108;
 if (params.get('hud') === '0') $('hud').classList.add('hidden');
@@ -109,11 +115,6 @@ function toast(text, dark = false, ms = 5200) {
   setTimeout(() => el.remove(), ms);
 }
 
-traffic.onGreet = (name, mode) => {
-  if (mode === 'live') { toast(`The crew of a ${name} waves.`); audio.play('horn', { vol: 0.5 }); }
-  else if (mode === 'derelict') toast(`A ${name}, drifting. No one answers your hail.`, true);
-  else toast(`A pale ${name} slides past. Its crew all face away from you.`, true);
-};
 weather.onThunder = (delay) => setTimeout(() => audio.play('thunder', { vol: 0.9 }), delay * 1000);
 sea.onEvent = (e) => {
   const idx = Math.min(4, Math.floor(dread * 5));
@@ -134,7 +135,9 @@ sea.onEvent = (e) => {
 };
 
 // ---------------------------------------------------------------- modal state (pause / chart / harbour)
-let modal = null; // null | 'pause' | 'chart' | 'harbour'
+let modal = null; // null | 'pause' | 'chart' | 'harbour' | 'ship'
+let logTab = 'map';
+let tradeShip = null;
 let harbourIsl = null;
 const keys = new Set();
 let started = false;
@@ -144,16 +147,17 @@ function openModal(name) {
   closeModal(true);
   modal = name;
   keys.clear();
-  ({ pause: pauseEl, chart: chartEl, harbour: harbourEl })[name].classList.add('open');
+  ({ pause: pauseEl, chart: chartEl, harbour: harbourEl, ship: shipEl })[name].classList.add('open');
   if (name === 'pause') { showPauseMain(); }
-  if (name === 'chart') drawChart();
+  if (name === 'chart') logbook.open(logTab);
   if (name === 'harbour') renderHarbour();
+  if (name === 'ship') renderShipTrade();
   audio.play(name === 'pause' ? 'pause' : 'ui');
   audio.setPaused(name === 'pause');
 }
 function closeModal(silent = false) {
   if (!modal) return;
-  pauseEl.classList.remove('open'); chartEl.classList.remove('open'); harbourEl.classList.remove('open');
+  pauseEl.classList.remove('open'); chartEl.classList.remove('open'); harbourEl.classList.remove('open'); shipEl.classList.remove('open');
   if (modal === 'pause') audio.setPaused(false);
   modal = null; harbourIsl = null;
   if (!silent) lastTs = performance.now();
@@ -185,13 +189,29 @@ window.addEventListener('keydown', (e) => {
     if (e.code === 'ArrowUp') { btns[(i - 1 + btns.length) % btns.length].focus(); e.preventDefault(); }
     return;
   }
+  if (modal === 'ship') {
+    if (e.code === 'KeyE') closeModal();
+    const n = parseInt(e.key, 10);
+    if (n >= 1 && n <= 4) { const b = shipEl.querySelectorAll('#shList button')[n - 1]; if (b && !b.disabled) b.click(); }
+    return;
+  }
+  if (modal === 'chart') {
+    if (e.code === 'ArrowRight') logbook.step(1);
+    else if (e.code === 'ArrowLeft') logbook.step(-1);
+    else if (/^Digit[1-6]$/.test(e.code)) logbook.tabByIndex(parseInt(e.code.slice(5), 10) - 1);
+    else if (e.code === 'KeyM') closeModal();
+    else if (e.code === 'KeyJ') { if (logbook.tab === 'jobs') closeModal(); else logbook.open('jobs'); }
+    logTab = logbook.tab;
+    return;
+  }
   if (modal === 'harbour') {
     if (e.code === 'KeyE') closeModal();
     const n = parseInt(e.key, 10);
     if (n >= 1 && n <= UPGRADES.length) buyUpgrade(UPGRADES[n - 1].id);
     return;
   }
-  if (e.code === 'KeyM') { if (modal === 'chart') closeModal(); else openModal('chart'); return; }
+  if (e.code === 'KeyM') { logTab = 'map'; openModal('chart'); return; }
+  if (e.code === 'KeyJ') { logTab = 'jobs'; openModal('chart'); return; }
   if (modal) return;
   if (e.repeat) return;
   keys.add(e.code);
@@ -235,7 +255,7 @@ function showPauseMain() {
 $('pbResume').addEventListener('click', () => closeModal());
 $('pbControls').addEventListener('click', () => { $('pauseMain').style.display = 'none'; $('pauseControls').style.display = 'block'; $('pbBack').focus(); });
 $('pbBack').addEventListener('click', showPauseMain);
-$('pbLog').addEventListener('click', () => openModal('chart'));
+$('pbLog').addEventListener('click', () => { logTab = 'map'; openModal('chart'); });
 $('pbMusic').addEventListener('click', () => {
   audio.setMusic(!audio.musicOn);
   settings.musicOff = !audio.musicOn; store.set(SETTINGS_KEY, settings);
@@ -249,6 +269,8 @@ $('pbSound').addEventListener('click', () => {
 pauseEl.addEventListener('pointerdown', (e) => { if (e.target === pauseEl) closeModal(); });
 chartEl.addEventListener('pointerdown', (e) => { if (e.target === chartEl) closeModal(); });
 harbourEl.addEventListener('pointerdown', (e) => { if (e.target === harbourEl) closeModal(); });
+shipEl.addEventListener('pointerdown', (e) => { if (e.target === shipEl) closeModal(); });
+$('shClose').addEventListener('click', () => closeModal());
 $('hbClose').addEventListener('click', () => closeModal());
 
 // ---------------------------------------------------------------- harbour shipwright
@@ -278,8 +300,8 @@ function renderHarbour() {
   if (rb) rb.addEventListener('click', () => {
     if (state.gold < RUMOUR_COST) return;
     state.gold -= RUMOUR_COST;
-    state.rumoured[r.d.id] = { name: r.d.name, x: Math.round(r.d.x), z: Math.round(r.d.z) };
-    toast(`Rumour: ${r.d.name} lies to the ${bearingName(r.d.x - d.x, r.d.z - d.z)}, about ${Math.round(r.dist)} fathoms. It is marked on your chart.`, dread > 0.5, 8000);
+    state.rumoured[r.d.id] = { name: r.d.name, x: Math.round(r.d.x), z: Math.round(r.d.z), source: `a drunk in ${d.name}`, found: false };
+    toast(`Rumour: ${r.d.name} lies to the ${bearingName(r.d.x - d.x, r.d.z - d.z)}, about ${Math.round(r.dist)} fathoms. It is marked on your map.`, dread > 0.5, 8000);
     audio.play('buy'); renderHarbour();
   });
 
@@ -339,6 +361,7 @@ let dread = forced !== null ? forced : dreadAtDistance(Math.hypot(ship.pos.x, sh
 let dark = dread > DARK_THRESHOLD;
 let dig = null;     // { isl, t }
 let tNow = 0;
+let curSector = null;
 let lastSave = 0, lastNear = null, lastHour = Math.floor(state.time * 24);
 const shipInput = { steer: 0, sail: 0 };
 
@@ -346,6 +369,8 @@ function getInteract() {
   const isl = world.nearest(ship.pos.x, ship.pos.z, 16, ['harbour', 'treasure']);
   if (isl) return { kind: isl.desc.type, key: isl.desc.id, isl };
   if (sea.nearWreck) return { kind: 'wreck', key: sea.nearWreck.o.id, o: sea.nearWreck.o };
+  const sh = traffic.nearestHail(ship.pos.x, ship.pos.z, 24);
+  if (sh) return { kind: 'ship', key: 'ship' + sh.id, s: sh };
   return null;
 }
 
@@ -355,6 +380,7 @@ function completeJobIfHere(d) {
   state.gold += j.reward;
   repOf(state, d.id).deliveries++; repOf(state, j.fromId).deliveries++;
   state.serial[j.fromId] = (state.serial[j.fromId] || 0) + 1;
+  state.jobHistory.push({ item: j.item, to: d.name, reward: j.reward });
   toast(`Delivered ${j.item} to ${d.name}: +${j.reward} gold`, j.dark, 7000);
   audio.play('treasure');
   state.job = null;
@@ -379,7 +405,7 @@ function tryInteract() {
     audio.play('harbour');
   } else if (tg.kind === 'treasure' && !tg.isl.dug && !dig) {
     const d = tg.isl.desc;
-    dig = { key: tg.key, t: 0, need: 2.6 * ship.mods.digTime, done: () => {
+    dig = { key: tg.key, t: 0, need: 2.6 * ship.mods.digTime * (state.buffs.dig > 0 ? 0.7 : 1), done: () => {
       const loot = lootFor(mulberry32(hash2(d.seed, 7, state.seed)), d.dread);
       loot.value = Math.round(loot.value * ship.mods.lootMul);
       state.dug.add(d.id); tg.isl.setDug(true);
@@ -388,9 +414,11 @@ function tryInteract() {
       audio.play('treasure');
     } };
     audio.play('dig');
+  } else if (tg.kind === 'ship') {
+    hailShip(tg.s);
   } else if (tg.kind === 'wreck' && !dig) {
     const o = tg.o;
-    dig = { key: tg.key, t: 0, need: 3.4 * ship.mods.digTime, done: () => {
+    dig = { key: tg.key, t: 0, need: 3.4 * ship.mods.digTime * (state.buffs.dig > 0 ? 0.7 : 1), done: () => {
       const loot = lootFor(mulberry32(o.rngSeed), o.dread);
       loot.value = Math.round(loot.value * 1.3 * ship.mods.lootMul);
       loot.name = `From the wreck: ${loot.name}`;
@@ -403,46 +431,111 @@ function tryInteract() {
   }
 }
 
+// ---------------------------------------------------------------- hailing other ships
+function localStanding(x, z) {
+  let max = 0, sum = 0;
+  for (const [id, r] of Object.entries(state.rep)) {
+    const [cx, cz] = id.split(',').map(Number), d = world.desc(cx, cz);
+    if (!d || Math.hypot(d.x - x, d.z - z) > 450) continue;
+    const l = friendLevel(r); max = Math.max(max, l); sum += l;
+  }
+  return { max, sum };
+}
+const hailChance = (sh) => { const st = localStanding(sh.x, sh.z); return clamp(0.28 + 0.14 * st.max + 0.03 * Math.min(6, st.sum) + sh.faction.mood, 0.1, 0.88); };
+const REFUSALS = ['The crew glances at you and looks away.', 'A sailor waves you off. They are not in the mood.', 'The captain pretends not to hear you.', 'They hoist a little more sail and leave you behind.'];
+
+function hailShip(sh) {
+  const rng = mulberry32(sh.seed);
+  if (sh.mode === 'derelict') {
+    sh.state = 'done';
+    const loot = lootFor(rng, dread); loot.value = Math.round(loot.value * 0.6);
+    loot.name = `From the drifting ${KINDS[sh.kind].label}: ${loot.name}`;
+    state.gold += loot.value; state.loot.push(loot);
+    toast(`You board the empty ship and find: ${loot.name} (+${loot.value}g)`, true, 7000);
+  } else if (sh.mode === 'ghost') {
+    sh.state = 'done';
+    toast('Your hail comes back as your own voice, from a very long way off.', true, 6000);
+  } else if (sh.roll < hailChance(sh)) {
+    sh.state = 'open'; tradeShip = sh; openModal('ship');
+  } else {
+    sh.state = 'refused';
+    const hint = localStanding(sh.x, sh.z).max < 1 ? ' (Perhaps they would listen if you were better known in these waters.)' : '';
+    toast(REFUSALS[Math.floor(rng() * REFUSALS.length)] + hint, false, 6000);
+  }
+}
+
+const FACTION_GREET = {
+  crown: 'Ahoy! The Crown Traders always have time for honest custom.',
+  free: 'The Free Cays welcome you, friend! Come aboard, metaphorically.',
+  reef: 'Make it quick. We have somewhere to be, and none of it is here.',
+  lantern: 'The Lantern Guild keeps the lamps burning. State your business.',
+};
+function shipOffers(sh) {
+  if (sh.offers) return sh.offers;
+  const rng = mulberry32(sh.seed + 11), pool = [];
+  if (findRumour(world, { x: sh.x, z: sh.z }, state)) pool.push({ id: 'chart', label: 'Sea-chart scrap', cost: 35, desc: 'marks a treasure isle on your map' });
+  pool.push({ id: 'supplies', label: 'Fresh supplies', cost: 25, desc: '+15% speed for 3 minutes' });
+  pool.push({ id: 'rum', label: 'Rum rations', cost: 20, desc: 'your crew digs 30% faster for 3 minutes' });
+  pool.push({ id: 'news', label: 'Swap news', cost: 0, desc: 'a forecast and a rumour of the sea' });
+  pool.push({ id: 'tale', label: 'Swap tall tales', cost: 0, desc: 'you jot one down in your journal' });
+  if (nearby(world, sh.x, sh.z, 0, 700, 'harbour').length) pool.push({ id: 'message', label: 'Carry a message', cost: 0, desc: 'a delivery job for a nearby harbour' });
+  for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
+  sh.offers = pool.slice(0, 3).map((o) => ({ ...o, used: false }));
+  return sh.offers;
+}
+function renderShipTrade() {
+  const sh = tradeShip;
+  $('shName').textContent = sh.name;
+  $('shLine').textContent = FACTION_GREET[sh.faction.id] || 'Ahoy!';
+  $('shGold').textContent = state.gold;
+  $('shList').innerHTML = shipOffers(sh).map((o, i) => `<div class="up"><div><span class="nm">${i + 1}. ${o.label}</span></div>
+    <button data-i="${i}" ${o.used || state.gold < o.cost ? 'disabled' : ''}>${o.used ? 'Done' : o.cost ? `${o.cost}g` : 'Free'}</button><div class="ds">${o.desc}</div></div>`).join('');
+  $('shList').querySelectorAll('button').forEach((b) => b.addEventListener('click', () => doOffer(parseInt(b.dataset.i, 10))));
+}
+function doOffer(i) {
+  const sh = tradeShip, o = shipOffers(sh)[i];
+  if (!o || o.used || state.gold < o.cost) return;
+  const rng = mulberry32(sh.seed + 77 + i);
+  const idx = Math.min(4, Math.floor(dread * 5));
+  if (o.id === 'chart') {
+    const r = findRumour(world, { x: sh.x, z: sh.z }, state);
+    if (!r) return;
+    state.rumoured[r.d.id] = { name: r.d.name, x: Math.round(r.d.x), z: Math.round(r.d.z), source: `the ${sh.name}`, found: false };
+    toast(`Chart scrap: ${r.d.name} lies ${bearingName(r.d.x - sh.x, r.d.z - sh.z)} of here. It is marked on your map.`, false, 7000);
+  } else if (o.id === 'supplies') { state.buffs.speed = 180; toast('Fresh supplies stowed: the ship feels lighter.'); }
+  else if (o.id === 'rum') { state.buffs.dig = 180; toast('Rum rations handed out: the crew is in high spirits.'); }
+  else if (o.id === 'news') {
+    const lines = [wind.fromName ? `Winds from the ${wind.fromName}, they say, and shifting.` : '', weather.storm > 0.3 ? 'A bad blow is on the way: batten down.' : weather.rain > 0.3 ? 'Rain all week out east.' : 'Fair skies for the next day or so.', tod.night > 0.5 ? 'Keep to the lit harbours after dark.' : 'Lighthouses burn only after dusk, so mind your hour.'];
+    toast(`News from the ${sh.name}: ${lines[Math.floor(rng() * lines.length)]}`, false, 7000);
+  } else if (o.id === 'tale') {
+    const text = bottleNote(rng, idx);
+    state.notes.push({ text, dark: idx >= 2 });
+    toast(`A tall tale, written in your journal: "${text}"`, idx >= 2, 8000);
+  } else if (o.id === 'message') {
+    if (state.job) { toast('You already have a delivery to make.'); return; }
+    const from = nearby(world, sh.x, sh.z, 0, 700, 'harbour').sort((a, b) => a.dist - b.dist)[0].d;
+    const j = makeJob(world, from, (state.serial[from.id] || 0) + 100 + sh.id);
+    if (!j) { toast('They have nothing to send right now.'); return; }
+    j.fromName = `the ${sh.name}`; j.reward = Math.round(j.reward * 0.8);
+    state.job = j;
+    toast(`Message taken: deliver ${j.item} to ${j.toName} (+${j.reward}g)`, j.dark, 7000);
+  }
+  state.gold -= o.cost; o.used = true;
+  renderShipTrade();
+}
+
 function discover(isl) {
   const d = isl.desc;
   if (state.discovered[d.id]) return;
   state.discovered[d.id] = { name: d.name, type: d.type, x: Math.round(d.x), z: Math.round(d.z) };
   state.gold += 15;
-  delete state.rumoured[d.id];
+  if (state.rumoured[d.id]) state.rumoured[d.id].found = true;
   toast(`Charted: ${d.name} (+15 gold)`, dread > 0.5);
   audio.play('discover');
 }
 
-// ---------------------------------------------------------------- chart overlay
-const chartCv = $('chartCv'), chartList = $('chartList');
-function drawChart() {
-  const c = chartCv.getContext('2d'), S = chartCv.width, scale = 0.28;
-  c.fillStyle = dark ? '#1c2a44' : '#2a8fc0'; c.fillRect(0, 0, S, S);
-  c.strokeStyle = 'rgba(255,255,255,.12)';
-  for (let i = 0; i < S; i += 30) { c.beginPath(); c.moveTo(i, 0); c.lineTo(i, S); c.moveTo(0, i); c.lineTo(S, i); c.stroke(); }
-  const colors = { harbour: '#ff6a4a', treasure: '#ffd23a', jungle: '#4ea64a', rocky: '#9a948a', sandbar: '#ecd48f' };
-  for (const [id, v] of Object.entries(state.discovered)) {
-    const x = S / 2 + (v.x - ship.pos.x) * scale, y = S / 2 + (v.z - ship.pos.z) * scale;
-    c.fillStyle = colors[v.type] || '#fff';
-    c.beginPath(); c.arc(x, y, v.type === 'sandbar' ? 3 : 6, 0, 7); c.fill();
-    c.strokeStyle = '#000'; c.stroke();
-    if (state.dug.has(id)) { c.fillStyle = '#d02820'; c.fillText('x', x - 3, y + 4); }
-  }
-  c.fillStyle = '#fff';
-  for (const v of Object.values(state.rumoured)) { const x = S / 2 + (v.x - ship.pos.x) * scale, y = S / 2 + (v.z - ship.pos.z) * scale; c.fillText('?', x - 3, y + 4); }
-  if (state.job) { const x = S / 2 + (state.job.x - ship.pos.x) * scale, y = S / 2 + (state.job.z - ship.pos.z) * scale; c.fillStyle = '#ff9a3a'; c.fillRect(x - 4, y - 4, 8, 8); }
-  c.save(); c.translate(S / 2, S / 2); c.rotate(ship.heading);
-  c.fillStyle = '#fff'; c.beginPath(); c.moveTo(0, -8); c.lineTo(5, 6); c.lineTo(-5, 6); c.closePath(); c.fill(); c.stroke();
-  c.restore();
-  const names = Object.values(state.discovered);
-  chartList.innerHTML = `<h2>Captain's Log</h2><div>Gold: ${state.gold}</div><hr>` +
-    (names.length ? names.map((n) => `<div>&bull; ${n.name} <small>(${n.type})</small></div>`).join('') : '<div>No isles charted yet.</div>') +
-    `<hr><div><b>Treasures</b></div>` +
-    (state.loot.length ? state.loot.map((l) => `<div class="${l.dark ? 'loot' : ''}">&bull; ${l.name}</div>`).join('') : '<div>None yet.</div>') +
-    (state.job ? `<hr><div><b>Job</b></div><div>Deliver ${state.job.item} to ${state.job.toName} (${state.job.reward}g)</div>` : '') +
-    (state.notes.length ? `<hr><div><b>Messages in bottles</b></div>` + state.notes.map((n) => `<div class="${n.dark ? 'loot' : ''}"><i>"${n.text}"</i></div>`).join('') : '') +
-    `<hr><div><b>Ship</b></div>` + UPGRADES.map((u) => `<div>${u.name}: ${state.upgrades[u.id]}/${MAX_LEVEL}</div>`).join('');
-}
+// ---------------------------------------------------------------- captain's log
+const logbook = new Logbook({ state, world, ship, seed: state.seed, toast: (t) => toast(t), close: () => closeModal() });
 
 // ---------------------------------------------------------------- main loop
 const camPos = new THREE.Vector3(), camLook = new THREE.Vector3();
@@ -462,6 +555,16 @@ function frame() {
   // ---- time of day & wind
   if (live) state.time = (state.time + dt / DAY_LENGTH) % 1;
   wind.update(dt);
+  if (dt > 0) { state.buffs.speed = Math.max(0, state.buffs.speed - dt); state.buffs.dig = Math.max(0, state.buffs.dig - dt); }
+  ship.buff = state.buffs.speed > 0 ? 1.15 : 1;
+  const sec = sectorAt(ship.pos.x, ship.pos.z, state.seed);
+  if (sec.id !== curSector) {
+    curSector = sec.id;
+    if (!state.sectorsSeen.includes(sec.id)) state.sectorsSeen.push(sec.id);
+    if (live) toast(`Entering ${sec.name}: ${sec.faction.name} waters`, sec.dread > 0.5, 5000);
+    $('sectorline').textContent = `${sec.name} \u00b7 ${sec.faction.name}`;
+    $('sectorline').style.borderColor = sec.faction.color;
+  }
   const windNow = { dir: wind.dir, strength: Math.min(1.4, wind.strength * (1 + 0.25 * weather.storm)) };
   if (live && wind.shifted()) toast(`The wind is shifting: now from the ${wind.fromName}`, false, 4200);
 
@@ -553,6 +656,7 @@ function frame() {
       promptBar.style.display = 'none';
       promptTxt.textContent = tgt.kind === 'harbour' ? `[E] Visit ${tgt.isl.desc.name}`
         : tgt.kind === 'treasure' ? (tgt.isl.dug ? 'Already plundered' : '[E] Send the crew ashore to dig')
+        : tgt.kind === 'ship' ? (tgt.s.mode === 'derelict' ? `[E] Board the drifting ${KINDS[tgt.s.kind].label}` : tgt.s.mode === 'ghost' ? '[E] Hail the pale ship' : `[E] Hail the ${tgt.s.name}`)
         : '[E] Salvage the wreck';
     }
   } else promptEl.style.display = 'none';
@@ -570,6 +674,7 @@ function frame() {
   drawCompass(wind, ship.heading);
   if (tNow > 18) helpEl.style.opacity = '0';
   if (modal === 'harbour') { $('hbGold').textContent = state.gold; }
+  if (modal === 'ship') { $('shGold').textContent = state.gold; }
   if (debugEl.style.display === 'block') debugEl.textContent = `tris ${renderer.info.render.triangles} calls ${renderer.info.render.calls}  dread ${dread.toFixed(2)} stage ${stage.index + 1} ${forced !== null ? '(forced)' : '(auto)'}  time ${tod.clock}  pos ${ship.pos.x | 0},${ship.pos.z | 0}  spd ${ship.speed.toFixed(1)}  islands ${world.islands.size}`;
 
   if (live) {
@@ -582,7 +687,7 @@ function frame() {
   // ---- save
   if (tNow - lastSave > 4 && !params.get('fresh')) {
     lastSave = tNow;
-    store.set(SAVE_KEY, { seed: state.seed, gold: state.gold, dug: [...state.dug], discovered: state.discovered, loot: state.loot, upgrades: state.upgrades, collected: [...state.collected], notes: state.notes, rumoured: state.rumoured, rep: state.rep, job: state.job, serial: state.serial, time: state.time, windT: wind.t, pos: { x: ship.pos.x, z: ship.pos.z, h: ship.heading } });
+    store.set(SAVE_KEY, { seed: state.seed, gold: state.gold, dug: [...state.dug], discovered: state.discovered, loot: state.loot, upgrades: state.upgrades, collected: [...state.collected], notes: state.notes, rumoured: state.rumoured, rep: state.rep, job: state.job, serial: state.serial, sectorsSeen: state.sectorsSeen, jobHistory: state.jobHistory, buffs: state.buffs, time: state.time, windT: wind.t, pos: { x: ship.pos.x, z: ship.pos.z, h: ship.heading } });
   }
 
   // ---- render

@@ -61,7 +61,7 @@ export class Fauna {
       const m = new THREE.Mesh(dg, this.dolMat); m.visible = false; m.rotation.order = 'YXZ'; m.scale.setScalar(1.7); scene.add(m);
       return { m, u: 2, delay: 0, sx: 0, sz: 0, vx: 0, vz: 0, phase: Math.random() * 6 };
     });
-    this.dolTimer = 6; this.circle = null;
+    this.dolTimer = 30; this.circle = null;
 
     // ---- flying fish
     const fg = new Builder(); fg.doubleSided = true;
@@ -71,13 +71,13 @@ export class Fauna {
       const m = new THREE.Mesh(fgeo, mats.props); m.visible = false; scene.add(m);
       return { m, u: 2, sx: 0, sz: 0, vx: 0, vz: 0 };
     });
-    this.fishTimer = 9;
+    this.fishTimer = 25;
 
     // ---- whale + shadow
     this.whaleMat = psxMaterial({ vertexColors: true, key: 'Wh' });
     this.whale = new THREE.Mesh(whaleGeo(), this.whaleMat);
     this.whale.visible = false; this.whale.rotation.order = 'YXZ'; scene.add(this.whale);
-    this.whaleT = -1; this.whaleTimer = 35; this.whaleData = null; this.spoutT = 0;
+    this.whaleT = -1; this.whaleTimer = 70; this.whaleData = null; this.spoutT = 0;
     const sp = new THREE.IcosahedronGeometry(1, 0);
     this.spouts = Array.from({ length: 8 }, () => { const m = new THREE.Mesh(sp, mats.props); m.visible = false; scene.add(m); return { m, life: 0 }; });
     this.spoutGeoMat = mats.foam;
@@ -127,7 +127,7 @@ export class Fauna {
 
     // ================= birds =================
     const watchers = dread >= 0.8;
-    const nActive = watchers ? 9 : Math.round(NB * (1 - 0.55 * smoothstep(0.15, 0.45, dread)));
+    const nActive = watchers ? 9 : Math.round(22 * (1 - 0.55 * smoothstep(0.15, 0.45, dread)));
     const crow = smoothstep(0.3, 0.55, dread);
     this.birdMat.color.setRGB(lerp(1, 0.13, crow), lerp(1, 0.1, crow), lerp(1, 0.17, crow));
     const flap = lerp(9, 3.5, smoothstep(0.3, 0.8, dread));
@@ -185,13 +185,16 @@ export class Fauna {
     if (dolMood === 'jump' || dolMood === 'ghost') {
       this.dolTimer -= dt;
       if (this.dolTimer <= 0 && this.dolphins.every((d) => d.u >= 1)) {
-        this.dolTimer = rnd(9, 20);
-        const side = Math.random() < 0.5 ? -1 : 1, off = rnd(10, 20), ahead = rnd(2, 14);
-        const bx = sx + rx * side * off + fwdx * ahead, bz = sz + rz * side * off + fwdz * ahead;
-        const ang = ship.heading + rnd(-0.4, 0.4), spd = 8;
-        this.dolphins.forEach((d, i) => {
-          d.u = -i * 0.28; d.sx = bx + rx * i * 2.4; d.sz = bz + rz * i * 2.4; d.vx = Math.sin(ang) * spd; d.vz = -Math.cos(ang) * spd; d.entered = false; d.exited = false;
-        });
+        this.dolTimer = rnd(55, 120);
+        if (Math.random() < 0.45) this.dolTimer = rnd(40, 80);        // often they just don't show up
+        else {
+          const side = Math.random() < 0.5 ? -1 : 1, off = rnd(10, 20), ahead = rnd(2, 14);
+          const bx = sx + rx * side * off + fwdx * ahead, bz = sz + rz * side * off + fwdz * ahead;
+          const ang = ship.heading + rnd(-0.4, 0.4), spd = 8;
+          this.dolphins.forEach((d, i) => {
+            d.u = -i * 0.28; d.sx = bx + rx * i * 2.4; d.sz = bz + rz * i * 2.4; d.vx = Math.sin(ang) * spd; d.vz = -Math.cos(ang) * spd; d.entered = false; d.exited = false;
+          });
+        }
       }
       const D = 1.5, H = 3.2;
       for (const d of this.dolphins) {
@@ -230,7 +233,7 @@ export class Fauna {
     if (dread < 0.45) {
       this.fishTimer -= dt;
       if (this.fishTimer <= 0 && this.fish.every((f) => f.u >= 1)) {
-        this.fishTimer = rnd(9, 20);
+        this.fishTimer = rnd(40, 90);
         const side = Math.random() < 0.5 ? -1 : 1, off = rnd(6, 14), ahead = rnd(4, 16);
         const ang = ship.heading + side * rnd(0.3, 0.9);
         this.fish.forEach((f, i) => {
@@ -270,7 +273,7 @@ export class Fauna {
 
     this.whaleTimer -= dt;
     if (showWhale && this.whaleT < 0 && this.whaleTimer <= 0) {
-      this.whaleTimer = rnd(60, 110);
+      this.whaleTimer = rnd(120, 230);
       const a = ship.heading + rnd(-1.2, 1.2), dist = rnd(70, 120);
       this.whaleData = { x: sx + Math.sin(a) * dist, z: sz - Math.cos(a) * dist, h: a + rnd(1, 2) * (Math.random() < 0.5 ? 1 : -1) };
       this.whaleT = 0; this.spoutT = 2;
@@ -303,7 +306,7 @@ export class Fauna {
     // the shadow under the keel
     this.shadowTimer -= dt;
     if (showShadow && this.shadowT < 0 && this.shadowTimer <= 0) {
-      this.shadowTimer = rnd(45, 90);
+      this.shadowTimer = rnd(80, 150);
       const side = Math.random() < 0.5 ? -1 : 1;
       this.shadowData = { x: sx + rx * side * 110, z: sz + rz * side * 110, vx: -rx * side * 7, vz: -rz * side * 7 };
       this.shadowT = 0;

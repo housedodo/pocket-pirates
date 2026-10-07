@@ -227,6 +227,20 @@ function chest(b, x, y, z, ry, open) {
   b.pop();
 }
 
+// Only some islands get a lighthouse: the home harbour, ~1 in 3 other harbours, the odd lonely rock.
+export function hasLighthouse(d) {
+  if (d.id === '0,-1') return true;
+  const r = (hash2(d.seed, 17, 5) % 1000) / 1000;
+  return d.type === 'harbour' ? r < 0.33 : d.type === 'rocky' ? r < 0.22 : false;
+}
+function lighthouse(A, extra, lx, ly, lz, tall = 1) {
+  for (let s = 0; s < 4; s++) A.cyl(lx, ly + s * 2.3 * tall, lz, 1.9 - s * 0.16, 1.9 - (s + 1) * 0.16, 2.3 * tall, 8, s % 2 ? '#f4f0e6' : '#d8403a', TILE.white, false);
+  A.cyl(lx, ly + 9.2 * tall, lz, 2.2, 2.2, 0.35, 8, '#5a4a40', TILE.planks);
+  extra.lamp = { x: lx, y: ly + 9.55 * tall, z: lz };
+  A.cyl(lx, ly + 10.85 * tall, lz, 1.5, 0, 1.2, 6, '#c0382f', TILE.roof);
+  extra.beam = { x: lx, y: ly + 10.2 * tall, z: lz };
+}
+
 function decorate(d, rng, A, B, D, extra) {
   const T = d.type;
   const palms = (n, t0, t1, hMin = 0.8, s0 = 0.9) => {
@@ -273,6 +287,7 @@ function decorate(d, rng, A, B, D, extra) {
       rocks(5, 0.3, 1.0, 1.4);
       palms(1, 0.5, 0.9, 0.8, 0.7);
       { const p = spot(d, rng, 0.0, 0.4, 2); if (p) monolith(D, p[0], p[1], p[2], 4.5, 1.1); }
+      if (hasLighthouse(d)) { const p = spot(d, rng, 0.45, 0.8, 0.9, 60); if (p) lighthouse(A, extra, p[0], p[1] - 0.3, p[2], 0.8); }
       shrooms(3);
       break;
     }
@@ -308,14 +323,9 @@ function decorate(d, rng, A, B, D, extra) {
         house(A, B, x, d.H - 0.1, z, Math.atan2(-x, -z), rng);
         placed++;
       }
-      // lighthouse opposite the dock
+      // lighthouse opposite the dock (not every harbour has one)
       const lth = dockTh + Math.PI + (rng() - 0.5) * 0.6, lr = shoreR(d, lth) * 0.74;
-      const lx = Math.cos(lth) * lr, lz = Math.sin(lth) * lr, ly = d.H - 0.2;
-      for (let s = 0; s < 4; s++) A.cyl(lx, ly + s * 2.3, lz, 1.9 - s * 0.16, 1.9 - (s + 1) * 0.16, 2.3, 8, s % 2 ? '#f4f0e6' : '#d8403a', TILE.white, false);
-      A.cyl(lx, ly + 9.2, lz, 2.2, 2.2, 0.35, 8, '#5a4a40', TILE.planks);
-      extra.lamp = { x: lx, y: ly + 9.55, z: lz };
-      A.cyl(lx, ly + 10.85, lz, 1.5, 0, 1.2, 6, '#c0382f', TILE.roof);
-      extra.beam = { x: lx, y: ly + 10.2, z: lz };
+      if (hasLighthouse(d)) lighthouse(A, extra, Math.cos(lth) * lr, d.H - 0.2, Math.sin(lth) * lr);
       // dock
       const R = shoreR(d, dockTh), z0 = R * 0.55, z1 = R + 14, zc = (z0 + z1) / 2;
       const ry = Math.PI / 2 - dockTh;
