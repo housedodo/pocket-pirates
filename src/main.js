@@ -480,7 +480,7 @@ function renderAbyssMenu() {
   }));
   $('abForce').textContent = forced === 1 ? 'Back to automatic dread' : 'Go to full dread now (all ON effects)';
 }
-if (!DEV) { $('pbAbyss').style.display = 'none'; $('pbMixer').style.display = 'none'; settings.abyss = {}; }   // players get every effect, no test menu
+if (!DEV) { $('pbAbyss').style.display = 'none'; $('pbMixer').style.display = 'none'; $('devKeys').style.display = 'none'; settings.abyss = {}; }   // players get every effect, no test menu
 const mixer = new Mixer(audio, (t, d, ms) => toast(t, d, ms));
 $('pbMixer').addEventListener('click', () => { closeModal(); mixer.toggle(true); });
 //   // players get every effect, no test menu
