@@ -1,5 +1,6 @@
 import { mulberry32, hash2 } from './util.js';
 import { pxi } from './pixelui.js';
+import { Die3D } from './dice3d.js';
 
 // Board-game pieces: d20 skill checks, encounter cards at sea, hired hands with traits, and dice at the tavern.
 // The captain never speaks; cards are written as what happens, not what you say.
@@ -52,25 +53,7 @@ export function crewBonus(state, kind, dark = false) {
 export const hasTrait = (state, id) => (state.crew || []).some((c) => c.trait === id);
 
 // ---------------------------------------------------------------- the d20 check
-const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
-function dieFace(cv, n, tint) {
-  const c = cv.getContext('2d'), S = cv.width; c.clearRect(0, 0, S, S);
-  const cx = S / 2, cy = S / 2, R = S * 0.46;
-  const hex = Array.from({ length: 6 }, (_, i) => [cx + Math.cos(i / 6 * 6.283 - 1.571) * R, cy + Math.sin(i / 6 * 6.283 - 1.571) * R]);
-  const pal = tint === 'good' ? ['#3a7a30', '#5ec45a', '#9ae890'] : tint === 'bad' ? ['#6a1a20', '#b03030', '#e06050'] : ['#8a7650', '#cdb88e', '#efe0b8'];
-  const inside = (x, y) => { for (let i = 0; i < 6; i++) { const [ax, ay] = hex[i], [bx, by] = hex[(i + 1) % 6]; if ((bx - ax) * (y - ay) - (by - ay) * (x - ax) < 0) return false; } return true; };
-  for (let y = 0; y < S; y++) for (let x = 0; x < S; x++) {
-    if (!inside(x + 0.5, y + 0.5)) continue;
-    const dy = (y - cy) / R, k = 1.6 - dy * 0.9 + BAYER[(y % 4) * 4 + (x % 4)] / 16 - 0.5;
-    c.fillStyle = pal[Math.max(0, Math.min(2, Math.round(k)))]; c.fillRect(x, y, 1, 1);
-  }
-  c.fillStyle = '#2a1608';
-  for (let i = 0; i < 6; i++) { const [ax, ay] = hex[i], [bx, by] = hex[(i + 1) % 6]; for (let t = 0; t <= 1; t += 1 / S) c.fillRect(Math.round(ax + (bx - ax) * t) - 1, Math.round(ay + (by - ay) * t) - 1, 2, 2); }
-  c.font = `${Math.round(S * 0.42)}px "DotGothic16", monospace`; c.textAlign = 'center'; c.textBaseline = 'middle';
-  c.fillStyle = 'rgba(255,240,210,.5)'; c.fillText(String(n), cx + 1, cy + 3);
-  c.fillStyle = '#2a1608'; c.fillText(String(n), cx, cy + 2);
-}
-
+let d20 = null;
 /** Show a d20 roll over everything. check: { label, dc, kind, dark, extra:[[name, n]] }; done(success, roll, total) */
 export function rollCheck(state, check, done) {
   const el = document.getElementById('roll'), cv = document.getElementById('rollCv');
@@ -84,17 +67,12 @@ export function rollCheck(state, check, done) {
   el.classList.add('open');
   const n = 1 + Math.floor(Math.random() * 20), total = n + bonus;
   const ok = n === 20 || (n !== 1 && total >= check.dc);
-  let t = 0;
-  const spin = setInterval(() => {
-    t++; dieFace(cv, 1 + Math.floor(Math.random() * 20));
-    cv.style.transform = `rotate(${(Math.random() - 0.5) * 40}deg) translateY(${-Math.abs(Math.sin(t * 0.7)) * 14}px)`;
-    if (t < 16) return;
-    clearInterval(spin); cv.style.transform = '';
-    dieFace(cv, n, ok ? 'good' : 'bad');
+  if (!d20) d20 = new Die3D(cv, 'd20', 64);
+  d20.roll(n, () => {
     res.textContent = n === 20 ? 'NATURAL 20!' : n === 1 ? 'NATURAL 1...' : `${n}${bonus ? ` ${bonus > 0 ? '+' : ''}${bonus} = ${total}` : ''}: ${ok ? 'SUCCESS' : 'FAIL'}`;
     res.className = ok ? 'ok' : 'bad';
     setTimeout(() => { el.classList.remove('open'); done(ok, n, total); }, 1500);
-  }, 70);
+  });
 }
 
 // ---------------------------------------------------------------- encounter cards
@@ -167,47 +145,52 @@ export function renderCard(card, onChoose) {
 // ---------------------------------------------------------------- Pig, at the tavern
 // First to 30. Roll a d6 as often as you dare: a 1 loses the turn's points. Hold to bank them.
 export class Pig {
-  constructor(el, deps) { this.el = el; this.d = deps; }
+  constructor(el, deps) { this.el = el; this.d = deps; this.die = null; }
   start(opponent, stake) {
+    if (!this.die) this.die = new Die3D(this.el.querySelector('#pigCv'), 'd6', 48);
     this.opp = opponent; this.stake = stake; this.me = 0; this.them = 0; this.turn = 0; this.mine = true; this.over = false; this.busy = false;
     this.log = `${opponent} slides two coins forward and grins. First to 30.`;
     this.render();
   }
+  /** throw the die, then call after(n) once it has settled */
+  throwDie(after) { const n = 1 + Math.floor(Math.random() * 6); this.busy = true; this.render(); this.die.roll(n, () => { this.busy = false; after(n); }, 0.7); }
   roll() {
     if (this.over || !this.mine || this.busy) return;
-    const n = 1 + Math.floor(Math.random() * 6); this.last = n;
-    if (n === 1) { this.turn = 0; this.log = 'A one. Everything this turn is lost.'; this.mine = false; this.render(); this.theirTurn(); return; }
-    this.turn += n; this.log = `${n}. This turn: ${this.turn}.`;
-    if (this.me + this.turn >= 30) { this.me += this.turn; this.turn = 0; return this.end(true); }
-    this.render();
+    this.throwDie((n) => {
+      if (n === 1) { this.turn = 0; this.log = 'A one. Everything this turn is lost.'; this.mine = false; this.render(); this.theirTurn(); return; }
+      this.turn += n; this.log = `${n}. This turn: ${this.turn}.`;
+      if (this.me + this.turn >= 30) { this.me += this.turn; this.turn = 0; this.end(true); return; }
+      this.render();
+    });
   }
   hold() {
     if (this.over || !this.mine || this.busy || !this.turn) return;
     this.me += this.turn; this.turn = 0; this.mine = false; this.log = 'You bank it.'; this.render(); this.theirTurn();
   }
   theirTurn() {
-    this.busy = true; let t = 0;
-    const step = () => {
-      const n = 1 + Math.floor(Math.random() * 6); this.last = n;
-      if (n === 1) { this.log = `${this.opp} rolls a one and swears at the table.`; t = 0; return this.back(); }
+    let t = 0;
+    const step = () => this.throwDie((n) => {
+      this.busy = true;
+      if (n === 1) { this.log = `${this.opp} rolls a one and swears at the table.`; return this.back(); }
       t += n; this.log = `${this.opp} rolls ${n}. (${t} this turn)`; this.render();
-      if (this.them + t >= 30) { this.them += t; return this.end(false); }
-      const hold = t >= (this.them > this.me ? 15 : 20) || this.them + t >= 30;
-      if (hold) { this.them += t; this.log = `${this.opp} holds at ${t}.`; return this.back(); }
-      setTimeout(step, 650);
-    };
-    setTimeout(step, 700);
+      if (this.them + t >= 30) { this.them += t; this.end(false); return; }
+      if (t >= (this.them > this.me ? 15 : 20)) { this.them += t; this.log = `${this.opp} holds at ${t}.`; return this.back(); }
+      setTimeout(step, 450);
+    });
+    this.busy = true; this.render(); setTimeout(step, 600);
   }
-  back() { this.render(); setTimeout(() => { this.busy = false; this.mine = true; this.render(); }, 700); }
+  back() { this.busy = true; this.render(); setTimeout(() => { this.busy = false; this.mine = true; this.render(); }, 800); }
   end(won) {
     this.over = true; this.busy = false;
     this.log = won ? `${this.opp} pushes the coins over with a sigh. (+${this.stake * 2} gold)` : `${this.opp} sweeps up the coins. Better luck tomorrow.`;
     this.d.onEnd(won); this.render();
   }
   render() {
-    const pip = (n) => `<span class="pigdie">${n || '-'}</span>`;
-    this.el.querySelector('#pigBody').innerHTML = `<div class="pigrow"><div><b>You</b><br>${this.me}${this.turn ? ` <small>+${this.turn}</small>` : ''}</div>${pip(this.last)}<div><b>${this.opp}</b><br>${this.them}</div></div><p class="quote">${this.log}</p>`;
-    this.el.querySelector('#pigRoll').disabled = this.over || !this.mine || this.busy;
-    this.el.querySelector('#pigHold').disabled = this.over || !this.mine || this.busy || !this.turn;
+    const q = (id) => this.el.querySelector(id);
+    q('#pigMe').innerHTML = `${this.me}${this.turn ? ` <small>+${this.turn}</small>` : ''}`;
+    q('#pigThem').textContent = this.them; q('#pigOpp').textContent = this.opp;
+    q('#pigLog').textContent = this.log;
+    q('#pigRoll').disabled = this.over || !this.mine || this.busy;
+    q('#pigHold').disabled = this.over || !this.mine || this.busy || !this.turn;
   }
 }

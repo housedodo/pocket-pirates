@@ -115,9 +115,9 @@
     #chart[data-book="pixel"] .ent { background: rgba(255,248,220,.18); border-left: 4px solid rgba(58,34,16,.55); }
     #chart[data-book="pixel"] .ent.cur { background: rgba(255,210,80,.28); border-left-color: #a8301c; }
     /* tabletop: the d20 check, encounter cards, tavern dice */
-    #roll { position: fixed; inset: 0; z-index: 9; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 6px; background: rgba(8,6,22,.82); color: #fff4d8; text-shadow: 2px 2px 0 #120c1c; pointer-events: none; }
+    #roll { position: fixed; inset: 0; z-index: 9; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 6px; background: rgba(8,6,22,.82); color: #fff4d8; text-shadow: 2px 2px 0 #120c1c; }
     #roll.open { display: flex; }
-    #rollCv { width: 160px; height: 160px; image-rendering: pixelated; filter: drop-shadow(4px 8px 0 rgba(0,0,0,.6)); }
+    #rollCv { width: 224px; height: 224px; image-rendering: pixelated; filter: drop-shadow(4px 8px 0 rgba(0,0,0,.6)); }
     #roll b { font-size: 32px; font-weight: 400; } #roll small { font-size: 16px; color: #c8b890; }
     #rollRes { font-size: 32px; min-height: 40px; } #rollRes.ok { color: #7ee870; } #rollRes.bad { color: #ff6050; }
     #cardWide { width: min(440px, 92vw); text-align: center; --pxedge: #c9a85c; }
@@ -126,7 +126,8 @@
     #cardChoices button { display: block; width: 100%; margin: 6px 0; text-align: left; }
     #cardOut { min-height: 1.5em; color: #ffe8a0; }
     #pigWide { width: min(420px, 92vw); text-align: center; }
-    .pigrow { display: flex; align-items: center; justify-content: space-around; font-size: 32px; margin: 8px 0; } .pigrow b { font-size: 16px; font-weight: 400; color: #c8b890; }
+    .pigrow > div { flex: 1; } .pigrow { display: flex; align-items: center; justify-content: space-around; font-size: 32px; margin: 8px 0; } .pigrow b { font-size: 16px; font-weight: 400; color: #c8b890; }
+    #pigCv { width: 144px; height: 144px; image-rendering: pixelated; filter: drop-shadow(4px 6px 0 rgba(0,0,0,.6)); }
     .pigdie { display: inline-block; width: 64px; height: 64px; line-height: 64px; background: #efe0b8; color: #2a1608; box-shadow: 0 -4px 0 #2a1608, 0 4px 0 #2a1608, -4px 0 0 #2a1608, 4px 0 0 #2a1608, inset -4px -4px 0 #b8a070; }
     body.fogged.eyes #tracker, body.fogged.eyes #compass { filter: none; opacity: 1; }
     /* the dark hut */
@@ -350,8 +351,8 @@
   </div></div></div>
   <div id="hutmodal" class="modal"><div class="menu" id="hutWide"><h2>THE DARK HUT</h2><canvas id="dieCv" width="72" height="72"></canvas><p class="quote" id="hutTxt"></p><button id="hutRoll">Throw the die [Space]</button><button id="hutLeave">Leave [E]</button></div></div>
   <div id="card" class="modal"><div class="menu" id="cardWide"><div id="cardIcon"></div><h2 id="cardTitle"></h2><p class="quote" id="cardText"></p><div id="cardChoices"></div><p class="quote" id="cardOut"></p><button id="cardDone">Sail on [E]</button></div></div>
-  <div id="pig" class="modal"><div class="menu" id="pigWide"><h2>DICE AT THE TAVERN</h2><div id="pigBody"></div><button id="pigRoll">Roll [Space]</button><button id="pigHold">Hold [H]</button><button id="pigLeave">Leave [E]</button></div></div>
-  <div id="roll"><canvas id="rollCv" width="40" height="40"></canvas><b id="rollLbl"></b><small id="rollMod"></small><div id="rollRes"></div></div>
+  <div id="pig" class="modal"><div class="menu" id="pigWide"><h2>DICE AT THE TAVERN</h2><div class="pigrow"><div><b>You</b><br><span id="pigMe">0</span></div><canvas id="pigCv"></canvas><div><b id="pigOpp"></b><br><span id="pigThem">0</span></div></div><p class="quote" id="pigLog"></p><button id="pigRoll">Roll [Space]</button><button id="pigHold">Hold [H]</button><button id="pigLeave">Leave [E]</button></div></div>
+  <div id="roll"><canvas id="rollCv"></canvas><b id="rollLbl"></b><small id="rollMod"></small><div id="rollRes"></div></div>
   <div id="shipmodal" class="modal"><div class="menu" id="shWide"><h2 id="shName"></h2><p class="quote" id="shLine"></p><div class="goldline">Gold: <b id="shGold"></b></div><div id="shList"></div><button id="shClose">Wave goodbye</button></div></div>
   <div id="harbour" class="modal"><div class="menu" id="hbWide"><h2 id="hbName"></h2><p class="quote" id="hbLine"></p><div class="goldline">Gold: <b id="hbGold"></b></div><div class="hbtabs" id="hbTabs"><button data-t="board">Board</button><button data-t="market">Market</button><button data-t="wright">Shipwright</button></div><div id="hbPane"></div><button id="hbClose">Set sail [E]</button></div></div>
   <div id="pause" class="modal"><div class="menu">

@@ -52,7 +52,7 @@ They swap at dread 0.5, and terrain colours blend to a second vertex colour set.
 | Whales | surface far off, spout, dive | a huge shadow slides under the keel |
 | Ships (`traffic.js`) | few and varied (fishing boat, merchant brig, schooner, galleon, outrigger canoe) in their sector's colours; hail them with E, but not everyone wants to talk: a hidden roll vs. your reputation with nearby harbours (+ faction mood). Offers: chart scraps, supplies, rum, news, tall tales, messages | drifting derelicts with lamps lit -> pale translucent ghost ships |
 | Harbour life (`world.js`) | people walk the dock, crowds in the square (they go home at night) | silent figures stand at the shore facing the sea |
-| Weather (`weather.js`) | showers, rainbow after rain | storms, fog banks, lightning that sometimes reveals a shape in the water |
+| Weather (`weather.js`) | showers | storms, fog banks, lightning that sometimes reveals a shape in the water |
 | Night sky | shooting stars | they fall upward |
 | Sea features (`seafeatures.js`) | salvage barrels, messages in bottles, wrecks to salvage (E), glowing shoals, whirlpools | stranger loot and notes, magenta glow |
 

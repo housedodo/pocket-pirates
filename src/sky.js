@@ -108,19 +108,6 @@ export class Sky {
     }
     this.sunDir = new THREE.Vector3();
 
-    // rainbow (7 bands) shown after a shower
-    this.rainbow = new THREE.Group();
-    const bands = ['#e63946', '#f4a261', '#f6e05e', '#52b788', '#4cc9f0', '#4361ee', '#9d4edd'];
-    this.rainbowMats = bands.map((c, i) => {
-      const m = new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: 0, fog: false, depthWrite: false, depthTest: false, side: THREE.DoubleSide });
-      const mesh = new THREE.Mesh(new THREE.RingGeometry(330 + i * 10, 340 + i * 10, 40, 1, 0, Math.PI), m);
-      mesh.renderOrder = -22;
-      this.rainbow.add(mesh);
-      return m;
-    });
-    this.rainbow.visible = false;
-    this.group.add(this.rainbow);
-
     // shooting star
     const mg = new THREE.BufferGeometry();
     mg.setAttribute('position', new THREE.Float32BufferAttribute(new Float32Array(6), 3));
@@ -180,15 +167,6 @@ export class Sky {
       this.sun2.scale.setScalar(stage.sunSize * 1.2);
     }
 
-    // rainbow opposite the sun
-    const rb = fx.rainbow || 0;
-    this.rainbow.visible = rb > 0.01;
-    if (this.rainbow.visible) {
-      const az = tod.sunAz + Math.PI;
-      this.rainbow.position.set(Math.sin(az) * 700, -70, -Math.cos(az) * 700);
-      this.rainbow.lookAt(0, -70, 0);
-      for (const m of this.rainbowMats) m.opacity = Math.min(1, rb * 2) * 0.55;
-    }
     // shooting stars at night (they fall *up* when dread is high)
     this.meteorTimer -= dt;
     if (this.meteorLife <= 0 && this.meteorTimer <= 0 && tod.night > 0.7) {

@@ -8,9 +8,9 @@ import { mulberry32 } from './util.js';
 const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
 
 /** 5x4 atlas of carved numbers on old, stained bone */
-function dieTexture() {
+export function dieTexture(pal = ['#6e5a40', '#a8926a', '#cdb88e', '#e4d4ae'], ink = '#2a1608') {
   const S = 32, cv = document.createElement('canvas'); cv.width = S * 5; cv.height = S * 4;
-  const c = cv.getContext('2d'), r = mulberry32(2020), pal = ['#6e5a40', '#a8926a', '#cdb88e', '#e4d4ae'];
+  const c = cv.getContext('2d'), r = mulberry32(2020);
   for (let y = 0; y < cv.height; y++) for (let x = 0; x < cv.width; x++) {
     const u = (x % S) / S, v = (y % S) / S, edge = Math.min(v - 0.06, (u - 0.5) * 1.8 + (0.98 - v) * 0.9, (0.5 - u) * 1.8 + (0.98 - v) * 0.9);
     const k = 2.6 + (r() - 0.5) * 0.9 - (edge < 0.08 ? 1.2 : 0) + BAYER[(y % 4) * 4 + (x % 4)] / 16 - 0.5;
@@ -21,7 +21,7 @@ function dieTexture() {
   for (let n = 1; n <= 20; n++) {
     const cx = ((n - 1) % 5) * S + S / 2, cy = Math.floor((n - 1) / 5) * S + S * 0.58;
     c.fillStyle = 'rgba(255,240,210,0.35)'; c.fillText(String(n), cx + 1, cy + 1); // carved: light lip below
-    c.fillStyle = n === 1 ? '#5a0a2a' : '#2a1608'; c.fillText(String(n), cx, cy);
+    c.fillStyle = n === 1 ? '#5a0a2a' : ink; c.fillText(String(n), cx, cy);
     if (n === 6 || n === 9) { c.fillStyle = '#2a1608'; c.fillRect(cx - 4, cy + 7, 8, 1); }
   }
   // a hard pixel look: remove the soft edges of the text
@@ -33,7 +33,7 @@ function dieTexture() {
   return tex;
 }
 
-function dieGeometry() {
+export function dieGeometry() {
   const g = new THREE.IcosahedronGeometry(1, 0).toNonIndexed();
   const pos = g.attributes.position, uv = new Float32Array(pos.count * 2), normals = [], ups = [];
   // slightly uneven, worn: nudge each corner a little (same corner = same nudge)

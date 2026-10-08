@@ -14,7 +14,7 @@ export class Weather {
     this.scene = scene;
     this.cloud = 0; this.rain = 0; this.storm = 0; this.fog = 0; this.darkness = 0;
     this.flash = 0; this.flashQueue = 0; this.nextFlash = 6;
-    this.rainbow = 0; this.prevRain = 0; this.calm = 0; this.redSky = 0; this.stormAhead = 0;
+    this.prevRain = 0; this.calm = 0; this.redSky = 0; this.stormAhead = 0;
     this.onThunder = null;
     this.phantom = null; this.phantomT = 0;
     this.rng = mulberry32(2024);
@@ -62,10 +62,6 @@ export class Weather {
     for (const key of Object.keys(target)) this[key] += (target[key] - this[key]) * k;
     this.darkness = Math.max(this.storm * 0.9, this.rain * 0.45, this.cloud * 0.25);
 
-    // rainbow after a shower, in daylight
-    if (this.prevRain > 0.4 && this.rain <= 0.4 && tod.sunHeight > 0.2 && dread < 0.6) this.rainbow = 1;
-    this.prevRain = this.rain;
-    this.rainbow = Math.max(0, this.rainbow - dt / 70);
 
     // lightning
     this.flash = Math.max(0, this.flash - dt * 3.2);

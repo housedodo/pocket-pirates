@@ -562,7 +562,7 @@ function renderHarbour() {
     const hgb = $('haggle'); if (hgb) hgb.addEventListener('click', () => {
       rollCheck(state, { label: 'Talk', kind: 'talk', dc: 12, extra: lvl ? [['standing', lvl]] : [] }, (ok, n) => {
         state.haggle = { id: d.id, day: state.dayN, mult: ok ? (n === 20 ? 1.5 : 1.3) : 0.9 };
-        toast(ok ? 'The fishmonger laughs and gives in.' : 'The fishmonger folds their arms. Prices just got worse.', false, 4000); renderHarbour(); }); });
+        toast(ok ? 'The fishmonger laughs and gives in.' : 'The fishmonger folds their arms. Prices just got worse.', false, 4000); if (harbourIsl) renderHarbour(); }); });
   } else {
     html += UPGRADES.map((u, i) => {
       const lv = state.upgrades[u.id], maxed = lv >= MAX_LEVEL;
@@ -1138,7 +1138,7 @@ function frame() {
   mats.beam.color.set('#ffe080').lerp(new THREE.Color('#ff50d0'), smoothstep(0.5, 0.8, dread));
   mats.beam.opacity = 0.1 + 0.3 * tod.night;
   mats.wake.color.set(0xffffff).lerp(new THREE.Color(0.35, 1, 0.9), tod.night * 0.9).lerp(new THREE.Color(1, 0.4, 0.95), tod.night * smoothstep(0.55, 0.9, dread) * 0.8);
-  sky.update(dt, camera, stage, wind.dir, tod, { rainbow: weather.rainbow, sun2: abyss.sun2 });
+  sky.update(dt, camera, stage, wind.dir, tod, { sun2: abyss.sun2 });
   ocean.material.opacity = 1 - 0.7 * abyss.seeThrough;
   if (abyss.seeThrough > 0) { U.uDeep.value.lerp(GLASS, 0.8 * abyss.seeThrough); U.uShallow.value.lerp(GLASS, 0.7 * abyss.seeThrough); }
   ocean.update(camera.position.x, camera.position.z);
