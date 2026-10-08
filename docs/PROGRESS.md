@@ -74,6 +74,12 @@ New voyage goes straight into the game (no title). A new voyage starts moored al
 - Digging, picking fruit and searching wrecks need the ship completely stopped (S).
 - Dolphins never jump across islands.
 
+### Economy (slower on purpose)
+- Income roughly halved: treasure pays half its table value, charting +5, goals x0.6, deliveries, passengers,
+  commissions, fish and fruit all lower. The first treasure (Hollow Cay Galen) always pays 120 so the
+  "Spend your loot" step affords one starter upgrade.
+- Shipwright prices x1.3 / x1.6 / x1.9 for levels 1 / 2 / 3 (e.g. sails 156 / 480 / 1235).
+
 ### Small things
 - Sail and hull upgrades are visible on the ship (patches, seams, flying jib; strake, iron bands, bow cap).
 - Cannons and raiders are switched off until after the demo (UNLOCK.cannons = 6): no ammo on the HUD, no cannonballs

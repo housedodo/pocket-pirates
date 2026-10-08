@@ -84,12 +84,12 @@ const fishOf = (ctx, id) => { const f = ctx.FISH.find((x) => x.id === id); const
 export const CARDS = [
   { id: 'chest', icon: 'crate', title: 'A Floating Chest', text: 'A sea chest bobs past, iron-bound, still locked.', choices: [
     { label: 'Haul it aboard', check: { label: 'Seamanship', kind: 'sea', dc: 10 },
-      ok: (c) => { const g = 25 + Math.floor(Math.random() * 40); c.state.gold += g; return `Heavy, wet, and full of coins. +${g} gold.`; },
+      ok: (c) => { const g = 12 + Math.floor(Math.random() * 22); c.state.gold += g; return `Heavy, wet, and full of coins. +${g} gold.`; },
       fail: (c) => { c.hurt(8); return 'It swings into the hull on the way up. The chest sinks. The dent stays.'; } },
     { label: 'Let it drift', go: () => 'It turns slowly and drifts off. Someone else\'s luck.' }] },
   { id: 'stowaway', icon: 'talk', title: 'A Stowaway', text: 'A small face peeks out from between the fruit crates.', choices: [
     { label: 'Put them to work', check: { label: 'Luck', kind: 'luck', dc: 11 },
-      ok: (c) => { c.state.gold += 30; return 'They scrub the deck and find a purse wedged in the planks. +30 gold. They keep the button.'; },
+      ok: (c) => { c.state.gold += 15; return 'They scrub the deck and find a purse wedged in the planks. +15 gold. They keep the button.'; },
       fail: (c) => { const g = Math.min(c.state.gold, 15); c.state.gold -= g; return `At the next wave they are gone. So are ${g} gold.`; } },
     { label: 'Share your bread', go: (c) => { c.repNear(); return 'They eat like a gull and fall asleep on the rope pile. Word of it will reach the next harbour.'; } }] },
   { id: 'dinghy', icon: 'coin', title: 'A Peddler in a Dinghy', text: 'An old peddler rows alongside, rattling a tray of oddments and folded maps.', choices: [
@@ -117,7 +117,7 @@ export const CARDS = [
     { label: 'Push it away', go: () => 'It follows you for an hour. Then it does not.' }] },
   { id: 'buoy', icon: 'pip', title: 'A Singing Buoy', text: 'A buoy rings with no wind and no waves. It is ringing a tune.', choices: [
     { label: 'Sail closer', check: { label: 'Luck', kind: 'luck', dc: 12 },
-      ok: (c) => { const g = 15 + Math.floor(Math.random() * 25); c.state.gold += g; return `Coins are tied to its chain, like offerings. You take a few. (+${g} gold) The tune stops.`; },
+      ok: (c) => { const g = 8 + Math.floor(Math.random() * 12); c.state.gold += g; return `Coins are tied to its chain, like offerings. You take a few. (+${g} gold) The tune stops.`; },
       fail: (c) => { c.hurt(5); return 'The buoy swings round and knocks the hull, once, politely. The tune goes on.'; } },
     { label: 'Ring your own bell back', go: () => 'You ring the ship\'s bell. The buoy waits, then rings the same tune back, one note wrong.' }] },
   { id: 'gull', icon: 'letter', title: 'The Same Gull', text: 'A gull lands on the rail. It has a tiny brass ring on its leg, engraved with your ship\'s name.', choices: [

@@ -1,0 +1,71 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Harbour welcome layouts</title>
+<style>
+  @font-face { font-family: 'DotGothic16'; src: url(../../public/fonts/dotgothic.woff2) format('woff2'); }
+  @font-face { font-family: 'Pirata One'; src: url(../../public/fonts/pirataone.woff2) format('woff2'); }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 16px; background: #0b0a12; color: #f4ead0; font: 16px 'DotGothic16', monospace; }
+  h1 { font-size: 32px; font-weight: 400; color: #ffd23a; margin: 0 0 8px; } .lead { color: #c9b890; margin: 0 0 16px; max-width: 900px; }
+  .frame { position: relative; width: 1280px; height: 720px; overflow: hidden; background: url(harbour-bg.png) center / cover; margin-bottom: 8px; image-rendering: pixelated; }
+  .cap { margin: 0 0 32px; max-width: 1280px; color: #c9b890; } .cap b { color: #ffd23a; font-weight: 400; }
+  .px { background: #1d1640; box-shadow: 0 -4px 0 #c9a85c, 0 4px 0 #c9a85c, -4px 0 0 #c9a85c, 4px 0 0 #c9a85c, 8px 8px 0 4px rgba(0,0,0,.45); }
+  .px.dark { box-shadow: 0 -4px 0 #ff70d0, 0 4px 0 #ff70d0, -4px 0 0 #ff70d0, 4px 0 0 #ff70d0, 8px 8px 0 4px rgba(0,0,0,.45); }
+  .tabs { display: flex; gap: 8px; margin: 8px 0; } .tabs span { flex: 1; text-align: center; padding: 6px 0; background: #2c2160; color: #c8c0e0; } .tabs span.on { background: #4a3aa0; color: #fff4d8; box-shadow: 0 0 0 2px #ffd23a; }
+  .row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 2px dashed #3a3070; } .row i { color: #ffd23a; font-style: normal; } .sec { color: #ffd23a; margin-top: 8px; }
+  .dim { position: absolute; inset: 0; background: rgba(8,6,22,.55); }
+  .menu { width: 420px; padding: 16px 20px; }
+  .menu h2 { margin: 0; font-size: 32px; font-weight: 400; color: #ffd23a; text-align: center; }
+  .btn { margin-top: 12px; padding: 8px; text-align: center; background: #2c2160; color: #fff4d8; }
+  .portrait { width: 64px; height: 64px; image-rendering: pixelated; background: #3a2a1a; box-shadow: 0 0 0 4px #1a0f08; flex: none; }
+  /* 1 */ .card1 { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px; background: radial-gradient(ellipse at center, rgba(8,6,22,.55), rgba(8,6,22,.92)); text-align: center; }
+  .card1 .name { font: 72px 'Pirata One', serif; color: #f4ead0; text-shadow: 4px 4px 0 #5a1612, 8px 8px 0 #1a0606; }
+  .card1 .hello { font-size: 32px; color: #c9b890; }
+  .card1 .quote { max-width: 860px; font-size: 32px; line-height: 48px; color: #f4ead0; }
+  .card1 .who { font-size: 16px; color: #8a7e9a; } .card1 .go { position: absolute; bottom: 40px; font-size: 16px; color: #c9b890; }
+  /* 2 */ .talk { position: absolute; left: 50%; transform: translateX(-50%); bottom: 32px; width: 900px; display: flex; gap: 16px; padding: 16px 20px; align-items: flex-start; }
+  .talk b { color: #ffd23a; font-weight: 400; display: block; margin-bottom: 4px; } .talk p { margin: 0; font-size: 32px; line-height: 44px; }
+  .talk .more { position: absolute; right: 16px; bottom: 8px; color: #ffd23a; }
+  .side { position: absolute; right: 32px; top: 32px; }
+  /* 3 */ .board3 { position: absolute; left: 50%; top: 40px; transform: translateX(-50%); width: 560px; padding: 0 24px 20px; }
+  .sign { margin: 0 -24px 0; padding: 12px; text-align: center; background: repeating-linear-gradient(0deg, #6a4424 0 10px, #5a3a1c 10px 12px); box-shadow: inset 0 -6px 0 #3a2210, inset 0 4px 0 #8a5a30; font: 40px 'Pirata One', serif; color: #f4ead0; text-shadow: 3px 3px 0 #1a0606; }
+  .note { position: relative; margin: 20px auto 8px; width: 440px; padding: 20px 24px 16px; background: #efe2bc; color: #2a1608; transform: rotate(-1.5deg); box-shadow: 6px 6px 0 rgba(0,0,0,.35), inset 0 -4px 0 #d8c898; font-size: 24px; line-height: 34px; }
+  .note::before { content: ""; position: absolute; left: 50%; top: -8px; width: 16px; height: 16px; margin-left: -8px; background: #c8402a; box-shadow: 0 0 0 3px #5a1612; }
+  .note small { display: block; margin-top: 8px; font-size: 16px; color: #6a4a2a; }
+  /* 4 */ .left4 { position: absolute; left: 0; top: 0; bottom: 0; width: 760px; }
+  .bubble { position: absolute; left: 260px; top: 210px; width: 420px; padding: 16px 20px; background: #f4ead0; color: #2a1608; font-size: 24px; line-height: 34px; box-shadow: 0 -4px 0 #2a1608, 0 4px 0 #2a1608, -4px 0 0 #2a1608, 4px 0 0 #2a1608, 8px 8px 0 4px rgba(0,0,0,.35); }
+  .bubble::after { content: ""; position: absolute; left: 60px; bottom: -28px; width: 28px; height: 28px; background: #f4ead0; clip-path: polygon(0 0, 100% 0, 0 100%); }
+  .bubble b { display: block; font-size: 16px; color: #8a5a30; font-weight: 400; }
+  .right4 { position: absolute; right: 0; top: 0; bottom: 0; width: 520px; padding: 32px; background: rgba(13,10,32,.92); box-shadow: -8px 0 0 #c9a85c; }
+  /* 5 */ .banner5 { position: absolute; left: 0; right: 0; top: 0; padding: 28px 80px 24px; text-align: center; background: linear-gradient(rgba(8,6,22,.88), rgba(8,6,22,.6) 80%, rgba(8,6,22,0)); }
+  .banner5 .name { font: 48px 'Pirata One', serif; color: #f4ead0; text-shadow: 3px 3px 0 #5a1612; }
+  .banner5 .line { margin-top: 12px; font-size: 32px; line-height: 44px; color: #ffb8e8; text-shadow: 3px 3px 0 #1a0614; }
+  .banner5 .who { font-size: 16px; color: #b8a4c8; margin-top: 4px; }
+  .menu5 { position: absolute; left: 50%; bottom: 32px; transform: translateX(-50%); width: 760px; padding: 12px 20px; }
+</style></head><body>
+<h1>Harbour welcome: five layouts</h1>
+<p class="lead">Same harbour, same lines in each: the greeting ("Back again, captain!") and the odd line ("Same tide as yesterday. Exactly the same. Down to the ripple."). In every layout the shipwright's line moves into the Shipwright tab, so the welcome stands alone.</p>
+
+<div class="frame" id="f1"><div class="card1">
+  <div class="name">Harbour Tama</div><div class="hello">"Back again, captain!"</div>
+  <div class="quote">Same tide as yesterday. Exactly the same.<br>Down to the ripple.</div><div class="who">an old fisher, mending nets on the pier</div>
+  <div class="go">E or Space to go ashore</div></div></div>
+<p class="cap"><b>1 · Arrival card.</b> Docking first shows a full-screen card over the darkened harbour: name, greeting, then the one odd line on its own, large. A key press goes ashore and the normal menu opens. Can't be missed, one beat of silence before shopping. Cost: one extra key press each visit (could show only on the first visit of the day).</p>
+
+<div class="frame" id="f2"><div class="side px menu"><h2>Harbour Tama</h2><div class="tabs"><span class="on">Board</span><span>Market</span><span>Shipwright</span></div><div class="sec">FINISH HERE</div><div class="row">Deliver a crate of oranges<i>+42g</i></div><div class="sec">DELIVERY</div><div class="row">A cage of canaries to Port Velto<i>58g</i></div></div>
+  <div class="talk px"><div class="portrait" style="background: linear-gradient(#3a2a1a 0 30%, #c98e64 30% 70%, #2f9a8a 70%)"></div><div><b>Old fisher on the pier</b><p>"Back again, captain! Same tide as yesterday. Exactly the same. Down to the ripple."</p></div><span class="more">&#9660;</span></div></div>
+<p class="cap"><b>2 · Someone on the pier talks.</b> The welcome comes from a villager in the same typewriter box Mara uses, with a little portrait, while the menu sits to the side. It types out slowly, so it gets read like dialogue, not skimmed like a label. Familiar from the rest of the game; the villager changes per visit.</p>
+
+<div class="frame" id="f3"><div class="dim"></div><div class="board3 px"><div class="sign">Harbour Tama</div>
+  <div class="note">Same tide as yesterday. Exactly the same. Down to the ripple.<small>nailed to the board, no name</small></div>
+  <div class="tabs"><span class="on">Board</span><span>Market</span><span>Shipwright</span></div><div class="sec">FINISH HERE</div><div class="row">Deliver a crate of oranges<i>+42g</i></div></div></div>
+<p class="cap"><b>3 · A note pinned to the board.</b> The harbour name is a carved wooden sign; the odd line is a paper note nailed to the top of the board, slightly crooked, in dark ink. Feels found, not told. Later the notes can be written in a shakier hand, smudged, or torn as dread rises. The greeting moves into the sign's subtitle or disappears.</p>
+
+<div class="frame" id="f4"><div class="left4"><div class="bubble"><b>old fisher</b>"Back again, captain! Same tide as yesterday. Exactly the same. Down to the ripple."</div></div>
+  <div class="right4"><div class="menu" style="width:auto;padding:0"><h2>Harbour Tama</h2><div class="tabs"><span class="on">Board</span><span>Market</span><span>Shipwright</span></div><div class="sec">FINISH HERE</div><div class="row">Deliver a crate of oranges<i>+42g</i></div><div class="sec">DELIVERY</div><div class="row">A cage of canaries to Port Velto<i>58g</i></div><div class="btn">Set sail [E]</div></div></div></div>
+<p class="cap"><b>4 · Split view, speech bubble in the world.</b> The menu becomes a panel on the right; on the left the camera frames the village, and the line appears as a speech bubble over an actual villager. The village stays visible, so the line belongs to a place and a person. Needs a camera move on docking.</p>
+
+<div class="frame" id="f5"><div class="banner5"><div class="name">Harbour Tama</div><div class="line">"Same tide as yesterday. Exactly the same. Down to the ripple."</div><div class="who">overheard on the pier</div></div>
+  <div class="menu5 px"><div class="tabs"><span class="on">Board</span><span>Market</span><span>Shipwright</span></div><div class="row">Deliver a crate of oranges<i>+42g</i></div><div class="row">A cage of canaries to Port Velto<i>58g</i></div></div></div>
+<p class="cap"><b>5 · Overheard banner.</b> The menu drops low and compact; the top third of the screen is a banner with the harbour name and the overheard line in large, slightly wrong-coloured letters (pale rose, warming to magenta with dread). No greeting at all: the strange line is the welcome. Quietest of the five, and it never needs an extra key press.</p>
+</body></html>

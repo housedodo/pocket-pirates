@@ -64,7 +64,7 @@ export function makePassenger(world, from, serial) {
   if (!list.length) return null;
   const { d: to, dist } = list[Math.floor(rng() * list.length) % list.length];
   const p = PEOPLE[Math.floor(rng() * PEOPLE.length) % PEOPLE.length];
-  return { name: p.name, who: p.who, fromId: from.id, toId: to.id, toName: to.name, x: to.x, z: to.z, reward: Math.round(30 + dist * 0.16), said: 0, timer: 12 };
+  return { name: p.name, who: p.who, fromId: from.id, toId: to.id, toName: to.name, x: to.x, z: to.z, reward: Math.round(15 + dist * 0.09), said: 0, timer: 12 };
 }
 
 /** called every frame while a passenger is aboard and the ship is sailing */

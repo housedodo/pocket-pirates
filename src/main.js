@@ -508,7 +508,8 @@ $('shClose').addEventListener('click', () => closeModal());
 $('hbClose').addEventListener('click', () => closeModal());
 
 // ---------------------------------------------------------------- harbour shipwright
-const upCost = (u, lv, rep) => Math.ceil(u.cost[lv] * discount(rep));
+const UP_MUL = [1.3, 1.6, 1.9];   // economy: the shipwright charges more, steeply for the higher levels
+const upCost = (u, lv, rep) => Math.ceil(u.cost[lv] * UP_MUL[lv] * discount(rep));
 let hbTab = 'board';
 function handIn(q, d) {
   const need = questNeed(q);
@@ -611,9 +612,9 @@ function renderHarbour() {
     });
   } else if (hbTab === 'market') {
     const hg = state.haggle && state.haggle.id === d.id && state.haggle.day === state.dayN ? state.haggle : null, hm = hg ? hg.mult : 1;
-    const fishVal = Math.round(state.catch.reduce((a, f) => a + f.value, 0) * (1 + 0.05 * lvl) * hm);
+    const fishVal = Math.round(state.catch.reduce((a, f) => a + f.value, 0) * 0.7 * (1 + 0.05 * lvl) * hm);
     const fruitList = Object.entries(state.fruit).filter(([, n]) => n > 0);
-    const fruitVal = Math.round(fruitList.reduce((a, [f, n]) => a + FRUITS[f].price * n, 0) * (1 + 0.05 * lvl) * hm);
+    const fruitVal = Math.round(fruitList.reduce((a, [f, n]) => a + FRUITS[f].price * n, 0) * 0.7 * (1 + 0.05 * lvl) * hm);
     const ammoCost = Math.ceil(25 * discount(rep));
     { // the tavern: rooms are let from 17:00, you wake at 06:00 with the hull mended
       const hour = state.time * 24, open = hour >= 17 || hour < 5, bedCost = Math.ceil(8 * discount(rep));
@@ -837,7 +838,8 @@ function tryInteract() {
           toast(state.attempts[d.id] >= 2 ? 'Nothing here but sand. Reread the riddle in your log (Journal) and try another shore.' : 'The crew digs and finds only sand and crabs. Wrong shore!', false, 6000);
           return;
         }
-        const loot = abyss.wrongLoot(lootFor(mulberry32(hash2(d.seed, 7, state.seed)), d.dread), state);
+        let loot = abyss.wrongLoot(lootFor(mulberry32(hash2(d.seed, 7, state.seed)), d.dread), state);
+        if (d.id === '1,-1') loot = { name: 'Perrin\'s chest: a bag of old doubloons', value: 120, dark: false };   // the first treasure always pays for one starter upgrade
         loot.value = Math.round(loot.value * ship.mods.lootMul);
         state.dug.add(d.id); tg.isl.setDug(true); state.stats.treasures++; state.stats.solved++;
         state.gold += loot.value; state.loot.push(loot);
@@ -980,9 +982,9 @@ function discover(isl) {
   const d = isl.desc;
   if (state.discovered[d.id]) return;
   state.discovered[d.id] = { name: d.name, type: d.type, x: Math.round(d.x), z: Math.round(d.z) };
-  state.gold += 15;
+  state.gold += 5;
   if (state.rumoured[d.id]) state.rumoured[d.id].found = true;
-  toast(`Charted: ${d.name} (+15 gold)`, dread > 0.5);
+  toast(`Charted: ${d.name} (+5 gold)`, dread > 0.5);
   audio.play('discover');
 }
 

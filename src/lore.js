@@ -77,7 +77,7 @@ const LOOT_DARK = [
 export function lootFor(rng, dread) {
   const dark = rng() < smoothstep(0.35, 0.8, dread);
   const [name, value] = pick(rng, dark ? LOOT_DARK : LOOT_BRIGHT);
-  return { name, value, dark };
+  return { name, value: Math.round(value * 0.5), dark };   // economy: treasure pays half its table value
 }
 
 // ---- messages in bottles, floating salvage

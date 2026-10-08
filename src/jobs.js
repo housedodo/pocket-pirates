@@ -31,7 +31,7 @@ export function makeJob(world, from, serial) {
   const dark = rng() < smoothstep(0.35, 0.8, dreadAtDistance(Math.hypot(from.x, from.z)));
   return {
     fromId: from.id, fromName: from.name, toId: to.id, toName: to.name, x: to.x, z: to.z,
-    reward: Math.round(40 + dist * 0.22 + to.dread * 60), item: pick(rng, dark ? ITEMS_DARK : ITEMS_BRIGHT), dark, dist: Math.round(dist),
+    reward: Math.round(20 + dist * 0.12 + to.dread * 40), item: pick(rng, dark ? ITEMS_DARK : ITEMS_BRIGHT), dark, dist: Math.round(dist),
   };
 }
 
@@ -71,10 +71,10 @@ export function commissionsFor(world, from, serial) {
     if (k === 'fish') {
       const pool = FISH.filter((f) => !f.night && dread >= f.min - 0.1 && dread <= f.max);
       const f = pool[Math.floor(rng() * pool.length) % pool.length], n = f.w < 2 ? 1 : 1 + Math.floor(rng() * 3);
-      out.push({ ...base, species: f.id, n, reward: Math.min(220, Math.round(20 + f.price * (f.kg[0] + f.kg[1]) / 2 * n * 1.4 + 8 * n)) });
+      out.push({ ...base, species: f.id, n, reward: Math.min(130, Math.round(12 + f.price * (f.kg[0] + f.kg[1]) / 2 * n * 0.8 + 5 * n)) });
     } else if (k === 'fruit') {
       const fr = FRUIT_ORDER[Math.floor(rng() * FRUIT_ORDER.length)], n = 4 + Math.floor(rng() * 5);
-      out.push({ ...base, fruit: fr, n, reward: 18 + n * 6 });
+      out.push({ ...base, fruit: fr, n, reward: 10 + n * 4 });
     } else if (k === 'crates') {
       let center = null;
       for (let t = 0; t < 14 && !center; t++) {
@@ -88,13 +88,13 @@ export function commissionsFor(world, from, serial) {
         if (freeWater(world, x, z, 8)) { crates.push({ x, z, got: false }); break; }
       }
       if (crates.length < 2) continue;
-      out.push({ ...base, crates, center: { x: center.x, z: center.z }, reward: Math.round(55 + center.dist * 0.1 + crates.length * 10) });
+      out.push({ ...base, crates, center: { x: center.x, z: center.z }, reward: Math.round(30 + center.dist * 0.06 + crates.length * 6) });
     } else if (k === 'bounty') {
       const n = dread > 0.5 ? 1 : 1 + Math.floor(rng() * 2);
-      out.push({ ...base, n, reward: 60 * n + 20 });
+      out.push({ ...base, n, reward: 35 * n + 10 });
     } else if (k === 'spot') {
       const what = rng() < 0.7 ? 'dolphins' : 'whales', n = what === 'dolphins' ? 2 : 1;
-      out.push({ ...base, what, n, reward: 35 * n + 20 });
+      out.push({ ...base, what, n, reward: 20 * n + 10 });
     }
   }
   return out;
