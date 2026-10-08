@@ -50,6 +50,9 @@ purple and magenta cosmic horror as dread rises.
   Pirata One, bone white (`#f4ead0` to `#b8a47c`, dithered) with a dried-blood block shadow (`#5a1612` / `#1a0606`),
   drawn at low resolution and worn. The menu is the game font (DotGothic16, 32px) with a red pennant pointer. Behind it the Merry Gull bobs alone on open
   sea at a random hour: morning, day, dawn, dusk, night or rain (`src/title.js`).
+- **Ship upgrades show on the ship**: sails: stock = mended patches, 1 = clean canvas, 2 = stitched seams,
+  3 = gold-bound storm silk plus a flying jib to the bowsprit. Hull: 1 = dark oak rubbing strake, 2 = iron bands,
+  3 = darker ironwood strake, iron bow cap and cheek plates.
 - **Log bookmarks**: pale paper slips (`#efe6cf`, ink text), tucked and slightly bent with a folded corner; the
   open tab is pulled out flat and whiter.
 - **Wind ring** (top right): a thick gold arc where the ship sails fast, cream where slower, a dark red wedge straight

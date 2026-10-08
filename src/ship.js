@@ -110,6 +110,43 @@ function buildMainsail() {
   return b;
 }
 
+// ---- upgrade looks: what the sails and hull show at each shipwright level (0..3)
+const sailPt = (u, v) => { const len = lerp(3.5, 1.5, v); return [0.75 * Math.sin(Math.PI * u) * Math.sin(Math.PI * (0.12 + 0.76 * v)), 0.2 + v * 5.0, 0.12 + u * len]; };
+function sailStrip(b, v0, v1, col, tile, push = 0.03) {   // a band across the mainsail following its belly, both faces
+  for (let i = 0; i < 6; i++) for (const sd of [1, -1]) {
+    const q = (u, v) => { const p = sailPt(u, v); return [p[0] + sd * push, p[1], p[2]]; };
+    b.quad(q(i / 6, v0), q((i + 1) / 6, v0), q((i + 1) / 6, v1), q(i / 6, v1), col, tile);
+  }
+}
+function sailPatch(b, u, v, du, dv, col) {
+  for (const sd of [1, -1]) { const q = (a, c) => { const p = sailPt(a, c); return [p[0] + sd * 0.035, p[1], p[2]]; }; b.quad(q(u, v), q(u + du, v), q(u + du, v + dv), q(u, v + dv), col, TILE.sail); }
+}
+function buildSailLook(level) {
+  const b = new Builder(); b.doubleSided = true; b.ambient = 0.8;
+  if (level === 0) {                                     // stock: mended, stained, a patch or three
+    sailPatch(b, 0.18, 0.22, 0.22, 0.13, '#9a8458'); sailPatch(b, 0.55, 0.52, 0.18, 0.11, '#a8946a'); sailPatch(b, 0.3, 0.72, 0.16, 0.09, '#8a7650');
+  }
+  if (level >= 2) for (const v of [0.24, 0.48, 0.72]) sailStrip(b, v, v + 0.025, level >= 3 ? '#c9a85c' : '#a89060', TILE.rope);   // stitched seams
+  if (level >= 3) { sailStrip(b, 0.0, 0.03, '#c9a85c', TILE.rope); sailStrip(b, 0.97, 1.0, '#c9a85c', TILE.rope); }                // bound edges
+  return b.geometry();
+}
+function buildTopsail() {                                // storm silk: a flying jib from the masthead out to the bowsprit tip
+  const b = new Builder(); b.doubleSided = true; b.ambient = 0.85;
+  const tip = [0, 6.9, -0.35], tack = [0, 2.05, -4.55], clew = [0, 2.0, -3.55], mid = [0.35, 4.1, -2.9];
+  b.tri(tip, tack, mid, '#fff8e4', TILE.sail, [[0.5, 1], [0, 0], [0.5, 0.5]]);
+  b.tri(tack, clew, mid, '#fff8e4', TILE.sail, [[0, 0], [1, 0], [0.5, 0.5]]);
+  b.tri(clew, tip, mid, '#fff8e4', TILE.sail, [[1, 0], [0.5, 1], [0.5, 0.5]]);
+  return b.geometry();
+}
+function buildHullLook(level) {
+  const b = new Builder();
+  const W = (z) => { for (let i = 0; i < SECTIONS.length - 1; i++) { const a = SECTIONS[i], c = SECTIONS[i + 1]; if (z <= a.z && z >= c.z) { const t = (a.z - z) / (a.z - c.z); return { w: lerp(a.w, c.w, t), deck: lerp(a.deck, c.deck, t), keel: lerp(a.keel, c.keel, t) }; } } return SECTIONS[2]; };
+  if (level >= 1) for (let z = 2.6; z > -3.0; z -= 0.4) { const s = W(z); for (const sd of [1, -1]) b.box(sd * (s.w + 0.02), s.deck - 0.18, z - 0.2, 0.1, 0.14, 0.42, level >= 3 ? '#3a2416' : '#5a3418', TILE.planks); }   // oak rubbing strake
+  if (level >= 2) for (const z of [1.6, 0.2, -1.4]) { const s = W(z); for (const sd of [1, -1]) b.box(sd * (s.w * 0.95 + 0.05), (s.deck + s.keel) / 2 + 0.05, z, 0.1, s.deck - s.keel, 0.24, '#6a6a74', TILE.stone); }   // iron bands
+  if (level >= 3) { b.box(0, 1.3, -3.55, 0.36, 0.5, 0.36, '#5a5a62', TILE.stone); for (const sd of [1, -1]) b.box(sd * 0.55, 0.85, -2.9, 0.08, 0.55, 0.5, '#4a4a52', TILE.stone); }   // iron bow cap and cheek plates
+  return b.geometry();
+}
+
 function buildJib() {
   const b = new Builder();
   b.doubleSided = true;
@@ -202,6 +239,7 @@ export class Ship {
     this.root.rotation.order = 'YXZ';
     scene.add(this.root);
     this.hullMesh = new THREE.Mesh(shipGeos().hull, mats.props);
+    this.hullLook = new THREE.Mesh(new THREE.BufferGeometry(), mats.props); this.hullMesh.add(this.hullLook);
     this.root.add(this.hullMesh);
     this.figureGroup = new THREE.Group(); this.figureGroup.position.set(0, 1.7, -3.9); this.figureGroup.scale.setScalar(1.5); this.root.add(this.figureGroup);
     this.custom = { ...DEFAULT_CUSTOM };
@@ -209,11 +247,14 @@ export class Ship {
     this.sailPivot = new THREE.Group();
     this.sailPivot.position.set(0, 1.0, -0.3);
     this.sail = new THREE.Mesh(shipGeos().sail, mats.sail);
+    this.sailLook = new THREE.Mesh(new THREE.BufferGeometry(), mats.sail); this.sail.add(this.sailLook);
+    this.topsail = new THREE.Mesh(buildTopsail(), mats.sail); this.topsail.visible = false;
     this.sailPivot.add(this.sail);
     this.root.add(this.sailPivot);
 
     this.jib = new THREE.Mesh(shipGeos().jib, mats.sail);
     this.root.add(this.jib);
+    this.root.add(this.topsail);
 
     // pennant (bright: red, dark: black skull)
     this.flag = new THREE.Group();
@@ -283,6 +324,15 @@ export class Ship {
     this.rel = 0;
   }
 
+  /** show the shipwright upgrades on the ship itself: lv = state.upgrades */
+  setUpgradeLook(lv = {}) {
+    const sl = lv.sails || 0, hl = lv.hull || 0;
+    if (this.lookKey === `${sl}/${hl}`) return; this.lookKey = `${sl}/${hl}`;
+    this.sailLook.geometry.dispose(); this.sailLook.geometry = buildSailLook(sl);
+    this.hullLook.geometry.dispose(); this.hullLook.geometry = buildHullLook(hl);
+    this.topsail.visible = sl >= 3;
+  }
+
   setCustom(c) {
     this.custom = { ...DEFAULT_CUSTOM, ...c };
     this.hullMesh.geometry = hullGeo(this.custom.hull);
@@ -350,6 +400,7 @@ export class Ship {
     this.sail.scale.x += (sgn - this.sail.scale.x) * Math.min(1, dt * 2.5);
     this.jib.scale.x += (sgn - this.jib.scale.x) * Math.min(1, dt * 2.5);
     this.jib.scale.y = flat;
+    this.topsail.scale.set(this.jib.scale.x, flat, 1);
     this.jib.position.y = (1 - flat) * 0;
     this.flag.rotation.y = Math.PI - this.rel + Math.sin(t * 9) * 0.18 + (this.wrongSails ? Math.PI : 0);
     this.flagBright.visible = !dark;

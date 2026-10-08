@@ -75,6 +75,7 @@ New voyage goes straight into the game (no title). A new voyage starts moored al
 - Dolphins never jump across islands.
 
 ### Small things
+- Sail and hull upgrades are visible on the ship (patches, seams, flying jib; strake, iron bands, bow cap).
 - Cannons and raiders are switched off until after the demo (UNLOCK.cannons = 6): no ammo on the HUD, no cannonballs
   for sale, no hostile raiders. The code is all still there.
 - Space or Enter moves Mara's text on / closes it. Fishing casts with a rod animation (back, flick, bobber arcs out).

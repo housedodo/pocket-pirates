@@ -138,7 +138,7 @@ if (!saved && !params.has('x')) {
 }
 ship.pos.set(state.pos.x, 0, state.pos.z);
 ship.heading = state.pos.h;
-const refreshMods = () => { ship.mods = computeMods(state.upgrades); state.hp = Math.min(state.hp, ship.mods.maxHp); };
+const refreshMods = () => { ship.mods = computeMods(state.upgrades); state.hp = Math.min(state.hp, ship.mods.maxHp); ship.setUpgradeLook(state.upgrades); };
 ship.setCustom(state.custom);
 refreshMods();
 
