@@ -18,7 +18,8 @@ npm run build      # static build in dist/
 | 1 / 2 | pick a choice on an encounter card |
 | Space / H | tavern dice: roll / hold (Space also throws the die at the hut) |
 | C | fish: cast, hook the bite, pull in (hold Space to reel) |
-| Space | fire cannons at an attacking raider (auto-aimed) |
+| Space / Enter | continue / close Mara's text |
+| Space | fire cannons (later in the story) at an attacking raider (auto-aimed) |
 | Y | ask Mara (first mate) for a hint |
 | E | interact: harbour (moor at the end of its pier: shipwright, job board, rumours), dig for treasure, salvage wrecks, hail passing ships |
 | Esc or P | pause menu (resume, controls, log, sound) |

@@ -17,7 +17,7 @@ export const CHAPTERS = [
 /** how far from Tama the fog lets you sail, per chapter (the demo ends after chapter VI) */
 export const GATES = [430, 430, 820, 1250, 1650, 1650];
 /** the chapter a system opens in */
-export const UNLOCK = { fish: 1, oars: 2, passengers: 2, crew: 3, dice: 3, haggle: 3, cards: 3 };
+export const UNLOCK = { fish: 1, oars: 2, passengers: 2, crew: 3, dice: 3, haggle: 3, cards: 3, cannons: 6 };   // cannons come after the demo
 
 export const MAIN_GOALS = [
   {

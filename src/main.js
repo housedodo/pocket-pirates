@@ -218,7 +218,8 @@ const abyss = new Abyss({ scene, ship, world, sky, settings, state, mate: object
 const fishing = new Fishing(scene, ship, {
   toast: (t) => toast(t),
   getCtx: () => ({ bonus: Math.max(0, ship.mods.lootMul - 1) }),
-  onStart: () => { toast('Line cast. Wait for a bite...', false, 2500); audio.play('cast'); },
+  onStart: () => audio.play('cast'),
+  onSplash: () => { audio.play('splash', { vol: 0.4 }); toast('Line cast. Wait for a bite...', false, 2500); },
   onBite: (f) => { toast(f.dark ? 'Something heavy takes the bait!' : 'A bite!', f.dark, 1500); audio.play('bite'); },
   onCatch: (f) => {
     f = abyss.wrongCatch(f);
@@ -410,10 +411,10 @@ window.addEventListener('keydown', (e) => {
   if (e.code === 'Space') e.preventDefault();
   if (e.repeat) return;
   keys.add(e.code);
-  if (e.code === 'Space') { if (fishing.active) { fishing.hold = true; fishing.press(true); } else fireCannons(); }
+  if (e.code === 'Space') { if (fishing.active) { fishing.hold = true; fishing.press(true); } else if (objectives.mate.cur) objectives.mate.skip(); else if (unlocked(state, 'cannons')) fireCannons(); }   // Space (or Enter) moves Mara's text on
   if (e.code === 'KeyC' && unlocked(state, 'fish')) fishing.press();
   if (e.code === 'KeyY' && !abyss.maraHint()) objectives.askHint(dread);
-  if (e.code === 'Enter') objectives.mate.skip();
+  if (e.code === 'Enter' || e.code === 'NumpadEnter') objectives.mate.skip();
   if (e.code === 'KeyE') tryInteract();
   if (e.code === 'KeyH') $('hud').classList.toggle('hidden');
   if (e.code === 'KeyG' && !modal && started && unlocked(state, 'oars')) { ship.rowing = !ship.rowing; toast(ship.rowing ? 'Oars out' : 'Oars in, sails up', false, 2200); if (ship.rowing) objectives.remark('oars', dread); }
@@ -631,12 +632,12 @@ function renderHarbour() {
     html += `<div class="qrow"><div><b>${pxi('fish')} Fish</b><br><small>${state.catch.length ? `${state.catch.length} in the hold` : 'none: slow down and press C at sea'}</small></div>${state.catch.length ? `<button id="sellFish">+${fishVal}g</button>` : ''}</div>`;
     html += `<div class="qrow"><div><b>${pxi('banana')} Fruit</b><br><small>${fruitList.length ? fruitList.map(([f, n]) => `${n} ${plural(fruitName(f, dread), n)}`).join(', ') : 'none: press E at jungle isles'}</small></div>${fruitList.length ? `<button id="sellFruit">+${fruitVal}g</button>` : ''}</div>`;
     html += '<div class="sec">BUY</div>';
-    html += `<div class="qrow"><div><b>${pxi('ball')} 10 cannonballs</b><br><small>you have ${state.ammo}</small></div><button id="buyAmmo" ${state.gold >= ammoCost ? '' : 'disabled'}>${ammoCost}g</button></div>`;
+    if (unlocked(state, 'cannons')) html += `<div class="qrow"><div><b>${pxi('ball')} 10 cannonballs</b><br><small>you have ${state.ammo}</small></div><button id="buyAmmo" ${state.gold >= ammoCost ? '' : 'disabled'}>${ammoCost}g</button></div>`;
     html += `<div class="sec">SHIPYARD</div><div class="qrow"><div><b>${pxi('paint')} Paint, sails, pennants, figureheads</b></div><button id="openYard">Open</button></div>`;
     pane.innerHTML = html;
     const sf = $('sellFish'); if (sf) sf.addEventListener('click', () => { state.gold += fishVal; toast(`Sold ${state.catch.length} fish for ${fishVal} gold.`); state.catch = []; audio.play('buy'); renderHarbour(); });
     const sfr = $('sellFruit'); if (sfr) sfr.addEventListener('click', () => { state.gold += fruitVal; toast(`Sold fruit for ${fruitVal} gold.`); state.fruit = {}; audio.play('buy'); renderHarbour(); });
-    $('buyAmmo').addEventListener('click', () => { if (state.gold < ammoCost) return; state.gold -= ammoCost; state.ammo += 10; audio.play('buy'); renderHarbour(); });
+    if ($('buyAmmo')) $('buyAmmo').addEventListener('click', () => { if (state.gold < ammoCost) return; state.gold -= ammoCost; state.ammo += 10; audio.play('buy'); renderHarbour(); });
     $('openYard').addEventListener('click', () => openModal('yard'));
     $('restBed').addEventListener('click', () => restAtTavern(Math.ceil(8 * discount(rep))));
     const hh = $('hireHand'); if (hh) hh.addEventListener('click', () => {
@@ -1214,12 +1215,14 @@ function frame() {
   }
   { // early chapters: a gentler wedge into the wind, and around Tama the wind leans across the first routes
     const early = chapterOf(state) < 2;
+    let want = wind.raw;
     ship.floorMin = early ? 0.45 : 0; ship.wedge = (early ? 0.68 : 0.6) * Math.PI; ship.wedgeEnd = (early ? 0.97 : 0.95) * Math.PI;
     if (early && !titleScene) {
       const t = world.desc(0, -1), g = world.desc(1, -1), dTama = Math.hypot(ship.pos.x - t.x, ship.pos.z - t.z);
       const k = clamp(1 - (dTama - 450) / 150, 0, 1);
-      if (g && k > 0) { const target = Math.atan2(g.x - t.x, -(g.z - t.z)) + Math.PI / 2; wind.dir = target + angleDiff(target, wind.dir) * (1 - 0.75 * k); }
+      if (g && k > 0) { const target = Math.atan2(g.x - t.x, -(g.z - t.z)) + Math.PI / 2; want = target + angleDiff(target, want) * (1 - 0.75 * k); }
     }
+    wind.dir += angleDiff(wind.dir, want) * Math.min(1, dt * 0.45);   // the felt wind swings round over a few seconds
   }
   const windNow = { dir: wind.dir, strength: Math.min(1.4, wind.strength * (1 + 0.25 * weather.storm)) * (1 - 0.92 * weather.calm) };
   if (live && wind.shifted()) toast(`The wind is shifting: now from the ${wind.fromName}`, false, 4200);
@@ -1387,6 +1390,7 @@ function frame() {
   $('hptxt').textContent = '';
   $('hpfill').style.width = `${Math.max(0, (state.hp / ship.mods.maxHp) * 100)}%`;
   $('ammotxt').textContent = `\u25cf ${state.ammo}`;
+  { const can = unlocked(state, 'cannons'); traffic.noRaiders = !can; document.body.classList.toggle('nocannons', !can); }
   $('reloadfill').style.width = `${100 - Math.min(100, (combat.reload / ship.mods.reload) * 100)}%`;
   const tgtE = combat.target(ship, traffic, 110);
   const eb = $('ebar');

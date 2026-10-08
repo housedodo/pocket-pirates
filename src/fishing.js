@@ -38,6 +38,14 @@ export class Fishing {
     b.blob(0, 0.22, 0, 0.22, 0.2, 0.22, '#d63a30', TILE.white, 0.04, 2);
     this.bobber = new THREE.Mesh(b.geometry(), mats.props);
     this.bobber.visible = false; scene.add(this.bobber);
+    // the rod: a chunky bamboo pole with a cork grip, pivoting at the rail (built along +z from its butt)
+    const r = new Builder();
+    r.box(0, 0, 0.5, 0.2, 0.2, 1.0, '#7a4a26', TILE.bark);        // grip
+    r.box(0, 0, 2.2, 0.14, 0.14, 2.4, '#c8a868', TILE.bark);      // pole
+    r.box(0, 0, 1.3, 0.24, 0.24, 0.16, '#3a2210', TILE.bark);     // reel
+    this.rod = new THREE.Group(); this.rod.add(new THREE.Mesh(r.geometry(), mats.props));
+    this.rod.visible = false; scene.add(this.rod);
+    this.rodLen = 3.4; this.castT = 0;
     const lg = new THREE.BufferGeometry();
     lg.setAttribute('position', new THREE.Float32BufferAttribute(new Float32Array(9), 3));
     this.line = new THREE.Line(lg, new THREE.LineBasicMaterial({ color: 0xece4cc, fog: false }));
@@ -68,12 +76,13 @@ export class Fishing {
     if (s.speed > 2.5) { this.cb.toast('Too fast to fish: reef the sails (S) and let the ship slow down.'); return; }
     const rx = Math.cos(s.heading), rz = Math.sin(s.heading), fx = Math.sin(s.heading), fz = -Math.cos(s.heading);
     this.pos = { x: s.pos.x + rx * 4.8 + fx * 1.5, z: s.pos.z + rz * 4.8 + fz * 1.5 };
-    this.mode = 'wait'; this.timer = 0; this.wait = rnd(2.5, 7) * (1 - 0.25 * this.cb.getCtx().bonus);
-    this.bobber.visible = true; this.line.visible = true;
+    // swing back, flick forward, the bobber flies out on an arc; then the wait begins
+    this.mode = 'cast'; this.castT = 0; this.timer = 0; this.wait = rnd(2.5, 7) * (1 - 0.25 * this.cb.getCtx().bonus);
+    this.rod.visible = true; this.bobber.visible = false; this.line.visible = false;
     this.cb.onStart();
   }
   cancel(text) {
-    this.mode = 'idle'; this.bobber.visible = false; this.line.visible = false; this.ui.style.display = 'none';
+    this.mode = 'idle'; this.bobber.visible = false; this.line.visible = false; this.rod.visible = false; this.ui.style.display = 'none';
     if (text) this.cb.toast(text);
   }
   pick(ctx) {
@@ -104,6 +113,26 @@ export class Fishing {
     this.timer += dt;
     const p = this.pos, w = waveHeight(p.x, p.z, t, ctx.wave);
     let dip = 0;
+    // the rod: butt at the starboard rail, pointing out over the water
+    const rx = Math.cos(s.heading), rz = Math.sin(s.heading), base = new THREE.Vector3(s.pos.x + rx * 1.1, 1.9, s.pos.z + rz * 1.1);
+    let pitch = 0.55;
+    if (this.mode === 'cast') {
+      this.castT += dt; const c = this.castT;
+      pitch = c < 0.3 ? 0.55 + (1.9 - 0.55) * smoothstep(0, 0.3, c) : c < 0.5 ? 1.9 - 1.7 * smoothstep(0.3, 0.5, c) : 0.2 + 0.35 * smoothstep(0.5, 1.0, c);
+    } else if (this.mode === 'bite' || this.mode === 'reel') pitch = 0.75 + Math.sin(t * 14) * 0.08;   // bent by the fish
+    const out = Math.cos(pitch) * this.rodLen, tip = new THREE.Vector3(base.x + rx * out, base.y + Math.sin(pitch) * this.rodLen, base.z + rz * out);
+    this.rod.position.copy(base); this.rod.lookAt(tip);
+    if (this.mode === 'cast') {
+      const k = smoothstep(0.42, 0.95, this.castT);
+      this.bobber.visible = this.line.visible = this.castT > 0.42;
+      if (this.castT >= 1.0) { this.mode = 'wait'; this.timer = 0; if (this.cb.onSplash) this.cb.onSplash(); }
+      const bx = tip.x + (p.x - tip.x) * k, bz = tip.z + (p.z - tip.z) * k, by = tip.y + (w + 0.15 - tip.y) * k + Math.sin(k * Math.PI) * 2.6;
+      this.bobber.position.set(bx, by, bz);
+      const a = this.line.geometry.attributes.position;
+      a.setXYZ(0, tip.x, tip.y, tip.z); a.setXYZ(1, (tip.x + bx) / 2, (tip.y + by) / 2 + 0.3, (tip.z + bz) / 2); a.setXYZ(2, bx, by, bz); a.needsUpdate = true;
+      this.ui.style.display = 'none';
+      return;
+    }
     if (this.mode === 'wait') {
       if (this.timer >= this.wait) { this.mode = 'bite'; this.timer = 0; this.fish = this.pick(ctx); this.cb.onBite(this.fish); }
     } else if (this.mode === 'bite') {
@@ -116,7 +145,7 @@ export class Fishing {
     }
     this.bobber.position.set(p.x, w + 0.15 + dip + Math.sin(t * 2.2) * 0.04, p.z);
     const a = this.line.geometry.attributes.position;
-    const rail = [s.pos.x + Math.cos(s.heading) * 1.2, 2.6, s.pos.z + Math.sin(s.heading) * 1.2];
+    const rail = [tip.x, tip.y, tip.z];
     a.setXYZ(0, rail[0], rail[1], rail[2]);
     a.setXYZ(1, (rail[0] + p.x) / 2, Math.max(w + 0.4, (rail[1] + w) / 2 - 0.6), (rail[2] + p.z) / 2);
     a.setXYZ(2, p.x, this.bobber.position.y, p.z);

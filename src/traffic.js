@@ -99,7 +99,7 @@ export class Traffic {
     const aim = Math.atan2(ship.pos.x - x + (Math.random() - 0.5) * 200, -(ship.pos.z - z + (Math.random() - 0.5) * 200));
     const parts = this.build(kind, faction, mode === 'ghost');
     this.scene.add(parts.root);
-    const hostile = mode === 'live' && faction.id === 'reef' && Math.random() < 0.6;
+    const hostile = !this.noRaiders && mode === 'live' && faction.id === 'reef' && Math.random() < 0.6;   // no raiders until you have cannons
     this.ships.push(armed({
       ...parts, id: this.nextId++, kind, mode, faction, sector, x, z, heading: aim,
       speed: mode === 'live' ? K.speed[0] + Math.random() * (K.speed[1] - K.speed[0]) : mode === 'derelict' ? 1.2 : 3.2,

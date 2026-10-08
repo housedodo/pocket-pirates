@@ -11,13 +11,14 @@ export class Wind {
     this.strength = 1;
     this.announced = null;
     this.update(0);
+    this.dir = this.raw;          // the wind actually felt eases toward raw (main.js), so it never snaps
     this.announced = this.dir;
   }
   update(dt) {
     this.t += dt;
     const t = this.t;
     // slow prevailing swing + a few degrees of gusty wobble at several time-scales
-    this.dir = 0.8 + 2.2 * Math.sin(t * 0.0075 + 0.5) + 0.5 * Math.sin(t * 0.031)
+    this.raw = 0.8 + 2.2 * Math.sin(t * 0.0075 + 0.5) + 0.5 * Math.sin(t * 0.031)
       + 0.07 * Math.sin(t * 0.43 + 1.3) + 0.05 * Math.sin(t * 0.91 + 0.2) + 0.06 * Math.sin(t * 0.21 + 4.1) * Math.sin(t * 0.057);
     const gust = Math.pow(Math.max(0, Math.sin(t * 0.37) * Math.sin(t * 0.113 + 2)), 2) * 0.22;   // short punchy gusts
     this.gust = gust;

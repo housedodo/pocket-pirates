@@ -74,6 +74,13 @@ New voyage goes straight into the game (no title). A new voyage starts moored al
 - Digging, picking fruit and searching wrecks need the ship completely stopped (S).
 - Dolphins never jump across islands.
 
+### Small things
+- Cannons and raiders are switched off until after the demo (UNLOCK.cannons = 6): no ammo on the HUD, no cannonballs
+  for sale, no hostile raiders. The code is all still there.
+- Space or Enter moves Mara's text on / closes it. Fishing casts with a rod animation (back, flick, bobber arcs out).
+- The wind never snaps: the felt wind eases toward its new direction over a few seconds.
+- Log: pale paper bookmarks with a bent corner, the open one pulled out flat; legend and page keys on readable strips.
+
 ### Sailing into the wind
 - Close-hauled (about 45° off the wind) keeps ~65% speed, dead upwind ~20%: zig-zagging (tacking) pays.
 - Chapters I-II are gentler: dead upwind ~45%, and around Tama the wind leans across the route to Hollow Cay Galen.

@@ -194,6 +194,7 @@
     #combatbox { position: absolute; right: 12px; top: 244px; width: 124px; font-size: 12px; text-align: center; }
     #combatbox .bar, #ebar .bar { height: 9px; background: #0007; border: 2px solid var(--edge); margin: 3px 0; }
     #combatbox .bar.thin { height: 5px; }
+    body.nocannons #ammotxt, body.nocannons #combatbox .bar.thin, body.nocannons #tX, body.nocannons .cannonrow { display: none !important; }   /* cannons come later in the story */
     #combatbox .fill { height: 100%; background: #d84a3c; width: 100%; } #reloadfill { background: #8fe6ff !important; }
     #ebar { position: absolute; font-size: 11px; transform: translate(-50%, -100%); padding: 3px 6px; width: 130px; text-align: center; }
     #ebar .fill { height: 100%; background: #e8483c; width: 100%; }
@@ -337,6 +338,20 @@
     .qrow button, .job button, #pauseAbyss .abrow button, .abrow .abtxt b, .ent b, .qrow b, #hud .panel b, .menu button, .btn { font-size: 16px !important; letter-spacing: .02em !important; }
     small, .ds, .ent small, .qrow small, .menu small, .menu .tip, #tracker .thint, .abrow small, #help, #mate b, #sailbar, #combatbox, #ebar, .legend, #debug, #abyssTag { font-size: 16px !important; letter-spacing: 0 !important; }
     small, .ds, .qrow small, .menu .tip, #tracker .thint { opacity: .78 !important; }
+
+    /* legibility in the log: the map legend on a strip of clean paper, the page keys on dark wood */
+    #chart .legend { width: fit-content; margin: 6px auto 0; padding: 2px 12px; color: #2a1608 !important; background: #f2e4bc; box-shadow: 0 -2px 0 #6a4a26, 0 2px 0 #6a4a26, -2px 0 0 #6a4a26, 2px 0 0 #6a4a26; text-shadow: none !important; }
+    #chart .legend b { text-shadow: none; }
+    #chart .bookbar .keys { flex: none; margin: 0 auto; padding: 2px 12px; opacity: 1 !important; color: #f4ead0 !important; background: #1e1008; box-shadow: 0 -2px 0 #3a2210, 0 2px 0 #3a2210, -2px 0 0 #3a2210, 2px 0 0 #3a2210; text-shadow: 2px 2px 0 #000 !important; }
+    /* bookmarks: pale paper slips tucked into the book, the corner bent over; the open one pulled out flat */
+    #chart[data-book="pixel"] .ribbons button { --paper: #efe6cf; background: var(--paper) !important; clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 10px, 100% 100%, 0 100%) !important;
+      transform: translateX(0) perspective(220px) rotateY(-14deg) skewY(-2deg) !important; transform-origin: left center; padding: 0 18px 0 0 !important; justify-content: flex-end; transition: transform .2s; box-shadow: inset -6px 0 0 rgba(120,90,50,.18), inset 0 -3px 0 rgba(120,90,50,.25); }
+    #chart[data-book="pixel"] .ribbons button::before { background: repeating-linear-gradient(0deg, rgba(120,90,50,.06) 0 2px, transparent 2px 6px) !important; opacity: 1 !important; }
+    #chart[data-book="pixel"] .ribbons button::after { content: ""; position: absolute; right: 0; top: 0; width: 14px; height: 10px; background: #c8b48a; clip-path: polygon(0 0, 100% 100%, 0 100%); }   /* the bent-over corner */
+    #chart[data-book="pixel"] .ribbons button em { color: #3a2210 !important; text-shadow: none !important; }
+    #chart[data-book="pixel"] .ribbons button:hover { transform: translateX(5px) perspective(220px) rotateY(-8deg) skewY(-1deg) !important; }
+    #chart[data-book="pixel"] .ribbons button.on { --paper: #fbf5e4; transform: translateX(16px) !important; clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%) !important; box-shadow: inset 0 -3px 0 rgba(120,90,50,.25), 4px 4px 0 rgba(0,0,0,.35); }
+    #chart[data-book="pixel"] .ribbons button.on::after { display: none; }
   </style>
 </head>
 <body>
@@ -399,7 +414,8 @@
         <tr><td>G</td><td>Oars out / in (row in a dead calm or up to a pier)</td></tr>
         <tr><td>E</td><td>Go ashore at a pier, dig, pick fruit, salvage, hail a ship (stop the ship first)</td></tr>
         <tr><td>C</td><td>Fishing: cast, hook the fish, hold Space to reel</td></tr>
-        <tr><td>Space</td><td>Fire cannons at an attacking raider (auto-aimed)</td></tr>
+        <tr><td>Space or Enter</td><td>Continue / close Mara's text</td></tr>
+        <tr class="cannonrow"><td>Space</td><td>Fire cannons at an attacking raider (auto-aimed)</td></tr>
         <tr><td>1 / 2</td><td>Choose on an encounter card</td></tr>
         <tr><td>Space / H</td><td>Dice at the tavern: roll / hold. Space also throws the die at the hut</td></tr>
         <tr><td>M / J</td><td>Captain's log: M = map, J = quests (tabs on the bookmarks)</td></tr>
