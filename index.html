@@ -261,10 +261,10 @@
     #title { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 6vh; background: radial-gradient(ellipse at 50% 45%, rgba(0,0,0,0) 45%, rgba(4,2,8,.55)); text-align: center; z-index: 5; cursor: pointer; }
     #titleLogo { width: min(820px, 92vw); image-rendering: pixelated; }
     #titleMenu { position: absolute; left: max(16px, 5vw); bottom: 10vh; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
-    #titleMenu button { all: unset; cursor: pointer; position: relative; padding-left: 28px; font-size: 32px !important; line-height: 48px; color: #b8a47c; text-shadow: 4px 4px 0 #1a0606; }
+    #titleMenu button { all: unset; cursor: pointer; position: relative; padding-left: 28px; font-size: 32px !important; line-height: 48px; color: #b8a47c; text-shadow: 2px 0 0 currentColor, 0 2px 0 currentColor, 2px 2px 0 currentColor, 5px 5px 0 #1a0606, 4px 4px 0 #1a0606; }   /* pixel bold: the face drawn twice, a hair apart */
     #titleMenu button:hover, #titleMenu button:focus { color: #f4ead0; outline: none; }
     #titleMenu button:hover::before, #titleMenu button:focus::before { content: ""; position: absolute; left: 0; top: 12px; width: 16px; height: 20px; background: #c8402a; clip-path: polygon(0 0, 100% 50%, 0 100%); filter: drop-shadow(4px 4px 0 #1a0606); }
-    #title .blink { position: absolute; bottom: 4vh; left: 0; right: 0; font-size: 16px !important; color: #e2d4b0; text-shadow: 2px 2px 0 #1a0606; }
+    #title .blink { position: absolute; bottom: 4vh; left: 0; right: 0; font-size: 16px !important; color: #e2d4b0; text-shadow: 1px 0 0 currentColor, 3px 3px 0 #1a0606; }
     #title h1 { font-size: clamp(34px, 8vw, 78px); margin: 0; letter-spacing: .12em; color: var(--gold); }
     #title p { margin: 0; font-size: clamp(13px, 2.4vw, 18px); }
     #title .blink { animation: blink 1.2s steps(2) infinite; }

@@ -4,7 +4,7 @@ import { sampleStage, DARK_THRESHOLD, dreadAtDistance } from './palette.js';
 import { U, initMaterials, mats, PostFX } from './psx.js';
 import { Ocean } from './ocean.js';
 import { Sky } from './sky.js';
-import { World, villager, VILLAGERS, houseKind, HOUSES } from './world.js';
+import { World, villager, VILLAGERS, houseKind, HOUSES, shoreR } from './world.js';
 import { Builder } from './builder.js';
 import { TILE } from './textures.js';
 import { Ship } from './ship.js';
@@ -130,6 +130,12 @@ sea.syncQuests(state.quests.filter((q) => q.id === state.tracked));
 fauna.onSpot = (what) => { state.stats[what]++; toast(what === 'dolphins' ? 'Dolphins!' : 'A whale surfaces in the distance!', false, 2500); };
 audio.musicOn = !settings.musicOff;
 
+// a new voyage begins moored alongside Tama's pier with the sails furled, as if you had just come aboard
+if (!saved && !params.has('x')) {
+  const d = world.desc(0, -1), th = Math.PI / 2, r = shoreR(d, th) + 9;
+  state.pos = { x: d.x + Math.cos(th) * r - Math.sin(th) * 5, z: d.z + Math.sin(th) * r + Math.cos(th) * 5, h: Math.atan2(Math.cos(th), -Math.sin(th)) };
+  ship.trim = 0;
+}
 ship.pos.set(state.pos.x, 0, state.pos.z);
 ship.heading = state.pos.h;
 const refreshMods = () => { ship.mods = computeMods(state.upgrades); state.hp = Math.min(state.hp, ship.mods.maxHp); };
@@ -327,7 +333,7 @@ $('tSail').addEventListener('click', (e) => { e.stopPropagation(); setSail(); })
 $('tNew').addEventListener('click', (e) => {
   e.stopPropagation();
   if (performance.now() - newAskT > 4000) { newAskT = performance.now(); $('tNew').textContent = 'Really? Press again'; return; }
-  noSave = true; try { localStorage.removeItem(SAVE_KEY); } catch (err) { /* storage blocked */ }
+  noSave = true; try { localStorage.removeItem(SAVE_KEY); sessionStorage.setItem('hoist-new', '1'); } catch (err) { /* storage blocked */ }
   location.href = location.pathname;
 });
 
@@ -1157,7 +1163,7 @@ function sinkPlayer() {
 let newAsk = 0;
 $('pbNew').addEventListener('click', () => {
   if (performance.now() - newAsk > 4000) { newAsk = performance.now(); $('pbNew').textContent = 'Really? Click again to start over'; return; }
-  noSave = true; try { localStorage.removeItem(SAVE_KEY); } catch (e) { /* storage blocked */ }
+  noSave = true; try { localStorage.removeItem(SAVE_KEY); sessionStorage.setItem('hoist-new', '1'); } catch (e) { /* storage blocked */ }
   location.href = location.pathname;
 });
 $('pbHint').addEventListener('click', () => { closeModal(); if (!abyss.maraHint()) objectives.askHint(dread); });
@@ -1427,5 +1433,7 @@ window.__game = {
   },
   abyss, hut, ship, world, state, begin, scene, camera, horror, renderer, wind, weather, fauna, traffic, sea, audio, fishing, combat, objectives, hurtPlayer, openModal, closeModal, buyUpgrade, refreshMods,
 };
-if (params.get('autostart')) begin(); else startTitle();
+let newVoyage = false;   // New voyage reloads straight into the game, no title in between
+try { newVoyage = sessionStorage.getItem('hoist-new') === '1'; sessionStorage.removeItem('hoist-new'); } catch (e) { /* storage blocked */ }
+if (params.get('autostart') || newVoyage) begin(); else startTitle();
 frame();
