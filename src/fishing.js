@@ -40,7 +40,7 @@ export class Fishing {
     this.bobber.visible = false; scene.add(this.bobber);
     this.rod = new THREE.Group(); this.rod.visible = false; scene.add(this.rod);
     this.castT = 0;
-    this.setStyle(cbs.rodStyle || 'cane');
+    this.buildRod();
     const lg = new THREE.BufferGeometry();
     lg.setAttribute('position', new THREE.Float32BufferAttribute(new Float32Array(9), 3));
     this.line = new THREE.Line(lg, new THREE.LineBasicMaterial({ color: 0xece4cc, fog: false }));
@@ -57,26 +57,12 @@ export class Fishing {
     this.ui.addEventListener('pointerleave', () => { this.hold = false; });
   }
 
-  /** what you fish with: 'hand' (a line thrown from a wooden winder at the rail) or a small rod: 'cane', 'reel', 'driftwood' */
-  setStyle(style) {
-    this.style = style;
-    for (const ch of [...this.rod.children]) { this.rod.remove(ch); ch.geometry.dispose(); }
-    const r = new Builder();   // rods are built along +z from the butt, at ship scale (the hull is ~5 long)
-    if (style === 'hand') {      // a cross-shaped winder with the line wound round it, resting on the rail
-      r.box(0, 0, 0, 0.5, 0.12, 0.12, '#8a5a30', TILE.bark); r.box(0, 0, 0, 0.12, 0.12, 0.5, '#8a5a30', TILE.bark);
-      r.box(0, 0, 0, 0.3, 0.16, 0.3, '#e8dcc0', TILE.white);
-      this.rodLen = 0;
-    } else if (style === 'reel') { // short rod: cork grip, brass reel, dark tip
-      r.box(0, 0, 0.25, 0.12, 0.12, 0.5, '#d8b080', TILE.white); r.box(0, -0.1, 0.42, 0.16, 0.14, 0.14, '#c9a85c', TILE.white);
-      r.box(0, 0, 1.05, 0.08, 0.08, 1.1, '#8a5a30', TILE.white); this.rodLen = 1.6;
-    } else if (style === 'driftwood') { // a crooked grey branch, line wound on a peg
-      r.box(0, 0, 0.4, 0.13, 0.13, 0.8, '#b8ac94', TILE.white); r.box(0.06, 0, 1.15, 0.1, 0.1, 0.75, '#c8bca4', TILE.white);
-      r.box(0.1, 0.05, 0.25, 0.18, 0.06, 0.06, '#5a3a1c', TILE.bark); this.rodLen = 1.5;
-    } else {                     // 'cane': a slim bamboo pole with a cord-wrapped grip and darker nodes
-      r.box(0, 0, 0.2, 0.12, 0.12, 0.4, '#7a4a26', TILE.white); r.box(0, 0, 1.05, 0.08, 0.08, 1.3, '#e8cc88', TILE.white);
-      for (const z of [0.7, 1.1, 1.5]) r.box(0, 0, z, 0.1, 0.1, 0.05, '#a88850', TILE.white);
-      this.rodLen = 1.75;
-    }
+  /** the rod: a slim bamboo cane with a cord-wrapped grip and darker nodes, built along +z from the butt (the hull is ~5 long) */
+  buildRod() {
+    const r = new Builder();
+    r.box(0, 0, 0.2, 0.12, 0.12, 0.4, '#7a4a26', TILE.white); r.box(0, 0, 1.05, 0.08, 0.08, 1.3, '#e8cc88', TILE.white);
+    for (const z of [0.7, 1.1, 1.5]) r.box(0, 0, z, 0.1, 0.1, 0.05, '#a88850', TILE.white);
+    this.rodLen = 1.75;
     this.rod.add(new THREE.Mesh(r.geometry(), mats.props));
   }
 
@@ -138,15 +124,8 @@ export class Fishing {
       this.castT += dt; const c = this.castT;
       pitch = c < 0.3 ? 0.55 + (1.9 - 0.55) * smoothstep(0, 0.3, c) : c < 0.5 ? 1.9 - 1.7 * smoothstep(0.3, 0.5, c) : 0.2 + 0.35 * smoothstep(0.5, 1.0, c);
     } else if (this.mode === 'bite' || this.mode === 'reel') pitch = 0.75 + Math.sin(t * 14) * 0.08;   // bent by the fish
-    let tip;
-    if (this.style === 'hand') {   // the winder sits on the rail; the line leaves from a hand's reach outboard
-      base.y = 1.55; this.rod.position.copy(base); this.rod.rotation.set(0, -s.heading, 0);
-      const swing = this.mode === 'cast' ? Math.sin(Math.min(1, this.castT / 0.45) * Math.PI) * 0.6 : 0;   // the arm swings the line round
-      tip = new THREE.Vector3(base.x + rx * (0.5 + swing * 0.4), base.y + 0.5 + swing, base.z + rz * (0.5 + swing * 0.4));
-    } else {
-      const out = Math.cos(pitch) * this.rodLen; tip = new THREE.Vector3(base.x + rx * out, base.y + Math.sin(pitch) * this.rodLen, base.z + rz * out);
-      this.rod.position.copy(base); this.rod.lookAt(tip);
-    }
+    const out = Math.cos(pitch) * this.rodLen, tip = new THREE.Vector3(base.x + rx * out, base.y + Math.sin(pitch) * this.rodLen, base.z + rz * out);
+    this.rod.position.copy(base); this.rod.lookAt(tip);
     if (this.mode === 'cast') {
       const k = smoothstep(0.42, 0.95, this.castT);
       this.bobber.visible = this.line.visible = this.castT > 0.42;

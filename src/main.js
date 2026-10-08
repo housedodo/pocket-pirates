@@ -216,7 +216,6 @@ const abyss = new Abyss({ scene, ship, world, sky, settings, state, mate: object
     objectives.mate.say('Captain? Captain! You were asleep at the wheel. For how long, I... let us just go home.');
   } });
 const fishing = new Fishing(scene, ship, {
-  rodStyle: params.get('rod') || 'cane',
   toast: (t) => toast(t),
   getCtx: () => ({ bonus: Math.max(0, ship.mods.lootMul - 1) }),
   onStart: () => audio.play('cast'),
