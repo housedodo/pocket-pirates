@@ -229,6 +229,14 @@ New voyage goes straight into the game (no title). A new voyage starts moored al
 12. **The island that moves:** one island is in a different place every time it is charted. It is resting
     on something.
 
+### Little harbour quests (for the full game, not built yet)
+Random errands offered on arrival. Details in the story bible, "Little harbour quests".
+- **The lost kitten:** fetch a child's kitten from a fishing boat off a sandbar. Reward: a shell, standing.
+- **The birthday cake:** deliver a cake to the next island before sunset; storms squash it. Reward: gold, a cake
+  speed buff, the innkeeper greets you by name.
+- **The other kitten:** the same quest, slightly wrong (dry, calm kitten facing your ship, the child repeats the
+  first child's words, the same shell twice). Only from Off water on, once, in another harbour. Never explained.
+
 ## 4. Main story
 The worked-out story (main story, Old Perrin, Mara's village, the island that moves, how they connect and
 the build plan in six parts) lives in the shared story doc, which the user edits:
