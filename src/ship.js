@@ -230,6 +230,20 @@ export class Ship {
     this.flag.add(this.flagBright, this.flagDark);
     this.root.add(this.flag);
 
+    // oars: two a side, stowed along the rail until rowing (G). Chunky, no thin lines.
+    this.oarArms = [];
+    const ob = new Builder();
+    ob.box(0, 0, 1.6, 0.18, 0.18, 3.2, '#ffffff', TILE.bark);    // loom, pivot at the rail
+    ob.box(0, 0, 3.35, 0.1, 0.42, 0.7, '#ffffff', TILE.planks);   // blade
+    const og = ob.geometry();
+    for (const side of [-1, 1]) for (const z of [-0.7, 1.1]) {
+      const arm = new THREE.Group(); arm.position.set(side * 1.15, 1.25, z);
+      const m = new THREE.Mesh(og, mats.props); arm.add(m); arm.visible = false;
+      arm.userData = { side, ph: z * 0.25 };
+      this.root.add(arm); this.oarArms.push(arm);
+    }
+    this.rowing = false; this.oarOut = 0; this.stroke = 0;
+
     // wake puffs
     this.puffGeo = new THREE.CircleGeometry(1, 6).rotateX(-Math.PI / 2);
     this.puffGeo.setAttribute('color', new THREE.Float32BufferAttribute(new Float32Array(7 * 4).fill(1), 4));
@@ -281,9 +295,23 @@ export class Ship {
   }
 
   update(dt, input, wind, t) {
-    // trim + rudder
-    this.trim = clamp(this.trim + input.sail * 0.6 * dt, 0, 1);
     this.rudder += (input.steer - this.rudder) * Math.min(1, dt * 4);
+    this.oarOut = clamp(this.oarOut + (this.rowing ? 1 : -1) * dt * 0.7, 0, 1);
+    if (this.rowing || this.oarOut > 0) {
+      // rowing: sail furled, W pulls forward, S backs water; slow but independent of the wind
+      this.trim = Math.max(0, this.trim - dt * 0.8);
+      this.rowIn = this.oarOut >= 1 && this.rowing ? input.sail : 0;
+      this.eff = 1; this.rel = angleDiff(this.heading, wind.dir);
+      const target = this.rowIn > 0 ? 2.6 * this.mods.speed : this.rowIn < 0 ? -0.9 : 0;
+      this.speed += (target - this.speed) * Math.min(1, (this.rowIn ? 0.45 : 0.25) * dt);
+      if (this.rowIn) this.stroke += dt * 3.4 * Math.sign(this.rowIn);
+      this.heading += this.rudder * this.mods.turn * 0.55 * dt;
+      this.pos.x += Math.sin(this.heading) * this.speed * dt;
+      this.pos.z -= Math.cos(this.heading) * this.speed * dt;
+      return;
+    }
+    this.rowIn = 0;
+    this.trim = clamp(this.trim + input.sail * 0.6 * dt, 0, 1);
 
     // wind
     const a = Math.abs(angleDiff(this.heading, wind.dir));
@@ -325,6 +353,18 @@ export class Ship {
     this.flag.rotation.y = Math.PI - this.rel + Math.sin(t * 9) * 0.18 + (this.wrongSails ? Math.PI : 0);
     this.flagBright.visible = !dark;
     this.flagDark.visible = dark;
+
+    // oars: swing out from the rail, then stroke (blade dips, pulls back, lifts, swings forward)
+    const o = this.oarOut, ease = o * o * (3 - 2 * o);
+    for (const arm of this.oarArms) {
+      arm.visible = o > 0.01;
+      const sd = arm.userData.side, st = this.stroke + arm.userData.ph * 0;
+      const sw = this.rowIn ? Math.sin(st) * 0.5 : 0, lift = this.rowIn ? Math.max(0, -Math.cos(st)) * 0.25 : 0;
+      arm.rotation.set(0, 0, 0);
+      arm.rotation.order = 'YXZ';
+      arm.rotation.y = sd * lerp(0, Math.PI / 2, ease) + sd * sw - (1 - ease) * 0;      // stowed pointing aft, out to the side
+      arm.rotation.x = lerp(0, 0.38, ease) - lift;                                       // blades down into the water
+    }
 
     // lantern glow
     const L = this.mods.lantern;

@@ -323,6 +323,7 @@ window.addEventListener('keydown', (e) => {
   if (e.code === 'Enter') objectives.mate.skip();
   if (e.code === 'KeyE') tryInteract();
   if (e.code === 'KeyH') $('hud').classList.toggle('hidden');
+  if (e.code === 'KeyG' && !modal && started) { ship.rowing = !ship.rowing; toast(ship.rowing ? 'Oars out' : 'Oars in, sails up', false, 2200); if (ship.rowing) objectives.remark('oars', dread); }
   if (e.code === 'KeyQ' && !modal) { settings.tracker = settings.tracker === false; store.set(SETTINGS_KEY, settings); }
   if (e.code === 'Backquote') debugEl.style.display = debugEl.style.display === 'block' ? 'none' : 'block';
   if (e.code === 'Digit0') { forced = null; abyss.stopTest(); }
@@ -885,7 +886,7 @@ function stormAndCalm(dt) {
   const st = weather.storm, sail = ship.trim;
   if (st > 0.15) {
     const gust = 0.6 + 0.4 * Math.sin(tNow * 0.9) * Math.sin(tNow * 2.3);
-    const push = st * gust * (2.4 + 3.2 * sail) * dt;                  // shoved downwind, more with the sail up
+    const push = st * gust * (2.4 + 3.2 * sail) * (ship.rowing ? 0.6 : 1) * dt;                  // shoved downwind, more with the sail up
     ship.pos.x += Math.sin(wind.dir) * push; ship.pos.z -= Math.cos(wind.dir) * push;
     const side = Math.abs(Math.sin(angleDiff(ship.heading, wind.dir)));   // waves run with the wind
     if (st > 0.4 && side > 0.6) {
@@ -895,7 +896,6 @@ function stormAndCalm(dt) {
   }
   if (weather.calm > 0.5) {
     objectives.remark('calm', dread);
-    if (shipInput.sail > 0 && ship.speed < 1.4) ship.speed += (1.4 - ship.speed) * Math.min(1, dt * 0.6); // rowing
   }
   if (weather.redSky > 0.4) objectives.remark('redsky', dread);
   const thick = weather.fog > 0.5 && (state.dayN >= 3 || dread > 0.3);
