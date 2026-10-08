@@ -7,7 +7,8 @@ const hex = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
 export const TITLE_SCENES = [
   { id: 'morning', time: 0.31, weather: { cloud: 0.2, rain: 0, storm: 0, fog: 0 }, cam: [2.3, 15, 2.6, 6] },
   { id: 'day', time: 0.5, weather: { cloud: 0.3, rain: 0, storm: 0, fog: 0 }, cam: [-2.0, 17, 3.2, 6.5] },
-  { id: 'dawn', time: 0.255, weather: { cloud: 0.15, rain: 0, storm: 0, fog: 0.3 }, cam: [2.6, 15, 2.8, 6.5] },
+  { id: 'dawn', time: 0.272, weather: { cloud: 0.2, rain: 0, storm: 0, fog: 0.55 }, cam: [2.6, 15, 2.8, 6.5],
+    tint: { top: '#c0aa84', hor: '#ffd27a', fog: '#f0cc84', k: 0.75 } },   // misty gold, unlike the pink dusk
   { id: 'dusk', time: 0.772, weather: { cloud: 0.15, rain: 0, storm: 0, fog: 0 }, cam: [1.8, 14, 2.4, 6.5] },
   { id: 'night', time: 0.93, weather: { cloud: 0.05, rain: 0, storm: 0, fog: 0 }, cam: [2.3, 15, 2.6, 6.5] },
   { id: 'rain', time: 0.46, weather: { cloud: 0.9, rain: 0.85, storm: 0.25, fog: 0.15 }, cam: [-2.2, 15, 2.8, 6] },

@@ -48,7 +48,7 @@ purple and magenta cosmic horror as dread rises.
   deeper troughs and chunky foam flecks on the crests. It should never read as a flat plane.
 - **Title screen** (the one exception to the single UI font): the game is called **HOIST**. The logo is "Hoist" in
   Pirata One, bone white (`#f4ead0` to `#b8a47c`, dithered) with a dried-blood block shadow (`#5a1612` / `#1a0606`),
-  drawn at low resolution and worn. The menu uses IM Fell English SC. Behind it the Pocket Pearl bobs alone on open
+  drawn at low resolution and worn. The menu is the game font (DotGothic16, 32px) with a red pennant pointer. Behind it the Pocket Pearl bobs alone on open
   sea at a random hour: morning, day, dawn, dusk, night or rain (`src/title.js`).
 - Bright stage: turquoise shallows `#4fe0d0`, deep blue `#1b86c6`, warm sand `#ecd69c`, palm greens
   `#4a9a40 / #6aa456`, red/white lighthouses, cream sails `#f4ecd0`.

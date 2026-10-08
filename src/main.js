@@ -295,6 +295,7 @@ function startTitle() {
   $('hud').classList.add('hidden');
   $('tNew').style.display = saved ? '' : 'none';
   document.fonts.load("86px 'Pirata One'").then(() => drawTitleLogo($('titleLogo')));
+  setTimeout(() => $('tSail').focus(), 50);
 }
 function titleCam(dt) {
   const ts = titleScene, [ang, dist, hgt, lookY] = ts.sc.cam; ts.t += dt;
@@ -309,11 +310,23 @@ function endTitle() {
   state.time = k.time; forced = k.forced; weather.force = null;
   if (params.get('hud') !== '0') $('hud').classList.remove('hidden');
 }
-let newAskT = 0;
-$('tSail').addEventListener('pointerdown', (e) => { e.stopPropagation(); begin(); });
-$('tNew').addEventListener('pointerdown', (e) => {
+// only Set sail leaves the title: a fade to black, then you are back aboard where your voyage left off
+let newAskT = 0, sailing = false;
+function setSail() {
+  if (sailing || started) return; sailing = true;
+  $('fade').classList.add('on');
+  setTimeout(() => { begin(); setTimeout(() => $('fade').classList.remove('on'), 250); }, 1000);
+}
+function titleItems() { return [...document.querySelectorAll('#titleMenu button')].filter((b) => b.style.display !== 'none'); }
+function titleKey(e) {
+  const items = titleItems(); let i = Math.max(0, items.indexOf(document.activeElement));
+  if (['ArrowDown', 'KeyS', 'ArrowUp', 'KeyW'].includes(e.code)) { i = (i + (e.code === 'ArrowDown' || e.code === 'KeyS' ? 1 : items.length - 1)) % items.length; items[i].focus(); e.preventDefault(); }
+  if (['Enter', 'Space', 'KeyE'].includes(e.code)) { e.preventDefault(); (document.activeElement && items.includes(document.activeElement) ? document.activeElement : items[0]).click(); }
+}
+$('tSail').addEventListener('click', (e) => { e.stopPropagation(); setSail(); });
+$('tNew').addEventListener('click', (e) => {
   e.stopPropagation();
-  if (performance.now() - newAskT > 4000) { newAskT = performance.now(); $('tNew').textContent = 'Really? Click again'; return; }
+  if (performance.now() - newAskT > 4000) { newAskT = performance.now(); $('tNew').textContent = 'Really? Press again'; return; }
   noSave = true; try { localStorage.removeItem(SAVE_KEY); } catch (err) { /* storage blocked */ }
   location.href = location.pathname;
 });
@@ -330,7 +343,7 @@ let forced = params.has('dread') ? clamp(parseFloat(params.get('dread')), 0, 1) 
 
 window.addEventListener('keydown', (e) => {
   if (e.target && e.target.closest && e.target.closest('#mixer') && e.code !== 'F8') return;   // arrow keys on a mixer slider move the slider, not the ship
-  if (!started) { begin(); return; }
+  if (!started) { if (titleScene) titleKey(e); else begin(); return; }
   if (e.code === 'Escape' || e.code === 'KeyP') {
     e.preventDefault();
     if (modal === 'pause') { if ($('pauseControls').style.display !== 'none' || $('pauseAbyss').style.display !== 'none') showPauseMain(); else closeModal(); }
@@ -409,7 +422,7 @@ window.addEventListener('keydown', (e) => {
 });
 window.addEventListener('keyup', (e) => { keys.delete(e.code); if (e.code === 'Space') fishing.hold = false; });
 window.addEventListener('blur', () => { if (started && !modal && !params.get('shot')) openModal('pause'); });
-titleEl.addEventListener('pointerdown', begin);
+titleEl.addEventListener('pointerdown', () => { if (!titleScene) begin(); });   // with the live title, only Set sail starts
 
 let zoom = parseFloat(params.get('zoom') || '24'), zoomT = zoom;
 const PITCH_MIN = 0.06;   // low, almost level with the deck: the view tilts up to the sky instead of dipping under the hull
@@ -1215,6 +1228,7 @@ function frame() {
   stage.wave *= 0.7 + 0.5 * wind.strength;
   weather.update(dt, wind.t, dread, wind.dir, wind.strength, camera, tod);
   weather.apply(stage);
+  if (titleScene && titleScene.sc.tint) { const t = titleScene.sc.tint; stage.skyTop.lerp(new THREE.Color(t.top), t.k * 0.6); stage.skyHorizon.lerp(new THREE.Color(t.hor), t.k); stage.fog.lerp(new THREE.Color(t.fog), t.k); }
   stage.fogFar += ship.mods.fogBonus; stage.fogNear += ship.mods.fogBonus * 0.5;
   if (gateFog > 0) { stage.fogFar = Math.max(30, stage.fogFar * (1 - 0.85 * gateFog)); stage.fogNear = Math.max(4, stage.fogNear * (1 - 0.9 * gateFog)); stage.fog.lerp(new THREE.Color('#b8c0c4'), gateFog * 0.7); }
   abyss.update(dt, { dread, live, camera, camYaw, ch: camHeading + camYaw });

@@ -7,7 +7,8 @@ For how things must look, see `STYLE.md`; for how systems work, see `DESIGN.md`.
 ## 1. Where the game is now
 
 **Title:** the game is now called **HOIST** (repo and file names still say pocket-pirates). The title screen is live:
-the ship alone on open sea, one of six random scenes (morning, day, dawn, dusk, night, rain), Set sail / New voyage.
+the ship alone on open sea, one of six random scenes (morning, day, misty gold dawn, dusk, night, rain). Only
+Set sail (or New voyage) leaves it, with a fade to black; arrows/W S move the pennant, Enter chooses.
 `?title=night` forces a scene, `?notitle=1` skips the live scene.
 
 ### Chapters (the main thread, `objectives.js`)
