@@ -28,7 +28,7 @@ export class Mixer {
     this.list.addEventListener('input', (e) => {
       const row = e.target.closest('.mxrow'); if (!row) return;
       const k = row.dataset.k, x = e.target.value / 100;
-      this.a.setVol(k, x); row.querySelector('.mxval').textContent = `${e.target.value}%`;
+      this.a.setVol(k, x); row.querySelector('.mxval').textContent = `${e.target.value}%`; this.a.refreshLoops();
       if (k === '_master') this.a.setMuted(this.a.muted);
       if (k === '_music') this.a.setMusic(this.a.musicOn);
       this.saveLocal();
@@ -36,8 +36,13 @@ export class Mixer {
     this.list.addEventListener('click', (e) => {
       const b = e.target.closest('.mxplay'); if (!b) return;
       const k = b.closest('.mxrow').dataset.k;
+      if (!this.a.ctx) { this.toast('Start the game first: sound begins with the first click.', false, 4000); return; }
+      if (this.a.ctx.state === 'suspended') this.a.ctx.resume();
       if (CUES.loops.includes(k)) {
         this.a.preview = this.a.preview === k ? null : k;
+        this.a.refreshLoops();
+        if (this.a.preview && k.startsWith('music_') && !this.a.musicOn) this.toast('Music is switched off in the pause menu, so this solo is silent.', false, 5000);
+        if (this.a.muted) this.toast('Sound is switched off in the pause menu.', false, 4000);
         this.list.querySelectorAll('.mxplay').forEach((x) => x.classList.toggle('on', x.closest('.mxrow').dataset.k === this.a.preview));
       } else this.a.play(k);
     });
@@ -58,7 +63,7 @@ export class Mixer {
   saveLocal() { try { localStorage.setItem(KEY, JSON.stringify(this.a.vol)); } catch (e) { /* storage blocked */ } }
   toggle(on = !this.el.classList.contains('open')) {
     this.el.classList.toggle('open', on);
-    if (!on) { this.a.preview = null; this.list.querySelectorAll('.mxplay.on').forEach((x) => x.classList.remove('on')); }
+    if (!on) { this.a.preview = null; this.a.refreshLoops(); this.list.querySelectorAll('.mxplay.on').forEach((x) => x.classList.remove('on')); }
   }
   /** live meters: how loud the game is asking each loop to play right now */
   update() {

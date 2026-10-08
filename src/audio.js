@@ -112,6 +112,9 @@ export class AudioBus {
     if (g) g.gain.setTargetAtTime(v * this.v(key), this.ctx.currentTime, this.preview ? 0.15 : 0.7);
   }
 
+  /** re-apply every loop's gain now (the mixer calls this so solo works even while the game is paused) */
+  refreshLoops() { if (!this.ctx) return; for (const k of this.loops.keys()) this.setLoop(k, this.level[k] || 0); }
+
   play(key, { vol = 1, rate = 1 } = {}) {
     if (!this.ctx) return;
     const buf = this.buffers.get(key);

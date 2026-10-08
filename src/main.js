@@ -1292,6 +1292,7 @@ function frame() {
   $('abyssTag').style.display = abyss.solo ? 'block' : 'none';
   if (abyss.solo) $('abyssTag').textContent = `Testing: ${EFFECTS.find((f) => f.id === abyss.solo).name}  \u00b7  0 = stop`;
   updateTracker();
+  mixer.update();
   $('clockicon').className = `ico ${tod.sunElev > 0 ? 'sun' : 'moon'}`;
   $('sailfill').style.width = `${Math.round(ship.trim * 100)}%`;
   drawCompass(wind, ship.heading);
@@ -1313,7 +1314,6 @@ function frame() {
   } else eb.style.display = 'none';
   if (live) {
     const near = world.nearest(ship.pos.x, ship.pos.z, 45);
-    mixer.update();
     audio.update(dt, { dread, speed: ship.speed / 11, night: tod.night, wind: wind.strength, rain: weather.rain, storm: weather.storm, surf: near ? clamp(1 - world.lastEdge / 45, 0, 1) : 0, rowing: ship.rowIn > 0 });
     const hour = Math.floor(state.time * 24);
     if (hour !== lastHour) { lastHour = hour; if (world.nearest(ship.pos.x, ship.pos.z, 80, ['harbour'])) audio.play('bell', { vol: 0.6 }); }
