@@ -15,6 +15,7 @@ const COL = {
   sand: C('#ecd48f'), wet: C('#d2b676'), g1: C('#62b64f'), g2: C('#3f9a47'), g3: C('#2f7d3d'),
   rock1: C('#8f8b84'), rock2: C('#a7a095'), dirt: C('#c9a46a'), violet: C('#4a2f66'),
   white: C('#ffffff'), wood: C('#9a6a3a'), bark: C('#8a6238'),
+  ash1: C('#4a4246'), ash2: C('#5e5458'), ember: C('#7a3a2a'), mud: C('#6a5a3a'), mire: C('#4a6a34'),
 };
 const WALLS = ['#f4dfb0', '#f0b3a0', '#a9d6ee', '#f2e48a', '#c9e6a8', '#e8c0e0'];
 const ROOFS = ['#d2483c', '#3c78c8', '#2f9a8a', '#c86a2a', '#7a4ab0'];
@@ -53,6 +54,14 @@ export function describeCell(cx, cz, seed) {
   const nameRng = mulberry32(hash2(cx, cz, seed + 5));
   const name = makeName(nameRng, type, dread);
   const desc = { id: key, type, x, z, r, H, lobes, seed: hash2(cx, cz, seed + 1) & 0xffff, name, dread };
+  // rarer island kinds, rolled with their own generator so the rest of the world stays where it was
+  if (!forced && Math.max(Math.abs(cx), Math.abs(cz)) > 1) {
+    const vr = mulberry32(hash2(cx, cz, seed + 4242)), v = vr();
+    if (type === 'rocky' && v < 0.3) { desc.type = 'volcano'; desc.H = 9 + vr() * 4; desc.r *= 1.15; }
+    else if (type === 'sandbar' && v < 0.35) { desc.type = 'atoll'; desc.r = 15 + vr() * 6; desc.H = 1.1; }
+    else if (type === 'jungle' && v < 0.25) { desc.type = 'mangrove'; desc.H = 1.3 + vr() * 0.6; }
+    if (desc.type !== type) desc.name = makeName(mulberry32(hash2(cx, cz, seed + 4343)), desc.type, dread);
+  }
   if (type === 'treasure') desc.puzzle = makePuzzle(mulberry32(hash2(cx, cz, seed + 31)), name, dread);
   return desc;
 }
@@ -72,6 +81,15 @@ export function terrainHeight(d, lx, lz) {
     case 'jungle': return d.H * Math.pow(p, 1.35) * (0.55 + n * 0.8);
     case 'rocky': { const ridge = 1 - Math.abs(n * 2 - 1); return d.H * Math.pow(p, 1.1) * (0.35 + ridge * 1.1); }
     case 'treasure': return d.H * Math.pow(p, 1.4) * (0.7 + n * 0.5);
+    case 'volcano': { // a cone with a crater
+      const cone = (tt) => d.H * Math.pow(1 - tt, 1.15) * (0.92 + n * 0.16);
+      return t < 0.22 ? cone(0.22) - (0.22 - t) / 0.22 * d.H * 0.42 : cone(t);
+    }
+    case 'atoll': { // a ring of sand around a lagoon
+      if (t < 0.55) return -0.9 + t * 0.6;
+      return d.H * Math.sin(((t - 0.55) / 0.45) * Math.PI) * (0.7 + n * 0.6);
+    }
+    case 'mangrove': return d.H * Math.pow(p, 0.6) * (0.6 + n * 0.6);
     default: return Math.min(d.H, p * d.H * 3.2); // harbour plateau
   }
 }
@@ -81,6 +99,8 @@ export function terrainHeight(d, lx, lz) {
 // ---------------------------------------------------------------------------
 function faceColor(d, hc, slope, noise) {
   let c;
+  if (d.type === 'volcano') return hc < 0.55 ? COL.ash1 : hc > d.H * 0.62 ? (noise > 0.5 ? COL.ember : COL.ash1) : (noise > 0.55 ? COL.ash2 : COL.ash1);
+  if (d.type === 'mangrove') return hc < 0.4 ? COL.mud : noise > 0.55 ? COL.mire : COL.mud;
   if (hc < 0.12) c = COL.wet;
   else if (hc < 0.55) c = COL.sand;
   else switch (d.type) {
@@ -213,6 +233,139 @@ function house(A, B, x, y, z, ry, rng) {
   }
 }
 const pickCol = (rng, arr) => arr[Math.floor(rng() * arr.length) % arr.length];
+
+// ---- villagers: six low-poly looks. Feet at y, facing +z (local), about 1.6 tall.
+export const VILLAGERS = ['fisher', 'market', 'oldsalt', 'child', 'docker', 'harbourmaster'];
+export function villager(b, x, y, z, ry, rng, kind = pickCol(rng, VILLAGERS)) {
+  const skin = pickCol(rng, SKINS), shirt = pickCol(rng, SHIRTS);
+  b.push(x, y, z, ry, kind === 'child' ? 0.68 : 1);
+  const legs = (col) => { for (const sx of [-0.12, 0.12]) b.box(sx, 0, 0, 0.16, 0.55, 0.18, col, TILE.white); };
+  const arms = (col, lift = 0) => { for (const sx of [-1, 1]) { b.push(sx * 0.32, 1.12, 0, 0, 1, 1, 1, lift, sx * 0.18); b.box(0, -0.5, 0, 0.13, 0.5, 0.14, col, TILE.white); b.pop(); } };
+  const head = (r = 0.2) => b.blob(0, 1.38, 0, r, r * 1.1, r, skin, TILE.white, 0.05, x * 7 + z);
+  switch (kind) {
+    case 'fisher': // striped shirt, rolled trousers, a wide straw hat and a rod
+      legs('#4a5a7a');
+      b.cyl(0, 0.55, 0, 0.27, 0.24, 0.3, 6, '#f4f0e6', TILE.white, false);
+      b.cyl(0, 0.85, 0, 0.24, 0.22, 0.3, 6, '#3c78c8', TILE.white, true);
+      arms(skin); head();
+      b.cyl(0, 1.5, 0, 0.5, 0.48, 0.05, 7, '#e8d08a', TILE.rope, true);
+      b.cyl(0, 1.55, 0, 0.22, 0.12, 0.18, 6, '#d8c078', TILE.rope, true);
+      b.push(0.34, 0.75, 0.15, 0, 1, 1, 1, -0.9, -0.15); b.cyl(0, 0, 0, 0.03, 0.02, 2.2, 3, '#6b4a2e', TILE.bark, false); b.pop();
+      break;
+    case 'market': // long skirt, headscarf, a basket of fruit on her head
+      b.cyl(0, 0, 0, 0.42, 0.24, 0.8, 7, shirt, TILE.white, false);
+      b.cyl(0, 0.8, 0, 0.24, 0.2, 0.42, 6, '#f4ecd8', TILE.white, true);
+      arms(skin, -0.3); head();
+      b.blob(0, 1.46, -0.04, 0.23, 0.19, 0.24, pickCol(rng, ROOFS), TILE.white, 0.06, 2);
+      b.cyl(0, 1.62, 0, 0.32, 0.36, 0.22, 7, '#a8783c', TILE.rope, true);
+      for (let i = 0; i < 3; i++) b.blob(-0.12 + i * 0.12, 1.88, (i % 2) * 0.08 - 0.04, 0.1, 0.1, 0.1, pickCol(rng, ['#f0c030', '#e85a3a', '#5ec45a']), TILE.white, 0.05, i);
+      break;
+    case 'oldsalt': // long dark coat, white beard, tricorn hat, a cane, a little stooped
+      legs('#3a3036');
+      b.push(0, 0, 0, 0, 1, 1, 1, 0.12);
+      b.cyl(0, 0.35, 0, 0.3, 0.25, 0.9, 6, '#2c3448', TILE.white, true);
+      for (const yy of [0.75, 0.95]) b.box(0.08, yy, 0.27, 0.05, 0.05, 0.03, '#ffffff', TILE.glow);
+      arms('#2c3448'); head(0.19);
+      b.blob(0, 1.24, 0.12, 0.15, 0.16, 0.08, '#e8e4dc', TILE.white, 0.1, 5);
+      b.cyl(0, 1.52, 0, 0.36, 0.3, 0.16, 3, '#1e1a1e', TILE.white, true);
+      b.pop();
+      b.cyl(0.42, 0, 0.12, 0.03, 0.03, 1.0, 3, '#6b4a2e', TILE.bark, false);
+      break;
+    case 'child': // big head, bright shirt, messy hair (drawn at 0.68 scale)
+      legs('#8a6a4a');
+      b.cyl(0, 0.55, 0, 0.26, 0.22, 0.6, 6, shirt, TILE.white, true);
+      arms(skin, -0.5);
+      b.blob(0, 1.42, 0, 0.27, 0.29, 0.27, skin, TILE.white, 0.05, 9);
+      b.blob(0, 1.6, -0.05, 0.26, 0.14, 0.25, pickCol(rng, ['#3a2210', '#8a5a2a', '#e0c070']), TILE.white, 0.35, 10);
+      break;
+    case 'docker': // broad, sleeves rolled, red bandana, a crate on the shoulder
+      legs('#5a4a3a');
+      b.cyl(0, 0.55, 0, 0.34, 0.28, 0.62, 6, '#c8b090', TILE.white, true);
+      arms(skin, -1.2); head();
+      b.blob(0, 1.5, 0, 0.21, 0.1, 0.21, '#c83a2a', TILE.white, 0.05, 3);
+      b.push(0.36, 1.2, 0, 0.3); b.box(0, 0, 0, 0.55, 0.45, 0.5, '#a07040', TILE.planks); b.pop();
+      break;
+    default: // harbourmaster: blue coat with brass buttons, peaked cap, the harbour ledger under one arm
+      legs('#2a2a3a');
+      b.cyl(0, 0.5, 0, 0.3, 0.26, 0.75, 6, '#2a4a7a', TILE.white, true);
+      for (const yy of [0.7, 0.9, 1.1]) b.box(0, yy, 0.27, 0.06, 0.06, 0.03, '#ffffff', TILE.glow);
+      arms('#2a4a7a'); head();
+      b.cyl(0, 1.52, 0, 0.22, 0.24, 0.14, 7, '#1e2a3e', TILE.white, true);
+      b.box(0, 1.52, 0.2, 0.36, 0.04, 0.16, '#141a26', TILE.white);
+      b.box(-0.38, 0.85, 0.06, 0.08, 0.36, 0.28, '#7a2a20', TILE.planks);
+  }
+  b.pop();
+}
+
+// ---- house kinds (all face +z local, base at y)
+export const HOUSES = ['cottage', 'townhouse', 'stilt', 'round', 'tavern', 'warehouse', 'belltower'];
+export function houseKind(A, B, x, y, z, ry, rng, kind) {
+  const wall = pickCol(rng, WALLS), roof = pickCol(rng, ROOFS);
+  if (kind === 'cottage') return house(A, B, x, y, z, ry, rng);
+  A.push(x, y, z, ry);
+  switch (kind) {
+    case 'townhouse': { // two storeys, a trim band, a balcony with railings
+      const w = 3.2, dep = 3, h = 4.3;
+      A.box(0, 0, 0, w, h, dep, wall, TILE.wall, TILE.white);
+      A.box(0, 2.1, 0, w + 0.1, 0.18, dep + 0.1, '#7a5a3a', TILE.planks);
+      A.gable(0, h, 0, w + 0.5, 1.5, dep + 0.5, roof, TILE.roof, wall);
+      A.box(0, 2.15, dep / 2 + 0.45, w * 0.7, 0.12, 0.9, '#6b4a2e', TILE.planks);
+      for (let i = 0; i < 5; i++) A.box(-w * 0.33 + i * w * 0.165, 2.27, dep / 2 + 0.86, 0.07, 0.55, 0.07, '#5a3a20', TILE.bark);
+      A.box(0, 2.78, dep / 2 + 0.86, w * 0.7, 0.07, 0.07, '#5a3a20', TILE.bark);
+      A.box(0.6, 0, dep / 2 + 0.01, 0.8, 1.6, 0.1, '#5a3a20', TILE.planks);
+      A.box(-w * 0.25, h + 0.8, 0, 0.5, 1.2, 0.5, '#a89a88', TILE.stone);
+      break;
+    }
+    case 'stilt': { // a fisher's house up on posts, with a ladder and a net
+      for (const [sx, sz] of [[-1.3, -1.1], [1.3, -1.1], [-1.3, 1.1], [1.3, 1.1]]) A.cyl(sx, -1.0, sz, 0.12, 0.1, 2.3, 4, '#6b4a2e', TILE.bark);
+      A.box(0, 1.2, 0.3, 3.2, 0.16, 3.4, '#8a6238', TILE.planks);
+      A.box(0, 1.36, 0, 2.6, 1.8, 2.4, wall, TILE.wall, TILE.white);
+      A.gable(0, 3.16, 0, 3.0, 1.2, 2.8, roof, TILE.roof, wall);
+      for (const sx of [-0.3, 0.3]) A.box(sx, -0.1, 1.95, 0.08, 1.45, 0.08, '#5a3a20', TILE.bark);
+      for (let i = 0; i < 4; i++) A.box(0, 0.1 + i * 0.33, 1.95, 0.66, 0.06, 0.06, '#5a3a20', TILE.bark);
+      A.quad([1.6, 1.36, 0.8], [1.6, 1.36, -0.8], [1.6, 0.2, -0.6], [1.6, 0.3, 0.7], '#c8c0a0', TILE.rope);
+      break;
+    }
+    case 'round': { // a round hut with a thatched cone roof
+      A.cyl(0, 0, 0, 1.7, 1.6, 1.8, 8, '#d8b888', TILE.wall, false);
+      A.cyl(0, 1.75, 0, 2.2, 0, 1.9, 8, '#c8a860', TILE.rope, false);
+      A.cyl(0, 3.5, 0, 0.18, 0.06, 0.5, 4, '#6b4a2e', TILE.bark, false);
+      A.box(0, 0, 1.58, 0.8, 1.35, 0.12, '#5a3a20', TILE.planks);
+      break;
+    }
+    case 'tavern': { // big, warm, a hanging sign, barrels and lanterns by the door
+      const w = 5.2, dep = 3.8, h = 2.7;
+      A.box(0, 0, 0, w, h, dep, wall, TILE.wall, TILE.white);
+      A.gable(0, h, 0, w + 0.6, 1.7, dep + 0.6, '#8a3a2a', TILE.roof, wall);
+      A.box(0, 0, dep / 2 + 0.01, 1.2, 1.8, 0.12, '#5a3a20', TILE.planks);
+      A.box(w / 2 + 0.2, 1.4, dep / 2 - 0.2, 0.1, 1.6, 0.1, '#5a3a20', TILE.bark);
+      A.box(w / 2 + 0.7, 2.6, dep / 2 - 0.2, 1.0, 0.08, 0.08, '#5a3a20', TILE.bark);
+      A.box(w / 2 + 0.75, 1.95, dep / 2 - 0.2, 0.8, 0.6, 0.08, '#e8c060', TILE.flag);
+      for (const sx of [-0.9, 0.9]) A.box(sx, 1.9, dep / 2 + 0.1, 0.25, 0.3, 0.25, '#ffffff', TILE.glow);
+      barrel(A, -w / 2 + 0.6, 0, dep / 2 + 0.6, 1); barrel(A, -w / 2 + 1.4, 0, dep / 2 + 0.7, 0.9); barrel(A, -w / 2 + 1.0, 0.85, dep / 2 + 0.65, 0.8);
+      A.box(w * 0.2, 0, dep / 2 + 0.8, 1.6, 0.45, 0.4, '#6b4a2e', TILE.planks);
+      A.box(-w * 0.3, h + 1.0, -dep * 0.2, 0.6, 1.3, 0.6, '#a89a88', TILE.stone);
+      break;
+    }
+    case 'warehouse': { // long and low, a wide door, crates stacked outside
+      const w = 3.2, dep = 6.2, h = 2.6;
+      A.box(0, 0, 0, w, h, dep, '#b89a78', TILE.planks, TILE.planks);
+      A.gable(0, h, 0, w + 0.5, 0.9, dep + 0.4, '#6a5a4a', TILE.roof, '#9a7a58');
+      A.box(0, 0, dep / 2 + 0.01, 1.9, 2.0, 0.12, '#3a2a1c', TILE.planks);
+      crateBox(A, w / 2 + 0.6, 0, dep / 2 - 0.5, 0.3); crateBox(A, w / 2 + 0.6, 0.85, dep / 2 - 0.4, 1.1, 0.8); crateBox(A, w / 2 + 0.7, 0, dep / 2 - 1.6, 0.8);
+      break;
+    }
+    default: { // belltower: a stone tower, an open belfry and a bell
+      A.box(0, 0, 0, 1.8, 5.2, 1.8, '#d8d0c0', TILE.stone, TILE.stone);
+      for (const [sx, sz] of [[-0.75, -0.75], [0.75, -0.75], [-0.75, 0.75], [0.75, 0.75]]) A.box(sx, 5.2, sz, 0.25, 1.4, 0.25, '#c8c0b0', TILE.stone);
+      A.cyl(0, 6.6, 0, 1.45, 0, 1.6, 4, roof, TILE.roof, false);
+      A.cyl(0, 5.45, 0, 0.42, 0.22, 0.75, 7, '#c8a040', TILE.glow, true);
+      A.box(0, 0, 0.91, 0.8, 1.5, 0.1, '#5a3a20', TILE.planks);
+    }
+  }
+  A.pop();
+}
+
 
 
 // ---- grubby little clutter: the stuff that makes a place look lived-in (and a bit dirty)
@@ -413,6 +566,41 @@ function decorate(d, rng, A, B, D, extra) {
   if (T === 'rocky') scatter(4, 0.2, 0.9, 0.3, (p) => mossRock(A, p[0], p[1], p[2], 0.9 + rng() * 0.8, rng));
   if (d.hut) darkHut(d, rng, A);
   switch (T) {
+    case 'volcano': {
+      const rim = terrainHeight(d, shoreR(d, 0) * 0.22, 0);
+      A.blob(0, rim - d.H * 0.1, 0, d.r * 0.2, 0.3, d.r * 0.2, '#ffffff', TILE.glow, 0.15, 7);              // lava in the crater
+      D.blob(0, rim - d.H * 0.08, 0, d.r * 0.19, 0.28, d.r * 0.19, '#ffffff', TILE.spore, 0.15, 8);          // ...sick magenta when it is dark
+      for (let i = 0; i < 3; i++) { const a = rng() * 6.28; A.box(Math.cos(a) * d.r * 0.3, rim - d.H * 0.25, Math.sin(a) * d.r * 0.3, 0.4, d.H * 0.2, 0.4, '#ffffff', TILE.glow); } // lava trickles
+      for (let i = 0; i < 6; i++) A.blob(Math.sin(i * 1.7) * 0.6 + i * 0.5, rim + 1.2 + i * 1.3, Math.cos(i * 2.3) * 0.6, 0.6 + i * 0.3, 0.45 + i * 0.2, 0.6 + i * 0.3, i < 2 ? '#8a8486' : '#c8c4c6', TILE.white, 0.35, i + 30); // smoke
+      for (let i = 0; i < 4; i++) { const p = spot(d, rng, 0.45, 0.8, 0.5); if (p) { A.cyl(p[0], p[1] - 0.2, p[2], 0.14, 0.06, 2.4, 4, '#2a2224', TILE.bark, false); A.push(p[0], p[1] + 1.5, p[2], rng() * 6, 1, 1, 1, 0, 0.9); A.cyl(0, 0, 0, 0.05, 0.02, 0.9, 3, '#2a2224', TILE.bark, false); A.pop(); } }
+      for (let i = 0; i < 6; i++) { const p = spot(d, rng, 0.5, 1.0, 0.2); if (p) A.blob(p[0], p[1] + 0.2, p[2], 0.8 + rng() * 0.7, 0.5 + rng() * 0.4, 0.8 + rng() * 0.7, '#3a3236', TILE.stone, 0.3, i); }
+      palms(2, 0.82, 0.95, 0.2, 0.7);
+      break;
+    }
+    case 'atoll': {
+      for (let i = 0; i < 9; i++) { const th = rng() * Math.PI * 2, t = 0.7 + rng() * 0.15, x = Math.cos(th) * shoreR(d, th) * t, z = Math.sin(th) * shoreR(d, th) * t, h = terrainHeight(d, x, z); if (h > 0.4) palm(A, B, D, x, h, z, rng, 0.8 + rng() * 0.4); }
+      { const th = rng() * Math.PI * 2, t = 0.76, x = Math.cos(th) * shoreR(d, th) * t, z = Math.sin(th) * shoreR(d, th) * t; houseKind(A, B, x, Math.max(0.3, terrainHeight(d, x, z)), z, th + Math.PI / 2, rng, 'stilt'); }
+      D.cyl(0, -1.5, 0, 0.6, 0.35, 4.5, 4, '#ffffff', TILE.void, true);   // something stands up in the lagoon at night
+      break;
+    }
+    case 'mangrove': {
+      const tree = (x, z, s) => {   // a mangrove: a trunk on arching stilt roots, a dark low canopy
+        const h = Math.max(0.1, terrainHeight(d, x, z));
+        A.cyl(x, h + 0.6 * s, z, 0.2 * s, 0.14 * s, 2.6 * s, 5, '#5a4a36', TILE.bark, false);
+        for (let k = 0; k < 5; k++) {
+          const a = k * 1.26 + rng() * 0.4, ox = Math.cos(a) * 1.3 * s, oz = Math.sin(a) * 1.3 * s;
+          A.push(x, h + 0.9 * s, z, -a + Math.PI / 2, 1, 1, 1, 0, -0.75); A.cyl(0, -0.9 * s, 0, 0.06 * s, 0.08 * s, 0.95 * s, 4, '#6a5a44', TILE.bark, false); A.pop();
+          A.cyl(x + ox, h - 0.7, z + oz, 0.07 * s, 0.07 * s, 0.9 * s, 4, '#5a4a36', TILE.bark, false);
+        }
+        for (let k = 0; k < 4; k++) A.blob(x + (k - 1.5) * 0.9 * s, h + 3.2 * s + (k % 2) * 0.4, z + (k % 2 ? 0.6 : -0.5) * s, 1.6 * s, 0.75 * s, 1.4 * s, k % 2 ? '#2e5e34' : '#5a8a2a', TILE.white, 0.25, k + x);
+        for (let k = 0; k < 3; k++) D.box(x + (k - 1) * 0.7 * s, h + 1.4 * s, z, 0.06, 1.1 * s, 0.06, '#7a8a6a', TILE.rope);   // hanging moss
+        D.box(x + 0.2, h + 0.5, z + 0.5, 0.08, 0.06, 0.06, '#ffffff', TILE.spore); D.box(x + 0.4, h + 0.5, z + 0.5, 0.08, 0.06, 0.06, '#ffffff', TILE.spore);
+      };
+      for (let i = 0; i < 9; i++) { const th = rng() * Math.PI * 2, t = 0.25 + rng() * 0.8; tree(Math.cos(th) * shoreR(d, th) * t, Math.sin(th) * shoreR(d, th) * t, 0.8 + rng() * 0.5); }
+      for (let i = 0; i < 2; i++) { const th = rng() * Math.PI * 2, x = Math.cos(th) * shoreR(d, th) * 1.05, z = Math.sin(th) * shoreR(d, th) * 1.05; // herons in the shallows
+        B.cyl(x, -0.2, z, 0.03, 0.03, 0.9, 3, '#e0d8c0', TILE.white, false); B.blob(x, 0.85, z, 0.25, 0.18, 0.4, '#f4f0e8', TILE.white, 0.05, i); B.box(x, 1.0, z + 0.3, 0.05, 0.4, 0.05, '#f4f0e8', TILE.white); B.box(x, 1.4, z + 0.42, 0.06, 0.05, 0.25, '#e0a030', TILE.white); }
+      break;
+    }
     case 'sandbar':
       palms(1 + Math.floor(rng() * 3), 0.0, 0.6, 0.45, 0.8);
       rocks(2, 0.2, 0.9, 0.7);
@@ -483,7 +671,8 @@ function decorate(d, rng, A, B, D, extra) {
         if (Math.abs(angleDiff(th, dockTh)) < 0.55) continue;
         const rho = shoreR(d, th) * (0.28 + rng() * 0.38);
         const x = Math.cos(th) * rho, z = Math.sin(th) * rho;
-        house(A, B, x, d.H - 0.1, z, Math.atan2(-x, -z), rng);
+        const kind = placed === 0 ? 'tavern' : placed === 1 && rng() < 0.45 ? 'belltower' : pickCol(rng, ['cottage', 'cottage', 'townhouse', 'townhouse', 'round', 'stilt', 'warehouse']);
+        houseKind(A, B, x, d.H - 0.1, z, Math.atan2(-x, -z), rng, kind);
         placed++;
       }
       // lighthouse opposite the dock (not every harbour has one)
@@ -524,11 +713,11 @@ function decorate(d, rng, A, B, D, extra) {
       // people: idlers always, a crowd while it's cheerful, silent watchers at the shore when it isn't
       for (let i = 0; i < 4; i++) {
         const th = rng() * Math.PI * 2, rho = shoreR(d, th) * (0.18 + rng() * 0.3);
-        person(A, Math.cos(th) * rho, d.H - 0.1, Math.sin(th) * rho, rng);
+        villager(A, Math.cos(th) * rho, d.H - 0.1, Math.sin(th) * rho, rng() * 6.28, rng);
       }
       for (let i = 0; i < 7; i++) {
         const th = rng() * Math.PI * 2, rho = shoreR(d, th) * (0.12 + rng() * 0.45);
-        person(B, Math.cos(th) * rho, d.H - 0.1, Math.sin(th) * rho, rng);
+        villager(B, Math.cos(th) * rho, d.H - 0.1, Math.sin(th) * rho, rng() * 6.28, rng);
       }
       const nW = 11;
       for (let i = 0; i < nW; i++) {
@@ -589,6 +778,7 @@ export class Island {
 
     const sh = new THREE.Mesh(buildRing(d, 0.9, 1.65, 0.22, 0.8, 0, 30, 3), mats.shallow);
     sh.renderOrder = 1; this.group.add(sh); this.geos.push(sh.geometry);
+    if (d.type === 'atoll') { const lg = new THREE.Mesh(buildRing(d, 0.0, 0.56, 0.24, 0.9, 0.9, 30, 3), mats.shallow); lg.renderOrder = 1; this.group.add(lg); this.geos.push(lg.geometry); }
     const fm = new THREE.Mesh(buildRing(d, 0.97, 1.07, 0.3, 0.9, 0.0, 30, 2), mats.foam);
     fm.renderOrder = 2; this.group.add(fm); this.geos.push(fm.geometry);
 
@@ -604,7 +794,7 @@ export class Island {
     this.walkers = [];
     for (const w of extra.walkers || []) {
       const pb = new Builder();
-      person(pb, 0, 0, 0, mulberry32(Math.floor(w.rng * 1e6)), w.col);
+      { const wr = mulberry32(Math.floor(w.rng * 1e6)); villager(pb, 0, 0, 0, 0, wr, pickCol(wr, ['fisher', 'market', 'docker', 'child'])); }
       const mesh = new THREE.Mesh(pb.geometry(), mats.props);
       this.group.add(mesh); this.geos.push(mesh.geometry);
       this.walkers.push({ mesh, w });

@@ -259,6 +259,10 @@
     *, *::before, *::after, button, input { font-family: var(--pxfont) !important; }
     *, *::before, *::after { font-style: normal !important; }
     .menu small, .ds, #tracker .thint, .menu .tip { font-size: 12px !important; }
+    /* pixel glyphs in text (src/pixelui.js GLYPHS) instead of emoji */
+    .pxi { display: inline-block; width: 21px; height: 21px; vertical-align: -5px; margin-right: 3px; image-rendering: pixelated; background-size: 100% 100%; background-repeat: no-repeat; }
+    .pxi.star, .pxi.nostar, .pxi.pip, .pxi.nopip, .pxi.check, .pxi.open, .pxi.next { width: 14px; height: 14px; vertical-align: -1px; margin-right: 2px; }
+    #touch .pxi { width: 28px; height: 28px; margin: 0; vertical-align: middle; }
   </style>
 </head>
 <body>
@@ -280,7 +284,7 @@
     <div id="sailbar" class="panel txt"><div><i class="ico sail"></i></div><div class="bar"><div class="fill" id="sailfill"></div></div></div>
     <div id="combatbox" class="panel txt"><div><i class="ico hull"></i><span id="hptxt"></span></div><div class="bar"><div class="fill" id="hpfill"></div></div><div id="ammotxt"></div><div class="bar thin"><div class="fill" id="reloadfill"></div></div></div>
     <div id="ebar" class="panel txt" style="display:none"><span id="ename"></span><div class="bar"><div class="fill" id="efill"></div></div></div>
-    <div id="mate" class="panel txt" style="display:none"><span class="face" id="mateface"></span><div style="flex:1"><b>Mara, first mate</b><div id="matetxt"></div></div><span id="matemore">&#9662;</span></div>
+    <div id="mate" class="panel txt" style="display:none"><span class="face" id="mateface"></span><div style="flex:1"><b>Mara, first mate</b><div id="matetxt"></div></div><span id="matemore"><i class="pxi down"></i></span></div>
     <div id="fishui" class="panel txt" style="display:none"><div id="fishmsg"></div><div id="fishbar" style="display:none"><div id="fishtrack"><div id="fishzone"></div><div id="fishmark"></div></div><div id="fishprogwrap"><div id="fishprog"></div></div></div></div>
     <div id="prompt" class="panel txt"><div id="prompttxt"></div><div class="bar"><i></i></div></div>
     <div id="toasts"></div>
@@ -292,7 +296,7 @@
   <div id="yardmodal" class="modal yard"><div class="menu" id="yardWide"><h2>Shipyard</h2><p class="quote" id="yardLine">Paint, canvas and carved wood. All the finest vanity.</p><div class="goldline">Gold: <b id="yardGold"></b></div><div id="yardBody"></div><button id="yardClose">Done</button></div></div>
   <div id="chart" class="modal" data-book="pixel"><div class="bookwrap"><div class="ribbons" id="logTabs"></div><div class="book">
     <div class="spread"><div id="logBody" class="cols"></div></div>
-    <div class="bookbar"><button id="pgPrev">&#9666;</button><span id="pgNum" style="min-width:48px;text-align:center"></span><button id="pgNext">&#9656;</button><span class="keys">left/right: tabs &middot; up/down: pages &middot; 1-8</span><button id="logClose">Close [M]</button></div>
+    <div class="bookbar"><button id="pgPrev"><i class="pxi left"></i></button><span id="pgNum" style="min-width:48px;text-align:center"></span><button id="pgNext"><i class="pxi right"></i></button><span class="keys">left/right: tabs &middot; up/down: pages &middot; 1-8</span><button id="logClose">Close [M]</button></div>
   </div></div></div>
   <div id="hutmodal" class="modal"><div class="menu" id="hutWide"><h2>THE DARK HUT</h2><canvas id="dieCv" width="72" height="72"></canvas><p class="quote" id="hutTxt"></p><button id="hutRoll">Throw the die [Space]</button><button id="hutLeave">Leave [E]</button></div></div>
   <div id="shipmodal" class="modal"><div class="menu" id="shWide"><h2 id="shName"></h2><p class="quote" id="shLine"></p><div class="goldline">Gold: <b id="shGold"></b></div><div id="shList"></div><button id="shClose">Wave goodbye</button></div></div>
@@ -329,9 +333,9 @@
   </div></div>
   <button id="tP">II</button>
   <div id="touch">
-    <button id="tL" style="left:12px;bottom:84px">&#9664;</button><button id="tR" style="left:92px;bottom:84px">&#9654;</button>
-    <button id="tU" style="right:92px;bottom:84px">&#9650;</button><button id="tD" style="right:12px;bottom:84px">&#9660;</button>
-    <button id="tE" style="right:50%;margin-right:-32px;bottom:14px">E</button><button id="tC" style="right:50%;margin-right:-104px;bottom:14px">&#127907;</button><button id="tX" style="right:50%;margin-right:40px;bottom:14px">&#128165;</button>
+    <button id="tL" style="left:12px;bottom:84px"><i class="pxi left"></i></button><button id="tR" style="left:92px;bottom:84px"><i class="pxi right"></i></button>
+    <button id="tU" style="right:92px;bottom:84px"><i class="pxi up"></i></button><button id="tD" style="right:12px;bottom:84px"><i class="pxi down"></i></button>
+    <button id="tE" style="right:50%;margin-right:-32px;bottom:14px">E</button><button id="tC" style="right:50%;margin-right:-104px;bottom:14px"><i class="pxi rod"></i></button><button id="tX" style="right:50%;margin-right:40px;bottom:14px"><i class="pxi ball"></i></button>
   </div>
   <div id="title" class="txt"><h1>POCKET PIRATES</h1><p>Sail the sunny seas. Chart the isles. Don't look down.</p><p class="blink">&mdash; click or press any key to set sail &mdash;</p></div>
   <script type="module" src="/src/main.js"></script>

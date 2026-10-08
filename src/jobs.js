@@ -3,6 +3,7 @@ import { FISH } from './fishing.js';
 import { FRUIT_ORDER, FRUITS, fruitOf, fruitName, plural } from './fruit.js';
 import { CELL } from './world.js';
 import { dreadAtDistance } from './palette.js';
+import { pxi } from './pixelui.js';
 
 // Reasons to sail: delivery jobs, rumours of treasure, and harbour reputation.
 const ITEMS_BRIGHT = ['a crate of oranges', 'a letter for the harbourmaster', 'a sack of ship biscuits', 'a parcel of fine tea', 'a cage of canaries', 'a barrel of lamp oil'];
@@ -120,6 +121,6 @@ export function questTitle(q, dread) {
     default: return 'Errand';
   }
 }
-export const QUEST_ICON = { fish: '🐟', fruit: '🍌', crates: '📦', bounty: '☠', spot: '🐬' };
-const FRUIT_ICON = { coconut: '🥥', banana: '🍌', mango: '🥭', pineapple: '🍍', papaya: '🍈' };
+export const QUEST_ICON = { fish: pxi('fish'), fruit: pxi('banana'), crates: pxi('crate'), bounty: pxi('skull'), spot: pxi('dolphin') };
+const FRUIT_ICON = { coconut: pxi('coconut'), banana: pxi('banana'), mango: pxi('mango'), pineapple: pxi('pineapple'), papaya: pxi('papaya') };
 export const questIcon = (q) => (q.type === 'fruit' ? FRUIT_ICON[q.fruit] : QUEST_ICON[q.type]);

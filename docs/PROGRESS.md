@@ -32,6 +32,11 @@ For how things must look, see `STYLE.md`; for how systems work, see `DESIGN.md`.
   glass calm, corrupted HUD, mad wind meter, Mara breaks, lighthouses stare, watchers (4 looks),
   living map, time loop, wrong ocean, wrong catches, leviathan + "the Eye awakens" ending.
 
+### World variety
+- Six villager designs, seven house kinds (taverns, bell towers, stilt houses...), three new island kinds:
+  volcano, atoll, mangrove (each with a dark-mood detail). All emoji replaced by pixel glyphs.
+- `__game.showcase('villagers' | 'houses')` puts a lineup on a raft for screenshots.
+
 ### Newest: the dark hut
 - One island 4-6 cells from home (out of sight of the start) has a crooked black hut on stilts,
   a purple window, bones on poles, a dead tree and a ring of pale stones. On the chart it is a black hut icon.

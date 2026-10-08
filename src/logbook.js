@@ -6,16 +6,17 @@ import { mulberry32, hash2 } from './util.js';
 import { MAIN_GOALS, SIDE_GOALS } from './objectives.js';
 import { FISH } from './fishing.js';
 import { GROUPS, byId } from './customize.js';
+import { pxi } from './pixelui.js';
 
 // The captain's log: an old low-poly book. Tabs are cloth bookmarks sticking out of the right side, content flows over two pages
 // (turn with the arrows below / Up and Down), and the Map is a hand-inked low-poly chart.
-const TABS = [['map', 'Map', '🧭'], ['goals', 'Goals', '⚓'], ['quests', 'Quests', '📜'], ['riddles', 'Riddles', '🗝'], ['rumours', 'Rumours', '🗣'], ['journal', 'Journal', '📖'], ['ship', 'Ship', '⛵'], ['standing', 'Standing', '⭐']];
+const TABS = [['map', 'Map', ''], ['goals', 'Goals', ''], ['quests', 'Quests', ''], ['riddles', 'Riddles', ''], ['rumours', 'Rumours', ''], ['journal', 'Journal', ''], ['ship', 'Ship', ''], ['standing', 'Standing', '']];
 const W = 880, H = 470;
 const INK = '#3a2210';
 
 const hex = (c) => [parseInt(c.slice(1, 3), 16), parseInt(c.slice(3, 5), 16), parseInt(c.slice(5, 7), 16)];
 const shade = (c, k) => { const [r, g, b] = hex(c); return `rgb(${Math.max(0, Math.min(255, r * k)) | 0},${Math.max(0, Math.min(255, g * k)) | 0},${Math.max(0, Math.min(255, b * k)) | 0})`; };
-const LAND = { sand: '#ecd69c', jungle: '#92c274', rocky: '#b7ad9c', treasure: '#ecd69c', harbour: '#dcb877' };
+const LAND = { sand: '#ecd69c', jungle: '#92c274', rocky: '#b7ad9c', treasure: '#ecd69c', harbour: '#dcb877', volcano: '#6a6064', atoll: '#f0dca4', mangrove: '#6a8a4a' };
 // ---- hand-drawn look: every line is drawn twice, a little off, with wobbly sub-segments; fills are
 // uneven watercolour washes with pencil hatching. Seeded, so a drawing does not boil while you pan.
 const circ = (x, y, r, n = 12) => Array.from({ length: n }, (_, i) => [x + Math.cos((i / n) * 6.2832) * r, y + Math.sin((i / n) * 6.2832) * r]);
@@ -136,7 +137,7 @@ function pixelate(c, w, h) {
   }
   c.putImageData(img, 0, 0);
 }
-const stars = (n) => '★'.repeat(n) + '☆'.repeat(3 - n);
+const stars = (n) => pxi('star').repeat(n) + pxi('nostar').repeat(3 - n);
 const ent = (title, sub = '', right = '', cls = '') => `<div class="ent ${cls}"><b>${title}</b>${right ? `<span class="r">${right}</span>` : ''}${sub ? `<small>${sub}</small>` : ''}</div>`;
 const h3 = (t) => `<h3>${t}</h3>`;
 const more = (arr, n) => (arr.length > n ? `<div class="ent dim"><small>+ ${arr.length - n} more</small></div>` : '');
@@ -196,11 +197,11 @@ export class Logbook {
     let html = h3('Main goals');
     MAIN_GOALS.forEach((m, i) => {
       const done = i < g.i, cur = i === g.i;
-      html += ent(`${done ? '✓' : cur ? '▶' : '○'} ${m.title}`, cur ? m.text : '', `${m.reward}g`, done ? 'done' : cur ? 'cur' : (i === g.i + 1 ? '' : 'dim'));
+      html += ent(`${done ? pxi('check') : cur ? pxi('next') : pxi('open')} ${m.title}`, cur ? m.text : '', `${m.reward}g`, done ? 'done' : cur ? 'cur' : (i === g.i + 1 ? '' : 'dim'));
     });
     if (MAIN_GOALS[g.i]) html += `<button id="skipGoal" class="mini">Skip this goal</button>`;
     html += '<h3 class="brk">Optional</h3>';
-    for (const s of SIDE_GOALS) html += ent(`${g.side[s.id] ? '✓' : '○'} ${s.title}`, g.side[s.id] ? '' : s.text, `${s.reward}g`, g.side[s.id] ? 'done' : '');
+    for (const s of SIDE_GOALS) html += ent(`${g.side[s.id] ? pxi('check') : pxi('open')} ${s.title}`, g.side[s.id] ? '' : s.text, `${s.reward}g`, g.side[s.id] ? 'done' : '');
     const notes = (this.d.mate && this.d.mate.history.slice(-3)) || [];
     if (notes.length) html += h3('Mara said') + notes.map((n) => `<div class="ent"><small>“${n}”</small></div>`).join('');
     html += h3('Voyage') + ent(`${Math.round(st.dist)} sailed`, `${st.fish} fish · ${st.treasures} treasures · ${st.wrecks} wrecks · ${st.sunk} raiders · ${st.deliveries} deliveries`);
@@ -215,7 +216,7 @@ export class Logbook {
     const j = state.job;
     if (j) {
       const dx = j.x - ship.pos.x, dz = j.z - ship.pos.z;
-      html += ent(`📮 ${j.item}`, `to ${j.toName} · ${Math.round(Math.hypot(dx, dz))} ${bearingName(dx, dz)}`, `${j.reward}g`) + '<button id="abandon" class="mini">Abandon</button>';
+      html += ent(`${pxi('letter')} ${j.item}`, `to ${j.toName} · ${Math.round(Math.hypot(dx, dz))} ${bearingName(dx, dz)}`, `${j.reward}g`) + '<button id="abandon" class="mini">Abandon</button>';
     } else html += ent('No delivery', 'Take one at a harbour job board.', '', 'dim');
     html += h3(`Commissions (${state.quests.length}/3)`);
     if (!state.quests.length) html += ent('None taken', 'Harbour boards post errands: fish, fruit, crates, raiders…', '', 'dim');
@@ -242,7 +243,7 @@ export class Logbook {
     for (const id of ids) {
       const [cx, cz] = id.split(',').map(Number), d = world.desc(cx, cz), dug = state.dug.has(id);
       const where = d ? (() => { const dx = d.x - ship.pos.x, dz = d.z - ship.pos.z; return `${bearingName(dx, dz)}, ~${Math.round(Math.hypot(dx, dz))} fathoms`; })() : '';
-      html += `<div class="riddle ${dug ? 'done' : ''}"><b>${d ? d.name : id}</b> ${dug ? '<span class="ok">✓ dug up</span>' : ''}<p>“${state.riddles[id]}”</p>${dug ? '' : `<small>${where}</small>`}</div>`;
+      html += `<div class="riddle ${dug ? 'done' : ''}"><b>${d ? d.name : id}</b> ${dug ? `<span class="ok">${pxi('check')} dug up</span>` : ''}<p>“${state.riddles[id]}”</p>${dug ? '' : `<small>${where}</small>`}</div>`;
     }
     this.body.innerHTML = html;
   }
@@ -254,7 +255,7 @@ export class Logbook {
     if (!list.length) html += ent('None yet', 'Buy one in a harbour, or trade with a ship.', '', 'dim');
     for (const r of list) {
       const dx = r.x - ship.pos.x, dz = r.z - ship.pos.z;
-      html += ent(r.name, r.found ? 'found' : `${bearingName(dx, dz)}, ~${Math.round(Math.hypot(dx, dz))} fathoms · ${r.source || ''}`, r.found ? '✓' : '?', r.found ? 'done' : '');
+      html += ent(r.name, r.found ? 'found' : `${bearingName(dx, dz)}, ~${Math.round(Math.hypot(dx, dz))} fathoms · ${r.source || ''}`, r.found ? pxi('check') : '?', r.found ? 'done' : '');
     }
     this.body.innerHTML = html;
   }
@@ -262,7 +263,7 @@ export class Logbook {
   renderJournal() {
     const { state } = this.d, dread = this.d.dread();
     const isl = Object.values(state.discovered);
-    const types = { harbour: 'Harbours', treasure: 'Treasure isles', jungle: 'Jungles', rocky: 'Rocks', sandbar: 'Sandbars' };
+    const types = { harbour: 'Harbours', treasure: 'Treasure isles', jungle: 'Jungles', rocky: 'Rocks', sandbar: 'Sandbars', volcano: 'Volcanoes', atoll: 'Atolls', mangrove: 'Mangroves' };
     let html = h3(`Charted (${isl.length})`);
     for (const [t, label] of Object.entries(types)) { const l = isl.filter((i) => i.type === t); if (l.length) html += ent(`${label} · ${l.length}`, l.slice(0, 6).map((i) => i.name).join(', ') + (l.length > 6 ? '…' : '')); }
     if (!isl.length) html += ent('Nothing yet', '', '', 'dim');
@@ -281,7 +282,7 @@ export class Logbook {
   renderShip() {
     const { state, ship } = this.d;
     let html = h3('The Pocket Pearl') + ent(`${state.gold} gold`, `hull ${Math.round(state.hp)}/${ship.mods.maxHp} · ${state.ammo} cannonballs`);
-    html += h3('Fittings') + UPGRADES.map((u) => { const lv = state.upgrades[u.id]; return ent(u.name, lv ? u.text[lv - 1].split(':')[0] : 'stock', `<span class="pips">${'■'.repeat(lv)}${'□'.repeat(MAX_LEVEL - lv)}</span>`); }).join('');
+    html += h3('Fittings') + UPGRADES.map((u) => { const lv = state.upgrades[u.id]; return ent(u.name, lv ? u.text[lv - 1].split(':')[0] : 'stock', `<span class="pips">${pxi('pip').repeat(lv)}${pxi('nopip').repeat(MAX_LEVEL - lv)}</span>`); }).join('');
     html += h3('Looks') + GROUPS.map(([g, label, list]) => ent(label, byId(list, state.custom[g]).name)).join('');
     const b = state.buffs || {}, act = [];
     if (b.speed > 0) act.push(['Fresh supplies', `${Math.ceil(b.speed)}s`]);
@@ -310,7 +311,7 @@ export class Logbook {
   // ------------------------------------------------------------ map
   renderMap() {
     this.body.innerHTML = `<div class="mapwrap"><canvas id="mapCv" width="${W / 2}" height="${H / 2}"></canvas>
-      <div class="mapctl"><button id="mz+">+</button><button id="mz-">&minus;</button><button id="mc" title="Centre on ship">◎</button></div></div>
+      <div class="mapctl"><button id="mz+">+</button><button id="mz-">&minus;</button><button id="mc" title="Centre on ship">${pxi('target')}</button></div></div>
       <div class="legend">drag to pan · wheel to zoom · <b style="color:#b02818">?</b> rumour · <b style="color:#d07010">flag</b> delivery · <b style="color:#8a5a30">box</b> lost crates</div>`;
     const cv = document.getElementById('mapCv');
     this.cv = cv; this.c = cv.getContext('2d');
@@ -526,6 +527,9 @@ export class Logbook {
     });
     fan(pts, base);
     if (d.type === 'jungle' || d.type === 'rocky' || d.type === 'treasure') fan(inner, d.type === 'rocky' ? '#9a9486' : '#6aa456');
+    if (d.type === 'atoll') fan(inner, '#6ac8c8');
+    if (d.type === 'volcano') fan(inner.map((p) => [px + (p[0] - px) * 0.45, pz + (p[1] - pz) * 0.45]), '#b8402a');
+    if (d.type === 'mangrove') fan(inner, '#3f6a30');
     sk.line(pts, { w: 1.5 });
 
     if (sc < 0.2) return;

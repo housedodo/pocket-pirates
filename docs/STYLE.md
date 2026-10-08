@@ -33,6 +33,14 @@ purple and magenta cosmic horror as dread rises.
 - Glowing texels (yellow windows/lanterns, magenta spores/eyes) ignore the light level, so they shine at night.
 - Vertex snapping (PS1 wobble) gets coarser as dread rises.
 
+### People, houses, island kinds
+- Villagers (`villager()` in `world.js`): fisher, market woman, old salt, child, docker, harbourmaster. Boxy limbs,
+  6-sided torsos, blob heads, one strong prop each (hat, basket, cane, crate, ledger) so they read at a distance.
+- Houses (`houseKind()`): cottage, townhouse, stilt house, round thatched hut, tavern, warehouse, bell tower.
+  Every harbour gets a tavern first, then a mix.
+- Island kinds: sandbar, jungle, rocky, treasure, harbour, plus rarer volcano (ash cone, glowing crater, smoke),
+  atoll (sand ring around a lagoon) and mangrove (mud flats, stilt-rooted trees, herons).
+
 ## 4. Colour and mood
 - Bright stage: turquoise shallows `#4fe0d0`, deep blue `#1b86c6`, warm sand `#ecd69c`, palm greens
   `#4a9a40 / #6aa456`, red/white lighthouses, cream sails `#f4ecd0`.
@@ -51,7 +59,7 @@ purple and magenta cosmic horror as dread rises.
 - Menus (`.menu`): the same idea with a gold inner ring and a dark outer ring. Buttons have dithered
   tiles, stepped borders and a gold border on hover/focus.
 - Bars: hard fills with a 4px stripe pattern, stepped dark border.
-- Icons are pixel sprites written as character grids in `src/pixelui.js` (coin, sun, moon, flag, heart, sail,
+- **No emoji or symbol glyphs anywhere.** Icons in text use `pxi('name')` (7x7 pixel glyphs in `src/pixelui.js`: fish, fruits, crate, skull, letter, stars, checks, arrows...). Icons are pixel sprites written as character grids in `src/pixelui.js` (coin, sun, moon, flag, heart, sail,
   Mara's anchor and her "eye" when she breaks). New icons go there in the same format.
 - The HUD shows as little text as possible: gold, time, place. Everything else is in the log or the Q tracker.
 - Wind meter: one pixel-art tick ring with an N at north, a bright double arc where the bow sails well,

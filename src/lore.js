@@ -8,6 +8,9 @@ const PREFIX = {
   sandbar: ['Cay', 'Shoal', 'Sandy Cay', 'Spit'],
   rocky: ['Rock', 'Crag', 'Spire', 'Skerry'],
   treasure: ['Hollow Cay', 'Gold Cay', 'Buried Isle', 'Lost Cay'],
+  volcano: ['Mount', 'Ember Isle', 'Ash', 'Smoke Isle'],
+  atoll: ['Ring of', 'Lagoon', 'Atoll', 'Blue Ring'],
+  mangrove: ['Mangrove', 'Mire', 'Rootwater', 'Heron Isle'],
 };
 const SYL1 = ['Mar', 'Ros', 'Tor', 'Bel', 'Cor', 'Dun', 'Fen', 'Gal', 'Hal', 'Lor', 'Mon', 'Pel', 'Sal', 'Tam', 'Vel', 'Bri', 'Cal', 'Per'];
 const SYL2 = ['ow', 'ra', 'is', 'to', 'en', 'ia', 'ay', 'ell', 'on', 'ina', 'a', 'ar'];

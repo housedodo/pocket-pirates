@@ -4,7 +4,9 @@ import { sampleStage, DARK_THRESHOLD, dreadAtDistance } from './palette.js';
 import { U, initMaterials, mats, PostFX } from './psx.js';
 import { Ocean } from './ocean.js';
 import { Sky } from './sky.js';
-import { World } from './world.js';
+import { World, villager, VILLAGERS, houseKind, HOUSES } from './world.js';
+import { Builder } from './builder.js';
+import { TILE } from './textures.js';
 import { Ship } from './ship.js';
 import { Horror } from './horror.js';
 import { AudioBus, AUDIO_ENABLED } from './audio.js';
@@ -25,7 +27,7 @@ import { GROUPS, DEFAULT_CUSTOM, byId } from './customize.js';
 import { Wind } from './wind.js';
 import { WindFX } from './windfx.js';
 import { drawWind, PX } from './windmeters.js';
-import { installPixelUI } from './pixelui.js';
+import { installPixelUI, pxi } from './pixelui.js';
 import { applyTimeOfDay, DAY_LENGTH, tod } from './daynight.js';
 import { UPGRADES, MAX_LEVEL, computeMods, shipwrightLine } from './upgrades.js';
 import { Abyss, EFFECTS, WATCHER_STYLES, WATCHER_NAMES } from './abyss.js';
@@ -437,8 +439,8 @@ function renderHarbour() {
   if (hbTab === 'board') {
     html += '<div class="sec">DELIVERY</div>';
     const j = state.job || makeJob(world, d, state.serial[d.id] || 0);
-    if (state.job) html += `<div class="qrow"><div><b>📮 ${state.job.item}</b><br><small>to ${state.job.toName} · ${bearingName(state.job.x - d.x, state.job.z - d.z)}</small></div><small>${state.job.reward}g</small></div>`;
-    else if (j) html += `<div class="qrow"><div><b>📮 ${j.item}</b><br><small>to ${j.toName} · ${bearingName(j.x - d.x, j.z - d.z)}, ${j.dist} · ${j.reward}g</small></div><button id="jobAccept">Accept</button></div>`;
+    if (state.job) html += `<div class="qrow"><div><b>${pxi('letter')} ${state.job.item}</b><br><small>to ${state.job.toName} · ${bearingName(state.job.x - d.x, state.job.z - d.z)}</small></div><small>${state.job.reward}g</small></div>`;
+    else if (j) html += `<div class="qrow"><div><b>${pxi('letter')} ${j.item}</b><br><small>to ${j.toName} · ${bearingName(j.x - d.x, j.z - d.z)}, ${j.dist} · ${j.reward}g</small></div><button id="jobAccept">Accept</button></div>`;
     else html += '<small>Nothing today.</small>';
     html += `<div class="sec">COMMISSIONS (${state.quests.length}/3)</div>`;
     const mine = state.quests.filter((q) => q.giverId === d.id);
@@ -453,7 +455,7 @@ function renderHarbour() {
     }
     if (!mine.length && !offers.length) html += '<small>The board is empty. Come back after you have been out to sea.</small>';
     const r = findRumour(world, d, state);
-    if (r) html += `<div class="sec">RUMOURS</div><div class="qrow"><div><b>🗣 A sailor talks of buried treasure</b></div><button id="rumourBuy" ${state.gold >= RUMOUR_COST ? '' : 'disabled'}>${RUMOUR_COST}g</button></div>`;
+    if (r) html += `<div class="sec">RUMOURS</div><div class="qrow"><div><b>${pxi('talk')} A sailor talks of buried treasure</b></div><button id="rumourBuy" ${state.gold >= RUMOUR_COST ? '' : 'disabled'}>${RUMOUR_COST}g</button></div>`;
     pane.innerHTML = html;
     const ja = $('jobAccept');
     if (ja) ja.addEventListener('click', () => { state.job = j; toast(`Delivery taken: ${j.toName} (+${j.reward}g)`, j.dark); audio.play('buy'); renderHarbour(); });
@@ -472,13 +474,13 @@ function renderHarbour() {
     const fruitList = Object.entries(state.fruit).filter(([, n]) => n > 0);
     const fruitVal = Math.round(fruitList.reduce((a, [f, n]) => a + FRUITS[f].price * n, 0) * (1 + 0.05 * lvl));
     const ammoCost = Math.ceil(25 * discount(rep));
-    html += `<div class="sec">STANDING HERE</div><small>${'★'.repeat(lvl)}${'☆'.repeat(3 - lvl)}${lvl ? `  (-${lvl * 5}% prices, +${lvl * 5}% for your catch)` : '  (visit and deliver to be remembered)'}</small>`;
+    html += `<div class="sec">STANDING HERE</div><small>${pxi('star').repeat(lvl)}${pxi('nostar').repeat(3 - lvl)}${lvl ? `  (-${lvl * 5}% prices, +${lvl * 5}% for your catch)` : '  (visit and deliver to be remembered)'}</small>`;
     html += '<div class="sec">SELL</div>';
-    html += `<div class="qrow"><div><b>🐟 Fish</b><br><small>${state.catch.length ? `${state.catch.length} in the hold` : 'none: slow down and press C at sea'}</small></div>${state.catch.length ? `<button id="sellFish">+${fishVal}g</button>` : ''}</div>`;
-    html += `<div class="qrow"><div><b>🍌 Fruit</b><br><small>${fruitList.length ? fruitList.map(([f, n]) => `${n} ${plural(fruitName(f, dread), n)}`).join(', ') : 'none: press E at jungle isles'}</small></div>${fruitList.length ? `<button id="sellFruit">+${fruitVal}g</button>` : ''}</div>`;
+    html += `<div class="qrow"><div><b>${pxi('fish')} Fish</b><br><small>${state.catch.length ? `${state.catch.length} in the hold` : 'none: slow down and press C at sea'}</small></div>${state.catch.length ? `<button id="sellFish">+${fishVal}g</button>` : ''}</div>`;
+    html += `<div class="qrow"><div><b>${pxi('banana')} Fruit</b><br><small>${fruitList.length ? fruitList.map(([f, n]) => `${n} ${plural(fruitName(f, dread), n)}`).join(', ') : 'none: press E at jungle isles'}</small></div>${fruitList.length ? `<button id="sellFruit">+${fruitVal}g</button>` : ''}</div>`;
     html += '<div class="sec">BUY</div>';
-    html += `<div class="qrow"><div><b>💥 10 cannonballs</b><br><small>you have ${state.ammo}</small></div><button id="buyAmmo" ${state.gold >= ammoCost ? '' : 'disabled'}>${ammoCost}g</button></div>`;
-    html += '<div class="sec">SHIPYARD</div><div class="qrow"><div><b>🎨 Paint, sails, pennants, figureheads</b></div><button id="openYard">Open</button></div>';
+    html += `<div class="qrow"><div><b>${pxi('ball')} 10 cannonballs</b><br><small>you have ${state.ammo}</small></div><button id="buyAmmo" ${state.gold >= ammoCost ? '' : 'disabled'}>${ammoCost}g</button></div>`;
+    html += `<div class="sec">SHIPYARD</div><div class="qrow"><div><b>${pxi('paint')} Paint, sails, pennants, figureheads</b></div><button id="openYard">Open</button></div>`;
     pane.innerHTML = html;
     const sf = $('sellFish'); if (sf) sf.addEventListener('click', () => { state.gold += fishVal; toast(`Sold ${state.catch.length} fish for ${fishVal} gold.`); state.catch = []; audio.play('buy'); renderHarbour(); });
     const sfr = $('sellFruit'); if (sfr) sfr.addEventListener('click', () => { state.gold += fruitVal; toast(`Sold fruit for ${fruitVal} gold.`); state.fruit = {}; audio.play('buy'); renderHarbour(); });
@@ -489,7 +491,7 @@ function renderHarbour() {
       const lv = state.upgrades[u.id], maxed = lv >= MAX_LEVEL;
       const cost = maxed ? 0 : upCost(u, lv, rep);
       const can = !maxed && state.gold >= cost;
-      return `<div class="qrow"><div><b>${i + 1}. ${u.name}</b> <span class="pips">${'■'.repeat(lv)}${'□'.repeat(MAX_LEVEL - lv)}</span><br><small>${maxed ? 'Fully upgraded' : u.text[lv]}</small></div><button data-id="${u.id}" ${can ? '' : 'disabled'}>${maxed ? 'MAX' : `${cost}g`}</button></div>`;
+      return `<div class="qrow"><div><b>${i + 1}. ${u.name}</b> <span class="pips">${pxi('pip').repeat(lv)}${pxi('nopip').repeat(MAX_LEVEL - lv)}</span><br><small>${maxed ? 'Fully upgraded' : u.text[lv]}</small></div><button data-id="${u.id}" ${can ? '' : 'disabled'}>${maxed ? 'MAX' : `${cost}g`}</button></div>`;
     }).join('');
     pane.innerHTML = html;
     pane.querySelectorAll('button[data-id]').forEach((b) => b.addEventListener('click', () => buyUpgrade(b.dataset.id)));
@@ -546,7 +548,7 @@ function updateTracker() {
   const rows = [];
   const g = objectives.current;
   if (g) rows.push(`<div class="trow main"><i class="ico flag"></i>${g.title}</div>`);
-  if (state.job) rows.push(`<div class="trow">\u{1F4EE} ${state.job.toName}</div>`);
+  if (state.job) rows.push(`<div class="trow">${pxi('letter')} ${state.job.toName}</div>`);
   for (const q of state.quests) rows.push(`<div class="trow">${questIcon(q)} ${questTitle(q, dread)} <b>${questProgress(q, state)}/${questNeed(q)}</b></div>`);
   const html = rows.length ? abyss.hud('track', rows.join('')) + '<div class="thint">[Q] hide</div>' : '';
   if (html !== trackerHtml) { trackerHtml = html; trackerEl.innerHTML = html; }
@@ -1046,6 +1048,15 @@ window.__game = {
   setCam(p, z) { if (p !== undefined) { pitch = pitchT = p; } if (z !== undefined) { zoom = zoomT = z; } },
   setOverride(o) { camOverride = o; },
   teleport(x, z, h) { ship.pos.set(x, 0, z); ship.heading = h; camHeading = h; },
+  /** design lineups for screenshots: 'villagers' or 'houses' on a raft at (x, z) */
+  showcase(kind, x = 0, z = 60) {
+    if (this._show) scene.remove(this._show);
+    const b = new Builder(), list = kind === 'houses' ? HOUSES : VILLAGERS, gap = kind === 'houses' ? 7.5 : 1.5, n = list.length, rng = mulberry32(5);
+    b.box(0, -0.6, 0, gap * n + 1, 0.8, kind === 'houses' ? 10 : 2.6, '#9a7a50', TILE.planks);
+    list.forEach((k, i) => { const px = (i - (n - 1) / 2) * gap; if (kind === 'houses') houseKind(b, b, px, 0.2, 0, 0, rng, k); else villager(b, px, 0.2, 0, 0, rng, k); });
+    this._show = new THREE.Mesh(b.geometry(), mats.props); this._show.position.set(x, 0.4, z); scene.add(this._show);
+    return list;
+  },
   abyss, hut, ship, world, state, begin, scene, camera, horror, renderer, wind, weather, fauna, traffic, sea, audio, fishing, combat, objectives, hurtPlayer, openModal, closeModal, buyUpgrade, refreshMods,
 };
 if (params.get('autostart')) begin();
