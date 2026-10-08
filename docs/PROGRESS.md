@@ -178,6 +178,8 @@ Read it before building any story part. Decided so far: the final throw of the L
   (5) the ending at the eye.
 
 ## 5. How to test quickly
+- Pause menu > New voyage (erase save), clicked twice, wipes the save and restarts. `?fresh=1` plays without loading or saving.
+- Camera: R / drag up lowers it to deck level, where the view tilts up to the sky (it never goes below the waterline).
 - `npm run dev`, then use URL flags: `?autostart=1&fresh=1&nomate=1`, `&dread=1`, `&time=0.9`, `&x=..&z=..`.
 - Keys: 1-5 force a dread stage, 0 back to automatic, [ ] change the hour, ` shows debug info.
 - `window.__game` exposes the game (e.g. `__game.world.hutDesc` for the hut island, `__game.hut`).

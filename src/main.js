@@ -37,6 +37,7 @@ import { Abyss, EFFECTS, WATCHER_STYLES, WATCHER_NAMES } from './abyss.js';
 
 // ---------------------------------------------------------------- params, save, settings
 const params = new URLSearchParams(location.search);
+let noSave = false;
 const SAVE_KEY = 'pocket-pirates-save-v1', SETTINGS_KEY = 'pocket-pirates-settings-v1';
 const store = {
   get(k) { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } },
@@ -359,12 +360,13 @@ window.addEventListener('blur', () => { if (started && !modal && !params.get('sh
 titleEl.addEventListener('pointerdown', begin);
 
 let zoom = parseFloat(params.get('zoom') || '24'), zoomT = zoom;
+const PITCH_MIN = 0.06;   // low, almost level with the deck: the view tilts up to the sky instead of dipping under the hull
 let pitch = parseFloat(params.get('pitch') || '0.72'), pitchT = pitch;
 canvas.addEventListener('wheel', (e) => { zoomT = clamp(zoomT * (1 + Math.sign(e.deltaY) * 0.1), 14, ship.mods.zoomMax); e.preventDefault(); }, { passive: false });
 let drag = null;
 let yawT = 0, camYaw = 0, lastCamInput = -99;   // orbit around the boat (drag sideways, Z / X, V resets)
 canvas.addEventListener('pointerdown', (e) => { drag = { x: e.clientX, y: e.clientY, p: pitchT, yaw: yawT }; lastCamInput = tNow; canvas.setPointerCapture(e.pointerId); });
-canvas.addEventListener('pointermove', (e) => { if (drag && !modal) { pitchT = clamp(drag.p + (e.clientY - drag.y) * 0.006, 0.3, 1.35); yawT = drag.yaw - (e.clientX - drag.x) * 0.008; lastCamInput = tNow; } });
+canvas.addEventListener('pointermove', (e) => { if (drag && !modal) { pitchT = clamp(drag.p + (e.clientY - drag.y) * 0.006, PITCH_MIN, 1.35); yawT = drag.yaw - (e.clientX - drag.x) * 0.008; lastCamInput = tNow; } });
 canvas.addEventListener('pointerup', () => { drag = null; });
 
 for (const [id, k] of [['tL', 'L'], ['tR', 'R'], ['tU', 'U'], ['tD', 'D']]) {
@@ -382,6 +384,7 @@ $('tP').addEventListener('pointerdown', (e) => { begin(); if (modal) closeModal(
 // ---------------------------------------------------------------- pause menu
 if (!AUDIO_ENABLED) { $('pbSound').style.display = 'none'; $('pbMusic').style.display = 'none'; }
 function showPauseMain() {
+  $('pbNew').textContent = 'New voyage (erase save)';
   $('pauseMain').style.display = 'block'; $('pauseControls').style.display = 'none'; $('pauseAbyss').style.display = 'none';
   $('pbSound').textContent = `Sound: ${audio.muted ? 'off' : 'on'}`;
   $('pbMusic').textContent = `Music: ${audio.musicOn ? 'on' : 'off'}`;
@@ -1080,6 +1083,12 @@ function sinkPlayer() {
     toast(`The Pearl went under. A fisherman dragged you to ${tgt.name}. You lost ${lost} gold; the hull is repaired.`, false, 8000);
   }, 1100);
 }
+let newAsk = 0;
+$('pbNew').addEventListener('click', () => {
+  if (performance.now() - newAsk > 4000) { newAsk = performance.now(); $('pbNew').textContent = 'Really? Click again to start over'; return; }
+  noSave = true; try { localStorage.removeItem(SAVE_KEY); } catch (e) { /* storage blocked */ }
+  location.href = location.pathname;
+});
 $('pbHint').addEventListener('click', () => { closeModal(); if (!abyss.maraHint()) objectives.askHint(dread); });
 
 // ---------------------------------------------------------------- captain's log
@@ -1128,7 +1137,7 @@ function frame() {
   if (live && (keys.has('KeyZ') || keys.has('KeyX'))) { yawT += ((keys.has('KeyX') ? 1 : 0) - (keys.has('KeyZ') ? 1 : 0)) * dt * 1.8; lastCamInput = tNow; }
   if (keys.has('KeyV')) { yawT = 0; lastCamInput = tNow; }
   if (!drag && tNow - lastCamInput > 6) yawT += (0 - yawT) * Math.min(1, rawDt * 0.7);   // drifts back behind the boat after a while
-  if (live && keys.has('KeyR')) pitchT = clamp(pitchT - dt * 0.8, 0.3, 1.35);
+  if (live && keys.has('KeyR')) pitchT = clamp(pitchT - dt * 0.8, PITCH_MIN, 1.35);
   if (live && keys.has('KeyF')) pitchT = clamp(pitchT + dt * 0.8, 0.3, 1.35);
   if (live || params.get('autostart')) ship.update(dt, shipInput, windNow, tNow);
   if (live && dt > 0) { stormAndCalm(dt); tabletopTick(dt); seaGate(dt); }
@@ -1209,7 +1218,9 @@ function frame() {
   const fx = Math.sin(ch), fz = -Math.cos(ch);
   const back = zoom * Math.cos(pitchNow), up = zoom * Math.sin(pitchNow);
   camPos.set(ship.pos.x - fx * back, up + 1, ship.pos.z - fz * back);
-  camLook.set(ship.pos.x + fx * zoom * 0.2, 1.5 + lookUpK * 9, ship.pos.z + fz * zoom * 0.2);
+  const skyK = clamp((0.3 - pitchNow) / (0.3 - PITCH_MIN), 0, 1);   // below the old limit the camera looks up instead of down
+  camLook.set(ship.pos.x + fx * zoom * 0.2, 1.5 + lookUpK * 9 + skyK * zoom * 0.42, ship.pos.z + fz * zoom * 0.2);
+  camPos.y = Math.max(camPos.y, 3.2);                                 // never at or under the waterline
   if (shake > 0) { shake = Math.max(0, shake - rawDt * 1.8); camPos.x += Math.sin(tNow * 70) * shake; camPos.y += Math.cos(tNow * 63) * shake * 0.7; }
   if (dread > 0.85 && live) { const s = (dread - 0.85) * 0.5; camPos.x += Math.sin(tNow * 31) * s; camPos.y += Math.sin(tNow * 23 + 1) * s; }
   if (camOverride) { camPos.set(...camOverride.pos); camLook.set(...camOverride.look); }
@@ -1290,7 +1301,7 @@ function frame() {
   }
 
   // ---- save
-  if (tNow - lastSave > 4 && !params.get('fresh')) {
+  if (tNow - lastSave > 4 && !params.get('fresh') && !noSave) {
     lastSave = tNow;
     store.set(SAVE_KEY, { seed: state.seed, gold: state.gold, dug: [...state.dug], discovered: state.discovered, loot: state.loot, upgrades: state.upgrades, collected: [...state.collected], notes: state.notes, rumoured: state.rumoured, rep: state.rep, job: state.job, serial: state.serial, sectorsSeen: state.sectorsSeen, jobHistory: state.jobHistory, buffs: state.buffs, stats: state.stats, quests: state.quests, fruit: state.fruit, harvest: state.harvest, dayN: state.dayN, hp: state.hp, ammo: state.ammo, custom: state.custom, owned: [...state.owned], riddles: state.riddles, attempts: state.attempts, catch: state.catch, fishLog: state.fishLog, hut: state.hut, passenger: state.passenger, story: state.story, crew: state.crew, cardsSeen: state.cardsSeen, haggle: state.haggle, tracked: state.tracked, goals: state.goals, hints: state.hints, time: state.time, windT: wind.t, pos: { x: ship.pos.x, z: ship.pos.z, h: ship.heading } });
   }
