@@ -441,7 +441,7 @@ export class Logbook {
       if (warp.since > 2.5) {
         c.save(); c.translate(X(ship.pos.x), Z(ship.pos.z)); c.rotate(-0.25 + Math.sin(warp.t * 0.3) * 0.05);
         c.globalAlpha = Math.min(0.75, (warp.since - 2.5) / 3);
-        c.font = 'italic 700 34px Georgia, serif'; c.fillStyle = '#7a1a3a'; c.textAlign = 'center';
+        c.font = '700 40px "Pixelify Sans", monospace'; c.fillStyle = '#7a1a3a'; c.textAlign = 'center';
         c.fillText('TURN BACK', 0, -60);
         c.strokeStyle = '#7a1a3a'; c.lineWidth = 3; c.beginPath(); c.ellipse(0, 0, 44, 20, 0, 0, 7); c.stroke();
         c.beginPath(); c.arc(0, 0, 9, 0, 7); c.fillStyle = '#7a1a3a'; c.fill();
@@ -449,10 +449,10 @@ export class Logbook {
       }
       if (!this.warpRaf) this.warpRaf = requestAnimationFrame(() => { this.warpRaf = 0; if (this.tab === 'map' && document.getElementById('chart').classList.contains('open')) this.drawMap(); });
     }
-    c.font = 'italic 700 12px Georgia, serif'; c.textAlign = 'center';
+    c.font = '700 16px "Pixelify Sans", monospace'; c.textAlign = 'center';
     for (const [name, lx, lz] of labels) sketcher(c, hash2(lx | 0, name.length, 5)).text(name, lx, lz);
 
-    c.font = 'italic 700 17px Georgia, serif';
+    c.font = '700 23px "Pixelify Sans", monospace';
     for (let sz = sz0; sz <= sz1; sz++) for (let sx = sx0; sx <= sx1; sx++) {
       const info = sectorInfo(sx, sz, seed), cx = X(sx * SECTOR), cz = Z(sz * SECTOR - SECTOR / 2) + 22;
       const sk = sketcher(c, hash2(sx, sz, 8));

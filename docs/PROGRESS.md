@@ -98,7 +98,7 @@ For how things must look, see `STYLE.md`; for how systems work, see `DESIGN.md`.
 The worked-out story (main story, Old Perrin, Mara's village, the island that moves, how they connect and
 the build plan in six parts) lives in the shared story doc, which the user edits:
 https://claude.ai/code/artifact/577e89fb-db92-4c7b-8108-25b3f56573e4
-Read it before building any story part. The seeds below were the starting point.
+Read it before building any story part. Decided so far: the final throw of the Lady's d20 decides the ending (20 = she sleeps 100 more years, 10-19 = good dreams, 1-9 = she rises), the hidden ledger adds a bonus or punishment to that roll and is only revealed at the end, the Lady is never seen, Mara is a cheerful survivor (her real name is Mara), no handholding. The seeds below were the starting point.
 
 ### Original seeds
 - The sea is a closed eyelid. Dread is the Eye stirring in its sleep; the full-dread effects are

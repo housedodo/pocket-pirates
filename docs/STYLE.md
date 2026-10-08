@@ -43,7 +43,7 @@ purple and magenta cosmic horror as dread rises.
   (`src/palette.js`).
 
 ## 5. Interface (HUD and menus)
-- Font: **Pixelify Sans** (bundled in `public/fonts`), weight 600 for labels; text shadow is a hard
+- **One typeface everywhere: Pixelify Sans** (bundled in `public/fonts`), for the HUD, menus, the book, the chart labels and the die. No other fonts, no italics (a global CSS rule enforces both); smallest size 12px. Weight 600 for labels; text shadow is a hard
   2px offset, never a blur. Text without a background behind it gets `filter: url(#crisp)`.
 - Panels (`.panel`): an 8x8 dithered navy tile (`--pxpanel`, shown at 32px), **no CSS border**. The frame is
   four hard box-shadows of 4px in `--pxedge` (gives notched pixel corners), a 4px pixel drop shadow,

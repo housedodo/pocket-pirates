@@ -255,6 +255,10 @@
     .hbtabs button.on, .swatches button.on { outline: none; background: #4a38a0; box-shadow: 0 -3px 0 #ffd23a, 0 3px 0 #ffd23a, -3px 0 0 #ffd23a, 3px 0 0 #ffd23a; }
     .menu td, .qrow, .up, .job, .abrow { border-bottom: 4px dotted #fff7d622 !important; }
     #fishmark { border-radius: 0; border: none; box-shadow: 0 0 0 3px #000; }
+    /* one typeface everywhere: the pixel font, upright (no fake italics) */
+    *, *::before, *::after, button, input { font-family: var(--pxfont) !important; }
+    *, *::before, *::after { font-style: normal !important; }
+    .menu small, .ds, #tracker .thint, .menu .tip { font-size: 12px !important; }
   </style>
 </head>
 <body>
