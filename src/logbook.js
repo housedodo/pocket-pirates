@@ -21,6 +21,7 @@ const LAND = { sand: '#ecd69c', jungle: '#92c274', rocky: '#b7ad9c', treasure: '
 // uneven watercolour washes with pencil hatching. Seeded, so a drawing does not boil while you pan.
 const circ = (x, y, r, n = 12) => Array.from({ length: n }, (_, i) => [x + Math.cos((i / n) * 6.2832) * r, y + Math.sin((i / n) * 6.2832) * r]);
 const rectP = (x, y, w, h) => [[x, y], [x + w, y], [x + w, y + h], [x, y + h]];
+let TEXTQ = null;   // while the chart draws, its labels are queued here and painted on a full-resolution layer
 function sketcher(c, seed) {
   const r = mulberry32(seed | 0), j = (a) => (r() - 0.5) * 2 * a;
   const path = (pts, closed, amp) => {
@@ -61,7 +62,8 @@ function sketcher(c, seed) {
     },
     text(str, x, y, o = {}) {
       const { col = INK, halo = true } = o;
-      const font = (o.font || '700 12px Georgia, serif').replace('italic ', '').replace(/(\d+)px/, (m, n) => `${Math.round(n * 1.35)}px`).replace(/Georgia, serif|Georgia/, '"Pixelify Sans", monospace');
+      const font = (o.font || '700 12px Georgia, serif').replace('italic ', '').replace(/\b(bold|[5-9]00)\b/, '400').replace(/(\d+)px/, (m, n) => `${+n >= 30 ? 32 : 16}px`).replace(/Georgia, serif|Georgia/, '"DotGothic16", monospace');
+      if (TEXTQ) { TEXTQ.push({ str, x: x + j(1.5), y: y + j(1.5), rot: j(0.03), font, col, halo, a: 0.85 + r() * 0.15 }); return; } // drawn later, crisp, on the label layer
       c.save(); c.translate(x + j(1.5), y + j(1.5)); c.rotate(j(0.04)); c.font = font; c.textAlign = 'center';
       if (halo) { c.strokeStyle = 'rgba(232,214,166,0.9)'; c.lineWidth = 6; c.lineJoin = 'miter'; c.strokeText(str, 0, 0); }
       c.fillStyle = col; c.globalAlpha = 0.85 + r() * 0.15; c.fillText(str, 0, 0); c.restore(); c.globalAlpha = 1;
@@ -119,7 +121,7 @@ function pixelPage() {
     c.fillStyle = pal[Math.max(0, Math.min(3, Math.round(v + dith(x, y))))]; c.fillRect(x, y, 1, 1);
   }
   for (let i = 0; i < 18; i++) pblob(c, r, r() * W0, r() * H0, 1 + r() * 2.5, 'rgba(120,80,40,0.35)');                           // foxing
-  for (let i = 0; i < 3; i++) { const x = [6, W0 - 7, 72][i] + r() * 6, y = [5 + r() * 6, H0 - 9, H0 - 6][i]; pblob(c, r, x, y, 2 + r() * 2, '#2a1608'); for (let k = 0; k < 6; k++) c.fillRect(x + (r() - 0.5) * 12, y + (r() - 0.5) * 10, 1, 1); } // ink blots
+  for (let i = 0; i < 3; i++) { const x = [6, W0 - 7, 34][i] + r() * 6, y = [5 + r() * 6, H0 - 9, H0 - 6][i]; pblob(c, r, x, y, 2 + r() * 2, '#2a1608'); for (let k = 0; k < 6; k++) c.fillRect(x + (r() - 0.5) * 12, y + (r() - 0.5) * 10, 1, 1); } // ink blots
   { const x = 128, y = 66, rr = 8; c.fillStyle = 'rgba(110,60,20,0.5)'; for (let a = 0.4; a < 5.8; a += 0.08) c.fillRect(Math.round(x + Math.cos(a) * rr), Math.round(y + Math.sin(a) * rr * 0.9), 1, 1); } // coffee ring
   pline(c, 20, 0, 58, H0, 'rgba(255,248,225,0.25)'); pline(c, 21, 0, 59, H0, 'rgba(90,60,30,0.2)');                                   // crease
   for (let i = 0; i < 9; i++) for (let j = 0; j < 9 - i; j++) { c.fillStyle = (i + j) % 2 ? '#b49a62' : '#d2ba84'; c.fillRect(W0 - 1 - i, H0 - 1 - j, 1, 1); } // dog-ear
@@ -310,7 +312,7 @@ export class Logbook {
 
   // ------------------------------------------------------------ map
   renderMap() {
-    this.body.innerHTML = `<div class="mapwrap"><canvas id="mapCv" width="${W / 2}" height="${H / 2}"></canvas>
+    this.body.innerHTML = `<div class="mapwrap"><canvas id="mapCv" width="${W / 2}" height="${H / 2}"></canvas><canvas id="mapTxt" width="${W}" height="${H}"></canvas>
       <div class="mapctl"><button id="mz+">+</button><button id="mz-">&minus;</button><button id="mc" title="Centre on ship">${pxi('target')}</button></div></div>
       <div class="legend">drag to pan · wheel to zoom · <b style="color:#b02818">?</b> rumour · <b style="color:#d07010">flag</b> delivery · <b style="color:#8a5a30">box</b> lost crates</div>`;
     const cv = document.getElementById('mapCv');
@@ -392,6 +394,7 @@ export class Logbook {
   drawMap() {
     const { state, world, ship, seed } = this.d, c = this.c, v = this.view, sc = v.sc;
     if (!c) return;
+    TEXTQ = [];
     c.setTransform(0.5, 0, 0, 0.5, 0, 0);   // drawn in 880x470 chart space onto a half-size canvas, shown pixelated
     const X = (wx) => W / 2 + (wx - v.cx) * sc, Z = (wz) => H / 2 + (wz - v.cz) * sc;
     c.drawImage(this.parchment(), 0, 0);
@@ -442,7 +445,7 @@ export class Logbook {
       if (warp.since > 2.5) {
         c.save(); c.translate(X(ship.pos.x), Z(ship.pos.z)); c.rotate(-0.25 + Math.sin(warp.t * 0.3) * 0.05);
         c.globalAlpha = Math.min(0.75, (warp.since - 2.5) / 3);
-        c.font = '700 40px "Pixelify Sans", monospace'; c.fillStyle = '#7a1a3a'; c.textAlign = 'center';
+        c.font = '400 32px "DotGothic16", monospace'; c.fillStyle = '#7a1a3a'; c.textAlign = 'center';
         c.fillText('TURN BACK', 0, -60);
         c.strokeStyle = '#7a1a3a'; c.lineWidth = 3; c.beginPath(); c.ellipse(0, 0, 44, 20, 0, 0, 7); c.stroke();
         c.beginPath(); c.arc(0, 0, 9, 0, 7); c.fillStyle = '#7a1a3a'; c.fill();
@@ -450,10 +453,10 @@ export class Logbook {
       }
       if (!this.warpRaf) this.warpRaf = requestAnimationFrame(() => { this.warpRaf = 0; if (this.tab === 'map' && document.getElementById('chart').classList.contains('open')) this.drawMap(); });
     }
-    c.font = '700 16px "Pixelify Sans", monospace'; c.textAlign = 'center';
+    c.font = '400 16px "DotGothic16", monospace'; c.textAlign = 'center';
     for (const [name, lx, lz] of labels) sketcher(c, hash2(lx | 0, name.length, 5)).text(name, lx, lz);
 
-    c.font = '700 23px "Pixelify Sans", monospace';
+    c.font = '400 32px "DotGothic16", monospace';
     for (let sz = sz0; sz <= sz1; sz++) for (let sx = sx0; sx <= sx1; sx++) {
       const info = sectorInfo(sx, sz, seed), cx = X(sx * SECTOR), cz = Z(sz * SECTOR - SECTOR / 2) + 22;
       const sk = sketcher(c, hash2(sx, sz, 8));
@@ -505,6 +508,16 @@ export class Logbook {
     { const sk = sketcher(c, 3); sk.line(rectP(8, 8, W - 16, H - 16), { w: 3, amp: 1.4 }); }
     c.setTransform(1, 0, 0, 1, 0, 0);
     pixelate(c, W / 2, H / 2);
+    const tq = TEXTQ; TEXTQ = null;
+    const tc = document.getElementById('mapTxt'), t = tc && tc.getContext('2d');
+    if (t) {
+      t.clearRect(0, 0, W, H);
+      for (const q of tq) {
+        t.save(); t.translate(Math.round(q.x), Math.round(q.y)); t.rotate(q.rot); t.font = q.font; t.textAlign = 'center';
+        if (q.halo) { t.strokeStyle = 'rgba(226,208,160,0.95)'; t.lineWidth = 5; t.lineJoin = 'miter'; t.strokeText(q.str, 0, 0); }
+        t.globalAlpha = q.a; t.fillStyle = q.col; t.fillText(q.str, 0, 0); t.restore();
+      }
+    }
   }
 
   drawIsland(c, d, px, pz, sc, state) {

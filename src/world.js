@@ -25,29 +25,62 @@ const ROOFS = ['#d2483c', '#3c78c8', '#2f9a8a', '#c86a2a', '#7a4ab0'];
 // ---------------------------------------------------------------------------
 const FORCED = {
   '0,0': null,
-  '0,-1': { type: 'harbour', x: 0, z: -100 },
-  '1,-1': { type: 'treasure', x: 112, z: -96 },
-  '-1,-1': { type: 'jungle', x: -108, z: -112 },
-  '-1,0': { type: 'sandbar', x: -92, z: 22 },
+  '0,-1': { type: 'harbour', x: 0, z: -118, r: 38 },   // Harbour Tama, the big home island
+  '1,-1': { type: 'treasure', x: 140, z: -172 },
+  '-1,-1': null,                                        // open water around Tama
+  '1,0': null,
+  '-2,-1': { type: 'jungle', x: -232, z: -128 },
+  '-1,0': { type: 'sandbar', x: -112, z: 30 },
 };
-const TYPE_TABLE = [['sandbar', 0.26], ['jungle', 0.3], ['rocky', 0.18], ['treasure', 0.13], ['harbour', 0.13]];
+const TYPE_TABLE = [['sandbar', 0.28], ['jungle', 0.28], ['rocky', 0.2], ['treasure', 0.12], ['harbour', 0.12]];
+
+// The sea is mostly open: island chance follows a slow noise field, so there are archipelagos and long
+// lonely stretches. ~30% of cells on average (was 62%), between ~12% and ~52%.
+function islandChance(cx, cz, seed) {
+  const n = fbm(cx * 0.21 + 3.7, cz * 0.21 - 1.3, seed + 71);
+  return 0.12 + 0.4 * smooth01(n);
+}
+const smooth01 = (x) => { const t = Math.max(0, Math.min(1, (x - 0.25) / 0.5)); return t * t * (3 - 2 * t); };
+function rawType(rng) {
+  let r = rng();
+  for (const [t, w] of TYPE_TABLE) { if (r < w) return t; r -= w; }
+  return 'jungle';
+}
+/** the cell's type before village spacing (same rolls as describeCell) */
+function rawCellType(cx, cz, seed) {
+  const key = `${cx},${cz}`;
+  if (Object.prototype.hasOwnProperty.call(FORCED, key)) return FORCED[key] ? FORCED[key].type : null;
+  const rng = mulberry32(hash2(cx, cz, seed));
+  if (rng() > islandChance(cx, cz, seed)) return null;
+  return rawType(rng);
+}
+function harbourWins(cx, cz, seed) {
+  if (Math.max(Math.abs(cx), Math.abs(cz + 1)) <= 2) return false;           // Tama's waters
+  const me = hash2(cx, cz, seed + 616);
+  for (let dz = -2; dz <= 2; dz++) for (let dx = -2; dx <= 2; dx++) {
+    if (!dx && !dz) continue;
+    const t = rawCellType(cx + dx, cz + dz, seed);
+    if (t === 'harbour' && hash2(cx + dx, cz + dz, seed + 616) > me) return false;
+  }
+  return true;
+}
 
 export function describeCell(cx, cz, seed) {
   const key = `${cx},${cz}`;
   const rng = mulberry32(hash2(cx, cz, seed));
   const forced = Object.prototype.hasOwnProperty.call(FORCED, key) ? FORCED[key] : undefined;
   if (forced === null) return null;
-  if (forced === undefined && rng() > 0.62) return null;
-  let type = forced ? forced.type : null;
-  if (!type) {
-    let r = rng();
-    for (const [t, w] of TYPE_TABLE) { if (r < w) { type = t; break; } r -= w; }
-    type = type || 'jungle';
-  }
+  const roll = rng();
+  if (forced === undefined && roll > islandChance(cx, cz, seed)) return null;
+  let type = forced ? forced.type : rawType(rng);
+  // villages are rare and never crowd each other: a harbour only stands if it is the strongest claim
+  // within two cells (and never right next to Tama); otherwise the island stays wild
+  if (!forced && type === 'harbour' && !harbourWins(cx, cz, seed)) type = 'jungle';
   const x = forced ? forced.x : cx * CELL + (rng() - 0.5) * 50;
   const z = forced ? forced.z : cz * CELL + (rng() - 0.5) * 50;
   const dread = dreadAtDistance(Math.hypot(x, z));
-  const r = { sandbar: 6 + rng() * 5, jungle: 15 + rng() * 8, rocky: 11 + rng() * 6, treasure: 15 + rng() * 5, harbour: 22 + rng() * 5 }[type];
+  let r = { sandbar: 6 + rng() * 5, jungle: 15 + rng() * 8, rocky: 11 + rng() * 6, treasure: 15 + rng() * 5, harbour: 22 + rng() * 5 }[type];
+  if (forced && forced.r) r = forced.r;
   const H = { sandbar: 0.9, jungle: 4 + rng() * 3, rocky: 6 + rng() * 4, treasure: 3 + rng(), harbour: 1.15 }[type];
   const amp = type === 'sandbar' ? 1.6 : 1;
   const lobes = [(0.08 + rng() * 0.1) * amp, (0.05 + rng() * 0.08) * amp, (0.03 + rng() * 0.05) * amp, rng() * 6.28, rng() * 6.28, rng() * 6.28];
@@ -702,8 +735,8 @@ function decorate(d, rng, A, B, D, extra) {
       break;
     }
     case 'harbour': {
-      const dockTh = rng() * Math.PI * 2;
-      const n = 6 + Math.floor(rng() * 3);
+      const dockRoll = rng(), dockTh = d.id === '0,-1' ? Math.PI / 2 : dockRoll * Math.PI * 2;   // Tama's pier faces the start
+      const n = Math.round((6 + Math.floor(rng() * 3)) * Math.max(1, d.r / 25));
       let placed = 0;
       for (let i = 0; i < n * 2 && placed < n; i++) {
         const th = (i / (n * 2)) * Math.PI * 2 + rng() * 0.3;
@@ -720,6 +753,7 @@ function decorate(d, rng, A, B, D, extra) {
       if (hasLighthouse(d)) lighthouse(A, extra, Math.cos(lth) * lr, d.H - 0.2, Math.sin(lth) * lr);
       // dock
       const R = shoreR(d, dockTh), z0 = R * 0.55, z1 = R + 14, zc = (z0 + z1) / 2;
+      d.dock = { x: Math.cos(dockTh) * (R + 10), z: Math.sin(dockTh) * (R + 10), th: dockTh };   // where you moor (local)
       const ry = Math.PI / 2 - dockTh;
       A.push(0, 0, 0, ry);
       A.box(0, 0.62, zc, 2.8, 0.22, z1 - z0, '#ffffff', TILE.planks);
@@ -865,15 +899,31 @@ export class Island {
       this.walkers.push({ mesh, w });
     }
     if (this.walkers.length) {
+      // villagers stroll: pick a spot in the village, amble there, stand around a while, pick another
+      const spot = (w) => {
+        const th = w.r() * Math.PI * 2, rho = shoreR(d, th) * (0.12 + w.r() * 0.5), x = Math.cos(th) * rho, z = Math.sin(th) * rho;
+        return { x, z };
+      };
+      for (const wk of this.walkers) {
+        const w = wk.w; w.r = mulberry32(Math.floor(w.rng * 1e6) + 3);
+        w.p = spot(w); w.tgt = spot(w); w.wait = w.r() * 4; w.last = null;
+        w.speed = 0.45 + w.r() * 0.5;            // units per second: a stroll
+      }
       this.anim.push((t, isl) => {
         const show = !isl.isDark && (isl.phase === 'dawn' || isl.phase === 'day' || isl.phase === 'evening' || !isl.phase);
         for (const { mesh, w } of isl.walkers) {
           mesh.visible = show;
+          const dt = w.last == null ? 0 : Math.min(0.1, Math.max(0, t - w.last)); w.last = t;
           if (!show) continue;
-          const u = ((t * w.speed + w.phase) % 2 + 2) % 2, k = u < 1 ? u : 2 - u, dir = u < 1 ? 1 : -1;
-          const r = w.z0 + (w.z1 - w.z0) * k, c = Math.cos(w.th), sn = Math.sin(w.th);
-          mesh.position.set(c * r - sn * w.off, 0.86 + Math.abs(Math.sin(t * 9 + w.phase)) * 0.07, sn * r + c * w.off);
-          mesh.rotation.y = Math.atan2(c * dir, sn * dir);
+          let moving = false;
+          if (w.wait > 0) w.wait -= dt;
+          else {
+            const dx = w.tgt.x - w.p.x, dz = w.tgt.z - w.p.z, L = Math.hypot(dx, dz);
+            if (L < 0.3) { w.tgt = spot(w); w.wait = 2 + w.r() * 6; }
+            else { const k = Math.min(L, w.speed * dt) / L; w.p.x += dx * k; w.p.z += dz * k; mesh.rotation.y = Math.atan2(dx, dz); moving = true; }
+          }
+          const h = Math.max(terrainHeight(d, w.p.x, w.p.z), 0.2);
+          mesh.position.set(w.p.x, h - 0.1 + (moving ? Math.abs(Math.sin(t * 6 + w.phase)) * 0.04 : 0), w.p.z);
         }
       });
     }

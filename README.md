@@ -17,7 +17,7 @@ npm run build      # static build in dist/
 | C | fish: cast, hook the bite, pull in (hold Space to reel) |
 | Space | fire cannons at an attacking raider (auto-aimed) |
 | Y | ask Mara (first mate) for a hint |
-| E | interact: harbour (shipwright, job board, rumours), dig for treasure, salvage wrecks, hail passing ships |
+| E | interact: harbour (moor at the end of its pier: shipwright, job board, rumours), dig for treasure, salvage wrecks, hail passing ships |
 | Esc or P | pause menu (resume, controls, log, sound) |
 | M | captain's log, tabs are bookmark ribbons: Map, Goals, Quests, Riddles, Rumours, Journal, Ship, Standing (tabs 1-8 or arrows; Up/Down turn pages; J opens Quests) |
 | mouse drag | tilt (up/down) and orbit around the boat (sideways); Z / X also orbit, V resets, R / F tilt |
@@ -51,4 +51,4 @@ Dread only depends on distance from home; it does not build up over time (only t
 - [docs/concept/](docs/concept/): in-engine concept frames (`concept-sheet.png`)
 
 ## Fonts
-The interface uses Pixelify Sans (SIL Open Font License), bundled in `public/fonts/` so the game works offline.
+The interface uses DotGothic16 (SIL Open Font License), bundled in `public/fonts/` so the game works offline.

@@ -583,6 +583,17 @@ let dark = dread > DARK_THRESHOLD;
 let dig = null;     // { isl, t }
 let tNow = 0;
 let curSector = null;
+const sighted = new Set();
+let lastSighting = 0;
+const SIGHT_WORDS = { harbour: 'a village', jungle: 'a jungle isle', sandbar: 'a sandbar', rocky: 'a rock', treasure: 'an old arch on the shore', volcano: 'a smoking mountain', atoll: 'a ring of sand', mangrove: 'a mangrove isle' };
+function landHo(d) {
+  const el = $('landho');
+  el.querySelector('b').textContent = d.dread > 0.6 ? 'LAND?' : 'LAND HO!';
+  el.querySelector('span').textContent = d.name;
+  el.querySelector('small').textContent = SIGHT_WORDS[d.type] || 'an island';
+  el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
+  if (d.id !== '0,-1') objectives.remark(`sight_${d.type}`, dread);
+}
 let placeShown = '', lastSave = 0, lastNear = null, lastHour = Math.floor(state.time * 24);
 const shipInput = { steer: 0, sail: 0 };
 
@@ -595,7 +606,14 @@ function fireCannons() {
 function getInteract() {
   const hi = world.nearest(ship.pos.x, ship.pos.z, 18);
   if (hi && hi.desc.hut) return { kind: 'hut', key: 'hut', isl: hi };
-  const isl = world.nearest(ship.pos.x, ship.pos.z, 16, ['harbour', 'treasure']);
+  // a harbour is entered at its pier; anywhere else along its shore you only get a hint
+  const hb = world.nearest(ship.pos.x, ship.pos.z, 30, ['harbour']);
+  if (hb) {
+    const d = hb.desc, dk = d.dock;
+    if (dk && Math.hypot(ship.pos.x - (d.x + dk.x), ship.pos.z - (d.z + dk.z)) < 13) return { kind: 'harbour', key: d.id, isl: hb };
+    if (world.lastEdge < 16) return { kind: 'harbourfar', key: d.id, isl: hb };
+  }
+  const isl = world.nearest(ship.pos.x, ship.pos.z, 16, ['treasure']);
   if (isl) return { kind: isl.desc.type, key: isl.desc.id, isl };
   if (sea.nearWreck) return { kind: 'wreck', key: sea.nearWreck.o.id, o: sea.nearWreck.o };
   const sh = traffic.nearestHail(ship.pos.x, ship.pos.z, 24);
@@ -986,6 +1004,12 @@ function frame() {
   camera.updateMatrixWorld();
 
   // ---- discovery / interaction / dig
+  // first sight of an island you have never charted: a moment of "land ho!"
+  if (live && tNow - lastSighting > 1) {
+    lastSighting = tNow;
+    const seen = world.nearest(ship.pos.x, ship.pos.z, 150);
+    if (seen && !state.discovered[seen.desc.id] && !sighted.has(seen.desc.id)) { sighted.add(seen.desc.id); landHo(seen.desc); }
+  }
   const nearAny = world.nearest(ship.pos.x, ship.pos.z, 30);
   if (nearAny) {
     if (live) discover(nearAny);
@@ -1009,7 +1033,7 @@ function frame() {
     if (dig) { promptTxt.textContent = 'Digging...'; promptBar.style.display = 'block'; }
     else {
       promptBar.style.display = 'none';
-      promptTxt.textContent = tgt.kind === 'hut' ? '[E] Knock on the dark hut' : tgt.kind === 'harbour' ? `[E] Visit ${tgt.isl.desc.name}`
+      promptTxt.textContent = tgt.kind === 'harbourfar' ? 'Sail to the pier to go ashore' : tgt.kind === 'hut' ? '[E] Knock on the dark hut' : tgt.kind === 'harbour' ? `[E] Visit ${tgt.isl.desc.name}`
         : tgt.kind === 'treasure' ? (tgt.isl.dug ? 'Already plundered' : !state.riddles[tgt.isl.desc.id] ? '[E] Study the ancient arch inscription' : '[E] Dig on this shore')
         : tgt.kind === 'fruit' ? (state.harvest[tgt.isl.desc.id] != null && state.harvest[tgt.isl.desc.id] >= state.dayN ? 'Picked clean for today' : `[E] Pick ${plural(fruitName(fruitOf(tgt.isl.desc), tgt.isl.desc.dread), 2)}`)
         : tgt.kind === 'ship' ? (tgt.s.mode === 'derelict' ? `[E] Board the drifting ${KINDS[tgt.s.kind].label}` : tgt.s.mode === 'ghost' ? '[E] Hail the pale ship' : `[E] Hail the ${tgt.s.name}`)

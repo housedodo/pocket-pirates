@@ -33,6 +33,14 @@ For how things must look, see `STYLE.md`; for how systems work, see `DESIGN.md`.
   glass calm, corrupted HUD, mad wind meter, Mara breaks, lighthouses stare, watchers (4 looks),
   living map, time loop, wrong ocean, wrong catches, leviathan + "the Eye awakens" ending.
 
+### World layout and feel
+- The sea is mostly open: island chance follows a slow noise field (about 12-52% of cells, ~30% on average), so
+  there are archipelagos and long lonely stretches. Villages never sit within two cells of each other (median
+  ~430 units apart); Tama's waters stay clear. Harbour Tama is the big home island (radius 38) with its pier facing the start.
+- "LAND HO!" title card the first time an uncharted island comes within ~150 units (Mara comments on new kinds).
+- Harbours are entered only at the end of their pier ("Sail to the pier to go ashore" elsewhere along the shore).
+- Villagers stroll slowly between random spots with pauses instead of pacing the dock.
+
 ### World variety
 - Six villager designs, seven house kinds (taverns, bell towers, stilt houses...), three new island kinds:
   volcano, atoll, mangrove (each with a dark-mood detail). All emoji replaced by pixel glyphs.

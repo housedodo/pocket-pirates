@@ -53,7 +53,7 @@ purple and magenta cosmic horror as dread rises.
   (`src/palette.js`).
 
 ## 5. Interface (HUD and menus)
-- **One typeface everywhere: Pixelify Sans** (bundled in `public/fonts`), for the HUD, menus, the book, the chart labels and the die. No other fonts, no italics (a global CSS rule enforces both); smallest size 12px. Weight 600 for labels; text shadow is a hard
+- **One typeface everywhere: DotGothic16** (bundled in `public/fonts`, OFL). It is drawn on a 16px pixel grid, so it is only used at 16px (body, small text, labels) and 32/48px (titles); never in between, never bold or italic, no blur filters on text. This keeps C/O, S/5 and B/8 distinct. Map labels go on a separate full-resolution layer above the pixelated chart.
   2px offset, never a blur. Text without a background behind it gets `filter: url(#crisp)`.
 - Panels (`.panel`): an 8x8 dithered navy tile (`--pxpanel`, shown at 32px), **no CSS border**. The frame is
   four hard box-shadows of 4px in `--pxedge` (gives notched pixel corners), a 4px pixel drop shadow,

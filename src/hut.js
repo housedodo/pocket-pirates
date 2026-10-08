@@ -17,7 +17,7 @@ function dieTexture() {
     c.fillStyle = pal[Math.max(0, Math.min(3, Math.round(k)))]; c.fillRect(x, y, 1, 1);
   }
   for (let i = 0; i < 70; i++) { c.fillStyle = 'rgba(60,40,20,0.45)'; c.fillRect(r() * cv.width | 0, r() * cv.height | 0, 1 + (r() * 2 | 0), 1); } // grime
-  c.font = 'bold 13px "Pixelify Sans", monospace'; c.textAlign = 'center'; c.textBaseline = 'middle';
+  c.font = '16px "DotGothic16", monospace'; c.textAlign = 'center'; c.textBaseline = 'middle';
   for (let n = 1; n <= 20; n++) {
     const cx = ((n - 1) % 5) * S + S / 2, cy = Math.floor((n - 1) / 5) * S + S * 0.58;
     c.fillStyle = 'rgba(255,240,210,0.35)'; c.fillText(String(n), cx + 1, cy + 1); // carved: light lip below

@@ -83,7 +83,7 @@
     .bookbar .keys { flex: 1; opacity: .8; text-align: center; font-weight: 600; }
     .bookbar button { padding: 5px 14px; font: italic 800 14px Georgia, serif; background: linear-gradient(170deg, #e2c47a 0 48%, #b8964c 48%); border: none; color: #4a2e10; text-shadow: 0 1px 0 rgba(255,240,200,.5); cursor: pointer; clip-path: polygon(5px 0, calc(100% - 5px) 0, 100% 5px, 100% calc(100% - 5px), calc(100% - 5px) 100%, 5px 100%, 0 calc(100% - 5px), 0 5px); }
     /* handwriting / pixel fonts for the logbook (SIL Open Font License, bundled in public/fonts) */
-    @font-face { font-family: "Pixelify Sans"; src: url("/fonts/pixelify.woff2") format("woff2"); font-weight: 400 700; font-display: swap; }
+    @font-face { font-family: "DotGothic16"; src: url("/fonts/dotgothic.woff2") format("woff2"); font-weight: 400; font-display: swap; }
     /* ---- book designs (#chart[data-book]); leather is the base look above */
     #chart:not([data-book="leather"]) .book { background-size: 100% 100%; image-rendering: pixelated; clip-path: polygon(0 8px, 8px 8px, 8px 0, calc(100% - 8px) 0, calc(100% - 8px) 8px, 100% 8px, 100% calc(100% - 8px), calc(100% - 8px) calc(100% - 8px), calc(100% - 8px) 100%, 8px 100%, 8px calc(100% - 8px), 0 calc(100% - 8px)); }
     #chart:not([data-book="leather"]) .book::before { display: none; }
@@ -92,18 +92,18 @@
     #chart:not([data-book="leather"]) .mapwrap canvas { image-rendering: pixelated; border: none; }
     #chart:not([data-book="leather"]) .ribbons button { background: linear-gradient(180deg, color-mix(in srgb, var(--rb) 80%, #fff) 0 50%, var(--rb) 50%); }
     /* pixel tome: chunky pixel font with hard edges, dithered paper and cover */
-    #chart[data-book="pixel"] #logBody, #chart[data-book="pixel"] .legend, #chart[data-book="pixel"] .bookbar { font-family: "Pixelify Sans", "Courier New", monospace; }
-    #chart[data-book="pixel"] #logBody.cols, #chart[data-book="pixel"] .ribbons em, #chart[data-book="pixel"] .bookbar, #chart[data-book="pixel"] .legend { filter: url(#roughpx); }
+    #chart[data-book="pixel"] #logBody, #chart[data-book="pixel"] .legend, #chart[data-book="pixel"] .bookbar { font-family: "DotGothic16", "Courier New", monospace; }
+    
     #chart[data-book="pixel"] #logBody.cols { font-size: 16px; font-weight: 400; line-height: 1.25; }
-    #chart[data-book="pixel"] #logBody h3 { font: 600 21px "Pixelify Sans", monospace; font-variant: normal; letter-spacing: .04em; border-bottom: 4px dashed rgba(58,34,16,.5); }
+    #chart[data-book="pixel"] #logBody h3 { font: 600 21px "DotGothic16", monospace; font-variant: normal; letter-spacing: .04em; border-bottom: 4px dashed rgba(58,34,16,.5); }
     #chart[data-book="pixel"] .ent { border-left-width: 4px; background: rgba(255,248,220,.25); box-shadow: 0 4px 0 rgba(58,34,16,.12); }
     #chart[data-book="pixel"] .ent b { font-weight: 600; font-size: 16px; } #chart[data-book="pixel"] .ent small { font-weight: 400; font-size: 14px; }
     #chart[data-book="pixel"] .riddle p { font-style: normal; font-size: 18px; font-weight: 600; }
     #chart[data-book="pixel"] .ribbons button { clip-path: polygon(0 0, 100% 0, 100% 34%, 88% 34%, 88% 66%, 100% 66%, 100% 100%, 0 100%); transform: none; }
     #chart[data-book="pixel"] .ribbons button::before { background: repeating-linear-gradient(90deg, rgba(0,0,0,.18) 0 4px, transparent 4px 8px); opacity: .5; }
-    #chart[data-book="pixel"] .ribbons button em { font: 600 14px "Pixelify Sans", monospace; font-variant: normal; color: #f4e6c0; text-shadow: 2px 2px 0 rgba(0,0,0,.55); }
+    #chart[data-book="pixel"] .ribbons button em { font: 600 14px "DotGothic16", monospace; font-variant: normal; color: #f4e6c0; text-shadow: 2px 2px 0 rgba(0,0,0,.55); }
     #chart[data-book="pixel"] .ribbons button:hover { transform: translateX(4px); } #chart[data-book="pixel"] .ribbons button.on { transform: translateX(12px); }
-    #chart[data-book="pixel"] .bookbar button, #chart[data-book="pixel"] .mapctl button, #chart[data-book="pixel"] #logBody button.mini { font: 600 15px "Pixelify Sans", monospace; background: #c9a85c; color: #2a1608; clip-path: none; text-shadow: none; border: none; box-shadow: 0 -3px 0 #2a1608, 0 3px 0 #2a1608, -3px 0 0 #2a1608, 3px 0 0 #2a1608, inset 0 -3px 0 #8a6a28; }
+    #chart[data-book="pixel"] .bookbar button, #chart[data-book="pixel"] .mapctl button, #chart[data-book="pixel"] #logBody button.mini { font: 600 15px "DotGothic16", monospace; background: #c9a85c; color: #2a1608; clip-path: none; text-shadow: none; border: none; box-shadow: 0 -3px 0 #2a1608, 0 3px 0 #2a1608, -3px 0 0 #2a1608, 3px 0 0 #2a1608, inset 0 -3px 0 #8a6a28; }
     /* rougher: torn transparent edges on cover and pages, a stack of pages as pixel shadows, frayed ribbons */
     #chart[data-book="pixel"] .book { clip-path: none; background-color: transparent; }
     #chart[data-book="pixel"] .book .spread { background: none !important; box-shadow: none; z-index: 0; overflow: hidden; }
@@ -127,6 +127,7 @@
     #mateface.eye { background-image: var(--px-eye); }
     .mapwrap { position: relative; width: fit-content; max-width: 100%; margin: 0 auto; }
     .mapwrap canvas { height: calc(min(600px, 90vh) - 150px); width: auto; max-width: 100%; aspect-ratio: 880 / 470; display: block; margin: 0 auto; border: 3px solid #3a2210; cursor: grab; touch-action: none; }
+    #mapTxt { position: absolute !important; left: 0; top: 0; width: 100% !important; height: 100% !important; pointer-events: none; image-rendering: auto !important; border: none !important; margin: 0 !important; }
     .mapctl { position: absolute; right: 10px; top: 10px; display: flex; flex-direction: column; gap: 4px; }
     .mapctl button { width: 30px; height: 30px; font: 800 17px Georgia, serif; background: #ecdcae; border: 2px solid #3a2210; cursor: pointer; color: #3a2210; }
     .legend { margin-top: 4px; font: 700 12px Georgia, serif; text-align: center; }
@@ -233,15 +234,14 @@
     #touch button { pointer-events: auto; position: absolute; width: 64px; height: 64px; border-radius: 12px; font: 700 26px monospace; color: var(--ink); background: var(--panel); border: 2px solid var(--edge); }
     @media (pointer: coarse) { #touch { display: block; } #help { display: none; } }
     /* ===== pixel style for the whole interface (textures + icons come from src/pixelui.js) ===== */
-    :root { --pxfont: "Pixelify Sans", "Courier New", monospace; --pxedge: #120c1c; }
+    :root { --pxfont: "DotGothic16", "Courier New", monospace; --pxedge: #120c1c; }
     html, body, .txt, .menu, .menu button, .btn, #title, #harbour, #shipmodal, #yardmodal { font-family: var(--pxfont); }
     .txt { font-weight: 600; letter-spacing: .03em; text-shadow: 2px 2px 0 var(--shadow); }
     .panel::before { display: none; }
     .panel { background: var(--pxpanel) 0 0 / 32px 32px; image-rendering: pixelated; border: none !important; margin: 4px;
       box-shadow: 0 -4px 0 var(--pxedge), 0 4px 0 var(--pxedge), -4px 0 0 var(--pxedge), 4px 0 0 var(--pxedge), 4px 8px 0 rgba(0,0,0,.35), inset 0 4px 0 rgba(255,255,255,.1), inset 0 -4px 0 rgba(0,0,0,.3); }
     .toast.dark, #mate.dark, #mate.glitch, #abyssTag, #harbour.dark .menu { --pxedge: #ff70d0; }
-    #hud .panel b, #tracker .trow, #tracker .thint, #matetxt, #mate b, #prompttxt, .toast span, #help span, #placeline span, #fishmsg, #ammotxt, #abyssTag span,
-    .menu h2, .menu .quote, .menu .tip, .menu td, .menu .goldline, .menu .sec, .menu .qrow > div, .menu .up > div, .menu .ds, .menu .yardgrp, #title h1, #title p { filter: url(#crisp); }
+    .menu h2, #title h1, #landho span { filter: url(#crisp); }   /* only big titles get the hard-edge filter; small text stays readable */
     .bar, #fishtrack, #fishprogwrap { border: none !important; background: #0b0716 !important; box-shadow: 0 -3px 0 var(--pxedge), 0 3px 0 var(--pxedge), -3px 0 0 var(--pxedge), 3px 0 0 var(--pxedge); }
     #sailbar .bar, #prompt .bar, #combatbox .bar, #ebar .bar { height: 8px; } #combatbox .bar.thin { height: 4px; }
     #sailbar .fill, #prompt .bar i, #combatbox .fill, #ebar .fill, #fishprog { background-image: repeating-linear-gradient(90deg, transparent 0 8px, rgba(0,0,0,.25) 8px 12px) !important; }
@@ -258,11 +258,43 @@
     /* one typeface everywhere: the pixel font, upright (no fake italics) */
     *, *::before, *::after, button, input { font-family: var(--pxfont) !important; }
     *, *::before, *::after { font-style: normal !important; }
-    .menu small, .ds, #tracker .thint, .menu .tip { font-size: 12px !important; }
     /* pixel glyphs in text (src/pixelui.js GLYPHS) instead of emoji */
     .pxi { display: inline-block; width: 21px; height: 21px; vertical-align: -5px; margin-right: 3px; image-rendering: pixelated; background-size: 100% 100%; background-repeat: no-repeat; }
     .pxi.star, .pxi.nostar, .pxi.pip, .pxi.nopip, .pxi.check, .pxi.open, .pxi.next { width: 14px; height: 14px; vertical-align: -1px; margin-right: 2px; }
     #touch .pxi { width: 28px; height: 28px; margin: 0; vertical-align: middle; }
+    /* land ho: a short title card when a new island comes into view */
+    #landho { position: absolute; left: 50%; top: 22%; transform: translateX(-50%); text-align: center; opacity: 0; pointer-events: none; }
+    #landho b { display: block; font-size: 18px; color: var(--gold); letter-spacing: .3em; }
+    #landho span { display: block; font-size: 40px; color: #fff7d6; text-shadow: 4px 4px 0 var(--shadow); }
+    #landho small { display: block; font-size: 15px !important; opacity: .8; }
+    #landho.show { animation: landho 4.5s steps(18) forwards; }
+    @keyframes landho { 0% { opacity: 0; transform: translate(-50%, 8px); } 12% { opacity: 1; transform: translate(-50%, 0); } 80% { opacity: 1; } 100% { opacity: 0; } }
+    /* readability: the pixel font is only crisp at whole sizes >= 14px and medium weight; no sizes below 14px */
+    body { -webkit-font-smoothing: antialiased; }
+    .menu, .qrow, .job, .up, .swatches button, .menu .tip, .menu td, .menu .quote, #tracker, #placeline, #help, #prompt, .toast, #matetxt, #fishmsg,
+    #sailbar, #combatbox, #ebar, .abrow .abtxt b, #pauseAbyss .abrow button, .qrow button, .job button, #logBody.cols, .legend, .bookbar { font-size: 16px !important; font-weight: 500 !important; letter-spacing: .03em !important; line-height: 1.35 !important; }
+    small, .ds, .ent small, .qrow small, .menu small, .menu .tip, #tracker .thint, .abrow small, #pauseAbyss .tip, #mate b, #debug, #abyssTag { font-size: 14px !important; font-weight: 400 !important; letter-spacing: .04em !important; }
+    .sec, .yardgrp { font-size: 15px !important; font-weight: 600 !important; letter-spacing: .1em !important; }
+    .menu h2 { font-size: 28px !important; } #logBody h3 { font-size: 22px !important; }
+    .ent b, .qrow b, .up .nm, #tracker .trow.main { font-weight: 600 !important; }
+    .menu .quote, #matetxt, .toast span { color: #fff7e6; }
+    .ent small { opacity: 1 !important; color: #4a3018; } .qrow small, .up .ds { opacity: .92 !important; }
+    /* text font: DotGothic16 is drawn on a 16px pixel grid, so at 16px every letter is crisp and C, O, S, 5 stay distinct.
+       It is the only typeface. */
+    :root { --pxtext: "DotGothic16", monospace; }
+    *, *::before, *::after, button, input { font-family: var(--pxtext) !important; font-weight: 400 !important; }
+    /* titles: the same font at 32/48px (multiples of its 16px grid), never a blurry in-between size */
+    .menu h2, #logBody h3, #awaken p.big { font-size: 32px !important; letter-spacing: .06em !important; }
+    #title h1 { font-size: 48px !important; } #landho span { font-size: 48px !important; }
+    #landho b, .sec, .yardgrp { font-size: 16px !important; letter-spacing: .15em !important; }
+    .ribbons button em { font-size: 16px !important; letter-spacing: 0 !important; }
+    .ribbons button { padding-left: 58px !important; }
+    .menu h2, #title h1, #landho span { filter: none !important; }
+    #landho { top: 32% !important; }
+    .menu, .qrow, .job, .up, .swatches button, .menu td, .menu .quote, #tracker, #placeline, #prompt, .toast, #matetxt, #fishmsg, #logBody.cols, .bookbar,
+    .qrow button, .job button, #pauseAbyss .abrow button, .abrow .abtxt b, .ent b, .qrow b, #hud .panel b, .menu button, .btn { font-size: 16px !important; letter-spacing: .02em !important; }
+    small, .ds, .ent small, .qrow small, .menu small, .menu .tip, #tracker .thint, .abrow small, #help, #mate b, #sailbar, #combatbox, #ebar, .legend, #debug, #abyssTag { font-size: 16px !important; letter-spacing: 0 !important; }
+    small, .ds, .qrow small, .menu .tip, #tracker .thint { opacity: .78 !important; }
   </style>
 </head>
 <body>
@@ -288,6 +320,7 @@
     <div id="fishui" class="panel txt" style="display:none"><div id="fishmsg"></div><div id="fishbar" style="display:none"><div id="fishtrack"><div id="fishzone"></div><div id="fishmark"></div></div><div id="fishprogwrap"><div id="fishprog"></div></div></div></div>
     <div id="prompt" class="panel txt"><div id="prompttxt"></div><div class="bar"><i></i></div></div>
     <div id="toasts"></div>
+    <div id="landho" class="txt"><b></b><span></span><small></small></div>
     <div id="help" class="txt panel"><span>A/D steer &middot; W/S sails &middot; E interact<br>M chart &middot; Esc pause &middot; drag = tilt &middot; wheel = zoom &middot; H hide HUD</span></div>
     <div id="debug" class="panel txt"></div>
     <div id="abyssTag" class="panel txt"></div>
