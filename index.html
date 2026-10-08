@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-  <title>Pocket Pirates</title>
+  <title>Hoist</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 16 16%27%3E%3Crect width=%2716%27 height=%2716%27 fill=%27%231b86c6%27/%3E%3Cpath d=%27M7 2h1v9H7zM8 3l5 6H8z%27 fill=%27%23fff4d8%27/%3E%3Cpath d=%27M3 11h10l-2 3H5z%27 fill=%27%23a0542c%27/%3E%3C/svg%3E" />
   <style>
     :root { --ink: #fff7d6; --shadow: #1a1230; --panel: rgba(18, 14, 40, .62); --edge: rgba(255, 247, 214, .35); --gold: #ffd23a; }
@@ -83,6 +83,8 @@
     .bookbar .keys { flex: 1; opacity: .8; text-align: center; font-weight: 600; }
     .bookbar button { padding: 5px 14px; font: italic 800 14px Georgia, serif; background: linear-gradient(170deg, #e2c47a 0 48%, #b8964c 48%); border: none; color: #4a2e10; text-shadow: 0 1px 0 rgba(255,240,200,.5); cursor: pointer; clip-path: polygon(5px 0, calc(100% - 5px) 0, 100% 5px, 100% calc(100% - 5px), calc(100% - 5px) 100%, 5px 100%, 0 calc(100% - 5px), 0 5px); }
     /* handwriting / pixel fonts for the logbook (SIL Open Font License, bundled in public/fonts) */
+    @font-face { font-family: "Pirata One"; src: url("/fonts/pirataone.woff2") format("woff2"); font-display: block; }
+    @font-face { font-family: "IM Fell English SC"; src: url("/fonts/imfellenglishsc.woff2") format("woff2"); font-display: block; }
     @font-face { font-family: "DotGothic16"; src: url("/fonts/dotgothic.woff2") format("woff2"); font-weight: 400; font-display: swap; }
     /* ---- book designs (#chart[data-book]); leather is the base look above */
     #chart:not([data-book="leather"]) .book { background-size: 100% 100%; image-rendering: pixelated; clip-path: polygon(0 8px, 8px 8px, 8px 0, calc(100% - 8px) 0, calc(100% - 8px) 8px, 100% 8px, 100% calc(100% - 8px), calc(100% - 8px) calc(100% - 8px), calc(100% - 8px) 100%, 8px 100%, 8px calc(100% - 8px), 0 calc(100% - 8px)); }
@@ -257,7 +259,13 @@
     #tP { position: fixed; top: 12px; left: 50%; margin-left: -24px; width: 48px; height: 40px; display: none; z-index: 3; font: 700 16px monospace; color: var(--ink); background: var(--panel); border: 2px solid var(--edge); }
     @media (pointer: coarse) { #tP { display: block; } }
 
-    #title { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; background: radial-gradient(circle at 50% 40%, rgba(60, 130, 210, .55), rgba(11, 8, 32, .92)); text-align: center; z-index: 5; cursor: pointer; }
+    #title { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 6vh; background: radial-gradient(ellipse at 50% 45%, rgba(0,0,0,0) 45%, rgba(4,2,8,.55)); text-align: center; z-index: 5; cursor: pointer; }
+    #titleLogo { width: min(820px, 92vw); image-rendering: pixelated; }
+    #titleMenu { position: absolute; left: max(16px, 5vw); bottom: 10vh; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+    #titleMenu button { all: unset; cursor: pointer; font-size: 28px; color: #b8a47c; text-shadow: 2px 2px 0 #1a0606; }
+    #titleMenu button:hover, #titleMenu button:focus { color: #f4ead0; } #titleMenu button:first-child { color: #f4ead0; }
+    #title #titleMenu button, #title .blink { font-family: "IM Fell English SC", serif !important; }   /* the title keeps its own engraved face */
+    #title .blink { position: absolute; bottom: 4vh; left: 0; right: 0; font-size: 18px; color: #e2d4b0; text-shadow: 2px 2px 0 #1a0606; }
     #title h1 { font-size: clamp(34px, 8vw, 78px); margin: 0; letter-spacing: .12em; color: var(--gold); }
     #title p { margin: 0; font-size: clamp(13px, 2.4vw, 18px); }
     #title .blink { animation: blink 1.2s steps(2) infinite; }
@@ -411,7 +419,7 @@
     <button id="tU" style="right:92px;bottom:84px"><i class="pxi up"></i></button><button id="tD" style="right:12px;bottom:84px"><i class="pxi down"></i></button>
     <button id="tE" style="right:50%;margin-right:-32px;bottom:14px">E</button><button id="tC" style="right:50%;margin-right:-104px;bottom:14px"><i class="pxi rod"></i></button><button id="tX" style="right:50%;margin-right:40px;bottom:14px"><i class="pxi ball"></i></button>
   </div>
-  <div id="title" class="txt"><h1>POCKET PIRATES</h1><p>Sail the sunny seas. Chart the isles. Don't look down.</p><p class="blink">&mdash; click or press any key to set sail &mdash;</p></div>
+  <div id="title" class="txt"><canvas id="titleLogo"></canvas><div id="titleMenu"><button id="tSail">Set sail</button><button id="tNew">New voyage</button></div><p class="blink">press any key</p></div>
   <script type="module" src="/src/main.js"></script>
 </body>
 </html>

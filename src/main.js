@@ -12,6 +12,7 @@ import { Horror } from './horror.js';
 import { AudioBus, AUDIO_ENABLED } from './audio.js';
 import { sfx } from './sfx.js';
 import { Mixer } from './mixer.js';
+import { TITLE_SCENES, drawTitleLogo } from './title.js';
 import { gossip, lootFor, bottleNote, barrelLoot } from './lore.js';
 import { Weather } from './weather.js';
 import { Fauna } from './fauna.js';
@@ -275,9 +276,52 @@ function closeModal(silent = false) {
 // ---------------------------------------------------------------- input
 const touch = { L: false, R: false, U: false, D: false };
 const titleEl = $('title');
+// ---- the title screen: the ship alone on open sea at a random hour, until you set sail
+let titleScene = null;
+function startTitle() {
+  if (params.get('autostart') || params.get('notitle')) return;
+  const sc = TITLE_SCENES[params.has('title') ? Math.max(0, TITLE_SCENES.findIndex((t) => t.id === params.get('title'))) : Math.floor(Math.random() * TITLE_SCENES.length)];
+  // an empty stretch of sea (no island within three cells), searched outward from home
+  let spot = [0, 600];
+  find: for (let r = 250; r < 2000; r += 55) for (let a = 0; a < 6.28; a += 0.3) {
+    const x = Math.cos(a) * r, z = Math.sin(a) * r, cx = Math.round(x / 110), cz = Math.round(z / 110);
+    let ok = true; for (let dx = -3; dx <= 3 && ok; dx++) for (let dz = -3; dz <= 3; dz++) if (world.desc(cx + dx, cz + dz)) { ok = false; break; }
+    if (ok) { spot = [x, z]; break find; }
+  }
+  titleScene = { sc, keep: { x: ship.pos.x, z: ship.pos.z, h: ship.heading, time: state.time, trim: ship.trim, forced }, t: 0 };
+  ship.pos.set(spot[0], 0, spot[1]); ship.heading = 0.8; camHeading = 0.8; ship.trim = 0.9;
+  state.time = sc.time; forced = 0; dread = 0;
+  weather.force = sc.weather; Object.assign(weather, sc.weather);
+  $('hud').classList.add('hidden');
+  $('tNew').style.display = saved ? '' : 'none';
+  document.fonts.load("86px 'Pirata One'").then(() => drawTitleLogo($('titleLogo')));
+}
+function titleCam(dt) {
+  const ts = titleScene, [ang, dist, hgt, lookY] = ts.sc.cam; ts.t += dt;
+  const a = ship.heading + ang + Math.sin(ts.t * 0.05) * 0.25;   // a slow drift around the ship
+  ship.speed = 0;                                                    // she only bobs in place
+  camOverride = { pos: [ship.pos.x + Math.sin(a) * dist, hgt + Math.sin(ts.t * 0.4) * 0.15, ship.pos.z - Math.cos(a) * dist], look: [ship.pos.x, lookY, ship.pos.z] };
+}
+function endTitle() {
+  if (!titleScene) return;
+  const k = titleScene.keep; titleScene = null; camOverride = null;
+  ship.pos.set(k.x, 0, k.z); ship.heading = k.h; camHeading = k.h; ship.trim = k.trim; ship.speed = 0;
+  state.time = k.time; forced = k.forced; weather.force = null;
+  if (params.get('hud') !== '0') $('hud').classList.remove('hidden');
+}
+let newAskT = 0;
+$('tSail').addEventListener('pointerdown', (e) => { e.stopPropagation(); begin(); });
+$('tNew').addEventListener('pointerdown', (e) => {
+  e.stopPropagation();
+  if (performance.now() - newAskT > 4000) { newAskT = performance.now(); $('tNew').textContent = 'Really? Click again'; return; }
+  noSave = true; try { localStorage.removeItem(SAVE_KEY); } catch (err) { /* storage blocked */ }
+  location.href = location.pathname;
+});
+
 function begin() {
   if (started) return;
   started = true;
+  endTitle();
   titleEl.style.display = 'none';
   audio.start();
   if (!params.get('nomate')) objectives.start();
@@ -1241,6 +1285,7 @@ function frame() {
   camPos.y = Math.max(camPos.y, 3.2);                                 // never at or under the waterline
   if (shake > 0) { shake = Math.max(0, shake - rawDt * 1.8); camPos.x += Math.sin(tNow * 70) * shake; camPos.y += Math.cos(tNow * 63) * shake * 0.7; }
   if (dread > 0.85 && live) { const s = (dread - 0.85) * 0.5; camPos.x += Math.sin(tNow * 31) * s; camPos.y += Math.sin(tNow * 23 + 1) * s; }
+  if (titleScene) titleCam(rawDt);
   if (camOverride) { camPos.set(...camOverride.pos); camLook.set(...camOverride.look); }
   camera.position.copy(camPos);
   camera.lookAt(camLook);
@@ -1368,5 +1413,5 @@ window.__game = {
   },
   abyss, hut, ship, world, state, begin, scene, camera, horror, renderer, wind, weather, fauna, traffic, sea, audio, fishing, combat, objectives, hurtPlayer, openModal, closeModal, buyUpgrade, refreshMods,
 };
-if (params.get('autostart')) begin();
+if (params.get('autostart')) begin(); else startTitle();
 frame();
