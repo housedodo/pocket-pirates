@@ -15,6 +15,7 @@ npm run build      # static build in dist/
 | A / D (or arrows) | steer |
 | W / S | set / reef sails (with oars out: row forward / back water) |
 | G | oars out / in (row in a calm or to the pier) |
+| 1 / 2 | pick a choice on an encounter card |
 | C | fish: cast, hook the bite, pull in (hold Space to reel) |
 | Space | fire cannons at an attacking raider (auto-aimed) |
 | Y | ask Mara (first mate) for a hint |

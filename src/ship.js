@@ -302,7 +302,7 @@ export class Ship {
       this.trim = Math.max(0, this.trim - dt * 0.8);
       this.rowIn = this.oarOut >= 1 && this.rowing ? input.sail : 0;
       this.eff = 1; this.rel = angleDiff(this.heading, wind.dir);
-      const target = this.rowIn > 0 ? 2.6 * this.mods.speed : this.rowIn < 0 ? -0.9 : 0;
+      const target = this.rowIn > 0 ? 2.6 * this.mods.speed * (this.rowBoost || 1) : this.rowIn < 0 ? -0.9 : 0;
       this.speed += (target - this.speed) * Math.min(1, (this.rowIn ? 0.45 : 0.25) * dt);
       if (this.rowIn) this.stroke += dt * 3.4 * Math.sign(this.rowIn);
       this.heading += this.rudder * this.mods.turn * 0.55 * dt;

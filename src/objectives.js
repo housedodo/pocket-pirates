@@ -87,6 +87,7 @@ export const REMARKS = {
   fog: ['Fog. Sail slowly, and keep your eyes open.'],
   thickfog: ['I cannot trust the compass in this. Keep a lighthouse in sight, and I will ring the bell.'],
   calm: ['Not a breath of wind. Press G for the oars, Captain. I will steer. You row.'],
+  crew: ['A new hand! They do not talk much. Neither do you. You will get along.'],
   oars: ['Oars out! W to pull, S to back water, G to put them away again.'],
   redsky: ['Red sky tonight... my gran said that means a blow is coming.'],
   broadside: ['Turn into the waves, Captain! Or take the sail in. She cannot take them side-on.'],
