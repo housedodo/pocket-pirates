@@ -141,7 +141,7 @@ export function dayPhase(hour) { return hour >= 5 && hour < 8 ? 'dawn' : hour >=
 export function pickGreeting(ctx) {
   const r = ctx.rnd, stage = Math.min(4, Math.floor(ctx.dread * 5)), phase = dayPhase(ctx.hour);
   // as the sea goes wrong, sometimes nobody says anything at all
-  if (stage >= 2 && r() < 0.18 + 0.12 * (stage - 2)) return { speaker: 'someone', text: '. . .', slow: true, dark: true };
+  if (stage >= 2 && r() < 0.18 + 0.12 * (stage - 2)) return { speaker: 'someone', text: '...', slow: true, dark: true };
   const who = Object.keys(SPEAKERS).filter((id) => SPEAKERS[id].when.includes(phase)), speaker = who[Math.floor(r() * who.length)];
   const pool = [];
   for (const l of BY_SPEAKER[speaker] || []) pool.push([l, stage <= 1 ? 4 : stage === 2 ? 2 : 0.5]);

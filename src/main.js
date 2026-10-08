@@ -677,13 +677,16 @@ function showGreeting(d, say) {
   $('grName').textContent = d.name; $('grFace').src = portrait(say.speaker); $('grWho').textContent = speakerName(say.speaker);
   $('grTxt').textContent = ''; $('grMore').classList.remove('on');
   greetNow = { say, shown: 0, timer: setInterval(() => {
-    const t = greetNow.say.text; greetNow.shown++; $('grTxt').textContent = t.slice(0, greetNow.shown);
+    const t = greetNow.say.text; greetNow.shown++; greetText(t.slice(0, greetNow.shown), say.slow);
     if (greetNow.shown >= t.length) { clearInterval(greetNow.timer); greetNow.timer = null; $('grMore').classList.add('on'); }
-  }, say.slow ? 420 : 34) };
+  }, say.slow ? 1300 : 34) };   // the stare: one dot at a time, slowly
+}
+function greetText(t, dots) {
+  if (dots) $('grTxt').innerHTML = '<i class="gdot"></i>'.repeat(t.length); else $('grTxt').textContent = t;
 }
 function greetAdvance() {
   if (!greetNow) return;
-  if (greetNow.timer) { clearInterval(greetNow.timer); greetNow.timer = null; $('grTxt').textContent = greetNow.say.text; $('grMore').classList.add('on'); return; }
+  if (greetNow.timer) { clearInterval(greetNow.timer); greetNow.timer = null; greetText(greetNow.say.text, greetNow.say.slow); $('grMore').classList.add('on'); return; }
   const said = greetNow.say; greetNow = null;
   const isl = harbourIsl; closeModal(true); harbourIsl = isl;
   $('hbSaid').textContent = said.slow ? '' : `"${said.text}"`;   // the line stays under the name while you are ashore

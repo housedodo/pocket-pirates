@@ -137,8 +137,8 @@ New voyage goes straight into the game (no title). A new voyage starts moored al
 - Who speaks depends on the hour (fishers and dockers at dawn, the fish-stall woman by day, the fiddler and
   lamplighter in the evening, the night watchman at night). Each villager has lines of their own; lines also
   come from the hour, the weather (rain, storm, fog, overcast, calm) and the dread stage.
-- From stage 2 on, sometimes nobody says anything: a dark figure with pale eyes, and ". . ." typed out very
-  slowly. More often the worse it gets.
+- From stage 2 on, sometimes nobody says anything: a dark figure with pale eyes, and three big pixel dots, one every 1.3 s,
+  as if they are just staring. More often the worse it gets.
 - The shipwright's line moved to the top of the Shipwright tab.
 
 ### Newest: the dark hut
