@@ -87,6 +87,7 @@ New voyage goes straight into the game (no title). A new voyage starts moored al
 - Space or Enter moves Mara's text on / closes it. Fishing casts with a rod animation (back, flick, bobber arcs out).
   The rod is a slim bamboo cane (~1.75 long, a third of the hull) with a cord-wrapped grip.
 - The wind never snaps: the felt wind eases toward its new direction over a few seconds.
+- Fullscreen: a Fullscreen item on the title menu and in the pause menu (Esc or F11 leave it too); hidden where the browser cannot do it.
 - Log: pale paper bookmarks with a bent corner, the open one pulled out flat; legend and page keys on readable strips.
 
 ### Sailing into the wind

@@ -333,6 +333,21 @@ function titleKey(e) {
   if (['Enter', 'Space', 'KeyE'].includes(e.code)) { e.preventDefault(); (document.activeElement && items.includes(document.activeElement) ? document.activeElement : items[0]).click(); }
 }
 $('tSail').addEventListener('click', (e) => { e.stopPropagation(); setSail(); });
+// fullscreen: on the title and in the pause menu (Esc or F11 also leave it)
+const fsEl = () => document.fullscreenElement || document.webkitFullscreenElement;
+const fsOk = !!(document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen);
+function toggleFullscreen() {
+  const d = document, el = d.documentElement;
+  try {
+    if (fsEl()) (d.exitFullscreen || d.webkitExitFullscreen).call(d);
+    else { const r = (el.requestFullscreen || el.webkitRequestFullscreen).call(el, { navigationUI: 'hide' }); if (r && r.catch) r.catch(() => {}); }
+  } catch (err) { /* not allowed here */ }
+}
+function fsLabels() { $('tFull').textContent = fsEl() ? 'Windowed' : 'Fullscreen'; $('pbFull').textContent = `Fullscreen: ${fsEl() ? 'on' : 'off'}`; }
+if (!fsOk) { $('tFull').style.display = 'none'; $('pbFull').style.display = 'none'; }
+document.addEventListener('fullscreenchange', fsLabels); document.addEventListener('webkitfullscreenchange', fsLabels);
+$('tFull').addEventListener('click', (e) => { e.stopPropagation(); toggleFullscreen(); });
+$('pbFull').addEventListener('click', () => { toggleFullscreen(); $('pbFull').focus(); });
 $('tNew').addEventListener('click', (e) => {
   e.stopPropagation();
   if (performance.now() - newAskT > 4000) { newAskT = performance.now(); $('tNew').textContent = 'Really? Press again'; return; }
