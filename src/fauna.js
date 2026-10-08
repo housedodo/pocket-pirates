@@ -191,10 +191,14 @@ export class Fauna {
           const side = Math.random() < 0.5 ? -1 : 1, off = rnd(10, 20), ahead = rnd(2, 14);
           const bx = sx + rx * side * off + fwdx * ahead, bz = sz + rz * side * off + fwdz * ahead;
           const ang = ship.heading + rnd(-0.4, 0.4), spd = 8;
+          const clear = [0, 0.25, 0.5, 0.75, 1, 1.3].every((k) => !this.world.nearest(bx + Math.sin(ang) * spd * 1.5 * k + rx * 7, bz - Math.cos(ang) * spd * 1.5 * k + rz * 7, 5) && !this.world.nearest(bx + Math.sin(ang) * spd * 1.5 * k, bz - Math.cos(ang) * spd * 1.5 * k, 5));
+          if (!clear) this.dolTimer = 3;            // land in the way: try again shortly
+          else {
           this.dolphins.forEach((d, i) => {
             d.u = -i * 0.28; d.sx = bx + rx * i * 2.4; d.sz = bz + rz * i * 2.4; d.vx = Math.sin(ang) * spd; d.vz = -Math.cos(ang) * spd; d.entered = false; d.exited = false;
           });
           if (dolMood === 'jump' && this.onSpot) this.onSpot('dolphins');
+          }
         }
       }
       const D = 1.5, H = 3.2;
@@ -215,7 +219,8 @@ export class Fauna {
         }
       }
     } else if (dolMood === 'circle') {
-      if (!this.circle || Math.hypot(this.circle.x - sx, this.circle.z - sz) > 90) this.circle = { x: sx + fwdx * 28 + rx * rnd(-8, 8), z: sz + fwdz * 28 + rz * rnd(-8, 8) };
+      if (!this.circle || Math.hypot(this.circle.x - sx, this.circle.z - sz) > 90) { const c = { x: sx + fwdx * 28 + rx * rnd(-8, 8), z: sz + fwdz * 28 + rz * rnd(-8, 8) }; this.circle = this.world.nearest(c.x, c.z, 12) ? { x: c.x, z: c.z, hidden: true } : c; }
+      if (this.circle.hidden) { for (const d of this.dolphins) { d.m.visible = false; d.u = 2; } } else
       this.dolphins.forEach((d, i) => {
         const a = t * 0.9 + i * 2.1, r = 7;
         const x = this.circle.x + Math.cos(a) * r, z = this.circle.z + Math.sin(a) * r;

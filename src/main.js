@@ -18,6 +18,7 @@ import { SeaFeatures } from './seafeatures.js';
 import { makeJob, findRumour, repOf, friendLevel, discount, bearingName, nearby, RUMOUR_COST, commissionsFor, questProgress, questNeed, questTitle, QUEST_ICON, questIcon, FRUITS, fruitOf, fruitName, plural } from './jobs.js';
 import { Logbook } from './logbook.js';
 import { Hut } from './hut.js';
+import { makePassenger, passengerTalk } from './passengers.js';
 import { sectorAt, sectorInfo, sectorCoord, FACTIONS } from './sectors.js';
 import { KINDS } from './traffic.js';
 import { Fishing, fishById } from './fishing.js';
@@ -75,7 +76,9 @@ const state = {
   fishLog: (saved && saved.fishLog) || {},
   goals: Object.assign({ i: 0, side: {}, started: false }, (saved && saved.goals) || {}),
   hints: (saved && saved.hints) || {},
-  hut: (saved && saved.hut) || null,          // the dark hut storyline: every throw is remembered
+  hut: (saved && saved.hut) || null,
+  passenger: (saved && saved.passenger) || null,   // someone paying for passage
+  tracked: (saved && saved.tracked) || null,       // the one errand shown on the tracker and wind meter: 'job' | 'passenger' | quest id          // the dark hut storyline: every throw is remembered
   pos: (saved && saved.pos) || { x: 0, z: 0, h: 0 },
 };
 if (params.has('x')) state.pos = { x: +params.get('x'), z: +params.get('z') || 0, h: +params.get('h') || 0 };
@@ -110,7 +113,7 @@ const fauna = new Fauna(scene, world);
 const traffic = new Traffic(scene, world, state.seed);
 const sea = new SeaFeatures(scene, world, state.seed, state.collected);
 const combat = new Combat(scene, fauna);
-sea.syncQuests(state.quests);
+sea.syncQuests(state.quests.filter((q) => q.id === state.tracked));
 fauna.onSpot = (what) => { state.stats[what]++; toast(what === 'dolphins' ? 'Dolphins!' : 'A whale surfaces in the distance!', false, 2500); };
 audio.musicOn = !settings.musicOff;
 
@@ -413,7 +416,7 @@ function handIn(q, d) {
   repOf(state, d.id).deliveries++;
   state.serial[d.id + '#c'] = (state.serial[d.id + '#c'] || 0) + 1;
   state.quests = state.quests.filter((x) => x.id !== q.id);
-  sea.syncQuests(state.quests);
+  sea.syncQuests(state.quests.filter((q) => q.id === state.tracked));
   state.stats.commissions = (state.stats.commissions || 0) + 1;
   toast(`Commission done: ${questTitle(q, dread)} (+${q.reward} gold)`, dread > 0.5, 6000);
   audio.play('treasure');
@@ -423,7 +426,8 @@ function acceptCommission(o) {
   const q = { ...o, base: o.type === 'bounty' ? state.stats.sunk : o.type === 'spot' ? state.stats[o.what] : 0 };
   if (q.crates) q.crates = q.crates.map((c) => ({ ...c }));
   state.quests.push(q);
-  sea.syncQuests(state.quests);
+  if (!state.tracked) state.tracked = q.id;
+  sea.syncQuests(state.quests.filter((q) => q.id === state.tracked));
   toast(`Commission taken: ${questTitle(q, dread)}`, false, 5000);
   audio.play('buy');
 }
@@ -454,6 +458,12 @@ function renderHarbour() {
   const pane = $('hbPane');
   let html = '';
   if (hbTab === 'board') {
+    // finish what you came for first: deliveries, passengers and finished commissions for this harbour
+    const due = [];
+    if (state.job && state.job.toId === d.id) due.push(`<div class="qrow"><div><b>${pxi('letter')} Deliver ${state.job.item}</b><br><small>+${state.job.reward}g</small></div><button id="doDeliver">Deliver</button></div>`);
+    if (state.passenger && state.passenger.toId === d.id) due.push(`<div class="qrow"><div><b>${pxi('talk')} ${state.passenger.name} goes ashore</b><br><small>+${state.passenger.reward}g fare</small></div><button id="doDropoff">Drop off</button></div>`);
+    for (const q of state.quests.filter((x) => x.giverId === d.id && questProgress(x, state) >= questNeed(x))) due.push(`<div class="qrow"><div><b>${questIcon(q)} ${questTitle(q, dread)}</b><br><small>done · +${q.reward}g</small></div><button data-hand="${q.id}">Finish</button></div>`);
+    if (due.length) html += `<div class="sec">FINISH HERE</div>${due.join('')}`;
     html += '<div class="sec">DELIVERY</div>';
     const j = state.job || makeJob(world, d, state.serial[d.id] || 0);
     if (state.job) html += `<div class="qrow"><div><b>${pxi('letter')} ${state.job.item}</b><br><small>to ${state.job.toName} · ${bearingName(state.job.x - d.x, state.job.z - d.z)}</small></div><small>${state.job.reward}g</small></div>`;
@@ -463,7 +473,7 @@ function renderHarbour() {
     const mine = state.quests.filter((q) => q.giverId === d.id);
     for (const q of mine) {
       const need = questNeed(q), have = questProgress(q, state);
-      html += `<div class="qrow"><div><b>${questIcon(q)} ${questTitle(q, dread)}</b><br><small>${have}/${need} · ${q.reward}g</small></div>${have >= need ? `<button data-hand="${q.id}">Hand in</button>` : ''}</div>`;
+      if (have < need) html += `<div class="qrow"><div><b>${questIcon(q)} ${questTitle(q, dread)}</b><br><small>${have}/${need} · ${q.reward}g</small></div></div>`;
     }
     const offers = commissionsFor(world, d, state.serial[d.id + '#c'] || 0).filter((o) => !state.quests.some((x) => x.id === o.id));
     for (const o of offers) {
@@ -471,11 +481,20 @@ function renderHarbour() {
       html += `<div class="qrow"><div><b>${questIcon(o)} ${questTitle(q, dread)}</b><br><small>${o.type === 'crates' ? `lost ${bearingName(o.center.x - d.x, o.center.z - d.z)} of here · ` : ''}${o.reward}g</small></div><button data-accept="${o.id}" ${state.quests.length >= 3 ? 'disabled' : ''}>Accept</button></div>`;
     }
     if (!mine.length && !offers.length) html += '<small>The board is empty. Come back after you have been out to sea.</small>';
+    const pass = !state.passenger && makePassenger(world, d, (state.serial[d.id + '#p'] || 0) + state.dayN * 7);
+    if (pass) html += `<div class="sec">PASSAGE</div><div class="qrow"><div><b>${pxi('talk')} ${pass.name}, ${pass.who}</b><br><small>wants passage to ${pass.toName} · pays ${pass.reward}g</small></div><button id="takePass">Take aboard</button></div>`;
     const r = findRumour(world, d, state);
     if (r) html += `<div class="sec">RUMOURS</div><div class="qrow"><div><b>${pxi('talk')} A sailor talks of buried treasure</b></div><button id="rumourBuy" ${state.gold >= RUMOUR_COST ? '' : 'disabled'}>${RUMOUR_COST}g</button></div>`;
     pane.innerHTML = html;
     const ja = $('jobAccept');
     if (ja) ja.addEventListener('click', () => { state.job = j; toast(`Delivery taken: ${j.toName} (+${j.reward}g)`, j.dark); audio.play('buy'); renderHarbour(); });
+    const dv = $('doDeliver'); if (dv) dv.addEventListener('click', () => { completeJobIfHere(d); renderHarbour(); });
+    const dp = $('doDropoff'); if (dp) dp.addEventListener('click', () => {
+      const p = state.passenger; state.gold += p.reward; state.passenger = null; state.stats.passengers = (state.stats.passengers || 0) + 1;
+      repOf(state, d.id).deliveries++; toast(`${p.name} waves goodbye from the pier. (+${p.reward}g)`, false, 6000); audio.play('treasure'); renderHarbour(); });
+    const tp = $('takePass'); if (tp) tp.addEventListener('click', () => {
+      state.passenger = pass; state.serial[d.id + '#p'] = (state.serial[d.id + '#p'] || 0) + 1; state.tracked = 'passenger';
+      toast(`${pass.name} comes aboard, bound for ${pass.toName}.`, false, 5000); renderHarbour(); });
     pane.querySelectorAll('[data-hand]').forEach((b) => b.addEventListener('click', () => { handIn(state.quests.find((q) => q.id === b.dataset.hand), d); renderHarbour(); }));
     pane.querySelectorAll('[data-accept]').forEach((b) => b.addEventListener('click', () => { acceptCommission(offers.find((o) => o.id === b.dataset.accept)); renderHarbour(); }));
     const rb = $('rumourBuy');
@@ -537,9 +556,22 @@ function buyUpgrade(id) {
 
 // ---------------------------------------------------------------- compass & HUD
 const windView = { dir: 0, strength: 1, gust: 0, floor: 0.27 };
+function trackedOne() {
+  const t = state.tracked;
+  if (t === 'job' && state.job) return 'job';
+  if (t === 'passenger' && state.passenger) return 'passenger';
+  if (t && state.quests.some((q) => q.id === t)) return t;
+  state.tracked = state.passenger ? 'passenger' : state.job ? 'job' : state.quests.length ? state.quests[0].id : null;
+  sea.syncQuests(state.quests.filter((q) => q.id === state.tracked));   // only the followed errand's crates float
+  return state.tracked;
+}
 function trackTarget() {
-  if (state.job) return { x: state.job.x, z: state.job.z, label: state.job.toName };
+  const tr = trackedOne();
+  if (tr === 'job') return { x: state.job.x, z: state.job.z, label: state.job.toName };
+  if (tr === 'passenger') return { x: state.passenger.x, z: state.passenger.z, label: state.passenger.toName };
   for (const q of state.quests) {
+    if (q.id !== tr) continue;
+    if (questProgress(q, state) >= questNeed(q)) { const [cx, cz] = q.giverId.split(',').map(Number), gd = world.desc(cx, cz); if (gd) return { x: gd.x, z: gd.z, label: q.giverName }; }
     if (q.type !== 'crates') continue;
     const open = q.crates.filter((c) => !c.got);
     if (!open.length) continue;
@@ -570,8 +602,11 @@ function updateTracker() {
   const rows = [];
   const g = objectives.current;
   if (g) rows.push(`<div class="trow main"><i class="ico flag"></i>${g.title}</div>`);
-  if (state.job) rows.push(`<div class="trow">${pxi('letter')} ${state.job.toName}</div>`);
-  for (const q of state.quests) rows.push(`<div class="trow">${questIcon(q)} ${questTitle(q, dread)} <b>${questProgress(q, state)}/${questNeed(q)}</b></div>`);
+  const tr = trackedOne(), others = (state.job ? 1 : 0) + (state.passenger ? 1 : 0) + state.quests.length - (tr ? 1 : 0);
+  if (tr === 'job') rows.push(`<div class="trow">${pxi('letter')} ${state.job.toName}</div>`);
+  else if (tr === 'passenger') rows.push(`<div class="trow">${pxi('talk')} ${state.passenger.name} to ${state.passenger.toName}</div>`);
+  else { const q = state.quests.find((x) => x.id === tr); if (q) rows.push(`<div class="trow">${questIcon(q)} ${questTitle(q, dread)} <b>${questProgress(q, state)}/${questNeed(q)}</b></div>`); }
+  if (others > 0) rows.push(`<div class="thint">+${others} more in the log (J)</div>`);
   const html = rows.length ? abyss.hud('track', rows.join('')) + '<div class="thint">[Q] hide</div>' : '';
   if (html !== trackerHtml) { trackerHtml = html; trackerEl.innerHTML = html; }
   trackerEl.style.display = html ? 'block' : 'none';
@@ -641,11 +676,11 @@ function tryInteract() {
   const tg = getInteract();
   if (!tg) return;
   if (tg.kind === 'hut') { openModal('hut'); return; }
+  if ((tg.kind === 'treasure' || tg.kind === 'fruit' || tg.kind === 'wreck') && ship.speed > 0.35) { toast('Bring the ship to a full stop first (S to reef the sails).', false, 3000); return; }
   if (tg.kind === 'harbour') {
     const d = tg.isl.desc, rep = repOf(state, d.id);
     if (!rep.last || Date.now() - rep.last > 120000) rep.visits++;
     rep.last = Date.now();
-    completeJobIfHere(d);
     state.stats.harbours++;
     if (state.hp < ship.mods.maxHp) { state.hp = ship.mods.maxHp; toast('The harbour crew patches up your hull for free.', false, 3000); }
     const rng = mulberry32(hash2(d.seed, Math.floor(tNow / 8), 3));
@@ -875,7 +910,7 @@ $('pbHint').addEventListener('click', () => { closeModal(); if (!abyss.maraHint(
 
 // ---------------------------------------------------------------- captain's log
 const logbook = new Logbook({ abyss, state, world, ship, seed: state.seed, toast: (t) => toast(t), close: () => closeModal(), mate: objectives.mate, dread: () => dread,
-  dropQuest: (id) => { state.quests = state.quests.filter((q) => q.id !== id); sea.syncQuests(state.quests); toast('Commission dropped.'); },
+  retrack: () => sea.syncQuests(state.quests.filter((q) => q.id === state.tracked)),
   skipGoal: () => { const g = objectives.current; if (!g) return; if (g.onDone) g.onDone({ state, world, ship, giveMap }); state.goals.i++; toast('Goal skipped.'); } });
 
 // ---------------------------------------------------------------- main loop
@@ -956,6 +991,7 @@ function frame() {
   combat.update(dt, waveT, { ship, traffic, wave: stage.wave, onHitEnemy, onHitPlayer: hurtPlayer });
   if (live && tNow - lastHit > 12 && state.hp < ship.mods.maxHp) state.hp = Math.min(ship.mods.maxHp, state.hp + dt);
   objectives.update(dt, dread);
+  if (live && state.passenger && ship.speed > 1) passengerTalk(state.passenger, dt, { mate: objectives.mate, world, ship, state, dread });
   if (live) {
     if (tod.night > 0.35 || tod.twilight > 0.6) objectives.remark('dusk');
     if (weather.storm > 0.4) objectives.remark('storm'); else if (weather.rain > 0.4) objectives.remark('rain'); else if (weather.fog > 0.5) objectives.remark('fog');
@@ -1021,7 +1057,7 @@ function frame() {
 
   const tgt = getInteract();
   if (dig && live) {
-    if (!tgt || tgt.key !== dig.key || ship.speed > 4) { dig = null; toast('The crew came back empty-handed. Hold still!'); }
+    if (!tgt || tgt.key !== dig.key || ship.speed > 0.6) { dig = null; toast('The crew came back empty-handed. Hold still!'); }
     else {
       dig.t += dt;
       promptFill.style.width = `${Math.min(100, (dig.t / dig.need) * 100)}%`;
@@ -1038,6 +1074,7 @@ function frame() {
         : tgt.kind === 'fruit' ? (state.harvest[tgt.isl.desc.id] != null && state.harvest[tgt.isl.desc.id] >= state.dayN ? 'Picked clean for today' : `[E] Pick ${plural(fruitName(fruitOf(tgt.isl.desc), tgt.isl.desc.dread), 2)}`)
         : tgt.kind === 'ship' ? (tgt.s.mode === 'derelict' ? `[E] Board the drifting ${KINDS[tgt.s.kind].label}` : tgt.s.mode === 'ghost' ? '[E] Hail the pale ship' : `[E] Hail the ${tgt.s.name}`)
         : '[E] Salvage the wreck';
+      if ((tgt.kind === 'treasure' || tgt.kind === 'fruit' || tgt.kind === 'wreck') && ship.speed > 0.35) promptTxt.textContent = 'Stop the ship completely (S) to go ashore';
     }
   } else promptEl.style.display = 'none';
 
@@ -1076,7 +1113,7 @@ function frame() {
   // ---- save
   if (tNow - lastSave > 4 && !params.get('fresh')) {
     lastSave = tNow;
-    store.set(SAVE_KEY, { seed: state.seed, gold: state.gold, dug: [...state.dug], discovered: state.discovered, loot: state.loot, upgrades: state.upgrades, collected: [...state.collected], notes: state.notes, rumoured: state.rumoured, rep: state.rep, job: state.job, serial: state.serial, sectorsSeen: state.sectorsSeen, jobHistory: state.jobHistory, buffs: state.buffs, stats: state.stats, quests: state.quests, fruit: state.fruit, harvest: state.harvest, dayN: state.dayN, hp: state.hp, ammo: state.ammo, custom: state.custom, owned: [...state.owned], riddles: state.riddles, attempts: state.attempts, catch: state.catch, fishLog: state.fishLog, hut: state.hut, goals: state.goals, hints: state.hints, time: state.time, windT: wind.t, pos: { x: ship.pos.x, z: ship.pos.z, h: ship.heading } });
+    store.set(SAVE_KEY, { seed: state.seed, gold: state.gold, dug: [...state.dug], discovered: state.discovered, loot: state.loot, upgrades: state.upgrades, collected: [...state.collected], notes: state.notes, rumoured: state.rumoured, rep: state.rep, job: state.job, serial: state.serial, sectorsSeen: state.sectorsSeen, jobHistory: state.jobHistory, buffs: state.buffs, stats: state.stats, quests: state.quests, fruit: state.fruit, harvest: state.harvest, dayN: state.dayN, hp: state.hp, ammo: state.ammo, custom: state.custom, owned: [...state.owned], riddles: state.riddles, attempts: state.attempts, catch: state.catch, fishLog: state.fishLog, hut: state.hut, passenger: state.passenger, tracked: state.tracked, goals: state.goals, hints: state.hints, time: state.time, windT: wind.t, pos: { x: ship.pos.x, z: ship.pos.z, h: ship.heading } });
   }
 
   // ---- render

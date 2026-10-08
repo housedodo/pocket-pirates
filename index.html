@@ -125,6 +125,7 @@
     /* Mara's portrait: a pixel anchor (an eye when she breaks) */
     #mateface { width: 32px; height: 32px; flex: none; background: var(--px-anchor) 0 0 / 100% 100% no-repeat; image-rendering: pixelated; filter: drop-shadow(4px 4px 0 #120c1c); }
     #mateface.eye { background-image: var(--px-eye); }
+    #mate.guest #mateface { background-image: var(--px-guest); } #mate.guest b { color: #9fd8ff; }
     .mapwrap { position: relative; width: fit-content; max-width: 100%; margin: 0 auto; }
     .mapwrap canvas { height: calc(min(600px, 90vh) - 150px); width: auto; max-width: 100%; aspect-ratio: 880 / 470; display: block; margin: 0 auto; border: 3px solid #3a2210; cursor: grab; touch-action: none; }
     #mapTxt { position: absolute !important; left: 0; top: 0; width: 100% !important; height: 100% !important; pointer-events: none; image-rendering: auto !important; border: none !important; margin: 0 !important; }
@@ -316,7 +317,7 @@
     <div id="sailbar" class="panel txt"><div><i class="ico sail"></i></div><div class="bar"><div class="fill" id="sailfill"></div></div></div>
     <div id="combatbox" class="panel txt"><div><i class="ico hull"></i><span id="hptxt"></span></div><div class="bar"><div class="fill" id="hpfill"></div></div><div id="ammotxt"></div><div class="bar thin"><div class="fill" id="reloadfill"></div></div></div>
     <div id="ebar" class="panel txt" style="display:none"><span id="ename"></span><div class="bar"><div class="fill" id="efill"></div></div></div>
-    <div id="mate" class="panel txt" style="display:none"><span class="face" id="mateface"></span><div style="flex:1"><b>Mara, first mate</b><div id="matetxt"></div></div><span id="matemore"><i class="pxi down"></i></span></div>
+    <div id="mate" class="panel txt" style="display:none"><span class="face" id="mateface"></span><div style="flex:1"><b id="mateName">Mara, first mate</b><div id="matetxt"></div></div><span id="matemore"><i class="pxi down"></i></span></div>
     <div id="fishui" class="panel txt" style="display:none"><div id="fishmsg"></div><div id="fishbar" style="display:none"><div id="fishtrack"><div id="fishzone"></div><div id="fishmark"></div></div><div id="fishprogwrap"><div id="fishprog"></div></div></div></div>
     <div id="prompt" class="panel txt"><div id="prompttxt"></div><div class="bar"><i></i></div></div>
     <div id="toasts"></div>

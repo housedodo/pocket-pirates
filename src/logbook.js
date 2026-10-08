@@ -139,6 +139,7 @@ function pixelate(c, w, h) {
   }
   c.putImageData(img, 0, 0);
 }
+const trackBtn = (state, id) => (state.tracked === id ? '<small class="tracked">&gt; following this one</small>' : `<button class="mini" data-track="${id}">Follow</button>`);
 const stars = (n) => pxi('star').repeat(n) + pxi('nostar').repeat(3 - n);
 const ent = (title, sub = '', right = '', cls = '') => `<div class="ent ${cls}"><b>${title}</b>${right ? `<span class="r">${right}</span>` : ''}${sub ? `<small>${sub}</small>` : ''}</div>`;
 const h3 = (t) => `<h3>${t}</h3>`;
@@ -218,22 +219,22 @@ export class Logbook {
     const j = state.job;
     if (j) {
       const dx = j.x - ship.pos.x, dz = j.z - ship.pos.z;
-      html += ent(`${pxi('letter')} ${j.item}`, `to ${j.toName} · ${Math.round(Math.hypot(dx, dz))} ${bearingName(dx, dz)}`, `${j.reward}g`) + '<button id="abandon" class="mini">Abandon</button>';
+      html += ent(`${pxi('letter')} ${j.item}`, `to ${j.toName} · ${Math.round(Math.hypot(dx, dz))} ${bearingName(dx, dz)}`, `${j.reward}g`) + trackBtn(state, 'job');
     } else html += ent('No delivery', 'Take one at a harbour job board.', '', 'dim');
+    const pg = state.passenger;
+    if (pg) { const dx = pg.x - ship.pos.x, dz = pg.z - ship.pos.z; html += h3('Passenger') + ent(`${pxi('talk')} ${pg.name}`, `to ${pg.toName} · ${Math.round(Math.hypot(dx, dz))} ${bearingName(dx, dz)}`, `${pg.reward}g`) + trackBtn(state, 'passenger'); }
     html += h3(`Commissions (${state.quests.length}/3)`);
     if (!state.quests.length) html += ent('None taken', 'Harbour boards post errands: fish, fruit, crates, raiders…', '', 'dim');
     for (const q of state.quests) {
       const need = questNeed(q), have = questProgress(q, state), done = have >= need;
       let where = `for ${q.giverName}`;
       if (q.type === 'crates' && !done) { const dx = q.center.x - ship.pos.x, dz = q.center.z - ship.pos.z; where = `search ${bearingName(dx, dz)}, ~${Math.round(Math.hypot(dx, dz))}`; }
-      html += `<div class="ent ${done ? 'cur' : ''}"><b>${questIcon(q)} ${questTitle(q, dread)}</b><span class="r">${q.reward}g</span><small>${where}${done ? ' · ready to hand in' : ''}</small><i class="pbar"><b style="width:${Math.round((have / need) * 100)}%"></b></i><small>${have}/${need} <button class="mini" data-drop="${q.id}">Drop</button></small></div>`;
+      html += `<div class="ent ${done ? 'cur' : ''}"><b>${questIcon(q)} ${questTitle(q, dread)}</b><span class="r">${q.reward}g</span><small>${where}${done ? ' · ready to hand in' : ''}</small><i class="pbar"><b style="width:${Math.round((have / need) * 100)}%"></b></i><small>${have}/${need}</small>${trackBtn(state, q.id)}</div>`;
     }
     const hist = state.jobHistory || [];
     html += '<h3 class="brk">Done</h3>' + (hist.length ? hist.slice(-4).reverse().map((h) => ent(h.item, `to ${h.to}`, `+${h.reward}g`)).join('') : ent('Nothing yet', '', '', 'dim'));
     this.body.innerHTML = html;
-    const b = document.getElementById('abandon');
-    if (b) b.addEventListener('click', () => { state.job = null; this.d.toast('Delivery abandoned.'); this.render(); });
-    this.body.querySelectorAll('[data-drop]').forEach((x) => x.addEventListener('click', () => { this.d.dropQuest(x.dataset.drop); this.render(); }));
+    this.body.querySelectorAll('[data-track]').forEach((x) => x.addEventListener('click', () => { state.tracked = x.dataset.track; this.d.retrack(); this.render(); }));
   }
 
   renderRiddles() {

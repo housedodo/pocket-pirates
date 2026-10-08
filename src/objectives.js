@@ -112,7 +112,7 @@ export class Mate {
     this.history = [];
     this.el.addEventListener('pointerdown', () => this.skip());
   }
-  say(text, dark = false) { this.queue.push({ text, dark }); }
+  say(text, dark = false, who = null) { this.queue.push({ text, dark, who }); }
   get busy() { return !!this.cur || this.queue.length > 0; }
   /** click / Enter: finish typing, or move on to the next line */
   skip() {
@@ -130,6 +130,8 @@ export class Mate {
       this.cur = this.queue.shift(); this.shown = 0; this.acc = 0; this.wait = -1;
       this.history.push(this.cur.text); if (this.history.length > 14) this.history.shift();
       this.el.classList.toggle('dark', this.cur.dark);
+      this.el.classList.toggle('guest', !!this.cur.who);
+      document.getElementById('mateName').textContent = this.cur.who || 'Mara, first mate';
       this.el.style.display = 'flex'; this.render();
     }
     if (!this.cur) return;

@@ -60,6 +60,7 @@ export const pxi = (name) => `<i class="pxi ${name}"></i>`;
 
 const SPRITES = { // Mara's portrait, 8x8, shown at 4x (the world's pixel size)
   anchor: ['...SS...', '..S..S..', '...SS...', '.SSSSSS.', '...SS...', 'S..SS..S', 'SS.SS.SS', '.SSSSSS.'],
+  guest: ['..BBBB..', '.BBBBBB.', 'BBBBBBBB', '.SSSSSS.', '.S#SS#S.', '.SSSSSS.', '..S##S..', '..SSSS..'],
   eye: ['........', '..####..', '.#WWWW#.', '#WWppWW#', '#WWppWW#', '.#WWWW#.', '..####..', '........'],
 };
 function icon(rows) {

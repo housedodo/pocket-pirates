@@ -41,6 +41,17 @@ For how things must look, see `STYLE.md`; for how systems work, see `DESIGN.md`.
 - Harbours are entered only at the end of their pier ("Sail to the pier to go ashore" elsewhere along the shore).
 - Villagers stroll slowly between random spots with pauses instead of pacing the dock.
 
+### Errands and passengers
+- Only one errand is followed at a time (delivery, passenger or a commission); pick it with "Follow" in the log's
+  Quests tab. Only the followed commission's crates float in the sea; the tracker shows "+N more in the log".
+- Nothing completes on arrival: dock at the pier and use the top "FINISH HERE" section of the harbour board
+  (deliver goods, drop off a passenger, hand in a finished commission).
+- Passengers (`src/passengers.js`) sometimes offer to pay for passage to another harbour. While sailing they talk:
+  little stories, gossip, treasure hints (added to rumours), dark lines at high dread, and banter where Mara answers.
+  The captain never speaks.
+- Digging, picking fruit and searching wrecks need the ship completely stopped (S).
+- Dolphins never jump across islands.
+
 ### World variety
 - Six villager designs, seven house kinds (taverns, bell towers, stilt houses...), three new island kinds:
   volcano, atoll, mangrove (each with a dark-mood detail). All emoji replaced by pixel glyphs.
