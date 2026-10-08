@@ -130,6 +130,20 @@
     #pigCv { width: 144px; height: 144px; image-rendering: pixelated; filter: drop-shadow(4px 6px 0 rgba(0,0,0,.6)); }
     .pigdie { display: inline-block; width: 64px; height: 64px; line-height: 64px; background: #efe0b8; color: #2a1608; box-shadow: 0 -4px 0 #2a1608, 0 4px 0 #2a1608, -4px 0 0 #2a1608, 4px 0 0 #2a1608, inset -4px -4px 0 #b8a070; }
     body.fogged.eyes #tracker, body.fogged.eyes #compass { filter: none; opacity: 1; }
+    /* the sound mixer (dev tool): a panel on the right; the game keeps running behind it */
+    #mixer { position: fixed; right: 12px; top: 12px; bottom: 12px; width: min(460px, 94vw); z-index: 12; display: none; flex-direction: column; background: var(--pxmenu) 0 0 / 32px 32px; image-rendering: pixelated; color: #fff4d8; box-shadow: 0 -4px 0 #c9a85c, 0 4px 0 #c9a85c, -4px 0 0 #c9a85c, 4px 0 0 #c9a85c, 8px 8px 0 rgba(0,0,0,.5); font-size: 16px; }
+    #mixer.open { display: flex; }
+    .mxhead { padding: 10px 12px; border-bottom: 4px solid #3a2a60; } .mxhead b { color: #ffd84a; font-weight: 400; } .mxhead small { display: block; color: #c8b890; margin: 4px 0 8px; }
+    .mxbtns { display: flex; gap: 8px; flex-wrap: wrap; } .mxbtns button { font-size: 16px; padding: 4px 8px; }
+    #mixer button { font-family: "DotGothic16", monospace; color: #fff4d8; background: var(--pxbtn) 0 0 / 32px 32px; border: none; box-shadow: 0 -2px 0 #c9a85c, 0 2px 0 #c9a85c, -2px 0 0 #c9a85c, 2px 0 0 #c9a85c; cursor: pointer; }
+    #mixer button:hover { color: #ffd84a; } #mixer .mxplay.on { background: #5ec45a; color: #10200c; }
+    #mixList { overflow-y: auto; padding: 4px 12px 12px; }
+    .mxsec { color: #ffd84a; margin: 12px 0 4px; }
+    .mxrow { display: grid; grid-template-columns: 1fr 120px 52px 52px; grid-template-rows: auto 4px; gap: 2px 8px; align-items: center; padding: 4px; }
+    .mxrow.live { background: rgba(94,196,90,.18); } .mxrow input { width: 100%; accent-color: #ffd84a; }
+    .mxname { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .mxval { font-weight: 400; text-align: right; }
+    .mxplay { font-size: 16px; padding: 0 4px; } .mxplay.on { background: #5ec45a; color: #10200c; }
+    .mxrow em { grid-column: 1 / -1; display: block; height: 4px; } .mxmeter { background: #2a2250; } .mxmeter span { display: block; height: 4px; width: 0; background: #5ec45a; }
     /* the dark hut */
     #hutWide { width: min(460px, 94vw); --pxedge: #3a1838; }
     #hutmodal { background: rgba(4, 2, 10, .86); }
@@ -356,12 +370,14 @@
   <div id="card" class="modal"><div class="menu" id="cardWide"><div id="cardIcon"></div><h2 id="cardTitle"></h2><p class="quote" id="cardText"></p><div id="cardChoices"></div><p class="quote" id="cardOut"></p><button id="cardDone">Sail on [E]</button></div></div>
   <div id="pig" class="modal"><div class="menu" id="pigWide"><h2>DICE AT THE TAVERN</h2><div class="pigrow"><div><b>You</b><br><span id="pigMe">0</span></div><canvas id="pigCv"></canvas><div><b id="pigOpp"></b><br><span id="pigThem">0</span></div></div><p class="quote" id="pigLog"></p><button id="pigRoll">Roll [Space]</button><button id="pigHold">Hold [H]</button><button id="pigLeave">Leave [E]</button></div></div>
 <div id="demoend"><h1>TO BE CONTINUED</h1><p>The die is back on the table. Somewhere, a pen is still writing.</p><small>End of the Pocket Pirates demo. Thank you for sailing.</small><button id="demoGo">Keep sailing</button></div>
+  <div id="mixer"><div class="mxhead"><b>SOUND MIXER</b><small>100% = as the file is. Play / solo to hear a sound; green rows are playing in the game right now.</small>
+    <div class="mxbtns"><button id="mixSave">Save volumes.json</button><button id="mixReset">Reset all</button><button id="mixClose">Close (F8)</button></div></div><div id="mixList"></div></div>
   <div id="roll"><canvas id="rollCv"></canvas><b id="rollLbl"></b><small id="rollMod"></small><div id="rollRes"></div></div>
   <div id="shipmodal" class="modal"><div class="menu" id="shWide"><h2 id="shName"></h2><p class="quote" id="shLine"></p><div class="goldline">Gold: <b id="shGold"></b></div><div id="shList"></div><button id="shClose">Wave goodbye</button></div></div>
   <div id="harbour" class="modal"><div class="menu" id="hbWide"><h2 id="hbName"></h2><p class="quote" id="hbLine"></p><div class="goldline">Gold: <b id="hbGold"></b></div><div class="hbtabs" id="hbTabs"><button data-t="board">Board</button><button data-t="market">Market</button><button data-t="wright">Shipwright</button></div><div id="hbPane"></div><button id="hbClose">Set sail [E]</button></div></div>
   <div id="pause" class="modal"><div class="menu">
     <div id="pauseMain"><h2>PAUSED</h2>
-      <button id="pbResume">Resume</button><button id="pbHint">Ask Mara for a hint</button><button id="pbControls">Controls</button><button id="pbLog">Captain's log</button><button id="pbAbyss">Full-dread effects (test)</button><button id="pbSound">Sound: on</button><button id="pbMusic">Music: on</button><button id="pbNew">New voyage (erase save)</button>
+      <button id="pbResume">Resume</button><button id="pbHint">Ask Mara for a hint</button><button id="pbControls">Controls</button><button id="pbLog">Captain's log</button><button id="pbAbyss">Full-dread effects (test)</button><button id="pbMixer">Sound mixer (F8)</button><button id="pbSound">Sound: on</button><button id="pbMusic">Music: on</button><button id="pbNew">New voyage (erase save)</button>
     </div>
     <div id="pauseAbyss" style="display:none"><h2>FULL DREAD</h2>
       <p class="tip">These only happen in the very worst water. Switch each one on or off, or press <b>Try</b> to jump to full dread with just that effect. Press <b>0</b> in game to stop a test.</p>

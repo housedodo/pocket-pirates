@@ -11,6 +11,7 @@ import { Ship } from './ship.js';
 import { Horror } from './horror.js';
 import { AudioBus, AUDIO_ENABLED } from './audio.js';
 import { sfx } from './sfx.js';
+import { Mixer } from './mixer.js';
 import { gossip, lootFor, bottleNote, barrelLoot } from './lore.js';
 import { Weather } from './weather.js';
 import { Fauna } from './fauna.js';
@@ -284,6 +285,7 @@ function begin() {
 let forced = params.has('dread') ? clamp(parseFloat(params.get('dread')), 0, 1) : null;
 
 window.addEventListener('keydown', (e) => {
+  if (e.target && e.target.closest && e.target.closest('#mixer') && e.code !== 'F8') return;   // arrow keys on a mixer slider move the slider, not the ship
   if (!started) { begin(); return; }
   if (e.code === 'Escape' || e.code === 'KeyP') {
     e.preventDefault();
@@ -354,6 +356,7 @@ window.addEventListener('keydown', (e) => {
   if (e.code === 'KeyG' && !modal && started && unlocked(state, 'oars')) { ship.rowing = !ship.rowing; toast(ship.rowing ? 'Oars out' : 'Oars in, sails up', false, 2200); if (ship.rowing) objectives.remark('oars', dread); }
   if (e.code === 'KeyQ' && !modal) { settings.tracker = settings.tracker === false; store.set(SETTINGS_KEY, settings); }
   if (!DEV) return;   // test keys only with ?dev=1
+  if (e.code === 'F8') { e.preventDefault(); mixer.toggle(); }
   if (e.code === 'Backquote') debugEl.style.display = debugEl.style.display === 'block' ? 'none' : 'block';
   if (e.code === 'Digit0') { forced = null; abyss.stopTest(); }
   if (/^Digit[1-5]$/.test(e.code)) forced = (parseInt(e.code.slice(5), 10) - 1) / 4;
@@ -414,7 +417,10 @@ function renderAbyssMenu() {
   }));
   $('abForce').textContent = forced === 1 ? 'Back to automatic dread' : 'Go to full dread now (all ON effects)';
 }
-if (!DEV) { $('pbAbyss').style.display = 'none'; settings.abyss = {}; }   // players get every effect, no test menu
+if (!DEV) { $('pbAbyss').style.display = 'none'; $('pbMixer').style.display = 'none'; settings.abyss = {}; }   // players get every effect, no test menu
+const mixer = new Mixer(audio, (t, d, ms) => toast(t, d, ms));
+$('pbMixer').addEventListener('click', () => { closeModal(); mixer.toggle(true); });
+//   // players get every effect, no test menu
 $('pbAbyss').addEventListener('click', () => { $('pauseMain').style.display = 'none'; $('pauseAbyss').style.display = 'block'; renderAbyssMenu(); $('abBack').focus(); });
 $('abBack').addEventListener('click', showPauseMain);
 $('abAll').addEventListener('click', () => { const any = EFFECTS.some((f) => settings.abyss[f.id] === false); for (const f of EFFECTS) settings.abyss[f.id] = any; store.set(SETTINGS_KEY, settings); renderAbyssMenu(); });
@@ -1307,6 +1313,7 @@ function frame() {
   } else eb.style.display = 'none';
   if (live) {
     const near = world.nearest(ship.pos.x, ship.pos.z, 45);
+    mixer.update();
     audio.update(dt, { dread, speed: ship.speed / 11, night: tod.night, wind: wind.strength, rain: weather.rain, storm: weather.storm, surf: near ? clamp(1 - world.lastEdge / 45, 0, 1) : 0, rowing: ship.rowIn > 0 });
     const hour = Math.floor(state.time * 24);
     if (hour !== lastHour) { lastHour = hour; if (world.nearest(ship.pos.x, ship.pos.z, 80, ['harbour'])) audio.play('bell', { vol: 0.6 }); }

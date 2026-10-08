@@ -6,6 +6,15 @@ at once, no code change. Delete a file and the game falls back to the synthesise
 (The single-file `pocket-pirates.html` has no audio folder, so it always uses the synthesised versions.) Names must match exactly; `.ogg` preferred (`.mp3`/`.wav` also work).
 The pause menu has Sound and Music toggles.
 
+## The sound mixer (testing volumes in the game)
+Open the game with `?dev=1` (e.g. `http://localhost:5173/?dev=1`), then press **F8** (or Pause > Sound mixer).
+A panel opens on the right while the game keeps running:
+- a slider (0-200%) for every sound, plus MASTER and MUSIC for everything at once;
+- **play** fires a one-shot; **solo** plays one loop on its own (everything else goes quiet) until you press it again;
+- rows turn green and get a bar when the game is playing that loop right now, so you can sail around and hear the mix in context;
+- slider changes are kept in your browser; **Save volumes.json** downloads them. Put that file in `public/audio/` and they
+  become the game's volumes for everyone (100% = the file as it is, so only changed sounds are listed).
+
 ## Tone: "shanty that slowly forgets how to be a shanty"
 Pick one short, simple melody (8-16 bars). Play it five ways, one per dread stage. The *same* tune
 getting stranger is scarier than new horror music.

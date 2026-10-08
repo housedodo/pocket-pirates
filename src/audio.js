@@ -29,15 +29,20 @@ export class AudioBus {
     this.muted = false;
     this.musicOn = true;
     this.ready = false;
+    this.vol = {};           // per-cue volume (1 = as authored): public/audio/volumes.json, then the mixer's local overrides
+    this.preview = null;     // mixer: a loop being auditioned on its own
+    this.level = {};         // the level each loop is currently asked to play at (for the mixer's meters)
   }
+  v(key) { return this.vol[key] != null ? this.vol[key] : 1; }
+  setVol(key, x) { this.vol[key] = x; }
 
   setMuted(m) {
     this.muted = m;
-    if (this.master) this.master.gain.value = m ? 0 : 0.8;
+    if (this.master) this.master.gain.value = m ? 0 : 0.8 * this.v('_master');
   }
   setMusic(on) {
     this.musicOn = on;
-    if (this.musicBus) this.musicBus.gain.value = on ? 0.6 : 0;
+    if (this.musicBus) this.musicBus.gain.value = on ? 0.6 * this.v('_music') : 0;
   }
   setPaused(p) {
     if (!this.ctx) return;
@@ -56,6 +61,9 @@ export class AudioBus {
     this.musicBus.gain.value = this.musicOn ? 0.6 : 0;
     this.musicBus.connect(this.master);
 
+    try { const r = await fetch('audio/volumes.json'); if (r.ok && !(r.headers.get('content-type') || '').includes('text/html')) Object.assign(this.vol, await r.json()); } catch (e) { /* no volumes file */ }
+    try { Object.assign(this.vol, JSON.parse(localStorage.getItem('pocket-pirates-mixer') || '{}')); } catch (e) { /* storage blocked */ }
+    this.setMuted(this.muted); this.setMusic(this.musicOn);
     // one-shots first (cheap), then ambience, then music, yielding between cues so the game stays smooth
     const order = [...CUES.oneShots, 'sea', 'wind', 'surf', 'rain', 'amb_night', 'oars', ...CUES.loops.filter((k) => k.startsWith('amb_') && k !== 'amb_night'), ...CUES.loops.filter((k) => k.startsWith('music_'))];
     for (const k of order) {
@@ -95,8 +103,10 @@ export class AudioBus {
   }
 
   setLoop(key, v) {
+    this.level[key] = v;
     const g = this.loops.get(key);
-    if (g) g.gain.setTargetAtTime(v, this.ctx.currentTime, 0.7);
+    if (this.preview) v = key === this.preview ? 0.8 : 0;   // auditioning one loop: everything else hushes
+    if (g) g.gain.setTargetAtTime(v * this.v(key), this.ctx.currentTime, this.preview ? 0.15 : 0.7);
   }
 
   play(key, { vol = 1, rate = 1 } = {}) {
@@ -105,7 +115,7 @@ export class AudioBus {
     if (!buf) return;
     const src = this.ctx.createBufferSource();
     src.buffer = buf; src.playbackRate.value = rate;
-    const g = this.ctx.createGain(); g.gain.value = vol;
+    const g = this.ctx.createGain(); g.gain.value = vol * this.v(key);
     src.connect(g).connect(this.master);
     src.start();
   }

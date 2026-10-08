@@ -183,6 +183,7 @@ Read it before building any story part. Decided so far: the final throw of the L
   (5) the ending at the eye.
 
 ## 5. How to test quickly
+- Sound mixer: `?dev=1`, then F8. Per-sound volume sliders, play/solo, live meters, Save volumes.json (see docs/AUDIO.md).
 - Pause menu > New voyage (erase save), clicked twice, wipes the save and restarts. `?fresh=1` plays without loading or saving.
 - Camera: R / drag up lowers it to deck level, where the view tilts up to the sky (it never goes below the waterline).
 - `npm run dev`, then use URL flags: `?autostart=1&fresh=1&nomate=1`, `&dread=1`, `&time=0.9`, `&x=..&z=..`.
