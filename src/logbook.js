@@ -3,7 +3,7 @@ import { SECTOR, sectorInfo, sectorCoord } from './sectors.js';
 import { UPGRADES, MAX_LEVEL } from './upgrades.js';
 import { friendLevel, bearingName, questProgress, questNeed, questTitle, questIcon, FRUITS, fruitName } from './jobs.js';
 import { mulberry32, hash2 } from './util.js';
-import { MAIN_GOALS, SIDE_GOALS } from './objectives.js';
+import { MAIN_GOALS, SIDE_GOALS, CHAPTERS, goalText } from './objectives.js';
 import { FISH } from './fishing.js';
 import { GROUPS, byId } from './customize.js';
 import { TRAITS } from './tabletop.js';
@@ -198,11 +198,19 @@ export class Logbook {
   // ------------------------------------------------------------ pages
   renderGoals() {
     const { state } = this.d, g = state.goals, st = state.stats;
-    let html = h3('Main goals');
-    MAIN_GOALS.forEach((m, i) => {
-      const done = i < g.i, cur = i === g.i;
-      html += ent(`${done ? pxi('check') : cur ? pxi('next') : pxi('open')} ${m.title}`, cur ? m.text : '', `${m.reward}g`, done ? 'done' : cur ? 'cur' : (i === g.i + 1 ? '' : 'dim'));
+    let html = '';
+    const curCh = MAIN_GOALS[g.i] ? MAIN_GOALS[g.i].ch : CHAPTERS.length;
+    CHAPTERS.forEach((ch, ci) => {
+      if (ci > curCh) return;                       // later chapters stay unwritten
+      html += h3(`${ch.n}. ${ch.title}`);
+      MAIN_GOALS.forEach((m, i) => {
+        if (m.ch !== ci) return;
+        const done = i < g.i, cur = i === g.i;
+        if (!done && !cur) return;
+        html += ent(`${done ? pxi('check') : pxi('next')} ${m.title}`, cur ? goalText(m, { state, ship: this.d.ship }) : '', m.reward ? `${m.reward}g` : '', done ? 'done' : 'cur');
+      });
     });
+    if (curCh < CHAPTERS.length) html += ent('...', 'The rest of the page is blank.', '', 'dim');
     if (MAIN_GOALS[g.i]) html += `<button id="skipGoal" class="mini">Skip this goal</button>`;
     html += '<h3 class="brk">Optional</h3>';
     for (const s of SIDE_GOALS) html += ent(`${g.side[s.id] ? pxi('check') : pxi('open')} ${s.title}`, g.side[s.id] ? '' : s.text, `${s.reward}g`, g.side[s.id] ? 'done' : '');
@@ -420,6 +428,14 @@ export class Logbook {
       sketcher(c, h).line([[px - 7, pz], [px - 3.5, pz - 3], [px, pz], [px + 3.5, pz + 3], [px + 7, pz]], { closed: false, col: '#3c6e82', w: 1.1, passes: 1, amp: 0.6, alpha: 0.5 });
     }
 
+    { // the fog wall: beyond it the chart is grey and unfinished
+      const R = this.d.gate ? this.d.gate() : Infinity;
+      if (R !== Infinity) {
+        c.save(); c.beginPath(); c.rect(0, 0, W, H); c.moveTo(X(R), Z(0)); c.arc(X(0), Z(0), R * sc, 0, Math.PI * 2, true);
+        c.fillStyle = 'rgba(110,104,96,0.42)'; c.fill('evenodd'); c.restore();
+        sketcher(c, 4242).line(circ(X(0), Z(0), R * sc, 48), { col: '#6a6058', w: 2, amp: 2.5, passes: 2, alpha: 0.6 });
+      }
+    }
     const labels = [];
     const warp = this.d.abyss ? this.d.abyss.mapWarp() : null; // full dread: the chart draws itself
     let n = 0;
@@ -569,7 +585,7 @@ export class Logbook {
       sk.wash(circ(hx + 1.2 * s, hz - 4.5 * s, 3.5 * s, 7), '#4a9a40', 0.55, 1.2);
       for (const a of [-2.8, -2.1, -1.4, -0.7, 0]) sk.line([[hx + 1.2 * s, hz - 4 * s], [hx + 1.2 * s + Math.cos(a) * 6 * s, hz - 4 * s + Math.sin(a) * 4 * s + 2 * s]], { closed: false, col: '#2e5a24', w: 1, passes: 1, amp: 0.8 });
     };
-    if (d.hut) { // the dark hut: a black crooked shape with one purple window
+    if (d.hut && state.story && state.story.hutKnown) { // the dark hut: a black crooked shape with one purple window
       const hx = px + 8 * s, hz = pz - 2 * s, body = [[hx - 5 * s, hz + 4 * s], [hx - 4 * s, hz - 3 * s], [hx + 4 * s, hz - 2 * s], [hx + 5 * s, hz + 4 * s]];
       sk.wash(body, '#1e1619', 1, 0.6); sk.wash([[hx - 6 * s, hz - 2 * s], [hx - 1 * s, hz - 8 * s], [hx + 5.5 * s, hz - 1.5 * s]], '#120c0e', 1, 0.6);
       c.fillStyle = '#c030a0'; c.fillRect(hx + 1 * s, hz - 1 * s, 2.5 * s, 2.5 * s);

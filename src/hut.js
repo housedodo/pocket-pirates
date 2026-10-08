@@ -103,7 +103,7 @@ export class Hut {
     const h = this.state; h.visits++;
     const used = h.lastDay === this.d.state.dayN;
     this.txt.textContent = h.visits === 1
-      ? 'An old woman sits at a table that is too big for the hut. She does not greet you. She sets down a yellowed twenty-sided die and waits.'
+      ? 'A table too big for the hut, one candle, and a chair on the far side, deep in the dark. Something there breathes, slow and patient. A yellowed twenty-sided die waits on the wood.'
       : used ? 'The die is gone from the table. She is writing. Come back tomorrow.' : 'The die is already on the table, waiting for you.';
     this.btn.disabled = used;
     this.result = null;

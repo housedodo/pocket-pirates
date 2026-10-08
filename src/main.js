@@ -23,7 +23,7 @@ import { sectorAt, sectorInfo, sectorCoord, FACTIONS } from './sectors.js';
 import { KINDS } from './traffic.js';
 import { Fishing, fishById } from './fishing.js';
 import { Combat } from './combat.js';
-import { Objectives } from './objectives.js';
+import { Objectives, MAIN_GOALS, CHAPTERS, unlocked, gateRadius, chapterOf, goalText } from './objectives.js';
 import { GROUPS, DEFAULT_CUSTOM, byId } from './customize.js';
 import { Wind } from './wind.js';
 import { WindFX } from './windfx.js';
@@ -77,6 +77,7 @@ const state = {
   catch: (saved && saved.catch) || [],
   fishLog: (saved && saved.fishLog) || {},
   goals: Object.assign({ i: 0, side: {}, started: false }, (saved && saved.goals) || {}),
+  story: (saved && saved.story) || {},              // chapter flags: perrinNote, check, b0, hutKnown, hutNod, demoEnd, free
   hints: (saved && saved.hints) || {},
   hut: (saved && saved.hut) || null,
   passenger: (saved && saved.passenger) || null,
@@ -171,7 +172,8 @@ sea.onEvent = (e) => {
     toast(`Salvaged a ${loot.name} (+${loot.value} gold)`, loot.dark);
     audio.play('splash', { vol: 0.5 });
   } else if (e.type === 'bottle') {
-    const text = bottleNote(mulberry32(hash2(e.o.x | 0, e.o.z | 0, state.seed + 3)), Math.min(4, Math.floor(e.o.dread * 5)));
+    const cur = objectives.current, hutNote = cur && cur.id === 'bottles' ? HUT_NOTES[(state.stats.bottles - (state.story.b0 || 0)) % HUT_NOTES.length] : null;
+    const text = hutNote || bottleNote(mulberry32(hash2(e.o.x | 0, e.o.z | 0, state.seed + 3)), Math.min(4, Math.floor(e.o.dread * 5)));
     state.notes.push({ text, dark: idx >= 2 }); state.stats.bottles++;
     toast(`Message in a bottle: "${text}"`, idx >= 2, 10000);
     audio.play('bottle');
@@ -189,7 +191,9 @@ function giveMap(id, from) {
   state.rumoured[id] = state.rumoured[id] || { name: d.name, x: Math.round(d.x), z: Math.round(d.z), source: from, found: false };
   toast(`${from} gave you a treasure riddle for ${d.name}. Saved in your log: Riddles tab.`, false, 8000);
 }
-const objectives = new Objectives({ state, world, ship, toast: (t, d) => toast(t, d), giveMap });
+const objectives = new Objectives({ state, world, ship, toast: (t, d) => toast(t, d), giveMap,
+  chapterCard: (ch) => { const el = $('landho'); el.querySelector('b').textContent = `CHAPTER ${ch.n}`; el.querySelector('span').textContent = ch.title; el.querySelector('small').textContent = ch.act; el.classList.remove('show'); void el.offsetWidth; el.classList.add('show'); audio.play('bell', { vol: 0.4 }); },
+  onStep: (done, next) => { if (done.id === 'gossip') revealHut(); } });
 const abyss = new Abyss({ scene, ship, world, sky, settings, state, mate: objectives.mate, toast: (t, d, ms) => toast(t, d, ms), fade: $('fade'),
   onEnding: () => {
     forced = null; dread = 0.02; abyss.k = 0;
@@ -222,6 +226,7 @@ const hut = new Hut({ state,
 function hutLeft() {
   const h = state.hut;
   if (!h) return;
+  if (h.rolls.length && !state.story.demoEnd) { state.story.demoEnd = true; setTimeout(showDemoEnd, 2500); }
   if (h.visits === 1) objectives.mate.say('I did not like that, Captain. She never blinked. Not once.', true);
   else if (h.fails === 3 && !h.toldThree) { h.toldThree = true; objectives.mate.say('Three times now. Captain... what is she writing down?', true); }
 }
@@ -243,7 +248,8 @@ function openModal(name) {
   if (fishing.active) fishing.cancel();
   ({ pause: pauseEl, chart: chartEl, harbour: harbourEl, ship: shipEl, yard: yardEl, hut: hutEl, card: cardEl, pig: pigEl })[name].classList.add('open');
   if (name === 'pause') { showPauseMain(); }
-  if (name === 'chart') { abyss.onMapOpen(ship); logbook.open(logTab); }
+  if (name === 'chart') { abyss.onMapOpen(ship); logbook.open(logTab);
+    if (state.story.hutNod === 'pending') { state.story.hutNod = 'done'; setTimeout(() => objectives.mate.say('Captain... was that hut always on our chart? I did not draw it. Did you draw it?', true), 1800); } }
   if (name === 'harbour') renderHarbour();
   if (name === 'ship') renderShipTrade();
   if (name === 'yard') renderYard();
@@ -335,12 +341,12 @@ window.addEventListener('keydown', (e) => {
   if (e.repeat) return;
   keys.add(e.code);
   if (e.code === 'Space') { if (fishing.active) { fishing.hold = true; fishing.press(true); } else fireCannons(); }
-  if (e.code === 'KeyC') fishing.press();
+  if (e.code === 'KeyC' && unlocked(state, 'fish')) fishing.press();
   if (e.code === 'KeyY' && !abyss.maraHint()) objectives.askHint(dread);
   if (e.code === 'Enter') objectives.mate.skip();
   if (e.code === 'KeyE') tryInteract();
   if (e.code === 'KeyH') $('hud').classList.toggle('hidden');
-  if (e.code === 'KeyG' && !modal && started) { ship.rowing = !ship.rowing; toast(ship.rowing ? 'Oars out' : 'Oars in, sails up', false, 2200); if (ship.rowing) objectives.remark('oars', dread); }
+  if (e.code === 'KeyG' && !modal && started && unlocked(state, 'oars')) { ship.rowing = !ship.rowing; toast(ship.rowing ? 'Oars out' : 'Oars in, sails up', false, 2200); if (ship.rowing) objectives.remark('oars', dread); }
   if (e.code === 'KeyQ' && !modal) { settings.tracker = settings.tracker === false; store.set(SETTINGS_KEY, settings); }
   if (e.code === 'Backquote') debugEl.style.display = debugEl.style.display === 'block' ? 'none' : 'block';
   if (e.code === 'Digit0') { forced = null; abyss.stopTest(); }
@@ -499,7 +505,7 @@ function renderHarbour() {
       html += `<div class="qrow"><div><b>${questIcon(o)} ${questTitle(q, dread)}</b><br><small>${o.type === 'crates' ? `lost ${bearingName(o.center.x - d.x, o.center.z - d.z)} of here · ` : ''}${o.reward}g</small></div><button data-accept="${o.id}" ${state.quests.length >= 3 ? 'disabled' : ''}>Accept</button></div>`;
     }
     if (!mine.length && !offers.length) html += '<small>The board is empty. Come back after you have been out to sea.</small>';
-    const pass = !state.passenger && makePassenger(world, d, (state.serial[d.id + '#p'] || 0) + state.dayN * 7);
+    const pass = !state.passenger && unlocked(state, 'passengers') && makePassenger(world, d, (state.serial[d.id + '#p'] || 0) + state.dayN * 7);
     if (pass) html += `<div class="sec">PASSAGE</div><div class="qrow"><div><b>${pxi('talk')} ${pass.name}, ${pass.who}</b><br><small>wants passage to ${pass.toName} · pays ${pass.reward}g</small></div><button id="takePass">Take aboard</button></div>`;
     const r = findRumour(world, d, state);
     if (r) html += `<div class="sec">RUMOURS</div><div class="qrow"><div><b>${pxi('talk')} A sailor talks of buried treasure</b></div><button id="rumourBuy" ${state.gold >= RUMOUR_COST ? '' : 'disabled'}>${RUMOUR_COST}g</button></div>`;
@@ -533,7 +539,7 @@ function renderHarbour() {
       const hour = state.time * 24, open = hour >= 17 || hour < 5, bedCost = Math.ceil(8 * discount(rep));
       html += `<div class="sec">TAVERN</div><div class="qrow"><div><b>${pxi('bed')} A bed for the night</b><br><small>${open ? 'sleep until 06:00, the crew mends the hull' : 'rooms are let from 17:00'}</small></div><button id="restBed" ${open && state.gold >= bedCost ? '' : 'disabled'}>${bedCost}g</button></div>`;
     }
-    { // hands for hire, and dice with the locals
+    if (unlocked(state, 'crew')) { // hands for hire, and dice with the locals
       const hand = crewForHire(d, state.dayN, state, world);
       if (hand && !state.crew.some((c) => c.name === hand.name)) html += `<div class="qrow"><div><b>${pxi('talk')} ${hand.name}, ${hand.look}</b><br><small>${TRAITS[hand.trait].name}: ${TRAITS[hand.trait].text} · ${hand.wish.text}</small></div><button id="hireHand" ${state.gold >= hand.cost && state.crew.length < 2 ? '' : 'disabled'}>${state.crew.length < 2 ? `Hire ${hand.cost}g` : 'Crew full'}</button></div>`;
       for (const c of state.crew) html += `<div class="qrow"><div><b>${pxi('talk')} ${c.name}</b> <small>(${TRAITS[c.trait].name})</small></div><button data-dismiss="${c.name}">Let go</button></div>`;
@@ -542,7 +548,7 @@ function renderHarbour() {
     }
     html += `<div class="sec">STANDING HERE</div><small>${pxi('star').repeat(lvl)}${pxi('nostar').repeat(3 - lvl)}${lvl ? `  (-${lvl * 5}% prices, +${lvl * 5}% for your catch)` : '  (visit and deliver to be remembered)'}</small>`;
     html += '<div class="sec">SELL</div>';
-    html += `<div class="qrow"><div><b>${pxi('coin')} Haggle</b><br><small>${hg ? (hm > 1 ? `they pay ${Math.round((hm - 1) * 100)}% more today` : 'they are offended: 10% less today') : 'a talk roll, once a day: 12 or more'}</small></div>${hg ? '' : '<button id="haggle">Roll</button>'}</div>`;
+    if (unlocked(state, 'haggle')) html += `<div class="qrow"><div><b>${pxi('coin')} Haggle</b><br><small>${hg ? (hm > 1 ? `they pay ${Math.round((hm - 1) * 100)}% more today` : 'they are offended: 10% less today') : 'a talk roll, once a day: 12 or more'}</small></div>${hg ? '' : '<button id="haggle">Roll</button>'}</div>`;
     html += `<div class="qrow"><div><b>${pxi('fish')} Fish</b><br><small>${state.catch.length ? `${state.catch.length} in the hold` : 'none: slow down and press C at sea'}</small></div>${state.catch.length ? `<button id="sellFish">+${fishVal}g</button>` : ''}</div>`;
     html += `<div class="qrow"><div><b>${pxi('banana')} Fruit</b><br><small>${fruitList.length ? fruitList.map(([f, n]) => `${n} ${plural(fruitName(f, dread), n)}`).join(', ') : 'none: press E at jungle isles'}</small></div>${fruitList.length ? `<button id="sellFruit">+${fruitVal}g</button>` : ''}</div>`;
     html += '<div class="sec">BUY</div>';
@@ -558,7 +564,7 @@ function renderHarbour() {
       const h = pendingHand; if (!h || state.gold < h.cost || state.crew.length >= 2) return;
       state.gold -= h.cost; state.crew.push(h); audio.play('buy'); toast(`${h.name} signs on. ${h.name} nods once and says nothing.`, false, 5000); objectives.remark('crew', dread); renderHarbour(); });
     pane.querySelectorAll('[data-dismiss]').forEach((b) => b.addEventListener('click', () => { state.crew = state.crew.filter((c) => c.name !== b.dataset.dismiss); toast(`${b.dataset.dismiss} goes ashore with a small wave.`); renderHarbour(); }));
-    $('playPig').addEventListener('click', () => { if (state.gold < 10) return; state.gold -= 10; const isl = harbourIsl; openModal('pig'); pigHome = isl; pig.start(LOCALS[Math.floor(Math.random() * LOCALS.length)], 10); });
+    if ($('playPig')) $('playPig').addEventListener('click', () => { if (state.gold < 10) return; state.gold -= 10; const isl = harbourIsl; openModal('pig'); pigHome = isl; pig.start(LOCALS[Math.floor(Math.random() * LOCALS.length)], 10); });
     const hgb = $('haggle'); if (hgb) hgb.addEventListener('click', () => {
       rollCheck(state, { label: 'Talk', kind: 'talk', dc: 12, extra: lvl ? [['standing', lvl]] : [] }, (ok, n) => {
         state.haggle = { id: d.id, day: state.dayN, mult: ok ? (n === 20 ? 1.5 : 1.3) : 0.9 };
@@ -637,7 +643,7 @@ function updateTracker() {
   if (!show) return;
   const rows = [];
   const g = objectives.current;
-  if (g) rows.push(`<div class="trow main"><i class="ico flag"></i>${g.title}</div>`);
+  if (g) { const ch = CHAPTERS[g.ch]; rows.push(`<div class="thint">${ch.n} · ${ch.title}</div><div class="trow main"><i class="ico flag"></i>${g.title}</div>`); }
   const tr = trackedOne(), others = (state.job ? 1 : 0) + (state.passenger ? 1 : 0) + state.quests.length - (tr ? 1 : 0);
   if (tr === 'job') rows.push(`<div class="trow">${pxi('letter')} ${state.job.toName}</div>`);
   else if (tr === 'passenger') rows.push(`<div class="trow">${pxi('talk')} ${state.passenger.name} to ${state.passenger.toName}</div>`);
@@ -713,7 +719,7 @@ function tryInteract() {
   if (!started || modal) return;
   const tg = getInteract();
   if (!tg) return;
-  if (tg.kind === 'hut') { openModal('hut'); return; }
+  if (tg.kind === 'hut') { if (!state.story.hutKnown) { toast('Nobody answers. Inside, a pen scratches, then stops.', true, 4500); return; } openModal('hut'); return; }
   if ((tg.kind === 'treasure' || tg.kind === 'fruit' || tg.kind === 'wreck') && ship.speed > 0.35) { toast('Bring the ship to a full stop first (S to reef the sails).', false, 3000); return; }
   if (tg.kind === 'harbour') {
     const d = tg.isl.desc, rep = repOf(state, d.id);
@@ -725,6 +731,9 @@ function tryInteract() {
     const idx = Math.min(4, Math.floor(dread * 5)), lvl = friendLevel(rep);
     const hello = idx >= 3 ? 'We remember you. We always remember you.' : lvl >= 3 ? 'Our favourite captain! Your usual discount, of course.' : rep.visits > 1 ? 'Back again, captain!' : 'A new face. Welcome!';
     harbourLine = `${hello}\n${gossip(rng, idx, d.name)}\nShipwright: ${shipwrightLine(rng, idx)}`;
+    { const cur = objectives.current;
+      if (cur && cur.id === 'perrin' && d.id === '0,-1' && !state.story.perrinNote) perrinNote();
+      if (cur && cur.id === 'gossip' && d.id !== '0,-1' && !state.story.hutKnown) { state.story.hutKnown = true; harbourLine = `${hello}\nAn old fisher leans in: "The black hut? Out past the ${bearingName(world.hutDesc.x - d.x, world.hutDesc.z - d.z)} water. Do not sit down. Whatever she offers, do not sit."\nShipwright: ${shipwrightLine(rng, idx)}`; } }
     harbourIsl = tg.isl; hbTab = 'board';
     for (const c of state.crew) if (c.wish && !c.wish.done && c.wish.kind === 'harbour' && c.wish.id === tg.isl.desc.id) wishDone(c);
     harbourEl.classList.toggle('dark', idx >= 3);
@@ -980,7 +989,7 @@ function openCard() {
 }
 function tabletopTick(dt) {
   // encounter cards: out on the open sea, now and then
-  if (ship.speed > 2 && dread < 0.95 && !world.nearest(ship.pos.x, ship.pos.z, 90) && !fishing.active) {
+  if (unlocked(state, 'cards') && ship.speed > 2 && dread < 0.95 && !world.nearest(ship.pos.x, ship.pos.z, 90) && !fishing.active) {
     cardT -= dt;
     if (cardT <= 0) { cardT = 200 + Math.random() * 160; openCard(); return; }
   }
@@ -998,6 +1007,47 @@ function wishDone(c) {
   c.wish.done = true;
   toast(`${c.name} stands at the rail a long time. (${c.name}'s wish came true: their bonus grows by 1.)`, false, 7000);
   objectives.mate.say(`Look at ${c.name}. I have never seen anyone smile with only their eyebrows before.`);
+}
+
+// ---------------------------------------------------------------- story: chapter beats, the fog wall, the demo end
+const HUT_NOTES = [
+  'If you find the black hut, do not sit down. I sat down. - R.',
+  'She has a book. My name is in it now. Twice.',
+  'Third bottle I have thrown. The hut is not where I left it. The hut is exactly where I left it.',
+];
+const CHECKS = [['a red rock on its north shore', 'red'], ['three palms in a row on its east side', 'palms'], ['a bell on a post by the water', 'bell'], ['a white stone shaped like a tooth', 'tooth']];
+function perrinNote() {
+  // an island far from Tama that Perrin "checks": the farthest ring the fog allows in chapter IV
+  const rng = mulberry32(hash2(state.seed, 77, 9)), cands = [];
+  for (let cz = -12; cz <= 12; cz++) for (let cx = -12; cx <= 12; cx++) {
+    const d = world.desc(cx, cz); if (!d || d.type === 'harbour' || d.hut) continue;
+    const r = Math.hypot(d.x, d.z); if (r > 720 && r < 1080) cands.push(d);
+  }
+  const d = cands[Math.floor(rng() * cands.length)] || world.desc(1, -1);
+  const [detail] = CHECKS[Math.floor(rng() * CHECKS.length)];
+  state.story.check = { id: d.id, name: d.name, x: Math.round(d.x), z: Math.round(d.z), r: d.r, dir: bearingName(d.x, d.z), detail };
+  state.story.perrinNote = true;
+  state.notes.push({ text: `Perrin: "Be a dear and check my chart. ${d.name}, ${state.story.check.dir} of Tama, should have ${detail}. Nobody has been there to tell me, so I need eyes. Bring back my compass if you find it. It's the one that's wrong."`, dark: false });
+  toast('The harbourmaster hands you a folded note from Old Perrin. (Journal)', false, 6000);
+}
+function revealHut() {
+  const h = world.hutDesc; if (!h) return;
+  state.discovered[h.id] = state.discovered[h.id] || 1;
+  state.story.hutNod = 'pending';     // the nod comes the next time the chart is opened
+}
+function showDemoEnd() { $('demoend').classList.add('show'); }
+$('demoGo').addEventListener('click', () => { $('demoend').classList.remove('show'); state.story.free = true; toast('The fog thins. The sea is yours.', false, 5000); });
+let gateFog = 0, gateToastT = 0;
+function seaGate(dt) {
+  const R = gateRadius(state), d = Math.hypot(ship.pos.x, ship.pos.z);
+  gateFog = R === Infinity ? 0 : clamp((d - (R - 160)) / 160, 0, 1);
+  if (d > R) {   // the fog turns you around: push back toward Tama and bleed speed
+    const k = Math.min(d - R + 1, (4 + (d - R) * 0.8) * dt);
+    ship.pos.x -= ship.pos.x / d * k; ship.pos.z -= ship.pos.z / d * k;
+    ship.speed *= 1 - Math.min(0.9, dt * 1.4);
+    objectives.remark('gate', dread);
+    if ((gateToastT -= dt) <= 0) { gateToastT = 25; toast('The fog is a wall here. Somehow the bow always ends up pointing home.', false, 4500); }
+  }
 }
 
 function hurtPlayer(dmg) {
@@ -1035,7 +1085,10 @@ $('pbHint').addEventListener('click', () => { closeModal(); if (!abyss.maraHint(
 // ---------------------------------------------------------------- captain's log
 const logbook = new Logbook({ abyss, state, world, ship, seed: state.seed, toast: (t) => toast(t), close: () => closeModal(), mate: objectives.mate, dread: () => dread,
   retrack: () => sea.syncQuests(state.quests.filter((q) => q.id === state.tracked)),
-  skipGoal: () => { const g = objectives.current; if (!g) return; if (g.onDone) g.onDone({ state, world, ship, giveMap }); state.goals.i++; toast('Goal skipped.'); } });
+  gate: () => gateRadius(state),
+  skipGoal: () => { const g = objectives.current; if (!g) return; if (g.onDone) g.onDone({ state, world, ship, giveMap });
+    if (g.id === 'perrin') perrinNote(); if (g.id === 'gossip') { state.story.hutKnown = true; revealHut(); }
+    state.goals.i++; const n = objectives.current; if (n && n.onStart) n.onStart({ state }); toast('Goal skipped.'); } });
 
 // ---------------------------------------------------------------- main loop
 const GLASS = new THREE.Color('#07030d');
@@ -1078,7 +1131,7 @@ function frame() {
   if (live && keys.has('KeyR')) pitchT = clamp(pitchT - dt * 0.8, 0.3, 1.35);
   if (live && keys.has('KeyF')) pitchT = clamp(pitchT + dt * 0.8, 0.3, 1.35);
   if (live || params.get('autostart')) ship.update(dt, shipInput, windNow, tNow);
-  if (live && dt > 0) { stormAndCalm(dt); tabletopTick(dt); }
+  if (live && dt > 0) { stormAndCalm(dt); tabletopTick(dt); seaGate(dt); }
   if (world.collide(ship.pos, 2.2)) {
     if (ship.speed > 3 && dt > 0) audio.play('bump', { vol: clamp(ship.speed / 10, 0.3, 1) });
     ship.speed *= 0.9;
@@ -1096,6 +1149,7 @@ function frame() {
   weather.update(dt, wind.t, dread, wind.dir, wind.strength, camera, tod);
   weather.apply(stage);
   stage.fogFar += ship.mods.fogBonus; stage.fogNear += ship.mods.fogBonus * 0.5;
+  if (gateFog > 0) { stage.fogFar = Math.max(30, stage.fogFar * (1 - 0.85 * gateFog)); stage.fogNear = Math.max(4, stage.fogNear * (1 - 0.9 * gateFog)); stage.fog.lerp(new THREE.Color('#b8c0c4'), gateFog * 0.7); }
   abyss.update(dt, { dread, live, camera, camYaw, ch: camHeading + camYaw });
   stage.wave *= abyss.waveMul;
   const waveT = abyss.waveTime(stepT);
@@ -1238,7 +1292,7 @@ function frame() {
   // ---- save
   if (tNow - lastSave > 4 && !params.get('fresh')) {
     lastSave = tNow;
-    store.set(SAVE_KEY, { seed: state.seed, gold: state.gold, dug: [...state.dug], discovered: state.discovered, loot: state.loot, upgrades: state.upgrades, collected: [...state.collected], notes: state.notes, rumoured: state.rumoured, rep: state.rep, job: state.job, serial: state.serial, sectorsSeen: state.sectorsSeen, jobHistory: state.jobHistory, buffs: state.buffs, stats: state.stats, quests: state.quests, fruit: state.fruit, harvest: state.harvest, dayN: state.dayN, hp: state.hp, ammo: state.ammo, custom: state.custom, owned: [...state.owned], riddles: state.riddles, attempts: state.attempts, catch: state.catch, fishLog: state.fishLog, hut: state.hut, passenger: state.passenger, crew: state.crew, cardsSeen: state.cardsSeen, haggle: state.haggle, tracked: state.tracked, goals: state.goals, hints: state.hints, time: state.time, windT: wind.t, pos: { x: ship.pos.x, z: ship.pos.z, h: ship.heading } });
+    store.set(SAVE_KEY, { seed: state.seed, gold: state.gold, dug: [...state.dug], discovered: state.discovered, loot: state.loot, upgrades: state.upgrades, collected: [...state.collected], notes: state.notes, rumoured: state.rumoured, rep: state.rep, job: state.job, serial: state.serial, sectorsSeen: state.sectorsSeen, jobHistory: state.jobHistory, buffs: state.buffs, stats: state.stats, quests: state.quests, fruit: state.fruit, harvest: state.harvest, dayN: state.dayN, hp: state.hp, ammo: state.ammo, custom: state.custom, owned: [...state.owned], riddles: state.riddles, attempts: state.attempts, catch: state.catch, fishLog: state.fishLog, hut: state.hut, passenger: state.passenger, story: state.story, crew: state.crew, cardsSeen: state.cardsSeen, haggle: state.haggle, tracked: state.tracked, goals: state.goals, hints: state.hints, time: state.time, windT: wind.t, pos: { x: ship.pos.x, z: ship.pos.z, h: ship.heading } });
   }
 
   // ---- render
@@ -1251,6 +1305,7 @@ function frame() {
 
 // handy for tests / screenshots
 window.__game = {
+  objectives, perrinNote, gateRadius: () => gateRadius(state),
   openCard,
   weather,
   setDread(v) { forced = v; dread = v; },

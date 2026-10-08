@@ -6,6 +6,20 @@ For how things must look, see `STYLE.md`; for how systems work, see `DESIGN.md`.
 
 ## 1. Where the game is now
 
+### Chapters (the main thread, `objectives.js`)
+- The story runs in chapters, each a few steps with nudges from Mara (no markers). A chapter card (CHAPTER IV,
+  title, act) shows when one begins; Mara gives a gentle hint after ~4 minutes without progress.
+  - I Sea legs (sail, dock at Tama) · II Perrin's riddle (dig, shipwright) · III Earn your keep (delivery, chart 8)
+  - IV Check my chart (Perrin's note at Tama names a far island and a detail; sail there and look)
+  - V Strange notes (two bottles that speak of a black hut; a tavern gossip elsewhere reveals it)
+  - VI The table (first throw at the hut) -> demo end card "TO BE CONTINUED", then "Keep sailing" lifts the fog.
+- **Unlocks:** fishing from II; oars and passengers from III; crew, tavern dice, haggling and encounter cards from IV.
+- **The fog wall:** each chapter allows a radius from Tama (430, 430, 820, 1250, 1650, 1650). Near it the fog closes
+  in; past it the ship is turned back. The chart greys out everything beyond.
+- **The hut:** physically there all along, but the door does not open and it is not on the chart until chapter V's
+  gossip. Then it appears on the chart by itself; the next time the chart opens, Mara asks who drew it.
+  The Lady is never seen (the hut text describes only a chair in the dark).
+
 ### Core
 - Endless procedural Caribbean (Three.js + Vite), deterministic from a seed: islands in 110-unit cells,
   550-unit sectors with factions (Crown Traders, Free Cays, Reef Brotherhood, Lantern Guild, The Drowned).

@@ -281,6 +281,9 @@
     .pxi.star, .pxi.nostar, .pxi.pip, .pxi.nopip, .pxi.check, .pxi.open, .pxi.next { width: 14px; height: 14px; vertical-align: -1px; margin-right: 2px; }
     #touch .pxi { width: 28px; height: 28px; margin: 0; vertical-align: middle; }
     /* land ho: a short title card when a new island comes into view */
+    #demoend { position: fixed; inset: 0; z-index: 8; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 12px; background: #06040e; color: #fff4d8; text-align: center; padding: 16px; }
+    #demoend.show { display: flex; animation: dfade 3s steps(8) both; } #demoend h1 { font-size: 48px; font-weight: 400; color: #d8b0e8; margin: 0; } #demoend p { font-size: 16px; max-width: 520px; } #demoend small { font-size: 16px; color: #8a7e9a; }
+    @keyframes dfade { from { opacity: 0; } to { opacity: 1; } }
     #landho { position: absolute; left: 50%; top: 22%; transform: translateX(-50%); text-align: center; opacity: 0; pointer-events: none; }
     #landho b { display: block; font-size: 18px; color: var(--gold); letter-spacing: .3em; }
     #landho span { display: block; font-size: 40px; color: #fff7d6; text-shadow: 4px 4px 0 var(--shadow); }
@@ -338,6 +341,7 @@
     <div id="fishui" class="panel txt" style="display:none"><div id="fishmsg"></div><div id="fishbar" style="display:none"><div id="fishtrack"><div id="fishzone"></div><div id="fishmark"></div></div><div id="fishprogwrap"><div id="fishprog"></div></div></div></div>
     <div id="prompt" class="panel txt"><div id="prompttxt"></div><div class="bar"><i></i></div></div>
     <div id="toasts"></div>
+    <div id="demoend"><h1>TO BE CONTINUED</h1><p>The die is back on the table. Somewhere, a pen is still writing.</p><small>End of the Pocket Pirates demo. Thank you for sailing.</small><button id="demoGo">Keep sailing</button></div>
     <div id="landho" class="txt"><b></b><span></span><small></small></div>
     <div id="help" class="txt panel"><span>A/D steer &middot; W/S sails · G oars &middot; E interact<br>M chart &middot; Esc pause &middot; drag = tilt &middot; wheel = zoom &middot; H hide HUD</span></div>
     <div id="debug" class="panel txt"></div>

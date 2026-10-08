@@ -4,9 +4,24 @@ import { smoothstep } from './util.js';
 // side goals are optional and complete themselves whenever you happen to do them.
 const HOME_ISLE = '1,-1'; // Hollow Cay Galen, the starter treasure isle
 
+// The story runs in chapters. Each chapter is a few steps; a chapter opens new systems (UNLOCK) and pushes the
+// fog wall back (GATES). Goals are nudges from Mara, never markers: no handholding.
+export const CHAPTERS = [
+  { n: 'I', title: 'Sea legs', act: 'Fair winds' },
+  { n: 'II', title: "Perrin's riddle", act: 'Fair winds' },
+  { n: 'III', title: 'Earn your keep', act: 'Fair winds' },
+  { n: 'IV', title: 'Check my chart', act: 'Rumours of the Drowned' },
+  { n: 'V', title: 'Strange notes', act: 'Rumours of the Drowned' },
+  { n: 'VI', title: 'The table', act: 'Rumours of the Drowned' },
+];
+/** how far from Tama the fog lets you sail, per chapter (the demo ends after chapter VI) */
+export const GATES = [430, 430, 820, 1250, 1650, 1650];
+/** the chapter a system opens in */
+export const UNLOCK = { fish: 1, oars: 2, passengers: 2, crew: 3, dice: 3, haggle: 3, cards: 3 };
+
 export const MAIN_GOALS = [
   {
-    id: 'sail', title: 'Find your sea legs', reward: 20,
+    id: 'sail', ch: 0, title: 'Find your sea legs', reward: 20,
     text: 'Steer with A and D, set the sails with W and S. Sail about 100 units.',
     intro: ['Morning, Captain! I am Mara, your first mate, and this is the Pocket Pearl. She is small, but she is ours.',
       'Steer with A and D. W lets the sails out, S reefs them. Watch the compass: the blue arrows show where the wind is blowing to.'],
@@ -15,56 +30,95 @@ export const MAIN_GOALS = [
     check: (c) => c.state.stats.dist >= 100,
   },
   {
-    id: 'harbour', title: 'Make landfall', reward: 20,
-    text: 'Sail to Harbour Tama, straight north of where you started. Moor at its pier and press E.',
-    intro: ['That is Harbour Tama, straight ahead (north). Sail up to its pier and press E: the shipwright, job board and rumours are all there.'],
+    id: 'harbour', ch: 0, title: 'Make landfall', reward: 20,
+    text: 'Harbour Tama lies north of where you started. Moor at its pier and press E.',
+    intro: ['That is Harbour Tama, north of us. Bring her up to the end of the pier and press E.'],
     outro: ['Welcome to Tama! Old Perrin left something for you with the harbourmaster.'],
-    hints: ['Tama is straight north of where you started, with a lighthouse and a long dock.', 'Sail right up to the end of the wooden pier, then press E.'],
+    hints: ['Tama is north of where you started, with a lighthouse and a long pier.', 'Sail right up to the end of the wooden pier, then press E.'],
     check: (c) => c.state.stats.harbours >= 1,
     onDone: (c) => c.giveMap(HOME_ISLE, 'Old Perrin'),
   },
   {
-    id: 'dig', title: 'Follow the riddle', reward: 60,
-    text: 'Hollow Cay Galen lies north-east of Tama. Read the riddle in your log (J, Journal tab), find the right shore, and press E to dig.',
-    intro: ['Perrin wrote you a riddle: the chest is buried on one particular shore of Hollow Cay Galen, north-east of here. It is in your log, under Journal.',
-      'Sail around the island, find the shore the riddle means, and press E to dig. Wrong shore? We will just try another.'],
+    id: 'dig', ch: 1, title: 'Follow the riddle', reward: 60,
+    text: 'Perrin\'s riddle is in your log (Journal). Find the right shore of Hollow Cay Galen and dig.',
+    intro: ['Perrin wrote you a riddle. It is in your log, under Journal. Something about Hollow Cay Galen, north-east of Tama.',
+      'Find the shore the riddle means, stop the ship, and press E to dig. Oh, and if we stop at sea, C casts a line. Dinner!'],
     outro: ['Ha! Treasure! A captain with gold in the hold is a captain with options.'],
-    hints: ['Open the log with M and look at the Journal tab for the riddle. Sunrise is east, sunset is west, the pole star is north.', 'Try the shore the riddle describes. A wrong shore only costs a few seconds.'],
+    hints: ['The riddle is in the log (M, Journal tab). Sunrise is east, sunset is west.', 'Try the shore the riddle describes. A wrong shore only costs a few seconds.'],
     check: (c) => c.state.dug.has(HOME_ISLE),
   },
   {
-    id: 'upgrade', title: 'Spend your loot', reward: 30,
-    text: 'Visit a harbour shipwright (E) and buy any ship upgrade.',
-    intro: ['That is a good haul. Spend some of it at the shipwright in any harbour. Sails and a rudder make her much nicer to sail.'],
+    id: 'upgrade', ch: 1, title: 'Spend your loot', reward: 30,
+    text: 'Buy something from a shipwright.',
+    intro: ['That is a good haul. The shipwright in any harbour would love some of it. Better sails, and we could go further.'],
     outro: ['You can feel the difference already.'],
-    hints: ['Sail back to Harbour Tama and press E. The shipwright is at the bottom of the harbour menu.'],
+    hints: ['Any harbour has a shipwright: press E at the pier and pick the Shipwright tab.'],
     check: (c) => Object.values(c.state.upgrades).some((v) => v > 0),
   },
   {
-    id: 'job', title: 'Earn your keep', reward: 50,
-    text: 'Take a delivery job from a harbour job board and deliver it.',
-    intro: ['Harbours pay well for deliveries. Take a job from the board in a harbour menu, then sail to the destination and press E there.'],
-    outro: ['Reputation matters out here. Harbours remember you, and so do the ships nearby.'],
-    hints: ['Press E at a harbour and look for "Job board". The compass shows a small orange marker toward your destination.'],
+    id: 'job', ch: 2, title: 'Earn your keep', reward: 50,
+    text: 'Take a delivery from a harbour board and bring it where it belongs.',
+    intro: ['The fog has lifted a little further out. Good: harbours pay well for deliveries, and some folk pay for passage too.',
+      'If the wind dies on us, G puts the oars out. I steer, you row.'],
+    outro: ['Reputation matters out here. Harbours remember you.'],
+    hints: ['The board in a harbour menu has deliveries. Dock at the other harbour and deliver from the top of its board.'],
     check: (c) => c.state.stats.deliveries >= 1,
   },
   {
-    id: 'chart', title: 'Chart the sea', reward: 40,
-    text: 'Chart 6 islands by sailing close to them. Check your map (M).',
-    intro: ['Now let us fill in the chart. Sail close to islands and they are marked on your map. Press M to see it.'],
-    outro: ['A fine start to a map.'],
-    hints: ['Islands are charted when you get within about 30 units of them.'],
-    check: (c) => Object.keys(c.state.discovered).length >= 6,
+    id: 'chart', ch: 2, title: 'Chart the sea', reward: 40,
+    text: 'Chart 8 islands by sailing close to them.',
+    intro: ['Let us fill in the chart. Sail close to islands and they go on the map (M).'],
+    outro: ['A fine start to a map. Perrin would be proud. Probably. Nobody has seen him smile.'],
+    hints: ['Islands are charted when you sail close to them. The empty stretches are worth crossing.'],
+    check: (c) => Object.keys(c.state.discovered).length >= 8,
   },
   {
-    id: 'sector', title: 'Beyond the sound', reward: 60,
-    text: 'Sail into a new sector. The sea changes as you go.',
-    intro: ['The world is split into sectors, each run by a different faction. Cross into a new one and see what you find.'],
-    outro: ['Ships and harbours here wear different colours. And the further you go, the odder things get. I do not like the gulls out here.'],
-    hints: ['Sectors are about 550 units wide. Sail in one direction for a minute or so.'],
-    check: (c) => c.state.sectorsSeen.length >= 3,
+    id: 'perrin', ch: 3, title: 'A note from Perrin', reward: 20,
+    text: 'Perrin has sent word to Harbour Tama.',
+    intro: ['The harbourmaster in Tama waved at us with a letter last time. Perrin again, I bet.',
+      'Taverns are hiring hands these days, by the way. And somebody always wants to play dice.'],
+    outro: [],
+    hints: ['Dock at Harbour Tama.'],
+    check: (c) => !!c.state.story.perrinNote,
+  },
+  {
+    id: 'checkchart', ch: 3, title: 'Check his chart', reward: 60,
+    text: (c) => c.state.story.check ? `Perrin wants to know if ${c.state.story.check.name}, ${c.state.story.check.dir} of Tama, has ${c.state.story.check.detail}. Go and look.` : 'Read Perrin\'s note in your log.',
+    intro: ['He wants us to check something on his chart. His note is in the Journal. Far out, Captain.'],
+    outro: ['He was right. About everything. Captain... nobody has ever charted that island. Nobody.'],
+    hints: ['Perrin\'s note says which island, and roughly where. It is far from Tama.', 'Sail close to the island and slow down to have a good look.'],
+    check: (c) => { const k = c.state.story.check; return !!k && Math.hypot(c.ship.pos.x - k.x, c.ship.pos.z - k.z) < k.r + 40 && c.ship.speed < 3; },
+  },
+  {
+    id: 'bottles', ch: 4, title: 'What the sea says', reward: 30,
+    text: 'Bottles drift out here. Read what they say.',
+    intro: ['There are more bottles in the water out here than there used to be. Somebody has a lot to say.'],
+    outro: ['They all mention the same thing. A hut. Who writes about a hut?'],
+    hints: ['Bottles bob on the open sea. Sail into them.'],
+    check: (c) => c.state.stats.bottles >= (c.state.story.b0 || 0) + 2,
+    onStart: (c) => { c.state.story.b0 = c.state.stats.bottles; },
+  },
+  {
+    id: 'gossip', ch: 4, title: 'Ask around', reward: 30,
+    text: 'Somebody in a harbour must know about the hut.',
+    intro: ['Harbours hear everything. Somebody at a tavern will know.'],
+    outro: [],
+    hints: ['Visit any harbour except Tama. Sailors talk.'],
+    check: (c) => !!c.state.story.hutKnown,
+  },
+  {
+    id: 'hut', ch: 5, title: 'The table', reward: 0,
+    text: 'Find the dark hut.',
+    intro: ['I would rather not go there. But you are the captain.'],
+    outro: [],
+    hints: ['Look at the chart. Was it always there?'],
+    check: (c) => !!(c.state.hut && c.state.hut.rolls.length),
   },
 ];
+export const goalText = (g, c) => (typeof g.text === 'function' ? g.text(c) : g.text);
+export const chapterOf = (state) => { const g = MAIN_GOALS[state.goals.i]; return g ? g.ch : CHAPTERS.length; };
+export const unlocked = (state, key) => chapterOf(state) >= UNLOCK[key];
+export const gateRadius = (state) => (state.story.free ? Infinity : GATES[Math.min(GATES.length - 1, chapterOf(state))]);
 
 export const SIDE_GOALS = [
   { id: 'fish', title: 'Dinner at sea', reward: 25, text: 'Reef the sails (S) until you slow down, then press C to cast a line.', check: (c) => c.state.stats.fish >= 1 },
@@ -87,6 +141,7 @@ export const REMARKS = {
   fog: ['Fog. Sail slowly, and keep your eyes open.'],
   thickfog: ['I cannot trust the compass in this. Keep a lighthouse in sight, and I will ring the bell.'],
   calm: ['Not a breath of wind. Press G for the oars, Captain. I will steer. You row.'],
+  gate: ['That fog is like a wall, Captain. Whatever is out there can wait for us.'],
   crew: ['A new hand! They do not talk much. Neither do you. You will get along.'],
   oars: ['Oars out! W to pull, S to back water, G to put them away again.'],
   redsky: ['Red sky tonight... my gran said that means a blow is coming.'],
@@ -172,6 +227,7 @@ export class Objectives {
     this.hintI = 0;
     this.pending = null;   // next goal whose intro has not been told yet
     this.gap = 0;
+    this.stall = 0;        // seconds without progress: Mara nudges after a while
   }
   get state() { return this.d.state; }
   get current() { return MAIN_GOALS[this.state.goals.i] || null; }
@@ -181,7 +237,9 @@ export class Objectives {
     if (g.started) return;
     g.started = true;
     for (const l of MAIN_GOALS[0].intro) this.mate.say(l);
+    this.chapterCard(0);
   }
+  chapterCard(i) { const ch = CHAPTERS[i]; if (ch && this.d.chapterCard) this.d.chapterCard(ch); }
 
   say(text, dark) { this.mate.say(text, dark); }
 
@@ -194,6 +252,7 @@ export class Objectives {
 
   askHint(dread) {
     const g = this.current;
+    this.stall = 0;
     if (!g) { this.mate.say('We are free to sail wherever you like, Captain. The side goals in your log (Goals tab) are always there.'); return; }
     this.mate.say(g.hints[this.hintI++ % g.hints.length], dread > 0.6);
   }
@@ -212,11 +271,14 @@ export class Objectives {
         this.gap -= dt;
         if (this.gap <= 0) {
           const next = this.pending; this.pending = null;
+          if (this.newCh) { this.newCh = false; this.chapterCard(next.ch); }
           for (const l of next.intro) this.mate.say(l, dread > 0.6);
         }
       }
       return;
     }
+    this.stall += dt;
+    if (this.stall > 240 && !this.mate.busy && this.current && this.state.goals.started) this.askHint(dread);   // stuck: a gentle nudge
     this.timer -= dt;
     if (this.timer > 0) return;
     this.timer = 0.5;
@@ -226,10 +288,10 @@ export class Objectives {
       this.complete(cur, false);
       for (const l of cur.outro || []) this.mate.say(l, dread > 0.6);
       if (cur.onDone) cur.onDone(c);
-      g.i++; this.hintI = 0;
+      g.i++; this.hintI = 0; this.stall = 0;
       const next = this.current;
-      if (next) { this.pending = next; this.gap = 7; }
-      else this.mate.say('That is everything I know how to teach you, Captain. From here on the sea is yours. The Goals tab has more to do.');
+      if (next) { this.pending = next; this.gap = 7; this.newCh = next.ch !== cur.ch; if (next.onStart) next.onStart(this.d); }
+      if (this.d.onStep) this.d.onStep(cur, next);
     }
     for (const s of SIDE_GOALS) if (!g.side[s.id] && s.check(c)) this.complete(s, true);
   }
