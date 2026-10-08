@@ -188,7 +188,7 @@ sea.onEvent = (e) => {
     audio.play('splash', { vol: 0.5 });
   } else if (e.type === 'bottle') {
     const cur = objectives.current, hutNote = cur && cur.id === 'bottles' ? HUT_NOTES[(state.stats.bottles - (state.story.b0 || 0)) % HUT_NOTES.length] : null;
-    if (hutNote && hutNote.includes('{fate}')) { state.story.fate = state.story.fate || 1 + Math.floor(mulberry32(hash2(state.seed, 20, 20))() * 20); state.story.fateRead = true; }
+    if (hutNote && hutNote.includes('{fate}')) { state.story.fate = state.story.fate || 3 + Math.floor(mulberry32(hash2(state.seed, 20, 20))() * 7); state.story.fateRead = true; }
     const text = hutNote ? hutNote.replace(/\{fate\}/g, numberWord(state.story.fate)) : bottleNote(mulberry32(hash2(e.o.x | 0, e.o.z | 0, state.seed + 3)), Math.min(4, Math.floor(e.o.dread * 5)));
     state.notes.push({ text, dark: idx >= 2 }); state.stats.bottles++;
     toast(`Message in a bottle: "${text}"`, idx >= 2, 10000);
@@ -242,7 +242,7 @@ const hut = new Hut({ state,
   onClose: () => closeModal() });
 // her last throw colours that day and the next: a kinder sea after a good one, a thicker one after a bad one
 function lastThrow() { const h = state.hut, r = h && h.rolls[h.rolls.length - 1]; return r && state.dayN - r.day <= 1 ? r.n : 0; }
-function dreamShift() { const n = lastThrow(); return !n || n === 10 ? 0 : n === 20 ? -0.3 : n > 10 ? -0.18 : n === 1 ? 0.35 : 0.22; }
+function dreamShift() { const n = lastThrow(); return !n || n === 10 ? 0 : n === 20 ? -0.3 : n > 10 ? -0.18 : n === 1 ? 0.15 : 0.1; }   // bad throws only shade home a little; the real dark comes late
 function dreamCost() { const n = lastThrow(); return n && n < 10 ? 1.15 : n >= 17 ? 0.9 : 1; }   // harbours feel it in their prices
 function costMul() {   // today's prices here: the dream, plus a harbour you insulted with a natural 1
   const id = harbourIsl && harbourIsl.desc.id, hg = state.haggle;
@@ -252,6 +252,8 @@ const MARA_THROW = {
   low: 'Captain... is the water thicker? It looks thicker.', ten: 'Nothing happened. Why does that feel like something happened?',
   high: 'Is it me, or is the sea in a good mood all of a sudden?', twenty: 'Did you hear that? Like the whole sea sighed. In a nice way. I think.',
 };
+// a day without a throw, once she knows you, is written down too. Nobody tells the player.
+function noteSkip() { const h = state.hut; if (h && h.rolls.length && h.lastDay !== state.dayN) (h.skips || (h.skips = [])).push(state.dayN); }
 function hutLeft() {
   const h = state.hut;
   if (!h) return;
@@ -584,7 +586,7 @@ function restAtTavern(cost) {
   closeModal();
   $('fade').classList.add('on');
   setTimeout(() => {
-    if (state.time * 24 >= 6) state.dayN++;    // slept past midnight
+    if (state.time * 24 >= 6) { noteSkip(); state.dayN++; }    // slept past midnight
     state.time = 6 / 24;
     state.hp = ship.mods.maxHp;
     $('fade').classList.remove('on');
@@ -1281,7 +1283,7 @@ function frame() {
   const stepT = Math.floor(tNow * 12) / 12;
 
   // ---- time of day & wind
-  if (live) { const pt = state.time; state.time = advanceTime(state.time, dt); if (state.time < pt) state.dayN++; }
+  if (live) { const pt = state.time; state.time = advanceTime(state.time, dt); if (state.time < pt) { noteSkip(); state.dayN++; } }
   wind.update(dt);
   if (dt > 0) { state.buffs.speed = Math.max(0, state.buffs.speed - dt); state.buffs.dig = Math.max(0, state.buffs.dig - dt); }
   ship.buff = state.buffs.speed > 0 ? 1.15 : 1;

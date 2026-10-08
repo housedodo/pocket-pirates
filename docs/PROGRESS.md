@@ -158,14 +158,15 @@ New voyage goes straight into the game (no title). A new voyage starts moored al
   story yet. Haggling: a fail pays 10% less for your catch; a natural 1 pays 20% less and makes everything else at
   that harbour 10% dearer that day.
 - **The day after a throw** (her last throw, that day and the next, `lastThrow()` in main.js): 20 pulls dread down
-  0.3, 11-19 down 0.18, 10 nothing, 2-9 up 0.22 (Tama looks Off), 1 up 0.35. Prices: 15% up after 1-9, 10% down
+  0.3, 11-19 down 0.18, 10 nothing, 2-9 up 0.1, 1 up 0.15 (home only a shade darker; the real dark comes late). Prices: 15% up after 1-9, 10% down
   after 17-20; the harbour menus say only "Prices are up today. Nobody says why."
 - **Candles:** one more in the hut for every low throw.
 - **The world knows:** after the first throw the next pier greeting is about the number; later throws about half
   the time (`rollGreeting` in greetings.js). After a 1, a dark figure says only "One."
-- **The bottle knew:** the second hut bottle in chapter V names the first throw (`state.story.fate`, from the seed),
+- **The bottle knew:** the second hut bottle in chapter V names the first throw (`state.story.fate`, 3-9, fixed per voyage),
   and the throw comes up that number. Mara notices. Then she reacts to the result (thicker water, a good mood, a sigh,
   or silence after a 1). The demo ends on this throw, so every voyage ends differently.
+- Days without a throw (once she knows you) are written down too (`state.hut.skips`), never shown.
 - The hut's bad-throw flash no longer sets off Mara's deep-water remarks.
 - Possible paths (kind sea, stirring, empty table, fated thrower, refuser, tens) are in the story bible, "The die".
 
