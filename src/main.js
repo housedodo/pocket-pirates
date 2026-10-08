@@ -13,6 +13,7 @@ import { AudioBus, AUDIO_ENABLED } from './audio.js';
 import { sfx } from './sfx.js';
 import { Mixer } from './mixer.js';
 import { TITLE_SCENES, drawTitleLogo } from './title.js';
+import { pickGreeting, portrait, speakerName } from './greetings.js';
 import { gossip, lootFor, bottleNote, barrelLoot } from './lore.js';
 import { Weather } from './weather.js';
 import { Fauna } from './fauna.js';
@@ -72,6 +73,7 @@ const state = {
   fruit: (saved && saved.fruit) || {},
   harvest: (saved && saved.harvest) || {},
   dayN: (saved && saved.dayN) || 0,
+  greet: (saved && saved.greet) || { day: {} },
   stats: Object.assign({ dolphins: 0, whales: 0, fruitPicked: 0, dist: 0, harbours: 0, deliveries: 0, fish: 0, wrecks: 0, bottles: 0, sunk: 0, hails: 0, solved: 0, treasures: 0, cosmetics: 0 }, (saved && saved.stats) || {}),
   hp: saved && saved.hp != null ? saved.hp : 100,
   ammo: saved && saved.ammo != null ? saved.ammo : 15,
@@ -249,7 +251,7 @@ function hutLeft() {
 let modal = null; // null | 'pause' | 'chart' | 'harbour' | 'ship'
 let logTab = 'map';
 let tradeShip = null;
-const yardEl = $('yardmodal'), hutEl = $('hutmodal'), cardEl = $('card'), pigEl = $('pig');
+const yardEl = $('yardmodal'), hutEl = $('hutmodal'), cardEl = $('card'), pigEl = $('pig'), greetEl = $('greet');
 let harbourIsl = null;
 const keys = new Set();
 let started = false;
@@ -260,7 +262,7 @@ function openModal(name) {
   modal = name;
   keys.clear();
   if (fishing.active) fishing.cancel();
-  ({ pause: pauseEl, chart: chartEl, harbour: harbourEl, ship: shipEl, yard: yardEl, hut: hutEl, card: cardEl, pig: pigEl })[name].classList.add('open');
+  ({ pause: pauseEl, chart: chartEl, harbour: harbourEl, ship: shipEl, yard: yardEl, hut: hutEl, card: cardEl, pig: pigEl, greet: greetEl })[name].classList.add('open');
   if (name === 'pause') { showPauseMain(); }
   if (name === 'chart') { abyss.onMapOpen(ship); logbook.open(logTab);
     if (state.story.hutNod === 'pending') { state.story.hutNod = 'done'; setTimeout(() => objectives.mate.say('Captain... was that hut always on our chart? I did not draw it. Did you draw it?', true), 1800); } }
@@ -273,7 +275,7 @@ function openModal(name) {
 }
 function closeModal(silent = false) {
   if (!modal) return;
-  pauseEl.classList.remove('open'); chartEl.classList.remove('open'); harbourEl.classList.remove('open'); shipEl.classList.remove('open'); yardEl.classList.remove('open'); hutEl.classList.remove('open'); cardEl.classList.remove('open'); pigEl.classList.remove('open');
+  pauseEl.classList.remove('open'); chartEl.classList.remove('open'); harbourEl.classList.remove('open'); shipEl.classList.remove('open'); yardEl.classList.remove('open'); hutEl.classList.remove('open'); cardEl.classList.remove('open'); pigEl.classList.remove('open'); greetEl.classList.remove('open');
   if (modal === 'pause') audio.setPaused(false);
   if (modal === 'hut') hutLeft();
   modal = null; harbourIsl = null;
@@ -364,6 +366,7 @@ window.addEventListener('keydown', (e) => {
     if (e.code === 'ArrowUp') { btns[(i - 1 + btns.length) % btns.length].focus(); e.preventDefault(); }
     return;
   }
+  if (modal === 'greet') { if (['KeyE', 'Space', 'Enter', 'NumpadEnter'].includes(e.code)) { e.preventDefault(); greetAdvance(); } return; }
   if (modal === 'card') {
     if ($('roll').classList.contains('open')) return;
     if (cardBusy === 'done' && (e.code === 'KeyE' || e.code === 'Space' || e.code === 'Enter')) { closeModal(); return; }
@@ -558,6 +561,7 @@ function renderHarbour() {
   const d = harbourIsl.desc, rep = repOf(state, d.id), lvl = friendLevel(rep);
   $('hbName').textContent = d.name;
   $('hbLine').textContent = harbourLine;
+  $('hbBannerName').textContent = d.name;
   $('hbGold').textContent = state.gold;
   $('hbTabs').querySelectorAll('button').forEach((b) => b.classList.toggle('on', b.dataset.t === hbTab));
   const pane = $('hbPane');
@@ -651,6 +655,7 @@ function renderHarbour() {
         state.haggle = { id: d.id, day: state.dayN, mult: ok ? (n === 20 ? 1.5 : 1.3) : 0.9 };
         toast(ok ? 'The fishmonger laughs and gives in.' : 'The fishmonger folds their arms. Prices just got worse.', false, 4000); if (harbourIsl) renderHarbour(); }); });
   } else {
+    if (hbShipLine) html += `<p class="quote">${hbShipLine}</p>`;   // the shipwright talks here, not over the welcome
     html += UPGRADES.map((u, i) => {
       const lv = state.upgrades[u.id], maxed = lv >= MAX_LEVEL;
       const cost = maxed ? 0 : upCost(u, lv, rep);
@@ -662,7 +667,29 @@ function renderHarbour() {
   }
 }
 $('hbTabs').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b && harbourIsl) { hbTab = b.dataset.t; renderHarbour(); } });
-let harbourLine = '';
+let harbourLine = '', hbShipLine = '', greetLastT = -1e9;
+// the greeting: a villager's line types out in a box like Mara's, then the harbour menu comes up
+let greetNow = null;
+function showGreeting(d, say) {
+  const isl = harbourIsl;
+  openModal('greet'); harbourIsl = isl;
+  greetEl.classList.toggle('dark', !!say.dark);
+  $('grName').textContent = d.name; $('grFace').src = portrait(say.speaker); $('grWho').textContent = speakerName(say.speaker);
+  $('grTxt').textContent = ''; $('grMore').classList.remove('on');
+  greetNow = { say, shown: 0, timer: setInterval(() => {
+    const t = greetNow.say.text; greetNow.shown++; $('grTxt').textContent = t.slice(0, greetNow.shown);
+    if (greetNow.shown >= t.length) { clearInterval(greetNow.timer); greetNow.timer = null; $('grMore').classList.add('on'); }
+  }, say.slow ? 420 : 34) };
+}
+function greetAdvance() {
+  if (!greetNow) return;
+  if (greetNow.timer) { clearInterval(greetNow.timer); greetNow.timer = null; $('grTxt').textContent = greetNow.say.text; $('grMore').classList.add('on'); return; }
+  const said = greetNow.say; greetNow = null;
+  const isl = harbourIsl; closeModal(true); harbourIsl = isl;
+  $('hbSaid').textContent = said.slow ? '' : `"${said.text}"`;   // the line stays under the name while you are ashore
+  openModal('harbour');
+}
+$('grBox').addEventListener('click', () => greetAdvance());
 
 function buyUpgrade(id) {
   const u = UPGRADES.find((x) => x.id === id), lv = state.upgrades[id];
@@ -811,15 +838,19 @@ function tryInteract() {
     if (state.hp < ship.mods.maxHp) { state.hp = ship.mods.maxHp; toast('The harbour crew patches up your hull for free.', false, 3000); }
     const rng = mulberry32(hash2(d.seed, Math.floor(tNow / 8), 3));
     const idx = Math.min(4, Math.floor(dread * 5)), lvl = friendLevel(rep);
-    const hello = idx >= 3 ? 'We remember you. We always remember you.' : lvl >= 3 ? 'Our favourite captain! Your usual discount, of course.' : rep.visits > 1 ? 'Back again, captain!' : 'A new face. Welcome!';
-    harbourLine = `${hello}\n${gossip(rng, idx, d.name)}\nShipwright: ${shipwrightLine(rng, idx)}`;
+    hbShipLine = shipwrightLine(rng, idx);
+    // someone on the pier may speak first: always on a first visit or a story beat, otherwise rarely
+    let say = null;
     { const cur = objectives.current;
       if (cur && cur.id === 'perrin' && d.id === '0,-1' && !state.story.perrinNote) perrinNote();
-      if (cur && cur.id === 'gossip' && d.id !== '0,-1' && !state.story.hutKnown) { state.story.hutKnown = true; harbourLine = `${hello}\nAn old fisher leans in: "The black hut? Out past the ${bearingName(world.hutDesc.x - d.x, world.hutDesc.z - d.z)} water. Do not sit down. Whatever she offers, do not sit."\nShipwright: ${shipwrightLine(rng, idx)}`; } }
+      if (cur && cur.id === 'gossip' && d.id !== '0,-1' && !state.story.hutKnown) { state.story.hutKnown = true; say = { speaker: 'fisher', text: `The black hut? Out past the ${bearingName(world.hutDesc.x - d.x, world.hutDesc.z - d.z)} water. Do not sit down. Whatever she offers, do not sit.`, dark: true }; } }
+    const g = state.greet;
+    if (!say && (g.day[d.id] == null || (Math.random() < 0.3 && tNow - greetLastT > 240 && g.day[d.id] !== state.dayN))) say = pickGreeting({ hour: state.time * 24, weather: weather.label, dread, rnd: Math.random });
     harbourIsl = tg.isl; hbTab = 'board';
     for (const c of state.crew) if (c.wish && !c.wish.done && c.wish.kind === 'harbour' && c.wish.id === tg.isl.desc.id) wishDone(c);
     harbourEl.classList.toggle('dark', idx >= 3);
-    openModal('harbour');
+    $('hbBannerName').textContent = d.name; $('hbSaid').textContent = '';
+    if (say) { g.day[d.id] = state.dayN; greetLastT = tNow; showGreeting(d, say); } else openModal('harbour');
     audio.play('harbour');
   } else if (tg.kind === 'treasure' && !tg.isl.dug && !dig) {
     const d = tg.isl.desc;
@@ -1410,7 +1441,7 @@ function frame() {
   // ---- save
   if (tNow - lastSave > 4 && !params.get('fresh') && !noSave) {
     lastSave = tNow;
-    store.set(SAVE_KEY, { seed: state.seed, gold: state.gold, dug: [...state.dug], discovered: state.discovered, loot: state.loot, upgrades: state.upgrades, collected: [...state.collected], notes: state.notes, rumoured: state.rumoured, rep: state.rep, job: state.job, serial: state.serial, sectorsSeen: state.sectorsSeen, jobHistory: state.jobHistory, buffs: state.buffs, stats: state.stats, quests: state.quests, fruit: state.fruit, harvest: state.harvest, dayN: state.dayN, hp: state.hp, ammo: state.ammo, custom: state.custom, owned: [...state.owned], riddles: state.riddles, attempts: state.attempts, catch: state.catch, fishLog: state.fishLog, hut: state.hut, passenger: state.passenger, story: state.story, crew: state.crew, cardsSeen: state.cardsSeen, haggle: state.haggle, tracked: state.tracked, goals: state.goals, hints: state.hints, time: state.time, windT: wind.t, pos: { x: ship.pos.x, z: ship.pos.z, h: ship.heading } });
+    store.set(SAVE_KEY, { seed: state.seed, gold: state.gold, dug: [...state.dug], discovered: state.discovered, loot: state.loot, upgrades: state.upgrades, collected: [...state.collected], notes: state.notes, rumoured: state.rumoured, rep: state.rep, job: state.job, serial: state.serial, sectorsSeen: state.sectorsSeen, jobHistory: state.jobHistory, buffs: state.buffs, stats: state.stats, quests: state.quests, fruit: state.fruit, harvest: state.harvest, dayN: state.dayN, greet: state.greet, hp: state.hp, ammo: state.ammo, custom: state.custom, owned: [...state.owned], riddles: state.riddles, attempts: state.attempts, catch: state.catch, fishLog: state.fishLog, hut: state.hut, passenger: state.passenger, story: state.story, crew: state.crew, cardsSeen: state.cardsSeen, haggle: state.haggle, tracked: state.tracked, goals: state.goals, hints: state.hints, time: state.time, windT: wind.t, pos: { x: ship.pos.x, z: ship.pos.z, h: ship.heading } });
   }
 
   // ---- render

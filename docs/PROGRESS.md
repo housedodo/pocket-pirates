@@ -127,6 +127,20 @@ New voyage goes straight into the game (no title). A new voyage starts moored al
   siesta from 12-15 (hammocks, nobody else) and no night watchman. Atolls have a fisher family by day.
 - `__game.scaleShot()` shows villagers next to houses and the ship. `__game.showcase('villagers' | 'houses')` puts a lineup on a raft for screenshots.
 
+### Harbour greetings
+- Docking now shows the harbour name across the top of the screen and keeps the menu low and compact.
+- Sometimes a villager speaks first, in a typewriter box with an 8x8 portrait (`src/greetings.js`). Space, E,
+  Enter or a click finishes the line, then the menu comes up. The line stays under the harbour name while you
+  are ashore.
+- **Rare on purpose:** always on the first visit to a harbour, then about 1 in 3 dockings, at most once per
+  harbour per day and never within 4 minutes of the last one. Story beats (the hut directions) always speak.
+- Who speaks depends on the hour (fishers and dockers at dawn, the fish-stall woman by day, the fiddler and
+  lamplighter in the evening, the night watchman at night). Each villager has lines of their own; lines also
+  come from the hour, the weather (rain, storm, fog, overcast, calm) and the dread stage.
+- From stage 2 on, sometimes nobody says anything: a dark figure with pale eyes, and ". . ." typed out very
+  slowly. More often the worse it gets.
+- The shipwright's line moved to the top of the Shipwright tab.
+
 ### Newest: the dark hut
 - One island 4-6 cells from home (out of sight of the start) has a crooked black hut on stilts,
   a purple window, bones on poles, a dead tree and a ring of pale stones. On the chart it is a black hut icon.

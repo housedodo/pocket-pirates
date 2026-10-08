@@ -67,6 +67,19 @@ ledger or anything below the sea. Everything should just feel slightly off.
 - *Chapter V (about the hut):* "The black hut? Out past the {direction} water. Do not sit down. Whatever she offers, do not sit."
 - *Greetings:* "A new face. Welcome!" · "Back again, captain!" · "Our favourite captain! Your usual discount, of course." · *(stage 3+)* "We remember you. We always remember you."
 
+### Harbour greetings (src/greetings.js)
+All the greeting lines live in `src/greetings.js`: by speaker (fisher, net-mender, fish-stall woman, child,
+harbourmaster, docker, old salt, innkeeper, fiddler, lamplighter, night watchman), by hour, by weather and by
+dread stage. A few:
+- *Fiddler:* "I know one song. Every night it is a little longer."
+- *Harbourmaster:* "Berth three is free. Berth four is free. Do not use berth five."
+- *Lamplighter:* "Some nights the lamps light before I reach them. Saves me the walk."
+- *Watchman:* "I walk the pier till dawn. The pier is longer at night. I have measured."
+- *Fog:* "In fog like this you hear the bell from the old belfry. We have no belfry."
+- *Stage 2:* "My reflection waved first today. I waved back. It seemed polite."
+- *Stage 3:* "Your ship came in last night as well. We waved. Nobody waved back."
+- *Stage 2+, sometimes:* someone on the pier, and only ". . ."
+
 ### Shipwright
 - **0:** "Best timber this side of the reef, captain." · "Fair prices, fair winds."
 - **1:** "Odd. The planks came in already cut. I never ordered them."

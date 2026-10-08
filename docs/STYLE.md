@@ -80,6 +80,10 @@ purple and magenta cosmic horror as dread rises.
 - Wind meter: one pixel-art tick ring with an N at north, a bright double arc where the bow sails well,
   a solid arrow for the wind, a bow tick outside the ring, an orange mission dot.
 
+- Harbour: the name in Pirata One (48px, blood-red pixel shadow) on a dark gradient across the top; the menu
+  sits low and compact. A villager's line comes first in a Mara-style box (gold ring, 64px 8x8 portrait,
+  32px text); at dread stage 3+ the ring and text turn magenta. The line then stays under the name in pale rose.
+
 ## 6. The captain's log (book)
 - A battered **pixel tome**: dithered, scratched and stained leather cover with missing stitches and dented
   brass corners; dithered pages with foxing, ink blots in the margins, a coffee ring, a crease and a
