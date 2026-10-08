@@ -61,7 +61,8 @@ export class AudioBus {
     this.musicBus.gain.value = this.musicOn ? 0.6 : 0;
     this.musicBus.connect(this.master);
 
-    try { const r = await fetch('audio/volumes.json'); if (r.ok && !(r.headers.get('content-type') || '').includes('text/html')) Object.assign(this.vol, await r.json()); } catch (e) { /* no volumes file */ }
+    if (window.__VOLUMES) Object.assign(this.vol, window.__VOLUMES);   // the single-file build carries its own
+    else try { const r = await fetch('audio/volumes.json'); if (r.ok && !(r.headers.get('content-type') || '').includes('text/html')) Object.assign(this.vol, await r.json()); } catch (e) { /* no volumes file */ }
     try { Object.assign(this.vol, JSON.parse(localStorage.getItem('pocket-pirates-mixer') || '{}')); } catch (e) { /* storage blocked */ }
     this.setMuted(this.muted); this.setMusic(this.musicOn);
     // one-shots first (cheap), then ambience, then music, yielding between cues so the game stays smooth
@@ -75,6 +76,8 @@ export class AudioBus {
   }
 
   async load(key) {
+    const inl = window.__AUDIO && window.__AUDIO[key];   // single-file build: sounds are inlined
+    if (inl) { try { this.buffers.set(key, await this.ctx.decodeAudioData(await (await fetch(inl)).arrayBuffer())); return; } catch (e) { /* fall through */ } }
     for (const ext of ['ogg', 'mp3', 'wav']) {
       try {
         const res = await fetch(`audio/${key}.${ext}`);

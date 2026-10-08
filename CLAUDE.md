@@ -16,5 +16,5 @@ cosmic horror. Everything is procedural: no image or model files.
 - Test headless with Playwright (Chromium at `/opt/pw-browsers/chromium`, swiftshader flags) and the
   `window.__game` hook plus URL flags (`autostart=1&fresh=1&shot=1&nomate=1&dread=&time=&x=&z=`).
 - After a change: build, screenshot what changed, rebuild the single-file `pocket-pirates.html`
-  (inline the dist JS, CSS and `fonts/*.woff2` as data URIs), then commit and push.
+  with `python3 scripts/single.py` (inlines the dist JS, CSS, fonts, every sound and `public/audio/volumes.json`), then commit and push.
 - Keep the HUD text minimal. Keep writing short; horror is implied, never explained.
