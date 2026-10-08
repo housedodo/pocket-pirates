@@ -43,7 +43,9 @@ For how things must look, see `STYLE.md`; for how systems work, see `DESIGN.md`.
 ### Horror layer
 - Islands swap to "wrong" decor above half dread, tentacles between islands, crows, ghost ships,
   black sun, star-eye constellation.
-- **Full dread effects** (always on for players; with `?dev=1` the pause menu has a test list to switch or try each one):
+- **Full dread effects** come one at a time: one creeps in (3-12 s), holds (15-90 s), fades (5-19 s), then nothing
+  for 8-120 s before a different one starts; every length is random. Calm, wind, HUD and ocean fade by strength.
+  After ~140 s in the worst water the leviathan comes regardless, and the Eye opens at ~170 s. (always on for players; with `?dev=1` the pause menu has a test list to switch or try each one):
   glass calm, corrupted HUD, mad wind meter, Mara breaks, lighthouses stare, watchers (4 looks),
   living map, time loop, wrong ocean, wrong catches, leviathan + "the Eye awakens" ending.
 

@@ -24,6 +24,8 @@ export const EFFECTS = [
   { id: 'leviathan', name: 'Leviathan & the Eye', desc: 'Vast arches rise at the horizon. Linger too long and the Eye awakens (ending).' },
 ];
 
+const GRADED = new Set(['calm', 'wind', 'hud', 'ocean']);   // effects that can be shown at partial strength
+
 const MARA_LINES = [
   'Captain, I c-c-can\'t remember which way is home. Can you?',
   'We have always been sailing here. Haven\'t we? Haven\'t we.',
@@ -105,6 +107,8 @@ export class Abyss {
     this.spin = 0; this.spinV = 0;
     this.hudCache = {}; this.hudT = 0;
     this.mapOpenT = 0; this.phantoms = [];
+    // one effect at a time: it creeps in, holds, fades, then nothing for a while, then another
+    this.cyc = { id: null, phase: 'rest', t: 6 + Math.random() * 20, len: 1, w: 0, last: null };
 
     const { scene } = d, G = shipGeos();
     // 1 - reflection (mirrored ship, under a see-through sea)
@@ -137,7 +141,39 @@ export class Abyss {
   on(id) {
     if (this.k < 0.5 || this.ending && id !== 'leviathan') return false;
     if (this.solo) return this.solo === id;
-    return !this.d.settings.abyss || this.d.settings.abyss[id] !== false;
+    if (this.ending) return true;
+    const c = this.cyc;
+    return c.id === id && c.w > (GRADED.has(id) ? 0.01 : 0.3);
+  }
+  /** how strongly an effect is showing right now (0..1): effects fade in and out */
+  str(id) { return this.solo ? (this.solo === id ? 1 : 0) : this.cyc.id === id ? this.cyc.w : 0; }
+  enabled(id) { return !this.d.settings.abyss || this.d.settings.abyss[id] !== false; }
+
+  /** the rotation: rest -> in -> hold -> out -> rest, every length random */
+  stepCycle(dt) {
+    const c = this.cyc, R = Math.random;
+    if (this.k < 0.5 || this.solo) { if (c.phase !== 'rest') { c.phase = 'rest'; c.t = 8 + R() * 25; } c.w = 0; c.id = null; return; }
+    c.t -= dt;
+    if (c.phase === 'in') c.w = clamp(1 - c.t / c.len, 0, 1);
+    else if (c.phase === 'out') c.w = clamp(c.t / c.len, 0, 1);
+    if (c.t > 0) return;
+    if (c.phase === 'rest') {
+      const pool = EFFECTS.map((f) => f.id).filter((id) => this.enabled(id) && id !== c.last);
+      if (!pool.length) { c.t = 10; return; }
+      c.id = pick(pool); c.last = c.id; c.phase = 'in'; c.t = c.len = 3 + R() * 9; c.w = 0;
+      this.begin(c.id);
+    } else if (c.phase === 'in') { c.phase = 'hold'; c.t = 15 + R() * 75; c.w = 1; }
+    else if (c.phase === 'hold') { c.phase = 'out'; c.t = c.len = 5 + R() * 14; }
+    else { c.phase = 'rest'; c.t = 8 + R() * 110; c.w = 0; c.id = null; }
+  }
+  /** an effect is starting: line its events up so something happens while it lasts */
+  begin(id) {
+    const t = this.t;
+    if (id === 'calm') { this.calm.a = t + 1; this.calm.b = t + 200; }
+    if (id === 'mara') this.maraT = 2 + Math.random() * 6;
+    if (id === 'lights') this.light.t0 = t + 2;
+    if (id === 'loop') this.loopT = 10 + Math.random() * 25;
+    if (id === 'leviathan') this.lev.next = 3 + Math.random() * 8;
   }
 
   /** "Try" button: force full dread and start this effect immediately */
@@ -159,16 +195,17 @@ export class Abyss {
     const t = this.t, { ship } = this.d;
     this.k = smoothstep(0.86, 0.97, c.dread);
     const live = c.live;
+    // the Eye does not wait for its turn: after long enough in the worst water, the leviathan comes
+    this.fullTime = this.k > 0.9 && live ? this.fullTime + dt : 0;
+    if (this.fullTime > 140 && this.cyc.id !== 'leviathan' && !this.solo && !this.ending) { this.cyc.id = 'leviathan'; this.cyc.phase = 'hold'; this.cyc.t = 9999; this.cyc.w = 1; this.begin('leviathan'); }
+    this.stepCycle(dt);
 
     // ship history (for the time loop)
     this.histT -= dt;
     if (live && this.histT <= 0) { this.histT = 0.2; this.history.push({ x: ship.pos.x, z: ship.pos.z, h: ship.heading }); if (this.history.length > 160) this.history.shift(); }
 
     // 1 glass calm
-    if (this.on('calm')) {
-      if (t > this.calm.b && t > this.calm.next) { this.calm.a = t; this.calm.b = t + 22; this.calm.next = t + 60 + Math.random() * 30; }
-    }
-    this.calmAmt = this.on('calm') ? ramp(t, this.calm.a, this.calm.b, 1) : 0;
+    this.calmAmt = this.on('calm') ? ramp(t, this.calm.a, this.calm.b, 1) * this.str('calm') : 0;
     this.refl.visible = this.under.visible = this.calmAmt > 0.02;
     this.under.position.set(ship.pos.x, -10, ship.pos.z);
     if (this.refl.visible) {
@@ -180,8 +217,8 @@ export class Abyss {
     // 3 wind meter
     if (this.on('wind')) {
       this.spinV += (Math.random() - 0.5) * dt * 30; this.spinV *= 0.97;
-      this.spin += (this.spinV + Math.sin(t * 0.7) * 4) * dt;
-    } else this.spin = 0;
+      this.spin += (this.spinV + Math.sin(t * 0.7) * 4) * dt * this.str('wind');
+    } else this.spin *= Math.max(0, 1 - dt * 2);
 
     // 4 Mara
     const mate = this.d.mate;
@@ -233,9 +270,9 @@ export class Abyss {
   get waveMul() { return 1 - 0.96 * (this.calmAmt || 0); }
   get seeThrough() { return this.calmAmt || 0; }
   waveTime(t) { return this.on('ocean') ? -t * 1.25 : t; }
-  roll(t) { return this.on('ocean') ? Math.sin(t * 0.31) * 0.11 + Math.sin(t * 0.13) * 0.05 : 0; }
+  roll(t) { return this.on('ocean') ? (Math.sin(t * 0.31) * 0.11 + Math.sin(t * 0.13) * 0.05) * this.str('ocean') : 0; }
   windDir(dir) { return dir + this.spin; }
-  windFloor(f) { return this.on('wind') ? Math.random() : f; }
+  windFloor(f) { return this.on('wind') && Math.random() < this.str('wind') ? Math.random() : f; }
   get lookUp() { return this.archUp > 0.4 || !!this.ending; } // the camera is pulled up to look
   get sun2() { return this.on('loop'); }
 
@@ -245,6 +282,7 @@ export class Abyss {
     if (c && c.src === value && this.t < c.until) return c.out;
     let out = value;
     const r = Math.random();
+    if (Math.random() > this.str('hud')) { this.hudCache[field] = { src: value, out: value, until: this.t + 0.5 + Math.random() }; return value; }   // fading: fewer lies
     if (field === 'place') out = r < 0.3 ? pick(PLACE_LIES) : corrupt(value, 0.25);
     else if (field === 'clock') {
       const m = value.split(':').map(Number), mins = (1440 - (m[0] * 60 + m[1])) % 1440;
@@ -374,8 +412,7 @@ export class Abyss {
           m.userData.d = i * 1.4;
         });
       }
-      this.fullTime = this.k > 0.9 ? this.fullTime + dt : 0;
-      if (this.fullTime > 150 && !this.ending && !this.solo) this.startEnding(c);
+      if (this.fullTime > 170 && !this.ending && !this.solo) this.startEnding(c);
     }
     const u = t - this.lev.t0;
     this.archUp = 0;
@@ -413,6 +450,6 @@ export class Abyss {
     if (e.step === 2 && e.t > 11.5) { e.step = 3; say('It knows your name now.'); }
     if (e.step === 3 && e.t > 14) { e.step = 4; this.overlay.classList.add('white'); }
     if (e.step === 4 && e.t > 16) { e.step = 5; this.overlay.innerHTML = ''; this.d.onEnding(); say('You wake on the deck. Harbour Tama is in sight and the sea is blue.'); say('Nobody remembers the way back. Nobody asks.'); }
-    if (e.step === 5 && e.t > 23) { e.step = 6; this.overlay.className = ''; this.overlay.innerHTML = ''; document.body.classList.remove('awakening'); this.ending = null; this.fullTime = 0; this.solo = null; }
+    if (e.step === 5 && e.t > 23) { e.step = 6; this.overlay.className = ''; this.overlay.innerHTML = ''; document.body.classList.remove('awakening'); this.ending = null; this.fullTime = 0; this.solo = null; this.cyc = { id: null, phase: 'rest', t: 30 + Math.random() * 60, len: 1, w: 0, last: 'leviathan' }; }
   }
 }
