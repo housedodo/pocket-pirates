@@ -281,8 +281,8 @@
     .pxi.star, .pxi.nostar, .pxi.pip, .pxi.nopip, .pxi.check, .pxi.open, .pxi.next { width: 14px; height: 14px; vertical-align: -1px; margin-right: 2px; }
     #touch .pxi { width: 28px; height: 28px; margin: 0; vertical-align: middle; }
     /* land ho: a short title card when a new island comes into view */
-    #demoend { position: fixed; inset: 0; z-index: 8; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 12px; background: #06040e; color: #fff4d8; text-align: center; padding: 16px; }
-    #demoend.show { display: flex; animation: dfade 3s steps(8) both; } #demoend h1 { font-size: 48px; font-weight: 400; color: #d8b0e8; margin: 0; } #demoend p { font-size: 16px; max-width: 520px; } #demoend small { font-size: 16px; color: #8a7e9a; }
+    #demoend { position: fixed; inset: 0; z-index: 30; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 12px; background: #06040e; color: #fff4d8; text-align: center; padding: 16px; }
+    #demoend.show { display: flex; animation: dfade 3s steps(8) both; } #demoend h1 { font-size: 48px; font-weight: 400; color: #d8b0e8; margin: 0; } #demoend p { font-size: 16px; max-width: 520px; } #demoend small { font-size: 16px; color: #8a7e9a; } #demoend button { font: 16px "DotGothic16", monospace; padding: 8px 24px; margin-top: 16px; color: #fff4d8; background: var(--pxbtn) 0 0 / 32px 32px; image-rendering: pixelated; border: none; box-shadow: 0 -4px 0 #d8b0e8, 0 4px 0 #d8b0e8, -4px 0 0 #d8b0e8, 4px 0 0 #d8b0e8; cursor: pointer; }
     @keyframes dfade { from { opacity: 0; } to { opacity: 1; } }
     #landho { position: absolute; left: 50%; top: 22%; transform: translateX(-50%); text-align: center; opacity: 0; pointer-events: none; }
     #landho b { display: block; font-size: 18px; color: var(--gold); letter-spacing: .3em; }
@@ -341,7 +341,6 @@
     <div id="fishui" class="panel txt" style="display:none"><div id="fishmsg"></div><div id="fishbar" style="display:none"><div id="fishtrack"><div id="fishzone"></div><div id="fishmark"></div></div><div id="fishprogwrap"><div id="fishprog"></div></div></div></div>
     <div id="prompt" class="panel txt"><div id="prompttxt"></div><div class="bar"><i></i></div></div>
     <div id="toasts"></div>
-    <div id="demoend"><h1>TO BE CONTINUED</h1><p>The die is back on the table. Somewhere, a pen is still writing.</p><small>End of the Pocket Pirates demo. Thank you for sailing.</small><button id="demoGo">Keep sailing</button></div>
     <div id="landho" class="txt"><b></b><span></span><small></small></div>
     <div id="help" class="txt panel"><span>A/D steer &middot; W/S sails · G oars &middot; E interact<br>M chart &middot; Esc pause &middot; drag = tilt &middot; wheel = zoom &middot; H hide HUD</span></div>
     <div id="debug" class="panel txt"></div>
@@ -356,6 +355,7 @@
   <div id="hutmodal" class="modal"><div class="menu" id="hutWide"><h2>THE DARK HUT</h2><canvas id="dieCv" width="72" height="72"></canvas><p class="quote" id="hutTxt"></p><button id="hutRoll">Throw the die [Space]</button><button id="hutLeave">Leave [E]</button></div></div>
   <div id="card" class="modal"><div class="menu" id="cardWide"><div id="cardIcon"></div><h2 id="cardTitle"></h2><p class="quote" id="cardText"></p><div id="cardChoices"></div><p class="quote" id="cardOut"></p><button id="cardDone">Sail on [E]</button></div></div>
   <div id="pig" class="modal"><div class="menu" id="pigWide"><h2>DICE AT THE TAVERN</h2><div class="pigrow"><div><b>You</b><br><span id="pigMe">0</span></div><canvas id="pigCv"></canvas><div><b id="pigOpp"></b><br><span id="pigThem">0</span></div></div><p class="quote" id="pigLog"></p><button id="pigRoll">Roll [Space]</button><button id="pigHold">Hold [H]</button><button id="pigLeave">Leave [E]</button></div></div>
+<div id="demoend"><h1>TO BE CONTINUED</h1><p>The die is back on the table. Somewhere, a pen is still writing.</p><small>End of the Pocket Pirates demo. Thank you for sailing.</small><button id="demoGo">Keep sailing</button></div>
   <div id="roll"><canvas id="rollCv"></canvas><b id="rollLbl"></b><small id="rollMod"></small><div id="rollRes"></div></div>
   <div id="shipmodal" class="modal"><div class="menu" id="shWide"><h2 id="shName"></h2><p class="quote" id="shLine"></p><div class="goldline">Gold: <b id="shGold"></b></div><div id="shList"></div><button id="shClose">Wave goodbye</button></div></div>
   <div id="harbour" class="modal"><div class="menu" id="hbWide"><h2 id="hbName"></h2><p class="quote" id="hbLine"></p><div class="goldline">Gold: <b id="hbGold"></b></div><div class="hbtabs" id="hbTabs"><button data-t="board">Board</button><button data-t="market">Market</button><button data-t="wright">Shipwright</button></div><div id="hbPane"></div><button id="hbClose">Set sail [E]</button></div></div>

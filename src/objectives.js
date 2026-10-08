@@ -107,7 +107,7 @@ export const MAIN_GOALS = [
     check: (c) => !!c.state.story.hutKnown,
   },
   {
-    id: 'hut', ch: 5, title: 'The table', reward: 0,
+    id: 'hut', ch: 5, title: 'Find the hut', reward: 0,
     text: 'Find the dark hut.',
     intro: ['I would rather not go there. But you are the captain.'],
     outro: [],
