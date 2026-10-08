@@ -661,6 +661,8 @@ function getInteract() {
 function completeJobIfHere(d) {
   const j = state.job;
   if (!j || j.toId !== d.id) return;
+  const wet = weather.storm > 0.35 ? Math.round(j.reward * 0.6) : 0;   // delivered through a storm: they pay extra
+  j.reward += wet; if (wet) objectives.remark('stormpay', dread);
   state.gold += j.reward;
   repOf(state, d.id).deliveries++; repOf(state, j.fromId).deliveries++;
   state.serial[j.fromId] = (state.serial[j.fromId] || 0) + 1;
@@ -828,7 +830,7 @@ function doOffer(i) {
   } else if (o.id === 'supplies') { state.buffs.speed = 180; toast('Fresh supplies stowed: the ship feels lighter.'); }
   else if (o.id === 'rum') { state.buffs.dig = 180; toast('Rum rations handed out: the crew is in high spirits.'); }
   else if (o.id === 'news') {
-    const lines = [wind.fromName ? `Winds from the ${wind.fromName}, they say, and shifting.` : '', weather.storm > 0.3 ? 'A bad blow is on the way: batten down.' : weather.rain > 0.3 ? 'Rain all week out east.' : 'Fair skies for the next day or so.', tod.night > 0.5 ? 'Keep to the lit harbours after dark.' : 'Lighthouses burn only after dusk, so mind your hour.'];
+    const lines = [wind.fromName ? `Winds from the ${wind.fromName}, they say, and shifting.` : '', weather.storm > 0.3 || weather.stormAhead > 0.3 ? 'Watch the evening sky. Red means a blow.' : weather.rain > 0.3 ? 'Rain all week out east.' : 'Fair skies for the next day or so.', tod.night > 0.5 ? 'Keep to the lit harbours after dark.' : 'Lighthouses burn only after dusk, so mind your hour.'];
     toast(`News from the ${sh.name}: ${lines[Math.floor(rng() * lines.length)]}`, false, 7000);
   } else if (o.id === 'tale') {
     const text = bottleNote(rng, idx);
@@ -876,6 +878,34 @@ yardEl.addEventListener('pointerdown', (e) => { if (e.target === yardEl) closeMo
 
 // ---------------------------------------------------------------- combat helpers
 let lastHit = -99, shake = 0;
+// Weather that pushes back: storms shove the ship sideways and waves hitting the side wear the hull;
+// a dead calm leaves only the oars. Thick fog (later in the voyage) fogs the instruments too.
+let stormWear = 0, bellT = 0;
+function stormAndCalm(dt) {
+  const st = weather.storm, sail = ship.trim;
+  if (st > 0.15) {
+    const gust = 0.6 + 0.4 * Math.sin(tNow * 0.9) * Math.sin(tNow * 2.3);
+    const push = st * gust * (2.4 + 3.2 * sail) * dt;                  // shoved downwind, more with the sail up
+    ship.pos.x += Math.sin(wind.dir) * push; ship.pos.z -= Math.cos(wind.dir) * push;
+    const side = Math.abs(Math.sin(angleDiff(ship.heading, wind.dir)));   // waves run with the wind
+    if (st > 0.4 && side > 0.6) {
+      stormWear += dt * st * (side - 0.5) * (0.6 + 1.6 * sail) * 1.4;
+      if (stormWear >= 4) { stormWear = 0; hurtPlayer(3); objectives.remark('broadside', dread); }
+    }
+  }
+  if (weather.calm > 0.5) {
+    objectives.remark('calm', dread);
+    if (shipInput.sail > 0 && ship.speed < 1.4) ship.speed += (1.4 - ship.speed) * Math.min(1, dt * 0.6); // rowing
+  }
+  if (weather.redSky > 0.4) objectives.remark('redsky', dread);
+  const thick = weather.fog > 0.5 && (state.dayN >= 3 || dread > 0.3);
+  document.body.classList.toggle('fogged', thick);
+  if (thick) {
+    objectives.remark('thickfog', dread);
+    if ((bellT -= dt) <= 0) { bellT = 14 + Math.random() * 8; audio.play('bell', { vol: 0.5 }); }
+  }
+}
+
 function hurtPlayer(dmg) {
   const d = Math.max(1, Math.round(dmg));
   state.hp -= d; lastHit = tNow; shake = 0.7;
@@ -941,7 +971,7 @@ function frame() {
     if (!state.sectorsSeen.includes(sec.id)) state.sectorsSeen.push(sec.id);
     if (live) toast(`Entering ${sec.name}: ${sec.faction.name} waters`, sec.dread > 0.5, 5000);
   }
-  const windNow = { dir: wind.dir, strength: Math.min(1.4, wind.strength * (1 + 0.25 * weather.storm)) };
+  const windNow = { dir: wind.dir, strength: Math.min(1.4, wind.strength * (1 + 0.25 * weather.storm)) * (1 - 0.92 * weather.calm) };
   if (live && wind.shifted()) toast(`The wind is shifting: now from the ${wind.fromName}`, false, 4200);
 
   // ---- ship
@@ -954,6 +984,7 @@ function frame() {
   if (live && keys.has('KeyR')) pitchT = clamp(pitchT - dt * 0.8, 0.3, 1.35);
   if (live && keys.has('KeyF')) pitchT = clamp(pitchT + dt * 0.8, 0.3, 1.35);
   if (live || params.get('autostart')) ship.update(dt, shipInput, windNow, tNow);
+  if (live && dt > 0) stormAndCalm(dt);
   if (world.collide(ship.pos, 2.2)) {
     if (ship.speed > 3 && dt > 0) audio.play('bump', { vol: clamp(ship.speed / 10, 0.3, 1) });
     ship.speed *= 0.9;
@@ -991,7 +1022,7 @@ function frame() {
   combat.update(dt, waveT, { ship, traffic, wave: stage.wave, onHitEnemy, onHitPlayer: hurtPlayer });
   if (live && tNow - lastHit > 12 && state.hp < ship.mods.maxHp) state.hp = Math.min(ship.mods.maxHp, state.hp + dt);
   objectives.update(dt, dread);
-  if (live && state.passenger && ship.speed > 1) passengerTalk(state.passenger, dt, { mate: objectives.mate, world, ship, state, dread });
+  if (live && state.passenger && ship.speed > 1) passengerTalk(state.passenger, dt, { mate: objectives.mate, world, ship, state, dread, storm: weather.storm });
   if (live) {
     if (tod.night > 0.35 || tod.twilight > 0.6) objectives.remark('dusk');
     if (weather.storm > 0.4) objectives.remark('storm'); else if (weather.rain > 0.4) objectives.remark('rain'); else if (weather.fog > 0.5) objectives.remark('fog');
@@ -1126,6 +1157,7 @@ function frame() {
 
 // handy for tests / screenshots
 window.__game = {
+  weather,
   setDread(v) { forced = v; dread = v; },
   setTime(t) { state.time = t; },
   setCam(p, z) { if (p !== undefined) { pitch = pitchT = p; } if (z !== undefined) { zoom = zoomT = z; } },

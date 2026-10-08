@@ -52,6 +52,14 @@ For how things must look, see `STYLE.md`; for how systems work, see `DESIGN.md`.
 - Digging, picking fruit and searching wrecks need the ship completely stopped (S).
 - Dolphins never jump across islands.
 
+### Weather that matters
+- Storms shove the ship downwind (more with the sail up); waves hitting the side wear the hull. Turn into them or reef.
+- Dead calm: no wind for a while; hold W to row slowly.
+- Thick fog (from day 3 or further out): the compass and tracker blur, Mara rings the bell; trust the lighthouses.
+- Deliveries made in a storm pay 60% extra; passengers get seasick in storms.
+- Signs instead of HUD text: a red evening sky means a storm is coming; the harbourmaster only says to watch the sky.
+- Later: rain makes fruit regrow and rare fish bite, wet decks steer slower.
+
 ### World variety
 - Six villager designs, seven house kinds (taverns, bell towers, stilt houses...), three new island kinds:
   volcano, atoll, mangrove (each with a dark-mood detail). All emoji replaced by pixel glyphs.

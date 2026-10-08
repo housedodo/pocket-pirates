@@ -34,6 +34,11 @@ const MARA_BANTER = [
   ['How long have you sailed together?', 'Since forever! Well. Since Tuesday. Forever-ish.'],
   ['I think a gull just stole my hat.', 'He does that. We call him the Quartermaster.'],
 ];
+const SEASICK = [
+  'Captain, I think my breakfast wants to go home before I do.',
+  'Is the ship supposed to lean like this? Do not answer that.',
+  'I will pay double if you make it stop. I will pay triple. I have no more money but I will pay it.',
+];
 const DARK_LINES = [
   'The water is so quiet here. Is it always this quiet?',
   'I keep hearing my name from under the hull. Probably just the planks. Probably.',
@@ -60,6 +65,7 @@ export function passengerTalk(pass, dt, ctx) {   // ctx: { mate, world, ship, st
   const say = (t, dk) => ctx.mate.say(t, dk, pass.name);
   const dk = ctx.dread > 0.55;
   const roll = Math.random();
+  if (ctx.storm > 0.4 && roll < 0.6) { say(SEASICK[Math.floor(Math.random() * SEASICK.length)]); if (Math.random() < 0.4) ctx.mate.say('Lean over the downwind side. The OTHER side!'); return; }
   if (dk && roll < 0.5) { say(DARK_LINES[pass.said++ % DARK_LINES.length], true); return; }
   if (roll < 0.3) {                                                // a treasure hint: it goes on your chart
     const r = findRumour(ctx.world, { x: ctx.ship.pos.x, z: ctx.ship.pos.z }, ctx.state);

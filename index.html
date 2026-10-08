@@ -190,6 +190,7 @@
     .yardgrp small { color: var(--ink); opacity: .7; font-weight: 400; }
     /* low-poly icons: faceted shapes from conic gradients + clip-path */
     #placeline { font-size: 13px; border-left-width: 6px; }
+    body.fogged #tracker, body.fogged #compass { filter: blur(2px) contrast(0.6); opacity: 0.55; transition: filter 3s, opacity 3s; }
     #tracker { font-size: 13px; max-width: 280px; padding: 5px 9px; display: none; }
     #tracker .trow { padding: 1px 0; } #tracker .trow.main { color: #ffd23a; font-weight: 700; }
     #tracker .thint { font-size: 10px; opacity: .55; text-align: right; }
