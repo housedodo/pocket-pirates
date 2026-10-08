@@ -40,6 +40,16 @@ const swell = (t, T, k = 1) => 0.5 + 0.5 * Math.sin(TAU * k * t / T);
 
 // ---------------------------------------------------------------- loops
 const LOOPS = {
+  oars() { // two strokes: a dip, a pull, a drip, in a 3.6 s loop
+    const T = 3.6, x = mk(T), nz = lp(noise(x.length, 41), 0.25);
+    for (let k = 0; k < 2; k++) {
+      const t0 = k * 1.8;
+      tone(x, t0, 0.5, (t) => nz[Math.floor((t0 + t) * SR) % x.length] * Math.exp(-t * 7) * Math.min(1, t / 0.02) * 1.3);
+      tone(x, t0 + 0.05, 0.25, (t) => Math.sin(TAU * (140 - 60 * t) * t) * Math.exp(-t * 12) * 0.4);
+      tone(x, t0 + 1.1, 0.4, (t) => Math.sin(TAU * 1200 * t) * Math.exp(-t * 30) * 0.15);
+    }
+    return norm(x, 0.5);
+  },
   sea() {
     const T = 8, n = Math.floor((T + 0.5) * SR), a = noise(n, 11), b = Float32Array.from(a);
     lp(a, 0.035); lp(b, 0.28);
@@ -183,6 +193,19 @@ function bell(x, t0, f, dur, amp = 1) {
 }
 
 const SHOTS = {
+  cannon() { const x = mk(1.6), nz = lp(noise(x.length, 51), 0.12); for (let i = 0; i < x.length; i++) { const t = i / SR; x[i] = nz[i] * Math.exp(-t * 3.5) * 2 + Math.sin(TAU * (55 - 25 * t) * t) * Math.exp(-t * 5); } return norm(x, 0.85); },
+  hit() { const x = mk(0.8), nz = bp(noise(x.length, 52), 900, 0.7); for (let i = 0; i < x.length; i++) { const t = i / SR; x[i] = nz[i] * Math.exp(-t * 10) + Math.sin(TAU * 80 * t) * Math.exp(-t * 8) * 0.8; } return norm(x, 0.8); },
+  cast() { const x = mk(0.9), nz = bp(noise(x.length, 53), 2500, 2); tone(x, 0, 0.35, (t) => nz[Math.floor(t * SR)] * Math.sin(Math.PI * t / 0.35)); tone(x, 0.6, 0.3, (t) => Math.sin(TAU * (600 - 500 * t) * t) * Math.exp(-t * 14) * 0.5); return norm(x, 0.5); },
+  bite() { const x = mk(0.5); tone(x, 0, 0.12, (t) => Math.sin(TAU * 1400 * t) * Math.exp(-t * 30)); tone(x, 0.16, 0.12, (t) => Math.sin(TAU * 1400 * t) * Math.exp(-t * 30)); return norm(x, 0.55); },
+  catch() { const x = mk(1.2); tone(x, 0, 0.4, (t) => Math.sin(TAU * (200 + 600 * t) * t) * Math.exp(-t * 6) * 0.5); [659.3, 784, 987.8].forEach((f, i) => bell(x, 0.2 + i * 0.09, f, 0.8, 0.7)); return norm(x, 0.6); },
+  roll_d20() { const x = mk(1.3), r = mulberry32(54); for (let k = 0; k < 9; k++) { const t0 = 0.05 + k * 0.11 + r() * 0.04, f = 900 + r() * 900; tone(x, t0, 0.08, (t) => (Math.sin(TAU * f * t) + Math.sin(TAU * f * 2.3 * t) * 0.4) * Math.exp(-t * 60) * (1 - k * 0.07)); } return norm(x, 0.55); },
+  roll_d6() { const x = mk(0.9), r = mulberry32(55); for (let k = 0; k < 6; k++) { const t0 = 0.04 + k * 0.12 + r() * 0.03, f = 600 + r() * 500; tone(x, t0, 0.07, (t) => Math.sin(TAU * f * t) * Math.exp(-t * 70) * (1 - k * 0.1)); } return norm(x, 0.55); },
+  card() { const x = mk(0.5), nz = bp(noise(x.length, 56), 3000, 1.5); tone(x, 0, 0.3, (t) => nz[Math.floor(t * SR)] * Math.sin(Math.PI * t / 0.3)); tone(x, 0.25, 0.06, (t) => Math.sin(TAU * 300 * t) * Math.exp(-t * 60) * 0.5); return norm(x, 0.45); },
+  success() { const x = mk(1.1); [523.3, 784, 1046.5].forEach((f, i) => bell(x, i * 0.08, f, 0.9, 0.8)); return norm(x, 0.55); },
+  fail() { const x = mk(1.0); tone(x, 0, 0.9, (t) => Math.sin(TAU * (220 - 60 * t) * t) * Math.exp(-t * 3) * (0.6 + 0.4 * Math.sin(TAU * 7 * t))); return norm(x, 0.5); },
+  chapter() { const x = mk(3); bell(x, 0, 196, 2.8); bell(x, 0.5, 293.7, 2.4, 0.7); return norm(x, 0.55); },
+  knock() { const x = mk(1.2); for (let k = 0; k < 3; k++) tone(x, k * 0.28, 0.15, (t) => Math.sin(TAU * 120 * t) * Math.exp(-t * 40) + Math.sin(TAU * 310 * t) * Math.exp(-t * 60) * 0.4); return norm(x, 0.6); },
+  ending() { const x = mk(5); tone(x, 0, 5, (t) => (Math.sin(TAU * 55 * t) + Math.sin(TAU * 82.4 * t) * 0.6 + Math.sin(TAU * 110.5 * t) * 0.3) * Math.min(1, t / 1.5) * Math.exp(-t * 0.6)); bell(x, 0.2, 110, 4.5, 0.6); return norm(x, 0.6); },
   creak() {
     const x = mk(0.9), r = mulberry32(31), n = x.length;
     let ph = 0, gate = 0;

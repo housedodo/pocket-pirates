@@ -1,8 +1,9 @@
 # Audio guide
 
-**Sound is currently switched off** (`AUDIO_ENABLED = false` in `src/audio.js`). When on, the game makes its own sound out of the box (`src/synth.js` synthesises every cue below, lo-fi on purpose).
-You are making the real sounds: put a file in `public/audio/` and it replaces the synthesised version of that cue,
-one cue at a time. Names must match exactly; `.ogg` preferred (`.mp3`/`.wav` also work).
+**Sound is on.** `public/audio/` holds a **placeholder `.ogg` for every cue below**, rendered from the game's own
+synthesiser (`src/synth.js`). To use your own sound, overwrite the file with the same name: it plays in the game
+at once, no code change. Delete a file and the game falls back to the synthesised version of that cue.
+(The single-file `pocket-pirates.html` has no audio folder, so it always uses the synthesised versions.) Names must match exactly; `.ogg` preferred (`.mp3`/`.wav` also work).
 The pause menu has Sound and Music toggles.
 
 ## Tone: "shanty that slowly forgets how to be a shanty"
@@ -28,12 +29,13 @@ getting stranger is scarier than new horror music.
 | `amb_night` | night bed (crickets-on-water, creaks), fades in after sunset on top of the stage ambience |
 | `amb_1` .. `amb_5` | ambience per stage, 30-60 s, cross-faded by dread |
 | `music_1` .. `music_5` | music per stage, e.g. 32 bars at 90-100 bpm, cross-faded by dread |
+| `oars` | rowing strokes (dip, pull, drip); plays while you row with the oars out (G, then W) |
 
 **One-shots**
 | File | When |
 |---|---|
-| `creak` | ship timber (reserved; trigger hooks easy to add) |
-| `splash` | reserved for waves/wake |
+| `creak` | ship timber (loaded, not triggered yet) |
+| `splash` | salvaging a barrel, whirlpools |
 | `bump` | hitting an island (volume follows speed) |
 | `dig` | crew starts digging |
 | `treasure` | loot found (stinger; mid-game gets stranger) |
@@ -51,6 +53,19 @@ getting stranger is scarier than new horror music.
 | `whale` | a whale surfaces (and, pitched down, the shadow under the keel) |
 | `bell` | harbour clock on the hour, when you are close to a harbour |
 | `bottle` | picking up a message in a bottle |
+| `cannon` | firing your cannons (Space) |
+| `hit` | your hull takes damage (cannon shot, storm waves, a bad encounter) |
+| `cast` | casting a fishing line (C) |
+| `bite` | a fish bites |
+| `catch` | a fish landed |
+| `roll_d20` | a d20 tumbling: skill checks, haggling, and (pitched down) the Lady's die at the hut |
+| `roll_d6` | the d6 at the tavern dice game, every throw |
+| `success` | a skill check passes (after the d20 settles) |
+| `fail` | a skill check fails |
+| `card` | an encounter card turns over at sea |
+| `chapter` | a new chapter begins (the CHAPTER card) |
+| `knock` | knocking on the dark hut before it opens (chapter V) |
+| `ending` | the demo end card, TO BE CONTINUED (about 5 s) |
 
 ## Format guidelines
 - 44.1 kHz, OGG Vorbis ~96-128 kbps; mono for SFX, stereo for music/ambience.

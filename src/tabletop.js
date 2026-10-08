@@ -1,6 +1,7 @@
 import { mulberry32, hash2 } from './util.js';
 import { pxi } from './pixelui.js';
 import { Die3D } from './dice3d.js';
+import { sfx } from './sfx.js';
 
 // Board-game pieces: d20 skill checks, encounter cards at sea, hired hands with traits, and dice at the tavern.
 // The captain never speaks; cards are written as what happens, not what you say.
@@ -68,7 +69,9 @@ export function rollCheck(state, check, done) {
   const n = 1 + Math.floor(Math.random() * 20), total = n + bonus;
   const ok = n === 20 || (n !== 1 && total >= check.dc);
   if (!d20) d20 = new Die3D(cv, 'd20', 64);
+  sfx.play('roll_d20');
   d20.roll(n, () => {
+    sfx.play(ok ? 'success' : 'fail');
     res.textContent = n === 20 ? 'NATURAL 20!' : n === 1 ? 'NATURAL 1...' : `${n}${bonus ? ` ${bonus > 0 ? '+' : ''}${bonus} = ${total}` : ''}: ${ok ? 'SUCCESS' : 'FAIL'}`;
     res.className = ok ? 'ok' : 'bad';
     setTimeout(() => { el.classList.remove('open'); done(ok, n, total); }, 1500);
@@ -168,7 +171,7 @@ export class Pig {
     this.render();
   }
   /** throw the die, then call after(n) once it has settled */
-  throwDie(after) { const n = 1 + Math.floor(Math.random() * 6); this.busy = true; this.render(); this.die.roll(n, () => { this.busy = false; after(n); }, 0.7); }
+  throwDie(after) { const n = 1 + Math.floor(Math.random() * 6); this.busy = true; this.render(); sfx.play('roll_d6'); this.die.roll(n, () => { this.busy = false; after(n); }, 0.7); }
   roll() {
     if (this.over || !this.mine || this.busy) return;
     this.throwDie((n) => {

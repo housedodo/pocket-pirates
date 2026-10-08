@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { mulberry32 } from './util.js';
+import { sfx } from './sfx.js';
 
 // The dark hut: an old woman who says nothing, a table, and one twenty-sided die.
 // One throw per in-game day. 11+ wins a small prize, 10 is nothing, 9 or lower she writes something
@@ -117,6 +118,7 @@ export class Hut {
     this.anim = { t: 0, n, spin: new THREE.Vector3(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).normalize(), speed: 18, from: null };
     this.btn.disabled = true;
     this.txt.textContent = 'The die clatters across the table...';
+    sfx.play('roll_d20', { rate: 0.8 });
   }
 
   update(dt) {

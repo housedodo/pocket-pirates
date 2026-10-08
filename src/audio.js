@@ -3,18 +3,19 @@
 // See docs/AUDIO.md for the cue list and design notes.
 import { canSynth, synth } from './synth.js';
 
-// Master switch: sound is off for now. Set to true to bring back synthesised audio / your own files.
-export const AUDIO_ENABLED = false;
+// Master switch for all sound (files in public/audio/, else the synthesised fallback).
+export const AUDIO_ENABLED = true;
 
 const STAGES = 5;
 export const CUES = {
   loops: [
-    'sea', 'surf', 'wind', 'rain', 'amb_night',
+    'sea', 'surf', 'wind', 'rain', 'amb_night', 'oars',
     ...Array.from({ length: STAGES }, (_, i) => `amb_${i + 1}`),
     ...Array.from({ length: STAGES }, (_, i) => `music_${i + 1}`),
   ],
   oneShots: ['creak', 'splash', 'bump', 'dig', 'treasure', 'discover', 'harbour', 'ui', 'whisper', 'stage_up', 'buy', 'pause',
-    'thunder', 'horn', 'gull', 'dolphin', 'whale', 'bell', 'bottle'],
+    'thunder', 'horn', 'gull', 'dolphin', 'whale', 'bell', 'bottle',
+    'cannon', 'hit', 'cast', 'bite', 'catch', 'roll_d20', 'roll_d6', 'card', 'success', 'fail', 'chapter', 'knock', 'ending'],
 };
 const tick = () => new Promise((r) => setTimeout(r, 0));
 
@@ -56,7 +57,7 @@ export class AudioBus {
     this.musicBus.connect(this.master);
 
     // one-shots first (cheap), then ambience, then music, yielding between cues so the game stays smooth
-    const order = [...CUES.oneShots, 'sea', 'wind', 'surf', 'rain', 'amb_night', ...CUES.loops.filter((k) => k.startsWith('amb_') && k !== 'amb_night'), ...CUES.loops.filter((k) => k.startsWith('music_'))];
+    const order = [...CUES.oneShots, 'sea', 'wind', 'surf', 'rain', 'amb_night', 'oars', ...CUES.loops.filter((k) => k.startsWith('amb_') && k !== 'amb_night'), ...CUES.loops.filter((k) => k.startsWith('music_'))];
     for (const k of order) {
       await this.load(k);
       if (CUES.loops.includes(k)) this.startLoop(k);
@@ -123,6 +124,7 @@ export class AudioBus {
     this.setLoop('wind', Math.min(1, s.wind * 0.35 + s.storm * 0.5));
     this.setLoop('rain', s.rain * 0.85);
     this.setLoop('amb_night', s.night * 0.7 * (1 - s.rain * 0.7));
+    this.setLoop('oars', s.rowing ? 0.7 : 0);
     const stage = Math.min(STAGES - 1, Math.floor(dread * STAGES));
     if (stage > this.lastStage) this.play('stage_up');
     this.lastStage = stage;

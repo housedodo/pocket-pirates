@@ -10,6 +10,7 @@ import { TILE } from './textures.js';
 import { Ship } from './ship.js';
 import { Horror } from './horror.js';
 import { AudioBus, AUDIO_ENABLED } from './audio.js';
+import { sfx } from './sfx.js';
 import { gossip, lootFor, bottleNote, barrelLoot } from './lore.js';
 import { Weather } from './weather.js';
 import { Fauna } from './fauna.js';
@@ -113,6 +114,8 @@ const world = new World(scene, state.seed, state.dug);
 const ship = new Ship(scene);
 const horror = new Horror(scene, world, state.seed);
 const audio = new AudioBus();
+sfx.play = (k, o) => audio.play(k, o);
+for (const ev of ['pointerdown', 'keydown']) window.addEventListener(ev, () => { if (audio.ctx && audio.ctx.state === 'suspended' && modal !== 'pause') audio.ctx.resume(); });   // browsers start audio muted until a click or key
 audio.muted = settings.muted;
 const wind = new Wind(state.windT);
 const weather = new Weather(scene);
@@ -194,7 +197,7 @@ function giveMap(id, from) {
   toast(`${from} gave you a treasure riddle for ${d.name}. Saved in your log: Riddles tab.`, false, 8000);
 }
 const objectives = new Objectives({ state, world, ship, toast: (t, d) => toast(t, d), giveMap,
-  chapterCard: (ch) => { const el = $('landho'); el.querySelector('b').textContent = `CHAPTER ${ch.n}`; el.querySelector('span').textContent = ch.title; el.querySelector('small').textContent = ch.act; el.classList.remove('show'); void el.offsetWidth; el.classList.add('show'); audio.play('bell', { vol: 0.4 }); },
+  chapterCard: (ch) => { const el = $('landho'); el.querySelector('b').textContent = `CHAPTER ${ch.n}`; el.querySelector('span').textContent = ch.title; el.querySelector('small').textContent = ch.act; el.classList.remove('show'); void el.offsetWidth; el.classList.add('show'); audio.play('chapter'); },
   onStep: (done, next) => { if (done.id === 'gossip') revealHut(); } });
 const abyss = new Abyss({ scene, ship, world, sky, settings, state, mate: objectives.mate, toast: (t, d, ms) => toast(t, d, ms), fade: $('fade'),
   onEnding: () => {
@@ -207,11 +210,11 @@ const abyss = new Abyss({ scene, ship, world, sky, settings, state, mate: object
 const fishing = new Fishing(scene, ship, {
   toast: (t) => toast(t),
   getCtx: () => ({ bonus: Math.max(0, ship.mods.lootMul - 1) }),
-  onStart: () => toast('Line cast. Wait for a bite...', false, 2500),
-  onBite: (f) => { toast(f.dark ? 'Something heavy takes the bait!' : 'A bite!', f.dark, 1500); },
+  onStart: () => { toast('Line cast. Wait for a bite...', false, 2500); audio.play('cast'); },
+  onBite: (f) => { toast(f.dark ? 'Something heavy takes the bait!' : 'A bite!', f.dark, 1500); audio.play('bite'); },
   onCatch: (f) => {
     f = abyss.wrongCatch(f);
-    state.catch.push(f); state.stats.fish++;
+    state.catch.push(f); state.stats.fish++; audio.play('catch');
     const l = state.fishLog[f.id] || (state.fishLog[f.id] = { count: 0, best: 0 });
     l.count++; l.best = Math.max(l.best, f.kg);
     toast(`Caught: ${f.name}, ${f.kg}kg (worth ${f.value}g)${l.count === 1 ? ' - new species!' : ''}`, f.dark, 6000);
@@ -683,6 +686,7 @@ const shipInput = { steer: 0, sail: 0 };
 
 function fireCannons() {
   const r = combat.playerFire(ship, traffic, state, ship.mods);
+  if (r !== 'ammo' && r !== 'target') audio.play('cannon');
   if (r === 'ammo') { toast('Out of cannonballs! Buy more at a harbour.'); objectives.remark('noammo'); }
   else if (r === 'target') objectives.remark('notarget');
 }
@@ -726,7 +730,7 @@ function tryInteract() {
   if (!started || modal) return;
   const tg = getInteract();
   if (!tg) return;
-  if (tg.kind === 'hut') { if (!state.story.hutKnown) { toast('Nobody answers. Inside, a pen scratches, then stops.', true, 4500); return; } openModal('hut'); return; }
+  if (tg.kind === 'hut') { if (!state.story.hutKnown) { audio.play('knock'); toast('Nobody answers. Inside, a pen scratches, then stops.', true, 4500); return; } openModal('hut'); return; }
   if ((tg.kind === 'treasure' || tg.kind === 'fruit' || tg.kind === 'wreck') && ship.speed > 0.35) { toast('Bring the ship to a full stop first (S to reef the sails).', false, 3000); return; }
   if (tg.kind === 'harbour') {
     const d = tg.isl.desc, rep = repOf(state, d.id);
@@ -986,7 +990,7 @@ function cardCtx() {
 function openCard() {
   const card = drawCard(dread, state.cardsSeen); if (!card) return;
   state.cardsSeen.push(card.id); if (state.cardsSeen.length > 5) state.cardsSeen.shift();
-  cardBusy = false; openModal('card'); audio.play('bottle');
+  cardBusy = false; openModal('card'); audio.play('card');
   const out = (t) => { $('cardOut').textContent = t; $('cardDone').style.display = ''; cardEl.querySelectorAll('#cardChoices button').forEach((b) => { b.disabled = true; }); cardBusy = 'done'; };
   renderCard(card, (ch) => {
     if (cardBusy) return; cardBusy = true;
@@ -1042,7 +1046,7 @@ function revealHut() {
   state.discovered[h.id] = state.discovered[h.id] || 1;
   state.story.hutNod = 'pending';     // the nod comes the next time the chart is opened
 }
-function showDemoEnd() { $('demoend').classList.add('show'); }
+function showDemoEnd() { $('demoend').classList.add('show'); audio.play('ending'); }
 $('demoGo').addEventListener('click', () => { $('demoend').classList.remove('show'); state.story.free = true; toast('The fog thins. The sea is yours.', false, 5000); });
 let gateFog = 0, gateToastT = 0, musingT = 120;
 function seaGate(dt) {
@@ -1059,7 +1063,7 @@ function seaGate(dt) {
 
 function hurtPlayer(dmg) {
   const d = Math.max(1, Math.round(dmg));
-  state.hp -= d; lastHit = tNow; shake = 0.7;
+  state.hp -= d; lastHit = tNow; shake = 0.7; audio.play('hit');
   $('hit').classList.add('on'); setTimeout(() => $('hit').classList.remove('on'), 140);
   if (state.hp < 35) objectives.remark('lowhp', dread);
   if (state.hp <= 0) sinkPlayer();
@@ -1303,7 +1307,7 @@ function frame() {
   } else eb.style.display = 'none';
   if (live) {
     const near = world.nearest(ship.pos.x, ship.pos.z, 45);
-    audio.update(dt, { dread, speed: ship.speed / 11, night: tod.night, wind: wind.strength, rain: weather.rain, storm: weather.storm, surf: near ? clamp(1 - world.lastEdge / 45, 0, 1) : 0 });
+    audio.update(dt, { dread, speed: ship.speed / 11, night: tod.night, wind: wind.strength, rain: weather.rain, storm: weather.storm, surf: near ? clamp(1 - world.lastEdge / 45, 0, 1) : 0, rowing: ship.rowIn > 0 });
     const hour = Math.floor(state.time * 24);
     if (hour !== lastHour) { lastHour = hour; if (world.nearest(ship.pos.x, ship.pos.z, 80, ['harbour'])) audio.play('bell', { vol: 0.6 }); }
   }
@@ -1324,6 +1328,7 @@ function frame() {
 
 // handy for tests / screenshots
 window.__game = {
+  audio,
   objectives, perrinNote, gateRadius: () => gateRadius(state),
   openCard,
   weather,
