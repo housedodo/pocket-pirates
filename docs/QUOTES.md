@@ -80,6 +80,18 @@ dread stage. A few:
 - *Stage 3:* "Your ship came in last night as well. We waved. Nobody waved back."
 - *Stage 2+, sometimes:* someone on the pier, and only ". . ."
 
+### After a throw at the hut (the pier knows; src/greetings.js)
+- **2-9:** "Bad luck travels fast, captain. A three, was it?" · "Heard it came up seven. Nobody told me. I just heard." · "You threw a four last night, did you not? The fish knew before we did." · "Six. Hm. Well. Nobody blames you. Not yet." · "The tide came in seven minutes late this morning. Funny number, seven."
+- **10:** "Ten. Nothing at all. She almost smiled, did she not?" · "A ten, they say. Neither here nor there. Like the rest of us."
+- **11-16:** "Heard you threw a twelve! The whole pier slept well." · "A fourteen, they say. Good. Good. Keep doing that." · "Calm night, thanks to you. Eleven, was it? Lovely number."
+- **17-19:** "Eighteen! The nets came up singing this morning. That was you, was it not?" · "Somebody threw a nineteen and the whole sea went soft. Was that you, captain?"
+- **20:** "Twenty. You could hear the whole sea let its breath out." · "Twenty! The old women in the market are crying. Good crying, mostly."
+- **1:** someone on the pier: "One."
+- *Mara, after the first throw:* "Captain. The bottle. It said seven. How did it know it would be seven?" · "Captain... is the water thicker? It looks thicker." · "Nothing happened. Why does that feel like something happened?" · "Is it me, or is the sea in a good mood all of a sudden?" · "Did you hear that? Like the whole sea sighed. In a nice way. I think." · *(after a 1)* Mara does not say anything for a long time.
+- *Bottle (chapter V):* "She has a book. My name is in it now. Twice. She let me throw once. It came up seven. It will come up seven for you too. - R."
+- *Prices:* "Prices are up today. Nobody says why." · "Prices are down today. Everyone seems to have slept well." · *(haggle, natural 1)* "The fishmonger spits on the planks. By noon the whole harbour has heard."
+- *Hut:* "There are three candles now." · "There are more candles than you can count. The book is open near the end."
+
 ### Shipwright
 - **0:** "Best timber this side of the reef, captain." · "Fair prices, fair winds."
 - **1:** "Odd. The planks came in already cut. I never ordered them."

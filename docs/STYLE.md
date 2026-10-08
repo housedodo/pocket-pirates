@@ -84,6 +84,9 @@ purple and magenta cosmic horror as dread rises.
   sits low and compact. A villager's line comes first in a Mara-style box (gold ring, 64px 8x8 portrait,
   32px text); at dread stage 3+ the ring and text turn magenta. The line then stays under the name in pale rose.
 
+- Dice: the Lady's d20 is yellowed bone with a dark red 1. The check die starts pale bone and darkens in four steps to
+  stained bone with a blood-dark 1; same carved numbers, same pixel texture. Never a new colour, only age.
+
 ## 6. The captain's log (book)
 - A battered **pixel tome**: dithered, scratched and stained leather cover with missing stitches and dented
   brass corners; dithered pages with foxing, ink blots in the margins, a coffee ring, a crease and a

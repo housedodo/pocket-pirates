@@ -152,3 +152,24 @@ export function pickGreeting(ctx) {
   for (const [l, w] of pool) { k -= w; if (k <= 0) { text = l; break; } }
   return { speaker, text, dark: stage >= 3 };
 }
+
+// ---- after a throw at the hut, someone on the pier already knows the number. Nobody says how.
+const WORDS = ['', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen', 'twenty'];
+export const numberWord = (n) => WORDS[n] || String(n);
+const cap = (s) => s[0].toUpperCase() + s.slice(1);
+const an = (n) => (n === 8 || n === 11 || n === 18 ? 'an' : 'a');
+const BY_ROLL = {
+  low: ['Bad luck travels fast, captain. {A} {w}, was it?', 'Heard it came up {w}. Nobody told me. I just heard.', 'You threw {a} {w} last night, did you not? The fish knew before we did.', '{W}. Hm. Well. Nobody blames you. Not yet.', 'The tide came in {w} minutes late this morning. Funny number, {w}.'],
+  ten: ['Ten. Nothing at all. She almost smiled, did she not?', 'A ten, they say. Neither here nor there. Like the rest of us.'],
+  mid: ['Heard you threw {a} {w}! The whole pier slept well.', '{A} {w}, they say. Good. Good. Keep doing that.', 'Calm night, thanks to you. {W}, was it? Lovely number.'],
+  high: ['{W}! The nets came up singing this morning. That was you, was it not?', 'Somebody threw {a} {w} and the whole sea went soft. Was that you, captain?'],
+  twenty: ['Twenty. You could hear the whole sea let its breath out.', 'Twenty! The old women in the market are crying. Good crying, mostly.'],
+};
+/** a greeting about the player's last throw at the hut */
+export function rollGreeting(n, hour, rnd) {
+  if (n === 1) return { speaker: 'someone', text: 'One.', slowWord: true, dark: true };
+  const pool = n === 20 ? BY_ROLL.twenty : n >= 17 ? BY_ROLL.high : n >= 11 ? BY_ROLL.mid : n === 10 ? BY_ROLL.ten : BY_ROLL.low;
+  const w = numberWord(n), text = pool[Math.floor(rnd() * pool.length)].replace(/\{w\}/g, w).replace(/\{W\}/g, cap(w)).replace(/\{a\}/g, an(n)).replace(/\{A\}/g, cap(an(n)));
+  const phase = dayPhase(hour), who = Object.keys(SPEAKERS).filter((id) => SPEAKERS[id].when.includes(phase));
+  return { speaker: who[Math.floor(rnd() * who.length)], text, dark: n <= 5 };
+}

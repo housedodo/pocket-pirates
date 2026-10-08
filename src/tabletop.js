@@ -54,7 +54,9 @@ export function crewBonus(state, kind, dark = false) {
 export const hasTrait = (state, id) => (state.crew || []).some((c) => c.trait === id);
 
 // ---------------------------------------------------------------- the d20 check
-let d20 = null;
+let d20 = null, dieWear = 0;
+/** how far the check die has darkened toward the Lady's (0..1); main sets it from days at sea and dread */
+export function setDieWear(k) { dieWear = k; }
 /** Show a d20 roll over everything. check: { label, dc, kind, dark, extra:[[name, n]] }; done(success, roll, total) */
 export function rollCheck(state, check, done) {
   const el = document.getElementById('roll'), cv = document.getElementById('rollCv');
@@ -69,6 +71,7 @@ export function rollCheck(state, check, done) {
   const n = 1 + Math.floor(Math.random() * 20), total = n + bonus;
   const ok = n === 20 || (n !== 1 && total >= check.dc);
   if (!d20) d20 = new Die3D(cv, 'd20', 64);
+  d20.setWear(dieWear);   // it is the same die. It only takes a while to look like it.
   sfx.play('roll_d20');
   d20.roll(n, () => {
     sfx.play(ok ? 'success' : 'fail');

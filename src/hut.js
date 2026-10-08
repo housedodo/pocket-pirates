@@ -9,7 +9,7 @@ import { sfx } from './sfx.js';
 const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
 
 /** 5x4 atlas of carved numbers on old, stained bone */
-export function dieTexture(pal = ['#6e5a40', '#a8926a', '#cdb88e', '#e4d4ae'], ink = '#2a1608') {
+export function dieTexture(pal = ['#6e5a40', '#a8926a', '#cdb88e', '#e4d4ae'], ink = '#2a1608', one = '#5a0a2a') {
   const S = 32, cv = document.createElement('canvas'); cv.width = S * 5; cv.height = S * 4;
   const c = cv.getContext('2d'), r = mulberry32(2020);
   for (let y = 0; y < cv.height; y++) for (let x = 0; x < cv.width; x++) {
@@ -22,7 +22,7 @@ export function dieTexture(pal = ['#6e5a40', '#a8926a', '#cdb88e', '#e4d4ae'], i
   for (let n = 1; n <= 20; n++) {
     const cx = ((n - 1) % 5) * S + S / 2, cy = Math.floor((n - 1) / 5) * S + S * 0.58;
     c.fillStyle = 'rgba(255,240,210,0.35)'; c.fillText(String(n), cx + 1, cy + 1); // carved: light lip below
-    c.fillStyle = n === 1 ? '#5a0a2a' : ink; c.fillText(String(n), cx, cy);
+    c.fillStyle = n === 1 ? one : ink; c.fillText(String(n), cx, cy);
     if (n === 6 || n === 9) { c.fillStyle = '#2a1608'; c.fillRect(cx - 4, cy + 7, 8, 1); }
   }
   // a hard pixel look: remove the soft edges of the text
@@ -105,16 +105,22 @@ export class Hut {
     const used = h.lastDay === this.d.state.dayN;
     this.txt.textContent = h.visits === 1
       ? 'A table too big for the hut, one candle, and a chair on the far side, deep in the dark. Something there breathes, slow and patient. A yellowed twenty-sided die waits on the wood.'
-      : used ? 'The die is gone from the table. She is writing. Come back tomorrow.' : 'The die is already on the table, waiting for you.';
+      : used ? 'The die is gone from the table. She is writing. Come back tomorrow.' : `The die is already on the table, waiting for you.${this.candles()}`;
     this.btn.disabled = used;
     this.result = null;
   }
 
+  /** one more candle for every entry in her book; never more than that is said */
+  candles() {
+    const c = 1 + this.state.fails;
+    return c < 2 ? '' : c > 6 ? ' There are more candles than you can count. The book is open near the end.' : ` There are ${['', '', 'two', 'three', 'four', 'five', 'six'][c]} candles now.`;
+  }
   roll() {
     const h = this.state;
     if (this.anim || h.lastDay === this.d.state.dayN) return;
     h.lastDay = this.d.state.dayN;
-    const n = 1 + Math.floor(Math.random() * 20);
+    const fate = this.d.state.story && this.d.state.story.fate;   // a bottle may already have said what the first throw will be
+    const n = !h.rolls.length && fate ? fate : 1 + Math.floor(Math.random() * 20);
     this.anim = { t: 0, n, spin: new THREE.Vector3(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).normalize(), speed: 18, from: null };
     this.btn.disabled = true;
     this.txt.textContent = 'The die clatters across the table...';

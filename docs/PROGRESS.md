@@ -152,6 +152,23 @@ New voyage goes straight into the game (no title). A new voyage starts moored al
   - **1-9:** the screen flips to the full-dread look for a moment and back; she says nothing and writes something down.
 - Mara comments after the first visit and after the third bad throw.
 
+### The die (one die, and her throws change the world)
+- **One die:** the haggling and encounter-card checks roll the same bone d20 as hers. It darkens in four steps
+  (`setDieWear`: days at sea / 12 + dread x 0.6) to old stained bone with a blood-dark 1. Checks do not touch the
+  story yet. Haggling: a fail pays 10% less for your catch; a natural 1 pays 20% less and makes everything else at
+  that harbour 10% dearer that day.
+- **The day after a throw** (her last throw, that day and the next, `lastThrow()` in main.js): 20 pulls dread down
+  0.3, 11-19 down 0.18, 10 nothing, 2-9 up 0.22 (Tama looks Off), 1 up 0.35. Prices: 15% up after 1-9, 10% down
+  after 17-20; the harbour menus say only "Prices are up today. Nobody says why."
+- **Candles:** one more in the hut for every low throw.
+- **The world knows:** after the first throw the next pier greeting is about the number; later throws about half
+  the time (`rollGreeting` in greetings.js). After a 1, a dark figure says only "One."
+- **The bottle knew:** the second hut bottle in chapter V names the first throw (`state.story.fate`, from the seed),
+  and the throw comes up that number. Mara notices. Then she reacts to the result (thicker water, a good mood, a sigh,
+  or silence after a 1). The demo ends on this throw, so every voyage ends differently.
+- The hut's bad-throw flash no longer sets off Mara's deep-water remarks.
+- Possible paths (kind sea, stirring, empty table, fated thrower, refuser, tens) are in the story bible, "The die".
+
 ## 2. Open storylines (started, resolved later)
 
 ### The Lady in the Hut (main thread)

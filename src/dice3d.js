@@ -23,6 +23,11 @@ function pipTexture(n, seed) {
   return t;
 }
 
+const CHECK_PAL = ['#8a7650', '#c4ac80', '#e2d2a8', '#f4ead0'], CHECK_INK = '#3a1c08';
+// where it ends up: her die as it looks out of the candlelight, old stained bone with a blood-dark 1
+const WORN_PAL = ['#3e2e1e', '#6a5438', '#97805a', '#c2aa80'], WORN_INK = '#140a04', WORN_ONE = '#7a0a2a';
+const mix = (a, b, t) => '#' + [1, 3, 5].map((i) => Math.round(parseInt(a.substr(i, 2), 16) * (1 - t) + parseInt(b.substr(i, 2), 16) * t).toString(16).padStart(2, '0')).join('');
+
 export class Die3D {
   /** kind: 'd20' | 'd6'; res: render size in pixels (shown pixelated via CSS) */
   constructor(canvas, kind = 'd20', res = 64) {
@@ -37,7 +42,8 @@ export class Die3D {
     } else {
       const { g, normals, ups } = dieGeometry(); this.normals = normals; this.ups = ups;
       // a cleaner, newer die than the Lady's: pale bone with brown ink
-      this.mesh = new THREE.Mesh(g, new THREE.MeshLambertMaterial({ map: dieTexture(['#8a7650', '#c4ac80', '#e2d2a8', '#f4ead0'], '#3a1c08'), flatShading: true }));
+      this.mesh = new THREE.Mesh(g, new THREE.MeshLambertMaterial({ map: dieTexture(CHECK_PAL, CHECK_INK, CHECK_INK), flatShading: true }));
+      this.wear = 0;
     }
     this.scene.add(this.mesh);
     this.scene.add(new THREE.AmbientLight(0x8a7080, 1.5));
@@ -83,6 +89,17 @@ export class Die3D {
     }
     this.draw();
     this.raf = requestAnimationFrame((t2) => this.tick(t2));
+  }
+  /** the check die darkens toward the Lady's own, in four steps (k 0..1). Nobody remarks on it. */
+  setWear(k) {
+    if (this.kind !== 'd20') return;
+    const step = Math.round(Math.max(0, Math.min(1, k)) * 3);
+    if (step === this.wear) return;
+    this.wear = step; const t = [0, 0.45, 0.75, 1][step];
+    const old = this.mesh.material.map;
+    this.mesh.material.map = dieTexture(CHECK_PAL.map((c, i) => mix(c, WORN_PAL[i], t)), mix(CHECK_INK, WORN_INK, t), mix(CHECK_INK, WORN_ONE, t));
+    this.mesh.material.needsUpdate = true; if (old) old.dispose();
+    this.draw();
   }
   draw() { this.r.render(this.scene, this.cam); }
 }
