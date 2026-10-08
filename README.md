@@ -33,7 +33,7 @@ Wind matters and shifts over time: sailing downwind is fast, straight into it is
 Somewhere out past the fog there is an island with a black hut on stilts. Knock (E). The old woman inside lets you throw her twenty-sided die once a day: 11 or more wins a small prize, 9 or less... she writes something down. Every throw is remembered. Story notes: `docs/PROGRESS.md`; style rules: `docs/STYLE.md`.
 
 ## Full dread (testing the effects)
-The worst water (far from home, or forced with key `5`) has ten extra effects. Pause (Esc) → **Full-dread effects (test)** lists them all:
+The worst water (far from home) has ten extra effects. For testing, open the game with `?dev=1`: then Pause (Esc) → **Full-dread effects (test)** lists them all:
 - **ON/OFF** switches each effect (saved), **All on / off** flips them all.
 - **Try** jumps straight to full dread with only that effect running (press `0` in game to stop).
 - **Go to full dread now** runs every effect that is ON together.
@@ -44,7 +44,7 @@ Glass calm · Corrupted HUD · Mad wind meter · Mara breaks · Lighthouses star
 Dread only depends on distance from home; it does not build up over time (only the leviathan ending is time-based).
 
 ## Debug / preview
-- `1`-`5` force a dread stage, `0` returns to automatic (dread rises with distance from home), `[` `]` shift the hour, `` ` `` shows a debug line.
+- With `?dev=1` only: `1`-`5` force a dread stage, `0` returns to automatic (dread rises with distance from home), `[` `]` shift the hour, `` ` `` shows a debug line.
 - URL params: `?seed=42`, `?dread=0.8`, `?fresh=1` (ignore save), `?hud=0`, `?zoom=24&pitch=0.7`, `?x=0&z=-50&h=0`, `?time=0.8` (0 = midnight, 0.5 = noon).
 
 ## Docs

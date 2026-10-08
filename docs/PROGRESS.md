@@ -43,7 +43,7 @@ For how things must look, see `STYLE.md`; for how systems work, see `DESIGN.md`.
 ### Horror layer
 - Islands swap to "wrong" decor above half dread, tentacles between islands, crows, ghost ships,
   black sun, star-eye constellation.
-- **Full dread effects** (pause menu > Full-dread effects, each can be switched off or tried alone):
+- **Full dread effects** (always on for players; with `?dev=1` the pause menu has a test list to switch or try each one):
   glass calm, corrupted HUD, mad wind meter, Mara breaks, lighthouses stare, watchers (4 looks),
   living map, time loop, wrong ocean, wrong catches, leviathan + "the Eye awakens" ending.
 
@@ -181,6 +181,6 @@ Read it before building any story part. Decided so far: the final throw of the L
 - Pause menu > New voyage (erase save), clicked twice, wipes the save and restarts. `?fresh=1` plays without loading or saving.
 - Camera: R / drag up lowers it to deck level, where the view tilts up to the sky (it never goes below the waterline).
 - `npm run dev`, then use URL flags: `?autostart=1&fresh=1&nomate=1`, `&dread=1`, `&time=0.9`, `&x=..&z=..`.
-- Keys: 1-5 force a dread stage, 0 back to automatic, [ ] change the hour, ` shows debug info.
+- Dev keys (only with `?dev=1`): 1-5 force a dread stage, 0 back to automatic, [ ] change the hour, ` shows debug info.
 - `window.__game` exposes the game (e.g. `__game.world.hutDesc` for the hut island, `__game.hut`).
 - Single-file build: `pocket-pirates.html` (JS, CSS and fonts inlined).

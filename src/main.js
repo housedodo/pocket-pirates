@@ -44,6 +44,7 @@ const store = {
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* private mode etc. */ } },
 };
 const saved = params.get('fresh') ? null : store.get(SAVE_KEY);
+const DEV = !!params.get('dev');   // ?dev=1: test keys (1-5 dread, 0, [ ], `) and the full-dread effects menu
 const settings = Object.assign({ muted: false, musicOff: false, windStyle: 'dial', hud: 'classic', tracker: true, abyss: {} }, store.get(SETTINGS_KEY) || {});
 installPixelUI();
 const state = {
@@ -349,6 +350,7 @@ window.addEventListener('keydown', (e) => {
   if (e.code === 'KeyH') $('hud').classList.toggle('hidden');
   if (e.code === 'KeyG' && !modal && started && unlocked(state, 'oars')) { ship.rowing = !ship.rowing; toast(ship.rowing ? 'Oars out' : 'Oars in, sails up', false, 2200); if (ship.rowing) objectives.remark('oars', dread); }
   if (e.code === 'KeyQ' && !modal) { settings.tracker = settings.tracker === false; store.set(SETTINGS_KEY, settings); }
+  if (!DEV) return;   // test keys only with ?dev=1
   if (e.code === 'Backquote') debugEl.style.display = debugEl.style.display === 'block' ? 'none' : 'block';
   if (e.code === 'Digit0') { forced = null; abyss.stopTest(); }
   if (/^Digit[1-5]$/.test(e.code)) forced = (parseInt(e.code.slice(5), 10) - 1) / 4;
@@ -409,6 +411,7 @@ function renderAbyssMenu() {
   }));
   $('abForce').textContent = forced === 1 ? 'Back to automatic dread' : 'Go to full dread now (all ON effects)';
 }
+if (!DEV) { $('pbAbyss').style.display = 'none'; settings.abyss = {}; }   // players get every effect, no test menu
 $('pbAbyss').addEventListener('click', () => { $('pauseMain').style.display = 'none'; $('pauseAbyss').style.display = 'block'; renderAbyssMenu(); $('abBack').focus(); });
 $('abBack').addEventListener('click', showPauseMain);
 $('abAll').addEventListener('click', () => { const any = EFFECTS.some((f) => settings.abyss[f.id] === false); for (const f of EFFECTS) settings.abyss[f.id] = any; store.set(SETTINGS_KEY, settings); renderAbyssMenu(); });
