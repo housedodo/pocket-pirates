@@ -1057,6 +1057,18 @@ window.__game = {
     this._show = new THREE.Mesh(b.geometry(), mats.props); this._show.position.set(x, 0.4, z); scene.add(this._show);
     return list;
   },
+  /** size comparison: three houses with villagers in front, the ship beside them, a 1-unit ruler */
+  scaleShot(x = 0, z = 60) {
+    if (this._show) scene.remove(this._show);
+    const b = new Builder(), rng = mulberry32(9);
+    b.box(-2, -0.6, 0, 26, 0.8, 9, '#9a7a50', TILE.planks);
+    houseKind(b, b, -11, 0.2, -1, 0, rng, 'cottage'); houseKind(b, b, -3.5, 0.2, -1.5, 0, rng, 'tavern'); houseKind(b, b, 4, 0.2, -1, 0, rng, 'townhouse');
+    VILLAGERS.forEach((k, i) => villager(b, -12 + i * 2.6, 0.2, 3.3, 0, rng, k));
+    b.box(12, -0.6, 2.5, 4, 0.8, 2, '#8a6a40', TILE.planks); villager(b, 12.6, 0.2, 2.6, Math.PI / 2, rng, 'docker'); villager(b, 11.4, 0.2, 2.2, Math.PI / 2, rng, 'fisher');   // a pier beside the ship
+    for (let i = 0; i < 4; i++) b.box(-14.5, 0.2 + i, 3.3, 0.25, 1, 0.25, i % 2 ? '#ffffff' : '#d84a3c', TILE.white);   // 4-unit ruler
+    this._show = new THREE.Mesh(b.geometry(), mats.props); this._show.position.set(x, 0.4, z); scene.add(this._show);
+    ship.pos.set(x + 15, 0, z + 2.5); ship.heading = Math.PI / 2; ship.speed = 0; ship.trim = 1;
+  },
   abyss, hut, ship, world, state, begin, scene, camera, horror, renderer, wind, weather, fauna, traffic, sea, audio, fishing, combat, objectives, hurtPlayer, openModal, closeModal, buyUpgrade, refreshMods,
 };
 if (params.get('autostart')) begin();

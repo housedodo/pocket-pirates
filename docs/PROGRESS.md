@@ -35,7 +35,11 @@ For how things must look, see `STYLE.md`; for how systems work, see `DESIGN.md`.
 ### World variety
 - Six villager designs, seven house kinds (taverns, bell towers, stilt houses...), three new island kinds:
   volcano, atoll, mangrove (each with a dark-mood detail). All emoji replaced by pixel glyphs.
-- `__game.showcase('villagers' | 'houses')` puts a lineup on a raft for screenshots.
+- **Village life by the hour** (`villagePhase`): dawn 5-8 fishers on the dock and chimney smoke; day 8-18 market
+  stalls, full crowd, dockers, laundry; evening 18-22 crowd and lanterns at the tavern; night 22-5 empty streets and
+  one watchman with a lantern. Each harbour has a liveliness from its seed; sleepy villages (about 30%) have a
+  siesta from 12-15 (hammocks, nobody else) and no night watchman. Atolls have a fisher family by day.
+- `__game.scaleShot()` shows villagers next to houses and the ship. `__game.showcase('villagers' | 'houses')` puts a lineup on a raft for screenshots.
 
 ### Newest: the dark hut
 - One island 4-6 cells from home (out of sight of the start) has a crooked black hut on stilts,

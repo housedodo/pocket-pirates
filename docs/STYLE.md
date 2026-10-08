@@ -34,6 +34,8 @@ purple and magenta cosmic horror as dread rises.
 - Vertex snapping (PS1 wobble) gets coarser as dread rises.
 
 ### People, houses, island kinds
+- **Scale:** an adult villager is about 1.4 units (`VSCALE` 0.74), a door 1.8, a cottage wall 2-3, the ship's
+  cabin about 1.3 above the deck and its mast about 7. People never tower over buildings; roughly toy-like is fine.
 - Villagers (`villager()` in `world.js`): fisher, market woman, old salt, child, docker, harbourmaster. Boxy limbs,
   6-sided torsos, blob heads, one strong prop each (hat, basket, cane, crate, ledger) so they read at a distance.
 - Houses (`houseKind()`): cottage, townhouse, stilt house, round thatched hut, tavern, warehouse, bell tower.

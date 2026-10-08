@@ -62,6 +62,7 @@ export function describeCell(cx, cz, seed) {
     else if (type === 'jungle' && v < 0.25) { desc.type = 'mangrove'; desc.H = 1.3 + vr() * 0.6; }
     if (desc.type !== type) desc.name = makeName(mulberry32(hash2(cx, cz, seed + 4343)), desc.type, dread);
   }
+  if (type === 'harbour') { desc.lively = (hash2(cx, cz, seed + 808) % 1000) / 1000; desc.sleepy = desc.lively < 0.3; }
   if (type === 'treasure') desc.puzzle = makePuzzle(mulberry32(hash2(cx, cz, seed + 31)), name, dread);
   return desc;
 }
@@ -214,7 +215,7 @@ function house(A, B, x, y, z, ry, rng) {
   A.box(0, 0, 0, w, h, dep, wall, TILE.wall, TILE.white);
   A.gable(0, h, 0, w + 0.6, 1.4 + rng() * 0.5, dep + 0.6, roof, TILE.roof, wall);
   A.box(w * 0.28, h + 0.9, -dep * 0.2, 0.55, 1.1, 0.55, '#a89a88', TILE.stone);
-  A.box(-w * 0.2, 0, dep / 2 + 0.01, 0.9, 1.5, 0.12, '#7a4e2c', TILE.planks);
+  A.box(-w * 0.2, 0, dep / 2 + 0.01, 0.95, 1.8, 0.12, '#7a4e2c', TILE.planks);
   A.box(-w * 0.2, -0.05, dep / 2 + 0.35, 1.2, 0.18, 0.7, '#8a8070', TILE.stone);            // doorstep
   for (const sx of [-1, 1]) A.box(sx * (w / 2 - 0.35), 0.95, dep / 2 + 0.03, 0.5, 0.78, 0.05, '#4a7a6a', TILE.planks); // shutters
   A.box(-w / 2 + 0.3, 0.9, dep / 2 + 0.12, 0.9, 0.18, 0.28, '#6b4a2e', TILE.planks);          // window box
@@ -235,10 +236,12 @@ function house(A, B, x, y, z, ry, rng) {
 const pickCol = (rng, arr) => arr[Math.floor(rng() * arr.length) % arr.length];
 
 // ---- villagers: six low-poly looks. Feet at y, facing +z (local), about 1.6 tall.
+// people are a bit smaller than real life next to the chunky houses: an adult is ~1.4 units, a door ~1.8
+export const VSCALE = 0.74;
 export const VILLAGERS = ['fisher', 'market', 'oldsalt', 'child', 'docker', 'harbourmaster'];
 export function villager(b, x, y, z, ry, rng, kind = pickCol(rng, VILLAGERS)) {
   const skin = pickCol(rng, SKINS), shirt = pickCol(rng, SHIRTS);
-  b.push(x, y, z, ry, kind === 'child' ? 0.68 : 1);
+  b.push(x, y, z, ry, (kind === 'child' ? 0.68 : 1) * VSCALE);
   const legs = (col) => { for (const sx of [-0.12, 0.12]) b.box(sx, 0, 0, 0.16, 0.55, 0.18, col, TILE.white); };
   const arms = (col, lift = 0) => { for (const sx of [-1, 1]) { b.push(sx * 0.32, 1.12, 0, 0, 1, 1, 1, lift, sx * 0.18); b.box(0, -0.5, 0, 0.13, 0.5, 0.14, col, TILE.white); b.pop(); } };
   const head = (r = 0.2) => b.blob(0, 1.38, 0, r, r * 1.1, r, skin, TILE.white, 0.05, x * 7 + z);
@@ -297,6 +300,37 @@ export function villager(b, x, y, z, ry, rng, kind = pickCol(rng, VILLAGERS)) {
   b.pop();
 }
 
+
+// ---- village life by the hour. Each harbour has crowds for dawn, day, evening, night (and siesta for sleepy
+// villages); only the current one is shown. `lively` (0..1, from the seed) scales how many people there are.
+export function villagePhase(hour, sleepy) {
+  if (hour >= 22 || hour < 5) return 'night';
+  if (hour < 8) return 'dawn';
+  if (hour < 18) return sleepy && hour >= 12 && hour < 15 ? 'siesta' : 'day';
+  return 'evening';
+}
+function marketStall(b, x, y, z, ry, rng) {
+  b.push(x, y, z, ry);
+  for (const [sx, sz] of [[-0.9, -0.5], [0.9, -0.5], [-0.9, 0.5], [0.9, 0.5]]) b.box(sx, 0, sz, 0.1, 1.8, 0.1, '#6b4a2e', TILE.bark);
+  b.box(0, 0, 0.45, 1.9, 0.75, 0.5, '#9a6a3a', TILE.planks);
+  const awn = pickCol(rng, ROOFS);
+  b.push(0, 1.85, 0, 0, 1, 1, 1, 0.25); b.box(0, 0, 0, 2.1, 0.08, 1.5, awn, TILE.flag); b.pop();
+  for (let i = 0; i < 5; i++) b.blob(-0.7 + i * 0.35, 0.86, 0.45 + (i % 2) * 0.1, 0.13, 0.11, 0.13, pickCol(rng, ['#f0c030', '#e85a3a', '#5ec45a', '#8a5a30', '#f4a040']), TILE.white, 0.05, i);
+  b.pop();
+}
+function hammockSleeper(b, x, y, z, ry, rng) {
+  b.push(x, y, z, ry);
+  for (const sx of [-1.4, 1.4]) b.cyl(sx, 0, 0, 0.12, 0.1, 1.6, 4, '#6b4a2e', TILE.bark);
+  b.quad([-1.3, 1.1, -0.35], [1.3, 1.1, -0.35], [1.0, 0.75, 0.35], [-1.0, 0.75, 0.35], '#d8b878', TILE.rope);
+  b.push(0, 0.95, 0, Math.PI / 2, 1, 1, 1, 0, Math.PI / 2 - 0.1); villager(b, 0, -0.75, 0, 0, rng, pickCol(rng, ['fisher', 'oldsalt', 'docker'])); b.pop();
+  b.pop();
+}
+function lanternMan(b, x, y, z, ry, rng) {
+  villager(b, x, y, z, ry, rng, 'oldsalt');
+  b.push(x, y, z, ry); b.box(0.36, 0.55, 0.12, 0.05, 0.3, 0.05, '#3a3036', TILE.stone); b.box(0.36, 0.36, 0.12, 0.2, 0.24, 0.2, '#ffffff', TILE.glow); b.pop();
+}
+function smoke(b, x, y, z, n = 4) { for (let i = 0; i < n; i++) b.blob(x + i * 0.3, y + i * 0.8, z + Math.sin(i) * 0.3, 0.3 + i * 0.16, 0.25 + i * 0.12, 0.3 + i * 0.16, i < 2 ? '#a8a4a6' : '#d0ccce', TILE.white, 0.35, i + x); }
+
 // ---- house kinds (all face +z local, base at y)
 export const HOUSES = ['cottage', 'townhouse', 'stilt', 'round', 'tavern', 'warehouse', 'belltower'];
 export function houseKind(A, B, x, y, z, ry, rng, kind) {
@@ -312,7 +346,7 @@ export function houseKind(A, B, x, y, z, ry, rng, kind) {
       A.box(0, 2.15, dep / 2 + 0.45, w * 0.7, 0.12, 0.9, '#6b4a2e', TILE.planks);
       for (let i = 0; i < 5; i++) A.box(-w * 0.33 + i * w * 0.165, 2.27, dep / 2 + 0.86, 0.07, 0.55, 0.07, '#5a3a20', TILE.bark);
       A.box(0, 2.78, dep / 2 + 0.86, w * 0.7, 0.07, 0.07, '#5a3a20', TILE.bark);
-      A.box(0.6, 0, dep / 2 + 0.01, 0.8, 1.6, 0.1, '#5a3a20', TILE.planks);
+      A.box(0.6, 0, dep / 2 + 0.01, 0.9, 1.85, 0.1, '#5a3a20', TILE.planks);
       A.box(-w * 0.25, h + 0.8, 0, 0.5, 1.2, 0.5, '#a89a88', TILE.stone);
       break;
     }
@@ -459,9 +493,11 @@ function mushroom(D, x, y, z, s = 1) {
 const SHIRTS = ['#d24a3e', '#3c78c8', '#e8c040', '#2f9a8a', '#c86a2a', '#9a6ad0', '#f0f0e8'];
 const SKINS = ['#e8b88a', '#c98e64', '#8a5a3a', '#f2cfa8'];
 function person(b, x, y, z, rng, col, hat = true) {
+  b.push(x, y, z, 0, VSCALE); x = 0; y = 0; z = 0;
   b.cyl(x, y, z, 0.3, 0.2, 0.95, 5, col || pickCol(rng, SHIRTS), TILE.white, true);
   b.blob(x, y + 1.15, z, 0.2, 0.22, 0.2, pickCol(rng, SKINS), TILE.white, 0.05, x + z);
   if (hat) b.cyl(x, y + 1.3, z, 0.34, 0.1, 0.2, 5, rng() > 0.5 ? '#6b4a2e' : '#f0e4c0', TILE.white, true);
+  b.pop();
 }
 
 function chest(b, x, y, z, ry, open) {
@@ -579,7 +615,10 @@ function decorate(d, rng, A, B, D, extra) {
     }
     case 'atoll': {
       for (let i = 0; i < 9; i++) { const th = rng() * Math.PI * 2, t = 0.7 + rng() * 0.15, x = Math.cos(th) * shoreR(d, th) * t, z = Math.sin(th) * shoreR(d, th) * t, h = terrainHeight(d, x, z); if (h > 0.4) palm(A, B, D, x, h, z, rng, 0.8 + rng() * 0.4); }
-      { const th = rng() * Math.PI * 2, t = 0.76, x = Math.cos(th) * shoreR(d, th) * t, z = Math.sin(th) * shoreR(d, th) * t; houseKind(A, B, x, Math.max(0.3, terrainHeight(d, x, z)), z, th + Math.PI / 2, rng, 'stilt'); }
+      { const th = rng() * Math.PI * 2, t = 0.76, x = Math.cos(th) * shoreR(d, th) * t, z = Math.sin(th) * shoreR(d, th) * t, h = Math.max(0.3, terrainHeight(d, x, z)); houseKind(A, B, x, h, z, th + Math.PI / 2, rng, 'stilt');
+        const cr = extra.crowd = { dawn: new Builder(), day: new Builder() };
+        villager(cr.dawn, x * 0.8, Math.max(0.3, terrainHeight(d, x * 0.8, z * 0.8)), z * 0.8, th + Math.PI, rng, 'fisher');
+        villager(cr.day, x * 0.85, Math.max(0.3, terrainHeight(d, x * 0.85, z * 0.85)), z * 0.85, th + Math.PI, rng, 'fisher'); villager(cr.day, x * 0.9 + 1, Math.max(0.3, terrainHeight(d, x * 0.9 + 1, z * 0.9)), z * 0.9, th, rng, 'child'); }
       D.cyl(0, -1.5, 0, 0.6, 0.35, 4.5, 4, '#ffffff', TILE.void, true);   // something stands up in the lagoon at night
       break;
     }
@@ -673,6 +712,7 @@ function decorate(d, rng, A, B, D, extra) {
         const x = Math.cos(th) * rho, z = Math.sin(th) * rho;
         const kind = placed === 0 ? 'tavern' : placed === 1 && rng() < 0.45 ? 'belltower' : pickCol(rng, ['cottage', 'cottage', 'townhouse', 'townhouse', 'round', 'stilt', 'warehouse']);
         houseKind(A, B, x, d.H - 0.1, z, Math.atan2(-x, -z), rng, kind);
+        if (kind === 'tavern') extra.tavern = { x, z, ry: Math.atan2(-x, -z) };
         placed++;
       }
       // lighthouse opposite the dock (not every harbour has one)
@@ -707,17 +747,35 @@ function decorate(d, rng, A, B, D, extra) {
         else ropeCoil(A, x, d.H - 0.1, z, 1.1);
       }
       for (let i = 0; i < 2; i++) { const th = dockTh + Math.PI * 0.5 + i * Math.PI * 0.9 + rng() * 0.4, rho = shoreR(d, th) * 0.62; fishRack(A, Math.cos(th) * rho, d.H - 0.1, Math.sin(th) * rho, rng() * 3); }
-      { const th = dockTh + 1.6 + rng() * 0.8, rho = shoreR(d, th) * 0.5; washing(A, Math.cos(th) * rho, d.H - 0.1, Math.sin(th) * rho, rng() * 3, rng); }
       { const th = dockTh - 1.4 - rng() * 0.6, rho = shoreR(d, th) * 0.86; fence(A, Math.cos(th) * rho, d.H - 0.1, Math.sin(th) * rho, th + 1.57, 5); }
       { const th = dockTh + 0.7 + rng() * 0.5, rho = shoreR(d, th) * 0.97, h = terrainHeight(d, Math.cos(th) * rho, Math.sin(th) * rho); if (h > 0.1) beachedBoat(A, Math.cos(th) * rho, h, Math.sin(th) * rho, th + 1.57); }
-      // people: idlers always, a crowd while it's cheerful, silent watchers at the shore when it isn't
-      for (let i = 0; i < 4; i++) {
-        const th = rng() * Math.PI * 2, rho = shoreR(d, th) * (0.18 + rng() * 0.3);
-        villager(A, Math.cos(th) * rho, d.H - 0.1, Math.sin(th) * rho, rng() * 6.28, rng);
-      }
-      for (let i = 0; i < 7; i++) {
-        const th = rng() * Math.PI * 2, rho = shoreR(d, th) * (0.12 + rng() * 0.45);
-        villager(B, Math.cos(th) * rho, d.H - 0.1, Math.sin(th) * rho, rng() * 6.28, rng);
+      // people, by the hour (see villagePhase): who is out depends on the time of day and on the village's mood
+      {
+        const lively = d.lively, n = (k) => Math.max(1, Math.round(k * (0.4 + lively)));
+        const cr = extra.crowd = { dawn: new Builder(), day: new Builder(), evening: new Builder(), night: new Builder(), siesta: new Builder() };
+        const yy = d.H - 0.1, at = (t0, t1) => { const th = rng() * Math.PI * 2, rho = shoreR(d, th) * (t0 + rng() * (t1 - t0)); return [Math.cos(th) * rho, Math.sin(th) * rho]; };
+        const dockAt = (r, side) => [Math.cos(dockTh) * r - Math.sin(dockTh) * side, Math.sin(dockTh) * r + Math.cos(dockTh) * side];
+        // dawn: fishers on the dock, smoke from the tavern, one early riser
+        for (let i = 0; i < n(3); i++) { const [x, z] = dockAt(R * 0.7 + i * 3.2, i % 2 ? 1.0 : -1.0); villager(cr.dawn, x, 0.84, z, -dockTh + (i % 2 ? 0 : Math.PI), rng, 'fisher'); }
+        { const [x, z] = at(0.15, 0.4); villager(cr.dawn, x, yy, z, rng() * 6.28, rng, 'market'); }
+        // day: market stalls around the square, the full crowd, dockers by the water, laundry out
+        for (let i = 0; i < n(3); i++) { const a = rng() * 6.28, r = 3.5 + rng() * 2.5, x = Math.cos(a) * r, z = Math.sin(a) * r; marketStall(cr.day, x, yy, z, Math.atan2(-x, -z) + Math.PI, rng); villager(cr.day, x * 1.25, yy, z * 1.25, Math.atan2(-x, -z), rng, 'market'); }
+        for (let i = 0; i < n(11); i++) { const [x, z] = at(0.12, 0.6); villager(cr.day, x, yy, z, rng() * 6.28, rng, pickCol(rng, ['fisher', 'market', 'oldsalt', 'child', 'child', 'docker', 'harbourmaster'])); }
+        for (let i = 0; i < n(2); i++) { const [x, z] = dockAt(R * 0.6 + i * 2.5, i % 2 ? 0.9 : -0.9); villager(cr.day, x, 0.84, z, -dockTh, rng, 'docker'); }
+        { const th = dockTh + 1.6 + rng() * 0.8, rho = shoreR(d, th) * 0.5; washing(cr.day, Math.cos(th) * rho, yy, Math.sin(th) * rho, rng() * 3, rng); }
+        // evening: everyone at the tavern, lanterns lit, smoke
+        const tv = extra.tavern;
+        if (tv) {
+          const fx = Math.sin(tv.ry), fz = Math.cos(tv.ry);
+          for (let i = 0; i < n(9); i++) { const a = (rng() - 0.5) * 2.4, r = 2.6 + rng() * 3, dx = Math.sin(tv.ry + a) * r, dz = Math.cos(tv.ry + a) * r; villager(cr.evening, tv.x + dx, yy, tv.z + dz, Math.atan2(-dx, -dz), rng, pickCol(rng, ['fisher', 'oldsalt', 'docker', 'market', 'harbourmaster'])); }
+          for (const side of [-1, 1]) { const lx = tv.x + fx * 4 + fz * side * 2, lz = tv.z + fz * 4 - fx * side * 2; cr.evening.box(lx, yy, lz, 0.12, 2.0, 0.12, '#3a3036', TILE.bark); cr.evening.box(lx, yy + 2.0, lz, 0.32, 0.36, 0.32, '#ffffff', TILE.glow); }
+          cr.evening.push(tv.x, yy, tv.z, tv.ry); smoke(cr.evening, -1.56, 5.2, -0.76, 5); cr.evening.pop();
+          cr.dawn.push(tv.x, yy, tv.z, tv.ry); smoke(cr.dawn, -1.56, 5.2, -0.76, 3); cr.dawn.pop();
+        }
+        // night: empty streets, one watchman with a lantern near the dock (none at all in a sleepy village)
+        if (lively > 0.3) { const [x, z] = dockAt(R * 0.45, 1.2); lanternMan(cr.night, x, yy, z, -dockTh, rng); }
+        // siesta (sleepy villages only, midday): hammocks between the houses, nobody else
+        if (d.sleepy) for (let i = 0; i < 2; i++) { const [x, z] = at(0.2, 0.5); hammockSleeper(cr.siesta, x, yy, z, rng() * 6.28, rng); }
       }
       const nW = 11;
       for (let i = 0; i < nW; i++) {
@@ -791,6 +849,13 @@ export class Island {
       this.setDug(dug);
     }
 
+    this.crowd = {};
+    for (const [k, cb] of Object.entries(extra.crowd || {})) { const m = add(cb, mats.props); if (m) { m.visible = false; this.crowd[k] = m; } }
+    if (extra.crowd) this.anim.push((t, isl) => {
+      const phase = isl.tod ? villagePhase(isl.tod.t * 24, d.sleepy) : 'day';
+      isl.phase = phase;
+      for (const [k, m] of Object.entries(isl.crowd)) m.visible = !isl.isDark && k === phase;
+    });
     this.walkers = [];
     for (const w of extra.walkers || []) {
       const pb = new Builder();
@@ -801,7 +866,7 @@ export class Island {
     }
     if (this.walkers.length) {
       this.anim.push((t, isl) => {
-        const show = !isl.isDark && (!isl.tod || isl.tod.night < 0.65);
+        const show = !isl.isDark && (isl.phase === 'dawn' || isl.phase === 'day' || isl.phase === 'evening' || !isl.phase);
         for (const { mesh, w } of isl.walkers) {
           mesh.visible = show;
           if (!show) continue;
