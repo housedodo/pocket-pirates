@@ -1,0 +1,105 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>HOIST dark titles</title>
+<style>
+  @font-face { font-family: 'Silkscreen'; font-weight: 700; src: url(fonts/silkscreen.woff2) format('woff2'); }
+  @font-face { font-family: 'Pirata One'; src: url(fonts/pirataone.woff2) format('woff2'); }
+  @font-face { font-family: 'Rye'; src: url(fonts/rye.woff2) format('woff2'); }
+  @font-face { font-family: 'Big Shoulders Display'; font-weight: 900; src: url(fonts/bigshouldersdisplay.woff2) format('woff2'); }
+  @font-face { font-family: 'Cinzel'; font-weight: 700; src: url(fonts/cinzel.woff2) format('woff2'); }
+  @font-face { font-family: 'IM Fell English SC'; src: url(fonts/imfellenglishsc.woff2) format('woff2'); }
+  body { margin: 0; background: #0b0a12; color: #e8dcc0; font: 16px 'IM Fell English SC', serif; padding: 16px; }
+  h1 { font-weight: 400; font-size: 26px; margin: 0 0 4px; color: #e0b860; } p { margin: 0 0 16px; max-width: 900px; color: #b0a488; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 620px), 1fr)); gap: 24px; }
+  figure { margin: 0; } canvas { width: 100%; display: block; image-rendering: pixelated; box-shadow: 0 0 0 4px #5a3a1c, 8px 8px 0 4px rgba(0,0,0,.5); }
+  figcaption { margin-top: 12px; } figcaption b { color: #e0b860; font-weight: 400; }
+</style></head><body>
+<h1>HOIST: darker, wood and sailcloth</h1>
+<p>Night, dusk and blue hour from the game's own renderer. Lettering in timber, tar, bone and old sailcloth, drawn at the game's low resolution.</p>
+<div class="grid">
+  <figure><canvas id="c1" width="1280" height="720"></canvas><figcaption><b>1 · Carved timber.</b> Block letters cut from weathered planks, standing in deep perspective like the Papers, Please logo. Pixel menu with dotted rules.</figcaption></figure>
+  <figure><canvas id="c2" width="1280" height="720"></canvas><figcaption><b>2 · Old chart.</b> A flared pirate serif in bone white with a dried-blood shadow over the dusk, in the spirit of Monkey Island. Engraved small caps for the menu.</figcaption></figure>
+  <figure><canvas id="c3" width="1280" height="720"></canvas><figcaption><b>3 · Woodtype.</b> Slanted wood-type poster letters, banded from honey to dark oak with a deep tar shadow, like a SNES title screen.</figcaption></figure>
+  <figure><canvas id="c4" width="1280" height="720"></canvas><figcaption><b>4 · Sail and tar.</b> Tall, condensed sailcloth letters over the night sea, a heavy tar-red band below, quiet serif menu. The Resident Evil 2 approach: big, plain, confident.</figcaption></figure>
+</div>
+<script>
+const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
+let seed = 3; const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+const hex = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+function canvas(w, h) { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; }
+function mask(w, h, draw) { const c = canvas(w, h), x = c.getContext('2d'); x.fillStyle = '#fff'; x.strokeStyle = '#fff'; draw(x); return c; }
+function tint(src, col) { const c = canvas(src.width, src.height), x = c.getContext('2d'); x.drawImage(src, 0, 0); x.globalCompositeOperation = 'source-in'; x.fillStyle = col; x.fillRect(0, 0, c.width, c.height); return c; }
+/** fill a mask with banded, dithered colours from top to bottom; extra(x, y) can darken a pixel (grain, stripes) */
+function shade(src, cols, top, bot, extra) {
+  const w = src.width, h = src.height, c = canvas(w, h), x = c.getContext('2d'), md = src.getContext('2d').getImageData(0, 0, w, h).data, img = x.createImageData(w, h), d = img.data, cc = cols.map(hex);
+  for (let y = 0; y < h; y++) for (let X = 0; X < w; X++) {
+    const i = (y * w + X) * 4; if (md[i + 3] < 128) continue;
+    const k = (y - top) / Math.max(1, bot - top) * (cc.length - 1) + BAYER[(y % 4) * 4 + (X % 4)] / 16 - 0.5;
+    let col = cc[Math.max(0, Math.min(cc.length - 1, Math.round(k)))], m = extra ? extra(X, y) : 1;
+    d[i] = col[0] * m; d[i + 1] = col[1] * m; d[i + 2] = col[2] * m; d[i + 3] = 255;
+  }
+  x.putImageData(img, 0, 0); return c;
+}
+function wear(g, y0, y1, n, light = 'rgba(232,220,192,0.35)', dark = 'rgba(20,10,4,0.5)') {
+  const w = g.canvas.width;
+  g.globalCompositeOperation = 'destination-out';
+  for (let i = 0; i < n; i++) g.fillRect(rnd() * w | 0, (y0 + rnd() * (y1 - y0)) | 0, 1 + (rnd() * 2 | 0), 1);
+  g.globalCompositeOperation = 'source-atop';
+  for (let i = 0; i < n * 1.5; i++) { g.fillStyle = rnd() < 0.5 ? light : dark; g.fillRect(rnd() * w | 0, (y0 + rnd() * (y1 - y0)) | 0, 1, 1); }
+  g.globalCompositeOperation = 'source-over';
+}
+function vignette(g, a = 0.55) { const w = g.canvas.width, h = g.canvas.height, r = g.createRadialGradient(w / 2, h / 2, h * 0.3, w / 2, h / 2, h * 0.95); r.addColorStop(0, 'rgba(0,0,0,0)'); r.addColorStop(1, `rgba(4,2,8,${a})`); g.fillStyle = r; g.fillRect(0, 0, w, h); }
+function compose(id, bg, R, draw) {
+  const im = new Image(); im.onload = () => {
+    const W = Math.floor(1280 / R), H = Math.floor(720 / R), low = canvas(W, H), g = low.getContext('2d');
+    g.drawImage(im, 0, 0, W, H); vignette(g); draw(g, W, H);
+    const out = document.getElementById(id).getContext('2d'); out.imageSmoothingEnabled = false; out.drawImage(low, 0, 0, 1280, 720);
+    window.__done = (window.__done || 0) + 1;
+  }; im.src = bg;
+}
+Promise.all(["700 30px Silkscreen", "30px 'Pirata One'", "30px Rye", "900 30px 'Big Shoulders Display'", "700 30px Cinzel", "30px 'IM Fell English SC'"].map((f) => document.fonts.load(f))).then(() => {
+  // 1 · carved timber: letters standing in perspective, extruded toward a point below
+  seed = 5; compose('c1', 'dark1.png', 3, (g, W, H) => {
+    const font = "700 44px Silkscreen", cx = W / 2, y = 74;
+    const face = mask(W, H, (x) => { x.font = font; x.textAlign = 'center'; x.fillText('HOIST', cx, y); });
+    const side = tint(face, '#3a2410'), side2 = tint(face, '#24160a');
+    for (let i = 11; i > 0; i--) { const s = 1 - i * 0.014; g.save(); g.translate(cx, y + i * 1.3); g.scale(s, s); g.translate(-cx, -y); g.drawImage(i % 3 ? side : side2, 0, 0); g.restore(); }
+    g.drawImage(shade(face, ['#e2cfa4', '#c4a878', '#9a7a4e'], y - 34, y, (X, Y) => ((Y * 7 + (X >> 3) * 3) % 11 === 0 ? 0.78 : 1)), 0, 0);   // planks with grain
+    wear(g, y - 36, y + 30, 140);
+    g.font = "700 8px Silkscreen"; g.textAlign = 'left'; const mx = 30;
+    ['SET SAIL', 'NEW VOYAGE', 'SETTINGS'].forEach((s, i) => { const yy = H - 52 + i * 15; g.fillStyle = i ? '#b8a888' : '#e2cfa4'; g.fillText(s, mx, yy); g.fillStyle = '#6a5a44'; for (let k = 0; k < 58; k += 2) g.fillRect(mx + k, yy + 3, 1, 1); });
+  });
+  // 2 · old chart: flared serif, bone white, dried-blood shadow
+  seed = 9; compose('c2', 'dark2.png', 2, (g, W, H) => {
+    const font = "112px 'Pirata One'", cx = W / 2, y = 150;
+    const face = mask(W, H, (x) => { x.font = font; x.textAlign = 'center'; x.fillText('Hoist', cx, y); });
+    for (let i = 7; i > 0; i--) g.drawImage(tint(face, i > 4 ? '#1a0606' : '#5a1612'), i * 0.6, i);
+    g.drawImage(shade(face, ['#f4ead0', '#e2d4b0', '#b8a47c'], y - 80, y), 0, 0);
+    wear(g, y - 90, y + 10, 220);
+    g.font = "18px 'IM Fell English SC'"; g.textAlign = 'left'; const mx = 44;
+    ['Set sail', 'New voyage', 'Settings'].forEach((s, i) => { const yy = H - 66 + i * 22; g.fillStyle = '#1a0606'; g.fillText(s, mx + 1, yy + 1); g.fillStyle = i ? '#b8a47c' : '#f4ead0'; g.fillText(s, mx, yy); });
+  });
+  // 3 · woodtype poster: slanted, banded honey to dark oak, deep tar shadow
+  seed = 13; compose('c3', 'dark4.png', 2, (g, W, H) => {
+    const font = "96px Rye", cx = W / 2, y = 150;
+    const face = mask(W, H, (x) => { x.font = font; x.textAlign = 'center'; x.setTransform(1, 0, -0.18, 1, 28, 0); x.fillText('HOIST', cx, y); });
+    const tar = tint(face, '#1c0e06'), rim = tint(face, '#5a2e10');
+    for (let i = 10; i > 0; i--) g.drawImage(i > 2 ? tar : rim, i * 0.4, i);
+    g.drawImage(shade(face, ['#ffd27a', '#e8a040', '#b86a20', '#7a3e12'], y - 70, y, (X, Y) => ((X * 3 + Y * 11) % 17 === 0 ? 0.8 : 1)), 0, 0);
+    wear(g, y - 80, y + 14, 260, 'rgba(255,224,160,0.35)');
+    g.font = "16px Rye"; g.textAlign = 'left'; const mx = 44;
+    ['SET SAIL', 'NEW VOYAGE', 'SETTINGS'].forEach((s, i) => { const yy = H - 64 + i * 22; g.fillStyle = '#1c0e06'; g.fillText(s, mx + 2, yy + 2); g.fillStyle = i ? '#c8a070' : '#ffd27a'; g.fillText(s, mx, yy); });
+  });
+  // 4 · sail and tar: tall condensed sailcloth letters, a heavy tar-red band
+  seed = 17; compose('c4', 'dark1.png', 2, (g, W, H) => {
+    const font = "900 150px 'Big Shoulders Display'", cx = W / 2, y = 168;
+    const face = mask(W, H, (x) => { x.font = font; x.textAlign = 'center'; x.fillText('HOIST', cx, y); });
+    for (let i = 5; i > 0; i--) g.drawImage(tint(face, '#120a08'), i, i);
+    g.drawImage(shade(face, ['#f2e8cc', '#d8c8a0', '#a8946c'], y - 110, y, (X, Y) => ((X + Y) % 4 === 0 || (X - Y) % 7 === 0 ? 0.88 : 1)), 0, 0);  // woven canvas
+    wear(g, y - 116, y + 4, 300);
+    const bw = 300; g.fillStyle = '#5a1410'; g.fillRect(cx - bw / 2, y + 12, bw, 6); g.fillStyle = '#7a2016'; g.fillRect(cx - bw / 2, y + 12, bw, 2);
+    g.font = "700 15px Cinzel"; g.textAlign = 'left'; const mx = 44;
+    ['LOAD VOYAGE', 'NEW VOYAGE', 'OPTIONS'].forEach((s, i) => { const yy = H - 70 + i * 22; g.fillStyle = '#000'; g.fillText(s, mx + 1, yy + 1); g.fillStyle = i ? '#9a8e78' : '#f2e8cc'; g.fillText(s, mx, yy); });
+  });
+});
+</script></body></html>
