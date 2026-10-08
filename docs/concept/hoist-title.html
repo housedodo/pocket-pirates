@@ -1,0 +1,114 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>HOIST title screens</title>
+<style>
+  body { margin: 0; background: #0e0a1c; color: #f4ecd0; font: 16px "Courier New", monospace; padding: 16px; }
+  h1 { font-size: 20px; font-weight: 400; color: #ffd84a; margin: 0 0 4px; }
+  p { margin: 0 0 16px; color: #c8b890; max-width: 900px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 640px), 1fr)); gap: 24px; }
+  figure { margin: 0; } canvas { width: 100%; image-rendering: pixelated; display: block; box-shadow: 0 0 0 4px #c9a85c, 8px 8px 0 4px rgba(0,0,0,.5); }
+  figcaption { margin-top: 12px; } figcaption b { color: #ffd84a; font-weight: 400; }
+</style></head><body>
+<h1>HOIST: title screen concepts</h1>
+<p>Four versions, drawn at the game's pixel scale (320×180, shown enlarged). In the game the scene behind the logo would be live: the sea moves, the ship rocks, the rope sways.</p>
+<div class="grid">
+  <figure><canvas id="a" width="320" height="180"></canvas><figcaption><b>A · Dawn, hanging from the rope.</b> The letters hang from a block and tackle and sway with the ship. On "Set sail" they are hauled up out of frame like a sail going up.</figcaption></figure>
+  <figure><canvas id="b" width="320" height="180"></canvas><figcaption><b>B · Painted on the sail.</b> Night, lighthouse beam sweeping. HOIST is painted on the mainsail; the menu sits on the dark sea. Cosy, a little lonely.</figcaption></figure>
+  <figure><canvas id="c" width="320" height="180"></canvas><figcaption><b>C · First page of the log.</b> Parchment, a rough chart, a coffee ring, HOIST stamped in red ink. Matches the Captain's log; the most handmade.</figcaption></figure>
+  <figure><canvas id="d" width="320" height="180"></canvas><figcaption><b>D · The returning player's screen.</b> Same as A after the hut: glass-calm sea, the reflection of the letters is a little wrong, something hangs below the frame on the rope.</figcaption></figure>
+</div>
+<script>
+const B = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
+// 5x7 pixel font for the few letters we need
+const F = {
+  H: ['10001','10001','10001','11111','10001','10001','10001'], O: ['01110','10001','10001','10001','10001','10001','01110'],
+  I: ['11111','00100','00100','00100','00100','00100','11111'], S: ['01111','10000','10000','01110','00001','00001','11110'],
+  T: ['11111','00100','00100','00100','00100','00100','00100'], E: ['11111','10000','10000','11110','10000','10000','11111'],
+  A: ['01110','10001','10001','11111','10001','10001','10001'], L: ['10000','10000','10000','10000','10000','10000','11111'],
+  N: ['10001','11001','10101','10011','10001','10001','10001'], W: ['10001','10001','10001','10101','10101','10101','01010'],
+  U: ['10001','10001','10001','10001','10001','10001','01110'],
+  V: ['10001','10001','10001','10001','10001','01010','00100'], Y: ['10001','10001','01010','00100','00100','00100','00100'],
+  G: ['01110','10001','10000','10111','10001','10001','01110'], R: ['11110','10001','10001','11110','10100','10010','10001'],
+  C: ['01110','10001','10000','10000','10000','10001','01110'], P: ['11110','10001','10001','11110','10000','10000','10000'],
+  '>': ['10000','01000','00100','00010','00100','01000','10000'], ' ': ['00000','00000','00000','00000','00000','00000','00000'],
+};
+function mk(id) { const c = document.getElementById(id).getContext('2d'); return c; }
+const px = (c, x, y, col) => { c.fillStyle = col; c.fillRect(x | 0, y | 0, 1, 1); };
+function grad(c, y0, y1, a, b, x0 = 0, x1 = 320) { // dithered two-colour band
+  for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) { const k = (y - y0) / (y1 - y0); px(c, x, y, k * 16 > B[(y % 4) * 4 + (x % 4)] ? b : a); }
+}
+function text(c, s, x, y, sc, col, shadow) {
+  const pass = (fill, d) => { for (const [i, ch] of [...s].entries()) { const g = F[ch] || F[' '];
+    g.forEach((row, ry) => [...row].forEach((v, rx) => { if (v === '1') { c.fillStyle = fill; c.fillRect(x + i * 6 * sc + rx * sc + d, y + ry * sc + d, sc, sc); } })); } };
+  if (shadow) pass(shadow, Math.max(1, sc)); pass(col, 0);   // whole shadow first, then the letters
+}
+const tw = (s, sc) => s.length * 6 * sc - sc;
+function waves(c, y0, col, seed) { for (let i = 0; i < 60; i++) { const x = (i * 53 + seed * 17) % 320, y = y0 + ((i * 37) % (180 - y0)); c.fillStyle = col; c.fillRect(x, y, 3 + (i % 3), 1); } }
+function ship(c, x, y, sail, hull, dark) {
+  c.fillStyle = hull; c.fillRect(x - 14, y, 28, 5); c.fillRect(x - 11, y + 5, 22, 3);
+  c.fillStyle = '#2a1608'; c.fillRect(x - 14, y, 28, 1); c.fillRect(x - 1, y - 30, 2, 30);
+  c.fillStyle = sail; for (let r = 0; r < 22; r++) c.fillRect(x + 1, y - 28 + r, Math.min(16, 4 + r * 0.7), 1);
+  for (let r = 0; r < 14; r++) c.fillRect(x - 2 - Math.min(10, r * 0.8), y - 22 + r, Math.min(10, r * 0.8), 1);
+  c.fillStyle = dark ? '#111' : '#d03a2a'; c.fillRect(x - 1, y - 34, 6, 3);
+}
+function menu(c, items, x, y, col, sel) { items.forEach((s, i) => { text(c, (i === sel ? '> ' : '  ') + s, x, y + i * 11, 1, i === sel ? '#ffd84a' : col, '#120c1c'); }); }
+function rope(c, x0, y0, x1, y1, col) { const n = Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0)); for (let i = 0; i <= n; i++) { c.fillStyle = col; c.fillRect(Math.round(x0 + (x1 - x0) * i / n), Math.round(y0 + (y1 - y0) * i / n), 2, 1); } }
+function block(c, x, y) { c.fillStyle = '#5a3a1c'; c.fillRect(x - 5, y, 10, 8); c.fillStyle = '#2a1608'; c.fillRect(x - 5, y, 10, 1); c.fillRect(x - 1, y + 2, 2, 4); }
+function hanging(c, cx, y, col, shadow, tilt = 0) { // HOIST letters each on its own rope from one beam
+  const s = 'HOIST', sc = 4, w = tw(s, sc), x0 = cx - w / 2;
+  c.fillStyle = '#5a3a1c'; c.fillRect(x0 - 12, 8, w + 24, 4); c.fillStyle = '#2a1608'; c.fillRect(x0 - 12, 11, w + 24, 1);
+  [...s].forEach((ch, i) => { const lx = x0 + i * 6 * sc, ly = y + (i % 2) * 3;
+    rope(c, lx + 10, 12, lx + 10, ly, '#8a6a3a'); text(c, ch, lx, ly, sc, col, shadow); });
+}
+
+// A: dawn
+{ const c = mk('a');
+  grad(c, 0, 70, '#f6b26b', '#ffd9a0'); grad(c, 70, 100, '#ffd9a0', '#9fd4e8');
+  c.fillStyle = '#ffe9a0'; for (let r = 0; r < 12; r++) c.fillRect(250 - r, 96 - r * 0.6, r * 2, 1);
+  grad(c, 100, 180, '#3a9ec4', '#1d5a8a'); waves(c, 104, '#bfe8f4', 1);
+  c.fillStyle = '#7a6a50'; c.fillRect(30, 94, 24, 6); c.fillStyle = '#e8e0d0'; c.fillRect(36, 80, 4, 14); c.fillStyle = '#d03a2a'; c.fillRect(36, 84, 4, 3); // lighthouse
+  ship(c, 160, 128, '#f4ecd0', '#7a4a26');
+  hanging(c, 160, 26, '#f4ecd0', '#2a1608');
+  menu(c, ['SET SAIL', 'NEW VOYAGE', 'SETTINGS'], 118, 150, '#f4ecd0', 0);
+}
+// B: painted on the sail, night
+{ const c = mk('b');
+  grad(c, 0, 100, '#0c0a24', '#1e2050'); for (let i = 0; i < 70; i++) px(c, (i * 97) % 320, (i * 41) % 95, i % 5 ? '#8a8ec0' : '#fff4d8');
+  grad(c, 100, 180, '#14284a', '#081428'); waves(c, 104, '#3a5a8a', 2);
+  c.fillStyle = '#3a3448'; c.fillRect(268, 82, 22, 18); c.fillStyle = '#c8c0b0'; c.fillRect(276, 60, 6, 22); c.fillStyle = '#ffe080'; c.fillRect(276, 58, 6, 4);
+  for (let i = 0; i < 60; i++) { c.fillStyle = 'rgba(255,224,128,0.18)'; c.fillRect(278 - i * 2.4, 60 - i * 0.2, 2, 4 + i * 0.25); } // beam
+  // big sail with HOIST painted on it
+  c.fillStyle = '#2a1608'; c.fillRect(158, 14, 3, 130);
+  for (let r = 0; r < 96; r++) { c.fillStyle = r % 4 ? '#d8ccb0' : '#c4b896'; c.fillRect(161, 22 + r, Math.min(90, 30 + r * 0.9), 1); }
+  text(c, 'HOIST', 168, 60, 3, '#7a1a14', null);
+  c.fillStyle = '#4a2a14'; c.fillRect(120, 140, 120, 8); c.fillRect(126, 148, 108, 5); c.fillStyle = '#ffd060'; c.fillRect(132, 136, 3, 4);
+  menu(c, ['SET SAIL', 'NEW VOYAGE', 'SETTINGS'], 14, 120, '#c8c0e0', 0);
+}
+// C: the log page
+{ const c = mk('c');
+  grad(c, 0, 180, '#3a2412', '#24160a');
+  for (let y = 10; y < 170; y++) for (let x = 20; x < 300; x++) { const k = 2 + Math.sin(x * 0.05 + y * 0.03) * 0.4 + (B[(y % 4) * 4 + (x % 4)] / 16 - 0.5); px(c, x, y, ['#a88a56', '#c9a86a', '#e8d4a0', '#f2e2b8'][Math.max(0, Math.min(3, Math.round(k)))]); }
+  c.fillStyle = '#5a3a1c'; c.fillRect(159, 10, 2, 160); // spine
+  // island outlines and dashed course on the right page
+  const isl = (x, y, r) => { for (let a = 0; a < 6.28; a += 0.05) { const rr = r * (1 + 0.2 * Math.sin(a * 3)); c.fillStyle = '#5a3a1c'; c.fillRect(x + Math.cos(a) * rr, y + Math.sin(a) * rr * 0.7, 2, 2); } };
+  isl(200, 60, 14); isl(256, 112, 10); isl(214, 140, 6);
+  for (let i = 0; i < 18; i++) if (i % 2) { c.fillStyle = '#a8301c'; c.fillRect(204 + i * 3, 70 + i * 2.4, 2, 2); }
+  for (let a = 0; a < 6.28; a += 0.06) { c.fillStyle = 'rgba(120,70,30,0.5)'; c.fillRect(260 + Math.cos(a) * 18, 40 + Math.sin(a) * 18, 2, 2); } // coffee ring
+  text(c, 'HOIST', 36, 44, 4, '#a8301c', 'rgba(60,20,10,0.35)');
+  c.fillStyle = '#5a3a1c'; c.fillRect(36, 78, 112, 2);
+  menu(c, ['SET SAIL', 'NEW VOYAGE', 'SETTINGS'], 40, 100, '#3a2210', 0);
+}
+// D: the returning player's screen
+{ const c = mk('d');
+  grad(c, 0, 100, '#2a1838', '#6a4a6a');
+  c.fillStyle = '#d8b0e8'; for (let r = 0; r < 10; r++) c.fillRect(70 - r, 60 - r * 0.6, r * 2, 1);
+  grad(c, 100, 180, '#4a3a5a', '#2a2038'); // glass-calm sea: no waves
+  ship(c, 160, 128, '#c8b8c8', '#4a2a2a', true);
+  hanging(c, 160, 26, '#e8dcd0', '#1a0a14', 2);
+  // reflection of the letters in the glass, one letter wrong
+  c.save(); c.globalAlpha = 0.35; c.translate(0, 200); c.scale(1, -1); text(c, 'HOIST', 160 - tw('HOIST', 4) / 2 + 3, 26 + 66, 4, '#d8b0e8', null); c.restore();
+  // something hangs from the last rope, below the frame
+  rope(c, 278, 12, 278, 180, '#5a4a3a');
+  menu(c, ['CONTINUE', 'NEW VOYAGE', 'SETTINGS'], 118, 150, '#d8c8e0', 0);
+}
+</script></body></html>
