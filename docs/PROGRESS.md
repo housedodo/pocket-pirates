@@ -136,6 +136,13 @@ New voyage goes straight into the game (no title). A new voyage starts moored al
   (after ~2.5 minutes at full dread). The ending currently loops you back to Tama with a wake-up line.
 - To be linked with the hut: the lady's ledger and the Eye are connected (see brainstorm).
 
+### The ship and her opposite
+- Your ship is **the Merry Gull** (small, cheerful, ours).
+- Far into the story a ghost ship may appear, or only be mentioned: **the Pained Raven** (working name; maybe the
+  Mournful Raven), the Gull's exact opposite. Not in the game yet. Possible seeds already there: the shipwright finds
+  another name scratched inside the hull ("Not the Gull. I left it."), and a bottle captain on your exact route.
+  Never explain who sails her.
+
 ### Mara
 - At full dread she forgets her village, says things she should not, stops answering hints.
 - Not resolved: what Mara is, and whether she remembers any of it when you are back home.

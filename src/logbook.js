@@ -293,7 +293,7 @@ export class Logbook {
 
   renderShip() {
     const { state, ship } = this.d;
-    let html = h3('The Pocket Pearl') + ent(`${state.gold} gold`, `hull ${Math.round(state.hp)}/${ship.mods.maxHp} · ${state.ammo} cannonballs`);
+    let html = h3('The Merry Gull') + ent(`${state.gold} gold`, `hull ${Math.round(state.hp)}/${ship.mods.maxHp} · ${state.ammo} cannonballs`);
     html += h3('Fittings') + UPGRADES.map((u) => { const lv = state.upgrades[u.id]; return ent(u.name, lv ? u.text[lv - 1].split(':')[0] : 'stock', `<span class="pips">${pxi('pip').repeat(lv)}${pxi('nopip').repeat(MAX_LEVEL - lv)}</span>`); }).join('');
     html += h3('Crew') + ((state.crew || []).length ? state.crew.map((c) => ent(`${c.name}, ${c.look}`, `${TRAITS[c.trait].name}: ${TRAITS[c.trait].text} · ${c.wish.done ? 'wish fulfilled (+1)' : c.wish.text}`)).join('') : ent('Only Mara', 'Hire hands at harbour taverns (Market tab).', '', 'dim'));
     html += h3('Looks') + GROUPS.map(([g, label, list]) => ent(label, byId(list, state.custom[g]).name)).join('');

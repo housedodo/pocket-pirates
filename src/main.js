@@ -1157,7 +1157,7 @@ function sinkPlayer() {
   setTimeout(() => {
     ship.pos.set(tgt.x, 0, tgt.z); ship.heading = 0; ship.speed = 0; camHeading = 0;
     $('fade').classList.remove('on');
-    toast(`The Pearl went under. A fisherman dragged you to ${tgt.name}. You lost ${lost} gold; the hull is repaired.`, false, 8000);
+    toast(`The Gull went under. A fisherman dragged you to ${tgt.name}. You lost ${lost} gold; the hull is repaired.`, false, 8000);
   }, 1100);
 }
 let newAsk = 0;

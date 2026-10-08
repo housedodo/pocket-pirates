@@ -47,7 +47,7 @@ const MAP_NAMES = ['Here', 'Where you drowned', 'Tama?', 'The Last Harbour', 'Yo
 const MEMORIES = [
   ['Your own compass', 'It points at you.'], ['A letter in your handwriting', 'You have not written it yet.'], ['Mara\'s hat', 'It is dry.'],
   ['The fish you caught yesterday', 'Still alive. Still looking at you.'], ['A key to your cabin', 'The lock was changed long ago.'],
-  ['A small wooden ship', 'It is the Pearl, carved by someone who knew it well.'], ['A lantern, still lit', 'Underwater. For years.'],
+  ['A small wooden ship', 'It is the Gull, carved by someone who knew it well.'], ['A lantern, still lit', 'Underwater. For years.'],
 ];
 const GLITCH = '▓▒░█▚▞';
 const pick = (a) => a[Math.floor(Math.random() * a.length)];

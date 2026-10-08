@@ -33,7 +33,7 @@ ledger or anything below the sea. Everything should just feel slightly off.
 - *Wish fulfilled:* "Look at {crew}. I have never seen anyone smile with only their eyebrows before."
 
 ### Mara: the chapters
-- "Morning, Captain! I am Mara, your first mate, and this is the Pocket Pearl. She is small, but she is ours."
+- "Morning, Captain! I am Mara, your first mate, and this is the Merry Gull. She is small, but she is ours."
 - "Welcome to Tama! Old Perrin left something for you with the harbourmaster."
 - "Ha! Treasure! A captain with gold in the hold is a captain with options."
 - "A fine start to a map. Perrin would be proud. Probably. Nobody has seen him smile."
@@ -131,7 +131,7 @@ ledger or anything below the sea. Everything should just feel slightly off.
 - *Dark loot:* A jar of teeth · A map of somewhere that is not here · A conch that whispers your name · A coin with two faces, both yours · A lantern full of dark · Seaweed that remembers · A drawing of the sea, from underneath · A key to a door you have not found
 - *Dark barrels:* barrel of black water · crate of teeth · barrel that hums · sack of wet stars
 - *Dark cargo:* a sealed jar (do not open) · a letter in a language nobody speaks · a crate that is slightly too warm · a bell with no clapper · a box that has stopped ticking · a lantern, unlit, heavy
-- *Memories on the line:* Your own compass (It points at you.) · A letter in your handwriting (You have not written it yet.) · Mara's hat (It is dry.) · The fish you caught yesterday (Still alive. Still looking at you.) · A key to your cabin (The lock was changed long ago.) · A small wooden ship (It is the Pearl, carved by someone who knew it well.) · A lantern, still lit (Underwater. For years.)
+- *Memories on the line:* Your own compass (It points at you.) · A letter in your handwriting (You have not written it yet.) · Mara's hat (It is dry.) · The fish you caught yesterday (Still alive. Still looking at you.) · A key to your cabin (The lock was changed long ago.) · A small wooden ship (It is the Gull, carved by someone who knew it well.) · A lantern, still lit (Underwater. For years.)
 
 ### The HUD lies (full dread)
 - *Place names:* TURN BACK · it is behind you · HOME? · you were never here · THE EYE · the same water · here · Harbour T̶a̶m̶a̶
@@ -185,7 +185,7 @@ in `passengers.js`; the cards are in `tabletop.js`.
 - **Master Odo, a notary:** "I have a document for someone on board. It says 'the captain'. It doesn't say which one."
 
 ### Shipwright, stage 1 to 2
-- "Your hull has a name scratched inside. Not the Pearl. I left it."
+- "Your hull has a name scratched inside. Not the Gull. I left it."
 - "Funny wood, this. Grows back where I cut it."
 
 ### Sleeping at the tavern (dark rest lines)

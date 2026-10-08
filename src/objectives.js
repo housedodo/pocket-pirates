@@ -23,7 +23,7 @@ export const MAIN_GOALS = [
   {
     id: 'sail', ch: 0, title: 'Find your sea legs', reward: 20,
     text: 'Steer with A and D, set the sails with W and S. Sail about 100 units.',
-    intro: ['Morning, Captain! I am Mara, your first mate, and this is the Pocket Pearl. She is small, but she is ours.',
+    intro: ['Morning, Captain! I am Mara, your first mate, and this is the Merry Gull. She is small, but she is ours.',
       'We are still tied up at Tama, sails furled. W lets them out, S reefs them, A and D steer.',
       'The ring at the top right is the wind: the arrow shows where it blows, and the ring glows where she sails well. The little triangle is our bow.'],
     outro: ['Good. You can already feel how the wind pushes her. Beam and downwind is fast; straight into it is slow.'],

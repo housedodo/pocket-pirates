@@ -29,7 +29,7 @@ export function computeMods(lv) {
 
 const SHIPWRIGHT = [
   ['"Best timber this side of the reef, captain."', '"Fair prices, fair winds."'],
-  ['"Odd. The planks came in already cut. I never ordered them."', '"Your hull has a name scratched inside. Not the Pearl. I left it."'],
+  ['"Odd. The planks came in already cut. I never ordered them."', '"Your hull has a name scratched inside. Not the Gull. I left it."'],
   ['"The hull creaks in a rhythm now. Like breathing. Don\'t mind it."', '"Funny wood, this. Grows back where I cut it."'],
   ['"Take what you need. I\'ll stay and mind the lamps. Someone has to."'],
   ['"Upgrade it all. It will not matter, but it will be a comfort."'],

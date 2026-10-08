@@ -1,4 +1,4 @@
-// The title screen: the Pocket Pearl alone on open sea at a random hour, with the HOIST logo drawn at the game's
+// The title screen: the Merry Gull alone on open sea at a random hour, with the HOIST logo drawn at the game's
 // low resolution in bone white with a dried-blood shadow (Pirata One), dithered and a little worn.
 const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
 const hex = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
