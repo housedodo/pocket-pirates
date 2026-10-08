@@ -107,6 +107,21 @@ export const CARDS = [
       ok: (c) => { const n = 3 + Math.floor(Math.random() * 3); for (let i = 0; i < n; i++) c.state.catch.push(fishOf(c, Math.random() < 0.7 ? 'sardine' : 'snapper')); return `The nets come up heavy. ${n} fish into the hold.`; },
       fail: () => 'The shoal turns as one and is gone. The nets come up with one boot.' },
     { label: 'Just watch', go: () => 'They flash and turn like thrown coins. It is very beautiful.' }] },
+  { id: 'rowboat', icon: 'talk', title: 'A Rowboat, Empty', text: 'An empty rowboat drifts alongside, oars stowed, a cup of tea still steaming on the seat.', choices: [
+    { label: 'Take the tea', check: { label: 'Luck', kind: 'luck', dc: 10 },
+      ok: (c) => { c.state.buffs.speed = Math.max(c.state.buffs.speed, 60); return 'It is very good tea. Everyone feels quick and cheerful for a while.'; },
+      fail: () => 'You drink it. In the morning the cup is on your table, full again.' },
+    { label: 'Push it away', go: () => 'It follows you for an hour. Then it does not.' }] },
+  { id: 'buoy', icon: 'pip', title: 'A Singing Buoy', text: 'A buoy rings with no wind and no waves. It is ringing a tune.', choices: [
+    { label: 'Sail closer', check: { label: 'Luck', kind: 'luck', dc: 12 },
+      ok: (c) => { const g = 15 + Math.floor(Math.random() * 25); c.state.gold += g; return `Coins are tied to its chain, like offerings. You take a few. (+${g} gold) The tune stops.`; },
+      fail: (c) => { c.hurt(5); return 'The buoy swings round and knocks the hull, once, politely. The tune goes on.'; } },
+    { label: 'Ring your own bell back', go: () => 'You ring the ship\'s bell. The buoy waits, then rings the same tune back, one note wrong.' }] },
+  { id: 'gull', icon: 'letter', title: 'The Same Gull', text: 'A gull lands on the rail. It has a tiny brass ring on its leg, engraved with your ship\'s name.', choices: [
+    { label: 'Feed it', go: (c) => { c.repNear(); return 'It eats a biscuit, looks at you for a long time, and leaves. Somewhere, someone hears you are generous.'; } },
+    { label: 'Read the ring closely', check: { label: 'Luck', kind: 'luck', dc: 11 },
+      ok: (c) => c.rumour('a ring on a gull\'s leg') || 'Tiny letters under the name: a date. Next week\'s.',
+      fail: () => 'The gull bites you and flies off. The ring said something else on the inside. You did not see what.' }] },
   { id: 'sails', icon: 'skull', title: 'Sails on the Horizon', text: 'Red hulls, black flags, far off. They have not seen you yet.', minDread: 0.15, choices: [
     { label: 'Fly friendly colours', check: { label: 'Talk', kind: 'talk', dc: 12 },
       ok: () => 'They dip their flag at your merchant pennant and sail on. Rude, but harmless.',

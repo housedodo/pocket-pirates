@@ -134,6 +134,15 @@ export const SIDE_GOALS = [
 ];
 
 // one-off remarks the mate makes when things happen
+// Mara, now and then on a quiet stretch once the sea starts to feel off: cheerful, a little wrong
+export const MUSINGS = [
+  'Do you hear that? No? Good. Me neither.',
+  'Back home we never whistled on deck. I forget why. Probably nothing.',
+  'I counted the waves once. Got to a very big number and then I lost count. Or it did.',
+  'Funny how the horizon never gets any closer, isn\'t it? Not funny ha-ha.',
+  'The bell back home rang twice every hour. Nobody knew why. Nobody minded.',
+  'If anyone asks, you have always been the captain. Seems like the sort of thing people ask out here.',
+];
 export const REMARKS = {
   dusk: ['The sun is going. Lighthouses only light at dusk, so keep one in sight if you can.'],
   rain: ['Rain. Good for the water barrels, bad for the view.'],

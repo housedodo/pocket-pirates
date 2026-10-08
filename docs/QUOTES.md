@@ -1,7 +1,7 @@
 # Pocket Pirates: lines and quotes
 
-Everything the game says, sorted by where it appears, followed by new demo lines (marked **NEW**) that are
-not in the game yet. Pure instructions (tutorial text such as "press E to dig") are left out.
+Everything the game says, sorted by where it appears. Section 2 lists the odd demo lines added later; they
+are all in the game now. Pure instructions (tutorial text such as "press E to dig") are left out.
 
 Dread stages: **0** sunny, **1** off, **2** wrong, **3** eerie, **4** cosmic. The demo stays within the
 0-2 range, so the new lines are odd but never spoil the story. They do not name the Eye, the Lady, the
@@ -141,9 +141,11 @@ ledger or anything below the sea. Everything should just feel slightly off.
 
 ---
 
-## 2. NEW: odd lines for the demo
+## 2. Odd lines for the demo (in the game)
 
-Slightly wrong, never explained. Grouped by where they would go.
+Slightly wrong, never explained. Mara's musings come at most every 4-7 minutes on a quiet stretch once the sea
+feels off (dread 0.2-0.7, no passenger aboard), each only once. The three passengers have two more lines each
+in `passengers.js`; the cards are in `tabletop.js`.
 
 ### Harbour gossip, stage 0 (cheerful, with one odd detail)
 - "Lovely weather. Been lovely for a while now. Nobody can say how long."
@@ -172,15 +174,15 @@ Slightly wrong, never explained. Grouped by where they would go.
 ### Mara, cheerful but off (stage 1 to 2, short)
 - "Do you hear that? No? Good. Me neither."
 - "Back home we never whistled on deck. I forget why. Probably nothing."
-- "I counted the waves once. Got to a very big number and then it started counting me back. Joking! Mostly."
+- "I counted the waves once. Got to a very big number and then I lost count. Or it did."
 - "Funny how the horizon never gets any closer, isn't it? Not funny ha-ha."
 - "The bell back home rang twice every hour. Nobody knew why. Nobody minded."
 - "If anyone asks, you have always been the captain. Seems like the sort of thing people ask out here."
 
 ### Passengers (new, odd)
 - **A quiet woman in grey:** "I'm going home. I'll know it when I see it. I always do. It always moves a little."
-- **A boy with a lantern:** "My mum said keep it lit till we land. She didn't say which land."
-- **A notary:** "I have a document for someone on board. It says 'the captain'. It doesn't say which one."
+- **Pim, a boy with a lantern:** "My mum said keep it lit till we land. She didn't say which land."
+- **Master Odo, a notary:** "I have a document for someone on board. It says 'the captain'. It doesn't say which one."
 
 ### Shipwright, stage 1 to 2
 - "Your hull has a name scratched inside. Not the Pearl. I left it."
@@ -192,5 +194,5 @@ Slightly wrong, never explained. Grouped by where they would go.
 
 ### Encounter card ideas (story-safe)
 - **A Rowboat, Empty:** "An empty rowboat drifts alongside, oars stowed, a cup of tea still steaming on the seat." Choices: *Take the tea* (Luck: a pleasant warmth / the cup is full again in the morning) · *Push it away* ("It follows you for an hour, then doesn't.")
-- **Singing Buoy:** "A buoy rings with no wind and no waves. It is ringing a tune." Choices: *Sail closer* · *Ring your own bell back*
-- **The Same Gull:** "A gull lands on the rail. It has a tiny brass ring on its leg, engraved with your ship's name."
+- **Singing Buoy:** "A buoy rings with no wind and no waves. It is ringing a tune." Choices: *Sail closer* (Luck: coins tied to its chain / it knocks the hull, politely) · *Ring your own bell back* (it answers, one note wrong)
+- **The Same Gull:** "A gull lands on the rail. It has a tiny brass ring on its leg, engraved with your ship's name." Choices: *Feed it* · *Read the ring closely* (Luck: a treasure rumour / it bites you)

@@ -25,6 +25,18 @@ const PEOPLE = [
     'Lost mine to a whirlpool off the Pearl Banks. Sail round them, never through. Never.',
     'Raiders fly black flags but sail red hulls. If you see red at dusk, put out your lanterns.',
     'A good crew is worth more than a good ship. Yours seems... spirited.'] },
+  { name: 'A quiet woman in grey', who: 'going home', lines: [
+    'I\'m going home. I\'ll know it when I see it. I always do. It always moves a little.',
+    'You have kind hands, captain. Rope-burned. Mine used to be like that.',
+    'No, I don\'t need anything to eat. Thank you. I ate, before.'] },
+  { name: 'Pim', who: 'a boy with a lantern', lines: [
+    'My mum said keep it lit till we land. She didn\'t say which land.',
+    'Do boats dream? I think this one does. It keeps turning left in its sleep.',
+    'I\'m not scared of the dark. The dark is scared of the lantern. Mum said.'] },
+  { name: 'Master Odo', who: 'a notary with a sealed letter', lines: [
+    'I have a document for someone on board. It says "the captain". It doesn\'t say which one.',
+    'Everything must be signed, captain. Births, ships, tides. Somebody signs the tides, you know.',
+    'Your name, for my records? ...Never mind. I seem to have it already.'] },
 ];
 const MARA_BANTER = [
   ['Is she always this cheerful?', 'Always! Even in storms. ESPECIALLY in storms.'],

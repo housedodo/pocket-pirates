@@ -77,12 +77,15 @@ For how things must look, see `STYLE.md`; for how systems work, see `DESIGN.md`.
 - Signs instead of HUD text: a red evening sky means a storm is coming; the harbourmaster only says to watch the sky.
 - Later: rain makes fruit regrow and rare fish bite, wet decks steer slower.
 
+### Lines
+- Every line in the game is collected in `docs/QUOTES.md` (with the odd demo lines in section 2).
+
 ### Tabletop (src/tabletop.js)
 - **d20 checks:** a low-poly 3D d20 (same build as the Lady's, `src/dice3d.js`, paler bone) tumbles on screen against a number (Seamanship, Talk, Luck); crew traits and standing add
   bonuses, natural 20 always wins, natural 1 always fails. Used by haggling (Market tab, once a day per harbour:
   +30% / +50% on a 20, or -10%) and by encounter cards.
 - **Encounter cards:** every 3-6 minutes on open water a card turns over (floating chest, stowaway, peddler, squall,
-  castaway, shoal, sails on the horizon, and at high dread a patch of glass). Two choices, many with a roll. Keys 1/2.
+  castaway, shoal, sails on the horizon, an empty rowboat, a singing buoy, the same gull, and at high dread a patch of glass). Two choices, many with a roll. Keys 1/2.
 - **Crew:** up to two hired hands (taverns, Market tab), each silent, with a trait (Lucky, Old salt, Silver tongue,
   Strong rower, Sharp-eyed, Superstitious) and a wish (see a volcano/atoll/mangrove, visit family in a harbour).
   A fulfilled wish adds +1 to their bonus. Castaways can join for free. Listed in the log's Ship tab.

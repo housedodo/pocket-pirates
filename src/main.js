@@ -23,7 +23,7 @@ import { sectorAt, sectorInfo, sectorCoord, FACTIONS } from './sectors.js';
 import { KINDS } from './traffic.js';
 import { Fishing, fishById } from './fishing.js';
 import { Combat } from './combat.js';
-import { Objectives, MAIN_GOALS, CHAPTERS, unlocked, gateRadius, chapterOf, goalText } from './objectives.js';
+import { Objectives, MUSINGS, MAIN_GOALS, CHAPTERS, unlocked, gateRadius, chapterOf, goalText } from './objectives.js';
 import { GROUPS, DEFAULT_CUSTOM, byId } from './customize.js';
 import { Wind } from './wind.js';
 import { WindFX } from './windfx.js';
@@ -463,7 +463,8 @@ function acceptCommission(o) {
 }
 
 const REST_LINES = ['You sleep like a stone. Gulls wake you at dawn.', 'Somebody snored all night. Possibly you.', 'You dream of warm water and wake up hungry.'];
-const REST_DARK = ['You sleep. Someone sat by your bed all night; the chair is still warm.', 'You wake at dawn. Your boots are wet, and full of sand you do not recognise.'];
+const REST_DARK = ['You sleep. Someone sat by your bed all night; the chair is still warm.', 'You wake at dawn. Your boots are wet, and full of sand you do not recognise.',
+  'You sleep well. The innkeeper says you talked all night, in a voice that was not yours.', 'Your room had two beds. In the morning, both were slept in.'];
 function restAtTavern(cost) {
   if (state.gold < cost) return;
   state.gold -= cost;
@@ -1043,7 +1044,7 @@ function revealHut() {
 }
 function showDemoEnd() { $('demoend').classList.add('show'); }
 $('demoGo').addEventListener('click', () => { $('demoend').classList.remove('show'); state.story.free = true; toast('The fog thins. The sea is yours.', false, 5000); });
-let gateFog = 0, gateToastT = 0;
+let gateFog = 0, gateToastT = 0, musingT = 120;
 function seaGate(dt) {
   const R = gateRadius(state), d = Math.hypot(ship.pos.x, ship.pos.z);
   gateFog = R === Infinity ? 0 : clamp((d - (R - 160)) / 160, 0, 1);
@@ -1182,6 +1183,10 @@ function frame() {
   combat.update(dt, waveT, { ship, traffic, wave: stage.wave, onHitEnemy, onHitPlayer: hurtPlayer });
   if (live && tNow - lastHit > 12 && state.hp < ship.mods.maxHp) state.hp = Math.min(ship.mods.maxHp, state.hp + dt);
   objectives.update(dt, dread);
+  if (live && !state.passenger && dread > 0.2 && dread < 0.7 && ship.speed > 1) {   // Mara muses on quiet stretches
+    musingT -= dt;
+    if (musingT <= 0 && !objectives.mate.busy) { musingT = 240 + Math.random() * 200; const m = MUSINGS.filter((x) => !state.hints['muse:' + x]); if (m.length) { const l = m[Math.floor(Math.random() * m.length)]; state.hints['muse:' + l] = true; objectives.mate.say(l); } }
+  }
   if (live && state.passenger && ship.speed > 1) passengerTalk(state.passenger, dt, { mate: objectives.mate, world, ship, state, dread, storm: weather.storm });
   if (live) {
     if (tod.night > 0.35 || tod.twilight > 0.6) objectives.remark('dusk');
