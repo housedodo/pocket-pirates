@@ -189,4 +189,5 @@ Read it before building any story part. Decided so far: the final throw of the L
 - `npm run dev`, then use URL flags: `?autostart=1&fresh=1&nomate=1`, `&dread=1`, `&time=0.9`, `&x=..&z=..`.
 - Dev keys (only with `?dev=1`): 1-5 force a dread stage, 0 back to automatic, [ ] change the hour, ` shows debug info.
 - `window.__game` exposes the game (e.g. `__game.world.hutDesc` for the hut island, `__game.hut`).
-- Single-file build: `pocket-pirates.html` (JS, CSS and fonts inlined).
+- Single-file builds (`python3 scripts/single.py`): `pocket-pirates-demo.html` (silent, no test tools) and
+  `pocket-pirates-dev.html` (all sounds, volumes, mixer on F8, test keys and the full-dread menu).

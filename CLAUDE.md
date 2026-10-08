@@ -15,6 +15,7 @@ cosmic horror. Everything is procedural: no image or model files.
 - Dev server: `npx vite --port 5173 --host 127.0.0.1`; build: `npx vite build`.
 - Test headless with Playwright (Chromium at `/opt/pw-browsers/chromium`, swiftshader flags) and the
   `window.__game` hook plus URL flags (`autostart=1&fresh=1&shot=1&nomate=1&dread=&time=&x=&z=`).
-- After a change: build, screenshot what changed, rebuild the single-file `pocket-pirates.html`
-  with `python3 scripts/single.py` (inlines the dist JS, CSS, fonts, every sound and `public/audio/volumes.json`), then commit and push.
+- After a change: build, screenshot what changed, rebuild the single-file games with `python3 scripts/single.py`:
+  `pocket-pirates-demo.html` (silent, no test tools, for sharing) and `pocket-pirates-dev.html` (every sound and
+  `public/audio/volumes.json` inlined, mixer on F8, test tools), then commit and push.
 - Keep the HUD text minimal. Keep writing short; horror is implied, never explained.

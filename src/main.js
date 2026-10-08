@@ -46,7 +46,7 @@ const store = {
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* private mode etc. */ } },
 };
 const saved = params.get('fresh') ? null : store.get(SAVE_KEY);
-const DEV = !!params.get('dev');   // ?dev=1: test keys (1-5 dread, 0, [ ], `) and the full-dread effects menu
+const DEV = !!params.get('dev') || window.__BUILD === 'dev';   // ?dev=1: test keys (1-5 dread, 0, [ ], `) and the full-dread effects menu
 const settings = Object.assign({ muted: false, musicOff: false, windStyle: 'dial', hud: 'classic', tracker: true, abyss: {} }, store.get(SETTINGS_KEY) || {});
 installPixelUI();
 const state = {

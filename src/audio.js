@@ -4,7 +4,7 @@
 import { canSynth, synth } from './synth.js';
 
 // Master switch for all sound (files in public/audio/, else the synthesised fallback).
-export const AUDIO_ENABLED = true;
+export const AUDIO_ENABLED = window.__BUILD !== 'demo';   // the demo build ships silent
 
 const STAGES = 5;
 export const CUES = {

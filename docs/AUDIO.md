@@ -3,8 +3,8 @@
 **Sound is on.** `public/audio/` holds a **placeholder `.ogg` for every cue below**, rendered from the game's own
 synthesiser (`src/synth.js`). To use your own sound, overwrite the file with the same name: it plays in the game
 at once, no code change. Delete a file and the game falls back to the synthesised version of that cue.
-The single-file `pocket-pirates.html` (built with `python3 scripts/single.py`) carries every file in `public/audio/`
-and `volumes.json` inside it, so whoever you send it to hears exactly your sounds at your volumes. Names must match exactly; `.ogg` preferred (`.mp3`/`.wav` also work).
+`python3 scripts/single.py` builds two single-file games: `pocket-pirates-dev.html` carries every file in `public/audio/`
+and `volumes.json` inside it (plus the mixer on F8); `pocket-pirates-demo.html` is silent, with no way to turn sound on. Names must match exactly; `.ogg` preferred (`.mp3`/`.wav` also work).
 The pause menu has Sound and Music toggles.
 
 ## The sound mixer (testing volumes in the game)
@@ -15,7 +15,7 @@ A panel opens on the right while the game keeps running:
 - rows turn green and get a bar when the game is playing that loop right now, so you can sail around and hear the mix in context;
 - slider changes are kept in your browser; **Save volumes.json** downloads them. Put that file in `public/audio/` and they
   become the game's volumes for everyone (100% = the file as it is, so only changed sounds are listed). Rebuild
-  `pocket-pirates.html` afterwards and the file you send to friends carries your mix.
+  the single files afterwards and `pocket-pirates-dev.html` carries your mix.
 
 ## Tone: "shanty that slowly forgets how to be a shanty"
 Pick one short, simple melody (8-16 bars). Play it five ways, one per dread stage. The *same* tune
