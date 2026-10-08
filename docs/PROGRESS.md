@@ -24,7 +24,7 @@ For how things must look, see `STYLE.md`; for how systems work, see `DESIGN.md`.
 - Fishing minigame (species change with dread), fruit picking, wrecks, barrels, bottles with notes.
 - Other ships (5 kinds, factions), hailing (reputation-based), trading, optional combat with raiders.
 - Captain's log (M / J): pixel tome with bookmarks (Map, Goals, Quests, Riddles, Rumours, Journal,
-  Ship, Standing); rough pixel chart. Mission tracker toggled with Q.
+  Ship, Standing); rough pixel chart (island names only when zoomed in; the ship has a red "you are here" ring). Mission tracker toggled with Q.
 
 ### Horror layer
 - Islands swap to "wrong" decor above half dread, tentacles between islands, crows, ghost ships,
@@ -34,7 +34,7 @@ For how things must look, see `STYLE.md`; for how systems work, see `DESIGN.md`.
   living map, time loop, wrong ocean, wrong catches, leviathan + "the Eye awakens" ending.
 
 ### World layout and feel
-- The sea is mostly open: island chance follows a slow noise field (about 12-52% of cells, ~30% on average), so
+- The sea is mostly open: island chance follows a slow noise field (about 5-30% of cells, ~17% on average), so
   there are archipelagos and long lonely stretches. Villages never sit within two cells of each other (median
   ~430 units apart); Tama's waters stay clear. Harbour Tama is the big home island (radius 38) with its pier facing the start.
 - "LAND HO!" title card the first time an uncharted island comes within ~150 units (Mara comments on new kinds).
@@ -63,7 +63,7 @@ For how things must look, see `STYLE.md`; for how systems work, see `DESIGN.md`.
 
 ### World variety
 - Six villager designs, seven house kinds (taverns, bell towers, stilt houses...), three new island kinds:
-  volcano, atoll, mangrove (each with a dark-mood detail). All emoji replaced by pixel glyphs.
+  volcano (rare and big, ~1 in 250 cells), atoll, mangrove (each with a dark-mood detail). All emoji replaced by pixel glyphs.
 - **Village life by the hour** (`villagePhase`): dawn 5-8 fishers on the dock and chimney smoke; day 8-18 market
   stalls, full crowd, dockers, laundry; evening 18-22 crowd and lanterns at the tavern; night 22-5 empty streets and
   one watchman with a lantern. Each harbour has a liveliness from its seed; sleepy villages (about 30%) have a

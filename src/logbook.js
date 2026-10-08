@@ -455,7 +455,7 @@ export class Logbook {
       if (!this.warpRaf) this.warpRaf = requestAnimationFrame(() => { this.warpRaf = 0; if (this.tab === 'map' && document.getElementById('chart').classList.contains('open')) this.drawMap(); });
     }
     c.font = '400 16px "DotGothic16", monospace'; c.textAlign = 'center';
-    for (const [name, lx, lz] of labels) sketcher(c, hash2(lx | 0, name.length, 5)).text(name, lx, lz);
+    if (sc >= 1.1) for (const [name, lx, lz] of labels) sketcher(c, hash2(lx | 0, name.length, 5)).text(name, lx, lz);
 
     c.font = '400 32px "DotGothic16", monospace';
     for (let sz = sz0; sz <= sz1; sz++) for (let sx = sx0; sx <= sx1; sx++) {
@@ -486,7 +486,9 @@ export class Logbook {
       sk.wash([[px, pz - 24], [px + 15, pz - 18], [px, pz - 12]], '#d07010', 0.85, 0.8); sk.line([[px, pz - 24], [px + 15, pz - 18], [px, pz - 12]], { w: 1.2, amp: 1.1 });
     }
 
-    c.save(); c.translate(X(ship.pos.x), Z(ship.pos.z)); c.rotate(ship.heading);
+    c.save(); c.translate(X(ship.pos.x), Z(ship.pos.z));
+    { const sk = sketcher(c, 13); sk.wash(circ(0, 0, 24, 12), '#ffe060', 0.45, 0.3); sk.line(circ(0, 0, 24, 12), { w: 2.4, amp: 1, col: '#b02818' }); } // you are here
+    c.rotate(ship.heading); c.scale(1.7, 1.7);
     { const sk = sketcher(c, 12), hull = [[0, -11], [6, 4], [3, 9], [-3, 9], [-6, 4]], sail = [[0, -8], [8, 2], [0, 2]];
       sk.wash(hull, '#8a4a26', 0.9, 0.5); sk.line(hull, { w: 1.4, amp: 0.6 }); sk.wash(sail, '#fff4d8', 0.95, 0.4); sk.line(sail, { w: 1.1, amp: 0.5 }); }
     c.restore();

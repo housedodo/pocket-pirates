@@ -35,10 +35,10 @@ const FORCED = {
 const TYPE_TABLE = [['sandbar', 0.28], ['jungle', 0.28], ['rocky', 0.2], ['treasure', 0.12], ['harbour', 0.12]];
 
 // The sea is mostly open: island chance follows a slow noise field, so there are archipelagos and long
-// lonely stretches. ~30% of cells on average (was 62%), between ~12% and ~52%.
+// lonely stretches. ~17% of cells on average, between ~5% and ~30%.
 function islandChance(cx, cz, seed) {
   const n = fbm(cx * 0.21 + 3.7, cz * 0.21 - 1.3, seed + 71);
-  return 0.12 + 0.4 * smooth01(n);
+  return 0.05 + 0.25 * smooth01(n);
 }
 const smooth01 = (x) => { const t = Math.max(0, Math.min(1, (x - 0.25) / 0.5)); return t * t * (3 - 2 * t); };
 function rawType(rng) {
@@ -90,7 +90,7 @@ export function describeCell(cx, cz, seed) {
   // rarer island kinds, rolled with their own generator so the rest of the world stays where it was
   if (!forced && Math.max(Math.abs(cx), Math.abs(cz)) > 1) {
     const vr = mulberry32(hash2(cx, cz, seed + 4242)), v = vr();
-    if (type === 'rocky' && v < 0.3) { desc.type = 'volcano'; desc.H = 9 + vr() * 4; desc.r *= 1.15; }
+    if (type === 'rocky' && v < 0.1) { desc.type = 'volcano'; desc.H = 18 + vr() * 6; desc.r = 30 + vr() * 6; }
     else if (type === 'sandbar' && v < 0.35) { desc.type = 'atoll'; desc.r = 15 + vr() * 6; desc.H = 1.1; }
     else if (type === 'jungle' && v < 0.25) { desc.type = 'mangrove'; desc.H = 1.3 + vr() * 0.6; }
     if (desc.type !== type) desc.name = makeName(mulberry32(hash2(cx, cz, seed + 4343)), desc.type, dread);
