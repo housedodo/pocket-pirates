@@ -1,0 +1,83 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>HOIST retro titles</title>
+<style>
+  @font-face { font-family: 'Bungee'; src: url(fonts/bungee.woff2) format('woff2'); }
+  @font-face { font-family: 'Black Ops One'; src: url(fonts/blackopsone.woff2) format('woff2'); }
+  @font-face { font-family: 'Russo One'; src: url(fonts/russoone.woff2) format('woff2'); }
+  body { margin: 0; background: #1b1538; color: #f4ead0; font: 16px 'Russo One', sans-serif; padding: 16px; }
+  h1 { font-weight: 400; font-size: 24px; margin: 0 0 4px; color: #ffd23a; } p { margin: 0 0 16px; max-width: 900px; color: #c9b890; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 620px), 1fr)); gap: 24px; }
+  figure { margin: 0; } canvas { width: 100%; display: block; image-rendering: pixelated; box-shadow: 0 0 0 4px #c9a85c, 8px 8px 0 4px rgba(0,0,0,.4); }
+  figcaption { margin-top: 12px; } figcaption b { color: #ffd23a; font-weight: 400; }
+</style></head><body>
+<h1>HOIST: retro, weathered, low-poly</h1>
+<p>Retro layered type (cream outline, deep block shadow, offset colour shadow, striped face), made square-edged, pixel-crunchy and worn like sailcloth after a long voyage. Behind it: the real game, with the new faceted sea.</p>
+<div class="grid">
+  <figure><canvas id="c1" width="1280" height="720"></canvas><figcaption><b>1 · Old sailcloth.</b> Faded red face with canvas stripes, cream edge, tar-black block shadow, brass offset.</figcaption></figure>
+  <figure><canvas id="c2" width="1280" height="720"></canvas><figcaption><b>2 · Harbour paint.</b> Turquoise paint over navy, coral offset. Like a freshly painted hull that has already seen a summer.</figcaption></figure>
+  <figure><canvas id="c3" width="1280" height="720"></canvas><figcaption><b>3 · Brass and tar.</b> Polished brass letters, tar shadow, sea-blue offset. The most "ship's nameboard".</figcaption></figure>
+</div>
+<script>
+const R = 3, W = Math.floor(1280 / R), H = Math.floor(720 / R);   // drawn at a third of the resolution: chunky PS1 pixels
+const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
+let seed = 7; const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+function cv() { const c = document.createElement('canvas'); c.width = W; c.height = H; return c; }
+function hex(h) { return [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16)); }
+
+function logo(o) {
+  // o: { text, font, y, face:[c1,c2,c3], stripe, outline, edge, block, depth, accent, adepth }
+  const mask = cv(), m = mask.getContext('2d');
+  m.font = o.font; m.textAlign = 'center'; m.textBaseline = 'alphabetic'; m.lineJoin = 'miter'; m.miterLimit = 2;
+  m.fillStyle = '#fff'; m.fillText(o.text, W / 2, o.y);
+  const edge = cv(), e = edge.getContext('2d');
+  e.font = o.font; e.textAlign = 'center'; e.lineJoin = 'miter'; e.miterLimit = 2; e.lineWidth = o.edge * 2;
+  e.strokeStyle = '#fff'; e.strokeText(o.text, W / 2, o.y); e.fillStyle = '#fff'; e.fillText(o.text, W / 2, o.y);
+  const tint = (src, col) => { const c = cv(), x = c.getContext('2d'); x.drawImage(src, 0, 0); x.globalCompositeOperation = 'source-in'; x.fillStyle = col; x.fillRect(0, 0, W, H); return c; };
+  const out = cv(), g = out.getContext('2d');
+  const acc = tint(edge, o.accent), blk = tint(edge, o.block);
+  for (let i = o.adepth; i > o.depth; i--) g.drawImage(acc, i, i);          // offset colour shadow
+  for (let i = o.depth; i > 0; i--) g.drawImage(blk, i, i);                  // deep block shadow
+  g.drawImage(tint(edge, o.outline), 0, 0);                                  // cream outline
+  // face: banded, dithered shading top to bottom plus diagonal canvas stripes
+  const face = cv(), f = face.getContext('2d'), img = f.createImageData(W, H), d = img.data, cols = o.face.map(hex), md = m.getImageData(0, 0, W, H).data;
+  let top = H, bot = 0; for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (md[(y * W + x) * 4 + 3] > 128) { top = Math.min(top, y); bot = Math.max(bot, y); }
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const i = (y * W + x) * 4; if (md[i + 3] < 128) continue;
+    const k = (y - top) / Math.max(1, bot - top) * 2 + BAYER[(y % 4) * 4 + (x % 4)] / 16 - 0.4;
+    let c = cols[Math.max(0, Math.min(2, Math.round(k)))];
+    if ((x + y) % 6 < 1) c = c.map((v) => v * o.stripe);                    // stripes
+    d[i] = c[0]; d[i + 1] = c[1]; d[i + 2] = c[2]; d[i + 3] = 255;
+  }
+  f.putImageData(img, 0, 0); g.drawImage(face, 0, 0);
+  // wear: chipped edges, scuffs and salt specks
+  g.globalCompositeOperation = 'destination-out';
+  for (let n = 0; n < 160; n++) { const x = rnd() * W, y = o.y - 70 + rnd() * 90; g.fillRect(x | 0, y | 0, 1 + (rnd() * 2 | 0), 1); }
+  g.globalCompositeOperation = 'source-atop';
+  for (let n = 0; n < 220; n++) { g.fillStyle = rnd() < 0.5 ? 'rgba(244,234,208,0.55)' : 'rgba(42,22,8,0.45)'; g.fillRect(rnd() * W | 0, (o.y - 70 + rnd() * 90) | 0, 1, 1); }
+  for (let n = 0; n < 6; n++) { g.fillStyle = 'rgba(42,22,8,0.35)'; const x = rnd() * W | 0, y = (o.y - 60 + rnd() * 60) | 0; for (let k = 0; k < 14; k++) g.fillRect(x + k, y + (k >> 2), 1, 1); } // scratches
+  g.globalCompositeOperation = 'source-over';
+  return out;
+}
+function menu(g, items, x, y) {
+  g.font = "12px 'Bungee'"; g.textAlign = 'left';
+  items.forEach((s, i) => { const yy = y + i * 15; g.fillStyle = '#2a1608'; g.fillText(s, x + 1, yy + 1); g.fillStyle = i ? '#f4ead0' : '#ffd23a'; g.fillText(s, x, yy);
+    if (!i) { g.fillStyle = '#c8402a'; g.fillRect(x - 9, yy - 8, 2, 7); g.fillRect(x - 7, yy - 7, 2, 5); g.fillRect(x - 5, yy - 6, 2, 3); } });
+}
+function compose(id, bg, o) {
+  const im = new Image(); im.onload = () => {
+    const c = document.getElementById(id), x = c.getContext('2d');
+    const low = cv(), l = low.getContext('2d'); l.drawImage(im, 0, 0, W, H);           // background stays as rendered
+    l.drawImage(logo(o), 0, 0); menu(l, ['SET SAIL', 'NEW VOYAGE', 'SETTINGS'], 22, H - 46);
+    x.imageSmoothingEnabled = false; x.drawImage(im, 0, 0, 1280, 720);
+    const top = cv(), t = top.getContext('2d'); t.drawImage(logo(o), 0, 0); menu(t, ['SET SAIL', 'NEW VOYAGE', 'SETTINGS'], 22, H - 46);
+    x.drawImage(top, 0, 0, 1280, 720);
+    window.__done = (window.__done || 0) + 1;
+  }; im.src = bg;
+}
+Promise.all(["Bungee", "Black Ops One", "Russo One"].map((f) => document.fonts.load(`40px '${f}'`))).then(() => {
+  seed = 7; compose('c1', 'hoist-sea1.png', { text: 'HOIST', font: "58px 'Bungee'", y: 78, face: ['#e8664a', '#c8402a', '#8a2418'], stripe: 0.82, outline: '#f4ead0', edge: 3, block: '#2a1608', depth: 7, accent: '#c9a85c', adepth: 11 });
+  seed = 21; compose('c2', 'hoist-sea2.png', { text: 'HOIST', font: "64px 'Black Ops One'", y: 80, face: ['#7af0e0', '#4fe0d0', '#1b86c6'], stripe: 0.85, outline: '#f4ead0', edge: 3, block: '#1b1538', depth: 7, accent: '#e8402a', adepth: 11 });
+  seed = 33; compose('c3', 'hoist-sea3.png', { text: 'HOIST', font: "62px 'Russo One'", y: 80, face: ['#fff0a0', '#ffd23a', '#c9a85c'], stripe: 0.85, outline: '#f4ead0', edge: 3, block: '#2a1608', depth: 7, accent: '#1b86c6', adepth: 11 });
+});
+</script></body></html>

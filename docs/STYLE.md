@@ -44,6 +44,8 @@ purple and magenta cosmic horror as dread rises.
   atoll (sand ring around a lagoon) and mangrove (mud flats, stilt-rooted trees, herons).
 
 ## 4. Colour and mood
+- The sea is low-poly and faceted: a fine wave mesh with small chop, light banded in ~6 steps by facing to the sun,
+  deeper troughs and chunky foam flecks on the crests. It should never read as a flat plane.
 - Bright stage: turquoise shallows `#4fe0d0`, deep blue `#1b86c6`, warm sand `#ecd69c`, palm greens
   `#4a9a40 / #6aa456`, red/white lighthouses, cream sails `#f4ecd0`.
 - UI ink and wood: cream `#f4ead0`, dark ink `#2a1608`, gold `#ffd23a / #c9a85c`, navy panel `#1b1538-#241c4c`.
