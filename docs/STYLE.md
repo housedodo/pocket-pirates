@@ -50,6 +50,8 @@ purple and magenta cosmic horror as dread rises.
   Pirata One, bone white (`#f4ead0` to `#b8a47c`, dithered) with a dried-blood block shadow (`#5a1612` / `#1a0606`),
   drawn at low resolution and worn. The menu is the game font (DotGothic16, 32px) with a red pennant pointer. Behind it the Merry Gull bobs alone on open
   sea at a random hour: morning, day, dawn, dusk, night or rain (`src/title.js`).
+- **Wind ring** (top right): a thick gold arc where the ship sails fast, cream where slower, a dark red wedge straight
+  into the wind. Arrow = wind, triangle = bow.
 - Bright stage: turquoise shallows `#4fe0d0`, deep blue `#1b86c6`, warm sand `#ecd69c`, palm greens
   `#4a9a40 / #6aa456`, red/white lighthouses, cream sails `#f4ecd0`.
 - UI ink and wood: cream `#f4ead0`, dark ink `#2a1608`, gold `#ffd23a / #c9a85c`, navy panel `#1b1538-#241c4c`.

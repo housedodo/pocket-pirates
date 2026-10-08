@@ -6,6 +6,7 @@
 //  - the small triangle outside the ring is the ship's bow, the orange dot is the tracked mission
 export const PX = 36;
 const C = PX / 2, R = 13;
+const GOLD = '#ffd23a', GOLD_D = '#c9a85c', SLOW = 'rgba(200,64,42,0.75)';
 const CREAM = '#f4ead0', DIM = 'rgba(244,234,208,0.38)', SHADOW = 'rgba(20,10,4,0.6)', JOB = '#ffb040';
 
 const smooth = (a, b, x) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
@@ -37,10 +38,11 @@ export function drawWind(c, w, heading, t, jobA) {
     };
     // ring: bright and doubled where the bow would sail well, dim elsewhere
     for (let i = 0; i < 96; i++) {
-      const a = (i / 96) * 6.2832, eff = 1 - (1 - floor) * smooth(0.35 * Math.PI, Math.PI, Math.abs(angDiff(a, w.dir)));
-      const [x, y] = at(a, R);
-      dot(x, y, eff >= 0.72 ? CREAM : DIM);
-      if (eff >= 0.72) { const [x2, y2] = at(a, R + 1); dot(x2, y2, CREAM); }
+      const a = (i / 96) * 6.2832, eff = 1 - (1 - floor) * smooth(w.wedge || 0.6 * Math.PI, w.wedgeEnd || 0.95 * Math.PI, Math.abs(angDiff(a, w.dir)));
+      const [x, y] = at(a, R), [x2, y2] = at(a, R + 1), [x3, y3] = at(a, R - 1);
+      if (eff >= 0.72) { dot(x, y, GOLD); dot(x2, y2, GOLD); dot(x3, y3, GOLD_D); }   // fast: a thick gold arc
+      else if (eff >= 0.5) { dot(x, y, CREAM); dot(x2, y2, CREAM); }                  // slower
+      else { dot(x, y, SLOW); dot(x2, y2, SLOW); }                                       // the wedge into the wind: crawling
     }
     // ticks (the north one is replaced by the N)
     for (let i = 1; i < 16; i++) {

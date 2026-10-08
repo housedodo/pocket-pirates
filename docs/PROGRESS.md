@@ -74,6 +74,11 @@ New voyage goes straight into the game (no title). A new voyage starts moored al
 - Digging, picking fruit and searching wrecks need the ship completely stopped (S).
 - Dolphins never jump across islands.
 
+### Sailing into the wind
+- Close-hauled (about 45° off the wind) keeps ~65% speed, dead upwind ~20%: zig-zagging (tacking) pays.
+- Chapters I-II are gentler: dead upwind ~45%, and around Tama the wind leans across the route to Hollow Cay Galen.
+- Mara's one-time tip when you point into the wind; side goal "Beat to windward" for making headway upwind.
+
 ### Weather that matters
 - Storms shove the ship downwind (more with the sail up); waves hitting the side wear the hull. Turn into them or reef.
 - Dead calm: no wind for a while. G puts the oars out (animated: they swing out from the rail and stroke); W rows

@@ -708,7 +708,7 @@ function trackTarget() {
 let trackNow = null;
 function drawCompass(w, heading) {
   const jobA = trackNow ? Math.atan2(trackNow.x - ship.pos.x, -(trackNow.z - ship.pos.z)) : null;
-  windView.dir = abyss.windDir(w.dir); windView.strength = w.strength; windView.gust = w.gust; windView.floor = abyss.windFloor(ship.mods.floor);
+  windView.dir = abyss.windDir(w.dir); windView.strength = w.strength; windView.gust = w.gust; windView.floor = abyss.windFloor(Math.max(ship.mods.floor, ship.floorMin || 0)); windView.wedge = ship.wedge; windView.wedgeEnd = ship.wedgeEnd;
   drawWind(compass, windView, heading, performance.now() / 1000, jobA);
 }
 
@@ -1130,6 +1130,14 @@ function seaGate(dt) {
   }
 }
 
+// tacking: Mara's one-time tip when you point straight into the wind, and progress made upwind for the side goal
+let intoWindT = 0;
+function tackTick(dt) {
+  const rel = Math.abs(angleDiff(ship.heading, wind.dir));
+  if (rel > 0.8 * Math.PI && ship.trim > 0.4 && !ship.rowing) { intoWindT += dt; if (intoWindT > 4) objectives.remark('tack', dread); } else intoWindT = 0;
+  if (rel > 0.5 * Math.PI && rel < 0.8 * Math.PI && !ship.rowing) state.stats.upwind = (state.stats.upwind || 0) + ship.speed * dt * -Math.cos(rel);
+}
+
 function hurtPlayer(dmg) {
   const d = Math.max(1, Math.round(dmg));
   state.hp -= d; lastHit = tNow; shake = 0.7; audio.play('hit');
@@ -1204,6 +1212,15 @@ function frame() {
     if (!state.sectorsSeen.includes(sec.id)) state.sectorsSeen.push(sec.id);
     if (live) toast(`Entering ${sec.name}: ${sec.faction.name} waters`, sec.dread > 0.5, 5000);
   }
+  { // early chapters: a gentler wedge into the wind, and around Tama the wind leans across the first routes
+    const early = chapterOf(state) < 2;
+    ship.floorMin = early ? 0.45 : 0; ship.wedge = (early ? 0.68 : 0.6) * Math.PI; ship.wedgeEnd = (early ? 0.97 : 0.95) * Math.PI;
+    if (early && !titleScene) {
+      const t = world.desc(0, -1), g = world.desc(1, -1), dTama = Math.hypot(ship.pos.x - t.x, ship.pos.z - t.z);
+      const k = clamp(1 - (dTama - 450) / 150, 0, 1);
+      if (g && k > 0) { const target = Math.atan2(g.x - t.x, -(g.z - t.z)) + Math.PI / 2; wind.dir = target + angleDiff(target, wind.dir) * (1 - 0.75 * k); }
+    }
+  }
   const windNow = { dir: wind.dir, strength: Math.min(1.4, wind.strength * (1 + 0.25 * weather.storm)) * (1 - 0.92 * weather.calm) };
   if (live && wind.shifted()) toast(`The wind is shifting: now from the ${wind.fromName}`, false, 4200);
 
@@ -1217,7 +1234,7 @@ function frame() {
   if (live && keys.has('KeyR')) pitchT = clamp(pitchT - dt * 0.8, PITCH_MIN, 1.35);
   if (live && keys.has('KeyF')) pitchT = clamp(pitchT + dt * 0.8, 0.3, 1.35);
   if (live || params.get('autostart')) ship.update(dt, shipInput, windNow, tNow);
-  if (live && dt > 0) { stormAndCalm(dt); tabletopTick(dt); seaGate(dt); }
+  if (live && dt > 0) { stormAndCalm(dt); tabletopTick(dt); seaGate(dt); tackTick(dt); }
   if (world.collide(ship.pos, 2.2)) {
     if (ship.speed > 3 && dt > 0) audio.play('bump', { vol: clamp(ship.speed / 10, 0.3, 1) });
     ship.speed *= 0.9;

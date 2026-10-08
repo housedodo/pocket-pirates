@@ -25,9 +25,9 @@ export const MAIN_GOALS = [
     text: 'Steer with A and D, set the sails with W and S. Sail about 100 units.',
     intro: ['Morning, Captain! I am Mara, your first mate, and this is the Merry Gull. She is small, but she is ours.',
       'We are still tied up at Tama, sails furled. W lets them out, S reefs them, A and D steer.',
-      'The ring at the top right is the wind: the arrow shows where it blows, and the ring glows where she sails well. The little triangle is our bow.'],
+      'The ring at the top right is the wind: the arrow shows where it blows, and the ring turns gold where she sails well and red where she crawls. The little triangle is our bow.'],
     outro: ['Good. You can already feel how the wind pushes her. Beam and downwind is fast; straight into it is slow.'],
-    hints: ['Hold W to let the sails out, then A or D to turn.', 'Turn until the little triangle sits on a bright part of the wind ring: that is where she runs fast.'],
+    hints: ['Hold W to let the sails out, then A or D to turn.', 'Turn until the little triangle sits on a gold part of the wind ring: that is where she runs fast.'],
     check: (c) => c.state.stats.dist >= 100,
   },
   {
@@ -122,6 +122,7 @@ export const unlocked = (state, key) => chapterOf(state) >= UNLOCK[key];
 export const gateRadius = (state) => (state.story.free ? Infinity : GATES[Math.min(GATES.length - 1, chapterOf(state))]);
 
 export const SIDE_GOALS = [
+  { id: 'tack', title: 'Beat to windward', reward: 25, text: 'Make headway into the wind by zig-zagging (tacking) on the gold part of the wind ring.', check: (c) => (c.state.stats.upwind || 0) >= 60 },
   { id: 'fish', title: 'Dinner at sea', reward: 25, text: 'Reef the sails (S) until you slow down, then press C to cast a line.', check: (c) => c.state.stats.fish >= 1 },
   { id: 'hail', title: 'Say hello', reward: 20, text: 'Hail a passing ship with E. Not every ship will want to talk.', check: (c) => c.state.stats.hails >= 1 },
   { id: 'bottle', title: 'Message received', reward: 25, text: 'Pick up a message in a bottle by sailing into it.', check: (c) => c.state.stats.bottles >= 1 },
@@ -151,6 +152,7 @@ export const REMARKS = {
   fog: ['Fog. Sail slowly, and keep your eyes open.'],
   thickfog: ['I cannot trust the compass in this. Keep a lighthouse in sight, and I will ring the bell.'],
   calm: ['Not a breath of wind. Press G for the oars, Captain. I will steer. You row.'],
+  tack: ['Into the wind she crawls. Zig-zag, Captain: keep the little triangle on the gold part of the wind ring, and turn across every so often.'],
   gate: ['That fog is like a wall, Captain. Whatever is out there can wait for us.'],
   crew: ['A new hand! They do not talk much. Neither do you. You will get along.'],
   oars: ['Oars out! W to pull, S to back water, G to put them away again.'],
