@@ -78,6 +78,8 @@ New voyage goes straight into the game (no title). A new voyage starts moored al
 - Cannons and raiders are switched off until after the demo (UNLOCK.cannons = 6): no ammo on the HUD, no cannonballs
   for sale, no hostile raiders. The code is all still there.
 - Space or Enter moves Mara's text on / closes it. Fishing casts with a rod animation (back, flick, bobber arcs out).
+  Four styles to choose from (`?rod=hand|cane|reel|driftwood`, default cane): a hand line from a winder on the rail,
+  or a small rod (~1.5-1.75, a third of the hull).
 - The wind never snaps: the felt wind eases toward its new direction over a few seconds.
 - Log: pale paper bookmarks with a bent corner, the open one pulled out flat; legend and page keys on readable strips.
 
