@@ -1335,6 +1335,7 @@ function frame() {
 
 // handy for tests / screenshots
 window.__game = {
+  windfx,
   audio,
   objectives, perrinNote, gateRadius: () => gateRadius(state),
   openCard,
