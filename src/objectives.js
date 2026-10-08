@@ -94,6 +94,7 @@ export const REMARKS = {
   stage4: ['I keep hearing something humming under the keel. Do you hear it?'],
   stage5: ['Captain... how long have we been sailing? I cannot remember the name of my own village.'],
   darkfish: ['That one looked back at me. Throw it in the sack.'],
+  rested: ['Morning, Captain! Fresh bread, fresh wind. The hull is patched, too.'],
   riddle: ['Every treasure isle has an arch with an inscription. Study it with E and it will tell you where the chest sleeps.'],
 };
 

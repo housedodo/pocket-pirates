@@ -4,7 +4,7 @@ import { TILE } from './textures.js';
 import { mats, psxMaterial, getAtlas } from './psx.js';
 import { shipGeos } from './ship.js';
 import { shoreR, terrainHeight } from './world.js';
-import { DAY_LENGTH } from './daynight.js';
+import { hoursPerSecond } from './daynight.js';
 import { smoothstep, clamp } from './util.js';
 
 // Full dread ("the abyss"): twelve separate effects that only happen in the very worst water.
@@ -214,7 +214,7 @@ export class Abyss {
         this.d.fade.classList.add('on');
         setTimeout(() => {
           ship.pos.set(back.x, 0, back.z); ship.heading = back.h;
-          this.d.state.time = (this.d.state.time - n * 0.2 / DAY_LENGTH + 1) % 1;
+          this.d.state.time = (this.d.state.time - n * 0.2 * hoursPerSecond(this.d.state.time) / 24 + 1) % 1;
           this.d.fade.classList.remove('on');
           this.d.toast(Math.random() < 0.5 ? 'You have been here before.' : 'It is this exact moment again.', true, 4500);
         }, 450);

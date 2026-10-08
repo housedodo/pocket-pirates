@@ -2,7 +2,16 @@ import * as THREE from 'three';
 import { smoothstep, lerp } from './util.js';
 
 // Day/night layered on top of the dread palette. t: 0 = midnight, 0.25 = sunrise, 0.5 = noon, 0.75 = sunset.
-export const DAY_LENGTH = 300; // real seconds per full day
+export const DAY_LENGTH = 600; // real seconds per full day (10 minutes)
+// Uneven pacing: daylight (06:00-19:00) takes 7.5 minutes, the night (19:00-06:00) only 2.5.
+export const DAY_START = 6, DAY_END = 19, DAY_SECONDS = 450, NIGHT_SECONDS = DAY_LENGTH - DAY_SECONDS;
+/** in-game hours that pass per real second at time t (0..1) */
+export function hoursPerSecond(t) {
+  const h = (((t % 1) + 1) % 1) * 24;
+  return h >= DAY_START && h < DAY_END ? (DAY_END - DAY_START) / DAY_SECONDS : (24 - DAY_END + DAY_START) / NIGHT_SECONDS;
+}
+/** advance the clock by dt real seconds */
+export const advanceTime = (t, dt) => (t + (hoursPerSecond(t) * dt) / 24) % 1;
 
 const NIGHT_TOP = new THREE.Color('#070b22'), NIGHT_HOR = new THREE.Color('#1a2650'), NIGHT_FOG = new THREE.Color('#111b3c');
 const DUSK_TOP = new THREE.Color('#5a5aa0'), DUSK_HOR = new THREE.Color('#ff9a5a'), DUSK_FOG = new THREE.Color('#d8a080');

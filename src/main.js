@@ -28,7 +28,7 @@ import { Wind } from './wind.js';
 import { WindFX } from './windfx.js';
 import { drawWind, PX } from './windmeters.js';
 import { installPixelUI, pxi } from './pixelui.js';
-import { applyTimeOfDay, DAY_LENGTH, tod } from './daynight.js';
+import { applyTimeOfDay, advanceTime, tod } from './daynight.js';
 import { UPGRADES, MAX_LEVEL, computeMods, shipwrightLine } from './upgrades.js';
 import { Abyss, EFFECTS, WATCHER_STYLES, WATCHER_NAMES } from './abyss.js';
 
@@ -428,6 +428,23 @@ function acceptCommission(o) {
   audio.play('buy');
 }
 
+const REST_LINES = ['You sleep like a stone. Gulls wake you at dawn.', 'Somebody snored all night. Possibly you.', 'You dream of warm water and wake up hungry.'];
+const REST_DARK = ['You sleep. Someone sat by your bed all night; the chair is still warm.', 'You wake at dawn. Your boots are wet, and full of sand you do not recognise.'];
+function restAtTavern(cost) {
+  if (state.gold < cost) return;
+  state.gold -= cost;
+  const dk = dread > 0.6;
+  closeModal();
+  $('fade').classList.add('on');
+  setTimeout(() => {
+    if (state.time * 24 >= 6) state.dayN++;    // slept past midnight
+    state.time = 6 / 24;
+    state.hp = ship.mods.maxHp;
+    $('fade').classList.remove('on');
+    toast(dk ? REST_DARK[Math.floor(Math.random() * REST_DARK.length)] : REST_LINES[Math.floor(Math.random() * REST_LINES.length)], dk, 6000);
+    objectives.remark('rested', dread);
+  }, 1100);
+}
 function renderHarbour() {
   const d = harbourIsl.desc, rep = repOf(state, d.id), lvl = friendLevel(rep);
   $('hbName').textContent = d.name;
@@ -474,6 +491,10 @@ function renderHarbour() {
     const fruitList = Object.entries(state.fruit).filter(([, n]) => n > 0);
     const fruitVal = Math.round(fruitList.reduce((a, [f, n]) => a + FRUITS[f].price * n, 0) * (1 + 0.05 * lvl));
     const ammoCost = Math.ceil(25 * discount(rep));
+    { // the tavern: rooms are let from 17:00, you wake at 06:00 with the hull mended
+      const hour = state.time * 24, open = hour >= 17 || hour < 5, bedCost = Math.ceil(8 * discount(rep));
+      html += `<div class="sec">TAVERN</div><div class="qrow"><div><b>${pxi('bed')} A bed for the night</b><br><small>${open ? 'sleep until 06:00, the crew mends the hull' : 'rooms are let from 17:00'}</small></div><button id="restBed" ${open && state.gold >= bedCost ? '' : 'disabled'}>${bedCost}g</button></div>`;
+    }
     html += `<div class="sec">STANDING HERE</div><small>${pxi('star').repeat(lvl)}${pxi('nostar').repeat(3 - lvl)}${lvl ? `  (-${lvl * 5}% prices, +${lvl * 5}% for your catch)` : '  (visit and deliver to be remembered)'}</small>`;
     html += '<div class="sec">SELL</div>';
     html += `<div class="qrow"><div><b>${pxi('fish')} Fish</b><br><small>${state.catch.length ? `${state.catch.length} in the hold` : 'none: slow down and press C at sea'}</small></div>${state.catch.length ? `<button id="sellFish">+${fishVal}g</button>` : ''}</div>`;
@@ -486,6 +507,7 @@ function renderHarbour() {
     const sfr = $('sellFruit'); if (sfr) sfr.addEventListener('click', () => { state.gold += fruitVal; toast(`Sold fruit for ${fruitVal} gold.`); state.fruit = {}; audio.play('buy'); renderHarbour(); });
     $('buyAmmo').addEventListener('click', () => { if (state.gold < ammoCost) return; state.gold -= ammoCost; state.ammo += 10; audio.play('buy'); renderHarbour(); });
     $('openYard').addEventListener('click', () => openModal('yard'));
+    $('restBed').addEventListener('click', () => restAtTavern(Math.ceil(8 * discount(rep))));
   } else {
     html += UPGRADES.map((u, i) => {
       const lv = state.upgrades[u.id], maxed = lv >= MAX_LEVEL;
@@ -856,7 +878,7 @@ function frame() {
   const stepT = Math.floor(tNow * 12) / 12;
 
   // ---- time of day & wind
-  if (live) { const pt = state.time; state.time = (state.time + dt / DAY_LENGTH) % 1; if (state.time < pt) state.dayN++; }
+  if (live) { const pt = state.time; state.time = advanceTime(state.time, dt); if (state.time < pt) state.dayN++; }
   wind.update(dt);
   if (dt > 0) { state.buffs.speed = Math.max(0, state.buffs.speed - dt); state.buffs.dig = Math.max(0, state.buffs.dig - dt); }
   ship.buff = state.buffs.speed > 0 ? 1.15 : 1;

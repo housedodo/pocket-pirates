@@ -12,7 +12,8 @@ For how things must look, see `STYLE.md`; for how systems work, see `DESIGN.md`.
 - PS1 renderer: low-res target, Bayer dither, 15-bit colour, vertex wobble; dirty, low-poly, grimy look.
 - **Dread** depends only on distance from home (0 at Tama, full at about 2200 units). Five stages:
   Sunny, Off, Wrong, Eerie, Cosmic. It does not grow with time.
-- Sailing with a shifting wind (gusts, efficiency by heading), day/night (5 minutes), weather
+- Sailing with a shifting wind (gusts, efficiency by heading), day/night (10 minutes: 7.5 min of daylight 06-19,
+  2.5 min of night; rest at a harbour tavern from 17:00 to sleep until 06:00 and mend the hull), weather
   (rain, storms, fog, lightning, rainbows), lighthouses lit only at night.
 
 ### Things to do

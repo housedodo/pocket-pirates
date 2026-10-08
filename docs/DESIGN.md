@@ -29,7 +29,7 @@ If the game outgrows the browser, the design, generators and shaders port over; 
 | `logbook.js` | The tabbed captain's log, incl. the hand-inked low-poly parchment map (pan, zoom, sectors, rumours, job flag) |
 | `ship.js` | Procedural ship, wind-based sailing model, upgrade modifiers, wake, lantern glow |
 | `wind.js` | Wandering wind: big heading swings over minutes + gusts, announced when it shifts |
-| `daynight.js` | Day/night layered on the dread palette (5 min per day): sun, moon, stars, dusk colours, light level |
+| `daynight.js` | Day/night layered on the dread palette (10 min per day: 7.5 min daylight, 2.5 min night): sun, moon, stars, dusk colours, light level |
 | `upgrades.js` | 5 ship upgrades x 3 levels (sails, rudder, lantern, spyglass, crew), costs and effects |
 | `horror.js` | Tentacles that rise between islands at high dread |
 | `lore.js` | Names, harbour gossip and loot that drift from cosy to cosmic |
