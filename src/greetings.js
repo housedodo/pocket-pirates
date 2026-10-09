@@ -77,6 +77,21 @@ const BY_SPEAKER = {
   lamplighter: ['One lamp for every boat out. That is the custom. I light a few extra, to be safe.', 'Evening, captain. You are lit now. Off you go.', 'Some nights the lamps light before I reach them. Saves me the walk.'],
   watchman: ['Halt! Oh. It is you. Carry on.', 'All quiet. Quiet is good. Mostly.', 'I walk the pier till dawn. The pier is longer at night. I have measured.'],
 };
+// what a village does, said as if it were nothing
+const BY_CUSTOM = {
+  whitewash: ['We paint the houses every spring. White walls, blue roofs. Always have.', 'Mind the paint, captain. It is always a little wet.'],
+  lanterns: ['The lamps stay lit all night here. The rule is older than the lamps.', 'Bring oil if you come back. We go through a lot of oil.'],
+  nochildren: ['Children? No, not here. Not for a long time. More tea?', 'It is a quiet village. We like it quiet.'],
+  choir: ['Stay till dusk, captain. We sing at dusk. Everyone sings.', 'You will hear us from the water tonight. We always know the words.'],
+  nightboats: ['We fish at night here. The fish are braver in the dark. So are we.', 'Look for our lanterns on the water after sundown. Wave if you like.'],
+  kites: ['Kites up every afternoon! The wind likes us here.', 'My kite is the red one. No, the other red one.'],
+  bells: ['You will hear the bells at noon. Twelve, every day. We count.', 'The bell rope is worn smooth. Nobody remembers who rang it first.'],
+};
+const BY_EVENT = {
+  market: ['Market day! Everyone is buying, nobody is listening. Perfect.', 'Bring your fish, captain. Market day pays.'],
+  festival: ['Festival today! Eat something. Dance something. Do not ask what the songs are about.', 'Flags up, lamps lit, nobody working. Festival day.'],
+  lantern: ['Lantern night. We set them on the water and let them go. They come back, mostly.', 'Light one for someone, captain. Anyone. They do not have to be gone.'],
+};
 const BY_WEATHER = {
   Rain: [
     'Come in out of the wet! Not that it helps. Everything here is a little damp forever.',
@@ -147,6 +162,8 @@ export function pickGreeting(ctx) {
   for (const l of BY_SPEAKER[speaker] || []) pool.push([l, stage <= 1 ? 4 : stage === 2 ? 2 : 0.5]);
   for (const l of BY_TIME[phase]) pool.push([l, stage <= 1 ? 3 : 1]);
   for (const l of BY_WEATHER[ctx.weather] || []) pool.push([l, 4]);
+  for (const l of BY_CUSTOM[ctx.custom] || []) pool.push([l, stage <= 2 ? 4 : 1]);
+  for (const l of BY_EVENT[ctx.event] || []) pool.push([l, 6]);
   for (let s = 1; s <= stage; s++) for (const l of BY_DREAD[s]) pool.push([l, s === stage ? 5 : 1]);
   let total = pool.reduce((a, [, w]) => a + w, 0), k = r() * total, text = pool[0][0];
   for (const [l, w] of pool) { k -= w; if (k <= 0) { text = l; break; } }

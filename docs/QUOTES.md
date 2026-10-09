@@ -92,6 +92,11 @@ dread stage. A few:
 - *Prices:* "Prices are up today. Nobody says why." · "Prices are down today. Everyone seems to have slept well." · *(haggle, natural 1)* "The fishmonger spits on the planks. By noon the whole harbour has heard."
 - *Hut:* "There are three candles now." · "There are more candles than you can count. The book is open near the end."
 
+### Village customs and the week (src/greetings.js)
+- *Whitewash:* "We paint the houses every spring. White walls, blue roofs. Always have." · *Lamps:* "The lamps stay lit all night here. The rule is older than the lamps." · *No children:* "Children? No, not here. Not for a long time. More tea?" · *Choir:* "Stay till dusk, captain. We sing at dusk. Everyone sings." · *Night boats:* "We fish at night here. The fish are braver in the dark. So are we." · *Kites:* "My kite is the red one. No, the other red one." · *Bells:* "You will hear the bells at noon. Twelve, every day. We count."
+- *Market day:* "Market day! Everyone is buying, nobody is listening. Perfect." · *Festival:* "Festival today! Eat something. Dance something. Do not ask what the songs are about." · *Lantern night:* "Lantern night. We set them on the water and let them go. They come back, mostly."
+- *Mara:* "Market day, Captain! Every harbour pays a bit more for what we bring in." · "Lantern night tonight. They set little lights on the water. I always want to follow one."
+
 ### Shipwright
 - **0:** "Best timber this side of the reef, captain." · "Fair prices, fair winds."
 - **1:** "Odd. The planks came in already cut. I never ordered them."

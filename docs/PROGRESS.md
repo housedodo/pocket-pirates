@@ -186,6 +186,23 @@ New voyage goes straight into the game (no title). A new voyage starts moored al
 - The hut's bad-throw flash no longer sets off Mara's deep-water remarks.
 - Possible paths (kind sea, stirring, empty table, fated thrower, refuser, tens) are in the story bible, "The die".
 
+### Villages and the week (built: first examples)
+- **The week:** Monday to Sunday (`state.dayN % 7`); the weekday shows under the harbour name, nowhere else.
+  - **Market day (Wednesday), every harbour:** extra stalls and people; everything sells for a quarter more.
+  - **Festival day, one weekday per harbour (Tama: Sunday):** bunting and lamps round the square; fish fetch +50%.
+  - **Lantern night (Saturday), every harbour:** little lanterns float on the water round each island after dusk.
+  - Mara mentions market day and lantern night in the morning, the first two times only.
+- **Village customs** (one per harbour, from the seed; `CUSTOMS` in world.js), shown, never explained:
+  whitewash (white walls, blue roofs), lamps lit all night, no children, a dusk choir (a ring of villagers with
+  candles round the pole), fishing boats with lanterns out at night, kites every afternoon, bells (a bell tower,
+  and the bells ring at noon when you are near; Tama keeps the bells). Villagers have lines about their custom
+  and about the day.
+- **Harbours grow with your trade** (deliveries x2 + visits): level 1 more boats at the pier, level 2 a busier quay
+  and lamps along the pier, level 3 a gate and bunting the length of the pier.
+- **Local charts:** the board sells a hand-drawn chart of a harbour's waters (30g, once): every island within three
+  cells goes on your map.
+- Screenshots: `docs/concept/village-*.png`.
+
 ### Biomes and world variety (planned, not built yet)
 Concepts: `docs/concept/biome-*.png`, built in-engine with `__game.biome('coral' | 'rain' | 'sunken', x, z)` (dev only,
 `src/concepts.js`). Keep clear of Dredge: biomes change how the sea sails and who lives there, not "a zone with a monster".
@@ -200,13 +217,11 @@ Concepts: `docs/concept/biome-*.png`, built in-engine with `__game.biome('coral'
 
 **World on a schedule**
 - Tides that rise and fall over the day; some passages and beaches only at low tide.
-- A week: market day, a fishing festival, a night of lanterns, in different harbours. Players learn the rhythm.
+- (Built: the week with market day, festivals and lantern night.)
 - Travelling things: a floating market ship, a regatta, a whale migration, a storm front you can see coming.
 
 **Villages with character**
-- One custom per village (never lights lamps, sings at dusk, no children, every door blue...), visible and remembered.
-- Harbours grow with your trade: a new pier, a second tavern, more boats.
-- Local knowledge: each village sells a hand-drawn chart of its own waters, in its own style.
+- (Built: customs, growth with trade, local charts.) Later: more customs, charts drawn in each village's own style.
 
 **Life at sea**
 - NPC ships with routines (the same fishing boat leaves Tama at dawn every day; one day it does not).

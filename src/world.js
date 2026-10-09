@@ -19,6 +19,8 @@ const COL = {
 };
 const WALLS = ['#f4dfb0', '#f0b3a0', '#a9d6ee', '#f2e48a', '#c9e6a8', '#e8c0e0'];
 const ROOFS = ['#d2483c', '#3c78c8', '#2f9a8a', '#c86a2a', '#7a4ab0'];
+// a village's custom can repaint every house (whitewash) or keep children indoors; set while a harbour is built
+let PAINT = null, NO_CHILD = false;
 
 // ---------------------------------------------------------------------------
 // Island description (pure function of seed + cell) and terrain height field
@@ -65,6 +67,8 @@ function harbourWins(cx, cz, seed) {
   return true;
 }
 
+// village customs: things you can see, never explained (see docs/PROGRESS.md, Villages with character)
+export const CUSTOMS = ['whitewash', 'lanterns', 'nochildren', 'choir', 'nightboats', 'kites', 'bells'];
 export function describeCell(cx, cz, seed) {
   const key = `${cx},${cz}`;
   const rng = mulberry32(hash2(cx, cz, seed));
@@ -95,7 +99,12 @@ export function describeCell(cx, cz, seed) {
     else if (type === 'jungle' && v < 0.25) { desc.type = 'mangrove'; desc.H = 1.3 + vr() * 0.6; }
     if (desc.type !== type) desc.name = makeName(mulberry32(hash2(cx, cz, seed + 4343)), desc.type, dread);
   }
-  if (type === 'harbour') { desc.lively = (hash2(cx, cz, seed + 808) % 1000) / 1000; desc.sleepy = desc.lively < 0.3; }
+  if (type === 'harbour') {
+    desc.lively = (hash2(cx, cz, seed + 808) % 1000) / 1000; desc.sleepy = desc.lively < 0.3;
+    // every village keeps one custom, and has its own festival day in the week
+    desc.custom = key === '0,-1' ? 'bells' : CUSTOMS[hash2(cx, cz, seed + 909) % CUSTOMS.length];
+    desc.festival = key === '0,-1' ? 6 : hash2(cx, cz, seed + 910) % 7;
+  }
   if (type === 'treasure') desc.puzzle = makePuzzle(mulberry32(hash2(cx, cz, seed + 31)), name, dread);
   return desc;
 }
@@ -243,7 +252,8 @@ export function palm(A, B, D, x, y, z, rng, s = 1) {
 
 function house(A, B, x, y, z, ry, rng) {
   const w = 3.2 + rng() * 1.4, dep = 3 + rng() * 1.2, h = 2.1 + rng() * 0.9;
-  const wall = pickCol(rng, WALLS), roof = pickCol(rng, ROOFS);
+  let wall = pickCol(rng, WALLS), roof = pickCol(rng, ROOFS);
+  if (PAINT) { wall = PAINT.wall; roof = PAINT.roof; }
   A.push(x, y, z, ry);
   A.box(0, 0, 0, w, h, dep, wall, TILE.wall, TILE.white);
   A.gable(0, h, 0, w + 0.6, 1.4 + rng() * 0.5, dep + 0.6, roof, TILE.roof, wall);
@@ -273,6 +283,7 @@ const pickCol = (rng, arr) => arr[Math.floor(rng() * arr.length) % arr.length];
 export const VSCALE = 0.74;
 export const VILLAGERS = ['fisher', 'market', 'oldsalt', 'child', 'docker', 'harbourmaster'];
 export function villager(b, x, y, z, ry, rng, kind = pickCol(rng, VILLAGERS)) {
+  if (NO_CHILD && kind === 'child') kind = 'oldsalt';
   const skin = pickCol(rng, SKINS), shirt = pickCol(rng, SHIRTS);
   b.push(x, y, z, ry, (kind === 'child' ? 0.68 : 1) * VSCALE);
   const legs = (col) => { for (const sx of [-0.12, 0.12]) b.box(sx, 0, 0, 0.16, 0.55, 0.18, col, TILE.white); };
@@ -367,7 +378,8 @@ function smoke(b, x, y, z, n = 4) { for (let i = 0; i < n; i++) b.blob(x + i * 0
 // ---- house kinds (all face +z local, base at y)
 export const HOUSES = ['cottage', 'townhouse', 'stilt', 'round', 'tavern', 'warehouse', 'belltower'];
 export function houseKind(A, B, x, y, z, ry, rng, kind) {
-  const wall = pickCol(rng, WALLS), roof = pickCol(rng, ROOFS);
+  let wall = pickCol(rng, WALLS), roof = pickCol(rng, ROOFS);
+  if (PAINT) { wall = PAINT.wall; roof = PAINT.roof; }
   if (kind === 'cottage') return house(A, B, x, y, z, ry, rng);
   A.push(x, y, z, ry);
   switch (kind) {
@@ -590,6 +602,56 @@ function darkHut(d, rng, A) {
   for (let i = 0; i < 9; i++) { const a = (i / 9) * Math.PI * 2, px = x + Math.cos(a) * 3.2 + Math.cos(th) * 1.8, pz = z + Math.sin(a) * 3.2 + Math.sin(th) * 1.8; A.blob(px, Math.max(0.2, terrainHeight(d, px, pz)) + 0.1, pz, 0.3, 0.22, 0.3, '#cfc8d8', TILE.stone, 0.2, i); }
 }
 
+// ---- the week, the village's custom, and how it grows with your trade: extra layers that are switched on
+// by the calendar, the hour or the harbour's growth (see Island: LAYER_RULES)
+const BUNT = ['#d24a3e', '#ffd23a', '#3c78c8', '#5ec45a', '#f4f0e6', '#c86a2a'];
+function flagLine(b, a, c, k0 = 0) {   // a hanging line of little triangle flags from a to c (no thin rope: the flags are the line)
+  const n = Math.max(3, Math.round(Math.hypot(c[0] - a[0], c[2] - a[2]) / 0.9));
+  for (let i = 0; i < n; i++) {
+    const t = (i + 0.5) / n, sag = Math.sin(t * Math.PI) * 0.7;
+    const x = a[0] + (c[0] - a[0]) * t, y = a[1] + (c[1] - a[1]) * t - sag, z = a[2] + (c[2] - a[2]) * t;
+    const dx = (c[0] - a[0]) / n * 0.45, dz = (c[2] - a[2]) / n * 0.45, col = BUNT[(i + k0) % BUNT.length];
+    b.tri([x - dx, y, z - dz], [x + dx, y, z + dz], [x, y - 0.6, z], col, TILE.flag); b.tri([x + dx, y, z + dz], [x - dx, y, z - dz], [x, y - 0.6, z], col, TILE.flag);
+  }
+}
+function floatLantern(b, x, z) { b.box(x, 0.2, z, 0.7, 0.18, 0.7, '#8a5a30', TILE.planks); b.box(x, 0.38, z, 0.36, 0.42, 0.36, '#ffffff', TILE.glow); }
+function boatAt(b, x, z, ry, lantern) {
+  b.push(x, 0, z, ry); b.box(0, -0.1, 0, 1.4, 0.5, 3.2, '#a06a3a', TILE.planks); b.box(0, 0.4, 0, 1.0, 0.05, 2.6, '#6b4a2e', TILE.planks);
+  if (lantern) { b.box(0, 0.4, 1.1, 0.08, 1.6, 0.08, '#3a3036', TILE.bark); b.box(0, 2.0, 1.1, 0.3, 0.34, 0.3, '#ffffff', TILE.glow); }
+  b.pop();
+}
+function weekAndCustoms(d, rng, cr, g) {
+  const { yy, R, dockTh, z1, at, dockAt } = g, ry = Math.PI / 2 - dockTh;
+  const L = (k) => (cr[k] = cr[k] || new Builder());
+  // market day (every harbour, once a week): more stalls, more people
+  for (let i = 0; i < 5; i++) { const a = (i / 5) * Math.PI * 2 + 0.4, r = 7 + rng() * 2, x = Math.cos(a) * r, z = Math.sin(a) * r; marketStall(L('market'), x, yy, z, Math.atan2(-x, -z) + Math.PI, rng); villager(L('market'), x * 1.2, yy, z * 1.2, Math.atan2(-x, -z), rng, 'market'); }
+  for (let i = 0; i < 8; i++) { const [x, z] = at(0.15, 0.5); villager(L('market'), x, yy, z, rng() * 6.28, rng, pickCol(rng, ['fisher', 'oldsalt', 'child', 'docker'])); }
+  // its own festival day: bunting round the square, lanterns on the poles
+  { const poles = 6, pts = [];
+    for (let i = 0; i < poles; i++) { const a = (i / poles) * Math.PI * 2, x = Math.cos(a) * 10, z = Math.sin(a) * 10; L('festival').box(x, yy, z, 0.22, 5, 0.22, '#6b4a2e', TILE.bark); L('festival').box(x, yy + 5, z, 0.45, 0.45, 0.45, '#ffffff', TILE.glow); pts.push([x, yy + 4.8, z]); }
+    L('festival').box(0, yy, 0, 0.26, 6.5, 0.26, '#6b4a2e', TILE.bark);
+    for (let i = 0; i < poles; i++) { flagLine(L('festival'), pts[i], pts[(i + 1) % poles], i); flagLine(L('festival'), pts[i], [0, yy + 6.3, 0], i + 2); } }
+  // lantern night (every harbour, once a week): little lanterns set afloat round the island
+  for (let i = 0; i < 22; i++) { const th = rng() * Math.PI * 2, rho = shoreR(d, th) * (1.12 + rng() * 0.35); floatLantern(L('lantern'), Math.cos(th) * rho, Math.sin(th) * rho); }
+  // the village's own custom
+  if (d.custom === 'kites') for (let i = 0; i < 4; i++) {
+    const [x, z] = at(0.1, 0.6), h = yy + 9 + rng() * 5, c = BUNT[i % BUNT.length], s = 0.9 + rng() * 0.4, k = L('kites');
+    k.tri([x - s, h, z], [x, h + s * 1.3, z], [x + s, h, z], c, TILE.flag); k.tri([x + s, h, z], [x, h + s * 1.3, z], [x - s, h, z], c, TILE.flag);
+    k.tri([x - s, h, z], [x + s, h, z], [x, h - s * 1.6, z], c, TILE.flag); k.tri([x + s, h, z], [x - s, h, z], [x, h - s * 1.6, z], c, TILE.flag);
+    for (let j = 1; j <= 3; j++) k.box(x + j * 0.25, h - s * 1.6 - j * 0.7, z, 0.28, 0.28, 0.28, BUNT[(i + j) % BUNT.length], TILE.flag);
+  }
+  if (d.custom === 'nightboats') for (let i = 0; i < 4; i++) { const th = dockTh + (i < 2 ? -1 : 1) * (0.95 + (i % 2) * 0.5), rho = shoreR(d, th) * 1.14 + (i % 2) * 5; boatAt(L('nightboats'), Math.cos(th) * rho, Math.sin(th) * rho, th, true); villager(L('nightboats'), Math.cos(th) * rho, 0.3, Math.sin(th) * rho, th, rng, 'fisher'); }
+  if (d.custom === 'lanterns') { const k = 10, pts = []; for (let i = 0; i < k; i++) { const th = (i / k) * Math.PI * 2, rho = shoreR(d, th) * 0.5, x = Math.cos(th) * rho, z = Math.sin(th) * rho; L('lamps').box(x, yy, z, 0.16, 2.8, 0.16, '#3a3036', TILE.bark); L('lamps').box(x, yy + 2.8, z, 0.4, 0.44, 0.4, '#ffffff', TILE.glow); pts.push([x, yy + 2.6, z]); }
+    for (let i = 0; i < k; i++) { const a = pts[i], c = pts[(i + 1) % k]; for (let j = 1; j < 4; j++) { const t = j / 4; L('lamps').box(a[0] + (c[0] - a[0]) * t, a[1] - Math.sin(t * Math.PI) * 0.6, a[2] + (c[2] - a[2]) * t, 0.26, 0.3, 0.26, '#ffffff', TILE.glow); } } }
+  // growth: the harbour does better the more you trade here
+  { const b = L('grow1'); b.push(0, 0, 0, ry); boatAt(b, -3.8, z1 - 9, 0.15, false); boatAt(b, 3.9, z1 - 15, -0.1, false); b.pop(); }
+  { const b = L('grow2'); for (let i = 0; i < 4; i++) { const [x, z] = dockAt(R * 0.62 + i * 1.6, 3 + (i % 2)); barrel(b, x, yy, z, 0.9); crateBox(b, x + 1, yy, z + 0.6, rng() * 3); }
+    b.push(0, 0, 0, ry); for (let z = z1 - 12; z < z1; z += 5) { b.box(-1.35, 0.84, z, 0.14, 2.2, 0.14, '#6b4a2e', TILE.bark); b.box(-1.35, 3.0, z, 0.36, 0.36, 0.36, '#ffffff', TILE.glow); } b.pop(); }
+  { const b = L('grow3'); b.push(0, 0, 0, ry); const zA = R * 0.62, zB = z1 - 1;
+    b.box(-1.6, 0.84, zA, 0.2, 4, 0.2, '#6b4a2e', TILE.bark); b.box(1.6, 0.84, zA, 0.2, 4, 0.2, '#6b4a2e', TILE.bark); b.box(0, 4.6, zA, 3.6, 0.6, 0.25, '#d24a3e', TILE.planks);
+    flagLine(b, [-1.4, 4.2, zA], [-1.4, 2.6, zB], 0); flagLine(b, [1.4, 4.2, zA], [1.4, 2.6, zB], 3); b.pop(); }
+}
+
 function decorate(d, rng, A, B, D, extra) {
   const T = d.type;
   const palms = (n, t0, t1, hMin = 0.8, s0 = 0.9) => {
@@ -736,6 +798,7 @@ function decorate(d, rng, A, B, D, extra) {
     }
     case 'harbour': {
       const dockRoll = rng(), dockTh = d.id === '0,-1' ? Math.PI / 2 : dockRoll * Math.PI * 2;   // Tama's pier faces the start
+      PAINT = d.custom === 'whitewash' ? { wall: '#f4f0e8', roof: '#3c78c8' } : null; NO_CHILD = d.custom === 'nochildren';
       const n = Math.round((6 + Math.floor(rng() * 3)) * Math.max(1, d.r / 25));
       let placed = 0;
       for (let i = 0; i < n * 2 && placed < n; i++) {
@@ -743,7 +806,7 @@ function decorate(d, rng, A, B, D, extra) {
         if (Math.abs(angleDiff(th, dockTh)) < 0.55) continue;
         const rho = shoreR(d, th) * (0.28 + rng() * 0.38);
         const x = Math.cos(th) * rho, z = Math.sin(th) * rho;
-        const kind = placed === 0 ? 'tavern' : placed === 1 && rng() < 0.45 ? 'belltower' : pickCol(rng, ['cottage', 'cottage', 'townhouse', 'townhouse', 'round', 'stilt', 'warehouse']);
+        const kind = placed === 0 ? 'tavern' : placed === 1 && (rng() < 0.45 || d.custom === 'bells') ? 'belltower' : pickCol(rng, ['cottage', 'cottage', 'townhouse', 'townhouse', 'round', 'stilt', 'warehouse']);
         houseKind(A, B, x, d.H - 0.1, z, Math.atan2(-x, -z), rng, kind);
         if (kind === 'tavern') extra.tavern = { x, z, ry: Math.atan2(-x, -z) };
         placed++;
@@ -799,7 +862,10 @@ function decorate(d, rng, A, B, D, extra) {
         { const th = dockTh + 1.6 + rng() * 0.8, rho = shoreR(d, th) * 0.5; washing(cr.day, Math.cos(th) * rho, yy, Math.sin(th) * rho, rng() * 3, rng); }
         // evening: everyone at the tavern, lanterns lit, smoke
         const tv = extra.tavern;
-        if (tv) {
+        if (d.custom === 'choir') {   // at dusk the whole village stands in a ring round the pole and sings
+          const k = n(12); for (let i = 0; i < k; i++) { const a = (i / k) * Math.PI * 2, x = Math.cos(a) * 4.2, z = Math.sin(a) * 4.2; villager(cr.evening, x, yy, z, Math.atan2(-x, -z), rng, pickCol(rng, ['fisher', 'oldsalt', 'market', 'docker', 'child'])); cr.evening.box(x * 0.9, yy + 1.0, z * 0.9, 0.22, 0.26, 0.22, '#ffffff', TILE.glow); }   // each holds a candle
+        }
+        if (tv && d.custom !== 'choir') {
           const fx = Math.sin(tv.ry), fz = Math.cos(tv.ry);
           for (let i = 0; i < n(9); i++) { const a = (rng() - 0.5) * 2.4, r = 2.6 + rng() * 3, dx = Math.sin(tv.ry + a) * r, dz = Math.cos(tv.ry + a) * r; villager(cr.evening, tv.x + dx, yy, tv.z + dz, Math.atan2(-dx, -dz), rng, pickCol(rng, ['fisher', 'oldsalt', 'docker', 'market', 'harbourmaster'])); }
           for (const side of [-1, 1]) { const lx = tv.x + fx * 4 + fz * side * 2, lz = tv.z + fz * 4 - fx * side * 2; cr.evening.box(lx, yy, lz, 0.12, 2.0, 0.12, '#3a3036', TILE.bark); cr.evening.box(lx, yy + 2.0, lz, 0.32, 0.36, 0.32, '#ffffff', TILE.glow); }
@@ -810,7 +876,9 @@ function decorate(d, rng, A, B, D, extra) {
         if (lively > 0.3) { const [x, z] = dockAt(R * 0.45, 1.2); lanternMan(cr.night, x, yy, z, -dockTh, rng); }
         // siesta (sleepy villages only, midday): hammocks between the houses, nobody else
         if (d.sleepy) for (let i = 0; i < 2; i++) { const [x, z] = at(0.2, 0.5); hammockSleeper(cr.siesta, x, yy, z, rng() * 6.28, rng); }
+        weekAndCustoms(d, rng, cr, { yy, R, dockTh, z1, n, at, dockAt });
       }
+      PAINT = null; NO_CHILD = false;
       const nW = 11;
       for (let i = 0; i < nW; i++) {
         const th = (i / nW) * Math.PI * 2 + rng() * 0.2, rho = shoreR(d, th) * 0.8;
@@ -842,6 +910,16 @@ function meshOf(builder, material) {
   return m;
 }
 
+// extra village layers: when each one shows (the plain phase layers show in their own phase)
+const LAYER_RULES = {
+  market: (i, ph) => !!(i.week && i.week.market) && (ph === 'day' || ph === 'siesta'),
+  festival: (i, ph, d) => !!i.week && i.week.wd === d.festival,
+  lantern: (i, ph) => !!(i.week && i.week.lantern) && (ph === 'evening' || ph === 'night'),
+  kites: (i, ph) => ph === 'day' || ph === 'siesta',
+  nightboats: (i, ph) => ph === 'night',
+  lamps: (i, ph) => ph === 'evening' || ph === 'night',
+  grow1: (i) => (i.growth || 0) >= 1, grow2: (i) => (i.growth || 0) >= 2, grow3: (i) => (i.growth || 0) >= 3,
+};
 export class Island {
   constructor(d, dug) {
     this.desc = d;
@@ -888,12 +966,12 @@ export class Island {
     if (extra.crowd) this.anim.push((t, isl) => {
       const phase = isl.tod ? villagePhase(isl.tod.t * 24, d.sleepy) : 'day';
       isl.phase = phase;
-      for (const [k, m] of Object.entries(isl.crowd)) m.visible = !isl.isDark && k === phase;
+      for (const [k, m] of Object.entries(isl.crowd)) { const rule = LAYER_RULES[k]; m.visible = !isl.isDark && (rule ? rule(isl, phase, d) : k === phase); }
     });
     this.walkers = [];
     for (const w of extra.walkers || []) {
       const pb = new Builder();
-      { const wr = mulberry32(Math.floor(w.rng * 1e6)); villager(pb, 0, 0, 0, 0, wr, pickCol(wr, ['fisher', 'market', 'docker', 'child'])); }
+      { const wr = mulberry32(Math.floor(w.rng * 1e6)); NO_CHILD = d.custom === 'nochildren'; villager(pb, 0, 0, 0, 0, wr, pickCol(wr, ['fisher', 'market', 'docker', 'child'])); NO_CHILD = false; }
       const mesh = new THREE.Mesh(pb.geometry(), mats.props);
       this.group.add(mesh); this.geos.push(mesh.geometry);
       this.walkers.push({ mesh, w });
@@ -1041,7 +1119,7 @@ export class World {
       } else if (isl.mood !== dark) { isl.mood = dark; isl.setMood(dark); }
     }
   }
-  tick(t, tod) { for (const isl of this.islands.values()) { isl.tod = tod; isl.stare = this.stare; for (const f of isl.anim) f(t, isl); } }
+  tick(t, tod) { for (const isl of this.islands.values()) { isl.tod = tod; isl.stare = this.stare; isl.week = this.week; isl.growth = this.growthOf ? this.growthOf(isl.desc.id) : 0; for (const f of isl.anim) f(t, isl); } }
 
   collide(pos, radius) {
     let hit = false;
