@@ -209,7 +209,7 @@ function spot(d, rng, tMin, tMax, hMin = 0.7, tries = 30) {
   return null;
 }
 
-function palm(A, B, D, x, y, z, rng, s = 1) {
+export function palm(A, B, D, x, y, z, rng, s = 1) {
   const lean = rng() * Math.PI * 2, lk = 0.18 + rng() * 0.22;
   const segs = 5;
   let px = x, pz = z, py = y - 0.2;

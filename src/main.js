@@ -1545,6 +1545,8 @@ window.__game = {
   setCam(p, z) { if (p !== undefined) { pitch = pitchT = p; } if (z !== undefined) { zoom = zoomT = z; } },
   setOverride(o) { camOverride = o; },
   teleport(x, z, h) { ship.pos.set(x, 0, z); ship.heading = h; camHeading = h; },
+  /** biome concept scenes (dev): kind 'coral' | 'rain' | 'sunken' */
+  async biome(kind, x, z) { const { buildBiome } = await import('./concepts.js'); if (this._biome) scene.remove(this._biome); this._biome = buildBiome(scene, kind, x, z); return true; },
   /** design lineups for screenshots: 'villagers' or 'houses' on a raft at (x, z) */
   showcase(kind, x = 0, z = 60) {
     if (this._show) scene.remove(this._show);

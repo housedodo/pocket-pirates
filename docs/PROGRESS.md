@@ -186,6 +186,37 @@ New voyage goes straight into the game (no title). A new voyage starts moored al
 - The hut's bad-throw flash no longer sets off Mara's deep-water remarks.
 - Possible paths (kind sea, stirring, empty table, fated thrower, refuser, tens) are in the story bible, "The die".
 
+### Biomes and world variety (planned, not built yet)
+Concepts: `docs/concept/biome-*.png`, built in-engine with `__game.biome('coral' | 'rain' | 'sunken', x, z)` (dev only,
+`src/concepts.js`). Keep clear of Dredge: biomes change how the sea sails and who lives there, not "a zone with a monster".
+- **Coral shallows:** turquoise water over coral, sandbars, stilt villages. Read the water (paler = shallower); speed
+  scrapes the hull; low tide opens shortcuts. Wrong: the coral rings look like writing from the crow's nest.
+- **Rain belt:** steep green islands, waterfalls into the sea, drizzle and rainbows, villages under leaf roofs. Fruit
+  regrows, rare fish bite in rain, gusty wind. Wrong: the rain falls upward for a moment; nobody mentions it.
+- **Sunken streets:** roofs, chimneys, a bell tower and lamp posts out of shallow water; at low tide the streets show
+  and boats pass between houses; salvage from windows. Seeds Mara's village. Wrong: the bell rings with no wind.
+- Placement idea: a flavour per compass quarter from Tama, tied to the faction living there; dread still grows with
+  distance, so each biome has a bright near version and a wrong far one.
+
+**World on a schedule**
+- Tides that rise and fall over the day; some passages and beaches only at low tide.
+- A week: market day, a fishing festival, a night of lanterns, in different harbours. Players learn the rhythm.
+- Travelling things: a floating market ship, a regatta, a whale migration, a storm front you can see coming.
+
+**Villages with character**
+- One custom per village (never lights lamps, sings at dusk, no children, every door blue...), visible and remembered.
+- Harbours grow with your trade: a new pier, a second tavern, more boats.
+- Local knowledge: each village sells a hand-drawn chart of its own waters, in its own style.
+
+**Life at sea**
+- NPC ships with routines (the same fishing boat leaves Tama at dawn every day; one day it does not).
+- Wildlife per region: flying fish in the shallows, turtles in the rain belt, pelicans on the salt pans.
+- Weather with regional character: squalls in the rain belt, mirage heat, still air in the doldrums.
+
+**False rumours**
+- Not every bought rumour is true. Most lead to nothing ("only sand, and someone else's footprints"); a few lead somewhere
+  stranger than treasure.
+
 ## 2. Open storylines (started, resolved later)
 
 ### The Lady in the Hut (main thread)
