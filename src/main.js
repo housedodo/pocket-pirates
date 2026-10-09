@@ -290,6 +290,7 @@ function openModal(name) {
   if (name === 'chart') { abyss.onMapOpen(ship); logbook.open(logTab);
     if (state.story.hutNod === 'pending') { state.story.hutNod = 'done'; setTimeout(() => objectives.mate.say('Captain... was that hut always on our chart? I did not draw it. Did you draw it?', true), 1800); } }
   if (name === 'harbour') renderHarbour();
+  document.body.classList.toggle('ashore', name === 'harbour' || name === 'greet');
   if (name === 'ship') renderShipTrade();
   if (name === 'yard') renderYard();
   if (name === 'hut') hut.open();
@@ -298,6 +299,7 @@ function openModal(name) {
 }
 function closeModal(silent = false) {
   if (!modal) return;
+  document.body.classList.remove('ashore');
   pauseEl.classList.remove('open'); chartEl.classList.remove('open'); harbourEl.classList.remove('open'); shipEl.classList.remove('open'); yardEl.classList.remove('open'); hutEl.classList.remove('open'); cardEl.classList.remove('open'); pigEl.classList.remove('open'); greetEl.classList.remove('open');
   if (modal === 'pause') audio.setPaused(false);
   if (modal === 'hut') hutLeft();
@@ -446,10 +448,11 @@ window.addEventListener('keydown', (e) => {
     return;
   }
   if (modal === 'harbour') {
-    if (e.code === 'KeyE') closeModal();
+    const order = ['board', 'market', 'tavern', 'wright'];
+    if (e.code === 'KeyE') { closeModal(); return; }
     const n = parseInt(e.key, 10);
-    if (n >= 1 && n <= UPGRADES.length && hbTab === 'wright') buyUpgrade(UPGRADES[n - 1].id);
-    if (e.code === 'ArrowRight' || e.code === 'ArrowLeft') { const order = ['board', 'market', 'wright']; hbTab = order[(order.indexOf(hbTab) + (e.code === 'ArrowRight' ? 1 : 2)) % 3]; renderHarbour(); }
+    if (n >= 1 && n <= 4) { hbTab = order[n - 1]; renderHarbour(); }
+    if (e.code === 'ArrowRight' || e.code === 'ArrowLeft') { hbTab = order[(order.indexOf(hbTab) + (e.code === 'ArrowRight' ? 1 : 3)) % 4]; renderHarbour(); }
     return;
   }
   if (e.code === 'KeyM') { logTab = 'map'; openModal('chart'); return; }
@@ -549,7 +552,6 @@ $('pbSound').addEventListener('click', () => {
 });
 pauseEl.addEventListener('pointerdown', (e) => { if (e.target === pauseEl) closeModal(); });
 chartEl.addEventListener('pointerdown', (e) => { if (e.target === chartEl) closeModal(); });
-harbourEl.addEventListener('pointerdown', (e) => { if (e.target === harbourEl) closeModal(); });
 shipEl.addEventListener('pointerdown', (e) => { if (e.target === shipEl) closeModal(); });
 $('shClose').addEventListener('click', () => closeModal());
 $('hbClose').addEventListener('click', () => closeModal());
@@ -608,6 +610,8 @@ function renderHarbour() {
   $('hbBannerName').textContent = d.name;
   $('hbGold').textContent = state.gold;
   $('hbTabs').querySelectorAll('button').forEach((b) => b.classList.toggle('on', b.dataset.t === hbTab));
+  $('hbPlace').textContent = { board: "Harbourmaster's board", market: 'Market', tavern: 'Tavern', wright: 'Shipwright' }[hbTab];
+  postBadges(d, rep);
   const pane = $('hbPane');
   let html = '';
   if (hbTab === 'board') {
@@ -664,40 +668,42 @@ function renderHarbour() {
     const fruitList = Object.entries(state.fruit).filter(([, n]) => n > 0);
     const fruitVal = Math.round(fruitList.reduce((a, [f, n]) => a + FRUITS[f].price * n, 0) * 0.7 * (1 + 0.05 * lvl) * hm);
     const ammoCost = Math.ceil(25 * discount(rep) * costMul());
-    { // the tavern: rooms are let from 17:00, you wake at 06:00 with the hull mended
-      const hour = state.time * 24, open = hour >= 17 || hour < 5, bedCost = Math.ceil(8 * discount(rep) * costMul());
-      html += `<div class="sec">TAVERN</div><div class="qrow"><div><b>${pxi('bed')} A bed for the night</b><br><small>${open ? 'sleep until 06:00, the crew mends the hull' : 'rooms are let from 17:00'}</small></div><button id="restBed" ${open && state.gold >= bedCost ? '' : 'disabled'}>${bedCost}g</button></div>`;
-    }
-    if (unlocked(state, 'crew')) { // hands for hire, and dice with the locals
-      const hand = crewForHire(d, state.dayN, state, world);
-      if (hand && !state.crew.some((c) => c.name === hand.name)) html += `<div class="qrow"><div><b>${pxi('talk')} ${hand.name}, ${hand.look}</b><br><small>${TRAITS[hand.trait].name}: ${TRAITS[hand.trait].text} · ${hand.wish.text}</small></div><button id="hireHand" ${state.gold >= hand.cost && state.crew.length < 2 ? '' : 'disabled'}>${state.crew.length < 2 ? `Hire ${hand.cost}g` : 'Crew full'}</button></div>`;
-      for (const c of state.crew) html += `<div class="qrow"><div><b>${pxi('talk')} ${c.name}</b> <small>(${TRAITS[c.trait].name})</small></div><button data-dismiss="${c.name}">Let go</button></div>`;
-      html += `<div class="qrow"><div><b>${pxi('pip')} Dice with the locals</b><br><small>first to 30 · stake 10g</small></div><button id="playPig" ${state.gold >= 10 ? '' : 'disabled'}>Sit down</button></div>`;
-      pendingHand = hand;
-    }
     html += `<div class="sec">STANDING HERE</div><small>${pxi('star').repeat(lvl)}${pxi('nostar').repeat(3 - lvl)}${lvl ? `  (-${lvl * 5}% prices, +${lvl * 5}% for your catch)` : '  (visit and deliver to be remembered)'}</small>`;
     html += '<div class="sec">SELL</div>' + priceNote();
     if (unlocked(state, 'haggle')) html += `<div class="qrow"><div><b>${pxi('coin')} Haggle</b><br><small>${hg ? (hg.mult > 1 ? `they pay ${Math.round((hg.mult - 1) * 100)}% more today` : hg.n === 1 ? 'word got round: 20% less for your catch, everything else 10% dearer' : 'they are offended: 10% less today') : 'a talk roll, once a day: 12 or more'}</small></div>${hg ? '' : '<button id="haggle">Roll</button>'}</div>`;
     html += `<div class="qrow"><div><b>${pxi('fish')} Fish</b><br><small>${state.catch.length ? `${state.catch.length} in the hold` : 'none: slow down and press C at sea'}</small></div>${state.catch.length ? `<button id="sellFish">+${fishVal}g</button>` : ''}</div>`;
     html += `<div class="qrow"><div><b>${pxi('banana')} Fruit</b><br><small>${fruitList.length ? fruitList.map(([f, n]) => `${n} ${plural(fruitName(f, dread), n)}`).join(', ') : 'none: press E at jungle isles'}</small></div>${fruitList.length ? `<button id="sellFruit">+${fruitVal}g</button>` : ''}</div>`;
-    html += '<div class="sec">BUY</div>';
-    if (unlocked(state, 'cannons')) html += `<div class="qrow"><div><b>${pxi('ball')} 10 cannonballs</b><br><small>you have ${state.ammo}</small></div><button id="buyAmmo" ${state.gold >= ammoCost ? '' : 'disabled'}>${ammoCost}g</button></div>`;
+    if (unlocked(state, 'cannons')) html += `<div class="sec">BUY</div><div class="qrow"><div><b>${pxi('ball')} 10 cannonballs</b><br><small>you have ${state.ammo}</small></div><button id="buyAmmo" ${state.gold >= ammoCost ? '' : 'disabled'}>${ammoCost}g</button></div>`;
     html += `<div class="sec">SHIPYARD</div><div class="qrow"><div><b>${pxi('paint')} Paint, sails, pennants, figureheads</b></div><button id="openYard">Open</button></div>`;
     pane.innerHTML = html;
     const sf = $('sellFish'); if (sf) sf.addEventListener('click', () => { state.gold += fishVal; toast(`Sold ${state.catch.length} fish for ${fishVal} gold.`); state.catch = []; audio.play('buy'); renderHarbour(); });
     const sfr = $('sellFruit'); if (sfr) sfr.addEventListener('click', () => { state.gold += fruitVal; toast(`Sold fruit for ${fruitVal} gold.`); state.fruit = {}; audio.play('buy'); renderHarbour(); });
     if ($('buyAmmo')) $('buyAmmo').addEventListener('click', () => { if (state.gold < ammoCost) return; state.gold -= ammoCost; state.ammo += 10; audio.play('buy'); renderHarbour(); });
     $('openYard').addEventListener('click', () => openModal('yard'));
-    $('restBed').addEventListener('click', () => restAtTavern(Math.ceil(8 * discount(rep))));
+    const hgb = $('haggle'); if (hgb) hgb.addEventListener('click', () => {
+      rollCheck(state, { label: 'Talk', kind: 'talk', dc: 12, extra: lvl ? [['standing', lvl]] : [] }, (ok, n) => {
+        state.haggle = { id: d.id, day: state.dayN, n, mult: ok ? (n === 20 ? 1.5 : 1.3) : n === 1 ? 0.8 : 0.9 };
+        toast(ok ? 'The fishmonger laughs and gives in.' : n === 1 ? 'The fishmonger spits on the planks. By noon the whole harbour has heard.' : 'The fishmonger folds their arms. Prices just got worse.', false, 4000); if (harbourIsl) renderHarbour(); }); });
+  } else if (hbTab === 'tavern') {
+    { // rooms are let from 17:00, you wake at 06:00 with the hull mended
+      const hour = state.time * 24, open = hour >= 17 || hour < 5, bedCost = Math.ceil(8 * discount(rep) * costMul());
+      html += `<div class="sec">ROOMS</div><div class="qrow"><div><b>${pxi('bed')} A bed for the night</b><br><small>${open ? 'sleep until 06:00, the crew mends the hull' : 'rooms are let from 17:00'}</small></div><button id="restBed" ${open && state.gold >= bedCost ? '' : 'disabled'}>${bedCost}g</button></div>`;
+    }
+    if (unlocked(state, 'crew')) { // hands for hire, and dice with the locals
+      const hand = crewForHire(d, state.dayN, state, world);
+      html += '<div class="sec">AT THE TABLES</div>';
+      if (hand && !state.crew.some((c) => c.name === hand.name)) html += `<div class="qrow"><div><b>${pxi('talk')} ${hand.name}, ${hand.look}</b><br><small>${TRAITS[hand.trait].name}: ${TRAITS[hand.trait].text} · ${hand.wish.text}</small></div><button id="hireHand" ${state.gold >= hand.cost && state.crew.length < 2 ? '' : 'disabled'}>${state.crew.length < 2 ? `Hire ${hand.cost}g` : 'Crew full'}</button></div>`;
+      for (const c of state.crew) html += `<div class="qrow"><div><b>${pxi('talk')} ${c.name}</b> <small>(${TRAITS[c.trait].name})</small></div><button data-dismiss="${c.name}">Let go</button></div>`;
+      html += `<div class="qrow"><div><b>${pxi('pip')} Dice with the locals</b><br><small>first to 30 · stake 10g</small></div><button id="playPig" ${state.gold >= 10 ? '' : 'disabled'}>Sit down</button></div>`;
+      pendingHand = hand;
+    } else html += '<small>A fiddler, a fire, a lot of very old chairs. Nobody here knows you yet.</small>';
+    pane.innerHTML = html;
+    $('restBed').addEventListener('click', () => restAtTavern(Math.ceil(8 * discount(rep) * costMul())));
     const hh = $('hireHand'); if (hh) hh.addEventListener('click', () => {
       const h = pendingHand; if (!h || state.gold < h.cost || state.crew.length >= 2) return;
       state.gold -= h.cost; state.crew.push(h); audio.play('buy'); toast(`${h.name} signs on. ${h.name} nods once and says nothing.`, false, 5000); objectives.remark('crew', dread); renderHarbour(); });
     pane.querySelectorAll('[data-dismiss]').forEach((b) => b.addEventListener('click', () => { state.crew = state.crew.filter((c) => c.name !== b.dataset.dismiss); toast(`${b.dataset.dismiss} goes ashore with a small wave.`); renderHarbour(); }));
     if ($('playPig')) $('playPig').addEventListener('click', () => { if (state.gold < 10) return; state.gold -= 10; const isl = harbourIsl; openModal('pig'); pigHome = isl; pig.start(LOCALS[Math.floor(Math.random() * LOCALS.length)], 10); });
-    const hgb = $('haggle'); if (hgb) hgb.addEventListener('click', () => {
-      rollCheck(state, { label: 'Talk', kind: 'talk', dc: 12, extra: lvl ? [['standing', lvl]] : [] }, (ok, n) => {
-        state.haggle = { id: d.id, day: state.dayN, n, mult: ok ? (n === 20 ? 1.5 : 1.3) : n === 1 ? 0.8 : 0.9 };
-        toast(ok ? 'The fishmonger laughs and gives in.' : n === 1 ? 'The fishmonger spits on the planks. By noon the whole harbour has heard.' : 'The fishmonger folds their arms. Prices just got worse.', false, 4000); if (harbourIsl) renderHarbour(); }); });
   } else {
     if (hbShipLine) html += `<p class="quote">${hbShipLine}</p>`;
     html += priceNote();   // the shipwright talks here, not over the welcome
@@ -711,7 +717,16 @@ function renderHarbour() {
     pane.querySelectorAll('button[data-id]').forEach((b) => b.addEventListener('click', () => buyUpgrade(b.dataset.id)));
   }
 }
-$('hbTabs').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b && harbourIsl) { hbTab = b.dataset.t; renderHarbour(); } });
+$('hbTabs').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b || !harbourIsl) return; if (b.dataset.t === 'sail') { closeModal(); return; } hbTab = b.dataset.t; audio.play('ui', { vol: 0.4 }); renderHarbour(); });
+// a red number on a sign when something waits there
+function postBadges(d, rep) {
+  let due = (state.job && state.job.toId === d.id ? 1 : 0) + (state.passenger && state.passenger.toId === d.id ? 1 : 0);
+  due += state.quests.filter((x) => x.giverId === d.id && questProgress(x, state) >= questNeed(x)).length;
+  const goods = state.catch.length + Object.values(state.fruit).reduce((a, n) => a + n, 0);
+  const canUp = UPGRADES.some((u) => state.upgrades[u.id] < MAX_LEVEL && state.gold >= upCost(u, state.upgrades[u.id], rep));
+  const set = (t, v) => { $('hbTabs').querySelector(`[data-t="${t}"] em`).textContent = v || ''; };
+  set('board', due); set('market', goods); set('tavern', ''); set('wright', canUp ? '!' : ''); set('sail', '');
+}
 // one quiet line when the Lady's last throw moved the prices; nobody says why
 const priceNote = () => { const k = dreamCost(); return k > 1 ? '<small>Prices are up today. Nobody says why.</small>' : k < 1 ? '<small>Prices are down today. Everyone seems to have slept well.</small>' : ''; };
 let harbourLine = '', hbShipLine = '';
@@ -874,6 +889,12 @@ function completeJobIfHere(d) {
   state.job = null;
 }
 
+// ashore the camera rests on the village, a little to the left so the panel on the right does not cover it
+let ashoreCam = null, ashoreK = 0, animT = 0;
+function frameVillage(d) {
+  const dx = d.x - ship.pos.x, dz = d.z - ship.pos.z, L = Math.hypot(dx, dz) || 1, ux = dx / L, uz = dz / L, px = -uz, pz = ux;
+  ashoreCam = { pos: new THREE.Vector3(ship.pos.x + ux * 9 - px * 3, 7.5, ship.pos.z + uz * 9 - pz * 3), look: new THREE.Vector3(d.x - ux * d.r * 0.2 + px * d.r * 0.3, 2.5, d.z - uz * d.r * 0.2 + pz * d.r * 0.3) };
+}
 function tryInteract() {
   if (!started || modal) return;
   const tg = getInteract();
@@ -900,7 +921,7 @@ function tryInteract() {
       if (told === 0 || Math.random() < 0.5) say = rollGreeting(h.rolls[h.rolls.length - 1].n, state.time * 24, Math.random);
     }
     if (!say && free && (g.day[d.id] == null || Math.random() < 0.3)) say = pickGreeting({ hour: state.time * 24, weather: weather.label, dread, rnd: Math.random });
-    harbourIsl = tg.isl; hbTab = 'board';
+    harbourIsl = tg.isl; hbTab = 'board'; frameVillage(d);
     for (const c of state.crew) if (c.wish && !c.wish.done && c.wish.kind === 'harbour' && c.wish.id === tg.isl.desc.id) wishDone(c);
     harbourEl.classList.toggle('dark', idx >= 3);
     $('hbBannerName').textContent = d.name; $('hbSaid').textContent = '';
@@ -1125,7 +1146,7 @@ let pendingHand = null, pigHome = null, cardT = 150 + Math.random() * 120, cardB
 const pig = new Pig(pigEl, { onEnd: (won) => { if (won) { state.gold += 20; audio.play('treasure'); if (Math.random() < 0.5) { const r = cardCtx().rumour('a sore loser at the tavern'); if (r) toast(r, false, 7000); } } } });
 $('pigRoll').addEventListener('click', () => pig.roll());
 $('pigHold').addEventListener('click', () => pig.hold());
-$('pigLeave').addEventListener('click', () => { if (pig.busy) return; closeModal(); if (pigHome) { harbourIsl = pigHome; hbTab = 'market'; openModal('harbour'); } });
+$('pigLeave').addEventListener('click', () => { if (pig.busy) return; closeModal(); if (pigHome) { harbourIsl = pigHome; hbTab = 'tavern'; openModal('harbour'); } });
 $('cardDone').addEventListener('click', () => closeModal());
 function cardCtx() {
   return {
@@ -1286,8 +1307,10 @@ function frame() {
   lastTs = nowTs;
   const live = started && !modal;
   const dt = live ? rawDt : 0;           // simulation time: frozen while a menu is open
-  tNow += dt;
-  const stepT = Math.floor(tNow * 12) / 12;
+  const ashore = modal === 'harbour' || modal === 'greet';
+  const vdt = live || ashore ? rawDt : 0;  // ashore the world keeps moving (people, gulls, waves) while the clock stands still
+  tNow += dt; animT += vdt;
+  const stepT = Math.floor(animT * 12) / 12;
 
   // ---- time of day & wind
   if (live) { const pt = state.time; state.time = advanceTime(state.time, dt); if (state.time < pt) { noteSkip(); state.dayN++; } }
@@ -1354,12 +1377,12 @@ function frame() {
   const lp = abyss.lightPhase;
   world.setLit(lp === 'stare' ? true : lp === 'dead' ? false : tod.sunHeight < 0.12 || weather.darkness > 0.6);
   world.stare = lp === 'stare' ? ship.pos : null;
-  world.tick(tNow, tod);
+  world.tick(animT, tod);
   horror.update(tNow, dread, ship.pos.x, ship.pos.z);
-  ship.place(dt, waveT, stage.wave, dark, tod.night);
+  ship.place(vdt, waveT, stage.wave, dark, tod.night);
   const lifeCtx = { ship, dread, wave: stage.wave, audio, wind: windNow, stage, tod };
   if (live) state.stats.dist += ship.speed * dt;
-  windfx.update(dt, tNow, windNow.dir, windNow.strength, ship.pos, tod.night, Math.min(1, weather.rain * 1.5));
+  windfx.update(vdt, animT, windNow.dir, windNow.strength, ship.pos, tod.night, Math.min(1, weather.rain * 1.5));
   fishing.update(dt, waveT, { wave: stage.wave, dread, night: tod.night });
   setDieWear(clamp(state.dayN / 12 + dread * 0.6, 0, 1));
   combat.update(dt, waveT, { ship, traffic, wave: stage.wave, onHitEnemy, onHitPlayer: hurtPlayer });
@@ -1376,7 +1399,7 @@ function frame() {
     for (const [k, v] of [['stage2', 0.25], ['stage3', 0.5], ['stage4', 0.75], ['stage5', 0.95]]) if (dread >= v) objectives.remark(k, dread);
     if (traffic.ships.some((x) => x.hostile && x.engaged)) objectives.remark('raider');
   }
-  fauna.update(dt, waveT, lifeCtx);
+  fauna.update(vdt, waveT, lifeCtx);
   traffic.update(dt, waveT, lifeCtx);
   sea.update(dt, waveT, lifeCtx);
 
@@ -1387,7 +1410,7 @@ function frame() {
   U.uSnap.value.set(post.internal.w * 0.5 * stage.snap, post.internal.h * 0.5 * stage.snap);
   mats.shallow.color.copy(stage.shallow).lerp(new THREE.Color(1, 1, 1), 0.25);
   mats.foam.color.set(0xffffff).lerp(stage.skyHorizon, 0.25);
-  mats.foam.opacity = 0.55 + 0.25 * Math.sin(tNow * 1.8);
+  mats.foam.opacity = 0.55 + 0.25 * Math.sin(animT * 1.8);
   mats.beam.color.set('#ffe080').lerp(new THREE.Color('#ff50d0'), smoothstep(0.5, 0.8, dread));
   mats.beam.opacity = 0.1 + 0.3 * tod.night;
   mats.wake.color.set(0xffffff).lerp(new THREE.Color(0.35, 1, 0.9), tod.night * 0.9).lerp(new THREE.Color(1, 0.4, 0.95), tod.night * smoothstep(0.55, 0.9, dread) * 0.8);
@@ -1414,6 +1437,8 @@ function frame() {
   if (shake > 0) { shake = Math.max(0, shake - rawDt * 1.8); camPos.x += Math.sin(tNow * 70) * shake; camPos.y += Math.cos(tNow * 63) * shake * 0.7; }
   if (dread > 0.85 && live) { const s = (dread - 0.85) * 0.5; camPos.x += Math.sin(tNow * 31) * s; camPos.y += Math.sin(tNow * 23 + 1) * s; }
   if (titleScene) titleCam(rawDt);
+  ashoreK += ((ashore && ashoreCam ? 1 : 0) - ashoreK) * Math.min(1, rawDt * 2.2);
+  if (ashoreCam && ashoreK > 0.001) { const k = smoothstep(0, 1, ashoreK); camPos.lerp(ashoreCam.pos, k); camLook.lerp(ashoreCam.look, k); }
   if (camOverride) { camPos.set(...camOverride.pos); camLook.set(...camOverride.look); }
   camera.position.copy(camPos);
   camera.lookAt(camLook);

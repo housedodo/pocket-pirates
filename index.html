@@ -148,10 +148,31 @@
     /* harbour: the name across the top of the screen; a villager may speak first (a Mara-style box); the menu sits low */
     .hbBanner { position: absolute; left: 0; right: 0; top: 0; padding: 24px 40px 32px; text-align: center; background: linear-gradient(rgba(8,6,22,.88), rgba(8,6,22,.55) 75%, rgba(8,6,22,0)); pointer-events: none; }
     .hbName { font: 48px "Pirata One", serif !important; color: #f4ead0; text-shadow: 3px 3px 0 #5a1612, 6px 6px 0 #1a0606; }
-    .hbSaid { margin: 8px auto 0; max-width: 900px; font-size: 32px !important; line-height: 44px; color: #e8c8d8; text-shadow: 3px 3px 0 #1a0614; }
+    .hbSaid { margin: 4px auto 0; max-width: 680px; font-size: 16px !important; line-height: 24px; color: #e8c8d8; text-shadow: 3px 3px 0 #1a0614; }
     @media (max-height: 640px) { .hbSaid { font-size: 16px !important; line-height: 24px; } .hbName { font-size: 32px !important; } }
     #harbour.dark .hbSaid, #greet.dark #grTxt { color: #ffb8e8; }
-    #harbour { align-items: flex-end; } #harbour #hbWide { margin-bottom: 20px; max-height: 58vh; overflow: auto; width: min(780px, 94vw); }
+    /* ashore: the village stays in view and alive; signposts along the pier pick a place, one panel on the right, messages on the left */
+    #harbour { background: linear-gradient(rgba(8,6,22,0) 70%, rgba(8,6,22,.55)); display: none; }
+    #harbour.open { display: block; }
+    #harbour #hbWide { position: absolute; right: 24px; top: 128px; width: min(480px, 92vw); max-height: calc(100vh - 300px); overflow: auto; margin: 0; }
+    #harbour .goldline { display: flex; justify-content: space-between; }
+    #hbPlace { color: var(--gold); }
+    #hbTabs { position: absolute; left: 50%; bottom: 20px; transform: translateX(-50%); display: flex; gap: 12px; }
+    #hbTabs .post { all: unset; position: relative; cursor: pointer; width: 140px; padding: 10px 6px 8px; text-align: center; font-size: 16px !important; color: #f4ead0;
+      background: repeating-linear-gradient(0deg, #6a4424 0 10px, #5a3a1c 10px 12px); box-shadow: inset 0 -5px 0 #3a2210, inset 0 4px 0 #8a5a30, 6px 6px 0 rgba(0,0,0,.4); text-shadow: 2px 2px 0 #1a0606; transition: transform .12s; }
+    #hbTabs .post small { display: block; color: #e8d8b0; font-size: 16px !important; }
+    #hbTabs .post.on { transform: translateY(-8px); box-shadow: inset 0 -5px 0 #3a2210, inset 0 4px 0 #8a5a30, 0 0 0 4px #ffd23a, 6px 6px 0 4px rgba(0,0,0,.4); }
+    #hbTabs .post:hover, #hbTabs .post:focus-visible { transform: translateY(-4px); }
+    #hbTabs .post em { position: absolute; right: -6px; top: -10px; min-width: 20px; padding: 0 5px; font-style: normal; background: #c8402a; color: #fff4d8; text-shadow: none; box-shadow: 2px 2px 0 #1a0606; }
+    #hbTabs .post em:empty { display: none; }
+    body.ashore #hud { opacity: 0; transition: opacity .3s; }   /* ashore the panel shows your gold; the sailing HUD steps aside */
+    body.ashore #toasts { left: 24px; top: 128px; transform: none; width: min(380px, 40vw); align-items: flex-start; }
+    #harbour.dark #hbTabs .post.on { box-shadow: inset 0 -5px 0 #3a2210, inset 0 4px 0 #8a5a30, 0 0 0 4px #ff70d0, 6px 6px 0 4px rgba(0,0,0,.4); }
+    @media (max-width: 760px) {
+      #harbour #hbWide { left: 8px; right: 8px; width: auto; top: 110px; max-height: calc(100vh - 250px); }
+      #hbTabs { left: 8px; right: 8px; transform: none; gap: 4px; } #hbTabs .post { flex: 1; width: auto; padding: 8px 2px 6px; }
+      body.ashore #toasts { left: 8px; right: 8px; width: auto; top: auto; bottom: 96px; }
+    }
     #greet { align-items: flex-end; background: rgba(8,6,22,.35); }
     #grBox { position: relative; display: flex; gap: 16px; align-items: flex-start; width: min(900px, 94vw); margin-bottom: 40px; padding: 16px 20px 20px; background: var(--pxmenu) 0 0 / 32px 32px; image-rendering: pixelated; box-shadow: 0 -4px 0 #c9a85c, 0 4px 0 #c9a85c, -4px 0 0 #c9a85c, 4px 0 0 #c9a85c, 8px 8px 0 4px rgba(0,0,0,.45); cursor: pointer; }
     #greet.dark #grBox { box-shadow: 0 -4px 0 #ff70d0, 0 4px 0 #ff70d0, -4px 0 0 #ff70d0, 4px 0 0 #ff70d0, 8px 8px 0 4px rgba(0,0,0,.45); }
@@ -413,7 +434,7 @@
   <div id="roll"><canvas id="rollCv"></canvas><b id="rollLbl"></b><small id="rollMod"></small><div id="rollRes"></div></div>
   <div id="shipmodal" class="modal"><div class="menu" id="shWide"><h2 id="shName"></h2><p class="quote" id="shLine"></p><div class="goldline">Gold: <b id="shGold"></b></div><div id="shList"></div><button id="shClose">Wave goodbye</button></div></div>
   <div id="greet" class="modal"><div class="hbBanner"><div class="hbName" id="grName"></div></div><div id="grBox"><img id="grFace" alt=""><div style="flex:1"><b id="grWho"></b><div id="grTxt"></div></div><span id="grMore"><i class="pxi down"></i></span></div></div>
-  <div id="harbour" class="modal"><div class="hbBanner"><div class="hbName" id="hbBannerName"></div><div class="hbSaid" id="hbSaid"></div></div><div class="menu" id="hbWide"><h2 id="hbName" style="display:none"></h2><p class="quote" id="hbLine" style="display:none"></p><div class="goldline">Gold: <b id="hbGold"></b></div><div class="hbtabs" id="hbTabs"><button data-t="board">Board</button><button data-t="market">Market</button><button data-t="wright">Shipwright</button></div><div id="hbPane"></div><button id="hbClose">Set sail [E]</button></div></div>
+  <div id="harbour" class="modal"><div class="hbBanner"><div class="hbName" id="hbBannerName"></div><div class="hbSaid" id="hbSaid"></div></div><div class="menu" id="hbWide"><h2 id="hbName" style="display:none"></h2><p class="quote" id="hbLine" style="display:none"></p><div class="goldline"><span id="hbPlace"></span><span>Gold: <b id="hbGold"></b></span></div><div id="hbPane"></div><button id="hbClose" style="display:none">Set sail [E]</button></div><div id="hbTabs"><button class="post" data-t="board">Board<em></em><small>1</small></button><button class="post" data-t="market">Market<em></em><small>2</small></button><button class="post" data-t="tavern">Tavern<em></em><small>3</small></button><button class="post" data-t="wright">Shipwright<em></em><small>4</small></button><button class="post" data-t="sail">Set sail<em></em><small>E</small></button></div></div>
   <div id="pause" class="modal"><div class="menu">
     <div id="pauseMain"><h2>PAUSED</h2>
       <button id="pbResume">Resume</button><button id="pbHint">Ask Mara for a hint</button><button id="pbControls">Controls</button><button id="pbFull">Fullscreen: off</button><button id="pbLog">Captain's log</button><button id="pbAbyss">Full-dread effects (test)</button><button id="pbMixer">Sound mixer (F8)</button><button id="pbSound">Sound: on</button><button id="pbMusic">Music: on</button><button id="pbNew">New voyage (erase save)</button>

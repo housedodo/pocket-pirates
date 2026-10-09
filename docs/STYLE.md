@@ -80,9 +80,12 @@ purple and magenta cosmic horror as dread rises.
 - Wind meter: one pixel-art tick ring with an N at north, a bright double arc where the bow sails well,
   a solid arrow for the wind, a bow tick outside the ring, an orange mission dot.
 
-- Harbour: the name in Pirata One (48px, blood-red pixel shadow) on a dark gradient across the top; the menu
-  sits low and compact. A villager's line comes first in a Mara-style box (gold ring, 64px 8x8 portrait,
-  32px text); at dread stage 3+ the ring and text turn magenta. The line then stays under the name in pale rose.
+- Harbour (layout A, "signposts on the pier"): no dark overlay; the camera rests on the village (a little to the left)
+  and the village keeps living (people walk, gulls fly, waves move; the clock stands still). Name in Pirata One across
+  the top with the last villager line under it in pale rose. Five wooden signposts along the bottom: Board, Market,
+  Tavern, Shipwright, Set sail (keys 1-4, E; arrows step). A red number on a sign = something waits there. The chosen
+  place opens as one panel on the right; messages stack on the left under the name, never covered. The sailing HUD
+  fades out ashore. A villager's line (Mara-style box, 8x8 portrait) still comes first when there is one.
 
 - Dice: the Lady's d20 is yellowed bone with a dark red 1. The check die starts pale bone and darkens in four steps to
   stained bone with a blood-dark 1; same carved numbers, same pixel texture. Never a new colour, only age.

@@ -161,7 +161,11 @@ New voyage goes straight into the game (no title). A new voyage starts moored al
 - One villager line per day in total, wherever you dock (story beats excepted).
 - The progress bar names the activity: reading the inscription, digging, picking fruit, salvaging the wreck.
 - Gulls: about 10 instead of 22, smaller, faster, with wandering circles, swoops and glides.
-- Next: the docking redesign (concepts in `docs/concept/harbour-dock.html`, three layouts). Later: more biome
+- **Docking redesign (layout A, signposts on the pier):** the village stays in view and alive while you choose
+  (people, gulls, waves keep moving; time stands still). Four places: Board (errands, passage, rumours), Market
+  (standing, haggle, sell, shipyard), Tavern (rooms, hands for hire, dice), Shipwright. Red numbers on the signs:
+  errands to finish here, goods to sell; "!" when an upgrade is affordable. Messages sit on the left, never covered.
+- Later: more biome
   variety, deliberately not close to Dredge's look or structure.
 
 ### The die (one die, and her throws change the world)
