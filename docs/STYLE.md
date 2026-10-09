@@ -87,6 +87,8 @@ purple and magenta cosmic horror as dread rises.
 - Dice: the Lady's d20 is yellowed bone with a dark red 1. The check die starts pale bone and darkens in four steps to
   stained bone with a blood-dark 1; same carved numbers, same pixel texture. Never a new colour, only age.
 
+- Things worth finding at sea (bottles) flash a small gold glint, never white (white reads as foam).
+
 ## 6. The captain's log (book)
 - A battered **pixel tome**: dithered, scratched and stained leather cover with missing stitches and dented
   brass corners; dithered pages with foxing, ink blots in the margins, a coffee ring, a crease and a

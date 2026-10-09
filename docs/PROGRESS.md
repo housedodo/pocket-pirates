@@ -152,6 +152,18 @@ New voyage goes straight into the game (no title). A new voyage starts moored al
   - **1-9:** the screen flips to the full-dread look for a moment and back; she says nothing and writes something down.
 - Mara comments after the first visit and after the third bad throw.
 
+### After the first demo playtest
+- Dice: the d6 now shows the rolled face straight on (the old tilt made you read the top face, which was a different
+  number); the d20 leans in on the face that came up, in the checks and at the hut.
+- Bottles are bigger and flash a gold glint every couple of seconds (bigger with distance); pickup range 6.5.
+- In fullscreen, Esc pauses instead of leaving fullscreen (keyboard lock, Chrome/Edge; hold Esc to leave). P also pauses.
+- Messages (quest done, rumours) sit above every menu.
+- One villager line per day in total, wherever you dock (story beats excepted).
+- The progress bar names the activity: reading the inscription, digging, picking fruit, salvaging the wreck.
+- Gulls: about 10 instead of 22, smaller, faster, with wandering circles, swoops and glides.
+- Next: the docking redesign (concepts in `docs/concept/harbour-dock.html`, three layouts). Later: more biome
+  variety, deliberately not close to Dredge's look or structure.
+
 ### The die (one die, and her throws change the world)
 - **One die:** the haggling and encounter-card checks roll the same bone d20 as hers. It darkens in four steps
   (`setDieWear`: days at sea / 12 + dread x 0.6) to old stained bone with a blood-dark 1. Checks do not touch the

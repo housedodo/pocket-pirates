@@ -127,7 +127,7 @@ export class Fauna {
 
     // ================= birds =================
     const watchers = dread >= 0.8;
-    const nActive = watchers ? 9 : Math.round(22 * (1 - 0.55 * smoothstep(0.15, 0.45, dread)));
+    const nActive = watchers ? 9 : Math.round(10 * (1 - 0.5 * smoothstep(0.15, 0.45, dread)));   // a few gulls, not a cloud
     const crow = smoothstep(0.3, 0.55, dread);
     this.birdMat.color.setRGB(lerp(1, 0.13, crow), lerp(1, 0.1, crow), lerp(1, 0.17, crow));
     const flap = lerp(9, 3.5, smoothstep(0.3, 0.8, dread));
@@ -151,9 +151,11 @@ export class Fauna {
           }
           if (!b.anchor) visible = false;
           else {
-            b.ang += dt * (3.2 / b.r) * b.spd * frozen * dirSign * (dread > 0.5 ? 0.6 : 1);
-            x = b.anchor.x + Math.cos(b.ang) * b.r; z = b.anchor.z + Math.sin(b.ang) * b.r;
-            y = b.h + Math.sin(t * 0.7 + b.phase) * 0.6;
+            b.ang += dt * (5.5 / b.r) * b.spd * frozen * dirSign * (dread > 0.5 ? 0.6 : 1);
+            // they wander: the circle breathes in and out, and they swoop down and climb again
+            const live = frozen * (dread > 0.5 ? 0.3 : 1), rr = b.r * (1 + 0.3 * live * Math.sin(t * 0.23 + b.phase * 2));
+            x = b.anchor.x + Math.cos(b.ang) * rr; z = b.anchor.z + Math.sin(b.ang) * rr;
+            y = b.h + Math.sin(t * 0.7 + b.phase) * 0.6 + live * (2.2 * Math.sin(t * 0.31 + b.phase * 3) + 1.2 * Math.sin(t * 0.83 + b.phase));
             const vx = -Math.sin(b.ang) * dirSign, vz = Math.cos(b.ang) * dirSign;
             yaw = frozen < 0.5 && dread < 0.5 ? Math.atan2(sx - x, sz - z) : Math.atan2(vx, vz);
           }
@@ -161,10 +163,12 @@ export class Fauna {
       }
       if (visible) {
         nearBird = Math.min(nearBird, Math.hypot(x - sx, z - sz));
-        const fl = Math.sin(t * flap + b.phase) * (frozen < 0.5 && dread < 0.5 ? 0.08 : 0.55);
-        d.position.set(x, y, z); d.rotation.set(0, yaw, 0); d.scale.set(2, 2, 2);
+        const glide = watchers ? 1 : smoothstep(-0.2, 0.3, Math.sin(t * 0.4 + b.phase * 5));   // now and then they stop flapping and glide
+        const fl = Math.sin(t * flap + b.phase) * (frozen < 0.5 && dread < 0.5 ? 0.08 : 0.55) * (0.15 + 0.85 * glide);
+        const sc = watchers ? 1.7 : 1.25;
+        d.position.set(x, y, z); d.rotation.set(0, yaw, 0); d.scale.set(sc, sc, sc);
         d.rotation.z = fl; d.updateMatrix(); this.wingR.setMatrixAt(i, d.matrix);
-        d.scale.set(-2, 2, 2); d.rotation.z = -fl; d.updateMatrix(); this.wingL.setMatrixAt(i, d.matrix);
+        d.scale.set(-sc, sc, sc); d.rotation.z = -fl; d.updateMatrix(); this.wingL.setMatrixAt(i, d.matrix);
       } else {
         d.scale.set(0, 0, 0); d.position.set(0, -50, 0); d.updateMatrix();
         this.wingR.setMatrixAt(i, d.matrix); this.wingL.setMatrixAt(i, d.matrix);

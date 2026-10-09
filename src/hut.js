@@ -122,7 +122,7 @@ export class Hut {
     const fate = this.d.state.story && this.d.state.story.fate;   // a bottle may already have said what the first throw will be
     const n = !h.rolls.length && fate ? fate : 1 + Math.floor(Math.random() * 20);
     this.anim = { t: 0, n, spin: new THREE.Vector3(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).normalize(), speed: 18, from: null };
-    this.btn.disabled = true;
+    this.btn.disabled = true; this.camera.position.z = 4.6;
     this.txt.textContent = 'The die clatters across the table...';
     sfx.play('roll_d20', { rate: 0.8 });
   }
@@ -143,6 +143,7 @@ export class Hut {
         const k = Math.min(1, (a.t - 1.4) / 0.45), e = 1 - Math.pow(1 - k, 3);
         this.die.quaternion.slerpQuaternions(a.from, this.faceQuat(a.n), e);
         this.die.position.set(0, 0, 0);
+        this.camera.position.z = 4.6 - 1.2 * e;   // lean in on the face that came up
         if (k >= 1) { this.anim = null; this.settle(a.n); }
       }
     } else this.die.position.y = Math.sin(this.t * 1.3) * 0.03;

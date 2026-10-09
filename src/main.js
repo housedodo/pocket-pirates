@@ -159,6 +159,7 @@ const $ = (id) => document.getElementById(id);
 const goldEl = $('gold').querySelector('b');
 const promptEl = $('prompt'), promptTxt = $('prompttxt'), promptBar = promptEl.querySelector('.bar'), promptFill = promptBar.querySelector('i');
 const toastsEl = $('toasts'), debugEl = $('debug'), helpEl = $('help');
+document.body.appendChild(toastsEl);   // messages sit above every menu, so a quest or rumour line is never hidden behind the shop
 const chartEl = $('chart'), harbourEl = $('harbour'), pauseEl = $('pause'), shipEl = $('shipmodal');
 const compass = $('compassCv').getContext('2d');
 $('compassCv').width = PX; $('compassCv').height = PX;
@@ -355,7 +356,7 @@ function titleKey(e) {
   if (['Enter', 'Space', 'KeyE'].includes(e.code)) { e.preventDefault(); (document.activeElement && items.includes(document.activeElement) ? document.activeElement : items[0]).click(); }
 }
 $('tSail').addEventListener('click', (e) => { e.stopPropagation(); setSail(); });
-// fullscreen: on the title and in the pause menu (Esc or F11 also leave it)
+// fullscreen: on the title and in the pause menu (holding Esc or F11 also leave it)
 const fsEl = () => document.fullscreenElement || document.webkitFullscreenElement;
 const fsOk = !!(document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen);
 function toggleFullscreen() {
@@ -367,7 +368,13 @@ function toggleFullscreen() {
 }
 function fsLabels() { $('tFull').textContent = fsEl() ? 'Windowed' : 'Fullscreen'; $('pbFull').textContent = `Fullscreen: ${fsEl() ? 'on' : 'off'}`; }
 if (!fsOk) { $('tFull').style.display = 'none'; $('pbFull').style.display = 'none'; }
-document.addEventListener('fullscreenchange', fsLabels); document.addEventListener('webkitfullscreenchange', fsLabels);
+// in fullscreen, Esc should still pause instead of throwing you out: the keyboard lock keeps it for the game
+// (Chrome/Edge; holding Esc still leaves fullscreen). Elsewhere P pauses too.
+function fsChanged() {
+  fsLabels(); const kb = navigator.keyboard;
+  try { if (kb && kb.lock) { if (fsEl()) kb.lock(['Escape']).catch(() => {}); else kb.unlock(); } } catch (err) { /* not supported */ }
+}
+document.addEventListener('fullscreenchange', fsChanged); document.addEventListener('webkitfullscreenchange', fsChanged);
 $('tFull').addEventListener('click', (e) => { e.stopPropagation(); toggleFullscreen(); });
 $('pbFull').addEventListener('click', () => { toggleFullscreen(); $('pbFull').focus(); });
 $('tNew').addEventListener('click', (e) => {
@@ -707,7 +714,7 @@ function renderHarbour() {
 $('hbTabs').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b && harbourIsl) { hbTab = b.dataset.t; renderHarbour(); } });
 // one quiet line when the Lady's last throw moved the prices; nobody says why
 const priceNote = () => { const k = dreamCost(); return k > 1 ? '<small>Prices are up today. Nobody says why.</small>' : k < 1 ? '<small>Prices are down today. Everyone seems to have slept well.</small>' : ''; };
-let harbourLine = '', hbShipLine = '', greetLastT = -1e9;
+let harbourLine = '', hbShipLine = '';
 // the greeting: a villager's line types out in a box like Mara's, then the harbour menu comes up
 let greetNow = null;
 function showGreeting(d, say) {
@@ -887,29 +894,29 @@ function tryInteract() {
     { const cur = objectives.current;
       if (cur && cur.id === 'perrin' && d.id === '0,-1' && !state.story.perrinNote) perrinNote();
       if (cur && cur.id === 'gossip' && d.id !== '0,-1' && !state.story.hutKnown) { state.story.hutKnown = true; say = { speaker: 'fisher', text: `The black hut? Out past the ${bearingName(world.hutDesc.x - d.x, world.hutDesc.z - d.z)} water. Do not sit down. Whatever she offers, do not sit.`, dark: true }; } }
-    const g = state.greet, h = state.hut, told = state.story.rollSeen || 0;
-    if (!say && h && h.rolls.length > told) {   // someone already knows the number: always after the first throw, then about half the time
+    const g = state.greet, h = state.hut, told = state.story.rollSeen || 0, free = g.lastDay !== state.dayN;   // one voice a day, wherever you dock
+    if (!say && free && h && h.rolls.length > told) {   // someone already knows the number: always after the first throw, then about half the time
       state.story.rollSeen = h.rolls.length;
       if (told === 0 || Math.random() < 0.5) say = rollGreeting(h.rolls[h.rolls.length - 1].n, state.time * 24, Math.random);
     }
-    if (!say && (g.day[d.id] == null || (Math.random() < 0.3 && tNow - greetLastT > 240 && g.day[d.id] !== state.dayN))) say = pickGreeting({ hour: state.time * 24, weather: weather.label, dread, rnd: Math.random });
+    if (!say && free && (g.day[d.id] == null || Math.random() < 0.3)) say = pickGreeting({ hour: state.time * 24, weather: weather.label, dread, rnd: Math.random });
     harbourIsl = tg.isl; hbTab = 'board';
     for (const c of state.crew) if (c.wish && !c.wish.done && c.wish.kind === 'harbour' && c.wish.id === tg.isl.desc.id) wishDone(c);
     harbourEl.classList.toggle('dark', idx >= 3);
     $('hbBannerName').textContent = d.name; $('hbSaid').textContent = '';
-    if (say) { g.day[d.id] = state.dayN; greetLastT = tNow; showGreeting(d, say); } else openModal('harbour');
+    if (say) { g.day[d.id] = state.dayN; g.lastDay = state.dayN; showGreeting(d, say); } else openModal('harbour');
     audio.play('harbour');
   } else if (tg.kind === 'treasure' && !tg.isl.dug && !dig) {
     const d = tg.isl.desc;
     if (!state.riddles[d.id]) {
-      dig = { key: tg.key, t: 0, need: 2.2, done: () => {
+      dig = { key: tg.key, t: 0, label: 'Reading the inscription...', need: 2.2, done: () => {
         state.riddles[d.id] = d.puzzle.text;
         toast(`The arch inscription reads: "${d.puzzle.text}"`, d.dread > 0.5, 11000);
         objectives.remark('riddle');
       } };
       audio.play('dig');
     } else {
-      dig = { key: tg.key, t: 0, need: 2.6 * ship.mods.digTime * (state.buffs.dig > 0 ? 0.7 : 1), done: () => {
+      dig = { key: tg.key, t: 0, label: 'Digging...', need: 2.6 * ship.mods.digTime * (state.buffs.dig > 0 ? 0.7 : 1), done: () => {
         const ang = Math.atan2(ship.pos.z - d.z, ship.pos.x - d.x);
         if (Math.abs(angleDiff(ang, d.puzzle.angle)) > 0.85) {
           state.attempts[d.id] = (state.attempts[d.id] || 0) + 1;
@@ -929,7 +936,7 @@ function tryInteract() {
   } else if (tg.kind === 'fruit' && !dig) {
     const d = tg.isl.desc, f = fruitOf(d);
     if (state.harvest[d.id] != null && state.harvest[d.id] >= state.dayN) { toast(`The ${plural(fruitName(f, d.dread), 2)} here are picked clean for today.`, false, 3500); return; }
-    dig = { key: tg.key, t: 0, need: 2.4, done: () => {
+    dig = { key: tg.key, t: 0, label: 'Picking fruit...', need: 2.4, done: () => {
       const n = Math.max(1, Math.round((2 + Math.floor(Math.random() * 3)) * ship.mods.lootMul));
       state.fruit[f] = (state.fruit[f] || 0) + n; state.harvest[d.id] = state.dayN; state.stats.fruitPicked += n;
       toast(`The crew picked ${n} ${plural(fruitName(f, d.dread), n)}.`, d.dread > 0.5, 4500);
@@ -938,7 +945,7 @@ function tryInteract() {
     hailShip(tg.s);
   } else if (tg.kind === 'wreck' && !dig) {
     const o = tg.o;
-    dig = { key: tg.key, t: 0, need: 3.4 * ship.mods.digTime * (state.buffs.dig > 0 ? 0.7 : 1), done: () => {
+    dig = { key: tg.key, t: 0, label: 'Salvaging the wreck...', need: 3.4 * ship.mods.digTime * (state.buffs.dig > 0 ? 0.7 : 1), done: () => {
       const loot = abyss.wrongLoot(lootFor(mulberry32(o.rngSeed), o.dread), state);
       loot.value = Math.round(loot.value * 1.3 * ship.mods.lootMul);
       loot.name = `From the wreck: ${loot.name}`;
@@ -1440,7 +1447,7 @@ function frame() {
   }
   if (tgt && live) {
     promptEl.style.display = 'block';
-    if (dig) { promptTxt.textContent = 'Digging...'; promptBar.style.display = 'block'; }
+    if (dig) { promptTxt.textContent = dig.label || 'Digging...'; promptBar.style.display = 'block'; }
     else {
       promptBar.style.display = 'none';
       promptTxt.textContent = tgt.kind === 'harbourfar' ? 'Sail to the pier to go ashore' : tgt.kind === 'hut' ? '[E] Knock on the dark hut' : tgt.kind === 'harbour' ? `[E] Visit ${tgt.isl.desc.name}`

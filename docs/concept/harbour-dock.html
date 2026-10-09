@@ -1,0 +1,109 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Docking layouts</title>
+<style>
+  @font-face { font-family: 'DotGothic16'; src: url(../../public/fonts/dotgothic.woff2) format('woff2'); }
+  @font-face { font-family: 'Pirata One'; src: url(../../public/fonts/pirataone.woff2) format('woff2'); }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 16px; background: #0b0a12; color: #f4ead0; font: 16px 'DotGothic16', monospace; }
+  h1 { font-size: 32px; font-weight: 400; color: #ffd23a; margin: 0 0 8px; } .lead { color: #c9b890; margin: 0 0 16px; max-width: 1000px; }
+  .frame { position: relative; width: 1280px; height: 720px; overflow: hidden; background: url(harbour-bg.png) center / cover; margin-bottom: 8px; }
+  .cap { margin: 0 0 32px; max-width: 1280px; color: #c9b890; } .cap b { color: #ffd23a; font-weight: 400; }
+  .px { background: #1d1640; box-shadow: 0 -4px 0 #c9a85c, 0 4px 0 #c9a85c, -4px 0 0 #c9a85c, 4px 0 0 #c9a85c, 8px 8px 0 4px rgba(0,0,0,.45); }
+  .name { font: 48px 'Pirata One', serif; color: #f4ead0; text-shadow: 3px 3px 0 #5a1612, 6px 6px 0 #1a0606; }
+  .banner { position: absolute; left: 0; right: 0; top: 0; padding: 16px 40px 28px; text-align: center; background: linear-gradient(rgba(8,6,22,.85), rgba(8,6,22,0)); }
+  .said { font-size: 16px; color: #e8c8d8; margin-top: 4px; }
+  .sec { color: #ffd23a; margin: 8px 0 4px; }
+  .row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 2px dashed #3a3070; }
+  .row small { color: #b8a8d8; display: block; } .row i { font-style: normal; color: #ffd23a; }
+  .btn { padding: 4px 10px; background: #2c2160; color: #fff4d8; box-shadow: 0 0 0 2px #4a3aa0; }
+  .badge { display: inline-block; min-width: 20px; padding: 0 5px; margin-left: 6px; background: #c8402a; color: #fff4d8; text-align: center; }
+  .key { color: #8a7eb0; }
+  .msg { padding: 6px 10px; background: #1d1640; box-shadow: 0 0 0 3px #c9a85c; margin-bottom: 8px; }
+  .msg.ok { box-shadow: 0 0 0 3px #5ec45a; } .msg.dark { box-shadow: 0 0 0 3px #ff70d0; color: #ffd8f4; }
+  /* A: signposts along the pier */
+  .posts { position: absolute; left: 50%; bottom: 24px; transform: translateX(-50%); display: flex; gap: 12px; }
+  .post { width: 150px; padding: 10px 8px; text-align: center; background: repeating-linear-gradient(0deg, #6a4424 0 10px, #5a3a1c 10px 12px); box-shadow: inset 0 -5px 0 #3a2210, inset 0 4px 0 #8a5a30, 6px 6px 0 rgba(0,0,0,.4); color: #f4ead0; text-shadow: 2px 2px 0 #1a0606; }
+  .post.on { outline: 4px solid #ffd23a; transform: translateY(-8px); }
+  .post small { display: block; color: #e8d8b0; font-size: 16px; }
+  .panelR { position: absolute; right: 24px; top: 120px; width: 460px; padding: 14px 18px; }
+  .feedL { position: absolute; left: 24px; top: 130px; width: 360px; }
+  /* B: split ledger */
+  .ledger { position: absolute; left: 24px; right: 24px; bottom: 24px; height: 400px; display: grid; grid-template-columns: 300px 1fr; }
+  .places { padding: 14px; background: #150f30; border-right: 4px solid #c9a85c; }
+  .place { padding: 10px 8px; margin-bottom: 6px; background: #241b52; } .place.on { background: #4a3aa0; box-shadow: 0 0 0 2px #ffd23a; }
+  .place small { display: block; color: #b8a8d8; }
+  .detail { padding: 14px 18px; position: relative; }
+  .news { position: absolute; left: 18px; right: 18px; bottom: 12px; padding-top: 8px; border-top: 2px solid #3a3070; color: #c9b890; }
+  .news div { margin-top: 4px; } .news b { color: #5ec45a; font-weight: 400; }
+  /* C: the village itself */
+  .pin { position: absolute; padding: 6px 10px; background: #1d1640; box-shadow: 0 0 0 3px #c9a85c, 4px 4px 0 3px rgba(0,0,0,.4); }
+  .pin::after { content: ""; position: absolute; left: 50%; bottom: -14px; margin-left: -8px; width: 16px; height: 14px; background: #c9a85c; clip-path: polygon(0 0, 100% 0, 50% 100%); }
+  .pin.on { box-shadow: 0 0 0 4px #ffd23a, 4px 4px 0 3px rgba(0,0,0,.4); background: #4a3aa0; }
+  .card { position: absolute; width: 400px; padding: 12px 16px; }
+  .bottomMsg { position: absolute; left: 50%; bottom: 24px; transform: translateX(-50%); width: 560px; }
+  .hint { position: absolute; left: 24px; bottom: 20px; color: #c9b890; }
+</style></head><body>
+<h1>Docking: three layouts</h1>
+<p class="lead">The problem: the harbour menu covers the messages (quest done, rumour bought) and mixes everything in three tabs. Each layout below gives every place in the village its own entry, so you pick what you came for, and gives the messages a spot that no menu ever covers. The villager's line (when there is one) still comes first, as now.</p>
+
+<div class="frame">
+  <div class="banner"><div class="name">Harbour Tama</div><div class="said">"Same tide as yesterday. Exactly the same."</div></div>
+  <div class="feedL">
+    <div class="msg ok">Delivered: a parcel of fine tea. +108 gold</div>
+    <div class="msg">Rumour: Hollow Cay, north-east of here. Marked on your map.</div>
+  </div>
+  <div class="panelR px">
+    <div class="sec">HARBOURMASTER'S BOARD</div>
+    <div class="row"><div>Deliver a crate of oranges<small>to Port Velto · south-east · 58g</small></div><span class="btn">Accept</span></div>
+    <div class="row"><div>Bring 6 pineapples<small>commission · 34g</small></div><span class="btn">Accept</span></div>
+    <div class="row"><div>A sailor talks of treasure<small>rumour</small></div><span class="btn">25g</span></div>
+  </div>
+  <div class="posts">
+    <div class="post on">Board<span class="badge">2</span><small>1</small></div>
+    <div class="post">Market<small>2</small></div>
+    <div class="post">Tavern<small>3</small></div>
+    <div class="post">Shipwright<small>4</small></div>
+    <div class="post">Set sail<small>E</small></div>
+  </div>
+</div>
+<p class="cap"><b>A · Signposts on the pier.</b> Five wooden signs along the bottom: Board, Market, Tavern, Shipwright, Set sail (keys 1-4, E). A red number on a sign means something waits there (two errands to finish). The chosen place opens as one panel on the right; messages stack on the left, under the harbour name, where no panel ever goes. The harbour and the ship stay visible in the middle.</p>
+
+<div class="frame">
+  <div class="banner"><div class="name">Harbour Tama</div></div>
+  <div class="ledger px">
+    <div class="places">
+      <div class="place on">Board <span class="badge">2</span><small>2 to finish · 3 errands</small></div>
+      <div class="place">Market<small>fish 4 in the hold</small></div>
+      <div class="place">Tavern<small>rooms from 17:00 · dice</small></div>
+      <div class="place">Shipwright<small>sails 156g</small></div>
+      <div class="place">Set sail <span class="key">[E]</span></div>
+    </div>
+    <div class="detail">
+      <div class="sec">FINISH HERE</div>
+      <div class="row"><div>A parcel of fine tea<small>from Haven Monar</small></div><span class="btn">Deliver +108g</span></div>
+      <div class="sec">ERRANDS</div>
+      <div class="row"><div>Deliver a crate of oranges<small>to Port Velto · 58g</small></div><span class="btn">Accept</span></div>
+      <div class="news"><div><b>Done:</b> a parcel of fine tea, +108 gold.</div><div>Rumour: Hollow Cay, north-east of here. On your map.</div></div>
+    </div>
+  </div>
+</div>
+<p class="cap"><b>B · The harbour ledger.</b> One wide, low book: the places on the left with a short line of what is there (the tavern says when rooms open, the market how much fish you carry), the chosen place on the right. What just happened is written at the foot of the page, inside the book, so it can never be hidden behind it. The most orderly of the three: everything at a glance, arrow keys up/down.</p>
+
+<div class="frame">
+  <div class="banner"><div class="name">Harbour Tama</div></div>
+  <div class="pin on" style="left:420px;top:300px">Board <span class="badge">2</span></div>
+  <div class="pin" style="left:610px;top:250px">Tavern</div>
+  <div class="pin" style="left:790px;top:330px">Market</div>
+  <div class="pin" style="left:300px;top:420px">Shipwright</div>
+  <div class="card px" style="left:330px;top:370px; display:none"></div>
+  <div class="card px" style="left:24px;top:120px">
+    <div class="sec">BOARD</div>
+    <div class="row"><div>A parcel of fine tea<small>finish here</small></div><span class="btn">Deliver +108g</span></div>
+    <div class="row"><div>Deliver a crate of oranges<small>to Port Velto · 58g</small></div><span class="btn">Accept</span></div>
+  </div>
+  <div class="bottomMsg"><div class="msg ok">Delivered: a parcel of fine tea. +108 gold</div></div>
+  <div class="hint">arrows: walk to a place · Enter: go in · E: set sail</div>
+</div>
+<p class="cap"><b>C · Walk the village.</b> No menu on arrival: the camera rests on the village and each place gets a little pixel pin over its own building. Pick one (arrows or click) and only that place's card opens. Messages come up at the bottom middle, above everything. The most atmospheric (you see the village change at night and with dread) but it needs a camera framing per harbour, so it is the most work.</p>
+</body></html>

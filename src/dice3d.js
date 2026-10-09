@@ -35,7 +35,7 @@ export class Die3D {
     this.r = new THREE.WebGLRenderer({ canvas, antialias: false, alpha: true });
     this.r.setPixelRatio(1); this.r.setSize(res, res, false);
     this.scene = new THREE.Scene();
-    this.cam = new THREE.PerspectiveCamera(30, 1, 0.1, 20); this.cam.position.set(0, 0, kind === 'd6' ? 5.2 : 4.6);
+    this.cam = new THREE.PerspectiveCamera(30, 1, 0.1, 20); this.camZ = kind === 'd6' ? 5.2 : 4.6; this.cam.position.set(0, 0, this.camZ);
     if (kind === 'd6') {
       const g = new THREE.BoxGeometry(1.5, 1.5, 1.5);
       this.mesh = new THREE.Mesh(g, D6_FACES.map((n, i) => new THREE.MeshLambertMaterial({ map: pipTexture(n, 40 + i) })));
@@ -57,7 +57,7 @@ export class Die3D {
     if (this.kind === 'd6') {
       const nrm = new THREE.Vector3(...D6_NORMALS[D6_FACES.indexOf(n)]);
       const q = Math.abs(nrm.z) > 0.5 && nrm.z < 0 ? new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI) : new THREE.Quaternion().setFromUnitVectors(nrm, z);
-      return new THREE.Quaternion().setFromEuler(new THREE.Euler(0.45, -0.5, 0.12)).multiply(q);   // resting at an angle, so it reads as a cube
+      return new THREE.Quaternion().setFromEuler(new THREE.Euler(0.2, -0.24, 0.05)).multiply(q);   // the rolled face looks straight at you; only a sliver of the sides shows, so nobody reads the wrong face
     }
     const f = n - 1, q = new THREE.Quaternion().setFromUnitVectors(this.normals[f], z);
     const up = this.ups[f].clone().applyQuaternion(q), ang = Math.atan2(up.x, up.y);
@@ -65,6 +65,7 @@ export class Die3D {
   }
   /** tumble, then settle on face n; done() once it rests */
   roll(n, done, time = 1.1) {
+    this.cam.position.z = this.camZ;   // back out for the tumble
     this.anim = { t: 0, n, time, spin: new THREE.Vector3(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).normalize(), speed: 18, from: null, done };
     this.last = performance.now();
     if (!this.raf) this.raf = requestAnimationFrame((ts) => this.tick(ts));
@@ -85,6 +86,7 @@ export class Die3D {
       const k = Math.min(1, (a.t - a.time) / 0.4), e = 1 - Math.pow(1 - k, 3);
       this.mesh.quaternion.slerpQuaternions(a.from, this.faceQuat(a.n), e);
       this.mesh.position.set(0, 0, 0);
+      if (this.kind === 'd20') this.cam.position.z = this.camZ - 1.2 * e;   // lean in on the face that came up
       if (k >= 1) { this.anim = null; this.draw(); if (a.done) a.done(); return; }
     }
     this.draw();

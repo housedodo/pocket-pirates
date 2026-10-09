@@ -12,7 +12,7 @@ import { dreadAtDistance } from './palette.js';
 // half-sunk wrecks, whirlpools and glowing shoals.
 const RADIUS = 3;
 
-let crateGeo, barrelGeo, bottleGeo, wreckExtraGeo, whirlGeo, discGeo;
+let crateGeo, barrelGeo, bottleGeo, glintGeo, wreckExtraGeo, whirlGeo, discGeo;
 function geos() {
   if (barrelGeo) return;
   let b = new Builder(); b.doubleSided = true;
@@ -31,6 +31,9 @@ function geos() {
   b.cyl(0, 0.5, 0, 0.17, 0.07, 0.2, 6, '#8fe0b0', TILE.white, false);
   b.cyl(0, 0.1, 0, 0.1, 0.1, 0.32, 5, '#ffffff', TILE.glow, false); // the note inside glows
   bottleGeo = b.geometry();
+  b = new Builder(); b.doubleSided = true;
+  b.box(0, 0, 0, 0.6, 0.6, 0.6, '#ffd23a', TILE.glow);   // a warm square of sunlight on the glass, seen from far off (gold, so it never reads as foam)
+  glintGeo = b.geometry();
 
   b = new Builder(); b.doubleSided = true;
   b.push(0.3, 0.5, -0.5, 0, 1, 1, 1, 0.2, 0.55);
@@ -127,7 +130,11 @@ export class SeaFeatures {
       }
     } else if (roll < 0.36) {
       const id = `bt:${cx},${cz}`;
-      if (!this.collected.has(id)) add({ type: 'bottle', id, x: bx, z: bz, mesh: new THREE.Mesh(bottleGeo, mats.props), phase: rng() * 6, dread });
+      if (!this.collected.has(id)) {
+        const m = new THREE.Mesh(bottleGeo, mats.props); m.scale.setScalar(1.8);
+        const glint = new THREE.Mesh(glintGeo, mats.props); this.scene.add(glint);
+        add({ type: 'bottle', id, x: bx, z: bz, mesh: m, glint, phase: rng() * 6, dread });
+      }
     } else if (roll < 0.46) {
       const id = `w:${cx},${cz}`;
       const g = new THREE.Group();
@@ -171,7 +178,7 @@ export class SeaFeatures {
     for (const [k, items] of this.cells) {
       const [cx, cz] = k.split(',').map(Number);
       if (Math.max(Math.abs(cx - ccx), Math.abs(cz - ccz)) > RADIUS + 1) {
-        for (const o of items) if (o.mesh) this.scene.remove(o.mesh);
+        for (const o of items) { if (o.mesh) this.scene.remove(o.mesh); if (o.glint) this.scene.remove(o.glint); }
         this.cells.delete(k);
         continue;
       }
@@ -181,8 +188,13 @@ export class SeaFeatures {
           case 'barrel': case 'bottle': {
             o.mesh.position.set(o.x, waveHeight(o.x, o.z, t, wave) + 0.1, o.z);
             o.mesh.rotation.set(Math.sin(t * 1.3 + o.phase) * 0.25, t * 0.2 + o.phase, Math.cos(t * 1.1 + o.phase) * 0.3 + (o.type === 'bottle' ? 1.1 : 0));
-            if (d < 4.8) {
-              this.scene.remove(o.mesh); items.splice(i, 1); this.collected.add(o.id);
+            if (o.glint) {   // a glint now and then, bigger the further away, so a bottle can be spotted from a distance
+              const ph = (t * 0.45 + o.phase) % 1, k = ph < 0.12 ? Math.sin(ph / 0.12 * Math.PI) : 0;
+              o.glint.visible = k > 0.05; o.glint.position.set(o.x, o.mesh.position.y + 0.9, o.z);
+              o.glint.scale.setScalar(k * Math.max(1.3, d / 22)); o.glint.rotation.y = t;
+            }
+            if (d < (o.type === 'bottle' ? 6.5 : 4.8)) {
+              this.scene.remove(o.mesh); if (o.glint) this.scene.remove(o.glint); items.splice(i, 1); this.collected.add(o.id);
               if (this.onEvent) this.onEvent({ type: o.type, o });
             }
             break;
