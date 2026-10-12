@@ -35,7 +35,7 @@ import { installPixelUI, pxi } from './pixelui.js';
 import { applyTimeOfDay, advanceTime, tod } from './daynight.js';
 import { UPGRADES, MAX_LEVEL, computeMods, shipwrightLine } from './upgrades.js';
 import { TRAITS, crewForHire, crewBonus, hasTrait, rollCheck, drawCard, renderCard, Pig, setDieWear, setAdvProvider, TREASURE_TIERS } from './tabletop.js';
-import { FISH } from './fishing.js';
+import { FISH, HABITAT } from './fishing.js';
 import { Sighting, SIGHTS } from './sighting.js';
 import { pushOut } from './solids.js';
 import { Abyss, EFFECTS, WATCHER_STYLES, WATCHER_NAMES } from './abyss.js';
@@ -88,6 +88,8 @@ const state = {
   attempts: (saved && saved.attempts) || {},
   catch: (saved && saved.catch) || [],
   fishLog: (saved && saved.fishLog) || {},
+  fishHeard: (saved && saved.fishHeard) || {},   // species whose habitat a fisher has described
+  fishAsk: (saved && saved.fishAsk) || {},       // harbour id -> the day you last asked there
   goals: Object.assign({ i: 0, side: {}, started: false }, (saved && saved.goals) || {}),
   story: (saved && saved.story) || {},              // chapter flags: perrinNote, check, b0, hutKnown, hutNod, demoEnd, free
   hints: (saved && saved.hints) || {},
@@ -229,7 +231,7 @@ function giveMap(id, from, reveal = false) {
 function saveNow() {
   if (params.get('fresh') || noSave) return false;
   lastSave = tNow;
-  store.set(SAVE_KEY, { seed: state.seed, gold: state.gold, dug: [...state.dug], discovered: state.discovered, loot: state.loot, upgrades: state.upgrades, collected: [...state.collected], notes: state.notes, board: state.board, halves: state.halves, frags: state.frags, rumoured: state.rumoured, rep: state.rep, job: state.job, serial: state.serial, sectorsSeen: state.sectorsSeen, jobHistory: state.jobHistory, buffs: state.buffs, stats: state.stats, quests: state.quests, fruit: state.fruit, harvest: state.harvest, dayN: state.dayN, greet: state.greet, charts: state.charts, hp: state.hp, ammo: state.ammo, custom: state.custom, owned: [...state.owned], riddles: state.riddles, attempts: state.attempts, catch: state.catch, fishLog: state.fishLog, hut: state.hut, passenger: state.passenger, story: state.story, crew: state.crew, cardsSeen: state.cardsSeen, haggle: state.haggle, tracked: state.tracked, goals: state.goals, hints: state.hints, time: state.time, windT: wind.t, pos: { x: ship.pos.x, z: ship.pos.z, h: ship.heading } });
+  store.set(SAVE_KEY, { seed: state.seed, gold: state.gold, dug: [...state.dug], discovered: state.discovered, loot: state.loot, upgrades: state.upgrades, collected: [...state.collected], notes: state.notes, board: state.board, halves: state.halves, frags: state.frags, rumoured: state.rumoured, rep: state.rep, job: state.job, serial: state.serial, sectorsSeen: state.sectorsSeen, jobHistory: state.jobHistory, buffs: state.buffs, stats: state.stats, quests: state.quests, fruit: state.fruit, harvest: state.harvest, dayN: state.dayN, greet: state.greet, charts: state.charts, hp: state.hp, ammo: state.ammo, custom: state.custom, owned: [...state.owned], riddles: state.riddles, attempts: state.attempts, catch: state.catch, fishLog: state.fishLog, fishHeard: state.fishHeard, fishAsk: state.fishAsk, hut: state.hut, passenger: state.passenger, story: state.story, crew: state.crew, cardsSeen: state.cardsSeen, haggle: state.haggle, tracked: state.tracked, goals: state.goals, hints: state.hints, time: state.time, windT: wind.t, pos: { x: ship.pos.x, z: ship.pos.z, h: ship.heading } });
   return true;
 }
 const SS_ART = ['.........FF.........', '.........M..........', '........MSS.........', '........MSSs........', '........MSSSs.......', '........MSSSSs......', '........MSSSSSs.....', '........MSSSSSss....', '........M...........', '..HHHHHHHHHHHHHHH...', '...HhhhhhhhhhhhHH...'];
@@ -264,6 +266,22 @@ const abyss = new Abyss({ scene, ship, world, sky, settings, state, mate: object
     objectives.mate.queue.length = 0;
     objectives.mate.say('Captain? Captain! You were asleep at the wheel. For how long, I... let us just go home.');
   } });
+// what kind of water the ship is in, for the fish (never shown to the player)
+const ZONE_LABEL = { wreck: 'over a wreck', lagoon: 'in a ring-island lagoon', mangrove: 'by mangroves', harbour: 'by a harbour', reef: 'off a rocky edge', shallows: 'in the shallows', deep: 'in deep water', open: 'in open water', mid: 'between islands' };
+function fishEnv() {
+  const x = ship.pos.x, z = ship.pos.z, zones = [];
+  world.nearest(x, z, 400); const edge = world.lastEdge;
+  const at = (types, r) => !!world.nearest(x, z, r, types);
+  if (sea.wreckNear(x, z, 30)) zones.push('wreck');
+  if (at(['atoll'], 30)) zones.push('lagoon');
+  if (at(['mangrove'], 30)) zones.push('mangrove');
+  if (at(['harbour'], 45)) zones.push('harbour');
+  if (at(['rocky', 'volcano'], 45)) zones.push('reef');
+  if (edge < 40) zones.push('shallows');
+  if (edge > 230) zones.push('deep'); else if (edge > 110) zones.push('open');
+  if (!zones.length) zones.push('mid');
+  return { zones, label: ZONE_LABEL[zones[0]], hour: state.time * 24, low: tideAt() < -0.3 };
+}
 const fishing = new Fishing(scene, ship, {
   toast: (t) => toast(t),
   getCtx: () => ({ bonus: Math.max(0, ship.mods.lootMul - 1) }),
@@ -275,6 +293,7 @@ const fishing = new Fishing(scene, ship, {
     state.catch.push(f); state.stats.fish++; audio.play('catch');
     const l = state.fishLog[f.id] || (state.fishLog[f.id] = { count: 0, best: 0 });
     l.count++; l.best = Math.max(l.best, f.kg);
+    if (f.zone && !f.dark) { l.where = l.where || {}; l.where[f.zone] = (l.where[f.zone] || 0) + 1; const h = f.hour; l.when = l.when || {}; const per = h >= 5 && h < 11 ? 'morning' : h >= 11 && h < 17 ? 'afternoon' : h >= 17 && h < 22 ? 'evening' : 'night'; l.when[per] = (l.when[per] || 0) + 1; }
     toast(`Caught: ${f.name}, ${f.kg}kg (worth ${f.value}g)${l.count === 1 ? ' - new species!' : ''}`, f.dark, 6000);
     if (f.dark) objectives.remark('darkfish', dread);
   },
@@ -769,6 +788,10 @@ function renderHarbour() {
       const hour = state.time * 24, open = hour >= 17 || hour < 5, bedCost = Math.ceil(8 * discount(rep) * costMul());
       html += `<div class="sec">ROOMS</div><div class="qrow"><div><b>${pxi('bed')} A bed for the night</b><br><small>${open ? 'sleep until 06:00, the crew mends the hull' : 'rooms are let from 17:00'}</small></div><button id="restBed" ${open && state.gold >= bedCost ? '' : 'disabled'}>${bedCost}g</button></div>`;
     }
+    { // the fishers at the quay will tell you where one kind bites, once a day per harbour: the only way to be told
+      const asked = state.fishAsk[d.id] === state.dayN, unheard = FISH.filter((f) => !f.dark && !state.fishHeard[f.id]);
+      html += `<div class="sec">AT THE QUAY</div><div class="qrow"><div><b>${pxi('fish')} Ask the fishers</b><br><small>${asked ? 'they have said what they will for today' : unheard.length ? 'where does anything bite?' : 'you have heard it all'}</small></div><button id="askFish" ${asked || !unheard.length ? 'disabled' : ''}>Ask</button></div>`;
+    }
     if (unlocked(state, 'crew')) { // hands for hire, and dice with the locals
       const hand = crewForHire(d, state.dayN, state, world);
       html += '<div class="sec">AT THE TABLES</div>';
@@ -779,6 +802,12 @@ function renderHarbour() {
     } else html += '<small>A fiddler, a fire, a lot of very old chairs. Nobody here knows you yet.</small>';
     pane.innerHTML = html;
     $('restBed').addEventListener('click', () => restAtTavern(Math.ceil(8 * discount(rep) * costMul())));
+    const af = $('askFish'); if (af) af.addEventListener('click', () => {
+      const unheard = FISH.filter((f) => !f.dark && !state.fishHeard[f.id]); if (!unheard.length || state.fishAsk[d.id] === state.dayN) return;
+      const f = unheard[Math.floor(Math.random() * unheard.length)];
+      state.fishHeard[f.id] = true; state.fishAsk[d.id] = state.dayN;
+      toast(`A fisher at the quay: "${HABITAT[f.id].say}" (Fisherman's log)`, false, 9000); audio.play('ui'); renderHarbour();
+    });
     const hh = $('hireHand'); if (hh) hh.addEventListener('click', () => {
       const h = pendingHand; if (!h || state.gold < h.cost || state.crew.length >= 2) return;
       state.gold -= h.cost; signOn(h, h.stay || 4); audio.play('buy'); toast(`${h.name} signs on. ${h.name} nods once and says nothing.`, false, 5000); objectives.remark('crew', dread); renderHarbour(); });
@@ -1715,7 +1744,7 @@ function frame() {
   if (live) { state.stats.dist += ship.speed * dt; if (ship.rowing) state.stats.rowed = (state.stats.rowed || 0) + ship.speed * dt; }
   { const cg = objectives.current; if (cg && cg.id === 'calm' && state.goals.started) weather.calmHold = Math.max(weather.calmHold, 8); }   // the calm lasts until you have rowed and fished
   windfx.update(vdt, animT, windNow.dir, windNow.strength, ship.pos, tod.night, Math.min(1, weather.rain * 1.5));
-  fishing.update(dt, waveT, { wave: stage.wave, dread, night: tod.night });
+  fishing.update(dt, waveT, { wave: stage.wave, dread, night: tod.night, env: fishEnv() });
   setDieWear(clamp(state.dayN / 12 + dread * 0.6, 0, 1));
   combat.update(dt, waveT, { ship, traffic, wave: stage.wave, onHitEnemy, onHitPlayer: hurtPlayer });
   if (live && tNow - lastHit > 12 && state.hp < ship.mods.maxHp) state.hp = Math.min(ship.mods.maxHp, state.hp + dt);

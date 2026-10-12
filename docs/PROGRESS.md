@@ -433,3 +433,8 @@ Read it before building any story part. Decided so far: the final throw of the L
 - **New main goal "Beat to windward"** right after the oars goal (zig-zag until you have made 60 units upwind, with a counter); the optional side goal of the same name was removed.
 - **Lighthouse tidbits:** the first time you pass within about 40 units of a lighthouse, the keeper calls something across the water: a line about the tower (three per design, six designs), where the nearest harbour lies, or something about the week (market day, floating market, regatta, whales, low tide, red sky, lantern night). Cosy, no spoilers.
 - **Fishing variety is designed, not built:** `docs/concept/fishing-where.html` (A fisherman's log by water type, B spots at sea, C harbour talk).
+
+## Fishing: where things bite (designs A and C, no markers)
+- **Ten bright species** (four new: cuttlefish, barracuda, sea bream, moonfish) each have a habitat: water type (shallows, harbour, rocky edge, open, deep, over a wreck, atoll lagoon), hour and, for the golden grouper, low tide. The water around the line sets the odds (`fishEnv` in main.js, `habitatFit` in fishing.js); a poor fit is never impossible, so luck still counts. Nothing at sea points at any of it: no spots, no glints.
+- **Fisherman's log** (Journal): only what the player has learned. Caught species show where and when they were caught; species a fisher has described show "Told: ..."; the rest stay as one "? ? ? (n more)" line.
+- **Ask the fishers** (Tavern tab, "At the quay"): once a day per harbour a fisher describes where one unheard species bites, in their own words. It is the only way to be told.

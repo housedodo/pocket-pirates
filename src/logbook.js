@@ -4,7 +4,7 @@ import { UPGRADES, MAX_LEVEL } from './upgrades.js';
 import { friendLevel, bearingName, questProgress, questNeed, questTitle, questIcon, FRUITS, fruitName } from './jobs.js';
 import { mulberry32, hash2 } from './util.js';
 import { MAIN_GOALS, SIDE_GOALS, CHAPTERS, goalText, goalCount } from './objectives.js';
-import { FISH } from './fishing.js';
+import { FISH, HABITAT } from './fishing.js';
 import { GROUPS, byId } from './customize.js';
 import { TRAITS } from './tabletop.js';
 import { pxi } from './pixelui.js';
@@ -269,6 +269,26 @@ export class Logbook {
     this.body.querySelectorAll('[data-pencil]').forEach((x) => x.addEventListener('click', () => { this._fromBoard = true; this.pencil = 'r:' + x.dataset.pencil; this.open('map'); this._fromBoard = false; }));
   }
 
+  /** the fisherman's log: only what the player has learned (by catching, or by being told). Unheard-of species stay blank. */
+  fishLogHtml(state) {
+    const bright = FISH.filter((f) => !f.dark), seen = (f) => state.fishLog[f.id] || (state.fishHeard && state.fishHeard[f.id]);
+    const got = FISH.filter((f) => state.fishLog[f.id]).length;
+    let html = h3(`Fisherman's log ${got}/${bright.length}`);
+    const top = (o) => Object.entries(o || {}).sort((a, b) => b[1] - a[1]).slice(0, 2).map((e) => e[0]).join(' and ');
+    let unk = 0;
+    for (const f of FISH) {
+      const l = state.fishLog[f.id], told = state.fishHeard && state.fishHeard[f.id];
+      if (f.dark && !l) continue;
+      if (!seen(f)) { unk++; continue; }
+      let sub = '';
+      if (told && HABITAT[f.id]) sub += `Told: ${HABITAT[f.id].text}`;
+      if (l) sub += `${sub ? '<br>' : ''}Caught ${l.count}x, best ${l.best}kg${l.where ? ` \u00b7 ${top(l.where)}` : ''}${l.when ? `, ${top(l.when)}` : ''}`;
+      html += ent(l || told ? f.name : '? ? ?', sub, `${f.price}g/kg`, f.dark ? 'dk' : '');
+    }
+    if (unk) html += ent(`? ? ? (${unk} more)`, got || Object.keys(state.fishHeard || {}).length ? 'Nobody has said where these bite. Try other waters and other hours, and ask at the quay.' : 'Slow down and press C at sea. Ask the fishers at a harbour quay where things bite.', '', 'dim');
+    return html;
+  }
+
   renderJournal() {
     const { state } = this.d, dread = this.d.dread();
     const isl = Object.values(state.discovered);
@@ -276,9 +296,7 @@ export class Logbook {
     let html = h3(`Charted (${isl.length})`);
     for (const [t, label] of Object.entries(types)) { const l = isl.filter((i) => i.type === t); if (l.length) html += ent(`${label} · ${l.length}`, l.slice(0, 6).map((i) => i.name).join(', ') + (l.length > 6 ? '…' : '')); }
     if (!isl.length) html += ent('Nothing yet', '', '', 'dim');
-    const caught = FISH.filter((f) => state.fishLog[f.id]);
-    html += h3(`Fish log ${caught.length}/${FISH.length}`);
-    html += caught.length ? caught.map((f) => ent(f.name, `best ${state.fishLog[f.id].best}kg`, `×${state.fishLog[f.id].count}`, f.dark ? 'dk' : '')).join('') : ent('Press C at sea', '', '', 'dim');
+    html += this.fishLogHtml(state);
     const fruits = Object.entries(state.fruit).filter(([, n]) => n > 0);
     html += h3('Hold') + ent('Fish', state.catch.length ? `${state.catch.length} to sell` : 'none') + ent('Fruit', fruits.length ? fruits.map(([f, n]) => `${n} ${fruitName(f, dread)}`).join(', ') : 'none');
     html += h3(`Treasures (${state.loot.length})`);

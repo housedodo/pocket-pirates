@@ -21,7 +21,34 @@ export const FISH = [
   { id: 'pike', name: 'Many-eyed pike', w: 3, diff: 0.7, price: 12, kg: [3, 10], min: 0.5, max: 1, dark: true },
   { id: 'key', name: 'A fish shaped like a key', w: 1, diff: 0.75, price: 60, kg: [0.5, 2], min: 0.55, max: 1, dark: true },
   { id: 'angler', name: 'Drowned angler', w: 1.5, diff: 0.9, price: 6, kg: [10, 50], min: 0.7, max: 1, night: true, dark: true },
+  { id: 'cuttle', name: 'Cuttlefish', w: 3, diff: 0.45, price: 9, kg: [0.3, 2], min: 0, max: 0.7 },
+  { id: 'barracuda', name: 'Barracuda', w: 3, diff: 0.7, price: 6, kg: [3, 15], min: 0, max: 0.7 },
+  { id: 'bream', name: 'Sea bream', w: 6, diff: 0.3, price: 6, kg: [0.5, 2.5], min: 0, max: 0.7 },
+  { id: 'moonfish', name: 'Moonfish', w: 2, diff: 0.5, price: 10, kg: [1, 6], min: 0, max: 0.7 },
 ];
+/** where and when each bright species bites. Nothing in the game points at these: the player learns them by fishing and by asking the fishers. */
+export const HABITAT = {
+  sardine: { zones: ['shallows', 'harbour'], text: 'Sardines run in the shallows, near any island and in the harbours, all day.', say: 'Sardines? Anywhere close to land. Right off the beach, the harbours. Any hour.' },
+  snapper: { zones: ['reef'], hours: [5, 11], text: 'Red snapper keep to rocky edges and reefs, mornings mostly.', say: 'Snapper hug the rocky shores and the reefs. Early. Before the sun is high.' },
+  mahi: { zones: ['open', 'deep'], hours: [5, 12], text: 'Mahi-mahi run in open water, away from land, in the morning.', say: 'Mahi-mahi like the open blue, well off the land, and the morning.' },
+  tuna: { zones: ['deep'], hours: [13, 19], text: 'Bluefin tuna hold in the deep water, far from any island, in the afternoon.', say: 'Tuna are out in the deep stretches, far from land. Afternoons.' },
+  sword: { zones: ['deep'], hours: [17, 22], text: 'Swordfish come up in the deep water around dusk.', say: 'Swordfish, out in the deep, round dusk. Strong back, strong line.' },
+  grouper: { zones: ['wreck'], hours: [5, 12], tide: 'low', text: 'Golden grouper sulk under wrecks, at low tide, mornings.', say: 'Golden groupers? Under the wrecks. Low tide. Mornings. Tell nobody.' },
+  cuttle: { zones: ['lagoon'], hours: [17, 22], text: 'Cuttlefish drift in the lagoon of a ring island at dusk.', say: 'Cuttlefish like the still water inside a ring of sand. Dusk.' },
+  barracuda: { zones: ['reef'], hours: [10, 16], text: 'Barracuda patrol reef edges at midday.', say: 'Barracuda off the rocky edges, midday, when the light is hard.' },
+  bream: { zones: ['harbour'], hours: [16, 21], text: 'Sea bream gather by harbour piers in the evening.', say: 'Bream like the pilings of a pier, evenings, with the cooking smoke on the water.' },
+  moonfish: { zones: ['open', 'deep'], hours: [21, 4], text: 'Moonfish rise in open water on dark nights.', say: 'Moonfish? Open water, deep night. They come up for the moon.' },
+};
+const inHours = (h, [a, b]) => (a <= b ? h >= a && h < b : h >= a || h < b);
+/** how well a species fits the water the line is in (1 = ideal); a poor fit is never zero, so luck still counts */
+export function habitatFit(id, env) {
+  const hb = HABITAT[id]; if (!hb || !env) return 1;
+  let k = hb.zones.some((z) => env.zones.includes(z)) ? 1 : 0.1;
+  if (hb.hours) k *= inHours(env.hour, hb.hours) ? 1.5 : 0.45;
+  if (hb.tide) k *= env.low ? 1.6 : 0.4;
+  return k;
+}
+
 export const fishById = (id) => FISH.find((f) => f.id === id);
 
 const rnd = (a, b) => a + Math.random() * (b - a);
@@ -91,7 +118,8 @@ export class Fishing {
   }
   pick(ctx) {
     const list = FISH.filter((f) => ctx.dread >= f.min && ctx.dread <= f.max && (!f.night || ctx.night > 0.5));
-    const ws = list.map((f) => f.w * (f.dark ? 0.4 + ctx.dread : 1.25 - ctx.dread * 0.9));
+    this.env = ctx.env || null;
+    const ws = list.map((f) => f.w * (f.dark ? 0.4 + ctx.dread : (1.25 - ctx.dread * 0.9) * habitatFit(f.id, ctx.env)));
     let r = Math.random() * ws.reduce((a, b) => a + b, 0);
     for (let i = 0; i < list.length; i++) { r -= ws[i]; if (r <= 0) return list[i]; }
     return list[0];
@@ -106,7 +134,7 @@ export class Fishing {
     this.cancel();
     if (won) {
       const kg = +(f.kg[0] + Math.pow(Math.random(), 1.6) * (f.kg[1] - f.kg[0])).toFixed(1);
-      this.cb.onCatch({ id: f.id, name: f.name, kg, value: Math.max(1, Math.round(kg * f.price)), dark: !!f.dark });
+      this.cb.onCatch({ id: f.id, name: f.name, kg, value: Math.max(1, Math.round(kg * f.price)), dark: !!f.dark, zone: this.env ? this.env.label : '', hour: this.env ? this.env.hour : 12 });
     } else this.cb.toast(f.dark ? 'The line goes slack. Something below let go on purpose.' : 'It got away!');
   }
 

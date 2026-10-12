@@ -75,6 +75,8 @@ function geos() {
 }
 
 export class SeaFeatures {
+  /** is there a wreck (salvaged or not) within r of the point */
+  wreckNear(x, z, r) { for (const items of this.cells.values()) for (const o of items) if (o.type === 'wreck' && Math.hypot(o.x - x, o.z - z) < r) return true; return false; }
   /** half-sunk wrecks are solid */
   solids(out) {
     for (const items of this.cells.values()) for (const o of items) if (o.type === 'wreck') out.push({ x: o.x, z: o.z, r: 3.4 });
