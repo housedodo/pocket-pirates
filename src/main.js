@@ -34,8 +34,9 @@ import { drawWind, PX } from './windmeters.js';
 import { installPixelUI, pxi } from './pixelui.js';
 import { applyTimeOfDay, advanceTime, tod } from './daynight.js';
 import { UPGRADES, MAX_LEVEL, computeMods, shipwrightLine } from './upgrades.js';
-import { TRAITS, crewForHire, crewBonus, hasTrait, rollCheck, drawCard, renderCard, Pig, setDieWear } from './tabletop.js';
+import { TRAITS, crewForHire, crewBonus, hasTrait, rollCheck, drawCard, renderCard, Pig, setDieWear, setAdvProvider, TREASURE_TIERS } from './tabletop.js';
 import { FISH } from './fishing.js';
+import { Sighting, SIGHTS } from './sighting.js';
 import { Abyss, EFFECTS, WATCHER_STYLES, WATCHER_NAMES } from './abyss.js';
 
 // ---------------------------------------------------------------- params, save, settings
@@ -61,6 +62,7 @@ const state = {
   windT: (saved && saved.windT) || 0,
   collected: new Set((saved && saved.collected) || []),
   notes: (saved && saved.notes) || [],
+  board: (saved && saved.board) || { pos: {}, ties: [], note: '', guess: [] },
   rumoured: (saved && saved.rumoured) || {},
   rep: (saved && saved.rep) || {},
   job: (saved && saved.job) || null,
@@ -126,6 +128,7 @@ const windfx = new WindFX(scene);
 const fauna = new Fauna(scene, world);
 const traffic = new Traffic(scene, world, state.seed);
 const sea = new SeaFeatures(scene, world, state.seed, state.collected);
+const sighting = new Sighting(scene);
 const combat = new Combat(scene, fauna);
 sea.syncQuests(state.quests.filter((q) => q.id === state.tracked));
 traffic.onEvent = (what) => {
@@ -223,7 +226,7 @@ function giveMap(id, from, reveal = false) {
 function saveNow() {
   if (params.get('fresh') || noSave) return false;
   lastSave = tNow;
-  store.set(SAVE_KEY, { seed: state.seed, gold: state.gold, dug: [...state.dug], discovered: state.discovered, loot: state.loot, upgrades: state.upgrades, collected: [...state.collected], notes: state.notes, rumoured: state.rumoured, rep: state.rep, job: state.job, serial: state.serial, sectorsSeen: state.sectorsSeen, jobHistory: state.jobHistory, buffs: state.buffs, stats: state.stats, quests: state.quests, fruit: state.fruit, harvest: state.harvest, dayN: state.dayN, greet: state.greet, charts: state.charts, hp: state.hp, ammo: state.ammo, custom: state.custom, owned: [...state.owned], riddles: state.riddles, attempts: state.attempts, catch: state.catch, fishLog: state.fishLog, hut: state.hut, passenger: state.passenger, story: state.story, crew: state.crew, cardsSeen: state.cardsSeen, haggle: state.haggle, tracked: state.tracked, goals: state.goals, hints: state.hints, time: state.time, windT: wind.t, pos: { x: ship.pos.x, z: ship.pos.z, h: ship.heading } });
+  store.set(SAVE_KEY, { seed: state.seed, gold: state.gold, dug: [...state.dug], discovered: state.discovered, loot: state.loot, upgrades: state.upgrades, collected: [...state.collected], notes: state.notes, board: state.board, rumoured: state.rumoured, rep: state.rep, job: state.job, serial: state.serial, sectorsSeen: state.sectorsSeen, jobHistory: state.jobHistory, buffs: state.buffs, stats: state.stats, quests: state.quests, fruit: state.fruit, harvest: state.harvest, dayN: state.dayN, greet: state.greet, charts: state.charts, hp: state.hp, ammo: state.ammo, custom: state.custom, owned: [...state.owned], riddles: state.riddles, attempts: state.attempts, catch: state.catch, fishLog: state.fishLog, hut: state.hut, passenger: state.passenger, story: state.story, crew: state.crew, cardsSeen: state.cardsSeen, haggle: state.haggle, tracked: state.tracked, goals: state.goals, hints: state.hints, time: state.time, windT: wind.t, pos: { x: ship.pos.x, z: ship.pos.z, h: ship.heading } });
   return true;
 }
 const SS_ART = ['.........FF.........', '.........M..........', '........MSS.........', '........MSSs........', '........MSSSs.......', '........MSSSSs......', '........MSSSSSs.....', '........MSSSSSss....', '........M...........', '..HHHHHHHHHHHHHHH...', '...HhhhhhhhhhhhHH...'];
@@ -358,6 +361,7 @@ function closeModal(silent = false) {
   pauseEl.classList.remove('open'); chartEl.classList.remove('open'); harbourEl.classList.remove('open'); shipEl.classList.remove('open'); yardEl.classList.remove('open'); hutEl.classList.remove('open'); cardEl.classList.remove('open'); pigEl.classList.remove('open'); greetEl.classList.remove('open');
   if (modal === 'pause') audio.setPaused(false);
   if (modal === 'hut') hutLeft();
+  if (modal === 'card') sighting.dismiss();
   modal = null; harbourIsl = null;
   if (!silent) lastTs = performance.now();
 }
@@ -936,6 +940,7 @@ function fireCannons() {
 function getInteract() {
   const hi = world.nearest(ship.pos.x, ship.pos.z, 18);
   if (hi && hi.desc.hut) return { kind: 'hut', key: 'hut', isl: hi };
+  const sg = sighting.near(ship.pos.x, ship.pos.z); if (sg) return { kind: 'sighting', key: 'sight', s: sg };
   // a harbour is entered at its pier; anywhere else along its shore you only get a hint
   const hb = world.nearest(ship.pos.x, ship.pos.z, 30, ['harbour']);
   if (hb) {
@@ -978,6 +983,7 @@ function tryInteract() {
   if (!started || modal) return;
   const tg = getInteract();
   if (!tg) return;
+  if (tg.kind === 'sighting') { openCard(tg.s.card); return; }
   if (tg.kind === 'hut') { if (!state.story.hutKnown) { audio.play('knock'); toast('Nobody answers. Inside, a pen scratches, then stops.', true, 4500); return; } openModal('hut'); return; }
   if ((tg.kind === 'treasure' || tg.kind === 'fruit' || tg.kind === 'wreck') && ship.speed > 0.35) { toast('Bring the ship to a full stop first (S to reef the sails).', false, 3000); return; }
   if (tg.kind === 'harbour') {
@@ -1024,12 +1030,18 @@ function tryInteract() {
           return;
         }
         let loot = abyss.wrongLoot(lootFor(mulberry32(hash2(d.seed, 7, state.seed)), d.dread), state);
-        if (d.id === '1,-1') loot = { name: 'Perrin\'s chest: a bag of old doubloons', value: 120, dark: false };   // the first treasure always pays for one starter upgrade
-        loot.value = Math.round(loot.value * ship.mods.lootMul);
-        state.dug.add(d.id); tg.isl.setDug(true); state.stats.treasures++; state.stats.solved++;
-        state.gold += loot.value; state.loot.push(loot);
-        toast(`Treasure! ${loot.name} (+${loot.value} gold)`, loot.dark, 7000);
-        audio.play('treasure');
+        const first = d.id === '1,-1';   // the first treasure always pays for one starter upgrade
+        if (first) loot = { name: 'Perrin\'s chest: a bag of old doubloons', value: 120, dark: false };
+        const land = (tier) => {
+          loot.value = Math.round(loot.value * ship.mods.lootMul * (tier ? tier.mult : 1));
+          if (tier && tier.mult < 1) loot.name = `${loot.name} (water-damaged)`; else if (tier && tier.mult >= 2) loot.name = `${loot.name} (and more beneath it)`;
+          state.stats.treasures++; state.stats.solved++;
+          state.gold += loot.value; state.loot.push(loot);
+          toast(`Treasure! ${loot.name} (+${loot.value} gold)`, loot.dark, 7000);
+          audio.play('treasure');
+        };
+        state.dug.add(d.id); tg.isl.setDug(true);   // claimed now, so the throw cannot be started twice
+        if (first) land(null); else rollCheck(state, { label: 'The chest: how good a find?', kind: 'luck', dark: loot.dark, tiers: TREASURE_TIERS, treasure: true, attempts: state.attempts[d.id] || 0 }, (ok, n, total, tier) => land(tier));
       } };
       audio.play('dig');
     }
@@ -1281,7 +1293,7 @@ function stormAndCalm(dt) {
 
 // ---------------------------------------------------------------- tabletop: encounter cards, crew wishes, dice
 const LOCALS = ['a one-eyed net-mender', 'the harbourmaster\'s aunt', 'a sunburnt docker', 'a very calm child', 'a fisherman who smells of tar'];
-let pendingHand = null, pigHome = null, cardT = 150 + Math.random() * 120, cardBusy = false, wishT = 0;
+let pendingHand = null, pigHome = null, cardT = 900 + Math.random() * 600, cardBusy = false, wishT = 0;
 const pig = new Pig(pigEl, { onEnd: (won) => { if (won) { state.gold += 20; audio.play('treasure'); if (Math.random() < 0.5) { const r = cardCtx().rumour('a sore loser at the tavern'); if (r) toast(r, false, 7000); } } } });
 $('pigRoll').addEventListener('click', () => pig.roll());
 $('pigHold').addEventListener('click', () => pig.hold());
@@ -1304,9 +1316,19 @@ function cardCtx() {
     },
   };
 }
-function openCard() {
-  const card = drawCard(dread, state.cardsSeen); if (!card) return;
-  state.cardsSeen.push(card.id); if (state.cardsSeen.length > 5) state.cardsSeen.shift();
+// advantage and disadvantage on the d20: the die is thrown twice and the better (or worse) one stands
+setAdvProvider((check) => {
+  let a = 0; const why = [];
+  const up = (t) => { a++; why.push(t); }, down = (t) => { a--; why.push(t); };
+  if (check.treasure && !check.attempts) up('right shore first try');
+  if (check.treasure && state.buffs.dig > 0) up('rum rations');
+  if (check.kind === 'sea' && weather.storm > 0.35) down('storm');
+  if ((check.kind === 'sea' || check.kind === 'luck') && tod.night > 0.6 && !state.upgrades.lantern) down('dark, no lantern');
+  a = Math.max(-1, Math.min(1, a));
+  return [a, a ? why : []];
+});
+function openCard(card) {
+  if (!card) return;
   cardBusy = false; openModal('card'); audio.play('card');
   const out = (t) => { $('cardOut').textContent = t; $('cardDone').style.display = ''; cardEl.querySelectorAll('#cardChoices button').forEach((b) => { b.disabled = true; }); cardBusy = 'done'; };
   renderCard(card, (ch) => {
@@ -1316,10 +1338,15 @@ function openCard() {
   });
 }
 function tabletopTick(dt) {
-  // encounter cards: out on the open sea, now and then
-  if (unlocked(state, 'cards') && ship.speed > 2 && dread < 0.95 && !world.nearest(ship.pos.x, ship.pos.z, 90) && !fishing.active) {
+  // encounter signs: rare, out on open water, never in weather, never part of any story
+  sighting.update(dt, tNow, ship);
+  if (unlocked(state, 'cards') && !sighting.active && ship.speed > 2 && dread < 0.95 && weather.fog < 0.3 && weather.storm < 0.3 && !world.nearest(ship.pos.x, ship.pos.z, 90) && !fishing.active) {
     cardT -= dt;
-    if (cardT <= 0) { cardT = 200 + Math.random() * 160; openCard(); return; }
+    if (cardT <= 0) {
+      const card = drawCard(dread, state.cardsSeen, SIGHTS);
+      if (card && sighting.spawn(card, ship, world)) { state.cardsSeen.push(card.id); if (state.cardsSeen.length > 5) state.cardsSeen.shift(); cardT = 1500 + Math.random() * 1000; }
+      else cardT = 30;
+    }
   }
   ship.rowBoost = hasTrait(state, 'rower') ? 1.4 : 1;
   document.body.classList.toggle('eyes', hasTrait(state, 'eyes'));
@@ -1627,7 +1654,7 @@ function frame() {
     if (dig) { promptTxt.textContent = dig.label || 'Digging...'; promptBar.style.display = 'block'; }
     else {
       promptBar.style.display = 'none';
-      promptTxt.textContent = tgt.kind === 'harbourfar' ? 'Sail to the pier to go ashore' : tgt.kind === 'hut' ? '[E] Knock on the dark hut' : tgt.kind === 'harbour' ? `[E] Visit ${tgt.isl.desc.name}`
+      promptTxt.textContent = tgt.kind === 'sighting' ? `[E] ${tgt.s.label}` : tgt.kind === 'harbourfar' ? 'Sail to the pier to go ashore' : tgt.kind === 'hut' ? '[E] Knock on the dark hut' : tgt.kind === 'harbour' ? `[E] Visit ${tgt.isl.desc.name}`
         : tgt.kind === 'treasure' ? (tgt.isl.dug ? 'Already plundered' : !state.riddles[tgt.isl.desc.id] ? '[E] Study the ancient arch inscription' : '[E] Dig on this shore')
         : tgt.kind === 'fruit' ? (state.harvest[tgt.isl.desc.id] != null && state.harvest[tgt.isl.desc.id] >= state.dayN ? 'Picked clean for today' : `[E] Pick ${plural(fruitName(fruitOf(tgt.isl.desc), tgt.isl.desc.dread), 2)}`)
         : tgt.kind === 'ship' ? (tgt.s.mode === 'derelict' ? `[E] Board the drifting ${KINDS[tgt.s.kind].label}` : tgt.s.mode === 'ghost' ? '[E] Hail the pale ship' : `[E] Hail the ${tgt.s.name}`)
@@ -1683,10 +1710,10 @@ function frame() {
 
 // handy for tests / screenshots
 window.__game = {
-  windfx,
+  windfx, logbook,
   audio,
   objectives, perrinNote, gateRadius: () => gateRadius(state),
-  openCard,
+  openCard, sighting, spawnSight: (id) => { const c = (SIGHTS[id] && drawCard(0, [], { [id]: 1 })); return c && sighting.spawn(c, ship, world); },
   weather,
   setDread(v) { forced = v; dread = v; },
   get dread() { return dread; },

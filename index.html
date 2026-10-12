@@ -121,11 +121,19 @@
     #rollCv { width: 224px; height: 224px; image-rendering: pixelated; filter: drop-shadow(4px 8px 0 rgba(0,0,0,.6)); }
     #roll b { font-size: 32px; font-weight: 400; } #roll small { font-size: 16px; color: #c8b890; }
     #rollRes { font-size: 32px; min-height: 40px; } #rollRes.ok { color: #7ee870; } #rollRes.bad { color: #ff6050; }
-    #cardWide { width: min(440px, 92vw); text-align: center; --pxedge: #c9a85c; }
+    /* encounters: the same low box villagers speak in, at the bottom, with the world still visible */
+    #card { align-items: flex-end; background: rgba(8,6,22,.18); }
+    #cardWide { width: min(900px, 94vw); margin-bottom: 40px; text-align: left; display: grid; grid-template-columns: 64px 1fr; column-gap: 16px; align-items: start; --pxedge: #c9a85c; }
     #card.dark #cardWide { --pxedge: #ff70d0; }
-    #cardIcon .pxi { width: 56px; height: 56px; margin: 4px auto; display: block; }
-    #cardChoices button { display: block; width: 100%; margin: 6px 0; text-align: left; }
-    #cardOut { min-height: 1.5em; color: #ffe8a0; }
+    #cardIcon { grid-row: 1 / 5; width: 64px; height: 64px; background: #e8d9a8; box-shadow: 0 0 0 4px #1a0f08; }
+    #cardIcon { color: #f4ead0; } #cardIcon .pxi { width: 48px; height: 48px; margin: 8px; display: block; }
+    #cardWide h2 { text-align: left; margin: 0 0 4px; font-size: 16px !important; font-weight: 400; color: #ffd23a; }
+    #cardText { margin: 0; font-size: 24px !important; line-height: 32px; color: #f4ead0; }
+    #cardChoices { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
+    #cardChoices button { display: inline-block; width: auto; margin: 0; text-align: left; }
+    #cardOut { min-height: 0; margin: 8px 0 0; font-size: 24px !important; line-height: 32px; color: #ffe8a0; }
+    #cardOut:empty { display: none; }
+    #cardDone { justify-self: start; margin-top: 10px; grid-column: 2; }
     #pigWide { width: min(420px, 92vw); text-align: center; }
     .pigrow > div { flex: 1; } .pigrow { display: flex; align-items: center; justify-content: space-around; font-size: 32px; margin: 8px 0; } .pigrow b { font-size: 16px; font-weight: 400; color: #c8b890; }
     #pigCv { width: 144px; height: 144px; image-rendering: pixelated; filter: drop-shadow(4px 6px 0 rgba(0,0,0,.6)); }
@@ -421,6 +429,33 @@
     #chart[data-book="pixel"] .ribbons button:hover { transform: translateX(5px) perspective(220px) rotateY(-8deg) skewY(-1deg) !important; }
     #chart[data-book="pixel"] .ribbons button.on { --paper: #fbf5e4; transform: translateX(16px) !important; clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%) !important; box-shadow: inset 0 -3px 0 rgba(120,90,50,.25), 4px 4px 0 rgba(0,0,0,.35); }
     #chart[data-book="pixel"] .ribbons button.on::after { display: none; }
+
+    /* ---- the log, redone: tabs along the top edge (paper slips tucked into the book), and the Board of clue cards */
+    .bookwrap { margin-right: 0; margin-top: 38px; }
+    .ribbons { right: auto; left: 40px; top: -32px; bottom: auto; flex-direction: row; gap: 6px; z-index: -1; }
+    #chart .ribbons button, #chart[data-book="pixel"] .ribbons button { width: 104px; height: 40px; margin: 0 !important; padding: 0 !important; justify-content: center; transform: none !important; clip-path: polygon(0 6px, 6px 6px, 6px 0, calc(100% - 6px) 0, calc(100% - 6px) 6px, 100% 6px, 100% 100%, 0 100%) !important; box-shadow: inset 0 -4px 0 rgba(58,34,16,.35) !important; }
+    #chart .ribbons button::after { display: none !important; }
+    #chart .ribbons button em { font: 400 16px "DotGothic16", monospace !important; padding-bottom: 6px; }
+    #chart .ribbons button:hover { transform: translateY(-4px) !important; }
+    #chart .ribbons button.on { transform: translateY(2px) !important; --paper: #fbf5e4; box-shadow: none !important; }
+    #chart .ribbons button.on em { color: #3a2210 !important; }
+    #logBody.board { display: flex; flex-direction: column; overflow: hidden; font-family: "DotGothic16", monospace; }
+    #logBody .bd { display: flex; flex-direction: column; height: 100%; gap: 8px; }
+    #logBody .cork { position: relative; flex: 1; overflow: auto; background: repeating-conic-gradient(#b8905a 0 25%, #a8824e 0 50%) 0 0 / 8px 8px; box-shadow: inset 0 0 0 4px #3a2210, inset 0 0 30px rgba(0,0,0,.4); }
+    #logBody .cork .str { position: absolute; left: 0; top: 0; pointer-events: none; z-index: 1; }
+    #logBody .bcard { position: absolute; width: 200px; padding: 14px 10px 8px; background: #e8d9a8; color: #3a2210; box-shadow: inset 0 0 0 3px #c9b07a, 5px 5px 0 rgba(0,0,0,.4); cursor: grab; user-select: none; touch-action: none; z-index: 2; font-size: 16px; line-height: 1.25; }
+    #logBody .bcard::before { content: ""; position: absolute; top: -4px; left: 50%; margin-left: -6px; width: 12px; height: 12px; background: #c8402a; box-shadow: inset -3px -3px 0 #8a2418, 2px 2px 0 rgba(0,0,0,.4); }
+    #logBody .bcard h4 { margin: 0 0 3px; font: 400 14px "DotGothic16", monospace; color: #7a3a1c; letter-spacing: 1px; }
+    #logBody .bcard p { margin: 0; font-size: 16px; } #logBody .bcard small { display: block; margin-top: 4px; color: #8a6a3a; font-size: 14px !important; }
+    #logBody .bcard.rum { background: #d8d0b8; } #logBody .bcard.bot { background: #cfe0d0; } #logBody .bcard.dk { color: #5a2a58; }
+    #logBody .bcard.done { opacity: .6; } #logBody .bcard.dim { opacity: .45; }
+    #logBody .bcard.sel { box-shadow: inset 0 0 0 3px #ffd23a, 0 0 0 3px #ffd23a, 5px 5px 0 rgba(0,0,0,.4); z-index: 3; }
+    #logBody .bempty { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 30px; text-align: center; color: #3a2210; opacity: .75; }
+    #logBody .bbar { display: flex; gap: 12px; align-items: stretch; }
+    #logBody #bnote { flex: 1; resize: none; padding: 6px 10px; background: #f1e6c0; color: #3a3a7a; font: italic 16px "DotGothic16", monospace; border: none; box-shadow: inset 0 0 0 3px #c9b07a; outline: none; }
+    #logBody .bacts { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; max-width: 46%; justify-content: flex-end; }
+    #logBody #bhint { flex-basis: 100%; text-align: right; color: #5a3a1c; font-size: 14px; }
+    #logBody button.mini.on { background: #ffd23a; }
   </style>
 </head>
 <body>
@@ -457,7 +492,7 @@
   <div id="yardmodal" class="modal yard"><div class="menu" id="yardWide"><h2>Shipyard</h2><p class="quote" id="yardLine">Paint, canvas and carved wood. All the finest vanity.</p><div class="goldline">Gold: <b id="yardGold"></b></div><div id="yardBody"></div><button id="yardClose">Done</button></div></div>
   <div id="chart" class="modal" data-book="pixel"><div class="bookwrap"><div class="ribbons" id="logTabs"></div><div class="book">
     <div class="spread"><div id="logBody" class="cols"></div></div>
-    <div class="bookbar"><button id="pgPrev"><i class="pxi left"></i></button><span id="pgNum" style="min-width:48px;text-align:center"></span><button id="pgNext"><i class="pxi right"></i></button><span class="keys">left/right: tabs &middot; up/down: pages &middot; 1-8</span><button id="logClose">Close [M]</button></div>
+    <div class="bookbar"><button id="pgPrev"><i class="pxi left"></i></button><span id="pgNum" style="min-width:48px;text-align:center"></span><button id="pgNext"><i class="pxi right"></i></button><span class="keys">left/right: tabs &middot; up/down: pages &middot; 1-7</span><button id="logClose">Close [M]</button></div>
   </div></div></div>
   <div id="hutmodal" class="modal"><div class="menu" id="hutWide"><h2>THE DARK HUT</h2><canvas id="dieCv" width="72" height="72"></canvas><p class="quote" id="hutTxt"></p><button id="hutRoll">Throw the die [Space]</button><button id="hutLeave">Leave [E]</button></div></div>
   <div id="card" class="modal"><div class="menu" id="cardWide"><div id="cardIcon"></div><h2 id="cardTitle"></h2><p class="quote" id="cardText"></p><div id="cardChoices"></div><p class="quote" id="cardOut"></p><button id="cardDone">Sail on [E]</button></div></div>

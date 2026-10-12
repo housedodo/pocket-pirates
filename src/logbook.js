@@ -11,7 +11,7 @@ import { pxi } from './pixelui.js';
 
 // The captain's log: an old low-poly book. Tabs are cloth bookmarks sticking out of the right side, content flows over two pages
 // (turn with the arrows below / Up and Down), and the Map is a hand-inked low-poly chart.
-const TABS = [['map', 'Map', ''], ['goals', 'Goals', ''], ['quests', 'Quests', ''], ['riddles', 'Riddles', ''], ['rumours', 'Rumours', ''], ['journal', 'Journal', ''], ['ship', 'Ship', ''], ['standing', 'Standing', '']];
+const TABS = [['map', 'Map', ''], ['goals', 'Goals', ''], ['quests', 'Quests', ''], ['board', 'Board', ''], ['journal', 'Journal', ''], ['ship', 'Ship', ''], ['standing', 'Standing', '']];
 const W = 880, H = 470;
 const INK = '#3a2210';
 
@@ -174,6 +174,7 @@ export class Logbook {
 
   open(tab = this.tab) {
     this.tab = tab; this.page = 0;
+    if (tab !== 'map' || !this._fromBoard) this.pencil = null;
     this.tabsEl.querySelectorAll('button').forEach((b) => b.classList.toggle('on', b.dataset.tab === tab));
     if (tab === 'map' && this.view.follow) { this.view.cx = this.d.ship.pos.x; this.view.cz = this.d.ship.pos.z; }
     this.render();
@@ -189,9 +190,9 @@ export class Logbook {
   }
 
   render() {
-    this.body.className = this.tab === 'map' ? 'full' : 'cols';
+    this.body.className = this.tab === 'map' ? 'full' : this.tab === 'board' ? 'board' : 'cols';
     this.body.scrollLeft = 0;
-    ({ map: this.renderMap, goals: this.renderGoals, quests: this.renderQuests, riddles: this.renderRiddles, rumours: this.renderRumours, journal: this.renderJournal, ship: this.renderShip, standing: this.renderStanding })[this.tab].call(this);
+    ({ map: this.renderMap, goals: this.renderGoals, quests: this.renderQuests, board: this.renderBoard, journal: this.renderJournal, ship: this.renderShip, standing: this.renderStanding })[this.tab].call(this);
     requestAnimationFrame(() => this.turn(0));
   }
 
@@ -246,30 +247,64 @@ export class Logbook {
     this.body.querySelectorAll('[data-track]').forEach((x) => x.addEventListener('click', () => { state.tracked = x.dataset.track; this.d.retrack(); this.render(); }));
   }
 
-  renderRiddles() {
-    const { state, world, ship } = this.d;
-    const ids = Object.keys(state.riddles);
-    let html = h3('Treasure riddles');
-    if (!ids.length) html += '<div class="riddle dim"><i>None yet.</i><small>Sail up to a treasure isle and press E to study the arch: it names the shore where the chest is buried.</small></div>';
-    ids.sort((a, b) => (state.dug.has(a) ? 1 : 0) - (state.dug.has(b) ? 1 : 0));
-    for (const id of ids) {
-      const [cx, cz] = id.split(',').map(Number), d = world.desc(cx, cz), dug = state.dug.has(id);
-      const known = !!(d && (state.rumoured[id] || state.discovered[id])), where = known ? (() => { const dx = d.x - ship.pos.x, dz = d.z - ship.pos.z; return `${bearingName(dx, dz)}, ~${Math.round(Math.hypot(dx, dz))} fathoms`; })() : '';
-      html += `<div class="riddle ${dug ? 'done' : ''}"><b>${known ? d.name : 'A riddle with no address'}</b> ${dug ? `<span class="ok">${pxi('check')} dug up</span>` : ''}<p>“${state.riddles[id]}”</p>${dug ? '' : `<small>${where}</small>`}</div>`;
+  // ------------------------------------------------------------ the board: every clue as a card, tied together by hand.
+  // Nothing here is checked. The strings and pencil circles are only the player's own memory.
+  boardCards() {
+    const { state, world } = this.d, cards = [];
+    for (const id of Object.keys(state.riddles)) {
+      const [cx, cz] = id.split(',').map(Number), d = world.desc(cx, cz), known = !!(d && (state.rumoured[id] || state.discovered[id]));
+      cards.push({ id: 'r:' + id, kind: 'RIDDLE', cls: 'rid', text: `\u201c${state.riddles[id]}\u201d`, src: known ? d.name : 'a treasure arch', done: state.dug.has(id) });
     }
-    this.body.innerHTML = html;
+    for (const [id, r] of Object.entries(state.rumoured)) cards.push({ id: 'u:' + id, kind: 'RUMOUR', cls: 'rum', text: `Something on ${r.name}.`, src: r.source || 'a rumour', done: !!r.found });
+    state.notes.forEach((n, i) => cards.push({ id: 'b:' + i, kind: /'s chart:/.test(n.text) ? 'CHART NOTE' : 'BOTTLE', cls: /'s chart:/.test(n.text) ? 'rid' : 'bot', text: n.text.replace(/^.*'s chart: /, ''), src: /'s chart:/.test(n.text) ? n.text.split("'s chart")[0] : 'found at sea', dark: n.dark }));
+    return cards;
   }
 
-  renderRumours() {
-    const { state, ship } = this.d;
-    const list = Object.values(state.rumoured);
-    let html = h3('Rumours');
-    if (!list.length) html += ent('None yet', 'Buy one in a harbour, or trade with a ship.', '', 'dim');
-    for (const r of list) {
-      const dx = r.x - ship.pos.x, dz = r.z - ship.pos.z;
-      html += ent(r.name, r.found ? 'found' : `${bearingName(dx, dz)}, ~${Math.round(Math.hypot(dx, dz))} fathoms · ${r.source || ''}`, r.found ? pxi('check') : '?', r.found ? 'done' : '');
-    }
-    this.body.innerHTML = html;
+  renderBoard() {
+    const { state } = this.d;
+    const B = state.board || (state.board = { pos: {}, ties: [], note: '', guess: [] });
+    const cards = this.boardCards(), esc = (t) => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;');
+    cards.forEach((c, i) => { if (!B.pos[c.id]) B.pos[c.id] = [24 + (i % 4) * 214 + ((i * 37) % 14), 22 + Math.floor(i / 4) * 128 + ((i * 53) % 12)]; });
+    const rows = Math.max(1, Math.ceil(cards.length / 4));
+    this.sel = this.sel && cards.some((c) => c.id === this.sel) ? this.sel : null; this.tie = null;
+    this.body.innerHTML = `<div class="bd"><div class="cork" id="cork" style="min-height:${rows * 128 + 40}px"><svg id="bstr" class="str" shape-rendering="crispEdges"></svg>`
+      + (cards.length ? cards.map((c) => `<div class="bcard ${c.cls}${c.done ? ' done' : ''}${c.dark ? ' dk' : ''}" data-id="${c.id}"><h4>${c.kind}</h4><p>${esc(c.text)}</p><small>${esc(c.src)}${c.done ? ' · done' : ''}</small></div>`).join('')
+        : '<div class="bempty">Nothing pinned yet. Riddles, rumours, bottles and chart notes land here as you find them.</div>') + '</div>'
+      + `<div class="bbar"><textarea id="bnote" rows="2" maxlength="160" placeholder="Pencil a note to yourself...">${esc(B.note || '')}</textarea><div class="bacts"><span id="bhint">Nobody checks the strings.</span>`
+      + `<button class="mini" id="btie">Tie to...</button><button class="mini" id="bcut">Cut strings</button><button class="mini" id="bmap">On the map</button></div></div></div>`;
+    const cork = document.getElementById('cork'), svg = document.getElementById('bstr'), hint = document.getElementById('bhint');
+    const el = (id) => cork.querySelector(`[data-id="${id}"]`);
+    const draw = () => {
+      svg.setAttribute('width', cork.scrollWidth); svg.setAttribute('height', cork.scrollHeight);
+      svg.innerHTML = B.ties.map(([a, b, t]) => { const A = el(a), Z = el(b); if (!A || !Z) return ''; const x1 = A.offsetLeft + A.offsetWidth / 2, y1 = A.offsetTop + 8, x2 = Z.offsetLeft + Z.offsetWidth / 2, y2 = Z.offsetTop + 8;
+        return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${t === 'd' ? '#2a2a60' : '#c8402a'}" stroke-width="4"${t === 'd' ? ' stroke-dasharray="12 8"' : ''}/>`; }).join('');
+    };
+    const place = (c) => { const e = el(c.id), [x, y] = B.pos[c.id]; e.style.left = x + 'px'; e.style.top = y + 'px'; };
+    const mark = () => cork.querySelectorAll('.bcard').forEach((e) => { e.classList.toggle('sel', e.dataset.id === this.sel); e.classList.toggle('dim', !!this.tie && e.dataset.id === this.tie); });
+    cards.forEach(place); requestAnimationFrame(draw); mark();
+    let drag = null;
+    cork.addEventListener('pointerdown', (e) => {
+      const c = e.target.closest('.bcard'); if (!c) { this.sel = null; this.tie = null; hint.textContent = 'Nobody checks the strings.'; mark(); return; }
+      const id = c.dataset.id;
+      if (this.tie && this.tie !== id) {
+        const i = B.ties.findIndex(([a, b]) => (a === this.tie && b === id) || (a === id && b === this.tie));
+        if (i < 0) B.ties.push([this.tie, id, 's']); else if (B.ties[i][2] === 's') B.ties[i][2] = 'd'; else B.ties.splice(i, 1);
+        this.tie = null; this.sel = id; hint.textContent = 'Red: sure. Dashed: a doubt.'; document.getElementById('btie').classList.remove('on'); mark(); draw(); return;
+      }
+      this.sel = id; mark();
+      drag = { id, x: e.clientX, y: e.clientY, ox: B.pos[id][0], oy: B.pos[id][1] }; cork.setPointerCapture(e.pointerId);
+    });
+    cork.addEventListener('pointermove', (e) => {
+      if (!drag) return;
+      const x = Math.max(0, Math.min(cork.clientWidth - 150, drag.ox + e.clientX - drag.x)), y = Math.max(0, Math.min(cork.scrollHeight - 80, drag.oy + e.clientY - drag.y));
+      B.pos[drag.id] = [Math.round(x / 4) * 4, Math.round(y / 4) * 4]; place({ id: drag.id }); draw();
+    });
+    cork.addEventListener('pointerup', () => { drag = null; });
+    document.getElementById('btie').onclick = (e) => { if (!this.sel) { hint.textContent = 'Pick a card first.'; return; } this.tie = this.tie ? null : this.sel; e.target.classList.toggle('on', !!this.tie); hint.textContent = this.tie ? 'Now pick the card to tie it to.' : ''; mark(); };
+    document.getElementById('bcut').onclick = () => { if (!this.sel) return; B.ties = B.ties.filter(([a, b]) => a !== this.sel && b !== this.sel); draw(); };
+    document.getElementById('bmap').onclick = () => { if (!this.sel) { hint.textContent = 'Pick a card first.'; return; } this._fromBoard = true; this.pencil = this.sel; this.open('map'); this._fromBoard = false; };
+    document.getElementById('bnote').addEventListener('input', (e) => { B.note = e.target.value; });
+    document.getElementById('bnote').addEventListener('keydown', (e) => { if (e.code !== 'Escape') e.stopPropagation(); });
   }
 
   renderJournal() {
@@ -325,7 +360,7 @@ export class Logbook {
   renderMap() {
     this.body.innerHTML = `<div class="mapwrap"><canvas id="mapCv" width="${W / 2}" height="${H / 2}"></canvas><canvas id="mapTxt" width="${W}" height="${H}"></canvas>
       <div class="mapctl"><button id="mz+">+</button><button id="mz-">&minus;</button><button id="mc" title="Centre on ship">${pxi('target')}</button></div></div>
-      <div class="legend">drag to pan · wheel to zoom · <b style="color:#b02818">?</b> rumour · <b style="color:#d07010">flag</b> delivery · <b style="color:#8a5a30">box</b> lost crates</div>`;
+      <div class="legend">${this.pencil ? 'pencil: click an island to circle it (again: rub out) · drag · wheel' : 'drag to pan · wheel to zoom ·'} ${this.pencil ? '' : '<b style="color:#b02818">?</b> rumour · <b style="color:#d07010">flag</b> delivery · <b style="color:#8a5a30">box</b> lost crates'}</div>`;
     const cv = document.getElementById('mapCv');
     this.cv = cv; this.c = cv.getContext('2d');
     const v = this.view;
@@ -342,7 +377,17 @@ export class Logbook {
       v.cx = drag.cx - (e.clientX - drag.x) * k / v.sc; v.cz = drag.cz - (e.clientY - drag.y) * k / v.sc; v.follow = false;
       this.drawMap();
     });
-    cv.addEventListener('pointerup', () => { drag = null; });
+    cv.addEventListener('pointerup', (e) => {
+      const moved = drag && Math.hypot(e.clientX - drag.x, e.clientY - drag.y) > 4; drag = null;
+      if (moved || !this.pencil) return;
+      // the pencil: a free memory aid. It circles an island for the selected card and never sets a course.
+      const r = cv.getBoundingClientRect(), wx = v.cx + ((e.clientX - r.left) / r.width * W - W / 2) / v.sc, wz = v.cz + ((e.clientY - r.top) / r.height * H - H / 2) / v.sc;
+      const near = this.d.world.nearest(wx, wz, 40 / v.sc + 12), B = this.d.state.board || (this.d.state.board = { pos: {}, ties: [], note: '', guess: [] });
+      const gx = near ? near.desc.x : wx, gz = near ? near.desc.z : wz;
+      const i = B.guess.findIndex((g) => g.card === this.pencil && Math.hypot(g.x - gx, g.z - gz) < 30);
+      if (i >= 0) B.guess.splice(i, 1); else B.guess.push({ x: gx, z: gz, card: this.pencil });
+      this.drawMap();
+    });
     this.drawMap();
   }
 
@@ -490,6 +535,10 @@ export class Logbook {
       const sk = sketcher(c, hash2(r.x, r.z, 3));
       sk.line(circ(px, pz, 15, 10), { col: '#b02818', w: 1.5, amp: 1.6 });
       sk.text('?', px, pz + 6, { font: 'bold 18px Georgia, serif', col: '#b02818', halo: false });
+    }
+    for (const g of (state.board && state.board.guess) || []) {   // pencil circles: the player's own guesses
+      const px = X(g.x), pz = Z(g.z), sk = sketcher(c, hash2(g.x | 0, g.z | 0, 6)), nth = state.board.guess.filter((o) => o.card === g.card).indexOf(g);
+      c.setLineDash([6, 6]); sk.line(circ(px, pz, 26, 14), { col: '#3a3a7a', w: 1.4, amp: 1.8, passes: 1, alpha: nth ? 0.4 : 0.8 }); c.setLineDash([]);
     }
     for (const q of state.quests) if (q.type === 'crates') {
       const px = X(q.center.x), pz = Z(q.center.z);

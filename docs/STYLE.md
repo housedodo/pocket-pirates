@@ -78,6 +78,7 @@ purple and magenta cosmic horror as dread rises.
   Mara's anchor and her "eye" when she breaks). New icons go there in the same format.
 - The HUD shows as little text as possible: gold, time, place. Everything else is in the log or the Q tracker.
 - Autosave cue: a 20x11 pixel ship sailing over a dashed wave strip with "Voyage saved", bottom right, on the pixel grid like the other icons.
+- The captain's log: paper-slip tabs along the top edge (DotGothic16 labels on cream), the Board is a cork field with pixel paper cards, a red pixel pin each and 4 px strings (red sure, dashed navy doubt). Encounters use the same navy box as villagers, at the bottom.
 - Wind meter: one pixel-art tick ring with an N at north, a bright double arc where the bow sails well,
   a solid arrow for the wind, a bow tick outside the ring, an orange mission dot.
 

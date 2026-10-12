@@ -57,27 +57,42 @@ export const hasTrait = (state, id) => (state.crew || []).some((c) => c.trait ==
 let d20 = null, dieWear = 0;
 /** how far the check die has darkened toward the Lady's (0..1); main sets it from days at sea and dread */
 export function setDieWear(k) { dieWear = k; }
-/** Show a d20 roll over everything. check: { label, dc, kind, dark, extra:[[name, n]] }; done(success, roll, total) */
+let advProvider = () => [0, []];
+/** main supplies the situation: (check) => [advantage -1|0|1, reasons[]]. Advantage and disadvantage cancel. */
+export const setAdvProvider = (f) => { advProvider = f; };
+/** treasure quality: the throw sets how good the find is (no pass or fail) */
+export const TREASURE_TIERS = [
+  { max: 1, label: 'MOSTLY ROT', mult: 0.4 }, { max: 6, label: 'THIN PICKINGS', mult: 0.7 }, { max: 14, label: 'A FAIR HAUL', mult: 1 },
+  { max: 19, label: 'A RICH HAUL', mult: 1.4 }, { max: 99, label: 'A KING\'S RANSOM', mult: 2 },
+];
+/** Show a d20 roll over everything. check: { label, dc, kind, dark, extra:[[name, n]], tiers?, adv?, advWhy? }; done(success, roll, total, tier)
+ *  With advantage the die is thrown twice and the better one stands; disadvantage keeps the worse. */
 export function rollCheck(state, check, done) {
   const el = document.getElementById('roll'), cv = document.getElementById('rollCv');
   const { b, why } = crewBonus(state, check.kind, check.dark);
   const extra = check.extra || [];
   const bonus = b + extra.reduce((a, [, n]) => a + n, 0);
   const parts = [...why, ...extra.map(([nm, n]) => `${nm} ${n >= 0 ? '+' : ''}${n}`)];
-  document.getElementById('rollLbl').textContent = `${check.label}: need ${check.dc}`;
+  const [adv, advWhy] = check.adv != null ? [check.adv, check.advWhy || []] : advProvider(check);
+  if (adv) parts.push(`${adv > 0 ? 'advantage' : 'disadvantage'}${advWhy.length ? ` (${advWhy.join(', ')})` : ''}`);
+  document.getElementById('rollLbl').textContent = check.tiers ? check.label : `${check.label}: need ${check.dc}`;
   document.getElementById('rollMod').textContent = parts.length ? parts.join(' · ') : 'no bonus';
   const res = document.getElementById('rollRes'); res.textContent = ''; res.className = '';
   el.classList.add('open');
-  const n = 1 + Math.floor(Math.random() * 20), total = n + bonus;
-  const ok = n === 20 || (n !== 1 && total >= check.dc);
+  const r1 = 1 + Math.floor(Math.random() * 20), r2 = 1 + Math.floor(Math.random() * 20);
+  const n = adv > 0 ? Math.max(r1, r2) : adv < 0 ? Math.min(r1, r2) : r1, total = n + bonus;
+  const tier = check.tiers ? (n === 20 ? check.tiers[check.tiers.length - 1] : n === 1 ? check.tiers[0] : check.tiers.find((t) => total <= t.max) || check.tiers[check.tiers.length - 1]) : null;
+  const ok = tier ? tier.mult >= 1 : n === 20 || (n !== 1 && total >= check.dc);
+  const both = adv ? ` (${r1}, ${r2})` : '';
   if (!d20) d20 = new Die3D(cv, 'd20', 64);
   d20.setWear(dieWear);   // it is the same die. It only takes a while to look like it.
   sfx.play('roll_d20');
   d20.roll(n, () => {
     sfx.play(ok ? 'success' : 'fail');
-    res.textContent = n === 20 ? 'NATURAL 20!' : n === 1 ? 'NATURAL 1...' : `${n}${bonus ? ` ${bonus > 0 ? '+' : ''}${bonus} = ${total}` : ''}: ${ok ? 'SUCCESS' : 'FAIL'}`;
+    res.textContent = tier ? `${n}${both}${bonus ? ` ${bonus > 0 ? '+' : ''}${bonus}` : ''}: ${tier.label}`
+      : n === 20 ? `NATURAL 20!${both}` : n === 1 ? `NATURAL 1...${both}` : `${n}${both}${bonus ? ` ${bonus > 0 ? '+' : ''}${bonus} = ${total}` : ''}: ${ok ? 'SUCCESS' : 'FAIL'}`;
     res.className = ok ? 'ok' : 'bad';
-    setTimeout(() => { el.classList.remove('open'); done(ok, n, total); }, 1500);
+    setTimeout(() => { el.classList.remove('open'); done(ok, n, total, tier); }, 1500);
   });
 }
 
@@ -143,8 +158,8 @@ export const CARDS = [
 ];
 
 /** a card for this moment, or null */
-export function drawCard(dread, seen) {
-  const pool = CARDS.filter((c) => dread >= (c.minDread || 0) && !(c.dark && dread < 0.4));
+export function drawCard(dread, seen, only) {
+  const pool = CARDS.filter((c) => dread >= (c.minDread || 0) && !(c.dark && dread < 0.4) && (!only || only[c.id]));
   const fresh = pool.filter((c) => !seen.includes(c.id));
   const list = fresh.length ? fresh : pool;
   return list[Math.floor(Math.random() * list.length)];
@@ -153,7 +168,7 @@ export function drawCard(dread, seen) {
 export function renderCard(card, onChoose) {
   const el = document.getElementById('card');
   el.classList.toggle('dark', !!card.dark);
-  document.getElementById('cardIcon').innerHTML = pxi(card.icon);
+  document.getElementById('cardIcon').innerHTML = `<i class="pxi ico ${card.icon}"></i>`;
   document.getElementById('cardTitle').textContent = card.title;
   document.getElementById('cardText').textContent = card.text;
   const box = document.getElementById('cardChoices');
