@@ -656,7 +656,7 @@ function restAtTavern(cost) {
   $('fade').classList.add('on');
   setTimeout(() => {
     if (state.time * 24 >= 6) { noteSkip(); state.dayN++; crewLeave(); }    // slept past midnight
-    state.time = 6 / 24;
+    state.time = 6 / 24; state.story.restDay = state.dayN;   // Mara is rested
     state.hp = ship.mods.maxHp;
     $('fade').classList.remove('on');
     toast(dk ? REST_DARK[Math.floor(Math.random() * REST_DARK.length)] : REST_LINES[Math.floor(Math.random() * REST_LINES.length)], dk, 6000);
@@ -756,7 +756,7 @@ function renderHarbour() {
     if ($('buyAmmo')) $('buyAmmo').addEventListener('click', () => { if (state.gold < ammoCost) return; state.gold -= ammoCost; state.ammo += 10; audio.play('buy'); renderHarbour(); });
     $('openYard').addEventListener('click', () => openModal('yard'));
     const hgb = $('haggle'); if (hgb) hgb.addEventListener('click', () => {
-      rollCheck(state, { label: 'Talk', kind: 'talk', dc: 12, extra: lvl ? [['standing', lvl]] : [] }, (ok, n) => {
+      rollCheck(state, { label: 'Talk', kind: 'talk', dc: 12, harbour: d.id, extra: lvl ? [['standing', lvl]] : [] }, (ok, n) => {
         state.haggle = { id: d.id, day: state.dayN, n, mult: ok ? (n === 20 ? 1.5 : 1.3) : n === 1 ? 0.8 : 0.9 };
         toast(ok ? 'The fishmonger laughs and gives in.' : n === 1 ? 'The fishmonger spits on the planks. By noon the whole harbour has heard.' : 'The fishmonger folds their arms. Prices just got worse.', false, 4000); if (harbourIsl) renderHarbour(); }); });
   } else if (hbTab === 'tavern') {
@@ -1322,11 +1322,24 @@ function cardCtx() {
     },
   };
 }
+// Mara's mood, from how the voyage has treated her: cheerful (rested within two days, hull sound, the water still bright),
+// rattled (a battered hull or the water gone wrong), steady otherwise. Cheerful and rattled tip sea and luck rolls.
+function maraMood() {
+  const hull = state.hp / Math.max(1, ship.mods.maxHp), rested = state.story.restDay != null && state.dayN - state.story.restDay <= 2;
+  if (hull < 0.3 || dread >= 0.6) return 'rattled';
+  if (rested && hull >= 0.6 && dread < 0.5) return 'cheerful';
+  return 'steady';
+}
 // advantage and disadvantage on the d20: the die is thrown twice and the better (or worse) one stands
 setAdvProvider((check) => {
   let a = 0; const why = [];
   const up = (t) => { a++; why.push(t); }, down = (t) => { a--; why.push(t); };
   if (check.treasure && !check.attempts) up('right shore first try');
+  { const mood = maraMood(); if (check.kind === 'sea' || check.kind === 'luck') { if (mood === 'cheerful') up('Mara is cheerful'); else if (mood === 'rattled') down('Mara is rattled'); } }
+  if (check.kind === 'talk') {   // standing: regulars are heard, a stranger at their own counter is not
+    const h = check.harbour ? { desc: { id: check.harbour } } : world.nearest(ship.pos.x, ship.pos.z, 400, ['harbour']);
+    if (h) { const lvl = friendLevel(repOf(state, h.desc.id)); if (lvl >= 2) up('known here'); else if (lvl === 0 && check.harbour) down('a stranger here'); }
+  }
   if (check.treasure && state.buffs.dig > 0) up('rum rations');
   if (check.kind === 'sea' && weather.storm > 0.35) down('storm');
   if ((check.kind === 'sea' || check.kind === 'luck') && tod.night > 0.6 && !state.upgrades.lantern) down('dark, no lantern');
@@ -1470,7 +1483,7 @@ $('pbNew').addEventListener('click', () => {
 $('pbHint').addEventListener('click', () => { closeModal(); if (!abyss.maraHint()) objectives.askHint(dread); });
 
 // ---------------------------------------------------------------- captain's log
-const logbook = new Logbook({ abyss, state, world, ship, seed: state.seed, toast: (t) => toast(t), close: () => closeModal(), mate: objectives.mate, dread: () => dread,
+const logbook = new Logbook({ abyss, state, world, ship, seed: state.seed, toast: (t) => toast(t), close: () => closeModal(), mate: objectives.mate, dread: () => dread, mood: () => maraMood(),
   retrack: () => sea.syncQuests(state.quests.filter((q) => q.id === state.tracked)),
   gate: () => gateRadius(state),
   skipGoal: () => { const g = objectives.current; if (!g) return; if (g.onDone) g.onDone({ state, world, ship, giveMap, forceCalm: (s) => { weather.calmHold = s; } });
@@ -1730,7 +1743,7 @@ function frame() {
 
 // handy for tests / screenshots
 window.__game = {
-  windfx, logbook,
+  maraMood, windfx, logbook,
   audio,
   objectives, perrinNote, gateRadius: () => gateRadius(state),
   openCard, sighting, spawnSight: (id) => { const c = (SIGHTS[id] && drawCard(0, [], { [id]: 1 })); return c && sighting.spawn(c, ship, world); },
