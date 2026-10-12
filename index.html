@@ -356,6 +356,17 @@
     .qbNew i { display: block; font-style: normal; font-size: 16px !important; color: #c9b890; margin-top: 4px; }
     @keyframes qbdone { 0% { opacity: 0; transform: translateY(-24px) scale(1.06); } 10% { opacity: 1; transform: none; } 80% { opacity: 1; } 100% { opacity: 0; } }
     @keyframes qbnew { 0% { opacity: 0; transform: translateY(14px); } 6% { opacity: 1; transform: none; } 88% { opacity: 1; } 100% { opacity: 0; } }
+    /* the autosave cue: a little ship sails across a strip of waves, then fades */
+    #saveship { position: fixed; right: 20px; bottom: 20px; z-index: 9; width: 168px; height: 74px; padding: 6px 10px; background: #17112e; box-shadow: 0 -3px 0 #3a3070, 0 3px 0 #3a3070, -3px 0 0 #3a3070, 3px 0 0 #3a3070, 6px 6px 0 3px rgba(0,0,0,.4); pointer-events: none; opacity: 0; visibility: hidden; overflow: hidden; }
+    #saveship.show { visibility: visible; animation: ssfade 2.8s steps(14) forwards; }
+    #saveship canvas { position: absolute; left: 10px; bottom: 24px; width: 60px; height: 33px; image-rendering: pixelated; }
+    #saveship.show canvas { animation: sssail 2.8s steps(14) forwards; }
+    #saveship .ssWave { position: absolute; left: 0; right: 0; bottom: 20px; height: 8px; background: repeating-linear-gradient(90deg, #3c78c8 0 12px, transparent 12px 20px, #5aa0e0 20px 28px, transparent 28px 36px); image-rendering: pixelated; }
+    #saveship.show .ssWave { animation: sswave .7s steps(2) infinite; }
+    #saveship span { position: absolute; left: 0; right: 0; bottom: 4px; text-align: center; font-size: 16px !important; color: #e8e0f8; }
+    @keyframes ssfade { 0% { opacity: 0; } 10% { opacity: 1; } 80% { opacity: 1; } 100% { opacity: 0; } }
+    @keyframes sssail { 0% { transform: translate(0, 0); } 25% { transform: translate(24px, -3px); } 50% { transform: translate(52px, 0); } 75% { transform: translate(78px, -3px); } 100% { transform: translate(104px, 0); } }
+    @keyframes sswave { to { background-position: 20px 0; } }
     /* tutorial marks: the sign (and the button) the current goal needs; goals later in the story carry none */
     #hbTabs .post.next::before { content: ""; position: absolute; left: 50%; top: -34px; margin-left: -12px; width: 24px; height: 20px; background: #ffd23a; clip-path: polygon(0 0, 100% 0, 50% 100%); filter: drop-shadow(3px 3px 0 #1a0606); animation: nbob .8s steps(2) infinite; }
     #hbTabs .post.next { box-shadow: inset 0 -5px 0 #3a2210, inset 0 4px 0 #8a5a30, 0 0 0 4px #ffd23a, 6px 6px 0 rgba(0,0,0,.4); }
@@ -442,6 +453,7 @@
     <div id="abyssTag" class="panel txt"></div>
   </div>
   <div id="hit"></div><div id="fade"></div>
+  <div id="saveship"><canvas id="ssCv" width="20" height="11"></canvas><div class="ssWave"></div><span>Voyage saved</span></div>
   <div id="yardmodal" class="modal yard"><div class="menu" id="yardWide"><h2>Shipyard</h2><p class="quote" id="yardLine">Paint, canvas and carved wood. All the finest vanity.</p><div class="goldline">Gold: <b id="yardGold"></b></div><div id="yardBody"></div><button id="yardClose">Done</button></div></div>
   <div id="chart" class="modal" data-book="pixel"><div class="bookwrap"><div class="ribbons" id="logTabs"></div><div class="book">
     <div class="spread"><div id="logBody" class="cols"></div></div>

@@ -77,6 +77,7 @@ purple and magenta cosmic horror as dread rises.
 - **No emoji or symbol glyphs anywhere.** Icons in text use `pxi('name')` (7x7 pixel glyphs in `src/pixelui.js`: fish, fruits, crate, skull, letter, stars, checks, arrows...). Icons are pixel sprites written as character grids in `src/pixelui.js` (coin, sun, moon, flag, heart, sail,
   Mara's anchor and her "eye" when she breaks). New icons go there in the same format.
 - The HUD shows as little text as possible: gold, time, place. Everything else is in the log or the Q tracker.
+- Autosave cue: a 20x11 pixel ship sailing over a dashed wave strip with "Voyage saved", bottom right, on the pixel grid like the other icons.
 - Wind meter: one pixel-art tick ring with an N at north, a bright double arc where the bow sails well,
   a solid arrow for the wind, a bow tick outside the ring, an orange mission dot.
 

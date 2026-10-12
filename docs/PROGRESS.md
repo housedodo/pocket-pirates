@@ -388,3 +388,6 @@ Read it before building any story part. Decided so far: the final throw of the L
 - `window.__game` exposes the game (e.g. `__game.world.hutDesc` for the hut island, `__game.hut`).
 - Single-file builds (`python3 scripts/single.py`): `pocket-pirates-demo.html` (silent, no test tools) and
   `pocket-pirates-dev.html` (all sounds, volumes, mixer on F8, test keys and the full-dread menu).
+
+## Autosave cue
+- A small pixel ship sails across a wave strip (bottom right, "Voyage saved") when the game saves at a quest completion or on docking at a harbour. It appears only when a save really happens (not in `?fresh=1`); the silent periodic save every 4 s continues. Drawn in `main.js` (`SS_ART`), styled in `index.html` (`#saveship`).

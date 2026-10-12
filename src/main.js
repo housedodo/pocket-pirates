@@ -219,12 +219,28 @@ function giveMap(id, from, reveal = false) {
     toast(`${from} gave you a treasure riddle for ${d.name}. Saved in your log: Riddles tab.`, false, 8000);
   } else toast(`${from} gave you a riddle. Saved in your log: Riddles tab. Where it points is up to you.`, false, 8000);
 }
+// ---- autosave
+function saveNow() {
+  if (params.get('fresh') || noSave) return false;
+  lastSave = tNow;
+  store.set(SAVE_KEY, { seed: state.seed, gold: state.gold, dug: [...state.dug], discovered: state.discovered, loot: state.loot, upgrades: state.upgrades, collected: [...state.collected], notes: state.notes, rumoured: state.rumoured, rep: state.rep, job: state.job, serial: state.serial, sectorsSeen: state.sectorsSeen, jobHistory: state.jobHistory, buffs: state.buffs, stats: state.stats, quests: state.quests, fruit: state.fruit, harvest: state.harvest, dayN: state.dayN, greet: state.greet, charts: state.charts, hp: state.hp, ammo: state.ammo, custom: state.custom, owned: [...state.owned], riddles: state.riddles, attempts: state.attempts, catch: state.catch, fishLog: state.fishLog, hut: state.hut, passenger: state.passenger, story: state.story, crew: state.crew, cardsSeen: state.cardsSeen, haggle: state.haggle, tracked: state.tracked, goals: state.goals, hints: state.hints, time: state.time, windT: wind.t, pos: { x: ship.pos.x, z: ship.pos.z, h: ship.heading } });
+  return true;
+}
+const SS_ART = ['.........FF.........', '.........M..........', '........MSS.........', '........MSSs........', '........MSSSs.......', '........MSSSSs......', '........MSSSSSs.....', '........MSSSSSss....', '........M...........', '..HHHHHHHHHHHHHHH...', '...HhhhhhhhhhhhHH...'];
+const SS_COL = { M: '#6b4a2e', S: '#f4ecd0', s: '#cbbf9a', H: '#5a3a1c', h: '#8a5a30', F: '#d24a3e' };
+{ const c = $('ssCv').getContext('2d'); SS_ART.forEach((row, y) => [...row].forEach((ch, x) => { if (SS_COL[ch]) { c.fillStyle = SS_COL[ch]; c.fillRect(x, y, 1, 1); } })); }
+function autosave() {   // a quest was finished or you docked: save now and show the ship
+  if (!saveNow()) return;
+  const el = $('saveship'); el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
+}
+
 // ---- quest cues (design A): QUEST COMPLETE, then NEW QUEST, the tracker flashes and the wind ring pulses
 let trackerNewUntil = 0;
 function questCue(done, next) {
   const el = $('qbanner'); $('qbTitle').textContent = done.title; $('qbRew').textContent = `+${done.reward} gold`;
   $('qbNext').textContent = next ? next.title : 'Sail where you like'; $('qbText').textContent = next ? next.text : 'The side goals in your log are always there.';
   el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
+  setTimeout(autosave, 600);
   trackerNewUntil = performance.now() + 9000; const c = $('compass'); c.classList.remove('ping'); void c.offsetWidth; c.classList.add('ping');
   setTimeout(() => c.classList.remove('ping'), 8000); audio.play('discover');
 }
@@ -984,7 +1000,7 @@ function tryInteract() {
       if (told === 0 || Math.random() < 0.5) say = rollGreeting(h.rolls[h.rolls.length - 1].n, state.time * 24, Math.random);
     }
     if (!say && free && (g.day[d.id] == null || Math.random() < 0.3)) say = pickGreeting({ hour: state.time * 24, weather: weather.label, dread, rnd: Math.random, custom: d.custom, event: isFestival(d) ? 'festival' : isMarketDay() ? 'market' : isLanternNight() ? 'lantern' : null, boat: (() => { const b = boatStatus(d, state.dayN, dread, state.seed); return b.today === 'stayed' ? 'stayed' : b.yesterday === 'lost' ? 'lost' : null; })() });
-    harbourIsl = tg.isl; hbTab = 'board'; frameVillage(d);
+    harbourIsl = tg.isl; hbTab = 'board'; frameVillage(d); autosave();
     for (const c of state.crew) if (c.wish && !c.wish.done && c.wish.kind === 'harbour' && c.wish.id === tg.isl.desc.id) wishDone(c);
     harbourEl.classList.toggle('dark', idx >= 3);
     $('hbBannerName').textContent = d.name; $('hbSaid').textContent = ''; $('hbDay').textContent = dayLine(d);
@@ -1654,11 +1670,8 @@ function frame() {
     if (hour !== lastHour) { lastHour = hour; if (world.nearest(ship.pos.x, ship.pos.z, 80, ['harbour'])) audio.play('bell', { vol: 0.6 }); }
   }
 
-  // ---- save
-  if (tNow - lastSave > 4 && !params.get('fresh') && !noSave) {
-    lastSave = tNow;
-    store.set(SAVE_KEY, { seed: state.seed, gold: state.gold, dug: [...state.dug], discovered: state.discovered, loot: state.loot, upgrades: state.upgrades, collected: [...state.collected], notes: state.notes, rumoured: state.rumoured, rep: state.rep, job: state.job, serial: state.serial, sectorsSeen: state.sectorsSeen, jobHistory: state.jobHistory, buffs: state.buffs, stats: state.stats, quests: state.quests, fruit: state.fruit, harvest: state.harvest, dayN: state.dayN, greet: state.greet, charts: state.charts, hp: state.hp, ammo: state.ammo, custom: state.custom, owned: [...state.owned], riddles: state.riddles, attempts: state.attempts, catch: state.catch, fishLog: state.fishLog, hut: state.hut, passenger: state.passenger, story: state.story, crew: state.crew, cardsSeen: state.cardsSeen, haggle: state.haggle, tracked: state.tracked, goals: state.goals, hints: state.hints, time: state.time, windT: wind.t, pos: { x: ship.pos.x, z: ship.pos.z, h: ship.heading } });
-  }
+  // ---- save (every few seconds, and at once when a quest is finished or you dock; those two also show the little ship)
+  if (tNow - lastSave > 4) saveNow();
 
   // ---- render
   const pu = post.material.uniforms;
