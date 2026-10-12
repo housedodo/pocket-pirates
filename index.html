@@ -36,6 +36,8 @@
     .toast.dark { border-color: #ff70d0; color: #ffd8f4; }
     @keyframes pop { from { transform: scale(.85); opacity: 0; } to { transform: none; opacity: 1; } }
     #help { position: absolute; left: 12px; bottom: 12px; font-size: 12px; line-height: 1.5; transition: opacity 1.5s; }
+    #help:not(:empty) span { font-size: 18px; }
+    .onb-off { display: none !important; } .onb-pop { animation: onbpop 3s steps(6) 1; } @keyframes onbpop { 0%, 40% { box-shadow: 0 0 0 4px #ffd23a; } 100% { box-shadow: none; } }
     #debug { position: absolute; left: 50%; top: 6px; transform: translateX(-50%); font-size: 12px; display: none; }
 
     #chart, .modal { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; background: rgba(8, 6, 22, .72); z-index: 4; }
@@ -497,7 +499,7 @@
     <div id="toasts"></div>
     <div id="landho" class="txt"><b></b><span></span><small></small></div>
     <div id="qbanner"><div class="qbDone"><div class="qbBig">QUEST COMPLETE</div><div class="qbRew"><span id="qbTitle"></span><em id="qbRew"></em></div></div><div class="qbNew"><small>NEW QUEST</small><span id="qbNext"></span><i id="qbText"></i></div></div>
-    <div id="help" class="txt panel"><span>A/D steer &middot; W/S sails · G oars &middot; E interact<br>M chart &middot; Esc pause &middot; drag = tilt &middot; wheel = zoom &middot; H hide HUD</span></div>
+    <div id="help" class="txt panel"><span>W &nbsp; let the sails out</span></div>
     <div id="debug" class="panel txt"></div>
     <div id="abyssTag" class="panel txt"></div>
   </div>

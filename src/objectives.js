@@ -23,10 +23,11 @@ export const MAIN_GOALS = [
   {
     id: 'sail', ch: 0, title: 'Find your sea legs', reward: 12,
     text: 'Steer with A and D, set the sails with W and S. Sail about 100 units.',
-    intro: ['Morning, Captain! I am Mara, your first mate, and this is the Merry Gull. She is small, but she is ours.',
-      'We are still tied up at Tama, sails furled. W lets them out, S reefs them, A and D steer.',
-      'The ring at the top right is the wind: the arrow shows where it blows, and the ring turns gold where she sails well and red where she crawls. The little triangle is our bow.'],
-    outro: ['Good. You can already feel how the wind pushes her. Beam and downwind is fast; straight into it is slow.'],
+    // told one line at a time, each when the player has done the last thing (see onbTick in main.js)
+    intro: ['Morning, Captain! I am Mara. Press W to let the sails out.',
+      'There she goes. A and D steer her, and the wind does the rest.',
+      'That ring is the wind. Gold means she sails well, red means she crawls. The little triangle is our bow.'],
+    outro: ['Good. Beam and downwind is fast; straight into the wind is slow.'],
     hints: ['Hold W to let the sails out, then A or D to turn.', 'Turn until the little triangle sits on a gold part of the wind ring: that is where she runs fast.'],
     check: (c) => c.state.stats.dist >= 100,
   },
@@ -42,8 +43,8 @@ export const MAIN_GOALS = [
   {
     id: 'dig', ch: 1, title: 'Follow the riddle', reward: 36,
     text: 'Perrin\'s riddle is in your log (Journal). Find the right shore of Hollow Cay Galen and dig.',
-    intro: ['Perrin left you a letter with the harbourmaster. Open the Board sign at Tama and take it: it holds a riddle about Hollow Cay Galen, north-east of Tama.',
-      'Find the shore the riddle means, stop the ship, and press E to dig. Oh, and if we stop at sea, C casts a line. Dinner!'],
+    intro: ['Perrin left you a letter with the harbourmaster: take it at the Board sign in Tama.',
+      'Then find the shore its riddle means, stop the ship and press E to dig.'],
     outro: ['Ha! Treasure! A captain with gold in the hold is a captain with options.'],
     hints: ['Take Perrin\'s letter at the Tama Board sign first (the little letter icon). The riddle is then in the log (M, Riddles tab). Sunrise is east, sunset is west.', 'Try the shore the riddle describes. A wrong shore only costs a few seconds.'],
     check: (c) => c.state.dug.has(HOME_ISLE),
@@ -61,9 +62,8 @@ export const MAIN_GOALS = [
   {
     id: 'calm', ch: 2, title: 'Dead calm', reward: 24,
     text: 'The wind has died. Put the oars out (G) and row, then catch a fish (stop, then C).',
-    intro: ['Well. Not a breath of wind. The flags have forgotten how to flap.',
-      'G puts the oars out, and W rows. It is slow, but it works when the sails are useless. Row us a little way.',
-      'And while we drift: slow right down and press C. That drops a line over the side. When something bites, press C or Space, then hold Space to reel and let go to ease off.'],
+    intro: ['Not a breath of wind. Press G for the oars, then W to row us a little way.',
+      'Then slow right down and press C to fish. When it bites, hold Space to reel, and let go to ease off.'],
     outro: ['Dinner AND exercise. A full day\'s work for a captain.', 'And listen: there is the wind again. Sails up, Captain.'],
     hints: ['Press G to put the oars out, then hold W to row. G again puts them away.', 'Stop the ship (S), then press C to cast a line. When it bites, press C or Space, then hold Space to reel.'],
     check: (c) => (c.state.stats.rowed || 0) >= ((c.state.story.cal0 || {}).r || 0) + 50 && c.state.stats.fish >= ((c.state.story.cal0 || {}).f || 0) + 1,
@@ -73,8 +73,8 @@ export const MAIN_GOALS = [
   {
     id: 'tack', ch: 2, title: 'Beat to windward', reward: 24,
     text: 'Make headway into the wind by zig-zagging: keep the little triangle on the gold part of the wind ring, and turn across the wind every so often.',
-    intro: ['The wind is back, and it is in our teeth. Never mind: a ship can sail toward the wind if she zig-zags.',
-      'Turn until the little triangle sits on the gold edge of the wind ring, hold her there, then swing across to the other side. Left, right, left. Every leg gains us a little ground upwind.'],
+    intro: ['The wind is back, straight in our teeth. A ship can still go upwind if she zig-zags.',
+      'Keep the little triangle on the gold edge of the wind ring, then swing across to the other side.'],
     outro: ['There it is. Upwind at last, and not a drop of rowing. Perrin would call that sailing.'],
     hints: ['Dead into the wind she barely moves. Keep the triangle on the gold part of the ring, about 45 degrees off the wind.', 'Turn across the wind (A and D) after a little while, and keep going the same way overall.'],
     check: (c) => (c.state.stats.upwind || 0) >= ((c.state.story.up0 || 0) + 60),
@@ -84,7 +84,7 @@ export const MAIN_GOALS = [
   {
     id: 'job', ch: 2, title: 'Earn your keep', reward: 30,
     text: 'Take a delivery from a harbour board and bring it where it belongs.',
-    intro: ['The fog has lifted a little further out. Good: harbours pay well for deliveries, and some folk pay for passage too.'],
+    intro: ['Harbours pay well for deliveries. Take one from a Board and bring it where it belongs.'],
     outro: ['Reputation matters out here. Harbours remember you.'],
     hints: ['The board in a harbour menu has deliveries. Dock at the other harbour and deliver from the top of its board.'],
     check: (c) => c.state.stats.deliveries >= 1,
@@ -93,7 +93,7 @@ export const MAIN_GOALS = [
   {
     id: 'passenger', ch: 2, title: 'Passage', reward: 24,
     text: 'Take a passenger from a harbour board and bring them to where they are bound.',
-    intro: ['Some folk pay for passage, Captain. They talk, too. Take one from a harbour board and see them to their stop.'],
+    intro: ['Some folk pay for passage, and they talk. Take one from a Board and see them to their stop.'],
     outro: ['Good company, and paid for it. Do not tell the cargo.'],
     hints: ['Open the Board sign in a harbour. A passenger is offered there now and then. Drop them off at their harbour.'],
     check: (c) => (c.state.stats.passengers || 0) >= 1,
@@ -135,7 +135,7 @@ export const MAIN_GOALS = [
   {
     id: 'errand', ch: 3, title: 'Odd jobs', reward: 24,
     text: 'Take a commission from a harbour board (fish, fruit, crates...) and hand it in.',
-    intro: ['The boards also carry little errands: fish, fruit, lost crates. Pay is small, thanks are large.'],
+    intro: ['The Boards also carry little errands: fish, fruit, lost crates.'],
     outro: ['A tidy bit of work. The harbour will remember it.'],
     hints: ['Commissions are on the Board sign too. Fish and fruit you can find at sea and on the isles.'],
     check: (c) => (c.state.stats.commissions || 0) >= 1,
@@ -143,7 +143,7 @@ export const MAIN_GOALS = [
   {
     id: 'salvage', ch: 3, title: 'Salvage rights', reward: 24,
     text: 'Find a half-sunk wreck, stop beside it and salvage it (E).',
-    intro: ['Wrecks sit out in the open water, half under. Low tide gives up the most. Stop beside one and press E.'],
+    intro: ['Wrecks sit half under in open water. Stop beside one and press E.'],
     outro: ['One ship\'s bad day is another one\'s dinner.'],
     hints: ['Look for broken masts and hulls in open water, away from the islands.', 'Stop the ship completely, then press E.'],
     check: (c) => (c.state.stats.wrecks || 0) >= 1,
@@ -151,7 +151,7 @@ export const MAIN_GOALS = [
   {
     id: 'riddle2', ch: 3, title: 'Riddle me this', reward: 30,
     text: 'Find another treasure isle. Study the arch (E), then dig the shore its riddle describes.',
-    intro: ['Perrin is not the only one who writes riddles. Every treasure isle has an arch. Study it, and it tells you where the chest sleeps.'],
+    intro: ['Every treasure isle has an arch. Study it with E and it tells you where the chest sleeps.'],
     outro: ['Two chests! Perrin would be insufferable.'],
     hints: ['Treasure isles show a stone arch on the chart. Press E at its shore to read it, then read the riddle in the log.', 'Sunrise is east, sunset is west.'],
     check: (c) => (c.state.stats.solved || 0) >= 2,
@@ -159,7 +159,7 @@ export const MAIN_GOALS = [
   {
     id: 'rest', ch: 3, title: 'A bed for the night', reward: 18,
     text: 'Sleep at a harbour tavern. Rooms are let from 17:00.',
-    intro: ['We could do with a proper night, Captain. Rooms are let from five in the afternoon, and the crew mends the hull while you sleep.'],
+    intro: ['Rooms are let from five in the afternoon, and the crew mends the hull while you sleep.'],
     outro: ['Slept like a log. A very small log. Good morning!'],
     hints: ['Dock at a harbour after 17:00 and open the Tavern sign.'],
     check: (c) => c.state.story.restDay != null,
@@ -167,7 +167,7 @@ export const MAIN_GOALS = [
   {
     id: 'raider', ch: 3, title: 'Teach a raider a lesson', reward: 36,
     text: 'Raiders sail these waters. Sink one: Space fires the cannons at an attacking raider.',
-    intro: ['Raiders, Captain. Reef Brotherhood. They are not friendly, and one is looking for us. We have cannons now: Space fires them. Keep them broadside and mind the hull.'],
+    intro: ['Raiders, Captain, and one is looking for us. Space fires the cannons: keep her broadside.'],
     outro: ['Splendid! They will think twice. For a day or two.'],
     hints: ['Raiders only fire when they are close. Turn so they are beside you and press Space.', 'Harbours repair the hull for free, and sell cannonballs.'],
     check: (c) => (c.state.stats.sunk || 0) >= 1,
@@ -328,8 +328,7 @@ export class Objectives {
     const g = this.state.goals;
     if (g.started) return;
     g.started = true;
-    for (const l of MAIN_GOALS[0].intro) this.mate.say(l);
-    this.chapterCard(0);
+    this.mate.say(MAIN_GOALS[0].intro[0]);   // the rest comes as the player does each thing; no chapter card for the very first goal
   }
   chapterCard(i) { const ch = CHAPTERS[i]; if (ch && this.d.chapterCard) this.d.chapterCard(ch); }
 

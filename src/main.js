@@ -359,6 +359,36 @@ let tradeShip = null;
 const yardEl = $('yardmodal'), hutEl = $('hutmodal'), cardEl = $('card'), pigEl = $('pig'), greetEl = $('greet');
 let harbourIsl = null;
 const keys = new Set();
+// ---- a quiet start: the HUD and Mara's explanations arrive one at a time, each when the player has done the last thing.
+// (Finished tutorials, old saves and test runs show everything at once.)
+const ONB_KEYS = { gold: 'gold', clock: 'clock', place: 'placeline', wind: 'compass', sail: 'sailbar', hull: 'combatbox' };
+const onbAll = () => params.get('nomate') || state.story.onbAll || (state.goals.started && state.goals.i >= 3);
+const onbQuiet = () => !onbAll() && state.goals.i < 2;   // no discovery toasts or "land ho" while the first goals are going
+function onbShow(k) {
+  const s = state.story.onb || (state.story.onb = {}); if (s[k]) return; s[k] = 1;
+  const el = $(ONB_KEYS[k]); if (!el) return;
+  el.classList.remove('onb-off'); el.classList.remove('onb-pop'); void el.offsetWidth; el.classList.add('onb-pop');
+  setTimeout(() => el.classList.remove('onb-pop'), 3000);
+}
+let onbGold0 = null;
+function onbTick() {
+  if (!started) return;
+  const s = state.story.onb || (state.story.onb = {});
+  if (onbAll()) { if (helpMode === 'start') { helpMode = 'legacy'; helpEl.innerHTML = '<span>A/D steer &middot; W/S sails &middot; G oars &middot; E interact<br>M log &middot; Esc pause &middot; drag = tilt &middot; wheel = zoom &middot; H hide HUD &middot; F1 help</span>'; } state.story.onbAll = true; for (const [k, id] of Object.entries(ONB_KEYS)) { const el = $(id); if (el) el.classList.remove('onb-off'); } return; }
+  if (onbGold0 === null) { onbGold0 = state.gold; for (const [k, id] of Object.entries(ONB_KEYS)) if (!s[k]) $(id).classList.add('onb-off'); }
+  const gi = state.goals.i, intro = MAIN_GOALS[0].intro, step = state.story.onbStep || 0;
+  // step 0 -> 1: the first time the sails go out, Mara says what A and D do and the sail gauge appears
+  if (step === 0 && ship.trim > 0.12) { state.story.onbStep = 1; onbShow('sail'); objectives.say(intro[1]); setHelp('A / D   steer'); }
+  // step 1 -> 2: once she has really turned or sailed a little, the wind ring is explained
+  else if (step === 1 && (Math.abs(ship.rudder) > 0.3 || state.stats.dist > 25)) { state.story.onbStep = 2; onbShow('wind'); objectives.say(intro[2]); setHelp(''); }
+  // every other piece arrives with the thing it belongs to
+  if (gi >= 1 || state.gold !== onbGold0) onbShow('gold');
+  if (gi >= 1) { onbShow('place'); onbShow('sail'); onbShow('wind'); if (!state.story.onbStep || state.story.onbStep < 2) { state.story.onbStep = 2; setHelp(''); } }
+  if (gi >= 2) onbShow('clock');
+  if (state.hp < ship.mods.maxHp || unlocked(state, 'cannons')) onbShow('hull');
+}
+let helpMode = 'start';
+function setHelp(t) { helpEl.innerHTML = t ? `<span>${t}</span>` : ''; helpEl.style.opacity = t ? '1' : '0'; helpMode = t ? 'tip' : 'off'; }
 let started = false;
 
 function openModal(name) {
@@ -551,6 +581,7 @@ window.addEventListener('keydown', (e) => {
   if (e.code === 'Enter' || e.code === 'NumpadEnter') objectives.mate.skip();
   if (e.code === 'KeyE') tryInteract();
   if (e.code === 'KeyH') $('hud').classList.toggle('hidden');
+  if (e.code === 'F1') { e.preventDefault(); helpMode = helpMode === 'full' ? 'off' : 'full'; helpEl.innerHTML = '<span>A/D steer &middot; W/S sails &middot; G oars &middot; E interact &middot; C fish<br>M log &middot; J quests &middot; Q tracker &middot; Esc pause &middot; H hide HUD &middot; F1 this help</span>'; helpEl.style.opacity = helpMode === 'full' ? '1' : '0'; }
   if (e.code === 'KeyG' && !modal && started && unlocked(state, 'oars')) { ship.rowing = !ship.rowing; toast(ship.rowing ? 'Oars out' : 'Oars in, sails up', false, 2200); if (ship.rowing) objectives.remark('oars', dread); }
   if (e.code === 'KeyQ' && !modal) { settings.tracker = settings.tracker === false; store.set(SETTINGS_KEY, settings); }
   if (!DEV) return;   // test keys only with ?dev=1
@@ -1013,6 +1044,7 @@ function lighthouseTidbit() {
 }
 const SIGHT_WORDS = { harbour: 'a village', jungle: 'a jungle isle', sandbar: 'a sandbar', rocky: 'a rock', treasure: 'an old arch on the shore', volcano: 'a smoking mountain', atoll: 'a ring of sand', mangrove: 'a mangrove isle' };
 function landHo(d) {
+  if (onbQuiet()) return;   // nothing but the first goals for a while
   const el = $('landho');
   el.querySelector('b').textContent = d.dread > 0.6 ? 'LAND?' : 'LAND HO!';
   el.querySelector('span').textContent = d.name;
@@ -1365,7 +1397,7 @@ function discover(isl) {
   state.discovered[d.id] = { name: d.name, type: d.type, x: Math.round(d.x), z: Math.round(d.z) };
   state.gold += 5;
   const rum = state.rumoured[d.id]; if (rum) rum.found = true;
-  toast(`Charted: ${d.name} (+5 gold)`, dread > 0.5);
+  if (!onbQuiet()) toast(`Charted: ${d.name} (+5 gold)`, dread > 0.5);
   if (rum && rum.fake !== undefined) setTimeout(() => resolveFalseRumour(d, rum), 1800);
   audio.play('discover');
 }
@@ -1690,7 +1722,7 @@ function frame() {
   if (sec.id !== curSector) {
     curSector = sec.id;
     if (!state.sectorsSeen.includes(sec.id)) state.sectorsSeen.push(sec.id);
-    if (live) toast(`Entering ${sec.name}: ${sec.faction.name} waters`, sec.dread > 0.5, 5000);
+    if (live && !onbQuiet()) toast(`Entering ${sec.name}: ${sec.faction.name} waters`, sec.dread > 0.5, 5000);
   }
   { // early chapters: a gentler wedge into the wind, and around Tama the wind leans across the first routes
     const early = chapterOf(state) < 2;
@@ -1882,7 +1914,8 @@ function frame() {
   $('clockicon').className = `ico ${tod.sunElev > 0 ? 'sun' : 'moon'}`;
   $('sailfill').style.width = `${Math.round(ship.trim * 100)}%`;
   drawCompass(wind, ship.heading);
-  if (tNow > 18) helpEl.style.opacity = '0';
+  onbTick();
+  if (onbAll() && tNow > 18 && helpMode !== 'full') helpEl.style.opacity = '0';
   if (modal === 'harbour') { $('hbGold').textContent = state.gold; }
   if (modal === 'hut') hut.update(rawDt);
   if (modal === 'ship') { $('shGold').textContent = state.gold; }

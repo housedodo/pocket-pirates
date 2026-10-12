@@ -439,3 +439,9 @@ Read it before building any story part. Decided so far: the final throw of the L
 - **Fisherman's log** (Journal): only what the player has learned. Caught species show where and when they were caught; species a fisher has described show "Told: ..."; the rest stay as one "? ? ? (n more)" line.
 - **Ask the fishers** (Tavern tab, "At the quay"): once a day per harbour a fisher describes where one unheard species bites, in their own words. It is the only way to be told.
 - **Letters at the harbour:** Perrin's first riddle and his later note no longer arrive by themselves. At Harbour Tama a little letter icon sits on the Board sign (and a toast says a letter waits); inside, a "A letter" row has a "Take it" button. The riddle or note is only handed over when it is taken. The first one is marked for the tutorial (the dig goal), later ones are not.
+
+## A quiet start (from playtest feedback: too much at once)
+- The opening is now one thing at a time. The first minute shows only the ship, the goal tracker, one short Mara line and one control hint ("W let the sails out"). Pressing W reveals the sail gauge and Mara says what A and D do (the hint changes to "A / D steer"); once she has turned or sailed a little, the wind ring appears with its one-line explanation and the hint fades.
+- The other HUD pieces arrive with what they belong to: gold with the first reward or coin, the place name after the first goal, the clock from the third goal, the hull planks at the first damage or when cannons unlock. Each new piece gets a short gold pulse.
+- No "Charted", "Entering ... waters" toasts or "land ho" banner until two goals are done, and no chapter card for the very first goal.
+- Mara's goal lines are cut to one or two short lines each. F1 shows the full control list. Old saves past the third goal, and test runs with `nomate`, see everything at once.
