@@ -15,6 +15,7 @@ export class Weather {
     this.flash = 0; this.flashQueue = 0; this.nextFlash = 6;
     this.prevRain = 0; this.calm = 0; this.redSky = 0; this.stormAhead = 0;
     this.onThunder = null;
+    this.noCalm = 0;     // seconds with no natural calm (the wind has just picked up again)
     this.calmHold = 0;   // seconds of dead calm the story has asked for
     this.front = 0; this.frontAhead = 0;   // a scheduled storm front (set by the game from the calendar)
     this.region = { rain: 1, storm: 1, fog: 1 };   // regional character (set from the sector's faction)
@@ -56,7 +57,8 @@ export class Weather {
     // dead calm: no wind at all for a while, only in fair weather
     const n3 = fbm(t / 150 + 5.3, 0.5, 31);
     if (this.calmHold > 0) this.calmHold -= dt;
-    const calmT = this.calmHold > 0 ? 1 : this.force ? (this.force.calm || 0) : smoothstep(0.64, 0.74, n3) * (1 - smoothstep(0.45, 0.6, n1));
+    if (this.noCalm > 0) this.noCalm -= dt;
+    const calmT = this.calmHold > 0 ? 1 : this.noCalm > 0 ? 0 : this.force ? (this.force.calm || 0) : smoothstep(0.64, 0.74, n3) * (1 - smoothstep(0.45, 0.6, n1));
     this.calm += (calmT - this.calm) * Math.min(1, dt * 0.3);
     // what the sky will do in a few minutes: a red evening sky warns of a storm tomorrow
     const ahead = fbm((t + 160) / 190 + 3.1, 0.5, 11);

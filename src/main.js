@@ -248,7 +248,9 @@ function questCue(done, next) {
   trackerNewUntil = performance.now() + 9000; const c = $('compass'); c.classList.remove('ping'); void c.offsetWidth; c.classList.add('ping');
   setTimeout(() => c.classList.remove('ping'), 8000); audio.play('discover');
 }
-const objectives = new Objectives({ state, world, ship, toast: (t, d) => toast(t, d), giveMap, forceCalm: (s) => { weather.calmHold = s; },
+// the story asks for a dead calm (seconds > 0) or for the wind to pick up again (0, and no natural calm for ten minutes)
+function setCalm(s) { if (s > 0) weather.calmHold = s; else { weather.calmHold = 0; weather.noCalm = 600; } }
+const objectives = new Objectives({ state, world, ship, toast: (t, d) => toast(t, d), giveMap, forceCalm: setCalm,
   chapterCard: (ch) => { $('qbanner').classList.remove('show'); const el = $('landho'); el.querySelector('b').textContent = `CHAPTER ${ch.n}`; el.querySelector('span').textContent = ch.title; el.querySelector('small').textContent = ch.act; el.classList.remove('show'); void el.offsetWidth; el.classList.add('show'); audio.play('chapter'); },
   questCue: (done, next) => questCue(done, next),
   onStep: (done, next) => { if (done.id === 'gossip') revealHut(); } });
@@ -1501,7 +1503,7 @@ $('pbHint').addEventListener('click', () => { closeModal(); if (!abyss.maraHint(
 const logbook = new Logbook({ abyss, state, world, ship, seed: state.seed, toast: (t) => toast(t), close: () => closeModal(), mate: objectives.mate, dread: () => dread, mood: () => maraMood(),
   retrack: () => sea.syncQuests(state.quests.filter((q) => q.id === state.tracked)),
   gate: () => gateRadius(state),
-  skipGoal: () => { const g = objectives.current; if (!g) return; if (g.onDone) g.onDone({ state, world, ship, giveMap, forceCalm: (s) => { weather.calmHold = s; } });
+  skipGoal: () => { const g = objectives.current; if (!g) return; if (g.onDone) g.onDone({ state, world, ship, giveMap, forceCalm: setCalm });
     if (g.id === 'perrin') perrinNote(); if (g.id === 'gossip') { state.story.hutKnown = true; revealHut(); }
     state.goals.i++; const n = objectives.current; if (n && n.onStart) n.onStart({ state }); toast('Goal skipped.'); } });
 

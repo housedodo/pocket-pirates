@@ -63,10 +63,11 @@ export const MAIN_GOALS = [
     intro: ['Well. Not a breath of wind. The flags have forgotten how to flap.',
       'G puts the oars out, and W rows. It is slow, but it works when the sails are useless. Row us a little way.',
       'And while we drift: slow right down and press C. That drops a line over the side. When something bites, press C or Space, then hold Space to reel and let go to ease off.'],
-    outro: ['Dinner AND exercise. A full day\'s work for a captain.'],
+    outro: ['Dinner AND exercise. A full day\'s work for a captain.', 'And listen: there is the wind again. Sails up, Captain.'],
     hints: ['Press G to put the oars out, then hold W to row. G again puts them away.', 'Stop the ship (S), then press C to cast a line. When it bites, press C or Space, then hold Space to reel.'],
     check: (c) => (c.state.stats.rowed || 0) >= ((c.state.story.cal0 || {}).r || 0) + 50 && c.state.stats.fish >= ((c.state.story.cal0 || {}).f || 0) + 1,
     onStart: (c) => { c.state.story.cal0 = { r: c.state.stats.rowed || 0, f: c.state.stats.fish }; if (c.forceCalm) c.forceCalm(420); },
+    onDone: (c) => { if (c.forceCalm) c.forceCalm(0); },   // the wind picks up again
   },
   {
     id: 'job', ch: 2, title: 'Earn your keep', reward: 30,
