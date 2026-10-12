@@ -395,3 +395,4 @@ Read it before building any story part. Decided so far: the final throw of the L
 ## Concepts: log board and encounter scenes (not built)
 - `docs/concept/log-board.html` (+ `log-board-a/b.png`): the captain's log as a deduction board. Clue cards on cork, red string for sure and dashed for doubt, pencil notes, "On the map" pencil circles. Nothing is ever marked right or wrong.
 - `docs/concept/encounter.html` (+ `encounter-a/b/c.png`): one-time dice scenes at sea (Talk, Sail, Look, Offer, Leave). Once per voyage, remembered by the world, never required.
+- Encounters redesigned (smaller, in the game's own box and buttons, not a separate scene) and made rare: about one every 3-4 days at sea, never in harbours, never part of any story. Log-board map guesses are a free memory aid. See `encounter-a..d.png`.
