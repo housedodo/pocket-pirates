@@ -37,16 +37,17 @@ export const MAIN_GOALS = [
     outro: ['Old Perrin left something for you with the harbourmaster.'],
     hints: ['Tama is the island with the lighthouse and the long wooden pier.', 'Sail right up to the end of the pier, then press E.'],
     check: (c) => c.state.stats.harbours >= 1,
-    onDone: (c) => c.giveMap(HOME_ISLE, 'Old Perrin', true),
+    onDone: (c) => { c.state.story.letterP1 = c.state.story.letterP1 || 'wait'; },   // Perrin's riddle waits at the Tama board as a letter; the player takes it
   },
   {
     id: 'dig', ch: 1, title: 'Follow the riddle', reward: 36,
     text: 'Perrin\'s riddle is in your log (Journal). Find the right shore of Hollow Cay Galen and dig.',
-    intro: ['Perrin wrote you a riddle. It is in your log, under Journal. Something about Hollow Cay Galen, north-east of Tama.',
+    intro: ['Perrin left you a letter with the harbourmaster. Open the Board sign at Tama and take it: it holds a riddle about Hollow Cay Galen, north-east of Tama.',
       'Find the shore the riddle means, stop the ship, and press E to dig. Oh, and if we stop at sea, C casts a line. Dinner!'],
     outro: ['Ha! Treasure! A captain with gold in the hold is a captain with options.'],
-    hints: ['The riddle is in the log (M, Journal tab). Sunrise is east, sunset is west.', 'Try the shore the riddle describes. A wrong shore only costs a few seconds.'],
+    hints: ['Take Perrin\'s letter at the Tama Board sign first (the little letter icon). The riddle is then in the log (M, Riddles tab). Sunrise is east, sunset is west.', 'Try the shore the riddle describes. A wrong shore only costs a few seconds.'],
     check: (c) => c.state.dug.has(HOME_ISLE),
+    tab: 'board', mark: ['takeLetter'],
   },
   {
     id: 'upgrade', ch: 1, title: 'Spend your loot', reward: 18,
@@ -117,10 +118,10 @@ export const MAIN_GOALS = [
   },
   {
     id: 'perrin', ch: 3, title: 'A note from Perrin', reward: 12,
-    text: 'Perrin has sent word to Harbour Tama.',
+    text: 'Perrin has sent word to Harbour Tama. A letter waits at the Board.',
     intro: ['The harbourmaster in Tama waved at us with a letter last time. Perrin again, I bet.'],
     outro: [],
-    hints: ['Dock at Harbour Tama.'],
+    hints: ['Dock at Harbour Tama. A letter icon on the Board sign means something is waiting for you.'],
     check: (c) => !!c.state.story.perrinNote,
   },
   {
