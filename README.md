@@ -23,7 +23,7 @@ npm run build      # static build in dist/
 | Y | ask Mara (first mate) for a hint |
 | E | interact: harbour (moor at the end of its pier: shipwright, job board, rumours), dig for treasure, salvage wrecks, hail passing ships |
 | Esc or P | pause menu (resume, controls, log, sound) |
-| M | captain's log, tabs are bookmark ribbons: Map, Goals, Quests, Riddles, Rumours, Journal, Ship, Standing (tabs 1-8 or arrows; Up/Down turn pages; J opens Quests) |
+| M | captain's log, tabs run along the top: Map, Goals, Quests, Riddles, Journal, Ship, Standing (keys 1-7 or arrows; Up/Down turn pages; J opens Quests) |
 | mouse drag | tilt (up/down) and orbit around the boat (sideways); Z / X also orbit, V resets, R / F tilt |
 | wheel | zoom |
 | H | hide HUD |
@@ -56,3 +56,6 @@ Dread only depends on distance from home; it does not build up over time (only t
 
 ## Fonts
 The interface uses DotGothic16 (SIL Open Font License), bundled in `public/fonts/` so the game works offline.
+
+## Demo and dev builds
+`python3 scripts/single.py` writes two single-file games: `pocket-pirates-demo.html` (silent, no dread, no test tools, for sharing) and `pocket-pirates-dev.html` (all sounds, mixer on F8, test tools). A new voyage opens with a short camera intro and a quiet, step-by-step tutorial led by Mara; see `docs/DESIGN.md`.

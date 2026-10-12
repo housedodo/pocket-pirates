@@ -33,6 +33,16 @@ If the game outgrows the browser, the design, generators and shaders port over; 
 | `upgrades.js` | 5 ship upgrades x 3 levels (sails, rudder, lantern, spyglass, crew), costs and effects |
 | `lore.js` | Names, harbour gossip and loot that drift from cosy to cosmic |
 | `audio.js` | Optional drop-in audio, cross-faded per dread stage |
+| `objectives.js` | The main goal chain (sail, harbour, dig, ... hut), `Mate` (Mara's text box and pacing), gated side remarks, pending next goal with a gap |
+| `tabletop.js` | Dice (one die, d20 checks with advantage/disadvantage, treasure quality throw) and the encounter card deck |
+| `sighting.js` | Rare signs at sea that open an encounter card (optional, never part of a story) |
+| `solids.js` | Round colliders for ships, boats, whales, wrecks, piers; `pushOut` keeps the hull out of them |
+| `fishing.js` | Fishing mini-game, 10 species with habitats (luck + place + time, no visible markers) |
+| `jobs.js` / `passengers.js` | Delivery jobs, board, passengers; `nearby` respects the fog radius |
+| `fauna.js` / `traffic.js` / `seafeatures.js` / `weather.js` | Wildlife, ships and scheduled events (market, regatta, migration), whirlpools and wrecks, weather fronts |
+| `customize.js` | Shipyard: 360 turntable preview, paint, hull, flags, figureheads, try then buy |
+| `combat.js` | Raiders, cannons (bought only, start with 8), hull as 5 planks |
+| `greetings.js` / `hut.js` / `dice3d.js` | Villager greetings (one per day), the dark hut, 3D die |
 
 Every island has a bright decor set and a "wrong" decor set (dead palms, glowing fungus, monoliths with eyes, a totem in town).
 They swap at dread 0.5, and terrain colours blend to a second vertex colour set.
@@ -84,6 +94,15 @@ Other systems: **jobs** (delivery contracts from harbour boards, tracked on the 
 | 3 | Wrong | green haze, desaturated | glowing fungus, standing stones, odd names |
 | 4 | Eerie | fog, dusk, black flag | dead palms, lit empty windows, magenta lighthouse beam |
 | 5 | Cosmic | black sun, eye in the stars | chromatic split, screen wobble |
+
+## Quiet start, intro and quest cue (newest layer)
+- **Intro:** a new voyage plays a 9 s cinematic (`INTRO_DUR`, letterbox bars, camera eases down behind the boat; Esc/click skips). Not for continued saves, `autostart`, `nomate` or `x=`; force with `?intro=1`.
+- **Quiet start:** `onbAll()` / `onbQuiet()` / `laterOK()` in `main.js` hide HUD pieces (`ONB_KEYS`, class `.onb-off`, revealed with `.onb-pop`) and hold back everything that is not the current tutorial goal. `onbQuiet` = goals before index 2 (no discovery toasts, land ho, villager text); `onbAll` = HUD complete (goal 3+); `laterOK` = goal 7+ (dolphins, sightings, lighthouse tidbits, market/regatta, side goals). New ambient content should check `laterOK()`.
+- **Mara's pacing:** `Mate` holds a line 3.2 s + 0.065 s per character, 1.4 s between lines. Goals have `intro` (array or `function(c)`), `outro`, `waitMate`, `count` ("(x/y)"). Next goal waits a `gap` (8 s early, 5 s later).
+- **Quest cue:** `questCue` shows QUEST COMPLETE at once; `questNew` (called by Objectives when the pending goal is released, i.e. when Mara announces it) shows the NEW QUEST card, tracker entry and compass ping.
+- **Letters:** Perrin's letters are picked up from the Board sign icon (`story.letterP1/P2`), Mara asks about them and marks the log tab (`story.tabMark`).
+- **Demo build:** `__BUILD==='demo'` has no dread, no spoilers, a second harbour (Velto), fog gate radii in `GATES`, and ends at the next harbour after the first hut throw is remarked on; nothing unlocks afterwards.
+- **Docs for the rest:** `docs/PROGRESS.md` has a dated entry per feature; `docs/concept/` holds the design concepts.
 
 ## Tunables
 - `DREAD_RANGE` in `palette.js`: distance (2200 units now, ~3 min) to reach full dread. Raise it for a longer arc.
