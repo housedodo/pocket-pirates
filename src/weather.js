@@ -16,6 +16,8 @@ export class Weather {
     this.flash = 0; this.flashQueue = 0; this.nextFlash = 6;
     this.prevRain = 0; this.calm = 0; this.redSky = 0; this.stormAhead = 0;
     this.onThunder = null;
+    this.front = 0; this.frontAhead = 0;   // a scheduled storm front (set by the game from the calendar)
+    this.region = { rain: 1, storm: 1, fog: 1 };   // regional character (set from the sector's faction)
     this.phantom = null; this.phantomT = 0;
     this.rng = mulberry32(2024);
 
@@ -42,20 +44,23 @@ export class Weather {
 
   update(dt, t, dread, windDir, windStr, cam, tod) {
     const n1 = fbm(t / 190 + 3.1, 0.5, 11), n2 = fbm(t / 260 + 9.7, 0.5, 23);
-    const rainMul = 0.55 + 0.45 * dread, stormMul = 0.45 + 0.55 * dread, fogMul = 0.3 + 0.7 * dread;
+    const rainMul = (0.55 + 0.45 * dread) * this.region.rain, stormMul = (0.45 + 0.55 * dread) * this.region.storm, fogMul = (0.3 + 0.7 * dread) * this.region.fog;
     const target = this.force || {
       cloud: smoothstep(0.4, 0.62, n1),
       rain: smoothstep(0.55, 0.68, n1) * rainMul,
       storm: smoothstep(0.64, 0.76, n1) * stormMul,
       fog: smoothstep(0.6, 0.78, n2) * fogMul,
     };
+    if (!this.force && this.front > 0) {   // the front: cloud first, then rain, then the blow
+      target.cloud = Math.max(target.cloud, Math.min(1, this.front * 1.4)); target.rain = Math.max(target.rain, this.front * 0.85); target.storm = Math.max(target.storm, this.front * 0.95);
+    }
     // dead calm: no wind at all for a while, only in fair weather
     const n3 = fbm(t / 150 + 5.3, 0.5, 31);
     const calmT = this.force ? (this.force.calm || 0) : smoothstep(0.64, 0.74, n3) * (1 - smoothstep(0.45, 0.6, n1));
     this.calm += (calmT - this.calm) * Math.min(1, dt * 0.3);
     // what the sky will do in a few minutes: a red evening sky warns of a storm tomorrow
     const ahead = fbm((t + 160) / 190 + 3.1, 0.5, 11);
-    this.stormAhead = smoothstep(0.62, 0.74, ahead) * stormMul;
+    this.stormAhead = Math.max(smoothstep(0.62, 0.74, ahead) * stormMul, this.frontAhead * 0.9);
     const dusk = tod.twilight || 0;
     this.redSky += ((this.stormAhead > 0.3 && this.storm < 0.2 ? dusk : 0) - this.redSky) * Math.min(1, dt * 0.5);
     const k = Math.min(1, dt * 0.35);

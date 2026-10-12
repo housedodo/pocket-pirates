@@ -97,6 +97,14 @@ dread stage. A few:
 - *Market day:* "Market day! Everyone is buying, nobody is listening. Perfect." · *Festival:* "Festival today! Eat something. Dance something. Do not ask what the songs are about." · *Lantern night:* "Lantern night. We set them on the water and let them go. They come back, mostly."
 - *Mara:* "Market day, Captain! Every harbour pays a bit more for what we bring in." · "Lantern night tonight. They set little lights on the water. I always want to follow one."
 
+### False rumours, the boat and new customs (src/main.js, src/greetings.js)
+- *Nothing:* "Only sand, and someone else's footprints. They go down to the water and do not come back up." · "A flat rock, a dead crab and a lot of sky. Somebody was disappointed here before you." · "Gulls. Nothing but gulls. One of them looks as if it has heard this rumour before." · "There is no treasure. There is a very nice view, if that helps."
+- *Stranger:* "A table laid for two on the sand. The tea is still warm. One cup has your ship's name scratched into it." · "A bottle stands upright in the sand. Inside: a drawing of this island from above, and a small cross where you are standing." · "A cairn of white shells, freshly built. On the top a note: "Thank you for coming. We were not sure you would."" · *Mara:* "Captain... that was no treasure. Who goes to this much trouble to make a rumour come true?"
+- *The boat:* "The boat did not go out today. Old Marta says the sea looked at her wrong." · "Our boat did not come back last night. It is back now. Nobody was aboard. Nobody has looked in the hold." · "The boat came home by itself before dawn. The nets were dry. The lamp was lit."
+- *Customs:* "Washing day. It is always washing day. The sea is hard on shirts." · "The carved ones were here before the village. We keep them dusted." · *Silent village:* "A nod. Only a nod." · "Nobody speaks here. A child puts a shell in your hand and goes."
+- *Mara, schedule:* "The tide is out, Captain. Keep off the shallows, and the wrecks give up more at low water." · "That red in the west... a front is coming in tomorrow afternoon, Captain. I would be in a harbour by then." · "A regatta! Look at them go. I wonder who they are racing, and who is giving the prize." · "They are all going the same way, Captain. East. Every one of them. As if they were called."
+- *Local charts (journal):* "Twelve little bells drawn along the coast, one for each island the bell can be heard from. There are thirteen." · "A small carved face drawn over one island. Underneath: Do not look back."
+
 ### Shipwright
 - **0:** "Best timber this side of the reef, captain." · "Fair prices, fair winds."
 - **1:** "Odd. The planks came in already cut. I never ordered them."

@@ -4,7 +4,7 @@ import { Builder } from './builder.js';
 import { TILE } from './textures.js';
 import { mats, psxMaterial, getAtlas } from './psx.js';
 import { waveHeight } from './ocean.js';
-import { angleDiff, lerp, clamp } from './util.js';
+import { angleDiff, lerp, clamp, hash2 } from './util.js';
 import { sectorAt, FACTIONS } from './sectors.js';
 
 // Other vessels on the sea. A handful of different designs, each sailing under the colours of
@@ -21,6 +21,12 @@ export const KINDS = {
 const HP = { fisher: 30, merchant: 55, schooner: 50, galleon: 95, canoe: 20 };
 const armed = (s, hostile) => Object.assign(s, { hostile, hp: HP[s.kind], maxHp: HP[s.kind], engaged: false, fireCd: 2 + Math.random() * 2, circle: Math.random() < 0.5 ? -1 : 1, sinking: false, sinkT: 0 });
 
+// ---- every harbour has a fishing boat with a routine: out at dawn, back at dusk. Some days it does not go out;
+// in wrong water, now and then it stays out all night and is back before dawn with nobody aboard.
+export function boatStatus(d, dayN, dread, seed) {
+  const kind = (n) => { const v = hash2(Math.round(d.x), Math.round(d.z), seed + n * 977) % 11; return v === 0 ? 'stayed' : dread >= 0.4 && v === 5 ? 'lost' : 'normal'; };
+  return { today: kind(dayN), yesterday: kind(dayN - 1) };
+}
 let flagGeo = null;
 function getFlagGeo() {
   if (flagGeo) return flagGeo;
@@ -131,14 +137,87 @@ export class Traffic {
     return best;
   }
 
+  /** things that come on a schedule: the floating market on Friday daytimes, the regatta on Sunday afternoons */
+  schedule(dt, ship, sc) {
+    const h = sc.hour, bright = sc.dread < 0.4;
+    const mk = this.ships.find((s) => s.special === 'market');
+    const marketTime = sc.wd === 4 && h >= 8.5 && h < 17.5 && bright;
+    if (marketTime && !mk && this.mkDay !== sc.dayN) {
+      const a = Math.random() * 6.28, d = 150 + Math.random() * 50, x = ship.pos.x + Math.cos(a) * d, z = ship.pos.z + Math.sin(a) * d;
+      if (!this.world.nearest(x, z, 35)) {
+        this.mkDay = sc.dayN;
+        const s = this.spawnAt('merchant', 'free', x, z, Math.random() * 6.28, 'live', 0.55);
+        s.special = 'market'; s.name = 'The Floating Market'; s.roll = 0; s.hostile = false;
+        if (this.onEvent) this.onEvent('market', s);
+      }
+    }
+    if (mk && !marketTime && !mk.leaving) { mk.leaving = true; mk.speed = 4.5; mk.heading += Math.PI * 0.6; }   // the market packs up at dusk and sails on
+    if (sc.wd === 6 && h >= 13 && h < 16 && bright && this.regDay !== sc.dayN) {
+      const a = Math.random() * 6.28, x0 = ship.pos.x + Math.cos(a) * 240, z0 = ship.pos.z + Math.sin(a) * 240;
+      const px = -Math.sin(a), pz = Math.cos(a);   // pass the player's position at a lateral offset
+      const tx = ship.pos.x + px * 55, tz = ship.pos.z + pz * 55, hd = Math.atan2(tx - x0, -(tz - z0));
+      if (!this.world.nearest(x0, z0, 40)) {
+        this.regDay = sc.dayN;
+        ['canoe', 'fisher', 'canoe', 'fisher', 'canoe'].forEach((k, i) => {
+          const back = i * 22, lat = (i % 2 ? 1 : -1) * 7, x = x0 - Math.sin(hd) * back + Math.cos(hd) * lat, z = z0 + Math.cos(hd) * back + Math.sin(hd) * lat;
+          const s = this.spawnAt(k, 'free', x, z, hd, 'live', KINDS[k].speed[1] * (0.95 + Math.random() * 0.1));
+          s.special = 'regatta'; s.name = `Regatta boat ${i + 1}`;
+        });
+        if (this.onEvent) this.onEvent('regatta');
+      }
+    }
+  }
+
+  /** the harbour fishing boats, placed from the clock alone (so they are always where the hour says) */
+  routines(dt, t, ctx) {
+    const { ship, wave, dread } = ctx, sc = ctx.sched; if (!sc) return;
+    this.rboats = this.rboats || new Map();
+    for (const [id, b] of this.rboats) {
+      const isl = this.world.islands.get(id);
+      if (!isl || Math.hypot(isl.desc.x - ship.pos.x, isl.desc.z - ship.pos.z) > 430) { this.scene.remove(b.root); this.rboats.delete(id); }
+    }
+    for (const [id, isl] of this.world.islands) {
+      const d = isl.desc;
+      if (d.type !== 'harbour' || !d.dock || this.rboats.has(id) || Math.hypot(d.x - ship.pos.x, d.z - ship.pos.z) > 380) continue;
+      const parts = this.build('fisher', sectorAt(d.x, d.z, this.seed).faction, false); this.scene.add(parts.root);
+      const th = d.dock.th, dx = Math.cos(th), dz = Math.sin(th), px = -dz, pz = dx, R = Math.hypot(d.dock.x, d.dock.z) - 10;
+      this.rboats.set(id, { ...parts, d, th, berth: [d.x + d.dock.x + px * 6, d.z + d.dock.z + pz * 6], spot: [d.x + dx * (R + 85) - px * 28, d.z + dz * (R + 85) - pz * 28], name: `${d.name}'s fishing boat` });
+    }
+    const h = sc.hour;
+    for (const b of this.rboats.values()) {
+      const st = boatStatus(b.d, sc.dayN, dread, this.seed);
+      let k = 0;   // 0 at the berth, 1 at the fishing spot
+      if (st.today === 'stayed') k = 0;
+      else if (st.yesterday === 'lost' && h < 6.5) k = 1;                     // still out where it spent the night
+      else if (st.yesterday === 'lost' && h < 8) k = 1 - (h - 6.5) / 1.5;      // and home again by itself
+      else if (st.today === 'lost') k = h < 6.5 ? 0 : h < 8 ? (h - 6.5) / 1.5 : 1;   // goes out and does not come back
+      else k = h < 6.5 ? 0 : h < 8 ? (h - 6.5) / 1.5 : h < 15.5 ? 1 : h < 17.5 ? 1 - (h - 15.5) / 2 : 0;
+      k = k * k * (3 - 2 * k);
+      b.k = k;
+      const x = lerp(b.berth[0], b.spot[0], k), z = lerp(b.berth[1], b.spot[1], k);
+      const away = Math.atan2(b.spot[0] - b.berth[0], -(b.spot[1] - b.berth[1]));
+      const moving = k > 0.02 && k < 0.98, back = h >= 15.5 && st.today !== 'lost' || (st.yesterday === 'lost' && h >= 6.5 && h < 8);
+      let hd = moving ? (back ? away + Math.PI : away) : k >= 0.98 ? away + 1.2 + Math.sin(t * 0.07) * 0.5 : b.th + Math.PI / 2;
+      const wh = waveHeight(x, z, t, wave);
+      b.root.position.set(x, wh + 0.1, z);
+      b.root.rotation.set(Math.sin(t * 0.9 + x) * 0.04, -hd, Math.cos(t * 0.7 + z) * 0.05);
+      const furl = moving || k >= 0.98 ? 1 : 0.22;
+      for (const sl of b.sails) { sl.pivot.rotation.y = 0.5; sl.sail.scale.x = 1; sl.pivot.scale.set(sl.s, furl * sl.s, sl.s); if (sl.jib) { sl.jib.scale.x = 1; sl.jib.scale.y = furl; } }
+      b.flag.rotation.y = Math.PI + Math.sin(t * 8) * 0.2;
+      b.root.visible = !(b.d.type === 'harbour' && st.today === 'lost' && false);
+    }
+  }
+
   update(dt, t, ctx) {
     const { ship, dread, wave, wind } = ctx;
+    this.routines(dt, t, ctx);
     this.timer -= dt;
     const want = dread < 0.7 ? 2 : 1;
     if (this.timer <= 0) {
       this.timer = 10;
-      if (this.ships.length < want && Math.random() < 0.6) this.spawn(ship, dread);
+      if (this.ships.filter((q) => !q.special).length < want && Math.random() < 0.6) this.spawn(ship, dread);
     }
+    if (ctx.sched) this.schedule(dt, ship, ctx.sched);
 
     for (let i = this.ships.length - 1; i >= 0; i--) {
       const s = this.ships[i], K = KINDS[s.kind];

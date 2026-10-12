@@ -85,6 +85,8 @@ const BY_CUSTOM = {
   choir: ['Stay till dusk, captain. We sing at dusk. Everyone sings.', 'You will hear us from the water tonight. We always know the words.'],
   nightboats: ['We fish at night here. The fish are braver in the dark. So are we.', 'Look for our lanterns on the water after sundown. Wave if you like.'],
   kites: ['Kites up every afternoon! The wind likes us here.', 'My kite is the red one. No, the other red one.'],
+  laundry: ['Washing day. It is always washing day. The sea is hard on shirts.', 'Duck under the blue shirt. Over the red one. The yellow one, you can walk through.'],
+  statues: ['The carved ones were here before the village. We keep them dusted.', 'Do not mind the carvings. They face the sea in the morning. That is only the wood.'],
   bells: ['You will hear the bells at noon. Twelve, every day. We count.', 'The bell rope is worn smooth. Nobody remembers who rang it first.'],
 };
 const BY_EVENT = {
@@ -92,6 +94,12 @@ const BY_EVENT = {
   festival: ['Festival today! Eat something. Dance something. Do not ask what the songs are about.', 'Flags up, lamps lit, nobody working. Festival day.'],
   lantern: ['Lantern night. We set them on the water and let them go. They come back, mostly.', 'Light one for someone, captain. Anyone. They do not have to be gone.'],
 };
+// the harbour's fishing boat has a routine; sometimes it breaks
+const BY_BOAT = {
+  stayed: ['The boat did not go out today. Old Marta says the sea looked at her wrong.', 'Boat is still tied up. First time in months. Nobody wanted to be the one to untie her.'],
+  lost: ['Our boat did not come back last night. It is back now. Nobody was aboard. Nobody has looked in the hold.', 'The boat came home by itself before dawn. The nets were dry. The lamp was lit.'],
+};
+const SILENT = ['A nod. Only a nod.', 'A hand raised, then lowered. That seems to be all.', 'They smile, point at the pier, then the sky, then their ear. Nothing else.', 'Nobody speaks here. A child puts a shell in your hand and goes.', 'They look at you for a long time, kindly, and say nothing. It is not unfriendly.'];
 const BY_WEATHER = {
   Rain: [
     'Come in out of the wet! Not that it helps. Everything here is a little damp forever.',
@@ -155,6 +163,10 @@ export function dayPhase(hour) { return hour >= 5 && hour < 8 ? 'dawn' : hour >=
 /** a speaker and a line for this visit. ctx: { hour, weather (label), dread 0..1, rnd } */
 export function pickGreeting(ctx) {
   const r = ctx.rnd, stage = Math.min(4, Math.floor(ctx.dread * 5)), phase = dayPhase(ctx.hour);
+  if (ctx.custom === 'silent') {   // nobody here speaks; it is not unfriendly
+    const who = Object.keys(SPEAKERS).filter((id) => SPEAKERS[id].when.includes(phase));
+    return { speaker: who[Math.floor(r() * who.length)], text: SILENT[Math.floor(r() * SILENT.length)], dark: stage >= 3 };
+  }
   // as the sea goes wrong, sometimes nobody says anything at all
   if (stage >= 2 && r() < 0.18 + 0.12 * (stage - 2)) return { speaker: 'someone', text: '...', slow: true, dark: true };
   const who = Object.keys(SPEAKERS).filter((id) => SPEAKERS[id].when.includes(phase)), speaker = who[Math.floor(r() * who.length)];
@@ -164,6 +176,7 @@ export function pickGreeting(ctx) {
   for (const l of BY_WEATHER[ctx.weather] || []) pool.push([l, 4]);
   for (const l of BY_CUSTOM[ctx.custom] || []) pool.push([l, stage <= 2 ? 4 : 1]);
   for (const l of BY_EVENT[ctx.event] || []) pool.push([l, 6]);
+  for (const l of BY_BOAT[ctx.boat] || []) pool.push([l, 9]);
   for (let s = 1; s <= stage; s++) for (const l of BY_DREAD[s]) pool.push([l, s === stage ? 5 : 1]);
   let total = pool.reduce((a, [, w]) => a + w, 0), k = r() * total, text = pool[0][0];
   for (const [l, w] of pool) { k -= w; if (k <= 0) { text = l; break; } }

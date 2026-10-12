@@ -203,6 +203,29 @@ New voyage goes straight into the game (no title). A new voyage starts moored al
   cells goes on your map.
 - Screenshots: `docs/concept/village-*.png`.
 
+### World on a schedule, life at sea, false rumours (built)
+- **Tides:** two a day, a little later each day. Islands rise and sink about a third of a unit with the water, so the
+  beach widens at low tide and drowns at high tide. Low tide: wrecks pay 30% more, the shallows reach further (bigger
+  collision radius). The harbour banner shows the tide; Mara mentions the first low tide.
+- **Scheduled arrivals:** the floating market (Friday daytime, a hailable ship that buys your hold for a third more,
+  sells a hand-drawn chart and oddments), the regatta (Sunday 13-16h, five boats racing past; they wave but do not stop),
+  the whale migration (Thursday 7-18h, whales pass often and all head east).
+- **Storm front:** every sixth afternoon (after chapter III) a front builds from noon; the evening before, a red sky
+  warns of it (Mara says so once). Scaled by dread.
+- **Harbour fishing boats:** every harbour has one: out at dawn (6:30-8:00), at its spot all day, home 15:30-17:30. About
+  1 day in 11 it does not go out; in wrong water (dread 0.4+) about 1 in 11 it stays out all night and is back by
+  itself before dawn, nobody aboard. Villagers mention it.
+- **Regional wildlife and weather by faction sector:** flying fish are common in Reef and Free Cays waters and rare in
+  Crown; sea turtles drift by in Free Cays, Lantern and a few Crown waters by day; Reef waters have more squalls,
+  Lantern and Drowned waters more fog, Free Cays calmer.
+- **False rumours:** about one bought harbour rumour in three is false and looks the same. Most lead to nothing (four
+  lines); about a third of those lead somewhere stranger (a table laid for two with your ship's name on a cup; a bottle
+  with a drawing of the island and a cross where you stand; a cairn of shells with a thank-you note and a warm shell).
+- **More customs:** washing day every day (lines of cloth), carved figures along the pier that face the sea by day
+  and the village after dusk, and a silent village (nobody speaks; a nod, a shell). Each custom also writes a note in
+  the journal when you buy that village's chart (in its own voice).
+- Screenshots: `docs/concept/world-schedule.png`, `docs/concept/life-at-sea-customs.png`.
+
 ### Biomes and world variety (planned, not built yet)
 Concepts: `docs/concept/biome-*.png`, built in-engine with `__game.biome('coral' | 'rain' | 'sunken', x, z)` (dev only,
 `src/concepts.js`). Keep clear of Dredge: biomes change how the sea sails and who lives there, not "a zone with a monster".
@@ -216,17 +239,13 @@ Concepts: `docs/concept/biome-*.png`, built in-engine with `__game.biome('coral'
   distance, so each biome has a bright near version and a wrong far one.
 
 **World on a schedule**
-- Tides that rise and fall over the day; some passages and beaches only at low tide.
-- (Built: the week with market day, festivals and lantern night.)
-- Travelling things: a floating market ship, a regatta, a whale migration, a storm front you can see coming.
+- (Built: the week, tides, floating market, regatta, whale migration, storm fronts.) Later: low-tide-only passages.
 
 **Villages with character**
 - (Built: customs, growth with trade, local charts.) Later: more customs, charts drawn in each village's own style.
 
 **Life at sea**
-- NPC ships with routines (the same fishing boat leaves Tama at dawn every day; one day it does not).
-- Wildlife per region: flying fish in the shallows, turtles in the rain belt, pelicans on the salt pans.
-- Weather with regional character: squalls in the rain belt, mirage heat, still air in the doldrums.
+- (Built: harbour fishing boats with routines, regional flying fish and turtles, regional weather by sector.) Later: pelicans and more species per biome, ships with routines between harbours.
 
 **False rumours**
 - Not every bought rumour is true. Most lead to nothing ("only sand, and someone else's footprints"); a few lead somewhere

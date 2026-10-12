@@ -68,7 +68,7 @@ function harbourWins(cx, cz, seed) {
 }
 
 // village customs: things you can see, never explained (see docs/PROGRESS.md, Villages with character)
-export const CUSTOMS = ['whitewash', 'lanterns', 'nochildren', 'choir', 'nightboats', 'kites', 'bells'];
+export const CUSTOMS = ['whitewash', 'lanterns', 'nochildren', 'choir', 'nightboats', 'kites', 'bells', 'laundry', 'statues', 'silent'];
 export function describeCell(cx, cz, seed) {
   const key = `${cx},${cz}`;
   const rng = mulberry32(hash2(cx, cz, seed));
@@ -643,6 +643,19 @@ function weekAndCustoms(d, rng, cr, g) {
   if (d.custom === 'nightboats') for (let i = 0; i < 4; i++) { const th = dockTh + (i < 2 ? -1 : 1) * (0.95 + (i % 2) * 0.5), rho = shoreR(d, th) * 1.14 + (i % 2) * 5; boatAt(L('nightboats'), Math.cos(th) * rho, Math.sin(th) * rho, th, true); villager(L('nightboats'), Math.cos(th) * rho, 0.3, Math.sin(th) * rho, th, rng, 'fisher'); }
   if (d.custom === 'lanterns') { const k = 10, pts = []; for (let i = 0; i < k; i++) { const th = (i / k) * Math.PI * 2, rho = shoreR(d, th) * 0.5, x = Math.cos(th) * rho, z = Math.sin(th) * rho; L('lamps').box(x, yy, z, 0.16, 2.8, 0.16, '#3a3036', TILE.bark); L('lamps').box(x, yy + 2.8, z, 0.4, 0.44, 0.4, '#ffffff', TILE.glow); pts.push([x, yy + 2.6, z]); }
     for (let i = 0; i < k; i++) { const a = pts[i], c = pts[(i + 1) % k]; for (let j = 1; j < 4; j++) { const t = j / 4; L('lamps').box(a[0] + (c[0] - a[0]) * t, a[1] - Math.sin(t * Math.PI) * 0.6, a[2] + (c[2] - a[2]) * t, 0.26, 0.3, 0.26, '#ffffff', TILE.glow); } } }
+  if (d.custom === 'laundry') for (let i = 0; i < 4; i++) {   // washing day, every day: lines of cloth between two poles
+    const [x, z] = at(0.2, 0.62), a = rng() * 3.14, dx = Math.cos(a) * 2.4, dz = Math.sin(a) * 2.4, k = L('laundry');
+    for (const sg of [-1, 1]) k.box(x + dx * sg, yy, z + dz * sg, 0.14, 2.6, 0.14, '#6b4a2e', TILE.bark);
+    for (let j = 0; j < 5; j++) { const t = (j + 0.5) / 5, cx = x + dx * (t * 2 - 1), cz = z + dz * (t * 2 - 1); k.push(cx, yy + 1.2, cz, a); k.box(0, 0, 0, 0.62, 0.95 + (j % 2) * 0.3, 0.05, BUNT[(i + j) % BUNT.length], TILE.white); k.pop(); }
+  }
+  if (d.custom === 'statues') {   // small carved figures along the pier: by day they face the sea, after dusk they face the village
+    for (let i = 0; i < 6; i++) {
+      const side = i % 2 ? 1 : -1, [x, z] = dockAt(R * 0.3 + Math.floor(i / 2) * 3.4 + 2, side * 2.6);
+      for (const [key, ang] of [['statuesDay', -dockTh], ['statuesNight', -dockTh + Math.PI]]) {
+        const k = L(key); k.push(x, yy, z, ang); k.box(0, 0, 0, 0.55, 1.3, 0.4, '#8a7a62', TILE.bark); k.blob(0, 1.5, 0, 0.3, 0.32, 0.3, '#9a8a70', TILE.bark, 0.1, i); k.pop();
+      }
+    }
+  }
   // growth: the harbour does better the more you trade here
   { const b = L('grow1'); b.push(0, 0, 0, ry); boatAt(b, -3.8, z1 - 9, 0.15, false); boatAt(b, 3.9, z1 - 15, -0.1, false); b.pop(); }
   { const b = L('grow2'); for (let i = 0; i < 4; i++) { const [x, z] = dockAt(R * 0.62 + i * 1.6, 3 + (i % 2)); barrel(b, x, yy, z, 0.9); crateBox(b, x + 1, yy, z + 0.6, rng() * 3); }
@@ -918,6 +931,9 @@ const LAYER_RULES = {
   kites: (i, ph) => ph === 'day' || ph === 'siesta',
   nightboats: (i, ph) => ph === 'night',
   lamps: (i, ph) => ph === 'evening' || ph === 'night',
+  laundry: (i, ph) => ph === 'day' || ph === 'siesta' || ph === 'dawn',
+  statuesDay: (i, ph) => ph === 'dawn' || ph === 'day' || ph === 'siesta',
+  statuesNight: (i, ph) => ph === 'evening' || ph === 'night',
   grow1: (i) => (i.growth || 0) >= 1, grow2: (i) => (i.growth || 0) >= 2, grow3: (i) => (i.growth || 0) >= 3,
 };
 export class Island {
@@ -1069,6 +1085,7 @@ export class World {
     this.islands = new Map();
     this.dark = false;
     this.lit = false;
+    this.tide = 0;   // -1 low .. +1 high, set by the game from the clock
     // the dark hut: one island, 4-6 cells out (well past the fog from where you start)
     let best = null, bh = Infinity;
     for (let cz = -6; cz <= 6; cz++) for (let cx = -6; cx <= 6; cx++) {
@@ -1119,7 +1136,7 @@ export class World {
       } else if (isl.mood !== dark) { isl.mood = dark; isl.setMood(dark); }
     }
   }
-  tick(t, tod) { for (const isl of this.islands.values()) { isl.tod = tod; isl.stare = this.stare; isl.week = this.week; isl.growth = this.growthOf ? this.growthOf(isl.desc.id) : 0; for (const f of isl.anim) f(t, isl); } }
+  tick(t, tod) { for (const isl of this.islands.values()) { isl.tod = tod; isl.stare = this.stare; isl.week = this.week; isl.growth = this.growthOf ? this.growthOf(isl.desc.id) : 0; isl.group.position.y = -this.tide * 0.32; for (const f of isl.anim) f(t, isl); } }   // the sea rises over the beach and falls back
 
   collide(pos, radius) {
     let hit = false;
@@ -1127,7 +1144,7 @@ export class World {
       const d = isl.desc;
       const dx = pos.x - d.x, dz = pos.z - d.z, dist = Math.hypot(dx, dz);
       if (dist > d.r * 1.8 + radius) continue;
-      const lim = shoreR(d, Math.atan2(dz, dx)) * 1.03 + radius;
+      const lim = shoreR(d, Math.atan2(dz, dx)) * 1.03 + radius + (this.tide < -0.45 ? 1.8 : 0);   // at low tide the shallows reach further
       if (dist < lim) {
         const k = lim / Math.max(dist, 0.001);
         pos.x = d.x + dx * k; pos.z = d.z + dz * k;

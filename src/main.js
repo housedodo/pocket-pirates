@@ -24,7 +24,7 @@ import { Logbook } from './logbook.js';
 import { Hut } from './hut.js';
 import { makePassenger, passengerTalk } from './passengers.js';
 import { sectorAt, sectorInfo, sectorCoord, FACTIONS } from './sectors.js';
-import { KINDS } from './traffic.js';
+import { KINDS, boatStatus } from './traffic.js';
 import { Fishing, fishById } from './fishing.js';
 import { Combat } from './combat.js';
 import { Objectives, MUSINGS, MAIN_GOALS, CHAPTERS, unlocked, gateRadius, chapterOf, goalText } from './objectives.js';
@@ -130,7 +130,15 @@ const traffic = new Traffic(scene, world, state.seed);
 const sea = new SeaFeatures(scene, world, state.seed, state.collected);
 const combat = new Combat(scene, fauna);
 sea.syncQuests(state.quests.filter((q) => q.id === state.tracked));
-fauna.onSpot = (what) => { state.stats[what]++; toast(what === 'dolphins' ? 'Dolphins!' : 'A whale surfaces in the distance!', false, 2500); };
+traffic.onEvent = (what) => {
+  if (what === 'market') toast('A floating market, with bunting on every line. (Friday)', false, 5000);
+  if (what === 'regatta') { toast('A regatta! Five boats, racing.', false, 4500); if (!state.hints.regattaSeen) { state.hints.regattaSeen = true; setTimeout(() => objectives.mate.say('A regatta! Look at them go. I wonder who they are racing, and who is giving the prize.'), 2500); } }
+};
+fauna.onSpot = (what) => {
+  const k = what === 'migration' ? 'whales' : what; state.stats[k] = (state.stats[k] || 0) + 1;
+  toast(what === 'dolphins' ? 'Dolphins!' : what === 'migration' ? 'Another whale, heading east.' : what === 'turtles' ? 'A sea turtle, drifting by.' : 'A whale surfaces in the distance!', false, 2500);
+  if (what === 'migration' && !state.hints.migrationSeen) { state.hints.migrationSeen = true; setTimeout(() => objectives.mate.say('They are all going the same way, Captain. East. Every one of them. As if they were called.'), 2500); }
+};
 audio.musicOn = !settings.musicOff;
 
 // a new voyage begins moored alongside Tama's pier with the sails furled, as if you had just come aboard
@@ -246,7 +254,10 @@ const hut = new Hut({ state,
 const WEEK = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 const weekday = () => state.dayN % 7, isMarketDay = () => weekday() === 2, isLanternNight = () => weekday() === 5;
 const isFestival = (d) => d && d.festival === weekday();
-function dayLine(d) { const ev = isFestival(d) ? 'festival day' : isMarketDay() ? 'market day' : isLanternNight() ? 'lantern night' : ''; return WEEK[weekday()] + (ev ? ` · ${ev}` : ''); }
+// two tides a day, drifting a little later each day; low tide (below -0.45) uncovers more at wrecks and widens the shallows
+const tideAt = (time = state.time, day = state.dayN) => Math.sin(Math.PI * 2 * (time * 2 + day * 0.07));
+const tideWord = () => { const a = tideAt(), b = tideAt(state.time + 0.02); return a < -0.45 ? 'low tide' : a > 0.45 ? 'high tide' : b > a ? 'tide coming in' : 'tide going out'; };
+function dayLine(d) { const ev = isFestival(d) ? 'festival day' : isMarketDay() ? 'market day' : isLanternNight() ? 'lantern night' : ''; return WEEK[weekday()] + (ev ? ` · ${ev}` : '') + ` · ${tideWord()}`; }
 // a harbour grows with your trade there: more boats, then a busier quay, then flags over the pier
 function noonBells() {   // villages that keep the bells ring them at noon; you hear them if you are near
   for (const isl of world.islands.values()) { const d = isl.desc; if (d.custom !== 'bells') continue; const dist = Math.hypot(d.x - ship.pos.x, d.z - ship.pos.z); if (dist < 260) audio.play('bell', { vol: clamp(1 - dist / 280, 0.15, 0.8) }); }
@@ -663,8 +674,8 @@ function renderHarbour() {
     pane.innerHTML = html;
     const bc = $('buyChart'); if (bc) bc.addEventListener('click', () => {
       if (state.gold < chartCost) return; state.gold -= chartCost; state.charts[d.id] = true;
-      const cx = Math.round(d.x / 110), cz = Math.round(d.z / 110); let k = 0;
-      for (let dz = -3; dz <= 3; dz++) for (let dx = -3; dx <= 3; dx++) { const o = world.desc(cx + dx, cz + dz); if (o && !o.hut && !state.discovered[o.id]) { state.discovered[o.id] = 1; k++; } }
+      const k = revealAround(d.x, d.z);
+      const note = CHART_NOTES[d.custom]; if (note) state.notes.push({ text: `${d.name}'s chart: ${note}`, dark: ['nochildren', 'statues', 'bells'].includes(d.custom) });
       toast(k ? `A hand-drawn chart of ${d.name}'s waters. ${k} island${k > 1 ? 's' : ''} added to your map.` : `A hand-drawn chart of ${d.name}'s waters. You know them all already. It is a lovely drawing.`, false, 6000);
       audio.play('buy'); renderHarbour(); });
     const ja = $('jobAccept');
@@ -682,8 +693,10 @@ function renderHarbour() {
     if (rb) rb.addEventListener('click', () => {
       if (state.gold < RUMOUR_COST) return;
       state.gold -= RUMOUR_COST;
-      state.rumoured[r.d.id] = { name: r.d.name, x: Math.round(r.d.x), z: Math.round(r.d.z), source: `a drunk in ${d.name}`, found: false };
-      toast(`Rumour: ${r.d.name}, ${bearingName(r.d.x - d.x, r.d.z - d.z)} of here, ~${Math.round(r.dist)} fathoms. Marked on your map.`, dread > 0.5, 7000);
+      const f = falseRumour(d), t = f || r.d, dist = f ? f.dist : r.dist;   // not everything a sailor says is true; nothing tells you which
+      state.rumoured[t.id] = { name: t.name, x: Math.round(t.x), z: Math.round(t.z), source: `a drunk in ${d.name}`, found: false };
+      if (f) state.rumoured[t.id].fake = f.variant;
+      toast(`Rumour: ${t.name}, ${bearingName(t.x - d.x, t.z - d.z)} of here, ~${Math.round(dist)} fathoms. Marked on your map.`, dread > 0.5, 7000);
       audio.play('buy'); renderHarbour();
     });
   } else if (hbTab === 'market') {
@@ -944,7 +957,7 @@ function tryInteract() {
       state.story.rollSeen = h.rolls.length;
       if (told === 0 || Math.random() < 0.5) say = rollGreeting(h.rolls[h.rolls.length - 1].n, state.time * 24, Math.random);
     }
-    if (!say && free && (g.day[d.id] == null || Math.random() < 0.3)) say = pickGreeting({ hour: state.time * 24, weather: weather.label, dread, rnd: Math.random, custom: d.custom, event: isFestival(d) ? 'festival' : isMarketDay() ? 'market' : isLanternNight() ? 'lantern' : null });
+    if (!say && free && (g.day[d.id] == null || Math.random() < 0.3)) say = pickGreeting({ hour: state.time * 24, weather: weather.label, dread, rnd: Math.random, custom: d.custom, event: isFestival(d) ? 'festival' : isMarketDay() ? 'market' : isLanternNight() ? 'lantern' : null, boat: (() => { const b = boatStatus(d, state.dayN, dread, state.seed); return b.today === 'stayed' ? 'stayed' : b.yesterday === 'lost' ? 'lost' : null; })() });
     harbourIsl = tg.isl; hbTab = 'board'; frameVillage(d);
     for (const c of state.crew) if (c.wish && !c.wish.done && c.wish.kind === 'harbour' && c.wish.id === tg.isl.desc.id) wishDone(c);
     harbourEl.classList.toggle('dark', idx >= 3);
@@ -992,7 +1005,7 @@ function tryInteract() {
     const o = tg.o;
     dig = { key: tg.key, t: 0, label: 'Salvaging the wreck...', need: 3.4 * ship.mods.digTime * (state.buffs.dig > 0 ? 0.7 : 1), done: () => {
       const loot = abyss.wrongLoot(lootFor(mulberry32(o.rngSeed), o.dread), state);
-      loot.value = Math.round(loot.value * 1.3 * ship.mods.lootMul);
+      loot.value = Math.round(loot.value * 1.3 * ship.mods.lootMul * (tideAt() < -0.45 ? 1.3 : 1));   // the tide has uncovered more
       loot.name = `From the wreck: ${loot.name}`;
       o.salvaged = true; state.collected.add(o.id); state.stats.wrecks++;
       state.gold += loot.value; state.loot.push(loot);
@@ -1020,6 +1033,8 @@ function hailShip(sh) {
   const rng = mulberry32(sh.seed);
   state.stats.hails++;
   if (sh.hostile && sh.hp > 0) { sh.state = 'open'; tradeShip = sh; openModal('ship'); return; }
+  if (sh.special === 'regatta') { sh.state = 'done'; toast('They wave without slowing down. It is a race, and they are winning.', false, 5000); return; }
+  if (sh.special === 'market') { sh.state = 'open'; tradeShip = sh; openModal('ship'); return; }
   if (sh.mode === 'derelict') {
     sh.state = 'done';
     const loot = abyss.wrongLoot(lootFor(rng, dread), state); loot.value = Math.round(loot.value * 0.6);
@@ -1051,6 +1066,11 @@ function shipOffers(sh) {
     { id: 'bluff', label: 'Bluff', cost: 0, desc: 'they may believe you have a fleet behind you (45%)... or open fire', used: false },
     { id: 'defy', label: 'Defy them', cost: 0, desc: 'press Space to fire once they are in range', used: false },
   ]);
+  if (sh.special === 'market') return (sh.offers = [
+    { id: 'sellall', label: 'Sell your catch aboard', cost: 0, desc: 'fish and fruit fetch a third more than ashore', used: false },
+    { id: 'mchart', label: 'A hand-drawn chart', cost: 25, desc: 'the islands round here, as the traders know them', used: false },
+    { id: 'oddment', label: 'An oddment from the back', cost: 12, desc: 'nobody remembers where it came from', used: false },
+  ]);
   const rng = mulberry32(sh.seed + 11), pool = [];
   if (findRumour(world, { x: sh.x, z: sh.z }, state)) pool.push({ id: 'chart', label: 'Sea-chart scrap', cost: 35, desc: 'marks a treasure isle on your map' });
   pool.push({ id: 'supplies', label: 'Fresh supplies', cost: 25, desc: '+15% speed for 3 minutes' });
@@ -1065,7 +1085,7 @@ function shipOffers(sh) {
 function renderShipTrade() {
   const sh = tradeShip;
   $('shName').textContent = sh.name;
-  $('shLine').textContent = sh.hostile ? 'The raider captain grins: "Nice ship. Shame if something happened to it. A little tribute, perhaps?"' : (FACTION_GREET[sh.faction.id] || 'Ahoy!');
+  $('shLine').textContent = sh.special === 'market' ? 'A trader leans on the rail among the lanterns: "Everything must go. Everything always goes. Come aboard, captain."' : sh.hostile ? 'The raider captain grins: "Nice ship. Shame if something happened to it. A little tribute, perhaps?"' : (FACTION_GREET[sh.faction.id] || 'Ahoy!');
   $('shGold').textContent = state.gold;
   $('shList').innerHTML = shipOffers(sh).map((o, i) => `<div class="up"><div><span class="nm">${i + 1}. ${o.label}</span></div>
     <button data-i="${i}" ${o.used || state.gold < o.cost ? 'disabled' : ''}>${o.used ? 'Done' : o.cost ? `${o.cost}g` : 'Free'}</button><div class="ds">${o.desc}</div></div>`).join('');
@@ -1076,7 +1096,16 @@ function doOffer(i) {
   if (!o || o.used || state.gold < o.cost) return;
   const rng = mulberry32(sh.seed + 77 + i);
   const idx = Math.min(4, Math.floor(dread * 5));
-  if (o.id === 'tribute') { sh.hostile = false; sh.engaged = false; toast('The raiders take your coin, grinning, and sail on.'); }
+  if (o.id === 'sellall') {
+    const fish = state.catch.reduce((a, f) => a + f.value, 0) * 0.7, fruit = Object.entries(state.fruit).reduce((a, [f, n]) => a + FRUITS[f].price * n, 0) * 0.7, v = Math.round((fish + fruit) * 1.33);
+    if (!v) { toast('Nothing in the hold to sell. They are very polite about it.'); return; }
+    state.gold += v; state.catch = []; state.fruit = {}; toast(`Sold your hold aboard the market for ${v} gold.`); audio.play('buy');
+  } else if (o.id === 'mchart') {
+    const k = revealAround(sh.x, sh.z); toast(k ? `A hand-drawn chart: ${k} island${k > 1 ? 's' : ''} added to your map.` : 'You know these waters already. It is a lovely drawing.', false, 6000);
+  } else if (o.id === 'oddment') {
+    const odd = ['a brass button that is always cold', 'a spoon with a second, smaller bowl', 'a map of a room you have not been in', 'a bell the size of a thumb. It rings when nobody touches it'];
+    const it = odd[Math.floor(rng() * odd.length)]; state.loot.push({ name: `From the floating market: ${it}`, value: 0, dark: false }); toast(`An oddment: ${it}.`, false, 6000);
+  } else if (o.id === 'tribute') { sh.hostile = false; sh.engaged = false; toast('The raiders take your coin, grinning, and sail on.'); }
   else if (o.id === 'bluff') {
     if (Math.random() < 0.45) { sh.hostile = false; sh.engaged = false; toast('The raiders squint at the horizon, then think better of it.'); }
     else { sh.fireCd = 0.3; toast('They laugh, and open fire!'); }
@@ -1108,13 +1137,57 @@ function doOffer(i) {
   renderShipTrade();
 }
 
+// each village draws its chart in its own voice (a note goes into the journal)
+const CHART_NOTES = {
+  whitewash: 'in the margin, in white paint: "Mind the reef. It is not painted."', lanterns: 'pencilled by lamplight: "Every island has a light somewhere. Find it before dark."',
+  nochildren: 'in a very tidy hand: "There is an island near here we do not visit. We are quite sure of that."', choir: 'a few bars of music in the margin. You hum them. They stay.',
+  nightboats: 'a greasy thumbprint on the best fishing water: "Go at night. They come up for the lamps."', kites: 'small drawn kites mark the windy side of every island.',
+  bells: 'twelve little bells drawn along the coast, one for each island the bell can be heard from. There are thirteen.', laundry: 'a blue stain in one corner. Somebody washed this chart.',
+  statues: 'a small carved face drawn over one island. Underneath: "Do not look back."', silent: 'no words at all. Only careful arrows, and one island circled twice.',
+};
+function revealAround(x, z) {   // a hand-drawn chart: every island within three cells goes on the map
+  const cx = Math.round(x / 110), cz = Math.round(z / 110); let k = 0;
+  for (let dz = -3; dz <= 3; dz++) for (let dx = -3; dx <= 3; dx++) { const o = world.desc(cx + dx, cz + dz); if (o && !o.hut && !state.discovered[o.id]) { state.discovered[o.id] = { name: o.name, type: o.type, x: Math.round(o.x), z: Math.round(o.z) }; k++; } }
+  return k;
+}
+// ---- false rumours: about one in three is wrong. Most lead to nothing at all; a few lead somewhere stranger.
+const FALSE_NOTHING = [
+  'Only sand, and someone else\'s footprints. They go down to the water and do not come back up.',
+  'A flat rock, a dead crab and a lot of sky. Somebody was disappointed here before you.',
+  'Gulls. Nothing but gulls. One of them looks as if it has heard this rumour before.',
+  'There is no treasure. There is a very nice view, if that helps.',
+];
+const FALSE_STRANGE = [
+  { text: 'A table laid for two on the sand. The tea is still warm. One cup has your ship\'s name scratched into it.', note: 'A table for two on a bare island, tea still warm. One cup said Merry Gull.' },
+  { text: 'A bottle stands upright in the sand. Inside: a drawing of this island from above, and a small cross where you are standing.', note: 'A bottle with a drawing of the island I was standing on. A cross, where my feet were.' },
+  { text: 'A cairn of white shells, freshly built. On the top a note: "Thank you for coming. We were not sure you would."', note: 'A cairn of white shells. "Thank you for coming. We were not sure you would."', loot: 'a white shell, still warm' },
+];
+function falseRumour(from) {
+  const rng = mulberry32(hash2(state.seed, Object.keys(state.rumoured).length, 31 + state.dayN));
+  if (rng() > 0.32) return null;
+  const list = [];
+  for (const ty of ['sandbar', 'jungle', 'rocky', 'atoll', 'mangrove']) for (const o of nearby(world, from.x, from.z, 60, 520, ty)) if (!state.discovered[o.d.id] && !state.rumoured[o.d.id] && !o.d.hut) list.push(o);
+  if (!list.length) return null;
+  const o = list[Math.floor(rng() * list.length)];
+  return { id: o.d.id, name: o.d.name, x: o.d.x, z: o.d.z, dist: o.dist, variant: rng() < 0.35 ? 1 + Math.floor(rng() * FALSE_STRANGE.length) : 0, pick: Math.floor(rng() * 4) };
+}
+function resolveFalseRumour(d, r) {
+  const v = r.fake, n = (hash2(Math.round(d.x), Math.round(d.z), state.seed) >>> 0);
+  if (!v) { toast(FALSE_NOTHING[n % FALSE_NOTHING.length], dread > 0.4, 7000); return; }
+  const st = FALSE_STRANGE[v - 1];
+  toast(st.text, true, 9000); state.notes.push({ text: st.note, dark: true });
+  if (st.loot) state.loot.push({ name: `From ${d.name}: ${st.loot}`, value: 0, dark: true });
+  if (!state.story.strangeRumour) { state.story.strangeRumour = true; setTimeout(() => objectives.mate.say('Captain... that was no treasure. Who goes to this much trouble to make a rumour come true?', true), 2500); }
+}
+
 function discover(isl) {
   const d = isl.desc;
   if (state.discovered[d.id]) return;
   state.discovered[d.id] = { name: d.name, type: d.type, x: Math.round(d.x), z: Math.round(d.z) };
   state.gold += 5;
-  if (state.rumoured[d.id]) state.rumoured[d.id].found = true;
+  const rum = state.rumoured[d.id]; if (rum) rum.found = true;
   toast(`Charted: ${d.name} (+5 gold)`, dread > 0.5);
+  if (rum && rum.fake !== undefined) setTimeout(() => resolveFalseRumour(d, rum), 1800);
   audio.play('discover');
 }
 
@@ -1339,6 +1412,7 @@ function frame() {
   // ---- time of day & wind
   if (live) { const pt = state.time; state.time = advanceTime(state.time, dt); if (state.time < pt) { noteSkip(); state.dayN++; }
     if (pt < 0.5 && state.time >= 0.5) noonBells();
+    if (tideAt() < -0.45 && !state.hints['tide:low']) { state.hints['tide:low'] = true; objectives.mate.say('The tide is out, Captain. Keep off the shallows, and the wrecks give up more at low water.'); }
     if (pt < 0.27 && state.time >= 0.27) weekMorning(); }
   wind.update(dt);
   if (dt > 0) { state.buffs.speed = Math.max(0, state.buffs.speed - dt); state.buffs.dig = Math.max(0, state.buffs.dig - dt); }
@@ -1403,11 +1477,20 @@ function frame() {
   const lp = abyss.lightPhase;
   world.setLit(lp === 'stare' ? true : lp === 'dead' ? false : tod.sunHeight < 0.12 || weather.darkness > 0.6);
   world.stare = lp === 'stare' ? ship.pos : null;
-  world.week = { wd: weekday(), market: isMarketDay(), lantern: isLanternNight() }; world.growthOf = growthOf;
+  world.week = { wd: weekday(), market: isMarketDay(), lantern: isLanternNight() }; world.growthOf = growthOf; world.tide = tideAt();
+  { // a storm front every sixth afternoon (after chapter III), warned by a red sky the evening before; and the sector's own weather
+    const h = state.time * 24, fd = state.dayN % 6 === 5 && unlocked(state, 'passengers'), fa = state.dayN % 6 === 4 && unlocked(state, 'passengers');
+    weather.front = fd ? smoothstep(12, 16, h) * (1 - smoothstep(19, 22, h)) * (0.55 + 0.45 * dread) : 0;
+    weather.frontAhead = fa && h >= 15 ? 1 : 0;
+    const fac = sectorAt(ship.pos.x, ship.pos.z, state.seed).faction.id;
+    const R = { reef: [1.3, 1.5, 0.9], lantern: [0.9, 0.8, 1.5], drowned: [1, 1.1, 1.4], free: [1.1, 0.8, 0.8] }[fac] || [1, 1, 1];
+    weather.region.rain = R[0]; weather.region.storm = R[1]; weather.region.fog = R[2];
+    if (fa && h >= 17 && !state.hints['front:' + state.dayN]) { state.hints['front:' + state.dayN] = true; if (!state.hints.frontSeen) { state.hints.frontSeen = true; objectives.mate.say('That red in the west... a front is coming in tomorrow afternoon, Captain. I would be in a harbour by then.'); } }
+  }
   world.tick(animT, tod);
   horror.update(tNow, dread, ship.pos.x, ship.pos.z);
   ship.place(vdt, waveT, stage.wave, dark, tod.night);
-  const lifeCtx = { ship, dread, wave: stage.wave, audio, wind: windNow, stage, tod };
+  const lifeCtx = { ship, dread, wave: stage.wave, audio, wind: windNow, stage, tod, faction: sec.faction.id, sched: { wd: weekday(), hour: state.time * 24, dayN: state.dayN, dread } };
   if (live) state.stats.dist += ship.speed * dt;
   windfx.update(vdt, animT, windNow.dir, windNow.strength, ship.pos, tod.night, Math.min(1, weather.rain * 1.5));
   fishing.update(dt, waveT, { wave: stage.wave, dread, night: tod.night });
@@ -1595,7 +1678,7 @@ window.__game = {
     this._show = new THREE.Mesh(b.geometry(), mats.props); this._show.position.set(x, 0.4, z); scene.add(this._show);
     ship.pos.set(x + 15, 0, z + 2.5); ship.heading = Math.PI / 2; ship.speed = 0; ship.trim = 1;
   },
-  abyss, hut, ship, world, state, begin, scene, camera, horror, renderer, wind, weather, fauna, traffic, sea, audio, fishing, combat, objectives, hurtPlayer, openModal, closeModal, buyUpgrade, refreshMods,
+  sectorAt: (x, z) => sectorAt(x, z, state.seed), traffic, abyss, hut, ship, world, state, begin, scene, camera, horror, renderer, wind, weather, fauna, traffic, sea, audio, fishing, combat, objectives, hurtPlayer, openModal, closeModal, buyUpgrade, refreshMods,
 };
 let newVoyage = false;   // New voyage reloads straight into the game, no title in between
 try { newVoyage = sessionStorage.getItem('hoist-new') === '1'; sessionStorage.removeItem('hoist-new'); } catch (e) { /* storage blocked */ }

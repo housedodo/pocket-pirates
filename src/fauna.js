@@ -73,6 +73,15 @@ export class Fauna {
     });
     this.fishTimer = 25;
 
+    // ---- sea turtles (Free Cays and Lantern Guild waters by day): a shell, a small head, slow flippers
+    const tb = new Builder(); tb.doubleSided = true;
+    tb.blob(0, 0, 0, 0.62, 0.22, 0.8, '#5a7a3a', TILE.white, 0.12, 3); tb.blob(0, 0.12, 0.05, 0.4, 0.14, 0.5, '#7a9a4a', TILE.white, 0.12, 5);
+    tb.blob(0, 0.14, -0.95, 0.17, 0.14, 0.2, '#9aa86a', TILE.white, 0.1, 7);
+    for (const sx of [-1, 1]) for (const zz of [-0.4, 0.45]) tb.box(sx * 0.78, -0.02, zz, 0.55, 0.07, 0.26, '#6a8a42', TILE.white);
+    const tgeo = tb.geometry();
+    this.turtles = Array.from({ length: 3 }, () => { const m = new THREE.Mesh(tgeo, mats.props); m.visible = false; m.scale.setScalar(1.5); scene.add(m); return { m, life: 0, x: 0, z: 0, h: 0, dive: 0 }; });
+    this.turtleTimer = 20;
+
     // ---- whale + shadow
     this.whaleMat = psxMaterial({ vertexColors: true, key: 'Wh' });
     this.whale = new THREE.Mesh(whaleGeo(), this.whaleMat);
@@ -239,11 +248,11 @@ export class Fauna {
     }
     if (dolMood !== 'circle') this.circle = null;
 
-    // ================= flying fish =================
+    // ================= flying fish (more in the Reef and Free Cays waters) =================
     if (dread < 0.45) {
       this.fishTimer -= dt;
       if (this.fishTimer <= 0 && this.fish.every((f) => f.u >= 1)) {
-        this.fishTimer = rnd(40, 90);
+        this.fishTimer = rnd(40, 90) * ({ crown: 1.6, free: 0.5, reef: 0.4, lantern: 1.1, drowned: 2 }[ctx.faction] || 1);
         const side = Math.random() < 0.5 ? -1 : 1, off = rnd(6, 14), ahead = rnd(4, 16);
         const ang = ship.heading + side * rnd(0.3, 0.9);
         this.fish.forEach((f, i) => {
@@ -261,6 +270,29 @@ export class Fauna {
       f.m.position.set(x, waveHeight(x, z, t, wave) + 0.5 + Math.sin(f.u * Math.PI) * 0.9, z);
       f.m.rotation.set(0, Math.atan2(f.vx, f.vz), 0);
       f.m.scale.set(1, 1 + Math.sin(t * 40) * 0.5, 1);
+    }
+
+    // ================= sea turtles =================
+    const turtleRate = { free: 1, lantern: 0.6, crown: 0.25 }[ctx.faction] || 0, hr = ctx.sched ? ctx.sched.hour : 12;
+    if (turtleRate && dread < 0.4 && hr > 7 && hr < 18) {
+      this.turtleTimer -= dt * turtleRate;
+      const slot = this.turtles.find((q) => q.life <= 0);
+      if (this.turtleTimer <= 0 && slot) {
+        this.turtleTimer = rnd(40, 90);
+        const side = Math.random() < 0.5 ? -1 : 1, off = rnd(14, 30), ahead = rnd(-5, 30), x = sx + rx * side * off + fwdx * ahead, z = sz + rz * side * off + fwdz * ahead;
+        if (!this.world.nearest(x, z, 8)) { slot.life = rnd(22, 40); slot.x = x; slot.z = z; slot.h = rnd(0, 6.28); slot.dive = 0; slot.seen = false; }
+      }
+    }
+    for (const q of this.turtles) {
+      if (q.life <= 0) { q.m.visible = false; continue; }
+      q.life -= dt; q.h += Math.sin(t * 0.3 + q.x) * 0.06 * dt;
+      q.x += Math.sin(q.h) * 0.55 * dt; q.z -= Math.cos(q.h) * 0.55 * dt;
+      const near = Math.hypot(q.x - sx, q.z - sz) < 9;
+      q.dive = Math.min(1, Math.max(0, q.dive + (near || q.life < 3 ? dt * 0.8 : -dt * 0.8)));
+      q.m.visible = q.dive < 0.95;
+      q.m.position.set(q.x, waveHeight(q.x, q.z, t, wave) - 0.05 - q.dive * 1.1 + Math.sin(t * 1.4 + q.x) * 0.04, q.z);
+      q.m.rotation.set(0, q.h + Math.PI, Math.sin(t * 0.8 + q.z) * 0.06);
+      if (!q.seen && Math.hypot(q.x - sx, q.z - sz) < 40) { q.seen = true; if (this.onSpot) this.onSpot('turtles'); }
     }
 
     // ================= whale / shadow =================
@@ -281,11 +313,14 @@ export class Fauna {
     const sx = ship.pos.x, sz = ship.pos.z;
     const showWhale = dread < 0.7, showShadow = dread >= 0.7;
 
+    // the whale migration: on Thursdays the whales pass often, every one of them heading east
+    const mig = !!(ctx.sched && ctx.sched.wd === 3 && ctx.sched.hour >= 7 && ctx.sched.hour < 18);
     this.whaleTimer -= dt;
+    if (mig && this.whaleTimer > 70 && this.whaleT < 0) this.whaleTimer = rnd(8, 40);
     if (showWhale && this.whaleT < 0 && this.whaleTimer <= 0) {
-      this.whaleTimer = rnd(120, 230);
-      const a = ship.heading + rnd(-1.2, 1.2), dist = rnd(70, 120);
-      this.whaleData = { x: sx + Math.sin(a) * dist, z: sz - Math.cos(a) * dist, h: a + rnd(1, 2) * (Math.random() < 0.5 ? 1 : -1) };
+      this.whaleTimer = mig ? rnd(35, 70) : rnd(120, 230);
+      const a = mig ? Math.PI / 2 + rnd(-0.5, 0.5) + (Math.random() < 0.5 ? Math.PI * 0.5 : -Math.PI * 0.5) : ship.heading + rnd(-1.2, 1.2), dist = rnd(70, 120);
+      this.whaleData = { x: sx + Math.sin(a) * dist, z: sz - Math.cos(a) * dist, h: mig ? Math.PI / 2 + rnd(-0.12, 0.12) : a + rnd(1, 2) * (Math.random() < 0.5 ? 1 : -1), mig };
       this.whaleT = 0; this.spoutT = 2; this.whaleData.spotted = false;
       audio.play('whale', { vol: 0.6 });
     }
@@ -293,7 +328,7 @@ export class Fauna {
       const w = this.whaleData; this.whaleT += dt;
       const T = this.whaleT, DUR = 26;
       w.x += Math.sin(w.h) * 2.2 * dt; w.z -= Math.cos(w.h) * 2.2 * dt;
-      if (!w.spotted && T > 3 && Math.hypot(w.x - sx, w.z - sz) < 110) { w.spotted = true; if (this.onSpot) this.onSpot('whales'); }
+      if (!w.spotted && T > 3 && Math.hypot(w.x - sx, w.z - sz) < 110) { w.spotted = true; if (this.onSpot) this.onSpot(w.mig ? 'migration' : 'whales'); }
       const rise = smoothstep(0, 3, T), dive = smoothstep(DUR - 5, DUR, T);
       this.whale.visible = true;
       this.whale.position.set(w.x, waveHeight(w.x, w.z, t, wave) - 2.5 + rise * 2.1 - dive * 3.5, w.z);
