@@ -319,7 +319,7 @@ function noteSkip() { const h = state.hut; if (h && h.rolls.length && h.lastDay 
 function hutLeft() {
   const h = state.hut;
   if (!h) return;
-  if (h.rolls.length && !state.story.demoEnd) { state.story.demoEnd = true; setTimeout(showDemoEnd, 2500); }
+  if (h.rolls.length && !state.story.demoEnd) state.story.demoEnd = 'pending';   // the demo ends at the next harbour, when someone speaks of the throw
   if (h.visits === 1) objectives.mate.say('I did not like that, Captain. She never blinked. Not once.', true);
   const last = h.rolls[h.rolls.length - 1];
   if (last && h.rolls.length === 1 && !state.story.throwTold) {   // the first throw: Mara notices, and if a bottle called the number, she noticed that too
@@ -349,7 +349,7 @@ function openModal(name) {
   ({ pause: pauseEl, chart: chartEl, harbour: harbourEl, ship: shipEl, yard: yardEl, hut: hutEl, card: cardEl, pig: pigEl, greet: greetEl })[name].classList.add('open');
   if (name === 'pause') { showPauseMain(); }
   if (name === 'chart') { abyss.onMapOpen(ship); logbook.open(logTab);
-    if (state.story.hutNod === 'pending') { state.story.hutNod = 'done'; setTimeout(() => objectives.mate.say('Captain... was that hut always on our chart? I did not draw it. Did you draw it?', true), 1800); } }
+    hutNod(1800); }
   if (name === 'harbour') renderHarbour();
   document.body.classList.toggle('ashore', name === 'harbour' || name === 'greet');
   if (name === 'ship') renderShipTrade();
@@ -840,6 +840,9 @@ function greetAdvance() {
   if (!greetNow) return;
   if (greetNow.timer) { clearInterval(greetNow.timer); greetNow.timer = null; greetText(greetNow.say.text, greetNow.say.slow); $('grMore').classList.add('on'); return; }
   const said = greetNow.say; greetNow = null;
+  if (said.endsDemo && state.story.demoEnd === 'pending') {   // someone spoke of the throw: that is where the demo ends
+    state.story.demoEnd = 'done'; closeModal(); setTimeout(showDemoEnd, 1800); return;
+  }
   const isl = harbourIsl; closeModal(true); harbourIsl = isl;
   $('hbSaid').textContent = said.slow ? '' : `"${said.text}"`;   // the line stays under the name while you are ashore
   openModal('harbour');
@@ -1008,11 +1011,12 @@ function tryInteract() {
     { const cur = objectives.current;
       if (cur && cur.id === 'perrin' && d.id === '0,-1' && !state.story.perrinNote) perrinNote();
       if (cur && cur.id === 'gossip' && d.id !== '0,-1' && !state.story.hutKnown) { state.story.hutKnown = true; say = { speaker: 'fisher', text: `The black hut? Out past the ${bearingName(world.hutDesc.x - d.x, world.hutDesc.z - d.z)} water. Do not sit down. Whatever she offers, do not sit.`, dark: true }; } }
-    const g = state.greet, h = state.hut, told = state.story.rollSeen || 0, free = g.lastDay !== state.dayN;   // one voice a day, wherever you dock
+    const g = state.greet, h = state.hut, told = state.story.rollSeen || 0, ending = state.story.demoEnd === 'pending', free = g.lastDay !== state.dayN || ending;   // one voice a day, wherever you dock
     if (!say && free && h && h.rolls.length > told) {   // someone already knows the number: always after the first throw, then about half the time
       state.story.rollSeen = h.rolls.length;
-      if (told === 0 || Math.random() < 0.5) say = rollGreeting(h.rolls[h.rolls.length - 1].n, state.time * 24, Math.random);
+      if (told === 0 || ending || Math.random() < 0.5) { say = rollGreeting(h.rolls[h.rolls.length - 1].n, state.time * 24, Math.random); if (ending) say.endsDemo = true; }
     }
+    if (!say && ending && h && h.rolls.length) { say = rollGreeting(h.rolls[h.rolls.length - 1].n, state.time * 24, Math.random); say.endsDemo = true; state.story.rollSeen = h.rolls.length; }
     if (!say && free && (g.day[d.id] == null || Math.random() < 0.3)) say = pickGreeting({ hour: state.time * 24, weather: weather.label, dread, rnd: Math.random, custom: d.custom, event: isFestival(d) ? 'festival' : isMarketDay() ? 'market' : isLanternNight() ? 'lantern' : null, boat: (() => { const b = boatStatus(d, state.dayN, dread, state.seed); return b.today === 'stayed' ? 'stayed' : b.yesterday === 'lost' ? 'lost' : null; })() });
     harbourIsl = tg.isl; hbTab = 'board'; frameVillage(d); autosave();
     for (const c of state.crew) if (c.wish && !c.wish.done && c.wish.kind === 'harbour' && c.wish.id === tg.isl.desc.id) wishDone(c);
@@ -1428,10 +1432,18 @@ function perrinNote() {
   state.notes.push({ text: `Perrin: "Be a dear and check my chart. ${d.name}, ${state.story.check.dir} of Tama, should have ${detail}. Nobody has been there to tell me, so I need eyes. Bring back my compass if you find it. It's the one that's wrong."`, dark: false });
   toast('The harbourmaster hands you a folded note from Old Perrin. (Journal)', false, 6000);
 }
+// Mara notices the hut on the chart: when the chart is next opened, or within a minute of sailing, whichever comes first (and never after the first throw)
+function hutNod(delay) {
+  if (state.story.hutNod !== 'pending') return;
+  state.story.hutNod = 'done';
+  if (state.hut && state.hut.rolls.length) return;
+  setTimeout(() => objectives.mate.say('Captain... was that hut always on our chart? I did not draw it. Did you draw it?', true), delay);
+}
 function revealHut() {
   const h = world.hutDesc; if (!h) return;
   state.discovered[h.id] = state.discovered[h.id] || 1;
-  state.story.hutNod = 'pending';     // the nod comes the next time the chart is opened
+  state.story.hutNod = 'pending';
+  setTimeout(() => hutNod(0), 60000);
 }
 function showDemoEnd() { $('demoend').classList.add('show'); audio.play('ending'); }
 $('demoGo').addEventListener('click', () => {
