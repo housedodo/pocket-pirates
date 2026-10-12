@@ -3,7 +3,7 @@ import { SECTOR, sectorInfo, sectorCoord } from './sectors.js';
 import { UPGRADES, MAX_LEVEL } from './upgrades.js';
 import { friendLevel, bearingName, questProgress, questNeed, questTitle, questIcon, FRUITS, fruitName } from './jobs.js';
 import { mulberry32, hash2 } from './util.js';
-import { MAIN_GOALS, SIDE_GOALS, CHAPTERS, goalText } from './objectives.js';
+import { MAIN_GOALS, SIDE_GOALS, CHAPTERS, goalText, goalCount } from './objectives.js';
 import { FISH } from './fishing.js';
 import { GROUPS, byId } from './customize.js';
 import { TRAITS } from './tabletop.js';
@@ -208,7 +208,7 @@ export class Logbook {
         if (m.ch !== ci) return;
         const done = i < g.i, cur = i === g.i;
         if (!done && !cur) return;
-        html += ent(`${done ? pxi('check') : pxi('next')} ${m.title}`, cur ? goalText(m, { state, ship: this.d.ship }) : '', m.reward ? `${m.reward}g` : '', done ? 'done' : 'cur');
+        html += ent(`${done ? pxi('check') : pxi('next')} ${m.title}${cur ? goalCount(m, { state, ship: this.d.ship }) : ''}`, cur ? goalText(m, { state, ship: this.d.ship }) : '', m.reward ? `${m.reward}g` : '', done ? 'done' : 'cur');
       });
     });
     if (curCh < CHAPTERS.length) html += ent('...', 'The rest of the page is blank.', '', 'dim');

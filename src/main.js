@@ -26,7 +26,7 @@ import { sectorAt, sectorInfo, sectorCoord, FACTIONS } from './sectors.js';
 import { KINDS, boatStatus } from './traffic.js';
 import { Fishing, fishById } from './fishing.js';
 import { Combat } from './combat.js';
-import { Objectives, MUSINGS, MAIN_GOALS, CHAPTERS, unlocked, gateRadius, chapterOf, goalText } from './objectives.js';
+import { Objectives, MUSINGS, MAIN_GOALS, CHAPTERS, unlocked, gateRadius, chapterOf, goalText, goalCount } from './objectives.js';
 import { GROUPS, DEFAULT_CUSTOM, byId } from './customize.js';
 import { Wind } from './wind.js';
 import { WindFX } from './windfx.js';
@@ -700,7 +700,7 @@ function renderHarbour() {
       html += `<div class="qrow"><div><b>${questIcon(o)} ${questTitle(q, dread)}</b><br><small>${o.type === 'crates' ? `lost ${bearingName(o.center.x - d.x, o.center.z - d.z)} of here · ` : ''}${o.reward}g</small></div><button data-accept="${o.id}" ${state.quests.length >= 3 ? 'disabled' : ''}>Accept</button></div>`;
     }
     if (!mine.length && !offers.length) html += '<small>The board is empty. Come back after you have been out to sea.</small>';
-    const pass = !state.passenger && unlocked(state, 'passengers') && makePassenger(world, d, (state.serial[d.id + '#p'] || 0) + state.dayN * 7);
+    const pass = !state.passenger && unlocked(state, 'passengers') && makePassenger(world, d, (state.serial[d.id + '#p'] || 0) + state.dayN * 7, !!(objectives.current && objectives.current.id === 'passenger'));
     if (pass) html += `<div class="sec">PASSAGE</div><div class="qrow"><div><b>${pxi('talk')} ${pass.name}, ${pass.who}</b><br><small>wants passage to ${pass.toName} · pays ${pass.reward}g</small></div><button id="takePass">Take aboard</button></div>`;
     const r = findRumour(world, d, state);
     if (r) html += `<div class="sec">RUMOURS</div><div class="qrow"><div><b>${pxi('talk')} A sailor talks of buried treasure</b></div><button id="rumourBuy" ${state.gold >= RUMOUR_COST ? '' : 'disabled'}>${RUMOUR_COST}g</button></div>`;
@@ -907,7 +907,7 @@ function updateTracker() {
   const rows = [];
   const g = objectives.current;
   const fresh = performance.now() < trackerNewUntil; trackerEl.classList.toggle('flash', fresh);
-  if (g) { const ch = CHAPTERS[g.ch]; rows.push(`<div class="thint">${ch.n} · ${ch.title}</div><div class="trow main"><i class="ico flag"></i>${g.title}${fresh ? '<span class="tag">NEW</span>' : ''}</div>`); }
+  if (g) { const ch = CHAPTERS[g.ch]; rows.push(`<div class="thint">${ch.n} · ${ch.title}</div><div class="trow main"><i class="ico flag"></i>${g.title}${goalCount(g, { state, ship })}${fresh ? '<span class="tag">NEW</span>' : ''}</div>`); }
   const tr = trackedOne(), others = (state.job ? 1 : 0) + (state.passenger ? 1 : 0) + state.quests.length - (tr ? 1 : 0);
   if (tr === 'job') rows.push(`<div class="trow">${pxi('letter')} ${state.job.toName}</div>`);
   else if (tr === 'passenger') rows.push(`<div class="trow">${pxi('talk')} ${state.passenger.name} to ${state.passenger.toName}</div>`);

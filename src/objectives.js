@@ -93,6 +93,7 @@ export const MAIN_GOALS = [
     outro: ['A fine start to a map. Perrin would be proud. Probably. Nobody has seen him smile.'],
     hints: ['Islands are charted when you sail close to them. The empty stretches are worth crossing.'],
     check: (c) => Object.keys(c.state.discovered).length >= 8,
+    count: (c) => [Object.keys(c.state.discovered).length, 8],
   },
   {
     id: 'tavern', ch: 3, title: 'Meet the locals', reward: 18,
@@ -166,6 +167,7 @@ export const MAIN_GOALS = [
     outro: ['They all mention the same thing. A hut. Who writes about a hut?'],
     hints: ['Bottles bob on the open sea. Sail into them.'],
     check: (c) => c.state.stats.bottles >= (c.state.story.b0 || 0) + 2,
+    count: (c) => [c.state.stats.bottles - (c.state.story.b0 || 0), 2],
     onStart: (c) => { c.state.story.b0 = c.state.stats.bottles; },
   },
   {
@@ -185,6 +187,8 @@ export const MAIN_GOALS = [
     check: (c) => !!(c.state.hut && c.state.hut.rolls.length),
   },
 ];
+/** a goal that is a count shows how far along it is, next to its name: " (3/8)" */
+export const goalCount = (g, c) => { if (!g.count) return ''; const [have, need] = g.count(c); return ` <b>(${Math.min(have, need)}/${need})</b>`; };
 export const goalText = (g, c) => (typeof g.text === 'function' ? g.text(c) : g.text);
 export const chapterOf = (state) => { const g = MAIN_GOALS[state.goals.i]; return g ? g.ch : CHAPTERS.length; };
 export const unlocked = (state, key) => chapterOf(state) >= UNLOCK[key];

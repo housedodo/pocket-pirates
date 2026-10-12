@@ -32,7 +32,7 @@ const FORCED = {
   '1,-1': { type: 'treasure', x: 140, z: -172 },
   '-1,-1': null,                                        // open water around Tama
   '1,0': null,
-  '-2,-1': { type: 'jungle', x: -232, z: -128 },
+  '-2,-1': { type: 'harbour', x: -232, z: -128, r: 30 },   // a second harbour inside the first fog radius, so early errands have somewhere to go
   '-1,0': { type: 'sandbar', x: -112, z: 30 },
 };
 const TYPE_TABLE = [['sandbar', 0.28], ['jungle', 0.28], ['rocky', 0.2], ['treasure', 0.12], ['harbour', 0.12]];

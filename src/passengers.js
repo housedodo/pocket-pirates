@@ -57,10 +57,10 @@ const DARK_LINES = [
   'Please do not stop the ship out here.',
 ];
 
-export function makePassenger(world, from, serial) {
+export function makePassenger(world, from, serial, force = false) {
   const rng = mulberry32(hash2(from.seed, serial, 4747));
-  if (rng() > 0.55) return null;                                   // not every day somebody wants to travel
-  const list = nearby(world, from.x, from.z, 250, 1100, 'harbour').filter((o) => o.d.id !== from.id);
+  if (rng() > 0.55 && !force) return null;                                   // not every day somebody wants to travel
+  const list = nearby(world, from.x, from.z, 150, 1100, 'harbour').filter((o) => o.d.id !== from.id);
   if (!list.length) return null;
   const { d: to, dist } = list[Math.floor(rng() * list.length) % list.length];
   const p = PEOPLE[Math.floor(rng() * PEOPLE.length) % PEOPLE.length];
