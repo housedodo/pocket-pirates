@@ -1444,11 +1444,12 @@ function tackTick(dt) {
   if (rel > 0.5 * Math.PI && rel < 0.8 * Math.PI && !ship.rowing) state.stats.upwind = (state.stats.upwind || 0) + ship.speed * dt * -Math.cos(rel);
 }
 
+let hullShown = -1;
 function hurtPlayer(dmg) {
   const d = Math.max(1, Math.round(dmg));
   state.hp -= d; lastHit = tNow; shake = 0.7; audio.play('hit');
   $('hit').classList.add('on'); setTimeout(() => $('hit').classList.remove('on'), 140);
-  if (state.hp < 35) objectives.remark('lowhp', dread);
+  if (state.hp / ship.mods.maxHp < 0.35) objectives.remark('lowhp', dread);
   if (state.hp <= 0) sinkPlayer();
 }
 function onHitEnemy(s, dmg) {
@@ -1712,8 +1713,10 @@ function frame() {
   if (modal === 'ship') { $('shGold').textContent = state.gold; }
   if (debugEl.style.display === 'block') debugEl.textContent = `tris ${renderer.info.render.triangles} calls ${renderer.info.render.calls}  dread ${dread.toFixed(2)} stage ${stage.index + 1} ${forced !== null ? '(forced)' : '(auto)'}  time ${tod.clock}  pos ${ship.pos.x | 0},${ship.pos.z | 0}  spd ${ship.speed.toFixed(1)}  islands ${world.islands.size}`;
 
-  $('hptxt').textContent = '';
-  $('hpfill').style.width = `${Math.max(0, (state.hp / ship.mods.maxHp) * 100)}%`;
+  { // the hull is five planks: each one is a fifth of its strength
+    const frac = Math.max(0, state.hp / ship.mods.maxHp), planks = frac <= 0 ? 0 : Math.max(1, Math.ceil(frac * 5 - 0.001));
+    if (planks !== hullShown) { hullShown = planks; $('hptxt').innerHTML = `<span class="hp5">${[0, 1, 2, 3, 4].map((i) => `<i class="${i < planks ? 'on' : 'off'}"></i>`).join('')}</span>`; $('hpfill').parentNode.style.display = 'none'; }
+  }
   $('ammotxt').textContent = `\u25cf ${state.ammo}`;
   { const can = unlocked(state, 'cannons'); traffic.noRaiders = !can; document.body.classList.toggle('nocannons', !can); }
   $('reloadfill').style.width = `${100 - Math.min(100, (combat.reload / ship.mods.reload) * 100)}%`;

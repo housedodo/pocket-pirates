@@ -218,8 +218,8 @@ export class SeaFeatures {
               const k2 = 1 - d / R, nx = (o.x - ship.pos.x) / Math.max(d, 0.1), nz = (o.z - ship.pos.z) / Math.max(d, 0.1);
               ship.pos.x += (nx * 3.6 - nz * 2.2) * k2 * dt; ship.pos.z += (nz * 3.6 + nx * 2.2) * k2 * dt;
               ship.speed *= 1 - 0.35 * k2 * dt;
-              if (this.onEvent && !this.whirlTold) { this.whirlTold = true; this.onEvent({ type: 'whirl', o }); }
-            } else if (d > R + 10) this.whirlTold = this.whirlTold && false;
+              if (this.onEvent && !o.told) { o.told = true; this.onEvent({ type: 'whirl', o }); }   // once per whirlpool, until you have left it behind
+            } else if (d > R + 10) o.told = false;
             break;
           }
           case 'shoal': {

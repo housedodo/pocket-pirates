@@ -328,7 +328,7 @@ export class Logbook {
 
   renderShip() {
     const { state, ship } = this.d;
-    let html = h3('The Merry Gull') + ent(`${state.gold} gold`, `hull ${Math.round(state.hp)}/${ship.mods.maxHp} · ${state.ammo} cannonballs`);
+    let html = h3('The Merry Gull') + ent(`${state.gold} gold`, `hull ${Math.max(0, Math.ceil(state.hp / ship.mods.maxHp * 5 - 0.001))} of 5 planks · ${state.ammo} cannonballs`);
     html += h3('Fittings') + UPGRADES.map((u) => { const lv = state.upgrades[u.id]; return ent(u.name, lv ? u.text[lv - 1].split(':')[0] : 'stock', `<span class="pips">${pxi('pip').repeat(lv)}${pxi('nopip').repeat(MAX_LEVEL - lv)}</span>`); }).join('');
     html += h3('Crew') + ent('Mara, first mate', `${this.d.mood ? this.d.mood() : 'steady'}`) + ((state.crew || []).length ? state.crew.map((c) => ent(`${c.name}, ${c.look}`, `${TRAITS[c.trait].name}: ${TRAITS[c.trait].text} · ${c.wish.done ? 'wish fulfilled (+1)' : c.wish.text} · ${Math.max(0, (c.until || 0) - state.dayN)} days left`)).join('') : ent('Only Mara', 'Hands can be hired at harbour taverns, for a few days at a time.', '', 'dim'));
     html += h3('Looks') + GROUPS.map(([g, label, list]) => ent(label, byId(list, state.custom[g]).name)).join('');
