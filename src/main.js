@@ -138,13 +138,13 @@ const combat = new Combat(scene, fauna);
 sea.syncQuests(state.quests.filter((q) => q.id === state.tracked));
 traffic.onEvent = (what) => {
   if (what === 'market') toast('A floating market, with bunting on every line. (Friday)', false, 5000);
-  if (what === 'regatta') { toast('A regatta! Five boats, racing.', false, 4500); if (!state.hints.regattaSeen) { state.hints.regattaSeen = true; setTimeout(() => objectives.mate.say('A regatta! Look at them go. I wonder who they are racing, and who is giving the prize.'), 2500); } }
+  if (what === 'regatta') { toast('A regatta! Five boats, racing.', false, 4500); if (!state.hints.regattaSeen && laterOK()) { state.hints.regattaSeen = true; setTimeout(() => objectives.mate.say('A regatta! Look at them go. I wonder who they are racing, and who is giving the prize.'), 2500); } }
 };
 fauna.onSpot = (what) => {
   if (!laterOK()) return;   // no dolphins or whales for the first goals
   const k = what === 'migration' ? 'whales' : what; state.stats[k] = (state.stats[k] || 0) + 1;
   toast(what === 'dolphins' ? 'Dolphins!' : what === 'migration' ? 'Another whale, heading east.' : what === 'turtles' ? 'A sea turtle, drifting by.' : 'A whale surfaces in the distance!', false, 2500);
-  if (what === 'migration' && !state.hints.migrationSeen) { state.hints.migrationSeen = true; setTimeout(() => objectives.mate.say('They are all going the same way, Captain. East. Every one of them. As if they were called.'), 2500); }
+  if (what === 'migration' && !state.hints.migrationSeen && laterOK()) { state.hints.migrationSeen = true; setTimeout(() => objectives.mate.say('They are all going the same way, Captain. East. Every one of them. As if they were called.'), 2500); }
 };
 audio.musicOn = !settings.musicOff;
 
@@ -319,7 +319,7 @@ function noonBells() {   // villages that keep the bells ring them at noon; you 
   for (const isl of world.islands.values()) { const d = isl.desc; if (d.custom !== 'bells') continue; const dist = Math.hypot(d.x - ship.pos.x, d.z - ship.pos.z); if (dist < 260) audio.play('bell', { vol: clamp(1 - dist / 280, 0.15, 0.8) }); }
 }
 function weekMorning() {   // Mara mentions the day the first couple of times, then never again
-  const k = isMarketDay() ? 'market' : isLanternNight() ? 'lanterns' : null; if (!k) return;
+  const k = isMarketDay() ? 'market' : isLanternNight() ? 'lanterns' : null; if (!k || !laterOK()) return;   // Mara only talks about the quest in hand until the tutorial is well under way
   const n = state.hints['week:' + k] || 0; if (n >= 2) return; state.hints['week:' + k] = n + 1;
   objectives.mate.say(k === 'market' ? 'Market day, Captain! Every harbour pays a bit more for what we bring in.' : 'Lantern night tonight. They set little lights on the water. I always want to follow one.');
 }
@@ -1733,7 +1733,7 @@ function frame() {
   // ---- time of day & wind
   if (live) { const pt = state.time; state.time = advanceTime(state.time, dt); if (state.time < pt) { noteSkip(); state.dayN++; crewLeave(); }
     if (pt < 0.5 && state.time >= 0.5) noonBells();
-    if (tideAt() < -0.45 && !state.hints['tide:low'] && state.goals.i >= 4 && !onbQuiet()) { state.hints['tide:low'] = true; objectives.mate.say('The tide is out, Captain. Keep off the shallows, and the wrecks give up more at low water.'); }
+    if (tideAt() < -0.45 && !state.hints['tide:low'] && laterOK()) { state.hints['tide:low'] = true; objectives.mate.say('The tide is out, Captain. Keep off the shallows, and the wrecks give up more at low water.'); }
     if (pt < 0.27 && state.time >= 0.27) weekMorning(); }
   wind.update(dt);
   if (dt > 0) { state.buffs.speed = Math.max(0, state.buffs.speed - dt); state.buffs.dig = Math.max(0, state.buffs.dig - dt); }
@@ -1808,7 +1808,7 @@ function frame() {
     const fac = sectorAt(ship.pos.x, ship.pos.z, state.seed).faction.id;
     const R = { reef: [1.3, 1.5, 0.9], lantern: [0.9, 0.8, 1.5], drowned: [1, 1.1, 1.4], free: [1.1, 0.8, 0.8] }[fac] || [1, 1, 1];
     weather.region.rain = R[0]; weather.region.storm = R[1]; weather.region.fog = R[2];
-    if (fa && h >= 17 && !state.hints['front:' + state.dayN]) { state.hints['front:' + state.dayN] = true; if (!state.hints.frontSeen) { state.hints.frontSeen = true; objectives.mate.say('That red in the west... a front is coming in tomorrow afternoon, Captain. I would be in a harbour by then.'); } }
+    if (fa && h >= 17 && laterOK() && !state.hints['front:' + state.dayN]) { state.hints['front:' + state.dayN] = true; if (!state.hints.frontSeen) { state.hints.frontSeen = true; objectives.mate.say('That red in the west... a front is coming in tomorrow afternoon, Captain. I would be in a harbour by then.'); } }
   }
   world.tick(animT, tod);
   ship.place(vdt, waveT, stage.wave, dark, tod.night);

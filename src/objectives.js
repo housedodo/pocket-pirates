@@ -337,7 +337,11 @@ export class Objectives {
   say(text, dark) { this.mate.say(text, dark); }
 
   remark(key, dread = 0) {
-    if (this.d.quiet && this.d.quiet()) return;   // nothing but the first goals at the start
+    // until the tutorial is well under way Mara only speaks about the quest in hand: the remarks tied to a goal's mechanic come through, the rest wait
+    const MECH = ['riddle', 'crew', 'raider', 'noammo', 'notarget', 'lowhp', 'broadside', 'stormpay', 'gate'];
+    if (this.d.quiet && this.d.quiet()) return;
+    if (this.d.later && !this.d.later() && !MECH.includes(key)) return;
+    if (this.mate.busy) return;   // never pile a remark onto a line she is still saying
     const h = this.state.hints;
     if (h[key] || !REMARKS[key]) return;
     h[key] = true;
