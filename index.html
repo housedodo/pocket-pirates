@@ -356,10 +356,10 @@
     @keyframes dfade { from { opacity: 0; } to { opacity: 1; } }
     /* quest cues (design A): a big QUEST COMPLETE banner, then the NEW QUEST card, a tracker flash and a pulse on the wind ring */
     #qbanner { position: absolute; left: 50%; top: 27%; transform: translateX(-50%); width: min(720px, 92vw); text-align: center; pointer-events: none; display: none; }
-    #qbanner.show { display: block; }
+    #qbanner.show, #qbanner.shownew { display: block; }
     #qbanner .qbDone, #qbanner .qbNew { position: absolute; left: 0; right: 0; top: 0; padding: 14px 20px 18px; opacity: 0; background: var(--pxmenu) 0 0 / 32px 32px; image-rendering: pixelated; box-shadow: 0 -4px 0 #ffd23a, 0 4px 0 #ffd23a, -4px 0 0 #ffd23a, 4px 0 0 #ffd23a, 8px 8px 0 4px rgba(0,0,0,.45); }
     #qbanner .qbNew { box-shadow: 0 -4px 0 #c9a85c, 0 4px 0 #c9a85c, -4px 0 0 #c9a85c, 4px 0 0 #c9a85c, 8px 8px 0 4px rgba(0,0,0,.45); }
-    #qbanner.show .qbDone { animation: qbdone 3.2s steps(16) forwards; } #qbanner.show .qbNew { animation: qbnew 7.2s steps(24) 2.7s forwards; }
+    #qbanner.show .qbDone { animation: qbdone 3.2s steps(16) forwards; } #qbanner.shownew .qbNew { animation: qbnew 7.2s steps(24) 0s forwards; }
     .qbBig { font: 56px "Pirata One", serif !important; color: #ffd23a; text-shadow: 4px 4px 0 #5a1612, 8px 8px 0 #1a0606; line-height: 64px; }
     .qbRew { font-size: 24px !important; color: #f4ead0; } .qbRew em { font-style: normal; color: #ffd23a; margin-left: 16px; }
     .qbNew small { display: block; color: #ffd23a; letter-spacing: .12em; font-size: 16px !important; } .qbNew span { display: block; font-size: 32px !important; line-height: 44px; color: #fff4d8; }

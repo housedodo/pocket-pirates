@@ -246,10 +246,16 @@ function autosave() {   // a quest was finished or you docked: save now and show
 // ---- quest cues (design A): QUEST COMPLETE, then NEW QUEST, the tracker flashes and the wind ring pulses
 let trackerNewUntil = 0;
 function questCue(done, next) {
+  // QUEST COMPLETE shows at once; the NEW QUEST card waits until Mara has spoken and the next goal is announced (questNew)
   const el = $('qbanner'); $('qbTitle').textContent = done.title; $('qbRew').textContent = `+${done.reward} gold`;
-  $('qbNext').textContent = next ? next.title : 'Sail where you like'; $('qbText').textContent = next ? next.text : 'The side goals in your log are always there.';
-  el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
-  setTimeout(autosave, 600);
+  el.classList.remove('shownew'); el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
+  setTimeout(autosave, 600); audio.play('discover');
+  if (!next) setTimeout(() => questNew(null), 3000);
+}
+function questNew(next, withCard = true) {
+  const el = $('qbanner');
+  $('qbNext').textContent = next ? next.title : 'Sail where you like'; $('qbText').textContent = next ? goalText(next, { state, ship }) : 'The side goals in your log are always there.';
+  if (withCard) { el.classList.remove('show'); el.classList.remove('shownew'); void el.offsetWidth; el.classList.add('shownew'); }
   trackerNewUntil = performance.now() + 9000; const c = $('compass'); c.classList.remove('ping'); void c.offsetWidth; c.classList.add('ping');
   setTimeout(() => c.classList.remove('ping'), 8000); audio.play('discover');
 }
@@ -257,7 +263,7 @@ function questCue(done, next) {
 function setCalm(s) { if (s > 0) weather.calmHold = s; else { weather.calmHold = 0; weather.noCalm = 600; } }
 const objectives = new Objectives({ state, world, ship, toast: (t, d) => toast(t, d), giveMap, forceCalm: setCalm, quiet: () => onbQuiet(), later: () => laterOK(),
   chapterCard: (ch) => { $('qbanner').classList.remove('show'); const el = $('landho'); el.querySelector('b').textContent = `CHAPTER ${ch.n}`; el.querySelector('span').textContent = ch.title; el.querySelector('small').textContent = ch.act; el.classList.remove('show'); void el.offsetWidth; el.classList.add('show'); audio.play('chapter'); },
-  questCue: (done, next) => questCue(done, next),
+  questCue: (done, next) => questCue(done, next), questNew: (next, withCard) => questNew(next, withCard),
   onStep: (done, next) => { if (done.id === 'gossip') revealHut(); } });
 const abyss = new Abyss({ scene, ship, world, sky, settings, state, mate: objectives.mate, toast: (t, d, ms) => toast(t, d, ms), fade: $('fade'),
   onEnding: () => {
@@ -1026,7 +1032,7 @@ function updateTracker() {
   trackerEl.style.display = show ? 'block' : 'none';
   if (!show) return;
   const rows = [];
-  const g = objectives.current;
+  const g = objectives.pending ? null : objectives.current;   // the next goal shows when Mara announces it
   const fresh = performance.now() < trackerNewUntil; trackerEl.classList.toggle('flash', fresh);
   if (g) { const ch = CHAPTERS[g.ch]; rows.push(`<div class="thint">${ch.n} · ${ch.title}</div><div class="trow main"><i class="ico flag"></i>${g.title}${goalCount(g, { state, ship })}${fresh ? '<span class="tag">NEW</span>' : ''}</div>`); }
   const tr = trackedOne(), others = (state.job ? 1 : 0) + (state.passenger ? 1 : 0) + state.quests.length - (tr ? 1 : 0);

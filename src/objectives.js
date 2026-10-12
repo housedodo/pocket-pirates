@@ -372,7 +372,8 @@ export class Objectives {
         this.gap -= dt;
         if (this.gap <= 0) {
           const next = this.pending; this.pending = null;
-          if (this.newCh) { this.newCh = false; this.chapterCard(next.ch); }
+          const card = this.newCh; if (this.newCh) { this.newCh = false; this.chapterCard(next.ch); }
+          if (this.d.questNew) this.d.questNew(next, !card);   // the NEW QUEST card comes with her words
           for (const l of (typeof next.intro === 'function' ? next.intro(this.d) : next.intro)) this.mate.say(l, dread > 0.6);
         }
       }
