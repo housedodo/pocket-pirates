@@ -1356,7 +1356,17 @@ function openCard(card) {
     rollCheck(state, ch.check, (ok) => out((ok ? ch.ok : ch.fail)(cardCtx())));
   });
 }
+let raiderT = 8;
 function tabletopTick(dt) {
+  // the raider goal: make sure there is one to find (Reef Brotherhood, not far, coming our way)
+  { const g = objectives.current;
+    if (g && g.id === 'raider' && !traffic.ships.some((s) => s.hostile && !s.sinking)) {
+      if ((raiderT -= dt) <= 0) {
+        const a = Math.random() * 6.28, x = ship.pos.x + Math.cos(a) * 140, z = ship.pos.z + Math.sin(a) * 140;
+        if (world.nearest(x, z, 30)) raiderT = 1;   // that spot is land: try another bearing
+        else { raiderT = 30; traffic.spawnAt('schooner', 'reef', x, z, Math.atan2(ship.pos.x - x, -(ship.pos.z - z)), 'live', 6, true); }
+      }
+    } else raiderT = 8; }
   // encounter signs: rare, out on open water, never in weather, never part of any story
   sighting.update(dt, tNow, ship);
   if (unlocked(state, 'cards') && !sighting.active && ship.speed > 2 && dread < 0.95 && weather.fog < 0.3 && weather.storm < 0.3 && !world.nearest(ship.pos.x, ship.pos.z, 90) && !fishing.active) {
@@ -1422,7 +1432,11 @@ function revealHut() {
   state.story.hutNod = 'pending';     // the nod comes the next time the chart is opened
 }
 function showDemoEnd() { $('demoend').classList.add('show'); audio.play('ending'); }
-$('demoGo').addEventListener('click', () => { $('demoend').classList.remove('show'); state.story.free = true; toast('The fog thins. The sea is yours.', false, 5000); });
+$('demoGo').addEventListener('click', () => {
+  $('demoend').classList.remove('show');
+  if (window.__BUILD === 'demo') toast('Keep sailing: everything inside the fog is still yours to do.', false, 5000);   // the demo opens nothing more
+  else { state.story.free = true; toast('The fog thins. The sea is yours.', false, 5000); }
+});
 let gateFog = 0, gateToastT = 0, musingT = 120;
 function seaGate(dt) {
   const R = gateRadius(state), d = Math.hypot(ship.pos.x, ship.pos.z);
@@ -1557,7 +1571,7 @@ function frame() {
   }
 
   // ---- dread + stage palette + time of day
-  const target = forced !== null ? forced : clamp(dreadAtDistance(Math.hypot(ship.pos.x, ship.pos.z)) + dreamShift(), 0, 1);
+  const target = forced !== null ? forced : clamp(dreadAtDistance(Math.hypot(ship.pos.x, ship.pos.z)) + (window.__BUILD === 'demo' ? 0 : dreamShift()), 0, 1);
   dread += (target - dread) * Math.min(1, rawDt * (forced !== null ? 1.2 : 0.4));
   if (params.get('shot')) dread = target;
   if (glitchT > 0) { glitchT -= rawDt; dread = 1; if (glitchT <= 0) { dread = preGlitch; hutEl.classList.remove('glitching'); } } // the hut's bad throw

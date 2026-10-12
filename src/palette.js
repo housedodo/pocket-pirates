@@ -56,4 +56,5 @@ export const DARK_THRESHOLD = 0.5; // above this, islands swap to their "wrong" 
 
 // The further from home you sail, the higher the dread (0..1). Tunable.
 export const DREAD_RANGE = 2200;
-export const dreadAtDistance = (d) => clamp(d / DREAD_RANGE, 0, 1);
+/** the demo build is the bright game: no dread by distance at all (the dev build keeps it for testing) */
+export const dreadAtDistance = (d) => (window.__BUILD === 'demo' ? 0 : clamp(d / DREAD_RANGE, 0, 1));
