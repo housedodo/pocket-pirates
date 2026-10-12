@@ -251,6 +251,15 @@ Concepts: `docs/concept/biome-*.png`, built in-engine with `__game.biome('coral'
 - Not every bought rumour is true. Most lead to nothing ("only sand, and someone else's footprints"); a few lead somewhere
   stranger than treasure.
 
+### Story plan for version one (design, in the Story Bible)
+- Version one = the six chapters paced to about an hour (targets, to be timed in playtests): Sea legs 0:00, Perrin's
+  riddle 0:08, Earn your keep 0:18, Check my chart 0:30, Strange notes 0:42, The table 0:52, end card about 1:00.
+- Five endings: The Long Sleep (final 20), Good Dreams (10-19), She Rises (1-9), Take Her Seat (sit; needs 3 offerings and
+  3 strange rumours followed), The Unseen Throw (leave; only for those who stopped throwing after the first).
+- The new features carry the story as small odd details (customs as clues, the harbour boat, strange rumours as
+  invitations, whales and boats heading east). Their story roles are design only so far; see the Story Bible sections
+  "The new features, and what each does for the story", "The first version", "Dread: the hints" and "Forks and endings".
+
 ## 2. Open storylines (started, resolved later)
 
 ### The Lady in the Hut (main thread)
