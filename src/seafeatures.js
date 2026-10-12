@@ -188,10 +188,10 @@ export class SeaFeatures {
           case 'barrel': case 'bottle': {
             o.mesh.position.set(o.x, waveHeight(o.x, o.z, t, wave) + 0.1, o.z);
             o.mesh.rotation.set(Math.sin(t * 1.3 + o.phase) * 0.25, t * 0.2 + o.phase, Math.cos(t * 1.1 + o.phase) * 0.3 + (o.type === 'bottle' ? 1.1 : 0));
-            if (o.glint) {   // a glint now and then, bigger the further away, so a bottle can be spotted from a distance
-              const ph = (t * 0.45 + o.phase) % 1, k = ph < 0.12 ? Math.sin(ph / 0.12 * Math.PI) : 0;
+            if (o.glint) {   // a glint now and then, but only once you are close: a bottle should not shout from across the sea
+              const ph = (t * 0.45 + o.phase) % 1, k = d < 42 ? (ph < 0.12 ? Math.sin(ph / 0.12 * Math.PI) : 0) * (1 - smoothstep(26, 42, d)) : 0;
               o.glint.visible = k > 0.05; o.glint.position.set(o.x, o.mesh.position.y + 0.9, o.z);
-              o.glint.scale.setScalar(k * Math.max(1.3, d / 22)); o.glint.rotation.y = t;
+              o.glint.scale.setScalar(k * 1.3); o.glint.rotation.y = t;
             }
             if (d < (o.type === 'bottle' ? 6.5 : 4.8)) {
               this.scene.remove(o.mesh); if (o.glint) this.scene.remove(o.glint); items.splice(i, 1); this.collected.add(o.id);

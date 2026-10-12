@@ -1,0 +1,92 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Quest complete and new quest: cue designs</title>
+<style>
+  @font-face { font-family: 'DotGothic16'; src: url(../../public/fonts/dotgothic.woff2) format('woff2'); }
+  @font-face { font-family: 'Pirata One'; src: url(../../public/fonts/pirataone.woff2) format('woff2'); }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 16px; background: #0b0a12; color: #f4ead0; font: 16px 'DotGothic16', monospace; }
+  h1 { font-size: 32px; font-weight: 400; color: #ffd23a; margin: 0 0 8px; } .lead { color: #c9b890; margin: 0 0 16px; max-width: 1000px; }
+  .frame { position: relative; width: 1280px; height: 720px; overflow: hidden; background: url(sea-bg.png) center / cover; margin-bottom: 8px; }
+  .cap { margin: 0 0 32px; max-width: 1280px; color: #c9b890; } .cap b { color: #ffd23a; font-weight: 400; }
+  .px { background: #1d1640; box-shadow: 0 -4px 0 #c9a85c, 0 4px 0 #c9a85c, -4px 0 0 #c9a85c, 4px 0 0 #c9a85c, 8px 8px 0 4px rgba(0,0,0,.45); }
+  .gold { box-shadow: 0 -4px 0 #ffd23a, 0 4px 0 #ffd23a, -4px 0 0 #ffd23a, 4px 0 0 #ffd23a, 8px 8px 0 4px rgba(0,0,0,.45); }
+  .hud { position: absolute; left: 16px; top: 16px; display: flex; flex-direction: column; gap: 10px; width: 260px; }
+  .chip { padding: 6px 12px; background: #17112e; box-shadow: 0 -3px 0 #3a3070, 0 3px 0 #3a3070, -3px 0 0 #3a3070, 3px 0 0 #3a3070; color: #e8e0f8; }
+  .tracker { padding: 10px 14px; background: #17112e; box-shadow: 0 -3px 0 #3a3070, 0 3px 0 #3a3070, -3px 0 0 #3a3070, 3px 0 0 #3a3070; font-size: 16px; line-height: 22px; }
+  .tracker small { color: #8a7eb0; display: block; text-align: right; }
+  .ring { position: absolute; right: 24px; top: 16px; width: 112px; height: 112px; border-radius: 50%; border: 6px solid #c9a85c; background: rgba(23,17,46,.7); }
+  .ring i { position: absolute; width: 14px; height: 14px; background: #ff9a3a; left: 70px; top: 6px; box-shadow: 0 0 0 3px #1a0f08; }
+  .ring.ping i { width: 20px; height: 20px; left: 66px; top: 2px; } .ring.ping::after { content: ""; position: absolute; inset: -22px; border: 4px solid #ff9a3a; border-radius: 50%; opacity: .55; }
+  .ring.ping::before { content: ""; position: absolute; inset: -40px; border: 4px solid #ff9a3a; border-radius: 50%; opacity: .25; }
+  .check { color: #5ec45a; } .new { color: #ffd23a; } .done { color: #8a7eb0; text-decoration: line-through; }
+  .tag { display: inline-block; padding: 0 6px; background: #c8402a; color: #fff4d8; margin-left: 6px; }
+  /* A: banner sequence */
+  .bannerA { position: absolute; left: 54%; top: 96px; transform: translateX(-50%); width: 700px; text-align: center; padding: 14px 20px 18px; }
+  .bannerA .big { font: 56px 'Pirata One', serif; color: #ffd23a; text-shadow: 4px 4px 0 #5a1612, 8px 8px 0 #1a0606; }
+  .bannerA .rew { color: #f4ead0; font-size: 24px; margin-top: 2px; }
+  .nextA { position: absolute; left: 54%; top: 290px; transform: translateX(-50%); width: 640px; padding: 12px 20px; text-align: center; }
+  .nextA small { color: #ffd23a; display: block; font-size: 16px; letter-spacing: .1em; } .nextA span { font-size: 32px; line-height: 44px; }
+  /* B: scroll */
+  .scroll { position: absolute; right: 150px; top: 170px; width: 420px; padding: 22px 26px 26px; background: #efe2bc; color: #2a1608; transform: rotate(1.5deg); box-shadow: 8px 8px 0 rgba(0,0,0,.4), inset 0 -6px 0 #d8c898, inset 0 6px 0 #f8f0d8; }
+  .scroll::before, .scroll::after { content: ""; position: absolute; left: -10px; right: -10px; height: 18px; background: #8a5a30; box-shadow: inset 0 -5px 0 #5a3a1c; } .scroll::before { top: -14px; } .scroll::after { bottom: -14px; }
+  .scroll h3 { margin: 0 0 6px; font: 32px 'Pirata One', serif; color: #8a1a1a; font-weight: 400; } .scroll p { margin: 0 0 8px; font-size: 24px; line-height: 32px; } .scroll small { color: #6a4a2a; }
+  .scroll .stamp { position: absolute; right: 18px; top: 14px; border: 4px solid #3a8a3a; color: #3a8a3a; padding: 0 8px; font-size: 24px; transform: rotate(-8deg); }
+  /* C: pointer */
+  .arrowC { position: absolute; left: 880px; top: 80px; width: 190px; text-align: center; }
+  .arrowC .tri { width: 0; height: 0; margin: 0 auto; border-left: 28px solid transparent; border-right: 28px solid transparent; border-bottom: 56px solid #ffd23a; transform: rotate(35deg); filter: drop-shadow(5px 5px 0 #1a0606); }
+  .arrowC b { display: block; margin-top: 8px; font-weight: 400; color: #ffd23a; font-size: 24px; text-shadow: 3px 3px 0 #1a0606; } .arrowC small { color: #f4ead0; text-shadow: 2px 2px 0 #1a0606; }
+  .lineC { position: absolute; left: 50%; bottom: 40px; transform: translateX(-50%); width: 860px; padding: 12px 20px; text-align: center; } .lineC span { font-size: 24px; }
+  /* D: Mara + sparkles */
+  .mara { position: absolute; left: 50%; bottom: 110px; transform: translateX(-50%); width: 560px; padding: 14px 18px; display: flex; gap: 14px; }
+  .face { width: 64px; height: 64px; background: #3a2a1a; flex: none; box-shadow: 0 0 0 4px #1a0f08; background: linear-gradient(#e8d8b0 0 30%, #e8b88a 30% 70%, #3c78c8 70%); }
+  .mara b { color: #ffd23a; font-weight: 400; display: block; } .mara p { margin: 4px 0 0; font-size: 24px; line-height: 32px; }
+  .spark { position: absolute; width: 10px; height: 10px; background: #ffd23a; box-shadow: 0 0 0 3px rgba(255,210,58,.3); }
+  .toggle { position: absolute; left: 16px; top: 330px; } .idle { position: absolute; left: 50%; bottom: 24px; transform: translateX(-50%); padding: 8px 18px; color: #ffd23a; }
+</style></head><body>
+<h1>Quest cues: done, and what is next</h1>
+<p class="lead">The problem: a finished quest and a new one are easy to miss (a small toast, a changed line in the tracker). Four designs, from loudest to quietest, each meant to answer the same two questions the moment something changes: "what did I just finish?" and "what do I do now?". They can be combined; the idle nudge at the end works with any of them.</p>
+
+<div class="frame">
+  <div class="hud"><div class="chip">130 gold</div><div class="chip">08:08</div>
+    <div class="tracker gold"><span class="check">&#10003; Spend your loot</span><br><span class="new">&#9654; Visit the shipwright</span><span class="tag">NEW</span><small>[Q] hide</small></div></div>
+  <div class="ring ping"><i></i></div>
+  <div class="bannerA px gold"><div class="big">QUEST COMPLETE</div><div class="rew">Perrin's chest &nbsp; +120 gold</div></div>
+  <div class="nextA px"><small>NEW QUEST</small><span>Spend your loot at the shipwright</span></div>
+</div>
+<p class="cap"><b>A · Banner sequence.</b> The loudest. When a quest completes, a big gold "QUEST COMPLETE" banner drops in with the reward and a coin sound; two seconds later it slides up and the "NEW QUEST" card appears under it with the next objective in large type. The tracker flashes gold and shows a red NEW tag, and the wind ring's orange dot pulses with rings. Nobody can miss it, and it fits the game's pixel look. Cost: it interrupts, so it should only fire for main quests, not for every little side goal.</p>
+
+<div class="frame">
+  <div class="hud"><div class="chip">130 gold</div><div class="chip">08:08</div>
+    <div class="tracker"><span class="done">Spend your loot</span><br><span class="new">&#9654; Visit the shipwright</span><small>[Q] hide</small></div></div>
+  <div class="ring"><i></i></div>
+  <div class="scroll"><div class="stamp">DONE</div><h3>Spend your loot</h3><p>Perrin's chest is open. 120 gold, and a note that was not there before.</p><small>----------</small><h3 style="color:#2a1608;margin-top:10px">Next: the shipwright</h3><p>Fine canvas bites better upwind. Ask at Harbour Tama (south-west).</p><small>[E] fold away</small></div>
+</div>
+<p class="cap"><b>B · The quest scroll.</b> A parchment scroll unrolls on the right: the finished quest gets a green stamp, below it the next quest is written out with a direction. It stays until you press E or sail on for a while, so you can read it at your own pace, and the same text is kept in the journal. Warmer and quieter than A, and it feels like the book of the game. The bottom half is where "what do I do now?" lives, including the direction.</p>
+
+<div class="frame">
+  <div class="hud"><div class="chip">130 gold</div><div class="chip">08:08</div>
+    <div class="tracker"><span class="check">&#10003; Spend your loot</span><br><span class="new">&#9654; Visit the shipwright</span><small>[Q] hide</small></div></div>
+  <div class="ring ping"><i></i></div>
+  <div class="arrowC"><div class="tri"></div><b>Harbour Tama</b><small>320 fathoms south-west</small></div>
+  <div class="lineC px gold"><span><b class="new" style="font-weight:400">NEW:</b> Visit the shipwright at Harbour Tama</span></div>
+</div>
+<p class="cap"><b>C · The pointer.</b> No pop-up: a big gold arrow and a name with a distance appear on the edge of the screen, pointing toward the next objective for about ten seconds, and the orange dot on the wind ring pulses with rings. A single line at the bottom says what the new quest is. It answers "where do I go?" directly, which is the real problem when you do not know what to do next. Very cheap to build, and the least intrusive; it works best for quests that have a place.</p>
+
+<div class="frame">
+  <div class="hud"><div class="chip">130 gold</div><div class="chip">08:08</div>
+    <div class="tracker gold"><span class="check">&#10003; Spend your loot</span><br><span class="new">&#9654; Visit the shipwright</span><span class="tag">NEW</span><small>[Q] hide</small></div></div>
+  <div class="ring ping"><i></i></div>
+  <span class="spark" style="left:196px;top:156px"></span><span class="spark" style="left:260px;top:204px"></span><span class="spark" style="left:36px;top:226px"></span><span class="spark" style="left:150px;top:248px"></span><span class="spark" style="left:238px;top:128px"></span>
+  <div class="mara px"><div class="face"></div><div><b>Mara, first mate</b><p>Done! 120 gold, Captain. Now spend some of it: the shipwright at Tama will have something for the sails.</p></div></div>
+</div>
+<p class="cap"><b>D · Mara says it, the tracker sparkles.</b> The mate is already the voice of the game, so she delivers it: a short line that says what was finished and what to do next, with pixel sparkles bursting around the tracker, which grows to show the ticked step and the next one in gold with a NEW tag for ten seconds. Keeps the tone cosy and in the world; the weakness is that it relies on reading a typewriter line, so it works best together with C's arrow.</p>
+
+<div class="frame">
+  <div class="hud"><div class="chip">130 gold</div><div class="chip">08:08</div>
+    <div class="tracker"><span class="new">&#9654; Visit the shipwright</span><small>[Q] hide</small></div></div>
+  <div class="ring ping"><i></i></div>
+  <div class="idle px gold">Next: visit the shipwright at Harbour Tama, south-west &nbsp;<span style="color:#8a7eb0">(Y: ask Mara)</span></div>
+</div>
+<p class="cap"><b>The idle nudge (works with any of A to D).</b> If nothing has progressed for about a minute, the tracker's current step pulses and a small card at the bottom spells out the next step and its direction, with "Y: ask Mara" for a hint. It disappears the moment you make progress. This is the safety net for the player who did not read the banner or got distracted fishing: no text wall, only a reminder that wakes up when it is needed. It also replaces most of Mara's slow hint timer.</p>
+</body></html>
