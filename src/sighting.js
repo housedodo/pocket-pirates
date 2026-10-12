@@ -81,5 +81,6 @@ export class Sighting {
     c.mesh.rotation.z = Math.sin(t * 1.2 + c.x) * 0.06;
     if (Math.hypot(ship.pos.x - c.x, ship.pos.z - c.z) > 260 || c.age > 300) this.dismiss();
   }
+  solids(out) { const c = this.cur; if (c && !c.sink) out.push({ x: c.x, z: c.z, r: 1.3 }); return out; }
   clear() { if (!this.cur) return; this.scene.remove(this.cur.mesh); this.cur = null; }
 }

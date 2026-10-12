@@ -1,3 +1,4 @@
+import { pushOut } from './solids.js';
 import * as THREE from 'three';
 import { Builder, darken } from './builder.js';
 import { TILE } from './textures.js';
@@ -894,6 +895,7 @@ function decorate(d, rng, A, B, D, extra) {
       // dock
       const R = shoreR(d, dockTh), z0 = R * 0.55, z1 = R + 14, zc = (z0 + z1) / 2;
       d.dock = { x: Math.cos(dockTh) * (R + 10), z: Math.sin(dockTh) * (R + 10), th: dockTh };   // where you moor (local)
+      d.dockGeom = { R, z0, z1 };
       const ry = Math.PI / 2 - dockTh;
       A.push(0, 0, 0, ry);
       A.box(0, 0.62, zc, 2.8, 0.22, z1 - z0, '#ffffff', TILE.planks);
@@ -1208,6 +1210,11 @@ export class World {
       const d = isl.desc;
       const dx = pos.x - d.x, dz = pos.z - d.z, dist = Math.hypot(dx, dz);
       if (dist > d.r * 1.8 + radius) continue;
+      if (d.dockGeom && dist < d.r * 1.8 + radius) {   // the pier and the rowboat moored beside it are solid
+        const { z0, z1 } = d.dockGeom, th = d.dock.th, ax = Math.cos(th), az = Math.sin(th), mid = (z0 + z1) / 2;
+        const row = z1 - 4, lx = Math.sin(th) * 3.6, lz = -Math.cos(th) * 3.6;
+        if (pushOut(pos, radius, [{ x: d.x + ax * mid, z: d.z + az * mid, ax, az, hl: (z1 - z0) / 2, r: 1.6 }, { x: d.x + ax * row + lx, z: d.z + az * row + lz, r: 1.5 }])) hit = true;
+      }
       const lim = shoreR(d, Math.atan2(dz, dx)) * 1.03 + radius + (this.tide < -0.45 ? 1.8 : 0);   // at low tide the shallows reach further
       if (dist < lim) {
         const k = lim / Math.max(dist, 0.001);

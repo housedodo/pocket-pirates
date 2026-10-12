@@ -308,6 +308,16 @@ export class Fauna {
     }
   }
 
+  /** the whale is solid while its back is out of the water; a turtle's shell too */
+  solids(out) {
+    if (this.whaleT >= 0 && this.whaleData && this.whale.visible && this.whale.position.y > -1.9) {
+      const w = this.whaleData, a = this.whale.rotation.y;
+      out.push({ x: w.x, z: w.z, ax: Math.sin(a), az: Math.cos(a), hl: 6, r: 2.2 });
+    }
+    for (const q of this.turtles) if (q.life > 0 && q.m.visible && q.m.position.y > -0.4) out.push({ x: q.x, z: q.z, r: 0.9 });
+    return out;
+  }
+
   updateWhale(dt, t, ctx, fwdx, fwdz, rx, rz) {
     const { ship, dread, wave, audio } = ctx;
     const sx = ship.pos.x, sz = ship.pos.z;

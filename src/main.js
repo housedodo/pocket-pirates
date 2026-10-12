@@ -37,6 +37,7 @@ import { UPGRADES, MAX_LEVEL, computeMods, shipwrightLine } from './upgrades.js'
 import { TRAITS, crewForHire, crewBonus, hasTrait, rollCheck, drawCard, renderCard, Pig, setDieWear, setAdvProvider, TREASURE_TIERS } from './tabletop.js';
 import { FISH } from './fishing.js';
 import { Sighting, SIGHTS } from './sighting.js';
+import { pushOut } from './solids.js';
 import { Abyss, EFFECTS, WATCHER_STYLES, WATCHER_NAMES } from './abyss.js';
 
 // ---------------------------------------------------------------- params, save, settings
@@ -145,7 +146,7 @@ audio.musicOn = !settings.musicOff;
 // a new voyage begins moored alongside Tama's pier with the sails furled, as if you had just come aboard
 if (!saved && !params.has('x')) {
   const d = world.desc(0, -1), th = Math.PI / 2, r = shoreR(d, th) + 9;
-  state.pos = { x: d.x + Math.cos(th) * r - Math.sin(th) * 5, z: d.z + Math.sin(th) * r + Math.cos(th) * 5, h: Math.atan2(Math.cos(th), -Math.sin(th)) };
+  state.pos = { x: d.x + Math.cos(th) * r + Math.sin(th) * 9, z: d.z + Math.sin(th) * r - Math.cos(th) * 9, h: Math.atan2(Math.cos(th), -Math.sin(th)) };
   ship.trim = 0;
 }
 ship.pos.set(state.pos.x, 0, state.pos.z);
@@ -654,7 +655,7 @@ function restAtTavern(cost) {
   closeModal();
   $('fade').classList.add('on');
   setTimeout(() => {
-    if (state.time * 24 >= 6) { noteSkip(); state.dayN++; }    // slept past midnight
+    if (state.time * 24 >= 6) { noteSkip(); state.dayN++; crewLeave(); }    // slept past midnight
     state.time = 6 / 24;
     state.hp = ship.mods.maxHp;
     $('fade').classList.remove('on');
@@ -715,7 +716,12 @@ function renderHarbour() {
     const dv = $('doDeliver'); if (dv) dv.addEventListener('click', () => { completeJobIfHere(d); renderHarbour(); });
     const dp = $('doDropoff'); if (dp) dp.addEventListener('click', () => {
       const p = state.passenger; state.gold += p.reward; state.passenger = null; state.stats.passengers = (state.stats.passengers || 0) + 1;
-      repOf(state, d.id).deliveries++; toast(`${p.name} waves goodbye from the pier. (+${p.reward}g)`, false, 6000); audio.play('treasure'); renderHarbour(); });
+      repOf(state, d.id).deliveries++; toast(`${p.name} waves goodbye from the pier. (+${p.reward}g)`, false, 6000); audio.play('treasure');
+      if (state.crew.length < 2 && Math.random() < 0.3 && !state.crew.some((c) => c.name === p.name)) {   // now and then a passenger asks to sail along for a few days
+        const ids = Object.keys(TRAITS); signOn({ name: p.name, look: 'who did not want to get off', trait: ids[Math.floor(Math.random() * ids.length)], wish: { kind: 'volcano', text: 'wants to see a fire mountain', done: false }, cost: 0 }, 3);
+        setTimeout(() => toast(`${p.name} asks to sail along for a few days. (${TRAITS[state.crew[state.crew.length - 1].trait].name} joins the crew.)`, false, 7000), 1800);
+      }
+      renderHarbour(); });
     const tp = $('takePass'); if (tp) tp.addEventListener('click', () => {
       state.passenger = pass; state.serial[d.id + '#p'] = (state.serial[d.id + '#p'] || 0) + 1; state.tracked = 'passenger';
       toast(`${pass.name} comes aboard, bound for ${pass.toName}.`, false, 5000); renderHarbour(); });
@@ -761,8 +767,8 @@ function renderHarbour() {
     if (unlocked(state, 'crew')) { // hands for hire, and dice with the locals
       const hand = crewForHire(d, state.dayN, state, world);
       html += '<div class="sec">AT THE TABLES</div>';
-      if (hand && !state.crew.some((c) => c.name === hand.name)) html += `<div class="qrow"><div><b>${pxi('talk')} ${hand.name}, ${hand.look}</b><br><small>${TRAITS[hand.trait].name}: ${TRAITS[hand.trait].text} · ${hand.wish.text}</small></div><button id="hireHand" ${state.gold >= hand.cost && state.crew.length < 2 ? '' : 'disabled'}>${state.crew.length < 2 ? `Hire ${hand.cost}g` : 'Crew full'}</button></div>`;
-      for (const c of state.crew) html += `<div class="qrow"><div><b>${pxi('talk')} ${c.name}</b> <small>(${TRAITS[c.trait].name})</small></div><button data-dismiss="${c.name}">Let go</button></div>`;
+      if (hand && !state.crew.some((c) => c.name === hand.name)) html += `<div class="qrow"><div><b>${pxi('talk')} ${hand.name}, ${hand.look}</b><br><small>${TRAITS[hand.trait].name}: ${TRAITS[hand.trait].text} · ${hand.wish.text} · stays ${hand.stay || 4} days</small></div><button id="hireHand" ${state.gold >= hand.cost && state.crew.length < 2 ? '' : 'disabled'}>${state.crew.length < 2 ? `Hire ${hand.cost}g` : 'Crew full'}</button></div>`;
+      for (const c of state.crew) html += `<div class="qrow"><div><b>${pxi('talk')} ${c.name}</b> <small>(${TRAITS[c.trait].name}, ${daysLeft(c)} days left)</small></div><button data-dismiss="${c.name}">Let go</button></div>`;
       html += `<div class="qrow"><div><b>${pxi('pip')} Dice with the locals</b><br><small>first to 30 · stake 10g</small></div><button id="playPig" ${state.gold >= 10 ? '' : 'disabled'}>Sit down</button></div>`;
       pendingHand = hand;
     } else html += '<small>A fiddler, a fire, a lot of very old chairs. Nobody here knows you yet.</small>';
@@ -770,7 +776,7 @@ function renderHarbour() {
     $('restBed').addEventListener('click', () => restAtTavern(Math.ceil(8 * discount(rep) * costMul())));
     const hh = $('hireHand'); if (hh) hh.addEventListener('click', () => {
       const h = pendingHand; if (!h || state.gold < h.cost || state.crew.length >= 2) return;
-      state.gold -= h.cost; state.crew.push(h); audio.play('buy'); toast(`${h.name} signs on. ${h.name} nods once and says nothing.`, false, 5000); objectives.remark('crew', dread); renderHarbour(); });
+      state.gold -= h.cost; signOn(h, h.stay || 4); audio.play('buy'); toast(`${h.name} signs on. ${h.name} nods once and says nothing.`, false, 5000); objectives.remark('crew', dread); renderHarbour(); });
     pane.querySelectorAll('[data-dismiss]').forEach((b) => b.addEventListener('click', () => { state.crew = state.crew.filter((c) => c.name !== b.dataset.dismiss); toast(`${b.dataset.dismiss} goes ashore with a small wave.`); renderHarbour(); }));
     if ($('playPig')) $('playPig').addEventListener('click', () => { if (state.gold < 10) return; state.gold -= 10; state.stats.pig = (state.stats.pig || 0) + 1; const isl = harbourIsl; openModal('pig'); pigHome = isl; pig.start(LOCALS[Math.floor(Math.random() * LOCALS.length)], 10); });
   } else {
@@ -1312,7 +1318,7 @@ function cardCtx() {
       if (state.crew.length >= 2) { cardCtx().repNear(); return 'They are dropped off at the next harbour with a story to tell. Your crew is full.'; }
       const ids = Object.keys(TRAITS), names = ['Wren', 'Old Ibbs', 'Salt Annie', 'Pim'];
       const c = { name: names.find((n) => !state.crew.some((x) => x.name === n)) || 'Pim', look: 'still salty from the raft', trait: ids[Math.floor(Math.random() * ids.length)], wish: { kind: 'volcano', text: 'wants to see a fire mountain', done: false }, cost: 0 };
-      state.crew.push(c); return `${c.name} climbs aboard, drinks a whole bucket of water, and picks up a rope. (${TRAITS[c.trait].name} joins the crew.)`;
+      signOn(c, 3); return `${c.name} climbs aboard, drinks a whole bucket of water, and picks up a rope. (${TRAITS[c.trait].name} joins the crew.)`;
     },
   };
 }
@@ -1358,8 +1364,20 @@ function tabletopTick(dt) {
     if (hit) wishDone(c);
   }
 }
+// ---- crew only stay a while: a hired hand for 3-5 days, a castaway or a passenger for 3, a fulfilled wish adds two. Then they go ashore.
+for (const c of state.crew) if (c.until == null) c.until = state.dayN + 4;   // crew from an older save
+function signOn(c, stay) { c.until = state.dayN + stay; state.crew.push(c); }
+const daysLeft = (c) => Math.max(0, (c.until || 0) - state.dayN);
+function crewLeave() {
+  for (const c of [...state.crew]) {
+    if (c.until == null) c.until = state.dayN + 4;   // crew from an older save
+    if (c.until > state.dayN) continue;
+    state.crew = state.crew.filter((x) => x !== c);
+    toast(`${c.name} has gone ashore. ${c.wish && c.wish.done ? 'Smiling, mostly.' : 'No hard feelings.'} (${TRAITS[c.trait].name} leaves the crew.)`, false, 7000);
+  }
+}
 function wishDone(c) {
-  c.wish.done = true;
+  c.wish.done = true; c.until = Math.max(c.until || state.dayN, state.dayN) + 2;
   toast(`${c.name} stands at the rail a long time. (${c.name}'s wish came true: their bonus grows by 1.)`, false, 7000);
   objectives.mate.say(`Look at ${c.name}. I have never seen anyone smile with only their eyebrows before.`);
 }
@@ -1479,7 +1497,7 @@ function frame() {
   const stepT = Math.floor(animT * 12) / 12;
 
   // ---- time of day & wind
-  if (live) { const pt = state.time; state.time = advanceTime(state.time, dt); if (state.time < pt) { noteSkip(); state.dayN++; }
+  if (live) { const pt = state.time; state.time = advanceTime(state.time, dt); if (state.time < pt) { noteSkip(); state.dayN++; crewLeave(); }
     if (pt < 0.5 && state.time >= 0.5) noonBells();
     if (tideAt() < -0.45 && !state.hints['tide:low']) { state.hints['tide:low'] = true; objectives.mate.say('The tide is out, Captain. Keep off the shallows, and the wrecks give up more at low water.'); }
     if (pt < 0.27 && state.time >= 0.27) weekMorning(); }
@@ -1517,7 +1535,9 @@ function frame() {
   if (live && keys.has('KeyF')) pitchT = clamp(pitchT + dt * 0.8, 0.3, 1.35);
   if (live || params.get('autostart')) ship.update(dt, shipInput, windNow, tNow);
   if (live && dt > 0) { stormAndCalm(dt); tabletopTick(dt); seaGate(dt); tackTick(dt); }
-  if (world.collide(ship.pos, 2.2)) {
+  const solid = [];
+  traffic.solids(solid); fauna.solids(solid); sea.solids(solid); sighting.solids(solid);
+  if (world.collide(ship.pos, 2.2) | pushOut(ship.pos, 2.2, solid)) {
     if (ship.speed > 3 && dt > 0) audio.play('bump', { vol: clamp(ship.speed / 10, 0.3, 1) });
     ship.speed *= 0.9;
   }

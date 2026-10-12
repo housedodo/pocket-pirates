@@ -126,6 +126,17 @@ export class Traffic {
     return s;
   }
 
+  /** hulls the player's ship cannot sail through: other vessels and the harbour fishing boats */
+  solids(out) {
+    for (const s of this.ships) {
+      if (s.sinking || s.sinkT > 0) continue;
+      const K = KINDS[s.kind], hd = s.heading;
+      out.push({ x: s.x, z: s.z, ax: Math.sin(hd), az: -Math.cos(hd), hl: 1.7 * K.scale, r: 1.1 * K.scale });
+    }
+    if (this.rboats) for (const b of this.rboats.values()) { const hd = -b.root.rotation.y; out.push({ x: b.root.position.x, z: b.root.position.z, ax: Math.sin(hd), az: -Math.cos(hd), hl: 1.3, r: 0.9 }); }
+    return out;
+  }
+
   /** closest ship that can still be hailed */
   nearestHail(x, z, range = 24) {
     let best = null, bd = range;

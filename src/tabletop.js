@@ -38,7 +38,7 @@ export function crewForHire(d, dayN, state, world) {
     for (let dz = -6; dz <= 6; dz++) for (let dx = -6; dx <= 6; dx++) { const o = world.desc(Math.round(d.x / 110) + dx, Math.round(d.z / 110) + dz); if (o && o.type === 'harbour' && o.id !== d.id) list.push(o); }
     if (!list.length) { wish.kind = 'volcano'; wish.text = WISHES[0].text; } else { const h = list[Math.floor(rng() * list.length)]; wish.id = h.id; wish.text += h.name; }
   }
-  return { name, look: LOOKS[Math.floor(rng() * LOOKS.length)], trait, wish, cost: 40 + Math.floor(rng() * 5) * 10, from: d.id };
+  return { name, look: LOOKS[Math.floor(rng() * LOOKS.length)], trait, wish, cost: 40 + Math.floor(rng() * 5) * 10, from: d.id, stay: 3 + Math.floor(rng() * 3) };
 }
 /** total bonus from the crew for a kind of roll ('sea' | 'talk' | 'luck'), plus a fulfilled wish's +1 */
 export function crewBonus(state, kind, dark = false) {

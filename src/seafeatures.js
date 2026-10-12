@@ -75,6 +75,11 @@ function geos() {
 }
 
 export class SeaFeatures {
+  /** half-sunk wrecks are solid */
+  solids(out) {
+    for (const items of this.cells.values()) for (const o of items) if (o.type === 'wreck') out.push({ x: o.x, z: o.z, r: 3.4 });
+    return out;
+  }
   constructor(scene, world, seed, collected) {
     this.scene = scene; this.world = world; this.seed = seed; this.collected = collected;
     this.cells = new Map();
