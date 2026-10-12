@@ -64,6 +64,8 @@ const state = {
   collected: new Set((saved && saved.collected) || []),
   notes: (saved && saved.notes) || [],
   board: (saved && saved.board) || { pos: {}, ties: [], note: '', guess: [] },
+  halves: (saved && saved.halves) || {},   // arches that hold only half a riddle: isle id -> the isle with the other half
+  frags: (saved && saved.frags) || {},
   rumoured: (saved && saved.rumoured) || {},
   rep: (saved && saved.rep) || {},
   job: (saved && saved.job) || null,
@@ -79,7 +81,7 @@ const state = {
   charts: (saved && saved.charts) || {},
   stats: Object.assign({ dolphins: 0, whales: 0, fruitPicked: 0, dist: 0, harbours: 0, deliveries: 0, fish: 0, wrecks: 0, bottles: 0, sunk: 0, hails: 0, solved: 0, treasures: 0, cosmetics: 0 }, (saved && saved.stats) || {}),
   hp: saved && saved.hp != null ? saved.hp : 100,
-  ammo: saved && saved.ammo != null ? saved.ammo : 15,
+  ammo: saved && saved.ammo != null ? saved.ammo : 8,
   custom: Object.assign({}, DEFAULT_CUSTOM, (saved && saved.custom) || {}),
   owned: new Set((saved && saved.owned) || []),
   riddles: (saved && saved.riddles) || {},
@@ -227,7 +229,7 @@ function giveMap(id, from, reveal = false) {
 function saveNow() {
   if (params.get('fresh') || noSave) return false;
   lastSave = tNow;
-  store.set(SAVE_KEY, { seed: state.seed, gold: state.gold, dug: [...state.dug], discovered: state.discovered, loot: state.loot, upgrades: state.upgrades, collected: [...state.collected], notes: state.notes, board: state.board, rumoured: state.rumoured, rep: state.rep, job: state.job, serial: state.serial, sectorsSeen: state.sectorsSeen, jobHistory: state.jobHistory, buffs: state.buffs, stats: state.stats, quests: state.quests, fruit: state.fruit, harvest: state.harvest, dayN: state.dayN, greet: state.greet, charts: state.charts, hp: state.hp, ammo: state.ammo, custom: state.custom, owned: [...state.owned], riddles: state.riddles, attempts: state.attempts, catch: state.catch, fishLog: state.fishLog, hut: state.hut, passenger: state.passenger, story: state.story, crew: state.crew, cardsSeen: state.cardsSeen, haggle: state.haggle, tracked: state.tracked, goals: state.goals, hints: state.hints, time: state.time, windT: wind.t, pos: { x: ship.pos.x, z: ship.pos.z, h: ship.heading } });
+  store.set(SAVE_KEY, { seed: state.seed, gold: state.gold, dug: [...state.dug], discovered: state.discovered, loot: state.loot, upgrades: state.upgrades, collected: [...state.collected], notes: state.notes, board: state.board, halves: state.halves, frags: state.frags, rumoured: state.rumoured, rep: state.rep, job: state.job, serial: state.serial, sectorsSeen: state.sectorsSeen, jobHistory: state.jobHistory, buffs: state.buffs, stats: state.stats, quests: state.quests, fruit: state.fruit, harvest: state.harvest, dayN: state.dayN, greet: state.greet, charts: state.charts, hp: state.hp, ammo: state.ammo, custom: state.custom, owned: [...state.owned], riddles: state.riddles, attempts: state.attempts, catch: state.catch, fishLog: state.fishLog, hut: state.hut, passenger: state.passenger, story: state.story, crew: state.crew, cardsSeen: state.cardsSeen, haggle: state.haggle, tracked: state.tracked, goals: state.goals, hints: state.hints, time: state.time, windT: wind.t, pos: { x: ship.pos.x, z: ship.pos.z, h: ship.heading } });
   return true;
 }
 const SS_ART = ['.........FF.........', '.........M..........', '........MSS.........', '........MSSs........', '........MSSSs.......', '........MSSSSs......', '........MSSSSSs.....', '........MSSSSSss....', '........M...........', '..HHHHHHHHHHHHHHH...', '...HhhhhhhhhhhhHH...'];
@@ -798,9 +800,10 @@ function renderHarbour() {
 $('hbTabs').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b || !harbourIsl) return; if (b.dataset.t === 'sail') { closeModal(); return; } hbTab = b.dataset.t; audio.play('ui', { vol: 0.4 }); renderHarbour(); });
 // a red number on a sign when something waits there
 // the tutorial marks the sign (and the button) the current goal needs; goals later in the story carry no mark at all
-const tutorialGoal = () => { const g = objectives.current; return g && g.tab ? g : null; };
+const tutorialGoal = () => { const g = objectives.current; if (!g || !g.tab) return null; try { if (g.check({ state, ship, world })) return null; } catch (e) { /* not checkable yet */ } return g; };   // a goal already done carries no mark
 function tutorialMarks() {
-  const g = tutorialGoal();
+  let g = tutorialGoal();
+  if (g && g.id === 'job' && state.job && harbourIsl && state.job.toId !== harbourIsl.desc.id) g = null;   // accepted already: nothing to press here
   $('hbTabs').querySelectorAll('.post').forEach((b) => b.classList.toggle('next', !!g && b.dataset.t === g.tab));
   $('hbPane').querySelectorAll('.hl').forEach((e) => e.classList.remove('hl'));
   if (!g || hbTab !== g.tab) return;
@@ -809,6 +812,8 @@ function tutorialMarks() {
     if (el && !el.disabled) el.classList.add('hl');
   }
 }
+// pressing a marked button clears every mark at once (the goal catches up a moment later)
+$('hbPane').addEventListener('click', (e) => { if (e.target.closest('.hl')) { $('hbPane').querySelectorAll('.hl').forEach((x) => x.classList.remove('hl')); $('hbTabs').querySelectorAll('.next').forEach((x) => x.classList.remove('next')); } }, true);
 function postBadges(d, rep) {
   let due = (state.job && state.job.toId === d.id ? 1 : 0) + (state.passenger && state.passenger.toId === d.id ? 1 : 0);
   due += state.quests.filter((x) => x.giverId === d.id && questProgress(x, state) >= questNeed(x)).length;
@@ -990,6 +995,37 @@ function frameVillage(d) {
   const dx = d.x - ship.pos.x, dz = d.z - ship.pos.z, L = Math.hypot(dx, dz) || 1, ux = dx / L, uz = dz / L, px = -uz, pz = ux;
   ashoreCam = { pos: new THREE.Vector3(ship.pos.x + ux * 9 - px * 3, 7.5, ship.pos.z + uz * 9 - pz * 3), look: new THREE.Vector3(d.x - ux * d.r * 0.2 + px * d.r * 0.3, 2.5, d.z - uz * d.r * 0.2 + pz * d.r * 0.3) };
 }
+// ---- half riddles: now and then an arch holds only half a riddle; the other half is written on a second arch nearby
+const halfSeed = (d) => hash2(Math.round(d.x), Math.round(d.z), state.seed + 55) % 3;
+function partnerOf(d) {   // the isle holding the other half of this isle's riddle, or null
+  if (d.id === '1,-1' || halfSeed(d) !== 0) return null;
+  const list = nearby(world, d.x, d.z, 40, 450, 'treasure').filter((o) => o.d.id !== '1,-1' && o.d.id !== d.id && halfSeed(o.d) !== 0).sort((a, b) => a.dist - b.dist);
+  return list.length ? list[0].d : null;
+}
+function backOf(d) {   // an isle whose riddle is half-written on this one
+  for (const o of nearby(world, d.x, d.z, 40, 450, 'treasure')) { const p = partnerOf(o.d); if (p && p.id === d.id) return o.d; }
+  return null;
+}
+const halvesOf = (text) => { const w = text.split(' '), k = Math.max(2, Math.round(w.length * 0.55)); return [`${w.slice(0, k).join(' ')} ...`, `... ${w.slice(k).join(' ')}`]; };
+function readArch(d) {
+  const p = partnerOf(d), dark = d.dread > 0.5;
+  if (p && !state.riddles[p.id]) {
+    state.riddles[d.id] = halvesOf(d.puzzle.text)[0]; state.halves[d.id] = p.id;
+    toast(`The arch inscription stops mid-sentence: "${state.riddles[d.id]}" Only half a riddle. The rest must be written on another arch, ${bearingName(p.x - d.x, p.z - d.z)} of here.`, dark, 11000);
+  } else {
+    state.riddles[d.id] = d.puzzle.text;
+    toast(`The arch inscription reads: "${d.puzzle.text}"`, dark, 11000);
+    if (p) delete state.frags[p.id];   // its twin's end is already known
+  }
+  const a = backOf(d);
+  if (a) { state.frags[d.id] = halvesOf(a.puzzle.text)[1]; toast(`Scratched small on the back of the arch: "${state.frags[d.id]}" It reads like the end of something else.`, false, 9000); }
+  for (const [aid, bid] of Object.entries(state.halves)) {   // a twin has been read: the two halves fit
+    if (!state.riddles[bid]) continue;
+    const [cx, cz] = aid.split(',').map(Number), ad = world.desc(cx, cz);
+    delete state.halves[aid]; delete state.frags[bid];
+    if (ad) { state.riddles[aid] = ad.puzzle.text; toast(`The two halves fit: "${ad.puzzle.text}" (${ad.name})`, false, 11000); }
+  }
+}
 function tryInteract() {
   if (!started || modal) return;
   const tg = getInteract();
@@ -1027,12 +1063,10 @@ function tryInteract() {
   } else if (tg.kind === 'treasure' && !tg.isl.dug && !dig) {
     const d = tg.isl.desc;
     if (!state.riddles[d.id]) {
-      dig = { key: tg.key, t: 0, label: 'Reading the inscription...', need: 2.2, done: () => {
-        state.riddles[d.id] = d.puzzle.text;
-        toast(`The arch inscription reads: "${d.puzzle.text}"`, d.dread > 0.5, 11000);
-        objectives.remark('riddle');
-      } };
+      dig = { key: tg.key, t: 0, label: 'Reading the inscription...', need: 2.2, done: () => { readArch(d); objectives.remark('riddle'); } };
       audio.play('dig');
+    } else if (state.halves[d.id]) {
+      toast('Half a riddle is not enough to dig by. The other half is written on another arch.', false, 5000);
     } else {
       dig = { key: tg.key, t: 0, label: 'Digging...', need: 2.6 * ship.mods.digTime * (state.buffs.dig > 0 ? 0.7 : 1), done: () => {
         const ang = Math.atan2(ship.pos.z - d.z, ship.pos.x - d.x);
@@ -1490,9 +1524,9 @@ function onHitEnemy(s, dmg) {
   s.hp -= dmg;
   if (s.hp > 0) return;
   s.sinking = true; s.hostile = false; s.state = 'done'; s.engaged = false;
-  const gold = Math.round((45 + Math.random() * 70) * KINDS[s.kind].scale), balls = 3 + Math.floor(Math.random() * 4);
-  state.gold += gold; state.ammo += balls; state.stats.sunk++;
-  toast(`Raider sunk! +${gold} gold, +${balls} cannonballs`, false, 6000);
+  const gold = Math.round((45 + Math.random() * 70) * KINDS[s.kind].scale);   // cannonballs are only ever bought, so every volley counts
+  state.gold += gold; state.stats.sunk++;
+  toast(`Raider sunk! +${gold} gold`, false, 6000);
   if (state.stats.sunk === 1) toast('Unlocked: skull figurehead (see the shipyard).', false, 5000);
 }
 function sinkPlayer() {
@@ -1780,7 +1814,7 @@ function frame() {
 
 // handy for tests / screenshots
 window.__game = {
-  maraMood, windfx, logbook,
+  readArch, partnerOf, maraMood, windfx, logbook,
   audio,
   objectives, perrinNote, gateRadius: () => gateRadius(state),
   openCard, sighting, spawnSight: (id) => { const c = (SIGHTS[id] && drawCard(0, [], { [id]: 1 })); return c && sighting.spawn(c, ship, world); },

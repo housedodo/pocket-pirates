@@ -195,6 +195,15 @@ export function hullGeo(id) {
   return HULL_CACHE[id];
 }
 
+/** the cloth of the pennant, in a few shapes (the pole is separate) */
+function flagShape(b, shape) {
+  const uv = [[0, 1], [0, 0], [1, 0.5]], T = TILE.flag;
+  if (shape === 'swallow') { b.tri([0, 0.4, 0], [0, -0.1, 0], [0, 0.15, 1.2], '#ffffff', T, uv); b.tri([0, 0.4, 0], [0, 0.15, 1.2], [0, 0.4, 1.8], '#ffffff', T, uv); b.tri([0, -0.1, 0], [0, -0.1, 1.8], [0, 0.15, 1.2], '#ffffff', T, uv); }
+  else if (shape === 'banner') b.quad([0, 0.45, 0], [0, -0.15, 0], [0, -0.15, 1.3], [0, 0.45, 1.3], '#ffffff', T);
+  else if (shape === 'streamer') b.tri([0, 0.22, 0], [0, 0, 0], [0, 0.11, 3.2], '#ffffff', T, uv);
+  else b.tri([0, 0.35, 0], [0, -0.05, 0], [0, 0.15, 1.7], '#ffffff', T, uv);
+}
+function flagGeo(shape) { const b = new Builder(); b.doubleSided = true; b.box(0, -0.1, 0, 0.08, 0.5, 0.08, '#ffffff', TILE.bark); flagShape(b, shape); return b.geometry(); }
 // small figureheads, built on demand
 function buildFigure(id) {
   if (id === 'none') return null;
@@ -241,7 +250,7 @@ export class Ship {
     this.hullMesh = new THREE.Mesh(shipGeos().hull, mats.props);
     this.hullLook = new THREE.Mesh(new THREE.BufferGeometry(), mats.props); this.hullMesh.add(this.hullLook);
     this.root.add(this.hullMesh);
-    this.figureGroup = new THREE.Group(); this.figureGroup.position.set(0, 1.7, -3.9); this.figureGroup.scale.setScalar(1.5); this.root.add(this.figureGroup);
+    this.figureGroup = new THREE.Group(); this.figureGroup.position.set(0, 1.7, -3.9); this.figureGroup.scale.setScalar(1.05); this.root.add(this.figureGroup);
     this.custom = { ...DEFAULT_CUSTOM };
 
     this.sailPivot = new THREE.Group();
@@ -261,7 +270,7 @@ export class Ship {
     this.flag.position.set(0, 7.35, -0.3);
     const fb = new Builder(); fb.doubleSided = true;
     fb.box(0, -0.1, 0, 0.08, 0.5, 0.08, '#ffffff', TILE.bark);
-    fb.tri([0, 0.35, 0], [0, -0.05, 0], [0, 0.15, 1.7], '#ffffff', TILE.flag, [[0, 1], [0, 0], [1, 0.5]]);
+    flagShape(fb, 'pennant');
     const db = new Builder(); db.doubleSided = true;
     db.box(0, -0.1, 0, 0.08, 0.5, 0.08, '#ffffff', TILE.bark);
     db.quad([0, 0.55, 0], [0, -0.2, 0], [0, -0.2, 1.4], [0, 0.55, 1.4], '#ffffff', TILE.skull);
@@ -339,6 +348,7 @@ export class Ship {
     const sl = byId(SAILS, this.custom.sail);
     mats.sail.color.setRGB(...sl.tint);
     mats.flagP.color.set(byId(FLAGS, this.custom.flag).color);
+    if (this.flagShapeNow !== this.custom.flagshape) { this.flagShapeNow = this.custom.flagshape; this.flagBright.geometry = flagGeo(this.custom.flagshape); }
     for (const ch of [...this.figureGroup.children]) { this.figureGroup.remove(ch); ch.geometry.dispose(); }
     const g = buildFigure(this.custom.figure);
     if (g) this.figureGroup.add(new THREE.Mesh(g, mats.props));

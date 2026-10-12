@@ -125,15 +125,15 @@ export class SeaFeatures {
     const dread = dreadAtDistance(Math.hypot(bx, bz));
     const add = (o) => { items.push(o); if (o.mesh) this.scene.add(o.mesh); };
 
-    if (roll < 0.22) {
-      const n = 1 + Math.floor(rng() * 3);
+    if (roll < 0.1) {   // floating salvage is a small treat, not litter
+      const n = 1 + Math.floor(rng() * 2);
       for (let i = 0; i < n; i++) {
         const id = `b:${cx},${cz}:${i}`;
         if (this.collected.has(id)) continue;
         const m = new THREE.Mesh(barrelGeo, mats.props);
         add({ type: 'barrel', id, x: bx + (rng() - 0.5) * 9, z: bz + (rng() - 0.5) * 9, mesh: m, phase: rng() * 6, dread });
       }
-    } else if (roll < 0.36) {
+    } else if (roll < 0.26) {
       const id = `bt:${cx},${cz}`;
       if (!this.collected.has(id)) {
         const m = new THREE.Mesh(bottleGeo, mats.props); m.scale.setScalar(1.8);

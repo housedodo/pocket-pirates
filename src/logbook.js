@@ -11,7 +11,7 @@ import { pxi } from './pixelui.js';
 
 // The captain's log: an old low-poly book. Tabs are cloth bookmarks sticking out of the right side, content flows over two pages
 // (turn with the arrows below / Up and Down), and the Map is a hand-inked low-poly chart.
-const TABS = [['map', 'Map', ''], ['goals', 'Goals', ''], ['quests', 'Quests', ''], ['board', 'Board', ''], ['journal', 'Journal', ''], ['ship', 'Ship', ''], ['standing', 'Standing', '']];
+const TABS = [['map', 'Map', ''], ['goals', 'Goals', ''], ['quests', 'Quests', ''], ['riddles', 'Riddles', ''], ['journal', 'Journal', ''], ['ship', 'Ship', ''], ['standing', 'Standing', '']];
 const W = 880, H = 470;
 const INK = '#3a2210';
 
@@ -190,9 +190,9 @@ export class Logbook {
   }
 
   render() {
-    this.body.className = this.tab === 'map' ? 'full' : this.tab === 'board' ? 'board' : 'cols';
+    this.body.className = this.tab === 'map' ? 'full' : 'cols';
     this.body.scrollLeft = 0;
-    ({ map: this.renderMap, goals: this.renderGoals, quests: this.renderQuests, board: this.renderBoard, journal: this.renderJournal, ship: this.renderShip, standing: this.renderStanding })[this.tab].call(this);
+    ({ map: this.renderMap, goals: this.renderGoals, quests: this.renderQuests, riddles: this.renderRiddles, journal: this.renderJournal, ship: this.renderShip, standing: this.renderStanding })[this.tab].call(this);
     requestAnimationFrame(() => this.turn(0));
   }
 
@@ -248,64 +248,25 @@ export class Logbook {
     this.body.querySelectorAll('[data-track]').forEach((x) => x.addEventListener('click', () => { state.tracked = x.dataset.track; this.d.retrack(); this.render(); }));
   }
 
-  // ------------------------------------------------------------ the board: every clue as a card, tied together by hand.
-  // Nothing here is checked. The strings and pencil circles are only the player's own memory.
-  boardCards() {
-    const { state, world } = this.d, cards = [];
-    for (const id of Object.keys(state.riddles)) {
-      const [cx, cz] = id.split(',').map(Number), d = world.desc(cx, cz), known = !!(d && (state.rumoured[id] || state.discovered[id]));
-      cards.push({ id: 'r:' + id, kind: 'RIDDLE', cls: 'rid', text: `\u201c${state.riddles[id]}\u201d`, src: known ? d.name : 'a treasure arch', done: state.dug.has(id) });
+  // ------------------------------------------------------------ riddles: only the open ones. A solved riddle moves to the Journal.
+  renderRiddles() {
+    const { state, world, ship } = this.d;
+    const open = Object.keys(state.riddles).filter((id) => !state.dug.has(id));
+    let html = h3('Treasure riddles');
+    if (!open.length) html += '<div class="riddle dim"><i>None open.</i><small>Sail up to a treasure isle and press E to study the arch: it names the shore where the chest is buried.</small></div>';
+    for (const id of open) {
+      const [cx, cz] = id.split(',').map(Number), d = world.desc(cx, cz);
+      const known = !!(d && (state.rumoured[id] || state.discovered[id])), where = known ? (() => { const dx = d.x - ship.pos.x, dz = d.z - ship.pos.z; return `${bearingName(dx, dz)}, ~${Math.round(Math.hypot(dx, dz))} fathoms`; })() : '';
+      let half = '';
+      const pid = state.halves && state.halves[id];
+      if (pid) { const [px, pz] = pid.split(',').map(Number), pd = world.desc(px, pz); half = `<small class="half">Only half a riddle. The other half is written on another arch${pd ? `, ${bearingName(pd.x - ship.pos.x, pd.z - ship.pos.z)} of here, about ${Math.round(Math.hypot(pd.x - ship.pos.x, pd.z - ship.pos.z))} fathoms` : ''}.</small>`; }
+      const frag = state.frags && state.frags[id] ? `<small class="half">Scratched on the back: \u201c${state.frags[id]}\u201d (it belongs to another riddle)</small>` : '';
+      html += `<div class="riddle"><b>${known ? d.name : 'A riddle with no address'}</b><p>\u201c${state.riddles[id]}\u201d</p>${half}${frag}${where ? `<small>${where}</small>` : ''}<button class="mini" data-pencil="${id}">Pencil on the map</button></div>`;
     }
-    for (const [id, r] of Object.entries(state.rumoured)) cards.push({ id: 'u:' + id, kind: 'RUMOUR', cls: 'rum', text: `Something on ${r.name}.`, src: r.source || 'a rumour', done: !!r.found });
-    state.notes.forEach((n, i) => cards.push({ id: 'b:' + i, kind: /'s chart:/.test(n.text) ? 'CHART NOTE' : 'BOTTLE', cls: /'s chart:/.test(n.text) ? 'rid' : 'bot', text: n.text.replace(/^.*'s chart: /, ''), src: /'s chart:/.test(n.text) ? n.text.split("'s chart")[0] : 'found at sea', dark: n.dark }));
-    return cards;
-  }
-
-  renderBoard() {
-    const { state } = this.d;
-    const B = state.board || (state.board = { pos: {}, ties: [], note: '', guess: [] });
-    const cards = this.boardCards(), esc = (t) => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;');
-    cards.forEach((c, i) => { if (!B.pos[c.id]) B.pos[c.id] = [24 + (i % 4) * 214 + ((i * 37) % 14), 22 + Math.floor(i / 4) * 128 + ((i * 53) % 12)]; });
-    const rows = Math.max(1, Math.ceil(cards.length / 4));
-    this.sel = this.sel && cards.some((c) => c.id === this.sel) ? this.sel : null; this.tie = null;
-    this.body.innerHTML = `<div class="bd"><div class="cork" id="cork" style="min-height:${rows * 128 + 40}px"><svg id="bstr" class="str" shape-rendering="crispEdges"></svg>`
-      + (cards.length ? cards.map((c) => `<div class="bcard ${c.cls}${c.done ? ' done' : ''}${c.dark ? ' dk' : ''}" data-id="${c.id}"><h4>${c.kind}</h4><p>${esc(c.text)}</p><small>${esc(c.src)}${c.done ? ' · done' : ''}</small></div>`).join('')
-        : '<div class="bempty">Nothing pinned yet. Riddles, rumours, bottles and chart notes land here as you find them.</div>') + '</div>'
-      + `<div class="bbar"><textarea id="bnote" rows="2" maxlength="160" placeholder="Pencil a note to yourself...">${esc(B.note || '')}</textarea><div class="bacts"><span id="bhint">Nobody checks the strings.</span>`
-      + `<button class="mini" id="btie">Tie to...</button><button class="mini" id="bcut">Cut strings</button><button class="mini" id="bmap">On the map</button></div></div></div>`;
-    const cork = document.getElementById('cork'), svg = document.getElementById('bstr'), hint = document.getElementById('bhint');
-    const el = (id) => cork.querySelector(`[data-id="${id}"]`);
-    const draw = () => {
-      svg.setAttribute('width', cork.scrollWidth); svg.setAttribute('height', cork.scrollHeight);
-      svg.innerHTML = B.ties.map(([a, b, t]) => { const A = el(a), Z = el(b); if (!A || !Z) return ''; const x1 = A.offsetLeft + A.offsetWidth / 2, y1 = A.offsetTop + 8, x2 = Z.offsetLeft + Z.offsetWidth / 2, y2 = Z.offsetTop + 8;
-        return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${t === 'd' ? '#2a2a60' : '#c8402a'}" stroke-width="4"${t === 'd' ? ' stroke-dasharray="12 8"' : ''}/>`; }).join('');
-    };
-    const place = (c) => { const e = el(c.id), [x, y] = B.pos[c.id]; e.style.left = x + 'px'; e.style.top = y + 'px'; };
-    const mark = () => cork.querySelectorAll('.bcard').forEach((e) => { e.classList.toggle('sel', e.dataset.id === this.sel); e.classList.toggle('dim', !!this.tie && e.dataset.id === this.tie); });
-    cards.forEach(place); requestAnimationFrame(draw); mark();
-    let drag = null;
-    cork.addEventListener('pointerdown', (e) => {
-      const c = e.target.closest('.bcard'); if (!c) { this.sel = null; this.tie = null; hint.textContent = 'Nobody checks the strings.'; mark(); return; }
-      const id = c.dataset.id;
-      if (this.tie && this.tie !== id) {
-        const i = B.ties.findIndex(([a, b]) => (a === this.tie && b === id) || (a === id && b === this.tie));
-        if (i < 0) B.ties.push([this.tie, id, 's']); else if (B.ties[i][2] === 's') B.ties[i][2] = 'd'; else B.ties.splice(i, 1);
-        this.tie = null; this.sel = id; hint.textContent = 'Red: sure. Dashed: a doubt.'; document.getElementById('btie').classList.remove('on'); mark(); draw(); return;
-      }
-      this.sel = id; mark();
-      drag = { id, x: e.clientX, y: e.clientY, ox: B.pos[id][0], oy: B.pos[id][1] }; cork.setPointerCapture(e.pointerId);
-    });
-    cork.addEventListener('pointermove', (e) => {
-      if (!drag) return;
-      const x = Math.max(0, Math.min(cork.clientWidth - 150, drag.ox + e.clientX - drag.x)), y = Math.max(0, Math.min(cork.scrollHeight - 80, drag.oy + e.clientY - drag.y));
-      B.pos[drag.id] = [Math.round(x / 4) * 4, Math.round(y / 4) * 4]; place({ id: drag.id }); draw();
-    });
-    cork.addEventListener('pointerup', () => { drag = null; });
-    document.getElementById('btie').onclick = (e) => { if (!this.sel) { hint.textContent = 'Pick a card first.'; return; } this.tie = this.tie ? null : this.sel; e.target.classList.toggle('on', !!this.tie); hint.textContent = this.tie ? 'Now pick the card to tie it to.' : ''; mark(); };
-    document.getElementById('bcut').onclick = () => { if (!this.sel) return; B.ties = B.ties.filter(([a, b]) => a !== this.sel && b !== this.sel); draw(); };
-    document.getElementById('bmap').onclick = () => { if (!this.sel) { hint.textContent = 'Pick a card first.'; return; } this._fromBoard = true; this.pencil = this.sel; this.open('map'); this._fromBoard = false; };
-    document.getElementById('bnote').addEventListener('input', (e) => { B.note = e.target.value; });
-    document.getElementById('bnote').addEventListener('keydown', (e) => { if (e.code !== 'Escape') e.stopPropagation(); });
+    const rums = Object.values(state.rumoured).filter((r) => !r.found);
+    if (rums.length) { html += h3('Rumours'); for (const r of rums) { const dx = r.x - ship.pos.x, dz = r.z - ship.pos.z; html += ent(r.name, `${bearingName(dx, dz)}, ~${Math.round(Math.hypot(dx, dz))} fathoms \u00b7 ${r.source || ''}`, '?'); } }
+    this.body.innerHTML = html;
+    this.body.querySelectorAll('[data-pencil]').forEach((x) => x.addEventListener('click', () => { this._fromBoard = true; this.pencil = 'r:' + x.dataset.pencil; this.open('map'); this._fromBoard = false; }));
   }
 
   renderJournal() {
@@ -322,6 +283,8 @@ export class Logbook {
     html += h3('Hold') + ent('Fish', state.catch.length ? `${state.catch.length} to sell` : 'none') + ent('Fruit', fruits.length ? fruits.map(([f, n]) => `${n} ${fruitName(f, dread)}`).join(', ') : 'none');
     html += h3(`Treasures (${state.loot.length})`);
     html += state.loot.length ? state.loot.slice(-6).reverse().map((l) => ent(l.name, '', `${l.value}g`, l.dark ? 'dk' : '')).join('') + more(state.loot, 6) : ent('None yet', '', '', 'dim');
+    const solved = Object.keys(state.riddles).filter((id) => state.dug.has(id));
+    if (solved.length) { html += h3(`Solved riddles (${solved.length})`); for (const id of solved) { const [cx, cz] = id.split(',').map(Number), d = this.d.world.desc(cx, cz); html += ent(d ? d.name : 'A treasure isle', `\u201c${state.riddles[id]}\u201d`, pxi('check'), 'done'); } }
     html += h3(`Bottles (${state.notes.length})`);
     html += state.notes.length ? state.notes.slice(-4).reverse().map((n) => `<div class="ent ${n.dark ? 'dk' : ''}"><small>“${n.text}”</small></div>`).join('') : ent('None yet', '', '', 'dim');
     this.body.innerHTML = html;

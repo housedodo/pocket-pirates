@@ -22,6 +22,16 @@ export const FLAGS = [
   { id: 'green', name: 'Green', cost: 10, color: '#3fa650' },
   { id: 'white', name: 'White', cost: 10, color: '#f4f0e6' },
   { id: 'violet', name: 'Violet', cost: 10, color: '#9a58d0' },
+  { id: 'orange', name: 'Orange', cost: 10, color: '#e8803a' },
+  { id: 'teal', name: 'Teal', cost: 10, color: '#2fa59a' },
+  { id: 'pink', name: 'Pink', cost: 10, color: '#f08ab0' },
+  { id: 'black', name: 'Black', cost: 15, color: '#2a2a32' },
+];
+export const FLAG_SHAPES = [
+  { id: 'pennant', name: 'Pennant', cost: 0 },
+  { id: 'swallow', name: 'Swallowtail', cost: 10 },
+  { id: 'banner', name: 'Banner', cost: 10 },
+  { id: 'streamer', name: 'Long streamer', cost: 15 },
 ];
 export const FIGURES = [
   { id: 'none', name: 'None', cost: 0 },
@@ -31,6 +41,6 @@ export const FIGURES = [
   { id: 'lion', name: 'Golden lion', cost: 90, req: 'Be well known at a harbour (3 stars)', ok: (s) => Object.values(s.rep).some((r) => Math.min(3, Math.floor((r.visits + 2 * r.deliveries) / 3)) >= 3) },
   { id: 'skull', name: 'Skull', cost: 70, req: 'Sink a raider', ok: (s) => s.stats.sunk >= 1 },
 ];
-export const GROUPS = [['hull', 'Hull paint', HULLS], ['sail', 'Sails', SAILS], ['flag', 'Pennant', FLAGS], ['figure', 'Figurehead', FIGURES]];
-export const DEFAULT_CUSTOM = { hull: 'oak', sail: 'canvas', flag: 'red', figure: 'none' };
+export const GROUPS = [['hull', 'Hull paint', HULLS], ['sail', 'Sails', SAILS], ['flag', 'Pennant colour', FLAGS], ['flagshape', 'Pennant shape', FLAG_SHAPES], ['figure', 'Figurehead', FIGURES]];
+export const DEFAULT_CUSTOM = { hull: 'oak', sail: 'canvas', flag: 'red', flagshape: 'pennant', figure: 'none' };
 export const byId = (list, id) => list.find((o) => o.id === id) || list[0];

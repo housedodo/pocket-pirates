@@ -105,7 +105,7 @@ export class Traffic {
     const aim = Math.atan2(ship.pos.x - x + (Math.random() - 0.5) * 200, -(ship.pos.z - z + (Math.random() - 0.5) * 200));
     const parts = this.build(kind, faction, mode === 'ghost');
     this.scene.add(parts.root);
-    const hostile = !this.noRaiders && mode === 'live' && faction.id === 'reef' && Math.random() < 0.6;   // no raiders until you have cannons
+    const hostile = !this.noRaiders && mode === 'live' && faction.id === 'reef' && Math.random() < 0.22 && !this.ships.some((q) => q.hostile && !q.sinking);   // raiders are rare: one at a time, now and then   // no raiders until you have cannons
     this.ships.push(armed({
       ...parts, id: this.nextId++, kind, mode, faction, sector, x, z, heading: aim,
       speed: mode === 'live' ? K.speed[0] + Math.random() * (K.speed[1] - K.speed[0]) : mode === 'derelict' ? 1.2 : 3.2,
@@ -237,12 +237,13 @@ export class Traffic {
       else if (s.hostile) {
         const dx = ship.pos.x - s.x, dz = ship.pos.z - s.z, dd = Math.hypot(dx, dz);
         s.engaged = dd < 85;
+        if (dd > 210 && s.age > 20) s.hostile = false;   // they give up the chase when you pull away
         if (dd < 170) {
           let want = Math.atan2(dx, -dz);
           if (dd < 50) want += s.circle * 1.45;
           s.heading += clamp(angleDiff(s.heading, want), -0.7 * dt, 0.7 * dt);
           s.speed = K.speed[1] * 0.95;
-        }
+        } else s.speed = Math.max(s.speed, K.speed[0]);   // never idle in the water
       }
       if (s.mode === 'derelict') s.heading += Math.sin(s.age * 0.07 + i) * 0.03 * dt;
       s.x += Math.sin(s.heading) * s.speed * dt; s.z -= Math.cos(s.heading) * s.speed * dt;

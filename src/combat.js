@@ -75,10 +75,12 @@ export class Combat {
       if (!s.hostile || s.hp <= 0 || s.sinking || !s.engaged) continue;
       s.fireCd -= dt;
       if (s.fireCd <= 0) {
-        s.fireCd = rnd(3.4, 5.2);
+        s.fireCd = rnd(4.6, 7);
         const rx = Math.cos(s.heading), rz = Math.sin(s.heading);
         const side = ((ship.pos.x - s.x) * rx + (ship.pos.z - s.z) * rz) >= 0 ? 1 : -1;
-        this.launch(1, s.x + rx * side * 1.5, s.z + rz * side * 1.5, ship.pos.x, ship.pos.z, Math.sin(ship.heading) * ship.speed, -Math.cos(ship.heading) * ship.speed, 7 + Math.random() * 3, 0.16);
+        this.launch(1, s.x + rx * side * 1.5, s.z + rz * side * 1.5, ship.pos.x, ship.pos.z, Math.sin(ship.heading) * ship.speed, -Math.cos(ship.heading) * ship.speed, 7 + Math.random() * 3,
+          // they miss a lot: more the faster you sail (a ship running well before the wind is hard to hit), and now and then wildly
+          0.3 + 0.5 * Math.min(1, ship.speed / 8) + (Math.random() < 0.4 ? 0.9 : 0));
       }
     }
 
