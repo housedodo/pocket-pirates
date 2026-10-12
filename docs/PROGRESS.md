@@ -391,3 +391,7 @@ Read it before building any story part. Decided so far: the final throw of the L
 
 ## Autosave cue
 - A small, compact (120x52) pixel ship sails across a wave strip (bottom right, "Voyage saved") when the game saves at a quest completion or on docking at a harbour. It appears only when a save really happens (not in `?fresh=1`); the silent periodic save every 4 s continues. Drawn in `main.js` (`SS_ART`), styled in `index.html` (`#saveship`).
+
+## Concepts: log board and encounter scenes (not built)
+- `docs/concept/log-board.html` (+ `log-board-a/b.png`): the captain's log as a deduction board. Clue cards on cork, red string for sure and dashed for doubt, pencil notes, "On the map" pencil circles. Nothing is ever marked right or wrong.
+- `docs/concept/encounter.html` (+ `encounter-a/b/c.png`): one-time dice scenes at sea (Talk, Sail, Look, Offer, Leave). Once per voyage, remembered by the world, never required.

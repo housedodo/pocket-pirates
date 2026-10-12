@@ -1,0 +1,77 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Encounter scenes</title>
+<style>
+  @font-face { font-family: 'DotGothic16'; src: url(../../public/fonts/dotgothic.woff2) format('woff2'); }
+  @font-face { font-family: 'Pirata One'; src: url(../../public/fonts/pirataone.woff2) format('woff2'); }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 16px; background: #0b0a12; color: #f4ead0; font: 16px 'DotGothic16', monospace; }
+  h1 { font-size: 32px; font-weight: 400; color: #ffd23a; margin: 0 0 8px; } .lead, .cap { color: #c9b890; max-width: 1180px; } .cap { margin: 0 0 32px; } .cap b { color: #ffd23a; font-weight: 400; }
+  .frame { position: relative; width: 1280px; height: 720px; overflow: hidden; margin-bottom: 8px; background: linear-gradient(#2a2058 0 36%, #d8806a 36% 40%, #2a5a9a 40% 100%); }
+  .sun { position: absolute; left: 820px; top: 210px; width: 120px; height: 60px; background: #ffb050; box-shadow: 0 0 0 8px #ff8a50; }
+  .px { background: #1d1640; box-shadow: 0 -4px 0 #c9a85c, 0 4px 0 #c9a85c, -4px 0 0 #c9a85c, 4px 0 0 #c9a85c, 8px 8px 0 4px rgba(0,0,0,.45); }
+  .wave { position: absolute; left: 0; right: 0; height: 8px; background: repeating-linear-gradient(90deg, #4a8ad0 0 24px, transparent 24px 56px); }
+  .boat { position: absolute; } .hull { position: absolute; background: #5a3a1c; box-shadow: inset 0 -8px 0 #3a2210; } .sail { position: absolute; background: #e8dcc0; box-shadow: inset -8px 0 0 #c9b890; } .mast { position: absolute; background: #3a2210; }
+  .name { font: 40px 'Pirata One', serif; color: #f4ead0; text-shadow: 3px 3px 0 #5a1612; position: absolute; left: 0; right: 0; top: 16px; text-align: center; }
+  .scene { position: absolute; left: 24px; top: 80px; width: 500px; padding: 12px 16px; }
+  .sec { color: #ffd23a; margin-bottom: 4px; }
+  .acts { position: absolute; left: 24px; right: 24px; bottom: 24px; display: flex; gap: 12px; }
+  .act { flex: 1; padding: 10px 12px; background: repeating-linear-gradient(0deg, #6a4424 0 10px, #5a3a1c 10px 12px); box-shadow: inset 0 -5px 0 #3a2210, inset 0 4px 0 #8a5a30, 6px 6px 0 rgba(0,0,0,.4); text-shadow: 2px 2px 0 #1a0606; }
+  .act b { display: block; font-weight: 400; color: #ffd23a; } .act small { display: block; color: #e8d8b0; } .act.on { outline: 4px solid #ffd23a; transform: translateY(-8px); }
+  .tag { position: absolute; right: 24px; top: 80px; width: 300px; padding: 10px 14px; }
+  .die { display: inline-block; width: 72px; height: 72px; line-height: 72px; text-align: center; font-size: 40px; background: #e8dcc0; color: #3a2210; box-shadow: inset -6px -6px 0 #b8a880, 6px 6px 0 rgba(0,0,0,.4); }
+  .badge { display: inline-block; padding: 0 6px; background: #c8402a; margin-left: 6px; }
+  .rem { color: #b8e8b0; } .mark { color: #ff90d8; }
+</style></head><body>
+<h1>One-time encounter scenes</h1>
+<p class="lead">At sea a rare sign (a boat adrift, a light where none should be) can open a short scene. Four approaches, one die. Each scene happens once per voyage and the world remembers how you handled it. Nothing here is "win or lose": every outcome moves something.</p>
+
+<div class="frame">
+  <div class="sun"></div><div class="wave" style="top:300px"></div><div class="wave" style="top:380px;left:24px"></div><div class="wave" style="top:470px;left:12px"></div>
+  <div class="boat" style="left:760px;top:310px"><div class="mast" style="left:46px;top:-100px;width:8px;height:100px"></div><div class="sail" style="left:56px;top:-96px;width:56px;height:80px"></div><div class="hull" style="left:0;top:0;width:128px;height:32px"></div></div>
+  <div class="boat" style="left:140px;top:380px"><div class="mast" style="left:100px;top:-150px;width:10px;height:150px"></div><div class="sail" style="left:112px;top:-146px;width:88px;height:120px"></div><div class="hull" style="left:0;top:0;width:210px;height:48px"></div></div>
+  <div class="name">A boat adrift</div>
+  <div class="scene px"><div class="sec">DUSK · OFF PORT VELTO</div>A small boat, sails slack, rides low in the water. Somebody sits at the stern with their back to you, humming. The tune is a lullaby you almost know.</div>
+  <div class="tag px"><div class="sec">THE SEA KNOWS</div>Day 4 · thrown 3 at the hut<br><span class="mark">The boat is closer than it was.</span></div>
+  <div class="acts">
+    <div class="act on"><b>Talk</b>Hail them<small>d20 + Talk</small></div>
+    <div class="act"><b>Sail</b>Come alongside<small>d20 + Sail</small></div>
+    <div class="act"><b>Look</b>Study the boat<small>d20 + Eye</small></div>
+    <div class="act"><b>Offer</b>Hold up a fish<small>give up one</small></div>
+    <div class="act"><b>Leave</b>Sail on<small>no roll</small></div>
+  </div>
+</div>
+<p class="cap"><b>A · The choice.</b> The scene sits over the sea you were already sailing, in the light of the hour and with the weather you had. Five approaches along the bottom, in the same signpost style as the harbour: Talk, Sail, Look, Offer or just Leave (no roll, a quiet outcome of its own). The scene text is two or three lines and implies. The box on the right is how the world has already noticed you, never an explanation.</p>
+
+<div class="frame">
+  <div class="sun"></div><div class="wave" style="top:300px"></div><div class="wave" style="top:380px;left:24px"></div><div class="wave" style="top:470px;left:12px"></div>
+  <div class="boat" style="left:640px;top:310px"><div class="mast" style="left:46px;top:-100px;width:8px;height:100px"></div><div class="sail" style="left:56px;top:-96px;width:56px;height:80px"></div><div class="hull" style="left:0;top:0;width:128px;height:32px"></div></div>
+  <div class="boat" style="left:380px;top:380px"><div class="mast" style="left:100px;top:-150px;width:10px;height:150px"></div><div class="sail" style="left:112px;top:-146px;width:88px;height:120px"></div><div class="hull" style="left:0;top:0;width:210px;height:48px"></div></div>
+  <div class="name">A boat adrift</div>
+  <div class="scene px" style="width:560px"><div class="die">14</div> <span style="vertical-align:top">&nbsp;Talk, 14 + 2 = 16</span>
+    <p style="margin:12px 0 0">"Tide's the same as yesterday," they say, without turning. "Take the net. It is dry. I do not need it back."</p>
+    <p class="rem" style="margin:8px 0 0">+ A dry net. (A lamp in it is still lit.)</p></div>
+  <div class="tag px"><div class="sec">REMEMBERED</div>The humming stranger.<br>They will greet you again, at a harbour, by name.<br><span class="mark">Port Velto's fishing boat did not come home.</span></div>
+  <div class="acts">
+    <div class="act"><b>Take the net</b><small>an item for the log</small></div>
+    <div class="act"><b>Ask where they are bound</b><small>a rumour, maybe false</small></div>
+    <div class="act on"><b>Leave</b><small>sail on</small></div>
+  </div>
+</div>
+<p class="cap"><b>B · The outcome.</b> The die result shows with its roll, then a short line of what is said and one small gain. Then two or three plain follow-ups. High throws are generous; low throws are not punished with damage but with something changing: a worse price tomorrow, a stranger who stops talking, a second encounter nearby. Whatever happens is remembered: the same stranger can return at a harbour, and the fishing boat of the nearest village changes with the choice. Scenes are one-shot per voyage so that nobody can farm them.</p>
+
+<div class="frame" style="background:#14102c">
+  <div class="name" style="top:24px">Five scenes, one example each</div>
+  <div class="px" style="position:absolute;left:40px;top:100px;width:1200px;padding:16px 24px">
+    <div class="sec">WHAT CAN OPEN A SCENE</div>
+    <div style="display:grid;grid-template-columns:200px 1fr 1fr;gap:6px 18px">
+      <b style="color:#ffd23a;font-weight:400">Sign at sea</b><span>A boat adrift at dusk</span><span>Talk gets a dry net and a name; Look sees the lamp is lit; Offer a fish gets the stranger back later.</span>
+      <b style="color:#ffd23a;font-weight:400">A light on the water</b><span>A lantern bobbing in fog</span><span>Sail follows it to an unmarked shoal; Talk calls out and is answered in your own voice.</span>
+      <b style="color:#ffd23a;font-weight:400">A ship that sails the wrong way</b><span>Heading west at the regatta</span><span>Look reads the name on the stern; it matches a ship the log lists as lost.</span>
+      <b style="color:#ffd23a;font-weight:400">A message in the sand</b><span>A shore, low tide</span><span>Look finds the letters; Offer leaves something; the tide reads it back as a riddle later.</span>
+      <b style="color:#ffd23a;font-weight:400">A crew member's problem</b><span>Mara stops at a bell</span><span>Talk asks; Look watches; her answer depends on the fate you threw and what she has seen.</span>
+    </div>
+    <p style="color:#b8a8d8;margin-top:12px">Each is a dice scene with four approaches. They are rare, appear once per voyage, and are never required.</p>
+  </div>
+</div>
+<p class="cap"><b>C · What opens a scene.</b> Five starting points, to show the range: the sea, a ship, the shore and your own crew. They are kept rare (about one a day, never in a harbour) and always optional, so the game stays calm for a player who sails past. Later scenes are tied to the schedule: a boat adrift only on Fridays, the wrong-way ship only on regatta day.</p>
+</body></html>

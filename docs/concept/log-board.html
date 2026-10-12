@@ -1,0 +1,98 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>The log board</title>
+<style>
+  @font-face { font-family: 'DotGothic16'; src: url(../../public/fonts/dotgothic.woff2) format('woff2'); }
+  @font-face { font-family: 'Pirata One'; src: url(../../public/fonts/pirataone.woff2) format('woff2'); }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 16px; background: #0b0a12; color: #f4ead0; font: 16px 'DotGothic16', monospace; }
+  h1 { font-size: 32px; font-weight: 400; color: #ffd23a; margin: 0 0 8px; } .lead, .cap { color: #c9b890; max-width: 1180px; } .cap { margin: 0 0 32px; } .cap b { color: #ffd23a; font-weight: 400; }
+  .frame { position: relative; width: 1280px; height: 720px; overflow: hidden; background: #0e0b1c url(hoist-bg2.png) center / cover; margin-bottom: 8px; }
+  .frame::before { content: ""; position: absolute; inset: 0; background: rgba(8,6,22,.55); }
+  .px { background: #1d1640; box-shadow: 0 -4px 0 #c9a85c, 0 4px 0 #c9a85c, -4px 0 0 #c9a85c, 4px 0 0 #c9a85c, 8px 8px 0 4px rgba(0,0,0,.45); }
+  .book { position: absolute; left: 40px; top: 40px; width: 1200px; height: 640px; background: #5a3a1c; box-shadow: 0 0 0 6px #3a2210, 10px 10px 0 6px rgba(0,0,0,.5); padding: 14px; }
+  .board { position: relative; width: 100%; height: 100%; background: repeating-conic-gradient(#b8905a 0 25%, #a8824e 0 50%) 0 0 / 8px 8px; box-shadow: inset 0 0 0 4px #3a2210, inset 0 0 40px rgba(0,0,0,.45); overflow: hidden; }
+  .tabs { position: absolute; top: -34px; left: 24px; display: flex; gap: 8px; }
+  .tab { padding: 4px 12px; background: #7a5a30; color: #f4ead0; box-shadow: inset 0 -4px 0 #3a2210; }
+  .tab.on { background: #d8c08a; color: #3a2210; }
+  .card { position: absolute; width: 220px; padding: 16px 12px 10px; background: #e8d9a8; color: #3a2210; box-shadow: inset 0 0 0 3px #c9b07a, 6px 6px 0 rgba(0,0,0,.4); }
+  .card h4 { margin: 0 0 4px; font: 16px 'DotGothic16'; color: #7a3a1c; letter-spacing: 1px; }
+  .card p { margin: 0; }
+  .card small { display: block; margin-top: 6px; color: #8a6a3a; }
+  .card::before { content: ""; position: absolute; top: -6px; left: 50%; margin-left: -8px; width: 16px; height: 16px; background: #c8402a; box-shadow: inset -4px -4px 0 #8a2418, 2px 2px 0 rgba(0,0,0,.4); }
+  .card.sel { box-shadow: inset 0 0 0 3px #ffd23a, 0 0 0 3px #ffd23a, 6px 6px 0 rgba(0,0,0,.4); }
+  .card.dim { opacity: .45; }
+  .card.pad { background: #d8d0b8; } .card.bot { background: #cfe0d0; } .card.let { background: #efe0d0; }
+  .hand { font-style: italic; color: #3a3a7a; }
+  svg.str { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .detail { position: absolute; right: 14px; top: 14px; width: 330px; padding: 14px 16px; color: #f4ead0; }
+  .detail .sec { color: #ffd23a; margin-bottom: 6px; }
+  .btn { display: inline-block; margin: 8px 8px 0 0; padding: 4px 10px; background: #2c2160; color: #fff4d8; box-shadow: 0 0 0 2px #4a3aa0; } .btn.on { background: #4a3aa0; box-shadow: 0 0 0 2px #ffd23a; }
+  .foot { position: absolute; left: 14px; bottom: 12px; padding: 6px 12px; background: #1d1640; color: #c9b890; box-shadow: 0 0 0 3px #3a3070; }
+  .notes { position: absolute; left: 14px; bottom: 56px; width: 520px; padding: 8px 12px; background: #f1e6c0; color: #3a3a7a; box-shadow: inset 0 0 0 3px #c9b07a, 5px 5px 0 rgba(0,0,0,.4); }
+  .map { position: absolute; left: 14px; top: 14px; right: 14px; bottom: 14px; display: grid; grid-template-columns: 1fr 380px; gap: 14px; }
+  .chart { position: relative; background: #d9c58f; box-shadow: inset 0 0 0 4px #8a6a3a, 6px 6px 0 rgba(0,0,0,.4); overflow: hidden; }
+  .isle { position: absolute; background: #b79a5c; box-shadow: inset 0 -6px 0 #8f7440; }
+  .ring { position: absolute; border: 4px dashed #3a3a7a; }
+  .lbl { position: absolute; color: #3a2210; }
+  .q { position: absolute; color: #3a3a7a; font-size: 32px; }
+  .row { padding: 6px 0; border-bottom: 2px dashed #3a3070; } .row small { display: block; color: #b8a8d8; }
+</style></head><body>
+<h1>The log board</h1>
+<p class="lead">Riddles, rumours, chart notes, bottles and letters all land in the captain's log as cards. This is the board where you pin them, tie them together and say where you think they point. The game never says if you are right: the answer is only in sailing there. Wrong guesses cost time and, sometimes, a false rumour the Lady counts.</p>
+
+<div class="frame">
+  <div class="book">
+    <div class="tabs"><span class="tab">Map</span><span class="tab">Goals</span><span class="tab">Quests</span><span class="tab on">Board</span><span class="tab">Journal</span><span class="tab">Ship</span></div>
+    <div class="board">
+      <svg class="str" shape-rendering="crispEdges" viewBox="0 0 1172 612">
+        <g stroke="#c8402a" stroke-width="4" fill="none"><path d="M 150 80 L 430 150 L 640 90"/><path d="M 430 150 L 360 330"/><path d="M 640 90 L 700 300"/></g>
+        <g stroke="#2a2a60" stroke-width="4" fill="none" stroke-dasharray="12 8"><path d="M 150 80 L 130 300"/><path d="M 360 330 L 700 300"/></g>
+      </svg>
+      <div class="card" style="left:40px;top:40px"><h4>RIDDLE</h4><p>"Dig where the gull falls."</p><small>Perrin · from tomorrow</small></div>
+      <div class="card pad sel" style="left:320px;top:110px"><h4>RUMOUR</h4><p>A bell that rings under the water.</p><small>bought at Tama · 25g</small></div>
+      <div class="card let" style="left:530px;top:50px"><h4>LETTER</h4><p>"I sat down at her table. I stood up again."</p><small>old log, a wreck</small></div>
+      <div class="card" style="left:60px;top:270px"><h4>CHART NOTE</h4><p>Three palms in a row. North shore.</p><small>Perrin · confirmed</small></div>
+      <div class="card bot" style="left:270px;top:300px"><h4>BOTTLE</h4><p>A black hut. First throw: six.</p><small>found at sea · day 3</small></div>
+      <div class="card pad" style="left:590px;top:290px"><h4>GOSSIP</h4><p>The boat came home with nobody aboard.</p><small>tavern, Port Velto</small></div>
+      <div class="notes"><span class="hand">Is the hut the same as the table? The bell is a clue for the lady, not the sea?</span></div>
+      <div class="foot">Nobody tells you if the strings are right. Sail and see.</div>
+      <div class="detail px">
+        <div class="sec">RUMOUR</div>
+        <p>A bell that rings under the water.</p>
+        <div class="row"><small>where</small>bought at Tama, day 2, 25 gold</div>
+        <div class="row"><small>tied to</small>Letter (my guess) · Gossip (doubt)</div>
+        <span class="btn on">Tie to...</span><span class="btn">Cut string</span><span class="btn">Note</span><span class="btn">On the map</span>
+      </div>
+    </div>
+  </div>
+</div>
+<p class="cap"><b>A · The board.</b> Every clue is a paper card pinned on cork: riddles in plain paper, rumours in grey, bottles in green, letters in cream. You drag cards where you like and tie them with red string (sure) or dashed blue string (a doubt). The pencil notes at the bottom are yours alone. Nothing is checked: no ticks, no "solved". Cards the game knows to be false look exactly like the rest.</p>
+
+<div class="frame">
+  <div class="book">
+    <div class="tabs"><span class="tab">Map</span><span class="tab">Goals</span><span class="tab">Quests</span><span class="tab on">Board</span><span class="tab">Journal</span><span class="tab">Ship</span></div>
+    <div class="board"><div class="map">
+      <div class="chart">
+        <div class="isle" style="left:80px;top:90px;width:140px;height:80px"></div><div class="lbl" style="left:80px;top:176px">Tama</div>
+        <div class="isle" style="left:420px;top:60px;width:90px;height:60px"></div><div class="lbl" style="left:420px;top:126px">Hollow Cay</div>
+        <div class="isle" style="left:560px;top:260px;width:110px;height:70px"></div><div class="lbl" style="left:560px;top:336px">Port Velto</div>
+        <div class="isle" style="left:250px;top:380px;width:70px;height:50px"></div><div class="lbl" style="left:250px;top:436px">?</div>
+        <div class="isle" style="left:130px;top:300px;width:80px;height:50px"></div>
+        <div class="ring" style="left:404px;top:46px;width:122px;height:92px;border-radius:50%"></div><div class="q" style="left:520px;top:30px">?</div>
+        <div class="ring" style="left:540px;top:244px;width:150px;height:110px;border-radius:50%;opacity:.5"></div>
+        <div class="lbl hand" style="left:70px;top:480px;color:#3a3a7a;width:420px">"Dig where the gull falls". Hollow Cay? Three palms are on its north shore.</div>
+      </div>
+      <div class="detail px" style="position:static;width:auto">
+        <div class="sec">ON THE MAP</div>
+        <p>Riddle: "Dig where the gull falls."</p>
+        <div class="row"><small>my guess</small>Hollow Cay, north shore <i>(pencil)</i></div>
+        <div class="row"><small>also fits</small>Port Velto (weaker)</div>
+        <div class="row"><small>because</small>Chart note: three palms in a row</div>
+        <span class="btn on">Circle an island</span><span class="btn">Rub out</span>
+        <p style="margin-top:14px;color:#b8a8d8">The pencil only reminds you. It does not set a course, and it never turns green.</p>
+      </div>
+    </div></div>
+  </div>
+</div>
+<p class="cap"><b>B · Putting a clue on the map.</b> "On the map" opens the chart. You circle the island you think a riddle points to in dashed pencil; two guesses can sit side by side, the weaker one fainter. It is a memory aid and nothing more: no marker, no route. The first riddle is the only one that is marked for you.</p>
+</body></html>
