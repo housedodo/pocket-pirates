@@ -1925,7 +1925,7 @@ function frame() {
     const seen = world.nearest(ship.pos.x, ship.pos.z, 150);
     if (seen && !state.discovered[seen.desc.id] && !sighted.has(seen.desc.id)) { sighted.add(seen.desc.id); landHo(seen.desc); }
   }
-  if (live && tNow - lhT > 0.8) { lhT = tNow; lighthouseTidbit(); }
+  if (live && laterOK() && tNow - lhT > 0.8) { lhT = tNow; lighthouseTidbit(); }
   const nearAny = world.nearest(ship.pos.x, ship.pos.z, 30);
   if (nearAny) {
     if (live) discover(nearAny);
