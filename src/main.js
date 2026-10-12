@@ -1669,7 +1669,7 @@ window.__game = {
     if (this._show) scene.remove(this._show);
     const b = new Builder(), ex = {};
     b.box(0, -0.6, 0, 16 * LH_KINDS.length + 4, 0.8, 14, '#9a7a50', TILE.planks);
-    LH_KINDS.forEach((k, i) => lighthouse(b, ex, (i - (LH_KINDS.length - 1) / 2) * 16, 0.2, 0, 1, null, k));
+    LH_KINDS.forEach((k, i) => { lighthouse(b, ex, (i - (LH_KINDS.length - 1) / 2) * 16, 0.2, 0, 1, null, k); b.cyl(ex.lamp.x, ex.lamp.y, ex.lamp.z, 1.0, 1.0, 1.3, 6, '#4a4450', TILE.stone, false); });   // the lantern room, as an island adds it
     this._show = new THREE.Mesh(b.geometry(), mats.props); this._show.position.set(x, 0.4, z); scene.add(this._show); return LH_KINDS;
   },
   /** size comparison: three houses with villagers in front, the ship beside them, a 1-unit ruler */

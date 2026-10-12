@@ -617,7 +617,7 @@ export function lighthouse(A, extra, lx, ly, lz, tall = 1, d = null, forceKind =
         for (const sx of [-1, 1]) A.box(lx + sx * (w / 2 + 0.02), ly + y + 0.9 * tall, lz, 0.1, 0.9, 0.9, '#ffffff', TILE.glow);
         A.cyl(lx, ly + y + 2.2 * tall, lz, w * 0.95, w * 0.36, 0.75 * tall, 4, '#7a3a2a', TILE.roof);
       }
-      for (const sx of [-1, 1]) for (const sz of [-1, 1]) A.box(lx + sx * 1.1, ly + 5.8 * tall, lz + sz * 1.1, 0.3, 1.5, 0.3, '#5a2a1a', TILE.planks);
+      for (const sx of [-1, 1]) for (const sz of [-1, 1]) A.box(lx + sx * 1.1, ly + 5.8 * tall, lz + sz * 1.1, 0.3, 1.75, 0.3, '#5a2a1a', TILE.planks);
       lamp(5.95 * tall);
       A.cyl(lx, ly + 7.45 * tall, lz, 2.2, 0.6, 1.0 * tall, 4, '#7a3a2a', TILE.roof);
       break;
