@@ -472,6 +472,12 @@
     #yardTurn button { width: 56px; height: 56px; padding: 0; font-size: 24px; border: none; cursor: pointer; background: #2c2160; color: #fff4d8; box-shadow: 0 0 0 3px #4a3aa0; } #yardTurn span, #yardTurn small { background: #17112e; padding: 4px 12px; box-shadow: 0 0 0 3px #3a3070; color: #f4ead0; }
     #yardmodal:not(.open) #yardTurn { display: none; }
     .halfmark { display: inline-block; padding: 0 6px; margin-left: 4px; background: #7a3a1c; color: #f4ead0; font-weight: 400; font-size: 14px; }
+    /* Mara stays on screen (bottom left) while the first letters are explained, even ashore or in the log */
+    body.onb-mate #hud { z-index: 40; opacity: 1 !important; }
+    body.onb-mate #hud > :not(#mate) { visibility: hidden !important; }
+    body.onb-mate #mate { visibility: visible !important; left: 12px; bottom: 12px; top: auto; transform: none; width: min(360px, 30vw); pointer-events: auto; }
+    body.onb-mate.ashore #mate { bottom: auto; top: 300px; }
+    .ribbons button.hl { animation: hlpulse 1s steps(2) infinite; box-shadow: 0 0 0 4px #ffd23a !important; }
   </style>
 </head>
 <body>

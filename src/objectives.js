@@ -24,7 +24,7 @@ export const MAIN_GOALS = [
     id: 'sail', ch: 0, title: 'Find your sea legs', reward: 12,
     text: 'Steer with A and D, set the sails with W and S. Sail about 100 units.',
     // told one line at a time, each when the player has done the last thing (see onbTick in main.js)
-    intro: ['Morning, Captain! I am Mara. Press W to let the sails out.',
+    intro: ['Morning, Captain! I am Mara, your first mate, and this is the Merry Gull. She is small, but she is ours.',
       'There she goes. A and D steer her, and the wind does the rest.',
       'That ring is the wind. Gold means she sails well, red means she crawls. The little triangle is our bow.'],
     outro: ['Good. Beam and downwind is fast; straight into the wind is slow.'],
@@ -262,7 +262,7 @@ export class Mate {
     this.txt = document.getElementById('matetxt');
     this.face = document.getElementById('mateface');
     this.more = document.getElementById('matemore');
-    this.queue = []; this.cur = null; this.shown = 0; this.acc = 0; this.wait = -1;
+    this.queue = []; this.cur = null; this.shown = 0; this.acc = 0; this.wait = -1; this.pause = 0; this.pin = false;
     this.history = [];
     this.el.addEventListener('pointerdown', () => this.skip());
   }
@@ -274,13 +274,14 @@ export class Mate {
     if (this.shown < this.cur.text.length) { this.shown = this.cur.text.length; this.render(); this.wait = this.holdTime(); }
     else this.wait = 0;
   }
-  holdTime() { return 1.5 + this.cur.text.length * 0.03; }
+  holdTime() { return 3.2 + this.cur.text.length * 0.065; }   // time to read it before the next line (slow on purpose)
   render() {
     this.txt.textContent = this.cur.text.slice(0, this.shown);
     this.more.style.visibility = this.shown >= this.cur.text.length ? 'visible' : 'hidden';
   }
   update(dt) {
     if (!this.cur && this.queue.length) {
+      if (this.pause > 0) { this.pause -= dt; return; }   // a breath between lines
       this.cur = this.queue.shift(); this.shown = 0; this.acc = 0; this.wait = -1;
       this.history.push(this.cur.text); if (this.history.length > 14) this.history.shift();
       this.el.classList.toggle('dark', this.cur.dark);
@@ -306,7 +307,7 @@ export class Mate {
     } else {
       this.face.style.transform = '';
       this.wait -= dt;
-      if (this.wait <= 0) { this.cur = null; if (!this.queue.length) this.el.style.display = 'none'; }
+      if (this.wait <= 0) { this.cur = null; this.pause = 1.4; if (!this.queue.length && !this.pin) this.el.style.display = 'none'; }
     }
   }
 }
@@ -335,6 +336,7 @@ export class Objectives {
   say(text, dark) { this.mate.say(text, dark); }
 
   remark(key, dread = 0) {
+    if (this.d.quiet && this.d.quiet()) return;   // nothing but the first goals at the start
     const h = this.state.hints;
     if (h[key] || !REMARKS[key]) return;
     h[key] = true;
@@ -384,9 +386,10 @@ export class Objectives {
       if (cur.onDone) cur.onDone(c);
       g.i++; this.hintI = 0; this.stall = 0;
       const next = this.current;
-      if (next) { this.pending = next; this.gap = 0.8; this.newCh = next.ch !== cur.ch; if (next.onStart) next.onStart(this.d); }
+      if (next) { this.pending = next; this.gap = g.i < 7 ? 6 : 2.5;   // early goals come slowly: time to take it in
+         this.newCh = next.ch !== cur.ch; if (next.onStart) next.onStart(this.d); }
       if (this.d.onStep) this.d.onStep(cur, next);
     }
-    for (const s of SIDE_GOALS) if (!g.side[s.id] && s.check(c)) this.complete(s, true);
+    if (!this.d.later || this.d.later()) for (const s of SIDE_GOALS) if (!g.side[s.id] && s.check(c)) this.complete(s, true);   // optional goals wait until the tutorial is well under way
   }
 }

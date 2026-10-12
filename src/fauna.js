@@ -197,7 +197,7 @@ export class Fauna {
     this.dolMat.color.setRGB(lerp(1, 1.5, pale), lerp(1, 1.5, pale), lerp(1, 1.55, pale));
     if (dolMood === 'jump' || dolMood === 'ghost') {
       this.dolTimer -= dt;
-      if (this.dolTimer <= 0 && this.dolphins.every((d) => d.u >= 1)) {
+      if (this.dolTimer <= 0 && this.dolphins.every((d) => d.u >= 1) && !this.quiet) {
         this.dolTimer = rnd(55, 120);
         if (Math.random() < 0.45) this.dolTimer = rnd(40, 80);        // often they just don't show up
         else {

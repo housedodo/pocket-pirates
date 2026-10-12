@@ -174,8 +174,10 @@ export class Logbook {
 
   open(tab = this.tab) {
     this.tab = tab; this.page = 0;
+    if (this.d.tabOpened) this.d.tabOpened(tab);
     if (tab !== 'map' || !this._fromBoard) this.pencil = null;
     this.tabsEl.querySelectorAll('button').forEach((b) => b.classList.toggle('on', b.dataset.tab === tab));
+    this.tabsEl.querySelectorAll('button').forEach((b) => b.classList.toggle('hl', b.dataset.tab === (this.d.state.story || {}).tabMark));   // the tab Mara sent you to
     if (tab === 'map' && this.view.follow) { this.view.cx = this.d.ship.pos.x; this.view.cz = this.d.ship.pos.z; }
     this.render();
   }
