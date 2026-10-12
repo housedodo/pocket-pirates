@@ -29,6 +29,32 @@ getting stranger is scarier than new horror music.
 | 4 Eerie | Fragments only: slow drone, sparse notes, lots of silence, reverb tails | low foghorn, dripping, breathing-like surf | hollow, long reverb |
 | 5 Cosmic | Sub bass (30-45 Hz), reversed/pitched-down shanty, endless descending glissando | deep "whale-like" tones, static, whispers | distorted, pitch-dropped |
 
+## Instruments and FL Studio (soundtrack plan)
+The game expects `music_1`..`music_5` (one loop per dread stage, same length and tempo, cross-faded). Build the dark loops from the **same instruments** as the bright one, detuned and degraded, so the world sounds like it is forgetting the tune.
+
+### By stage
+| Stage | Instruments |
+|---|---|
+| 1 Home (cosy) | **Steel drum** (main melody), ukulele or nylon guitar, marimba/kalimba, accordion or concertina, tin whistle or low flute, upright bass or soft pizzicato cello, light percussion (shaker, bongos, woodblock, cajon) |
+| 2 Off | The same, a little slower: drop one instrument, one note slightly flat |
+| 3 Wrong | Detuned **music box or toy piano**, bowed vibraphone/crotales, tremolo strings, reversed marimba or steel-drum hits as risers |
+| 4 Eerie | Waterphone, singing bowls, glass harmonica, cello/bass drone, filtered "ah" choir pad, a rare distant bell or gong, lots of silence |
+| 5 Cosmic | Sub bass drone (30-50 Hz), the shanty pitched down and bitcrushed, granular pad made from waves or gulls, dissonant string clusters (minor 2nd, tritone), pitch-drifting choir, metallic scrapes, low heartbeat drum near the Eye |
+
+### Other moods (cues for later)
+- **Night:** celesta, music box, glockenspiel, felt piano, warm pad, long gaps between notes (`amb_night` is the ambience bed; a night music variant is optional).
+- **Dawn / dusk:** solo flute or tin whistle over a soft pad / slower accordion or low strings.
+- **Harbours:** one signature instrument per village (mandolin, fiddle, hand pan, banjo, small bells). Tavern: fiddle, accordion, claps, stomped bass drum. Shipyard: woodblock and hammer taps in a gentle waltz.
+- **The hut and the Lady:** waterphone, singing bowls, one detuned music-box note, whispered pad.
+
+### FL Studio tips
+- Free sound sources: Spitfire LABS (steel drum, music box, celesta, pianos, strings), Vital (pads and drones), FLEX presets.
+- Built-in: Sytrus or Harmless (pads), Pitcher / Fruity Pitch Shifter (detune), Gross Beat (stutters, tape stops, slowdown), Fruity Granulizer (textures), Hyper-Reverb or Fruity Reeverb 2, Distructor or Fruity Love Philter for the dark versions.
+- Look: PS1 style, so a little lo-fi (bitcrush, 22-32 kHz, faint tape noise) suits it.
+- Workflow: one core theme of 4-8 notes, five seamless loops of 1-2 min in the same key, export stems (melody, pad, bass, percussion) if possible so layers can fade later.
+- Export: `.ogg` (or mp3/wav), loop-tested with no click, about -14 LUFS for music; then balance in the F8 mixer and save `volumes.json`.
+- Name files exactly `music_1.ogg` ... `music_5.ogg` and drop them in `public/audio/`.
+
 ## Cue list (`public/audio/<name>.ogg`)
 **Loops** (seamless; all music loops the **same length and tempo** so cross-fades stay musical)
 | File | Notes |
