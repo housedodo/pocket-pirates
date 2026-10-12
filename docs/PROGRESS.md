@@ -120,6 +120,19 @@ New voyage goes straight into the game (no title). A new voyage starts moored al
 - **Dice at the tavern:** Pig against a local, first to 30, 10g stake (win 20g, sometimes a rumour). Space roll, H hold. A 3D pixel d6 tumbles for every throw, the local's too.
 - Not yet: the Lady's die and these checks are deliberately separate; inspiration tokens could link them later.
 
+### Tutorial additions
+- **New starting goals:** *Dead calm* (chapter III opens with it: the wind dies until you have rowed about 50 units with the
+  oars (G, then W) and caught a fish (stop, C); Mara explains both) and *Meet the locals* (hire a hand, or sit down for a
+  game of dice). Goal order is now sail, harbour, dig, upgrade, calm, job, chart, tavern, perrin, checkchart, bottles, gossip,
+  hut; saves from older builds may repeat or skip a goal.
+- **Tutorial marks:** the harbour sign the current goal needs gets a bobbing gold arrow, and the button inside gets a
+  pulsing gold outline (Shipwright's buy button, the Board's accept / deliver buttons, the Tavern's hire / dice buttons).
+  Only goals with `tab` / `mark` in `objectives.js` have them (the early ones); later goals carry none.
+- **Riddles:** only the first one (Perrin's, `giveMap(..., true)`) names the island and marks it on the chart. Any later riddle
+  handed to the player is words only: no island name, no marker, no bearing in the Riddles tab until the island is charted.
+- **Fullscreen:** New voyage reloads the page, which always leaves fullscreen; now the first key press or click after the
+  reload takes you back in.
+
 ### Quest cues (design A, built)
 - Finishing a main quest shows a big gold QUEST COMPLETE banner (title and reward), then about 2.7 s later a NEW QUEST card
   with the next quest's title and one line of text. The tracker flashes with a red NEW tag and the wind ring pulses for

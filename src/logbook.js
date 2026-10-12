@@ -254,8 +254,8 @@ export class Logbook {
     ids.sort((a, b) => (state.dug.has(a) ? 1 : 0) - (state.dug.has(b) ? 1 : 0));
     for (const id of ids) {
       const [cx, cz] = id.split(',').map(Number), d = world.desc(cx, cz), dug = state.dug.has(id);
-      const where = d ? (() => { const dx = d.x - ship.pos.x, dz = d.z - ship.pos.z; return `${bearingName(dx, dz)}, ~${Math.round(Math.hypot(dx, dz))} fathoms`; })() : '';
-      html += `<div class="riddle ${dug ? 'done' : ''}"><b>${d ? d.name : id}</b> ${dug ? `<span class="ok">${pxi('check')} dug up</span>` : ''}<p>“${state.riddles[id]}”</p>${dug ? '' : `<small>${where}</small>`}</div>`;
+      const known = !!(d && (state.rumoured[id] || state.discovered[id])), where = known ? (() => { const dx = d.x - ship.pos.x, dz = d.z - ship.pos.z; return `${bearingName(dx, dz)}, ~${Math.round(Math.hypot(dx, dz))} fathoms`; })() : '';
+      html += `<div class="riddle ${dug ? 'done' : ''}"><b>${known ? d.name : 'A riddle with no address'}</b> ${dug ? `<span class="ok">${pxi('check')} dug up</span>` : ''}<p>“${state.riddles[id]}”</p>${dug ? '' : `<small>${where}</small>`}</div>`;
     }
     this.body.innerHTML = html;
   }

@@ -208,12 +208,16 @@ sea.onEvent = (e) => {
 };
 
 // ---------------------------------------------------------------- goals, fishing
-function giveMap(id, from) {
+// A riddle handed over by someone. Only the tutorial riddle (reveal = true) says which island it is and marks it on the chart;
+// every later riddle is just the words: working out where it points is the player's job.
+function giveMap(id, from, reveal = false) {
   const [cx, cz] = id.split(',').map(Number), d = world.desc(cx, cz);
   if (!d || !d.puzzle) return;
   state.riddles[id] = d.puzzle.text;
-  state.rumoured[id] = state.rumoured[id] || { name: d.name, x: Math.round(d.x), z: Math.round(d.z), source: from, found: false };
-  toast(`${from} gave you a treasure riddle for ${d.name}. Saved in your log: Riddles tab.`, false, 8000);
+  if (reveal) {
+    state.rumoured[id] = state.rumoured[id] || { name: d.name, x: Math.round(d.x), z: Math.round(d.z), source: from, found: false };
+    toast(`${from} gave you a treasure riddle for ${d.name}. Saved in your log: Riddles tab.`, false, 8000);
+  } else toast(`${from} gave you a riddle. Saved in your log: Riddles tab. Where it points is up to you.`, false, 8000);
 }
 // ---- quest cues (design A): QUEST COMPLETE, then NEW QUEST, the tracker flashes and the wind ring pulses
 let trackerNewUntil = 0;
@@ -224,7 +228,7 @@ function questCue(done, next) {
   trackerNewUntil = performance.now() + 9000; const c = $('compass'); c.classList.remove('ping'); void c.offsetWidth; c.classList.add('ping');
   setTimeout(() => c.classList.remove('ping'), 8000); audio.play('discover');
 }
-const objectives = new Objectives({ state, world, ship, toast: (t, d) => toast(t, d), giveMap,
+const objectives = new Objectives({ state, world, ship, toast: (t, d) => toast(t, d), giveMap, forceCalm: (s) => { weather.calmHold = s; },
   chapterCard: (ch) => { $('qbanner').classList.remove('show'); const el = $('landho'); el.querySelector('b').textContent = `CHAPTER ${ch.n}`; el.querySelector('span').textContent = ch.title; el.querySelector('small').textContent = ch.act; el.classList.remove('show'); void el.offsetWidth; el.classList.add('show'); audio.play('chapter'); },
   questCue: (done, next) => questCue(done, next),
   onStep: (done, next) => { if (done.id === 'gossip') revealHut(); } });
@@ -417,7 +421,7 @@ $('pbFull').addEventListener('click', () => { toggleFullscreen(); $('pbFull').fo
 $('tNew').addEventListener('click', (e) => {
   e.stopPropagation();
   if (performance.now() - newAskT > 4000) { newAskT = performance.now(); $('tNew').textContent = 'Really? Press again'; return; }
-  noSave = true; try { localStorage.removeItem(SAVE_KEY); sessionStorage.setItem('hoist-new', '1'); } catch (err) { /* storage blocked */ }
+  noSave = true; try { localStorage.removeItem(SAVE_KEY); sessionStorage.setItem('hoist-new', '1'); if (fsEl()) sessionStorage.setItem('hoist-fs', '1'); } catch (err) { /* storage blocked */ }
   location.href = location.pathname;
 });
 
@@ -748,7 +752,7 @@ function renderHarbour() {
       const h = pendingHand; if (!h || state.gold < h.cost || state.crew.length >= 2) return;
       state.gold -= h.cost; state.crew.push(h); audio.play('buy'); toast(`${h.name} signs on. ${h.name} nods once and says nothing.`, false, 5000); objectives.remark('crew', dread); renderHarbour(); });
     pane.querySelectorAll('[data-dismiss]').forEach((b) => b.addEventListener('click', () => { state.crew = state.crew.filter((c) => c.name !== b.dataset.dismiss); toast(`${b.dataset.dismiss} goes ashore with a small wave.`); renderHarbour(); }));
-    if ($('playPig')) $('playPig').addEventListener('click', () => { if (state.gold < 10) return; state.gold -= 10; const isl = harbourIsl; openModal('pig'); pigHome = isl; pig.start(LOCALS[Math.floor(Math.random() * LOCALS.length)], 10); });
+    if ($('playPig')) $('playPig').addEventListener('click', () => { if (state.gold < 10) return; state.gold -= 10; state.stats.pig = (state.stats.pig || 0) + 1; const isl = harbourIsl; openModal('pig'); pigHome = isl; pig.start(LOCALS[Math.floor(Math.random() * LOCALS.length)], 10); });
   } else {
     if (hbShipLine) html += `<p class="quote">${hbShipLine}</p>`;
     html += priceNote();   // the shipwright talks here, not over the welcome
@@ -761,9 +765,22 @@ function renderHarbour() {
     pane.innerHTML = html;
     pane.querySelectorAll('button[data-id]').forEach((b) => b.addEventListener('click', () => buyUpgrade(b.dataset.id)));
   }
+  tutorialMarks();
 }
 $('hbTabs').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b || !harbourIsl) return; if (b.dataset.t === 'sail') { closeModal(); return; } hbTab = b.dataset.t; audio.play('ui', { vol: 0.4 }); renderHarbour(); });
 // a red number on a sign when something waits there
+// the tutorial marks the sign (and the button) the current goal needs; goals later in the story carry no mark at all
+const tutorialGoal = () => { const g = objectives.current; return g && g.tab ? g : null; };
+function tutorialMarks() {
+  const g = tutorialGoal();
+  $('hbTabs').querySelectorAll('.post').forEach((b) => b.classList.toggle('next', !!g && b.dataset.t === g.tab));
+  $('hbPane').querySelectorAll('.hl').forEach((e) => e.classList.remove('hl'));
+  if (!g || hbTab !== g.tab) return;
+  for (const id of g.mark || []) {
+    const el = id === 'buy' ? $('hbPane').querySelector('button[data-id]:not([disabled])') : $(id);
+    if (el && !el.disabled) el.classList.add('hl');
+  }
+}
 function postBadges(d, rep) {
   let due = (state.job && state.job.toId === d.id ? 1 : 0) + (state.passenger && state.passenger.toId === d.id ? 1 : 0);
   due += state.quests.filter((x) => x.giverId === d.id && questProgress(x, state) >= questNeed(x)).length;
@@ -1386,7 +1403,7 @@ function sinkPlayer() {
 let newAsk = 0;
 $('pbNew').addEventListener('click', () => {
   if (performance.now() - newAsk > 4000) { newAsk = performance.now(); $('pbNew').textContent = 'Really? Click again to start over'; return; }
-  noSave = true; try { localStorage.removeItem(SAVE_KEY); sessionStorage.setItem('hoist-new', '1'); } catch (e) { /* storage blocked */ }
+  noSave = true; try { localStorage.removeItem(SAVE_KEY); sessionStorage.setItem('hoist-new', '1'); if (fsEl()) sessionStorage.setItem('hoist-fs', '1'); } catch (e) { /* storage blocked */ }
   location.href = location.pathname;
 });
 $('pbHint').addEventListener('click', () => { closeModal(); if (!abyss.maraHint()) objectives.askHint(dread); });
@@ -1395,7 +1412,7 @@ $('pbHint').addEventListener('click', () => { closeModal(); if (!abyss.maraHint(
 const logbook = new Logbook({ abyss, state, world, ship, seed: state.seed, toast: (t) => toast(t), close: () => closeModal(), mate: objectives.mate, dread: () => dread,
   retrack: () => sea.syncQuests(state.quests.filter((q) => q.id === state.tracked)),
   gate: () => gateRadius(state),
-  skipGoal: () => { const g = objectives.current; if (!g) return; if (g.onDone) g.onDone({ state, world, ship, giveMap });
+  skipGoal: () => { const g = objectives.current; if (!g) return; if (g.onDone) g.onDone({ state, world, ship, giveMap, forceCalm: (s) => { weather.calmHold = s; } });
     if (g.id === 'perrin') perrinNote(); if (g.id === 'gossip') { state.story.hutKnown = true; revealHut(); }
     state.goals.i++; const n = objectives.current; if (n && n.onStart) n.onStart({ state }); toast('Goal skipped.'); } });
 
@@ -1499,7 +1516,8 @@ function frame() {
   world.tick(animT, tod);
   ship.place(vdt, waveT, stage.wave, dark, tod.night);
   const lifeCtx = { ship, dread, wave: stage.wave, audio, wind: windNow, stage, tod, faction: sec.faction.id, sched: { wd: weekday(), hour: state.time * 24, dayN: state.dayN, dread } };
-  if (live) state.stats.dist += ship.speed * dt;
+  if (live) { state.stats.dist += ship.speed * dt; if (ship.rowing) state.stats.rowed = (state.stats.rowed || 0) + ship.speed * dt; }
+  { const cg = objectives.current; if (cg && cg.id === 'calm' && state.goals.started) weather.calmHold = Math.max(weather.calmHold, 8); }   // the calm lasts until you have rowed and fished
   windfx.update(vdt, animT, windNow.dir, windNow.strength, ship.pos, tod.night, Math.min(1, weather.rain * 1.5));
   fishing.update(dt, waveT, { wave: stage.wave, dread, night: tod.night });
   setDieWear(clamp(state.dayN / 12 + dread * 0.6, 0, 1));
@@ -1699,5 +1717,14 @@ window.__game = {
 };
 let newVoyage = false;   // New voyage reloads straight into the game, no title in between
 try { newVoyage = sessionStorage.getItem('hoist-new') === '1'; sessionStorage.removeItem('hoist-new'); } catch (e) { /* storage blocked */ }
+// New voyage reloads the page, and a reload always leaves fullscreen; the browser only allows going back in on a key press
+// or click, so the first one after the reload does it
+try {
+  if (sessionStorage.getItem('hoist-fs') === '1') {
+    sessionStorage.removeItem('hoist-fs');
+    const back = () => { removeEventListener('pointerdown', back, true); removeEventListener('keydown', back, true); if (fsOk && !fsEl()) toggleFullscreen(); };
+    addEventListener('pointerdown', back, true); addEventListener('keydown', back, true);
+  }
+} catch (e) { /* storage blocked */ }
 if (params.get('autostart') || newVoyage) begin(); else startTitle();
 frame();
