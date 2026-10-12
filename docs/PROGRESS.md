@@ -120,6 +120,17 @@ New voyage goes straight into the game (no title). A new voyage starts moored al
 - **Dice at the tavern:** Pig against a local, first to 30, 10g stake (win 20g, sometimes a rumour). Space roll, H hold. A 3D pixel d6 tumbles for every throw, the local's too.
 - Not yet: the Lady's die and these checks are deliberately separate; inspiration tokens could link them later.
 
+### Lighthouses (six designs)
+- Picked from the island's seed (`lighthouseKind` in world.js); Tama always keeps the classic red-and-white one.
+  - **classic:** banded tower, red cap; stripes can be red, black, blue or amber on white.
+  - **slim:** tall and white, one black band, a green door.
+  - **brick:** a square stone tower with the keeper's cottage against it.
+  - **iron:** an open iron frame on four legs, a red lantern room.
+  - **squat:** short and fat, checkered blue and white, a wide gallery.
+  - **pagoda:** a wooden three-tier lantern tower with glowing windows.
+- All six light up at night and swing their beam onto the ship at full dread. `__game.lighthouses()` shows them on a raft.
+  Picture: `docs/concept/lighthouses.png`.
+
 ### World variety
 - Six villager designs, seven house kinds (taverns, bell towers, stilt houses...), three new island kinds:
   volcano (rare and big, ~1 in 250 cells), atoll, mangrove (each with a dark-mood detail). All emoji replaced by pixel glyphs.

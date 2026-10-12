@@ -560,12 +560,76 @@ export function hasLighthouse(d) {
   const r = (hash2(d.seed, 17, 5) % 1000) / 1000;
   return d.type === 'harbour' ? r < 0.33 : d.type === 'rocky' ? r < 0.22 : false;
 }
-function lighthouse(A, extra, lx, ly, lz, tall = 1) {
-  for (let s = 0; s < 4; s++) A.cyl(lx, ly + s * 2.3 * tall, lz, 1.9 - s * 0.16, 1.9 - (s + 1) * 0.16, 2.3 * tall, 8, s % 2 ? '#f4f0e6' : '#d8403a', TILE.white, false);
-  A.cyl(lx, ly + 9.2 * tall, lz, 2.2, 2.2, 0.35, 8, '#5a4a40', TILE.planks);
-  extra.lamp = { x: lx, y: ly + 9.55 * tall, z: lz };
-  A.cyl(lx, ly + 10.85 * tall, lz, 1.5, 0, 1.2, 6, '#c0382f', TILE.roof);
-  extra.beam = { x: lx, y: ly + 10.2 * tall, z: lz };
+// Six lighthouse designs, picked from the island's seed (Tama always keeps the classic red-and-white one).
+// Each sets extra.lamp (the lantern room, radius ~1) and extra.beam (where the light turns).
+export const LH_KINDS = ['classic', 'slim', 'brick', 'iron', 'squat', 'pagoda'];
+const STRIPES = [['#d8403a', '#f4f0e6'], ['#2a2a30', '#f4f0e6'], ['#3c78c8', '#f4f0e6'], ['#e8a838', '#f4f0e6']];
+export const lighthouseKind = (d) => d.id === '0,-1' ? 'classic' : LH_KINDS[hash2(d.seed, 23, 7) % LH_KINDS.length];
+export function lighthouse(A, extra, lx, ly, lz, tall = 1, d = null, forceKind = null) {
+  const kind = forceKind || (d ? lighthouseKind(d) : 'classic');
+  const lamp = (h) => { extra.lamp = { x: lx, y: ly + h, z: lz }; extra.beam = { x: lx, y: ly + h + 0.65, z: lz }; };
+  switch (kind) {
+    case 'slim': {   // tall, slim and white, one black band under the gallery, a small green door
+      A.cyl(lx, ly, lz, 1.5, 1.0, 9 * tall, 8, '#f6f2ea', TILE.white, false);
+      A.cyl(lx, ly + 6.2 * tall, lz, 1.17, 1.07, 1.5 * tall, 8, '#2a2a30', TILE.white, false);
+      A.cyl(lx, ly + 9 * tall, lz, 1.75, 1.75, 0.3, 8, '#2a2a30', TILE.planks);
+      A.box(lx + 1.3, ly, lz, 0.25, 1.4, 0.9, '#2f6a4a', TILE.planks);
+      lamp(9.3 * tall);
+      A.cyl(lx, ly + 10.6 * tall, lz, 1.3, 0, 1.4, 6, '#2a3a30', TILE.roof);
+      break;
+    }
+    case 'brick': {   // a square stone tower with the keeper's cottage against it
+      A.cyl(lx, ly, lz, 2.7, 1.9, 8 * tall, 4, '#c8b8a0', TILE.stone, false);
+      A.cyl(lx, ly + 3.4 * tall, lz, 2.25, 2.1, 1.0 * tall, 4, '#a0583c', TILE.wall, false);
+      A.box(lx, ly + 8 * tall, lz, 3.4, 0.35, 3.4, '#4a4048', TILE.planks);
+      lamp(8.35 * tall);
+      A.cyl(lx, ly + 9.65 * tall, lz, 1.9, 0, 1.3, 4, '#4a5a6a', TILE.roof);
+      A.box(lx + 3.9, ly, lz, 3.0, 2.2, 3.6, '#e8dcc0', TILE.wall, TILE.white);
+      A.gable(lx + 3.9, ly + 2.2, lz, 3.6, 1.4, 4.2, '#a8382c', TILE.roof, '#e8dcc0');
+      A.box(lx + 4.7, ly + 3.0, lz - 0.6, 0.55, 1.2, 0.55, '#a89a88', TILE.stone);
+      break;
+    }
+    case 'iron': {   // an open iron frame on four legs, a red lantern room on top, no walls at all
+      for (const sx of [-1, 1]) for (const sz of [-1, 1]) {
+        A.push(lx + sx * 1.9, ly, lz + sz * 1.9, 0, 1, 1, 1, -sz * 0.13, sx * 0.13);
+        A.cyl(0, 0, 0, 0.3, 0.22, 8.4 * tall, 5, '#3a3a44', TILE.white, false);
+        A.pop();
+      }
+      for (const h of [2.4, 5.0]) A.box(lx, ly + h * tall, lz, 3.6 - h * 0.18, 0.3, 3.6 - h * 0.18, '#3a3a44', TILE.white);
+      A.cyl(lx, ly, lz, 0.55, 0.5, 8 * tall, 6, '#4a4a54', TILE.white, false);   // the stair column in the middle
+      A.box(lx, ly + 8.1 * tall, lz, 3.0, 0.3, 3.0, '#3a3a44', TILE.planks);
+      lamp(8.4 * tall);
+      A.cyl(lx, ly + 9.7 * tall, lz, 1.5, 0, 1.2, 6, '#c0382f', TILE.roof);
+      break;
+    }
+    case 'squat': {   // short, fat and checkered blue and white, a wide gallery, built to take a storm
+      for (let k = 0; k < 3; k++) A.cyl(lx, ly + k * 2.3 * tall, lz, 2.7 - k * 0.2, 2.5 - k * 0.2, 2.3 * tall, 8, k % 2 ? '#f4f0e6' : '#2f5a9a', TILE.white, false);
+      A.cyl(lx, ly + 6.9 * tall, lz, 3.1, 3.1, 0.35, 8, '#3a3438', TILE.planks);
+      A.box(lx + 2.55, ly, lz, 0.3, 1.7, 1.1, '#5a3a1c', TILE.planks);
+      lamp(7.25 * tall);
+      A.cyl(lx, ly + 8.55 * tall, lz, 1.6, 0, 1.3, 6, '#2f5a9a', TILE.roof);
+      break;
+    }
+    case 'pagoda': {   // a wooden three-tier lantern tower with glowing windows, the top tier open for the lamp
+      for (let k = 0; k < 2; k++) {
+        const w = 3.6 - k * 0.7, y = k * 2.9 * tall;
+        A.box(lx, ly + y, lz, w, 2.2 * tall, w, '#a8683a', TILE.planks, TILE.white);
+        for (const sx of [-1, 1]) A.box(lx + sx * (w / 2 + 0.02), ly + y + 0.9 * tall, lz, 0.1, 0.9, 0.9, '#ffffff', TILE.glow);
+        A.cyl(lx, ly + y + 2.2 * tall, lz, w * 0.95, w * 0.36, 0.75 * tall, 4, '#7a3a2a', TILE.roof);
+      }
+      for (const sx of [-1, 1]) for (const sz of [-1, 1]) A.box(lx + sx * 1.1, ly + 5.8 * tall, lz + sz * 1.1, 0.3, 1.5, 0.3, '#5a2a1a', TILE.planks);
+      lamp(5.95 * tall);
+      A.cyl(lx, ly + 7.45 * tall, lz, 2.2, 0.6, 1.0 * tall, 4, '#7a3a2a', TILE.roof);
+      break;
+    }
+    default: {   // classic: bands round the tower, a red cap
+      const [c1, c2] = d && d.id !== '0,-1' ? STRIPES[hash2(d.seed, 29, 3) % STRIPES.length] : STRIPES[0];
+      for (let s = 0; s < 4; s++) A.cyl(lx, ly + s * 2.3 * tall, lz, 1.9 - s * 0.16, 1.9 - (s + 1) * 0.16, 2.3 * tall, 8, s % 2 ? c2 : c1, TILE.white, false);
+      A.cyl(lx, ly + 9.2 * tall, lz, 2.2, 2.2, 0.35, 8, '#5a4a40', TILE.planks);
+      lamp(9.55 * tall);
+      A.cyl(lx, ly + 10.85 * tall, lz, 1.5, 0, 1.2, 6, c1 === '#2a2a30' ? '#2a2a30' : '#c0382f', TILE.roof);
+    }
+  }
 }
 
 // The dark hut (a storyline location): crooked, black-tarred, one sick purple window, bones on poles.
@@ -769,7 +833,7 @@ function decorate(d, rng, A, B, D, extra) {
       rocks(5, 0.3, 1.0, 1.4);
       palms(1, 0.5, 0.9, 0.8, 0.7);
       { const p = spot(d, rng, 0.0, 0.4, 2); if (p) monolith(D, p[0], p[1], p[2], 4.5, 1.1); }
-      if (hasLighthouse(d)) { const p = spot(d, rng, 0.45, 0.8, 0.9, 60); if (p) lighthouse(A, extra, p[0], p[1] - 0.3, p[2], 0.8); }
+      if (hasLighthouse(d)) { const p = spot(d, rng, 0.45, 0.8, 0.9, 60); if (p) lighthouse(A, extra, p[0], p[1] - 0.3, p[2], 0.8, d); }
       shrooms(3);
       break;
     }
@@ -826,7 +890,7 @@ function decorate(d, rng, A, B, D, extra) {
       }
       // lighthouse opposite the dock (not every harbour has one)
       const lth = dockTh + Math.PI + (rng() - 0.5) * 0.6, lr = shoreR(d, lth) * 0.74;
-      if (hasLighthouse(d)) lighthouse(A, extra, Math.cos(lth) * lr, d.H - 0.2, Math.sin(lth) * lr);
+      if (hasLighthouse(d)) lighthouse(A, extra, Math.cos(lth) * lr, d.H - 0.2, Math.sin(lth) * lr, 1, d);
       // dock
       const R = shoreR(d, dockTh), z0 = R * 0.55, z1 = R + 14, zc = (z0 + z1) / 2;
       d.dock = { x: Math.cos(dockTh) * (R + 10), z: Math.sin(dockTh) * (R + 10), th: dockTh };   // where you moor (local)

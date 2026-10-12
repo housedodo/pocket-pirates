@@ -1663,6 +1663,15 @@ window.__game = {
     this._show = new THREE.Mesh(b.geometry(), mats.props); this._show.position.set(x, 0.4, z); scene.add(this._show);
     return list;
   },
+  /** the six lighthouse designs side by side on a raft (for screenshots) */
+  async lighthouses(x = 0, z = 60) {
+    const { lighthouse, LH_KINDS } = await import('./world.js');
+    if (this._show) scene.remove(this._show);
+    const b = new Builder(), ex = {};
+    b.box(0, -0.6, 0, 16 * LH_KINDS.length + 4, 0.8, 14, '#9a7a50', TILE.planks);
+    LH_KINDS.forEach((k, i) => lighthouse(b, ex, (i - (LH_KINDS.length - 1) / 2) * 16, 0.2, 0, 1, null, k));
+    this._show = new THREE.Mesh(b.geometry(), mats.props); this._show.position.set(x, 0.4, z); scene.add(this._show); return LH_KINDS;
+  },
   /** size comparison: three houses with villagers in front, the ship beside them, a 1-unit ruler */
   scaleShot(x = 0, z = 60) {
     if (this._show) scene.remove(this._show);
