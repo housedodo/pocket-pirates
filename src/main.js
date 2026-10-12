@@ -18,7 +18,7 @@ import { Weather } from './weather.js';
 import { Fauna } from './fauna.js';
 import { Traffic } from './traffic.js';
 import { SeaFeatures } from './seafeatures.js';
-import { makeJob, findRumour, repOf, friendLevel, discount, bearingName, nearby, RUMOUR_COST, commissionsFor, questProgress, questNeed, questTitle, QUEST_ICON, questIcon, FRUITS, fruitOf, fruitName, plural } from './jobs.js';
+import { makeJob, setReach, findRumour, repOf, friendLevel, discount, bearingName, nearby, RUMOUR_COST, commissionsFor, questProgress, questNeed, questTitle, QUEST_ICON, questIcon, FRUITS, fruitOf, fruitName, plural } from './jobs.js';
 import { Logbook } from './logbook.js';
 import { Hut } from './hut.js';
 import { makePassenger, passengerTalk } from './passengers.js';
@@ -1442,6 +1442,12 @@ $('demoGo').addEventListener('click', () => {
 let gateFog = 0, gateToastT = 0, musingT = 120;
 function seaGate(dt) {
   const R = gateRadius(state), d = Math.hypot(ship.pos.x, ship.pos.z);
+  setReach(R);
+  // an errand or passenger that points beyond the fog (taken before the fog was understood, or from an old save) is released
+  for (const [key, label] of [['job', 'The delivery'], ['passenger', 'Your passenger']]) {
+    const o = state[key];
+    if (o && Math.hypot(o.x, o.z) > R - 30) { state[key] = null; if (state.tracked === key) state.tracked = null; toast(`${label} was bound beyond the fog. It is let go, and nothing is lost.`, false, 6000); }
+  }
   gateFog = R === Infinity ? 0 : clamp((d - (R - 160)) / 160, 0, 1);
   if (d > R) {   // the fog turns you around: push back toward Tama and bleed speed
     const k = Math.min(d - R + 1, (4 + (d - R) * 0.8) * dt);

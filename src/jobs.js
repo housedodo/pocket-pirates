@@ -12,11 +12,15 @@ const DIRS = ['north', 'north-east', 'east', 'south-east', 'south', 'south-west'
 
 export const bearingName = (dx, dz) => DIRS[Math.round(((Math.atan2(dx, -dz) + Math.PI * 2) % (Math.PI * 2)) / (Math.PI / 4)) % 8];
 
+let reach = Infinity;
+/** how far from Tama the fog lets you sail right now; errands, passengers and rumours never point beyond it */
+export const setReach = (r) => { reach = r; };
 export function nearby(world, x, z, minD, maxD, type) {
   const R = Math.ceil(maxD / CELL) + 1, cx = Math.round(x / CELL), cz = Math.round(z / CELL), out = [];
   for (let dz = -R; dz <= R; dz++) for (let dx = -R; dx <= R; dx++) {
     const d = world.desc(cx + dx, cz + dz);
     if (!d || d.type !== type) continue;
+    if (Math.hypot(d.x, d.z) > reach - 90) continue;   // beyond the fog wall: you could never get there
     const dist = Math.hypot(d.x - x, d.z - z);
     if (dist >= minD && dist <= maxD) out.push({ d, dist });
   }

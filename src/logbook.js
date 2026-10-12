@@ -229,10 +229,10 @@ export class Logbook {
     const j = state.job;
     if (j) {
       const dx = j.x - ship.pos.x, dz = j.z - ship.pos.z;
-      html += ent(`${pxi('letter')} ${j.item}`, `to ${j.toName} · ${Math.round(Math.hypot(dx, dz))} ${bearingName(dx, dz)}`, `${j.reward}g`) + trackBtn(state, 'job');
+      html += ent(`${pxi('letter')} ${j.item}`, `to ${j.toName} · ${Math.round(Math.hypot(dx, dz))} ${bearingName(dx, dz)}`, `${j.reward}g`) + trackBtn(state, 'job') + '<button class="mini" data-drop="job">Give it up</button>';
     } else html += ent('No delivery', 'Take one at a harbour job board.', '', 'dim');
     const pg = state.passenger;
-    if (pg) { const dx = pg.x - ship.pos.x, dz = pg.z - ship.pos.z; html += h3('Passenger') + ent(`${pxi('talk')} ${pg.name}`, `to ${pg.toName} · ${Math.round(Math.hypot(dx, dz))} ${bearingName(dx, dz)}`, `${pg.reward}g`) + trackBtn(state, 'passenger'); }
+    if (pg) { const dx = pg.x - ship.pos.x, dz = pg.z - ship.pos.z; html += h3('Passenger') + ent(`${pxi('talk')} ${pg.name}`, `to ${pg.toName} · ${Math.round(Math.hypot(dx, dz))} ${bearingName(dx, dz)}`, `${pg.reward}g`) + trackBtn(state, 'passenger') + '<button class="mini" data-drop="passenger">Give it up</button>'; }
     html += h3(`Commissions (${state.quests.length}/3)`);
     if (!state.quests.length) html += ent('None taken', 'Harbour boards post errands: fish, fruit, crates, raiders…', '', 'dim');
     for (const q of state.quests) {
@@ -244,6 +244,7 @@ export class Logbook {
     const hist = state.jobHistory || [];
     html += '<h3 class="brk">Done</h3>' + (hist.length ? hist.slice(-4).reverse().map((h) => ent(h.item, `to ${h.to}`, `+${h.reward}g`)).join('') : ent('Nothing yet', '', '', 'dim'));
     this.body.innerHTML = html;
+    this.body.querySelectorAll('[data-drop]').forEach((x) => x.addEventListener('click', () => { state[x.dataset.drop] = null; if (state.tracked === x.dataset.drop) state.tracked = null; this.d.retrack(); this.render(); }));
     this.body.querySelectorAll('[data-track]').forEach((x) => x.addEventListener('click', () => { state.tracked = x.dataset.track; this.d.retrack(); this.render(); }));
   }
 
