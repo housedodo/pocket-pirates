@@ -29,7 +29,8 @@ export const MAIN_GOALS = [
       'That ring is the wind. Gold means she sails well, red means she crawls. The little triangle is our bow.'],
     outro: ['Good. Beam and downwind is fast; straight into the wind is slow.'],
     hints: ['Hold W to let the sails out, then A or D to turn.', 'Turn until the little triangle sits on a gold part of the wind ring: that is where she runs fast.'],
-    check: (c) => c.state.stats.dist >= 100,
+    check: (c) => c.state.stats.dist >= 100 && ((c.state.story.onbStep || 0) >= 2 || !!c.state.story.onbAll),   // not before Mara has explained the steering and the wind ring
+    waitMate: true,
   },
   {
     id: 'harbour', ch: 0, title: 'Make landfall', reward: 12,
@@ -379,14 +380,14 @@ export class Objectives {
     this.timer = 0.5;
     const c = this.d, g = this.state.goals;
     const cur = this.current;
-    if (cur && cur.check(c)) {
+    if (cur && !(cur.waitMate && this.mate.busy) && cur.check(c)) {
       const following = MAIN_GOALS[g.i + 1] || null;
       this.complete(cur, false, following);
       for (const l of cur.outro || []) this.mate.say(l, dread > 0.6);
       if (cur.onDone) cur.onDone(c);
       g.i++; this.hintI = 0; this.stall = 0;
       const next = this.current;
-      if (next) { this.pending = next; this.gap = g.i < 7 ? 6 : 2.5;   // early goals come slowly: time to take it in
+      if (next) { this.pending = next; this.gap = g.i < 7 ? 8 : 5;   // early goals come slowly: time to take it in
          this.newCh = next.ch !== cur.ch; if (next.onStart) next.onStart(this.d); }
       if (this.d.onStep) this.d.onStep(cur, next);
     }
