@@ -120,6 +120,14 @@ New voyage goes straight into the game (no title). A new voyage starts moored al
 - **Dice at the tavern:** Pig against a local, first to 30, 10g stake (win 20g, sometimes a rumour). Space roll, H hold. A 3D pixel d6 tumbles for every throw, the local's too.
 - Not yet: the Lady's die and these checks are deliberately separate; inspiration tokens could link them later.
 
+### Quest cues (design A, built)
+- Finishing a main quest shows a big gold QUEST COMPLETE banner (title and reward), then about 2.7 s later a NEW QUEST card
+  with the next quest's title and one line of text. The tracker flashes with a red NEW tag and the wind ring pulses for
+  about 8 s. Side goals keep the small toast. The chapter card replaces the banner when a new chapter starts.
+- Mara now starts talking at once when a quest completes (it no longer waits for her to finish a line, and the next
+  quest's intro follows 0.8 s after she is done instead of 7 s); her lines also hold a little shorter.
+- Concepts for the other designs: `docs/concept/quest-cues.html`.
+
 ### Lighthouses (six designs)
 - Picked from the island's seed (`lighthouseKind` in world.js); Tama always keeps the classic red-and-white one.
   - **classic:** banded tower, red cap; stripes can be red, black, blue or amber on white.

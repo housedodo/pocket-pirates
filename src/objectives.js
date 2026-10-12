@@ -194,7 +194,7 @@ export class Mate {
     if (this.shown < this.cur.text.length) { this.shown = this.cur.text.length; this.render(); this.wait = this.holdTime(); }
     else this.wait = 0;
   }
-  holdTime() { return 2.2 + this.cur.text.length * 0.04; }
+  holdTime() { return 1.5 + this.cur.text.length * 0.03; }
   render() {
     this.txt.textContent = this.cur.text.slice(0, this.shown);
     this.more.style.visibility = this.shown >= this.cur.text.length ? 'visible' : 'hidden';
@@ -269,15 +269,17 @@ export class Objectives {
     this.mate.say(g.hints[this.hintI++ % g.hints.length], dread > 0.6);
   }
 
-  complete(goal, side) {
+  complete(goal, side, next = null) {
     this.d.state.gold += goal.reward;
-    this.d.toast(`Goal complete: ${goal.title} (+${goal.reward} gold)`, false, 7000);
+    if (side) this.d.toast(`Goal complete: ${goal.title} (+${goal.reward} gold)`, false, 7000);
+    else if (this.d.questCue) this.d.questCue(goal, next);   // main goals get the big banner instead of a toast
+    else this.d.toast(`Goal complete: ${goal.title} (+${goal.reward} gold)`, false, 7000);
     if (side) this.state.goals.side[goal.id] = true;
   }
 
   update(dt, dread) {
     this.mate.update(dt);
-    // the next goal is only announced a few seconds after Mara has finished talking
+    // the next goal is announced a moment after Mara has finished talking
     if (this.pending) {
       if (!this.mate.busy) {
         this.gap -= dt;
@@ -296,13 +298,14 @@ export class Objectives {
     this.timer = 0.5;
     const c = this.d, g = this.state.goals;
     const cur = this.current;
-    if (cur && cur.check(c) && !this.mate.busy) {
-      this.complete(cur, false);
+    if (cur && cur.check(c)) {
+      const following = MAIN_GOALS[g.i + 1] || null;
+      this.complete(cur, false, following);
       for (const l of cur.outro || []) this.mate.say(l, dread > 0.6);
       if (cur.onDone) cur.onDone(c);
       g.i++; this.hintI = 0; this.stall = 0;
       const next = this.current;
-      if (next) { this.pending = next; this.gap = 7; this.newCh = next.ch !== cur.ch; if (next.onStart) next.onStart(this.d); }
+      if (next) { this.pending = next; this.gap = 0.8; this.newCh = next.ch !== cur.ch; if (next.onStart) next.onStart(this.d); }
       if (this.d.onStep) this.d.onStep(cur, next);
     }
     for (const s of SIDE_GOALS) if (!g.side[s.id] && s.check(c)) this.complete(s, true);

@@ -344,6 +344,21 @@
     #demoend { position: fixed; inset: 0; z-index: 30; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 12px; background: #06040e; color: #fff4d8; text-align: center; padding: 16px; }
     #demoend.show { display: flex; animation: dfade 3s steps(8) both; } #demoend h1 { font-size: 48px; font-weight: 400; color: #d8b0e8; margin: 0; } #demoend p { font-size: 16px; max-width: 520px; } #demoend small { font-size: 16px; color: #8a7e9a; } #demoend button { font: 16px "DotGothic16", monospace; padding: 8px 24px; margin-top: 16px; color: #fff4d8; background: var(--pxbtn) 0 0 / 32px 32px; image-rendering: pixelated; border: none; box-shadow: 0 -4px 0 #d8b0e8, 0 4px 0 #d8b0e8, -4px 0 0 #d8b0e8, 4px 0 0 #d8b0e8; cursor: pointer; }
     @keyframes dfade { from { opacity: 0; } to { opacity: 1; } }
+    /* quest cues (design A): a big QUEST COMPLETE banner, then the NEW QUEST card, a tracker flash and a pulse on the wind ring */
+    #qbanner { position: absolute; left: 50%; top: 27%; transform: translateX(-50%); width: min(720px, 92vw); text-align: center; pointer-events: none; display: none; }
+    #qbanner.show { display: block; }
+    #qbanner .qbDone, #qbanner .qbNew { position: absolute; left: 0; right: 0; top: 0; padding: 14px 20px 18px; opacity: 0; background: var(--pxmenu) 0 0 / 32px 32px; image-rendering: pixelated; box-shadow: 0 -4px 0 #ffd23a, 0 4px 0 #ffd23a, -4px 0 0 #ffd23a, 4px 0 0 #ffd23a, 8px 8px 0 4px rgba(0,0,0,.45); }
+    #qbanner .qbNew { box-shadow: 0 -4px 0 #c9a85c, 0 4px 0 #c9a85c, -4px 0 0 #c9a85c, 4px 0 0 #c9a85c, 8px 8px 0 4px rgba(0,0,0,.45); }
+    #qbanner.show .qbDone { animation: qbdone 3.2s steps(16) forwards; } #qbanner.show .qbNew { animation: qbnew 7.2s steps(24) 2.7s forwards; }
+    .qbBig { font: 56px "Pirata One", serif !important; color: #ffd23a; text-shadow: 4px 4px 0 #5a1612, 8px 8px 0 #1a0606; line-height: 64px; }
+    .qbRew { font-size: 24px !important; color: #f4ead0; } .qbRew em { font-style: normal; color: #ffd23a; margin-left: 16px; }
+    .qbNew small { display: block; color: #ffd23a; letter-spacing: .12em; font-size: 16px !important; } .qbNew span { display: block; font-size: 32px !important; line-height: 44px; color: #fff4d8; }
+    .qbNew i { display: block; font-style: normal; font-size: 16px !important; color: #c9b890; margin-top: 4px; }
+    @keyframes qbdone { 0% { opacity: 0; transform: translateY(-24px) scale(1.06); } 10% { opacity: 1; transform: none; } 80% { opacity: 1; } 100% { opacity: 0; } }
+    @keyframes qbnew { 0% { opacity: 0; transform: translateY(14px); } 6% { opacity: 1; transform: none; } 88% { opacity: 1; } 100% { opacity: 0; } }
+    #tracker.flash { animation: trflash 1s steps(2) 8; box-shadow: 0 0 0 3px #ffd23a; } @keyframes trflash { 50% { box-shadow: 0 0 0 6px #ff9a3a; } }
+    #tracker .tag { display: inline-block; padding: 0 6px; margin-left: 6px; background: #c8402a; color: #fff4d8; }
+    #compass.ping { animation: cping 1.2s steps(4) 6; } @keyframes cping { 0% { box-shadow: 0 0 0 0 rgba(255,154,58,.9); } 100% { box-shadow: 0 0 0 26px rgba(255,154,58,0); } }
     #landho { position: absolute; left: 50%; top: 22%; transform: translateX(-50%); text-align: center; opacity: 0; pointer-events: none; }
     #landho b { display: block; font-size: 18px; color: var(--gold); letter-spacing: .3em; }
     #landho span { display: block; font-size: 40px; color: #fff7d6; text-shadow: 4px 4px 0 var(--shadow); }
@@ -416,6 +431,7 @@
     <div id="prompt" class="panel txt"><div id="prompttxt"></div><div class="bar"><i></i></div></div>
     <div id="toasts"></div>
     <div id="landho" class="txt"><b></b><span></span><small></small></div>
+    <div id="qbanner"><div class="qbDone"><div class="qbBig">QUEST COMPLETE</div><div class="qbRew"><span id="qbTitle"></span><em id="qbRew"></em></div></div><div class="qbNew"><small>NEW QUEST</small><span id="qbNext"></span><i id="qbText"></i></div></div>
     <div id="help" class="txt panel"><span>A/D steer &middot; W/S sails · G oars &middot; E interact<br>M chart &middot; Esc pause &middot; drag = tilt &middot; wheel = zoom &middot; H hide HUD</span></div>
     <div id="debug" class="panel txt"></div>
     <div id="abyssTag" class="panel txt"></div>
