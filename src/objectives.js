@@ -44,8 +44,9 @@ export const MAIN_GOALS = [
   {
     id: 'dig', ch: 1, title: 'Follow the riddle', reward: 36,
     text: 'Perrin\'s riddle is in your log (Journal). Find the right shore of Hollow Cay Galen and dig.',
-    intro: ['Perrin left you a letter with the harbourmaster: take it at the Board sign in Tama.',
-      'Then find the shore its riddle means, stop the ship and press E to dig.'],
+    // if the letter is already taken and read, she does not tell the player to fetch it
+    intro: (c) => (c.state.story.letterP1 === 'taken' ? ['Now to find the shore that riddle means. Stop the ship there and press E to dig.']
+      : ['Perrin left you a letter with the harbourmaster: take it at the Board sign in Tama.', 'Then find the shore its riddle means, stop the ship and press E to dig.']),
     outro: ['Ha! Treasure! A captain with gold in the hold is a captain with options.'],
     hints: ['Take Perrin\'s letter at the Tama Board sign first (the little letter icon). The riddle is then in the log (M, Riddles tab). Sunrise is east, sunset is west.', 'Try the shore the riddle describes. A wrong shore only costs a few seconds.'],
     check: (c) => c.state.dug.has(HOME_ISLE),
@@ -128,7 +129,7 @@ export const MAIN_GOALS = [
   {
     id: 'checkchart', ch: 3, title: 'Check his chart', reward: 36,
     text: (c) => c.state.story.check ? `Perrin wants to know if ${c.state.story.check.name}, ${c.state.story.check.dir} of Tama, has ${c.state.story.check.detail}. Go and look.` : 'Read Perrin\'s note in your log.',
-    intro: ['He wants us to check something on his chart. His note is in the Journal. Far out, Captain.'],
+    intro: (c) => (c.state.story.noteLine === 'done' ? ['It is far out, Captain. Sail close to the island and slow down to have a good look.'] : ['He wants us to check something on his chart. His note is in the Journal. Far out, Captain.']),
     outro: ['He was right. About everything. Captain... nobody has ever charted that island. Nobody.'],
     hints: ['Perrin\'s note says which island, and roughly where. It is far from Tama.', 'Sail close to the island and slow down to have a good look.'],
     check: (c) => { const k = c.state.story.check; return !!k && Math.hypot(c.ship.pos.x - k.x, c.ship.pos.z - k.z) < k.r + 40 && c.ship.speed < 3; },
@@ -372,7 +373,7 @@ export class Objectives {
         if (this.gap <= 0) {
           const next = this.pending; this.pending = null;
           if (this.newCh) { this.newCh = false; this.chapterCard(next.ch); }
-          for (const l of next.intro) this.mate.say(l, dread > 0.6);
+          for (const l of (typeof next.intro === 'function' ? next.intro(this.d) : next.intro)) this.mate.say(l, dread > 0.6);
         }
       }
       return;
