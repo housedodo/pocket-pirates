@@ -478,6 +478,12 @@
     body.onb-mate #mate { visibility: visible !important; left: 12px; bottom: 12px; top: auto; transform: none; width: min(360px, 30vw); pointer-events: auto; }
     body.onb-mate.ashore #mate { bottom: auto; top: 300px; }
     .ribbons button.hl { animation: hlpulse 1s steps(2) infinite; box-shadow: 0 0 0 4px #ffd23a !important; }
+    /* the opening shot */
+    #introbars i { position: fixed; left: 0; right: 0; height: 0; background: #000; z-index: 7; pointer-events: none; transition: height 1.4s ease; } #introbars i:first-child { top: 0; } #introbars i:last-child { bottom: 0; }
+    body.intro #introbars i { height: 13vh; transition: height 1s ease; }
+    body.intro #hud { opacity: 0 !important; }
+    #introskip { position: fixed; right: 20px; bottom: calc(13vh + 12px); z-index: 8; color: #f4ead0; font-size: 16px; opacity: 0; pointer-events: none; text-shadow: 2px 2px 0 #000; }
+    body.intro #introskip { opacity: .8; transition: opacity 1s 2.5s; }
   </style>
 </head>
 <body>
@@ -509,7 +515,7 @@
     <div id="debug" class="panel txt"></div>
     <div id="abyssTag" class="panel txt"></div>
   </div>
-  <div id="hit"></div><div id="fade"></div>
+  <div id="hit"></div><div id="fade"></div><div id="introbars"><i></i><i></i></div><div id="introskip">any key to skip</div>
   <div id="saveship"><canvas id="ssCv" width="20" height="11"></canvas><div class="ssWave"></div><span>Voyage saved</span></div>
   <div id="yardmodal" class="modal yard"><div class="menu" id="yardWide"><h2>Shipyard</h2><div class="goldline">Gold: <b id="yardGold"></b></div><div class="ytabs" id="yardTabs"></div><div id="yardBody"></div><div class="ytry" id="yardTry"></div><div class="yacts"><button id="yardBuy">Buy</button><button id="yardBack">Put back</button><button id="yardClose">Done</button></div></div>
     <div id="yardTurn"><button id="yTurnL">&#9668;</button><span id="yAngle">side</span><button id="yTurnR">&#9658;</button><small>drag to turn &middot; wheel to zoom</small></div></div>

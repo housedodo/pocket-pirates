@@ -505,17 +505,31 @@ $('tNew').addEventListener('click', (e) => {
   location.href = location.pathname;
 });
 
+// ---- a new voyage opens with a short cinematic: the camera starts high over Tama and drifts down to behind the ship, then the game begins.
+// Any key or click skips it. Test runs (autostart, nomate) and continued voyages go straight in.
+const INTRO_DUR = 9;
+let introT = -1;
+const introWanted = () => params.get('intro') === '1' || (!state.goals.started && !params.get('autostart') && !params.get('nomate') && !params.has('x'));
+function endIntro() {
+  if (introT < 0) return;
+  introT = -1; document.body.classList.remove('intro');
+  if (!params.get('nomate')) objectives.start();
+}
+function skipIntro() { if (introT >= 0 && introT > 0.8) introT = Math.max(introT, INTRO_DUR - 1.2); }
 function begin() {
   if (started) return;
   started = true;
   endTitle();
   titleEl.style.display = 'none';
   audio.start();
-  if (!params.get('nomate')) objectives.start();
+  if (introWanted()) { introT = 0; document.body.classList.add('intro'); }
+  else if (!params.get('nomate')) objectives.start();
 }
 let forced = params.has('dread') ? clamp(parseFloat(params.get('dread')), 0, 1) : null;
 
+window.addEventListener('pointerdown', () => skipIntro());
 window.addEventListener('keydown', (e) => {
+  if (introT >= 0) { skipIntro(); return; }
   if (e.target && e.target.closest && e.target.closest('#mixer') && e.code !== 'F8') return;   // arrow keys on a mixer slider move the slider, not the ship
   if (!started) { if (titleScene) titleKey(e); else begin(); return; }
   if (e.code === 'Escape' || e.code === 'KeyP') {
@@ -1723,7 +1737,8 @@ function frame() {
   const nowTs = performance.now();
   const rawDt = Math.min(0.05, (nowTs - lastTs) / 1000);
   lastTs = nowTs;
-  const live = started && !modal;
+  if (introT >= 0) { introT += rawDt; if (introT >= INTRO_DUR) endIntro(); }
+  const live = started && !modal && introT < 0;
   const dt = live ? rawDt : 0;           // simulation time: frozen while a menu is open
   const ashore = modal === 'harbour' || modal === 'greet' || modal === 'yard';
   const vdt = live || ashore ? rawDt : 0;  // ashore the world keeps moving (people, gulls, waves) while the clock stands still
@@ -1880,6 +1895,11 @@ function frame() {
   if (titleScene) titleCam(rawDt);
   ashoreK += ((ashore && ashoreCam ? 1 : 0) - ashoreK) * Math.min(1, rawDt * 2.2);
   if (ashoreCam && ashoreK > 0.001) { const k = smoothstep(0, 1, ashoreK); camPos.lerp(ashoreCam.pos, k); camLook.lerp(ashoreCam.look, k); }
+  if (introT >= 0) {   // the opening shot: high over Tama, easing down to the usual place behind the ship
+    const k = clamp(introT / INTRO_DUR, 0, 1), e = k * k * (3 - 2 * k), i0 = world.desc(0, -1);
+    camPos.x += -34 * (1 - e); camPos.y += 78 * (1 - e); camPos.z += 52 * (1 - e);
+    if (i0) camLook.set(i0.x + (camLook.x - i0.x) * e, 8 + (camLook.y - 8) * e, i0.z + (camLook.z - i0.z) * e);
+  }
   if (modal === 'yard') {   // the turntable: the ship turns slowly by itself until you take over
     if (!yardDrag) { yardIdle += rawDt; if (yardIdle > 2.5) yardYaw += rawDt * 0.35; }
     const a = ship.heading + yardYaw, r = 11 * yardZoom;
