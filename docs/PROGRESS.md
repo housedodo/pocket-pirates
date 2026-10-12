@@ -47,7 +47,8 @@ New voyage goes straight into the game (no title). A new voyage starts moored al
   Ship, Standing); rough pixel chart (island names only when zoomed in; the ship has a red "you are here" ring). Mission tracker toggled with Q.
 
 ### Horror layer
-- Islands swap to "wrong" decor above half dread, tentacles between islands, crows, ghost ships,
+- No tentacles any more (removed on purpose): the dread should be subtle and slowly horrifying, built from small wrong details (people, boats, tides, wildlife), not monsters. The leviathan arches at the very end remain.
+- Islands swap to "wrong" decor above half dread, crows, ghost ships,
   black sun, star-eye constellation.
 - **Full dread effects** come one at a time: one creeps in (3-12 s), holds (15-90 s), fades (5-19 s), then nothing
   for 8-120 s before a different one starts; every length is random. Calm, wind, HUD and ocean fade by strength.

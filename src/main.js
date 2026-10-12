@@ -8,7 +8,6 @@ import { World, villager, VILLAGERS, houseKind, HOUSES, shoreR } from './world.j
 import { Builder } from './builder.js';
 import { TILE } from './textures.js';
 import { Ship } from './ship.js';
-import { Horror } from './horror.js';
 import { AudioBus, AUDIO_ENABLED } from './audio.js';
 import { sfx } from './sfx.js';
 import { Mixer } from './mixer.js';
@@ -117,7 +116,6 @@ scene.add(ocean.mesh);
 const sky = new Sky(scene);
 const world = new World(scene, state.seed, state.dug);
 const ship = new Ship(scene);
-const horror = new Horror(scene, world, state.seed);
 const audio = new AudioBus();
 sfx.play = (k, o) => audio.play(k, o);
 for (const ev of ['pointerdown', 'keydown']) window.addEventListener(ev, () => { if (audio.ctx && audio.ctx.state === 'suspended' && modal !== 'pause') audio.ctx.resume(); });   // browsers start audio muted until a click or key
@@ -1488,7 +1486,6 @@ function frame() {
     if (fa && h >= 17 && !state.hints['front:' + state.dayN]) { state.hints['front:' + state.dayN] = true; if (!state.hints.frontSeen) { state.hints.frontSeen = true; objectives.mate.say('That red in the west... a front is coming in tomorrow afternoon, Captain. I would be in a harbour by then.'); } }
   }
   world.tick(animT, tod);
-  horror.update(tNow, dread, ship.pos.x, ship.pos.z);
   ship.place(vdt, waveT, stage.wave, dark, tod.night);
   const lifeCtx = { ship, dread, wave: stage.wave, audio, wind: windNow, stage, tod, faction: sec.faction.id, sched: { wd: weekday(), hour: state.time * 24, dayN: state.dayN, dread } };
   if (live) state.stats.dist += ship.speed * dt;
@@ -1678,7 +1675,7 @@ window.__game = {
     this._show = new THREE.Mesh(b.geometry(), mats.props); this._show.position.set(x, 0.4, z); scene.add(this._show);
     ship.pos.set(x + 15, 0, z + 2.5); ship.heading = Math.PI / 2; ship.speed = 0; ship.trim = 1;
   },
-  sectorAt: (x, z) => sectorAt(x, z, state.seed), traffic, abyss, hut, ship, world, state, begin, scene, camera, horror, renderer, wind, weather, fauna, traffic, sea, audio, fishing, combat, objectives, hurtPlayer, openModal, closeModal, buyUpgrade, refreshMods,
+  sectorAt: (x, z) => sectorAt(x, z, state.seed), traffic, abyss, hut, ship, world, state, begin, scene, camera, renderer, wind, weather, fauna, traffic, sea, audio, fishing, combat, objectives, hurtPlayer, openModal, closeModal, buyUpgrade, refreshMods,
 };
 let newVoyage = false;   // New voyage reloads straight into the game, no title in between
 try { newVoyage = sessionStorage.getItem('hoist-new') === '1'; sessionStorage.removeItem('hoist-new'); } catch (e) { /* storage blocked */ }

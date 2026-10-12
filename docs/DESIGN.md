@@ -31,7 +31,6 @@ If the game outgrows the browser, the design, generators and shaders port over; 
 | `wind.js` | Wandering wind: big heading swings over minutes + gusts, announced when it shifts |
 | `daynight.js` | Day/night layered on the dread palette (10 min per day: 7.5 min daylight, 2.5 min night): sun, moon, stars, dusk colours, light level |
 | `upgrades.js` | 5 ship upgrades x 3 levels (sails, rudder, lantern, spyglass, crew), costs and effects |
-| `horror.js` | Tentacles that rise between islands at high dread |
 | `lore.js` | Names, harbour gossip and loot that drift from cosy to cosmic |
 | `audio.js` | Optional drop-in audio, cross-faded per dread stage |
 
@@ -84,7 +83,7 @@ Other systems: **jobs** (delivery contracts from harbour boards, tracked on the 
 | 2 | Off | paler, quieter | NPCs repeat themselves |
 | 3 | Wrong | green haze, desaturated | glowing fungus, standing stones, odd names |
 | 4 | Eerie | fog, dusk, black flag | dead palms, lit empty windows, magenta lighthouse beam |
-| 5 | Cosmic | black sun, eye in the stars | tentacles, chromatic split, screen wobble |
+| 5 | Cosmic | black sun, eye in the stars | chromatic split, screen wobble |
 
 ## Tunables
 - `DREAD_RANGE` in `palette.js`: distance (2200 units now, ~3 min) to reach full dread. Raise it for a longer arc.

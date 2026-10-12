@@ -1,6 +1,5 @@
 import * as THREE from 'three';
 import { fbm, smoothstep, clamp, mulberry32 } from './util.js';
-import { Tentacle } from './horror.js';
 
 // Rolling weather: overcast -> rain -> storms (with lightning), plus fog banks.
 // Driven by slow noise, scaled by dread (the further out, the nastier it gets).
@@ -18,7 +17,6 @@ export class Weather {
     this.onThunder = null;
     this.front = 0; this.frontAhead = 0;   // a scheduled storm front (set by the game from the calendar)
     this.region = { rain: 1, storm: 1, fog: 1 };   // regional character (set from the sector's faction)
-    this.phantom = null; this.phantomT = 0;
     this.rng = mulberry32(2024);
 
     this.px = new Float32Array(N), this.py = new Float32Array(N), this.pz = new Float32Array(N);
@@ -76,12 +74,9 @@ export class Weather {
         this.flash = 1; this.flashQueue = 1;
         this.nextFlash = (5 + this.rng() * 10) / (0.5 + this.storm);
         if (this.onThunder) this.onThunder(0.3 + this.rng() * 2.2);
-        if (dread > 0.35 && this.rng() < 0.65) this.showPhantom(cam, t);
       }
     }
     if (this.flashQueue === 1 && this.flash < 0.35) { this.flash = 0.8; this.flashQueue = 0; }
-    this.phantomT -= dt;
-    if (this.phantom) { this.phantom.root.visible = this.phantomT > 0; if (this.phantom.root.visible) this.phantom.update(t, 1); }
 
     // rain streaks
     const count = Math.floor(clamp(this.rain, 0, 1) * N);
@@ -102,18 +97,6 @@ export class Weather {
       }
       this.lines.geometry.attributes.position.needsUpdate = true;
     }
-  }
-
-  showPhantom(cam, t) {
-    if (!this.phantom) {
-      this.phantom = new Tentacle(0, 0, this.rng);
-      this.phantom.root.scale.setScalar(1.4);
-      this.phantom.root.visible = false;
-      this.scene.add(this.phantom.root);
-    }
-    const a = this.rng() * Math.PI * 2, d = 45 + this.rng() * 40;
-    this.phantom.root.position.set(cam.position.x + Math.cos(a) * d, 0, cam.position.z + Math.sin(a) * d);
-    this.phantomT = 0.4;
   }
 
   /** Mutates the per-frame stage so everything downstream sees the weather. */
