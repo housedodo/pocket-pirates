@@ -1,0 +1,55 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Fishing: where to find what</title>
+<style>
+  @font-face { font-family: 'DotGothic16'; src: url(../../public/fonts/dotgothic.woff2) format('woff2'); }
+  @font-face { font-family: 'Pirata One'; src: url(../../public/fonts/pirataone.woff2) format('woff2'); }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 16px; background: #0b0a12; color: #f4ead0; font: 16px 'DotGothic16', monospace; }
+  h1 { font-size: 32px; font-weight: 400; color: #ffd23a; margin: 0 0 8px; } .lead, .cap { color: #c9b890; max-width: 1180px; } .cap { margin: 0 0 32px; } .cap b { color: #ffd23a; font-weight: 400; }
+  .frame { position: relative; width: 1280px; height: 720px; overflow: hidden; margin-bottom: 8px; background: #123 url(hoist-bg3.png) center / cover; image-rendering: pixelated; }
+  .px { background: #1d1640; box-shadow: 0 -4px 0 #c9a85c, 0 4px 0 #c9a85c, -4px 0 0 #c9a85c, 4px 0 0 #c9a85c, 8px 8px 0 4px rgba(0,0,0,.45); }
+  .page { position: absolute; left: 90px; top: 50px; width: 1100px; height: 620px; background: #e6d3a0; color: #3a2210; box-shadow: 0 0 0 8px #4a2a12, 10px 10px 0 8px rgba(0,0,0,.5); padding: 20px 30px; }
+  .page h3 { margin: 0 0 8px; font: 32px 'Pirata One'; font-weight: 400; text-align: center; border-bottom: 4px dashed rgba(58,34,16,.5); }
+  .fr { display: grid; grid-template-columns: 220px 150px 1fr 120px; gap: 8px; padding: 6px 8px; margin: 4px 0; background: rgba(255,248,220,.35); border-left: 4px solid #8a5a2c; }
+  .fr.unk { opacity: .6; } .fr b { font-weight: 400; } .fr small { color: #7a5a3a; }
+  .tag { position: absolute; padding: 4px 12px; background: #17112e; box-shadow: 0 0 0 3px #3a3070; }
+  .sw { position: absolute; width: 150px; height: 70px; }
+  .chip { display: inline-block; padding: 0 8px; margin-right: 4px; background: #2c2160; color: #fff4d8; font-size: 14px; }
+  .spot { position: absolute; width: 90px; height: 90px; border-radius: 50%; border: 4px dashed rgba(255,255,255,.7); animation: none; background: radial-gradient(rgba(255,255,255,.35), transparent 70%); }
+  .chart { position: absolute; left: 90px; top: 60px; width: 640px; height: 600px; background: #dcc890; box-shadow: 0 0 0 8px #4a2a12; color: #3a2210; }
+  .isl { position: absolute; background: #b79a5c; box-shadow: inset 0 -6px 0 #8f7440; }
+  .ico { position: absolute; font-size: 24px; color: #3a5a8a; }
+  .quote { position: absolute; left: 60px; bottom: 60px; width: 760px; padding: 14px 18px; }
+</style></head><body>
+<h1>Fishing: where do I find what</h1>
+<p class="lead">In the demo only six bright species ever bite, and they bite everywhere, so there is nothing to look for. Each design below gives every fish a place and a time, and a way for the player to learn it. All three can be combined: A is the record, B the clue at sea, C the clue ashore.</p>
+
+<div class="frame">
+  <div class="page">
+    <h3>Fisherman's log</h3>
+    <div class="fr"><b>Sardine</b><span>shallows</span><span>Near any island, all day. The shoals boil on the surface. <small>caught 4 · best 0.3 kg</small></span><span>5g/kg</span></div>
+    <div class="fr"><b>Red snapper</b><span>reef edge</span><span>Where the water goes pale at the edge of an island. Mornings are best. <small>caught 2 · best 2.1 kg</small></span><span>7g/kg</span></div>
+    <div class="fr"><b>Mahi-mahi</b><span>open blue</span><span>Far from land, with the wind behind you, in the morning. <small>caught 1</small></span><span>7g/kg</span></div>
+    <div class="fr"><b>Bluefin tuna</b><span>deep water</span><span>Long open stretches, late in the day. A strong fighter. <small>not caught yet</small></span><span>3g/kg</span></div>
+    <div class="fr"><b>Golden grouper</b><span>wrecks</span><span>Under the shadow of a wreck, at low tide. <small>not caught yet</small></span><span>14g/kg</span></div>
+    <div class="fr"><b>Cuttlefish</b><span>atoll lagoon</span><span>Inside a ring island, at dusk. <small>not caught yet</small></span><span>9g/kg</span></div>
+    <div class="fr unk"><b>? ? ?</b><span>?</span><span>You have not heard where this one bites. Ask in a tavern.</span><span>?</span></div>
+    <div class="fr unk"><b>? ? ?</b><span>?</span><span>Moonlit nights, they say.</span><span>?</span></div>
+  </div>
+</div>
+<p class="cap"><b>A · The fisherman's log.</b> Journal page with one row per species: where it lives (shallows, reef edge, open blue, deep water, wrecks, atoll lagoon, mangrove, harbour), the time of day, and your own best catch. A row shows the place once you have caught one or heard about it; until then a "? ? ?" row hints at the kind of water. The fish themselves are rules, not new art: a species is picked by what is near the boat (island type, distance from land, depth, hour, tide).</p>
+
+<div class="frame">
+  <div class="spot" style="left:360px;top:420px"></div><div class="spot" style="left:760px;top:360px;width:120px;height:120px"></div>
+  <div class="tag" style="left:360px;top:380px">silver shoal · sardines</div>
+  <div class="tag" style="left:740px;top:320px">dark water · tuna</div>
+  <div class="px" style="position:absolute;right:24px;top:24px;width:420px;padding:12px 16px"><div style="color:#ffd23a">STOP HERE?</div>Something is moving under the surface. A shoal of silver fish. <span class="chip">C: cast</span></div>
+</div>
+<p class="cap"><b>B · Spots at sea.</b> You can see where to fish: a bubbling or glittering patch (silver for shoals, dark for deep water, pale for a reef edge), each with a tag when you slow down near it. A fish you never found by chance becomes findable by eye. Spots you have fished are drawn on the chart as a small fish, so you can come back.</p>
+
+<div class="frame">
+  <div class="px quote"><div style="color:#ffd23a">A net-mender, Harbour Velto</div><div style="font-size:32px;line-height:40px">Golden groupers? Under the wrecks, low tide. Mornings, mostly. Tell nobody.</div></div>
+  <div class="px" style="position:absolute;right:24px;top:24px;width:420px;padding:12px 16px"><div style="color:#ffd23a">LOG UPDATED</div>Golden grouper: wrecks, low tide, mornings.</div>
+</div>
+<p class="cap"><b>C · Harbour talk.</b> Villagers, fishers and the tavern tell you where one species bites (one hint per conversation), and it goes into the log right away. Gives the fishermen of every harbour a reason to be talked to, and lets a player who does not search the sea still learn the waters.</p>
+</body></html>

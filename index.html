@@ -460,6 +460,16 @@
     .hp5 { display: inline-flex; gap: 6px; vertical-align: middle; margin-left: 4px; }
     .hp5 i { display: block; width: 16px; height: 16px; background: #d84030; box-shadow: inset -4px -4px 0 #8a1c14, inset 4px 4px 0 #f08060, 0 0 0 3px #1a0614; }
     .hp5 i.off { background: #2a1a30; box-shadow: inset 0 0 0 0 #000, 0 0 0 3px #1a0614; }
+    /* shipyard turntable: a short panel on the right, the ship turning on its own in the middle */
+    #yardWide { width: min(430px, 94vw) !important; margin: 24px 0 !important; align-self: flex-start; }
+    .ytabs { display: flex; gap: 6px; margin: 6px 0; flex-wrap: wrap; } .ytabs button { width: auto; margin: 0; padding: 4px 10px; } .ytabs button.on { background: #4a38a0; box-shadow: 0 -3px 0 #ffd23a, 0 3px 0 #ffd23a, -3px 0 0 #ffd23a, 3px 0 0 #ffd23a; }
+    #yardBody .swatches { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; } #yardBody .swatches button { width: 100%; padding: 4px 8px; } #yardBody .swatches button.lock { opacity: .45; }
+    .ytry { min-height: 44px; margin: 6px 0; color: #ffd23a; } .ytry small { display: block; color: #c8b890; font-size: 14px !important; }
+    .yacts { display: flex; gap: 8px; flex-wrap: wrap; } .yacts button { width: auto; margin: 0; }
+    #yardTurn { position: fixed; left: 50%; bottom: 36px; transform: translateX(-62%); display: flex; align-items: center; gap: 12px; z-index: 5; }
+    #yardTurn button { width: 56px; height: 56px; padding: 0; font-size: 24px; border: none; cursor: pointer; background: #2c2160; color: #fff4d8; box-shadow: 0 0 0 3px #4a3aa0; } #yardTurn span, #yardTurn small { background: #17112e; padding: 4px 12px; box-shadow: 0 0 0 3px #3a3070; color: #f4ead0; }
+    #yardmodal:not(.open) #yardTurn { display: none; }
+    .halfmark { display: inline-block; padding: 0 6px; margin-left: 4px; background: #7a3a1c; color: #f4ead0; font-weight: 400; font-size: 14px; }
   </style>
 </head>
 <body>
@@ -493,7 +503,8 @@
   </div>
   <div id="hit"></div><div id="fade"></div>
   <div id="saveship"><canvas id="ssCv" width="20" height="11"></canvas><div class="ssWave"></div><span>Voyage saved</span></div>
-  <div id="yardmodal" class="modal yard"><div class="menu" id="yardWide"><h2>Shipyard</h2><p class="quote" id="yardLine">Paint, canvas and carved wood. All the finest vanity.</p><div class="goldline">Gold: <b id="yardGold"></b></div><div id="yardBody"></div><button id="yardClose">Done</button></div></div>
+  <div id="yardmodal" class="modal yard"><div class="menu" id="yardWide"><h2>Shipyard</h2><div class="goldline">Gold: <b id="yardGold"></b></div><div class="ytabs" id="yardTabs"></div><div id="yardBody"></div><div class="ytry" id="yardTry"></div><div class="yacts"><button id="yardBuy">Buy</button><button id="yardBack">Put back</button><button id="yardClose">Done</button></div></div>
+    <div id="yardTurn"><button id="yTurnL">&#9668;</button><span id="yAngle">side</span><button id="yTurnR">&#9658;</button><small>drag to turn &middot; wheel to zoom</small></div></div>
   <div id="chart" class="modal" data-book="pixel"><div class="bookwrap"><div class="ribbons" id="logTabs"></div><div class="book">
     <div class="spread"><div id="logBody" class="cols"></div></div>
     <div class="bookbar"><button id="pgPrev"><i class="pxi left"></i></button><span id="pgNum" style="min-width:48px;text-align:center"></span><button id="pgNext"><i class="pxi right"></i></button><span class="keys">left/right: tabs &middot; up/down: pages &middot; 1-7</span><button id="logClose">Close [M]</button></div>

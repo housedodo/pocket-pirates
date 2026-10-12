@@ -70,6 +70,17 @@ export const MAIN_GOALS = [
     onDone: (c) => { if (c.forceCalm) c.forceCalm(0); },   // the wind picks up again
   },
   {
+    id: 'tack', ch: 2, title: 'Beat to windward', reward: 24,
+    text: 'Make headway into the wind by zig-zagging: keep the little triangle on the gold part of the wind ring, and turn across the wind every so often.',
+    intro: ['The wind is back, and it is in our teeth. Never mind: a ship can sail toward the wind if she zig-zags.',
+      'Turn until the little triangle sits on the gold edge of the wind ring, hold her there, then swing across to the other side. Left, right, left. Every leg gains us a little ground upwind.'],
+    outro: ['There it is. Upwind at last, and not a drop of rowing. Perrin would call that sailing.'],
+    hints: ['Dead into the wind she barely moves. Keep the triangle on the gold part of the ring, about 45 degrees off the wind.', 'Turn across the wind (A and D) after a little while, and keep going the same way overall.'],
+    check: (c) => (c.state.stats.upwind || 0) >= ((c.state.story.up0 || 0) + 60),
+    count: (c) => [Math.round((c.state.stats.upwind || 0) - (c.state.story.up0 || 0)), 60],
+    onStart: (c) => { c.state.story.up0 = c.state.stats.upwind || 0; },
+  },
+  {
     id: 'job', ch: 2, title: 'Earn your keep', reward: 30,
     text: 'Take a delivery from a harbour board and bring it where it belongs.',
     intro: ['The fog has lifted a little further out. Good: harbours pay well for deliveries, and some folk pay for passage too.'],
@@ -195,7 +206,6 @@ export const unlocked = (state, key) => chapterOf(state) >= UNLOCK[key];
 export const gateRadius = (state) => (state.story.free ? Infinity : GATES[Math.min(GATES.length - 1, chapterOf(state))]);
 
 export const SIDE_GOALS = [
-  { id: 'tack', title: 'Beat to windward', reward: 15, text: 'Make headway into the wind by zig-zagging (tacking) on the gold part of the wind ring.', check: (c) => (c.state.stats.upwind || 0) >= 60 },
   { id: 'fish', title: 'Dinner at sea', reward: 15, text: 'Reef the sails (S) until you slow down, then press C to cast a line.', check: (c) => c.state.stats.fish >= 1 },
   { id: 'hail', title: 'Say hello', reward: 12, text: 'Hail a passing ship with E. Not every ship will want to talk.', check: (c) => c.state.stats.hails >= 1 },
   { id: 'bottle', title: 'Message received', reward: 15, text: 'Pick up a message in a bottle by sailing into it.', check: (c) => c.state.stats.bottles >= 1 },

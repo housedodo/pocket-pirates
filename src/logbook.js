@@ -261,7 +261,7 @@ export class Logbook {
       const pid = state.halves && state.halves[id];
       if (pid) { const [px, pz] = pid.split(',').map(Number), pd = world.desc(px, pz); half = `<small class="half">Only half a riddle. The other half is written on another arch${pd ? `, ${bearingName(pd.x - ship.pos.x, pd.z - ship.pos.z)} of here, about ${Math.round(Math.hypot(pd.x - ship.pos.x, pd.z - ship.pos.z))} fathoms` : ''}.</small>`; }
       const frag = state.frags && state.frags[id] ? `<small class="half">Scratched on the back: \u201c${state.frags[id]}\u201d (it belongs to another riddle)</small>` : '';
-      html += `<div class="riddle"><b>${known ? d.name : 'A riddle with no address'}</b><p>\u201c${state.riddles[id]}\u201d</p>${half}${frag}${where ? `<small>${where}</small>` : ''}<button class="mini" data-pencil="${id}">Pencil on the map</button></div>`;
+      html += `<div class="riddle"><b>${known ? d.name : 'A riddle with no address'}</b>${pid ? ' <span class="halfmark" title="only half a riddle">1/2</span>' : ''}${state.frags && state.frags[id] ? ' <span class="halfmark" title="carries the end of another riddle">+</span>' : ''}<p>\u201c${state.riddles[id]}\u201d</p>${half}${frag}${where ? `<small>${where}</small>` : ''}<button class="mini" data-pencil="${id}">Pencil on the map</button></div>`;
     }
     const rums = Object.values(state.rumoured).filter((r) => !r.found);
     if (rums.length) { html += h3('Rumours'); for (const r of rums) { const dx = r.x - ship.pos.x, dz = r.z - ship.pos.z; html += ent(r.name, `${bearingName(dx, dz)}, ~${Math.round(Math.hypot(dx, dz))} fathoms \u00b7 ${r.source || ''}`, '?'); } }

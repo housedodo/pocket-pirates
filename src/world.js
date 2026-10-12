@@ -834,7 +834,7 @@ function decorate(d, rng, A, B, D, extra) {
       rocks(5, 0.3, 1.0, 1.4);
       palms(1, 0.5, 0.9, 0.8, 0.7);
       { const p = spot(d, rng, 0.0, 0.4, 2); if (p) monolith(D, p[0], p[1], p[2], 4.5, 1.1); }
-      if (hasLighthouse(d)) { const p = spot(d, rng, 0.45, 0.8, 0.9, 60); if (p) lighthouse(A, extra, p[0], p[1] - 0.3, p[2], 0.8, d); }
+      if (hasLighthouse(d)) { const p = spot(d, rng, 0.45, 0.8, 0.9, 60); if (p) { lighthouse(A, extra, p[0], p[1] - 0.3, p[2], 0.8, d); d.lhPos = { x: p[0], z: p[2] }; } }
       shrooms(3);
       break;
     }
@@ -891,7 +891,7 @@ function decorate(d, rng, A, B, D, extra) {
       }
       // lighthouse opposite the dock (not every harbour has one)
       const lth = dockTh + Math.PI + (rng() - 0.5) * 0.6, lr = shoreR(d, lth) * 0.74;
-      if (hasLighthouse(d)) lighthouse(A, extra, Math.cos(lth) * lr, d.H - 0.2, Math.sin(lth) * lr, 1, d);
+      if (hasLighthouse(d)) { lighthouse(A, extra, Math.cos(lth) * lr, d.H - 0.2, Math.sin(lth) * lr, 1, d); d.lhPos = { x: Math.cos(lth) * lr, z: Math.sin(lth) * lr }; }
       // dock
       const R = shoreR(d, dockTh), z0 = R * 0.55, z1 = R + 14, zc = (z0 + z1) / 2;
       d.dock = { x: Math.cos(dockTh) * (R + 10), z: Math.sin(dockTh) * (R + 10), th: dockTh };   // where you moor (local)

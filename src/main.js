@@ -4,7 +4,7 @@ import { sampleStage, DARK_THRESHOLD, dreadAtDistance } from './palette.js';
 import { U, initMaterials, mats, PostFX } from './psx.js';
 import { Ocean } from './ocean.js';
 import { Sky } from './sky.js';
-import { World, villager, VILLAGERS, houseKind, HOUSES, shoreR } from './world.js';
+import { World, villager, VILLAGERS, houseKind, HOUSES, shoreR, lighthouseKind } from './world.js';
 import { Builder } from './builder.js';
 import { TILE } from './textures.js';
 import { Ship } from './ship.js';
@@ -353,9 +353,9 @@ function openModal(name) {
   if (name === 'chart') { abyss.onMapOpen(ship); logbook.open(logTab);
     hutNod(1800); }
   if (name === 'harbour') renderHarbour();
-  document.body.classList.toggle('ashore', name === 'harbour' || name === 'greet');
+  document.body.classList.toggle('ashore', name === 'harbour' || name === 'greet' || name === 'yard');
   if (name === 'ship') renderShipTrade();
-  if (name === 'yard') renderYard();
+  if (name === 'yard') { yardTry = { ...state.custom }; yardTab = 'hull'; yardIdle = 0; renderYard(); }
   if (name === 'hut') hut.open();
   audio.play(name === 'pause' ? 'pause' : 'ui');
   audio.setPaused(name === 'pause');
@@ -367,6 +367,7 @@ function closeModal(silent = false) {
   if (modal === 'pause') audio.setPaused(false);
   if (modal === 'hut') hutLeft();
   if (modal === 'card') sighting.dismiss();
+  if (modal === 'yard') { ship.setCustom(state.custom); yardTry = null; }   // anything only tried on is put back
   modal = null; harbourIsl = null;
   if (!silent) lastTs = performance.now();
 }
@@ -934,6 +935,35 @@ let tNow = 0;
 let curSector = null;
 const sighted = new Set();
 let lastSighting = 0;
+// ---- lighthouse tidbits: pass close to a lighthouse for the first time and the keeper calls something across the water.
+// Three kinds: about the tower itself (one set per design), where the nearest harbours lie, and what the week holds.
+let lhT = 0;
+const LH_LINES = {
+  classic: ['Red and white, so the gulls can find it. And so can I on foggy mornings.', 'Two hundred and twelve steps. I count them every night, for company.', 'Built forty years before the village. The village grew up round her, like ivy.'],
+  slim: ['Narrow as a fishing rod. She sways a hand\'s breadth in a gale. I find it restful.', 'The lamp is tiny and the lens is huge. Somebody was very proud of that lens.', 'Only one person fits on the stairs at a time. I have never had to give way.'],
+  brick: ['Every brick came by boat. Every single one. Do not ask me how many.', 'The bricks are warm in the evening. The cat knows. The cat lives here now.', 'Mortar from shell and lime. In the right light she looks like a very tall sunset.'],
+  iron: ['Cast in pieces and bolted together on the beach. She hums when the wind is from the east.', 'Iron rusts, they said. I paint her every spring and she thanks me by rusting.', 'On a cold night she rings a little when the tide turns. Do not worry. That is just her.'],
+  squat: ['Short, because the rock under her is tall. The lamp sits low, so I can wave at the fishers.', 'Nobody has ever fallen down my stairs. There are nine.', 'Small and round and stubborn. Like me.'],
+  pagoda: ['The roofs are for the rain. The bells are for luck. The lamp is for the ships. Do not mix them up.', 'Five roofs, one for every sea I have heard of. I am told there are more.', 'The little bells ring when a boat goes by that is thinking of home.'],
+};
+const LH_WEEK = ['Market day is Wednesday. Bring fish, not complaints.', 'The floating market sails by on Fridays. Bring coin, and a bag with no holes.', 'The regatta is on Sunday afternoons. Do not stand in the way of the canoes.', 'The whales pass in numbers on Thursdays. Always the same direction. I do not ask why.', 'Low tide uncovers the wrecks. Go then, with a strong back.', 'A red sky in the evening means a storm in the afternoon after. Ask me how I know.', 'Saturday night the lanterns go up in the villages. Make for any harbour and join in.'];
+function lighthouseTidbit() {
+  state.story.lh = state.story.lh || {};
+  for (const isl of world.islands.values()) {
+    const d = isl.desc; if (!d.lhPos || state.story.lh[d.id]) continue;
+    if (Math.hypot(ship.pos.x - (d.x + d.lhPos.x), ship.pos.z - (d.z + d.lhPos.z)) > 42) continue;
+    state.story.lh[d.id] = 1;
+    const k = hash2(d.seed, 17, 3) % 3, own = LH_LINES[lighthouseKind(d)] || LH_LINES.classic;
+    let line;
+    if (k === 0) line = own[hash2(d.seed, 19, 5) % own.length];
+    else if (k === 1) {
+      const hs = nearby(world, ship.pos.x, ship.pos.z, 40, 600, 'harbour').filter((o) => o.d.id !== d.id).sort((a, b) => a.dist - b.dist);
+      line = hs.length ? `${hs[0].d.name} lies ${bearingName(hs[0].d.x - ship.pos.x, hs[0].d.z - ship.pos.z)} of here, about ${Math.round(hs[0].dist)} fathoms. Good water between.` : own[0];
+    } else line = LH_WEEK[hash2(d.seed, 21, 9) % LH_WEEK.length];
+    toast(`The lamp-keeper calls across the water: "${line}"`, false, 9000);
+    return;
+  }
+}
 const SIGHT_WORDS = { harbour: 'a village', jungle: 'a jungle isle', sandbar: 'a sandbar', rocky: 'a rock', treasure: 'an old arch on the shore', volcano: 'a smoking mountain', atoll: 'a ring of sand', mangrove: 'a mangrove isle' };
 function landHo(d) {
   const el = $('landho');
@@ -1292,21 +1322,42 @@ function discover(isl) {
 }
 
 // ---------------------------------------------------------------- shipyard (cosmetics)
+// ---- the shipyard: a turntable. Anything can be tried on first (owned or not); nothing is paid for until Buy.
+let yardTab = 'hull', yardTry = null, yardYaw = 0.9, yardZoom = 1, yardIdle = 0, yardDrag = null;
+const yardSel = () => { const [g, , list] = GROUPS.find((x) => x[0] === yardTab); return { g, list, o: byId(list, yardTry[g]) }; };
 function renderYard() {
+  if (!yardTry) yardTry = { ...state.custom };
+  ship.setCustom(yardTry);
   $('yardGold').textContent = state.gold;
-  $('yardBody').innerHTML = GROUPS.map(([g, label, list]) => `<div class="yardgrp">${label}</div><div class="swatches">${list.map((o) => {
-    const key = `${g}:${o.id}`, owned = !o.cost || state.owned.has(key), locked = o.ok && !o.ok(state), on = state.custom[g] === o.id;
-    const col = g === 'hull' ? o.upper : g === 'flag' ? o.color : g === 'sail' ? `rgb(${o.tint.map((v) => Math.min(255, v * 235) | 0)})` : '#caa';
-    return `<button data-g="${g}" data-id="${o.id}" class="${on ? 'on' : ''}" ${locked || (!owned && state.gold < o.cost) ? 'disabled' : ''} title="${locked ? o.req : ''}"><span class="dot" style="background:${col}"></span>${o.name}${on ? '' : owned ? '' : locked ? ` <small>(${o.req})</small>` : ` ${o.cost}g`}</button>`;
-  }).join('')}</div>`).join('');
-  $('yardBody').querySelectorAll('button').forEach((b) => b.addEventListener('click', () => {
-    const g = b.dataset.g, list = GROUPS.find((x) => x[0] === g)[2], o = byId(list, b.dataset.id), key = `${g}:${o.id}`;
-    if (o.cost && !state.owned.has(key)) { if (state.gold < o.cost) return; state.gold -= o.cost; state.owned.add(key); state.stats.cosmetics++; audio.play('buy'); }
-    state.custom[g] = o.id; ship.setCustom(state.custom); renderYard();
-  }));
+  $('yardTabs').innerHTML = GROUPS.map(([g, label]) => `<button data-tab="${g}" class="${g === yardTab ? 'on' : ''}">${label.replace('Hull paint', 'Hull').replace('Pennant colour', 'Colour').replace('Pennant shape', 'Shape').replace('Figurehead', 'Figure')}</button>`).join('');
+  const { g, list, o } = yardSel();
+  $('yardBody').innerHTML = `<div class="swatches">${list.map((x) => {
+    const key = `${g}:${x.id}`, owned = !x.cost || state.owned.has(key), locked = x.ok && !x.ok(state), on = yardTry[g] === x.id;
+    const col = g === 'hull' ? x.upper : g === 'flag' ? x.color : g === 'sail' ? `rgb(${x.tint.map((v) => Math.min(255, v * 235) | 0)})` : '';
+    return `<button data-id="${x.id}" class="${on ? 'on' : ''}${locked ? ' lock' : ''}" title="${locked ? x.req : ''}">${col ? `<span class="dot" style="background:${col}"></span>` : ''}${x.name}${owned || locked ? '' : ` ${x.cost}g`}</button>`;
+  }).join('')}</div>`;
+  const key = `${g}:${o.id}`, owned = !o.cost || state.owned.has(key), locked = o.ok && !o.ok(state), worn = state.custom[g] === o.id;
+  $('yardTry').innerHTML = locked ? `${o.name}<small>Locked: ${o.req}</small>` : `${worn ? 'Wearing' : 'Trying'}: ${o.name}<small>${owned ? 'yours' : `${o.cost} gold`}</small>`;
+  const buy = $('yardBuy');
+  buy.textContent = owned ? 'Wear it' : `Buy ${o.cost}g`;
+  buy.disabled = locked || worn || (!owned && state.gold < o.cost);
+  $('yardBack').disabled = yardTry[g] === state.custom[g];
 }
+$('yardTabs').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) { yardTab = b.dataset.tab; audio.play('ui', { vol: 0.4 }); renderYard(); } });
+$('yardBody').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; yardTry[yardTab] = b.dataset.id; audio.play('ui', { vol: 0.3 }); renderYard(); });
+$('yardBuy').addEventListener('click', () => {
+  const { g, o } = yardSel(), key = `${g}:${o.id}`;
+  if (o.cost && !state.owned.has(key)) { if (state.gold < o.cost) return; state.gold -= o.cost; state.owned.add(key); state.stats.cosmetics++; audio.play('buy'); }
+  state.custom[g] = o.id; renderYard();
+});
+$('yardBack').addEventListener('click', () => { const { g } = yardSel(); yardTry[g] = state.custom[g]; renderYard(); });
+const yardTurn = (d) => { yardYaw += d; yardIdle = 0; };
+$('yTurnL').addEventListener('click', () => yardTurn(-Math.PI / 2)); $('yTurnR').addEventListener('click', () => yardTurn(Math.PI / 2));
 $('yardClose').addEventListener('click', () => closeModal());
-yardEl.addEventListener('pointerdown', (e) => { if (e.target === yardEl) closeModal(); });
+yardEl.addEventListener('pointerdown', (e) => { if (e.target === yardEl) { yardDrag = { x: e.clientX, yaw: yardYaw }; yardEl.setPointerCapture(e.pointerId); } });
+yardEl.addEventListener('pointermove', (e) => { if (yardDrag) { yardYaw = yardDrag.yaw - (e.clientX - yardDrag.x) * 0.01; yardIdle = 0; } });
+yardEl.addEventListener('pointerup', () => { yardDrag = null; });
+yardEl.addEventListener('wheel', (e) => { yardZoom = clamp(yardZoom * (e.deltaY < 0 ? 0.92 : 1.08), 0.45, 1.8); e.preventDefault(); }, { passive: false });
 
 // ---------------------------------------------------------------- combat helpers
 let lastHit = -99, shake = 0;
@@ -1573,7 +1624,7 @@ function frame() {
   lastTs = nowTs;
   const live = started && !modal;
   const dt = live ? rawDt : 0;           // simulation time: frozen while a menu is open
-  const ashore = modal === 'harbour' || modal === 'greet';
+  const ashore = modal === 'harbour' || modal === 'greet' || modal === 'yard';
   const vdt = live || ashore ? rawDt : 0;  // ashore the world keeps moving (people, gulls, waves) while the clock stands still
   tNow += dt; animT += vdt;
   const stepT = Math.floor(animT * 12) / 12;
@@ -1720,6 +1771,12 @@ function frame() {
   if (titleScene) titleCam(rawDt);
   ashoreK += ((ashore && ashoreCam ? 1 : 0) - ashoreK) * Math.min(1, rawDt * 2.2);
   if (ashoreCam && ashoreK > 0.001) { const k = smoothstep(0, 1, ashoreK); camPos.lerp(ashoreCam.pos, k); camLook.lerp(ashoreCam.look, k); }
+  if (modal === 'yard') {   // the turntable: the ship turns slowly by itself until you take over
+    if (!yardDrag) { yardIdle += rawDt; if (yardIdle > 2.5) yardYaw += rawDt * 0.35; }
+    const a = ship.heading + yardYaw, r = 11 * yardZoom;
+    camPos.set(ship.pos.x + Math.sin(a) * r, 3.2 + 2 * yardZoom, ship.pos.z - Math.cos(a) * r); camLook.set(ship.pos.x, 2.6, ship.pos.z);
+    $('yAngle').textContent = ['stern', 'port', 'bow', 'starboard'][Math.round((((yardYaw % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2)) / (Math.PI / 2)) % 4];
+  }
   if (camOverride) { camPos.set(...camOverride.pos); camLook.set(...camOverride.look); }
   camera.position.copy(camPos);
   camera.lookAt(camLook);
@@ -1733,6 +1790,7 @@ function frame() {
     const seen = world.nearest(ship.pos.x, ship.pos.z, 150);
     if (seen && !state.discovered[seen.desc.id] && !sighted.has(seen.desc.id)) { sighted.add(seen.desc.id); landHo(seen.desc); }
   }
+  if (live && tNow - lhT > 0.8) { lhT = tNow; lighthouseTidbit(); }
   const nearAny = world.nearest(ship.pos.x, ship.pos.z, 30);
   if (nearAny) {
     if (live) discover(nearAny);
