@@ -787,6 +787,7 @@ function renderHarbour() {
     if (r) html += `<div class="sec">RUMOURS</div><div class="qrow"><div><b>${pxi('talk')} A sailor talks of buried treasure</b></div><button id="rumourBuy" ${state.gold >= RUMOUR_COST ? '' : 'disabled'}>${RUMOUR_COST}g</button></div>`;
     const chartCost = Math.ceil(30 * costMul());
     if (!state.charts[d.id]) html += `<div class="sec">LOCAL CHART</div><div class="qrow"><div><b>${pxi('flag')} A hand-drawn chart of these waters</b><br><small>the islands around ${d.name}, as the locals know them</small></div><button id="buyChart" ${state.gold >= chartCost ? '' : 'disabled'}>${chartCost}g</button></div>`;
+    const po = petOffer(d); if (po) html += `<div class="sec">ON THE PIER</div><div class="qrow letter"><div><b>${pxi('talk')} ${PETS[po].title}</b><br><small>${PETS[po].sub}</small></div><button id="takePet" data-pet="${po}">${PETS[po].btn}</button></div>`;
     pane.innerHTML = html;
     const bc = $('buyChart'); if (bc) bc.addEventListener('click', () => {
       if (state.gold < chartCost) return; state.gold -= chartCost; state.charts[d.id] = true;
@@ -796,6 +797,7 @@ function renderHarbour() {
       audio.play('buy'); renderHarbour(); });
     const ja = $('jobAccept');
     if (ja) ja.addEventListener('click', () => { state.job = j; toast(`Delivery taken: ${j.toName} (+${j.reward}g)`, j.dark); audio.play('buy'); renderHarbour(); });
+    const tkp = $('takePet'); if (tkp) tkp.addEventListener('click', () => { takePet(tkp.dataset.pet); renderHarbour(); });
     const tl = $('takeLetter'); if (tl) tl.addEventListener('click', () => { takeLetter(tl.dataset.letter); renderHarbour(); });
     const dv = $('doDeliver'); if (dv) dv.addEventListener('click', () => { completeJobIfHere(d); renderHarbour(); });
     const dp = $('doDropoff'); if (dp) dp.addEventListener('click', () => {
@@ -914,6 +916,25 @@ function lettersAt(d) {
   }
   return out;
 }
+// ---- ship's companions: a stray cat on the pier and a gull on a piling. Optional, harbour events, never needed for anything.
+const PETS = {
+  cat: { title: 'A ginger cat on the pier', sub: 'she has been watching your ship all morning', btn: 'Take her aboard', toast: 'The cat steps aboard as if she had paid for the ticket.' },
+  gull: { title: 'A gull on the piling', sub: 'it eyes your catch and not much else', btn: 'Offer a fish', toast: 'The gull hops onto the rail. It has opinions about your sailing.' },
+};
+const companions = {};
+function addCompanion(kind) { if (!companions[kind]) companions[kind] = new Companion(ship, kind, hash2(state.seed, kind === 'cat' ? 5 : 6, 1)); return companions[kind]; }
+/** which companion (if any) waits at this harbour: Tama has the cat, Velto the gull, other harbours roughly two in seven */
+function petOffer(d) {
+  if (!laterOK()) return null;
+  const own = state.story.pets || {};
+  const k = d.id === '0,-1' ? 'cat' : d.id === '-2,-1' ? 'gull' : [ 'cat', 'gull' ][hash2(d.seed, 31, 7) % 7];
+  return k && PETS[k] && !own[k] ? k : null;
+}
+function takePet(kind) {
+  state.story.pets = { ...(state.story.pets || {}), [kind]: 1 };
+  addCompanion(kind); audio.play('discover'); toast(PETS[kind].toast, false, 6000); autosave();
+}
+for (const k of Object.keys(state.story.pets || {})) if (PETS[k]) addCompanion(k);   // companions from an earlier session
 function takeLetter(key) {
   state.story[key] = 'taken'; audio.play('ui');
   const mate = objectives.mate;
@@ -1224,6 +1245,7 @@ function tryInteract() {
     if (!say && free && laterOK() && (g.day[d.id] == null || Math.random() < 0.3)) say = pickGreeting({ hour: state.time * 24, weather: weather.label, dread, rnd: Math.random, custom: d.custom, event: isFestival(d) ? 'festival' : isMarketDay() ? 'market' : isLanternNight() ? 'lantern' : null, boat: (() => { const b = boatStatus(d, state.dayN, dread, state.seed); return b.today === 'stayed' ? 'stayed' : b.yesterday === 'lost' ? 'lost' : null; })() });
     harbourIsl = tg.isl; hbTab = 'board'; frameVillage(d); autosave();
     if (lettersAt(d).length) setTimeout(() => toast('A letter waits for you at the harbourmaster\'s board.', false, 6000), 900);
+    else if (petOffer(d)) setTimeout(() => { const po = PETS[petOffer(d)]; toast(`${po.title}. ${po.sub[0].toUpperCase()}${po.sub.slice(1)}.`, false, 6000); }, 900);
     for (const c of state.crew) if (c.wish && !c.wish.done && c.wish.kind === 'harbour' && c.wish.id === tg.isl.desc.id) wishDone(c);
     harbourEl.classList.toggle('dark', idx >= 3);
     $('hbBannerName').textContent = d.name; $('hbSaid').textContent = ''; $('hbDay').textContent = dayLine(d);
@@ -1881,6 +1903,7 @@ function frame() {
   fauna.quiet = !laterOK();
   fauna.update(vdt, waveT, lifeCtx);
   for (const k of ['_pet', '_pet2']) if (window.__game[k]) window.__game[k].update(vdt);
+  for (const c of Object.values(companions)) { c.m.g.visible = c.fly > 0 || dread < 0.6; if (c.m.g.visible) c.update(vdt); }
   traffic.update(dt, waveT, lifeCtx);
   sea.update(dt, waveT, lifeCtx);
 
@@ -2038,6 +2061,7 @@ window.__game = {
   setTime(t) { state.time = t; },
   setCam(p, z) { if (p !== undefined) { pitch = pitchT = p; } if (z !== undefined) { zoom = zoomT = z; } },
   setOverride(o) { camOverride = o; },
+  get companions() { return companions; }, petOffer, takePet,
   /** concept sketch: put a cat or a gull on deck (dev only) */
   companion(kind = 'cat', slot = '_pet') { if (this[slot]) ship.root.remove(this[slot].m.g); this[slot] = kind ? new Companion(ship, kind) : null; return !!this[slot]; },
   teleport(x, z, h) { ship.pos.set(x, 0, z); ship.heading = h; camHeading = h; },
