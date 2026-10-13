@@ -107,8 +107,9 @@ export class AudioBus {
       this.windMod = mod; this.windPan = pan; this.windSrc = src; this.windT = 0; this.windGust = 1; this.windSide = 0;
     } else if (key === 'gulls') {   // far away they are dull and thin; the closer you get, the clearer (low-pass opens with level)
       const lp = this.ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 900; lp.Q.value = 0.4;
-      src.connect(lp).connect(gain).connect(this.master);
-      this.tone = lp;
+      const env = this.ctx.createGain(); env.gain.value = 0;   // the colony comes and goes (see driftGulls)
+      src.connect(lp).connect(gain).connect(env).connect(this.master);
+      this.tone = lp; this.gullEnv = env; this.gullOn = false; this.gullSwitch = 3 + Math.random() * 6;
     } else src.connect(gain).connect(key.startsWith('music_') ? this.musicBus : this.master);
     src.start();
     this.loops.set(key, gain);
@@ -136,6 +137,17 @@ export class AudioBus {
     const g = this.ctx.createGain(); g.gain.value = vol * (raw ? Math.max(0.5, this.v(key)) : this.v(key));
     src.connect(g).connect(this.master);
     src.start();
+  }
+
+  /** the gulls are not constant: they call for a few seconds, then go quiet for a good while (closer to them: longer calls, shorter gaps) */
+  driftGulls(dt, near) {
+    if (!this.gullEnv) return;
+    this.gullSwitch -= dt;
+    if (this.gullSwitch <= 0) {
+      this.gullOn = !this.gullOn;
+      this.gullSwitch = this.gullOn ? 5 + Math.random() * 7 + near * 8 : (22 + Math.random() * 45) * (1.4 - near * 0.7);
+    }
+    this.gullEnv.gain.setTargetAtTime(this.gullOn ? 1 : 0, this.ctx.currentTime, this.gullOn ? 1.2 : 2.2);
   }
 
   /** wind loop drift: volume swells and fades (about 45% to 120%) and the sound drifts left and right, never the same twice */
@@ -169,6 +181,7 @@ export class AudioBus {
     this.setLoop('amb_night', s.night * 0.7 * (1 - s.rain * 0.7));
     this.setLoop('oars', s.rowing ? 0.7 : 0);
     this.setLoop('gulls', (s.gulls || 0) * 0.9);
+    this.driftGulls(dt, s.gulls || 0);
     const stage = Math.min(STAGES - 1, Math.floor(dread * STAGES));
     if (stage > this.lastStage) this.play('stage_up');
     this.lastStage = stage;

@@ -73,7 +73,7 @@ The game expects `music_1`..`music_5` (one loop per dread stage, same length and
 | `amb_night` | night bed (crickets-on-water, creaks), fades in after sunset on top of the stage ambience |
 | `amb_1` .. `amb_5` | ambience per stage, 30-60 s, cross-faded by dread |
 | `music_1` .. `music_5` | music per stage, e.g. 32 bars at 90-100 bpm, cross-faded by dread |
-| `gulls` | recorded gull colony (53 s, mono). Silent far off, fades up within ~120 units of the nearest circling gull and gets clearer (low-pass opens) as you close in; quieter at night, in rain and storms, gone by dread 0.35. While this file exists the synthesised one-shot `gull` cries are skipped |
+| `gulls` | recorded gull colony (53 s, mono), **not constant**: it calls for about 5-20 s, then goes quiet for roughly 20-65 s (closer to the gulls: longer calls, shorter gaps), with slow fades (`driftGulls` in audio.js). Silent far off, fades up within ~120 units of the nearest circling gull and gets clearer (low-pass opens) as you close in; quieter at night, in rain and storms, gone by dread 0.35. While this file exists the synthesised one-shot `gull` cries are skipped |
 | `coast` | soft coastal breeze, small waves and far-off gulls (32 s). Rises over the last ~110 units before any island shore, full while moored or ashore (harbour, greeting, shipyard). Quieter at night, gone in storms and by dread ~0.4 |
 | `oars` | rowing strokes (dip, pull, drip); plays while you row with the oars out (G, then W) |
 
