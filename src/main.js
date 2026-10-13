@@ -53,7 +53,7 @@ const store = {
 };
 const saved = params.get('fresh') ? null : store.get(SAVE_KEY);
 const DEV = !!params.get('dev') || window.__BUILD === 'dev';   // ?dev=1: test keys (1-5 dread, 0, [ ], `) and the full-dread effects menu
-const settings = Object.assign({ muted: false, musicOff: false, windStyle: 'dial', hud: 'classic', tracker: true, abyss: {} }, store.get(SETTINGS_KEY) || {});
+const settings = Object.assign({ muted: false, musicOff: false, vol: { music: 1, amb: 1, sfx: 1 }, windStyle: 'dial', hud: 'classic', tracker: true, abyss: {} }, store.get(SETTINGS_KEY) || {});
 installPixelUI();
 const state = {
   seed: parseInt(params.get('seed') || (saved && saved.seed) || '1337', 10),
@@ -129,7 +129,7 @@ const ship = new Ship(scene);
 const audio = new AudioBus();
 sfx.play = (k, o) => audio.play(k, o);
 for (const ev of ['pointerdown', 'keydown']) window.addEventListener(ev, () => { if (audio.ctx && audio.ctx.state === 'suspended' && modal !== 'pause') audio.ctx.resume(); });   // browsers start audio muted until a click or key
-audio.muted = settings.muted;
+audio.muted = settings.muted; audio.userVol = { music: 1, amb: 1, sfx: 1, ...(settings.vol || {}) };
 const wind = new Wind(state.windT);
 const weather = new Weather(scene);
 const windfx = new WindFX(scene);
@@ -657,7 +657,15 @@ $('tX').addEventListener('pointerdown', (e) => { begin(); fireCannons(); e.preve
 $('tP').addEventListener('pointerdown', (e) => { begin(); if (modal) closeModal(); else openModal('pause'); e.preventDefault(); });
 
 // ---------------------------------------------------------------- pause menu
-if (!AUDIO_ENABLED) { $('pbSound').style.display = 'none'; $('pbMusic').style.display = 'none'; }
+if (!AUDIO_ENABLED) { $('pbSound').style.display = 'none'; $('pbMusic').style.display = 'none'; $('pbVols').style.display = 'none'; }
+let volT = 0;
+for (const r of $('pbVols').querySelectorAll('.pvol')) {   // the player's own volume sliders
+  const inp = r.querySelector('input'), k = inp.dataset.k;
+  inp.value = Math.round((audio.userVol[k] != null ? audio.userVol[k] : 1) * 100); r.querySelector('b').textContent = `${inp.value}%`;
+  inp.addEventListener('input', () => { r.querySelector('b').textContent = `${inp.value}%`; audio.setUserVol(k, inp.value / 100); if (modal === 'pause' && audio.ctx) { audio.ctx.resume(); clearTimeout(volT); volT = setTimeout(() => { if (modal === 'pause') audio.ctx.suspend(); }, 1800); }   // the sound plays for a moment while you drag, so you can hear the level
+    settings.vol = { ...audio.userVol }; store.set(SETTINGS_KEY, settings); });
+  inp.addEventListener('keydown', (e) => { if (e.code.startsWith('Arrow')) e.stopPropagation(); });   // arrows move the slider, not the pause menu focus (Esc still closes)
+}
 function showPauseMain() {
   $('pbNew').textContent = 'New voyage (erase save)';
   $('pauseMain').style.display = 'block'; $('pauseControls').style.display = 'none'; $('pauseAbyss').style.display = 'none';

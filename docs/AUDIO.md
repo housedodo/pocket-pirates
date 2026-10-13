@@ -7,6 +7,9 @@ at once, no code change. Delete a file and the game falls back to the synthesise
 and `volumes.json` inside it (plus the mixer on F8); `pocket-pirates-demo.html` carries the same sounds without the dread-stage cues (`music_3..5`, `amb_3..5`, `whisper`, `stage_up`, see `DEMO_SKIP` in `audio.js` and `scripts/single.py`) and has no mixer; it has the pause menu Sound and Music toggles. Names must match exactly; `.ogg` preferred (`.mp3`/`.wav` also work).
 The pause menu has Sound and Music toggles.
 
+## Player volume sliders (pause menu)
+The pause menu has three sliders on top of the Sound and Music toggles: **Music**, **Sea, wind, gulls** (every loop that is not music: sea, surf, wind, rain, gulls, coast, night, oars, stage ambience) and **Effects** (one-shot sounds). They are 0-100%, saved in the player's settings, and multiply the mix made in the dev mixer (`AudioBus.userVol`, `ambBus`, `sfxBus`, `musicBus`). The sound plays for a moment while a slider is dragged so the level can be heard even though the game is paused.
+
 ## The sound mixer (testing volumes in the game)
 Open the game with `?dev=1` (e.g. `http://localhost:5173/?dev=1`), then press **F8** (or Pause > Sound mixer).
 A panel opens on the right while the game keeps running:

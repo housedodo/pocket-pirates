@@ -48,7 +48,7 @@ Build it with `python3 scripts/single.py`, ship `pocket-pirates-demo.html` (with
 ## 5. Sound (decide now)
 - [ ] The demo ships with sound (decided). Final mix done in the dev build (F8), `volumes.json` saved, demo rebuilt
 - [ ] Listen through the whole demo once with headphones: loops are seamless, no clipping, gull/coast/wind are not annoying
-- [ ] Sound and Music toggles in the pause menu work; first click starts audio in the itch embed
+- [ ] Sound and Music toggles and the three volume sliders (Music, Sea/wind/gulls, Effects) in the pause menu work, and are remembered; first click starts audio in the itch embed
 - [ ] Say "sound on" on the page
 
 ## 6. Naming and branding

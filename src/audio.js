@@ -31,6 +31,7 @@ export class AudioBus {
     this.muted = false;
     this.musicOn = true;
     this.ready = false;
+    this.userVol = { music: 1, amb: 1, sfx: 1 };   // the player's own sliders in the pause menu (0..1), on top of the mix
     this.vol = {};           // per-cue volume (1 = as authored): public/audio/volumes.json, then the mixer's local overrides
     this.preview = null;     // mixer: a loop being auditioned on its own
     this.level = {};         // the level each loop is currently asked to play at (for the mixer's meters)
@@ -44,7 +45,13 @@ export class AudioBus {
   }
   setMusic(on) {
     this.musicOn = on;
-    if (this.musicBus) this.musicBus.gain.value = on ? 0.6 * this.v('_music') : 0;
+    if (this.musicBus) this.musicBus.gain.value = on ? 0.6 * this.v('_music') * this.userVol.music : 0;
+  }
+  /** the player's sliders: kind 'music' | 'amb' | 'sfx', x 0..1 */
+  setUserVol(kind, x) {
+    this.userVol[kind] = x;
+    if (kind === 'music') this.setMusic(this.musicOn);
+    else { const b = kind === 'amb' ? this.ambBus : this.sfxBus; if (b) b.gain.value = x; }
   }
   setPaused(p) {
     if (!this.ctx) return;
@@ -62,6 +69,8 @@ export class AudioBus {
     this.musicBus = this.ctx.createGain();
     this.musicBus.gain.value = this.musicOn ? 0.6 : 0;
     this.musicBus.connect(this.master);
+    this.ambBus = this.ctx.createGain(); this.ambBus.gain.value = this.userVol.amb; this.ambBus.connect(this.master);   // sea, wind, gulls, rain, ambience
+    this.sfxBus = this.ctx.createGain(); this.sfxBus.gain.value = this.userVol.sfx; this.sfxBus.connect(this.master);   // one-shot effects
 
     if (window.__VOLUMES) Object.assign(this.vol, window.__VOLUMES);   // the single-file build carries its own
     else try { const r = await fetch('audio/volumes.json'); if (r.ok && !(r.headers.get('content-type') || '').includes('text/html')) Object.assign(this.vol, await r.json()); } catch (e) { /* no volumes file */ }
@@ -106,14 +115,14 @@ export class AudioBus {
     if (key === 'wind') {   // the gusts drift: a slow second gain and a stereo pan that wander so the loop never repeats the same way
       const mod = this.ctx.createGain(), pan = this.ctx.createStereoPanner();
       mod.gain.value = 1; pan.pan.value = 0;
-      src.connect(gain).connect(mod).connect(pan).connect(this.master);
+      src.connect(gain).connect(mod).connect(pan).connect(this.ambBus);
       this.windMod = mod; this.windPan = pan; this.windSrc = src; this.windT = 0; this.windGust = 1; this.windSide = 0;
     } else if (key === 'gulls') {   // far away they are dull and thin; the closer you get, the clearer (low-pass opens with level)
       const lp = this.ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 900; lp.Q.value = 0.4;
       const env = this.ctx.createGain(); env.gain.value = 0;   // the colony comes and goes (see driftGulls)
-      src.connect(lp).connect(gain).connect(env).connect(this.master);
+      src.connect(lp).connect(gain).connect(env).connect(this.ambBus);
       this.tone = lp; this.gullEnv = env; this.gullOn = false; this.gullSwitch = 3 + Math.random() * 6;
-    } else src.connect(gain).connect(key.startsWith('music_') ? this.musicBus : this.master);
+    } else src.connect(gain).connect(key.startsWith('music_') ? this.musicBus : this.ambBus);
     src.start();
     this.loops.set(key, gain);
   }
@@ -138,7 +147,7 @@ export class AudioBus {
     const src = this.ctx.createBufferSource();
     src.buffer = buf; src.playbackRate.value = rate;
     const g = this.ctx.createGain(); g.gain.value = vol * (raw ? Math.max(0.5, this.v(key)) : this.v(key));
-    src.connect(g).connect(this.master);
+    src.connect(g).connect(this.sfxBus || this.master);
     src.start();
   }
 
