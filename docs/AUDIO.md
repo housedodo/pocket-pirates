@@ -61,7 +61,7 @@ The game expects `music_1`..`music_5` (one loop per dread stage, same length and
 |---|---|
 | `sea` | constant water bed under everything; louder as the ship speeds up |
 | `surf` | breaking waves; fades in when you are close to an island shore |
-| `wind` | wind bed; louder with wind strength and storms |
+| `wind` | wind bed; louder with wind strength and storms. The loop also drifts on its own: a slow volume swell (about 45% to 120%, new gust target every 4 to 13 s), a stereo pan wandering left and right, and a tiny pitch drift, so it never repeats the same way (`driftWind` in audio.js). Keep the file mono |
 | `rain` | rain bed; follows rain intensity |
 | `amb_night` | night bed (crickets-on-water, creaks), fades in after sunset on top of the stage ambience |
 | `amb_1` .. `amb_5` | ambience per stage, 30-60 s, cross-faded by dread |

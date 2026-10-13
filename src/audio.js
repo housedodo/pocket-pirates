@@ -100,7 +100,12 @@ export class AudioBus {
     src.buffer = buf; src.loop = true;
     const gain = this.ctx.createGain();
     gain.gain.value = 0;
-    if (key === 'gulls') {   // far away they are dull and thin; the closer you get, the clearer (low-pass opens with level)
+    if (key === 'wind') {   // the gusts drift: a slow second gain and a stereo pan that wander so the loop never repeats the same way
+      const mod = this.ctx.createGain(), pan = this.ctx.createStereoPanner();
+      mod.gain.value = 1; pan.pan.value = 0;
+      src.connect(gain).connect(mod).connect(pan).connect(this.master);
+      this.windMod = mod; this.windPan = pan; this.windSrc = src; this.windT = 0; this.windGust = 1; this.windSide = 0;
+    } else if (key === 'gulls') {   // far away they are dull and thin; the closer you get, the clearer (low-pass opens with level)
       const lp = this.ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 900; lp.Q.value = 0.4;
       src.connect(lp).connect(gain).connect(this.master);
       this.tone = lp;
@@ -133,6 +138,20 @@ export class AudioBus {
     src.start();
   }
 
+  /** wind loop drift: volume swells and fades (about 45% to 120%) and the sound drifts left and right, never the same twice */
+  driftWind(dt) {
+    if (!this.windMod) return;
+    this.windT += dt;
+    const t = this.windT, T = this.ctx.currentTime;
+    this.windNext = (this.windNext || 0) - dt;
+    if (this.windNext <= 0) { this.windNext = 4 + Math.random() * 9; this.windGust = 0.55 + Math.random() * 0.6; this.windSide = (Math.random() * 2 - 1) * 0.8; }
+    const swell = 0.8 + 0.18 * Math.sin(t * 0.21) + 0.12 * Math.sin(t * 0.083 + 1.7);
+    this.windMod.gain.setTargetAtTime(Math.max(0.35, swell * this.windGust), T, 2.2);
+    const pan = Math.max(-0.9, Math.min(0.9, 0.5 * Math.sin(t * 0.11 + 0.6) + 0.35 * Math.sin(t * 0.047) + this.windSide * 0.4));
+    this.windPan.pan.setTargetAtTime(pan, T, 2.5);
+    this.windSrc.playbackRate.setTargetAtTime(1 + 0.025 * Math.sin(t * 0.09 + 2), T, 3);
+  }
+
   /** s: { dread, speed (0..1), night (0..1), wind (0..1.3), rain, storm, surf (0..1) } */
   update(dt, s) {
     if (!this.ctx) return;
@@ -143,6 +162,7 @@ export class AudioBus {
       this.setLoop(`music_${i + 1}`, w * 0.75);
     }
     this.setLoop('sea', 0.3 + s.speed * 0.45);
+    this.driftWind(dt);
     this.setLoop('surf', s.surf * 0.7);
     this.setLoop('wind', Math.min(1, s.wind * 0.35 + s.storm * 0.5));
     this.setLoop('rain', s.rain * 0.85);
