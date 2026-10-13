@@ -1074,6 +1074,14 @@ function gullLevel(night) {
   const near = 1 - clamp((d - 8) / 112, 0, 1);
   return near * near * (1 - night * 0.8) * (1 - weather.storm * 0.7) * (1 - weather.rain * 0.4) * (1 - smoothstep(0.2, 0.35, dread));
 }
+// the quiet coast bed (soft breeze, small waves, far gulls): rises over the last ~110 units before an island's shore and is
+// full while you are moored or ashore. Fades away with the dread like the gulls and in storms.
+function coastLevel(moored, night) {
+  const near = world.nearest(ship.pos.x, ship.pos.z, 110);
+  let k = near ? 1 - clamp(world.lastEdge / 110, 0, 1) : 0;
+  k = Math.max(k * k * 0.75, moored ? 0.85 : 0);
+  return k * (1 - night * 0.5) * (1 - weather.storm * 0.8) * (1 - smoothstep(0.25, 0.4, dread));
+}
 function lighthouseTidbit() {
   state.story.lh = state.story.lh || {};
   for (const isl of world.islands.values()) {
@@ -1997,6 +2005,7 @@ function frame() {
     _v.set(tgtE.x, 5 * KINDS[tgtE.kind].scale + 3, tgtE.z).project(camera);
     if (_v.z < 1) { eb.style.display = 'block'; eb.style.left = `${(_v.x * 0.5 + 0.5) * window.innerWidth}px`; eb.style.top = `${(-_v.y * 0.5 + 0.5) * window.innerHeight}px`; $('ename').textContent = tgtE.name; $('efill').style.width = `${Math.max(0, (tgtE.hp / tgtE.maxHp) * 100)}%`; } else eb.style.display = 'none';
   } else eb.style.display = 'none';
+  audio.setLoop('coast', coastLevel(ashore, tod.night));
   if (live) {
     const near = world.nearest(ship.pos.x, ship.pos.z, 45);
     audio.update(dt, { dread, speed: ship.speed / 11, night: tod.night, wind: wind.strength, rain: weather.rain, storm: weather.storm, surf: near ? clamp(1 - world.lastEdge / 45, 0, 1) : 0, rowing: ship.rowIn > 0, gulls: gullLevel(tod.night) });

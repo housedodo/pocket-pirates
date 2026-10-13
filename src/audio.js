@@ -9,7 +9,7 @@ export const AUDIO_ENABLED = window.__BUILD !== 'demo';   // the demo build ship
 const STAGES = 5;
 export const CUES = {
   loops: [
-    'sea', 'surf', 'wind', 'rain', 'amb_night', 'oars', 'gulls',
+    'sea', 'surf', 'wind', 'rain', 'amb_night', 'oars', 'gulls', 'coast',
     ...Array.from({ length: STAGES }, (_, i) => `amb_${i + 1}`),
     ...Array.from({ length: STAGES }, (_, i) => `music_${i + 1}`),
   ],
@@ -66,7 +66,7 @@ export class AudioBus {
     try { Object.assign(this.vol, JSON.parse(localStorage.getItem('pocket-pirates-mixer') || '{}')); } catch (e) { /* storage blocked */ }
     this.setMuted(this.muted); this.setMusic(this.musicOn);
     // one-shots first (cheap), then ambience, then music, yielding between cues so the game stays smooth
-    const order = [...CUES.oneShots, 'sea', 'wind', 'surf', 'rain', 'amb_night', 'oars', 'gulls', ...CUES.loops.filter((k) => k.startsWith('amb_') && k !== 'amb_night'), ...CUES.loops.filter((k) => k.startsWith('music_'))];
+    const order = [...CUES.oneShots, 'sea', 'wind', 'surf', 'rain', 'amb_night', 'oars', 'gulls', 'coast', ...CUES.loops.filter((k) => k.startsWith('amb_') && k !== 'amb_night'), ...CUES.loops.filter((k) => k.startsWith('music_'))];
     for (const k of order) {
       await this.load(k);
       if (CUES.loops.includes(k)) this.startLoop(k);
