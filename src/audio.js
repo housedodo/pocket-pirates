@@ -9,7 +9,7 @@ export const AUDIO_ENABLED = window.__BUILD !== 'demo';   // the demo build ship
 const STAGES = 5;
 export const CUES = {
   loops: [
-    'sea', 'surf', 'wind', 'rain', 'amb_night', 'oars',
+    'sea', 'surf', 'wind', 'rain', 'amb_night', 'oars', 'gulls',
     ...Array.from({ length: STAGES }, (_, i) => `amb_${i + 1}`),
     ...Array.from({ length: STAGES }, (_, i) => `music_${i + 1}`),
   ],
@@ -66,7 +66,7 @@ export class AudioBus {
     try { Object.assign(this.vol, JSON.parse(localStorage.getItem('pocket-pirates-mixer') || '{}')); } catch (e) { /* storage blocked */ }
     this.setMuted(this.muted); this.setMusic(this.musicOn);
     // one-shots first (cheap), then ambience, then music, yielding between cues so the game stays smooth
-    const order = [...CUES.oneShots, 'sea', 'wind', 'surf', 'rain', 'amb_night', 'oars', ...CUES.loops.filter((k) => k.startsWith('amb_') && k !== 'amb_night'), ...CUES.loops.filter((k) => k.startsWith('music_'))];
+    const order = [...CUES.oneShots, 'sea', 'wind', 'surf', 'rain', 'amb_night', 'oars', 'gulls', ...CUES.loops.filter((k) => k.startsWith('amb_') && k !== 'amb_night'), ...CUES.loops.filter((k) => k.startsWith('music_'))];
     for (const k of order) {
       await this.load(k);
       if (CUES.loops.includes(k)) this.startLoop(k);
@@ -100,16 +100,23 @@ export class AudioBus {
     src.buffer = buf; src.loop = true;
     const gain = this.ctx.createGain();
     gain.gain.value = 0;
-    src.connect(gain).connect(key.startsWith('music_') ? this.musicBus : this.master);
+    if (key === 'gulls') {   // far away they are dull and thin; the closer you get, the clearer (low-pass opens with level)
+      const lp = this.ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 900; lp.Q.value = 0.4;
+      src.connect(lp).connect(gain).connect(this.master);
+      this.tone = lp;
+    } else src.connect(gain).connect(key.startsWith('music_') ? this.musicBus : this.master);
     src.start();
     this.loops.set(key, gain);
   }
+
+  has(key) { return this.buffers.has(key); }
 
   setLoop(key, v) {
     this.level[key] = v;
     const g = this.loops.get(key);
     if (this.preview) v = key === this.preview ? 0.8 : 0;   // auditioning one loop: everything else hushes
     if (g) g.gain.setTargetAtTime(v * this.v(key), this.ctx.currentTime, this.preview ? 0.15 : 0.7);
+    if (key === 'gulls' && this.tone) this.tone.frequency.setTargetAtTime(700 + 9500 * Math.min(1, v) * Math.min(1, v), this.ctx.currentTime, 0.7);
   }
 
   /** re-apply every loop's gain now (the mixer calls this so solo works even while the game is paused) */
@@ -141,6 +148,7 @@ export class AudioBus {
     this.setLoop('rain', s.rain * 0.85);
     this.setLoop('amb_night', s.night * 0.7 * (1 - s.rain * 0.7));
     this.setLoop('oars', s.rowing ? 0.7 : 0);
+    this.setLoop('gulls', (s.gulls || 0) * 0.9);
     const stage = Math.min(STAGES - 1, Math.floor(dread * STAGES));
     if (stage > this.lastStage) this.play('stage_up');
     this.lastStage = stage;

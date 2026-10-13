@@ -109,7 +109,7 @@ export class Fauna {
     const cg = new THREE.CircleGeometry(1, 7).rotateX(-Math.PI / 2);
     cg.setAttribute('color', new THREE.Float32BufferAttribute(new Float32Array(8 * 4).fill(1), 4));
     this.splashes = Array.from({ length: 14 }, () => { const m = new THREE.Mesh(cg, mats.foam); m.visible = false; m.renderOrder = 2; scene.add(m); return { m, life: 0 }; });
-    this.gullTimer = 4;
+    this.gullTimer = 4; this.nearBird = 1e9;
   }
 
   splash(x, z, wave, t, size = 1) {
@@ -184,11 +184,12 @@ export class Fauna {
       }
     }
     this.wingR.instanceMatrix.needsUpdate = true; this.wingL.instanceMatrix.needsUpdate = true;
+    this.nearBird = nearBird;   // distance to the closest visible gull (the ambience loop follows it)
     // gull cries (only while they still sound like gulls)
     this.gullTimer -= dt;
     if (this.gullTimer <= 0) {
       this.gullTimer = rnd(4, 10);
-      if (dread < 0.3 && nearBird < 70) audio.play('gull', { vol: clamp(1 - nearBird / 80, 0.15, 0.8), rate: rnd(0.9, 1.15) });
+      if (dread < 0.3 && nearBird < 70 && !audio.has('gulls')) audio.play('gull', { vol: clamp(1 - nearBird / 80, 0.15, 0.8), rate: rnd(0.9, 1.15) });
     }
 
     // ================= dolphins =================

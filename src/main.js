@@ -1066,6 +1066,14 @@ const LH_LINES = {
   pagoda: ['The roofs are for the rain. The bells are for luck. The lamp is for the ships. Do not mix them up.', 'Five roofs, one for every sea I have heard of. I am told there are more.', 'The little bells ring when a boat goes by that is thinking of home.'],
 };
 const LH_WEEK = ['Market day is Wednesday. Bring fish, not complaints.', 'The floating market sails by on Fridays. Bring coin, and a bag with no holes.', 'The regatta is on Sunday afternoons. Do not stand in the way of the canoes.', 'The whales pass in numbers on Thursdays. Always the same direction. I do not ask why.', 'Low tide uncovers the wrecks. Go then, with a strong back.', 'A red sky in the evening means a storm in the afternoon after. Ask me how I know.', 'Saturday night the lanterns go up in the villages. Make for any harbour and join in.'];
+// the recorded gull colony: silent far off, fades up inside ~120 units of the nearest circling gull, full close in.
+// Gulls go quiet at night, in storms and rain, and as the dread rises (they stop sounding like gulls).
+function gullLevel(night) {
+  const d = fauna.nearBird;
+  if (!(d < 160)) return 0;
+  const near = 1 - clamp((d - 8) / 112, 0, 1);
+  return near * near * (1 - night * 0.8) * (1 - weather.storm * 0.7) * (1 - weather.rain * 0.4) * (1 - smoothstep(0.2, 0.35, dread));
+}
 function lighthouseTidbit() {
   state.story.lh = state.story.lh || {};
   for (const isl of world.islands.values()) {
@@ -1991,7 +1999,7 @@ function frame() {
   } else eb.style.display = 'none';
   if (live) {
     const near = world.nearest(ship.pos.x, ship.pos.z, 45);
-    audio.update(dt, { dread, speed: ship.speed / 11, night: tod.night, wind: wind.strength, rain: weather.rain, storm: weather.storm, surf: near ? clamp(1 - world.lastEdge / 45, 0, 1) : 0, rowing: ship.rowIn > 0 });
+    audio.update(dt, { dread, speed: ship.speed / 11, night: tod.night, wind: wind.strength, rain: weather.rain, storm: weather.storm, surf: near ? clamp(1 - world.lastEdge / 45, 0, 1) : 0, rowing: ship.rowIn > 0, gulls: gullLevel(tod.night) });
     const hour = Math.floor(state.time * 24);
     if (hour !== lastHour) { lastHour = hour; if (world.nearest(ship.pos.x, ship.pos.z, 80, ['harbour'])) audio.play('bell', { vol: 0.6 }); }
   }
