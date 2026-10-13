@@ -470,3 +470,4 @@ Read it before building any story part. Decided so far: the final throw of the L
   - **The Rising Grotto** (tense): a chest on a ledge as the tide rises; seamanship and luck; gold, or a bruise.
   - **The Tally Niche** (quiet): marks on a wall, a compass, a tin box; luck; gold, a treasure rumour, or just leaving it alone.
   - Add more by writing a node graph in `CAVES` (format in the file header). Picture: `docs/concept/caves.png`.
+- **Cave screen concepts (not built):** the cave becomes its own full screen, the ship waiting at the mouth. Four layouts in `docs/concept/cave-screen.html` (+ `cave-screen-a..d.png`): A the passage (first-person tunnel, tide gauge), B the lantern circle (black screen, one lit circle, greeting-box dialogue with a portrait), C the cutaway (cross-section of the rock, rooms lit one by one), D the gamebook page (framed picture plus parchment with paragraph numbers and a d20 readout). Waiting on a pick.
