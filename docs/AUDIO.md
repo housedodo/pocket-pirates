@@ -8,7 +8,7 @@ and `volumes.json` inside it (plus the mixer on F8); `pocket-pirates-demo.html` 
 The pause menu has Sound and Music toggles.
 
 ## Player volume sliders (pause menu)
-The pause menu has three sliders on top of the Sound and Music toggles: **Music**, **Sea, wind, gulls** (every loop that is not music: sea, surf, wind, rain, gulls, coast, night, oars, stage ambience) and **Effects** (one-shot sounds). They are 0-100%, saved in the player's settings, and multiply the mix made in the dev mixer (`AudioBus.userVol`, `ambBus`, `sfxBus`, `musicBus`). The sound plays for a moment while a slider is dragged so the level can be heard even though the game is paused.
+The pause menu stays short (Resume, Ask Mara, Controls, Fullscreen, Captain's log, Sound and music, New voyage). **Sound and music** opens its own panel with the Sound and Music on/off toggles and three sliders: **Music**, **Sea, wind, gulls** (every loop that is not music: sea, surf, wind, rain, gulls, coast, night, oars, stage ambience) and **Effects** (one-shot sounds). They are 0-100%, saved in the player's settings, and multiply the mix made in the dev mixer (`AudioBus.userVol`, `ambBus`, `sfxBus`, `musicBus`). The sound plays for a moment while a slider is dragged so the level can be heard even though the game is paused.
 
 ## The sound mixer (testing volumes in the game)
 Open the game with `?dev=1` (e.g. `http://localhost:5173/?dev=1`), then press **F8** (or Pause > Sound mixer).

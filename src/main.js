@@ -547,7 +547,7 @@ window.addEventListener('keydown', (e) => {
   if (!started) { if (titleScene) titleKey(e); else begin(); return; }
   if (e.code === 'Escape' || e.code === 'KeyP') {
     e.preventDefault();
-    if (modal === 'pause') { if ($('pauseControls').style.display !== 'none' || $('pauseAbyss').style.display !== 'none') showPauseMain(); else closeModal(); }
+    if (modal === 'pause') { if ($('pauseControls').style.display !== 'none' || $('pauseAbyss').style.display !== 'none' || $('pauseSound').style.display !== 'none') showPauseMain(); else closeModal(); }
     else if (modal) closeModal(); else openModal('pause');
     return;
   }
@@ -657,7 +657,9 @@ $('tX').addEventListener('pointerdown', (e) => { begin(); fireCannons(); e.preve
 $('tP').addEventListener('pointerdown', (e) => { begin(); if (modal) closeModal(); else openModal('pause'); e.preventDefault(); });
 
 // ---------------------------------------------------------------- pause menu
-if (!AUDIO_ENABLED) { $('pbSound').style.display = 'none'; $('pbMusic').style.display = 'none'; $('pbVols').style.display = 'none'; }
+if (!AUDIO_ENABLED) $('pbSoundMenu').style.display = 'none';
+$('pbSoundMenu').addEventListener('click', () => { $('pauseMain').style.display = 'none'; $('pauseSound').style.display = 'block'; $('sdBack').focus(); });
+$('sdBack').addEventListener('click', () => { showPauseMain(); $('pbSoundMenu').focus(); });
 let volT = 0;
 for (const r of $('pbVols').querySelectorAll('.pvol')) {   // the player's own volume sliders
   const inp = r.querySelector('input'), k = inp.dataset.k;
@@ -668,7 +670,7 @@ for (const r of $('pbVols').querySelectorAll('.pvol')) {   // the player's own v
 }
 function showPauseMain() {
   $('pbNew').textContent = 'New voyage (erase save)';
-  $('pauseMain').style.display = 'block'; $('pauseControls').style.display = 'none'; $('pauseAbyss').style.display = 'none';
+  $('pauseMain').style.display = 'block'; $('pauseControls').style.display = 'none'; $('pauseAbyss').style.display = 'none'; $('pauseSound').style.display = 'none';
   $('pbSound').textContent = `Sound: ${audio.muted ? 'off' : 'on'}`;
   $('pbMusic').textContent = `Music: ${audio.musicOn ? 'on' : 'off'}`;
   $('pbResume').focus();
