@@ -4,7 +4,7 @@
 synthesiser (`src/synth.js`). To use your own sound, overwrite the file with the same name: it plays in the game
 at once, no code change. Delete a file and the game falls back to the synthesised version of that cue.
 `python3 scripts/single.py` builds two single-file games: `pocket-pirates-dev.html` carries every file in `public/audio/`
-and `volumes.json` inside it (plus the mixer on F8); `pocket-pirates-demo.html` is silent, with no way to turn sound on. Names must match exactly; `.ogg` preferred (`.mp3`/`.wav` also work).
+and `volumes.json` inside it (plus the mixer on F8); `pocket-pirates-demo.html` carries the same sounds without the dread-stage cues (`music_3..5`, `amb_3..5`, `whisper`, `stage_up`, see `DEMO_SKIP` in `audio.js` and `scripts/single.py`) and has no mixer; it has the pause menu Sound and Music toggles. Names must match exactly; `.ogg` preferred (`.mp3`/`.wav` also work).
 The pause menu has Sound and Music toggles.
 
 ## The sound mixer (testing volumes in the game)

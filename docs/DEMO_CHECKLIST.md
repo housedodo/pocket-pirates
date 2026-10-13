@@ -1,6 +1,6 @@
 # HOIST demo: final checklist before itch.io
 
-Build it with `python3 scripts/single.py`, ship `pocket-pirates-demo.html` (silent, no dread, no caves, no test tools).
+Build it with `python3 scripts/single.py`, ship `pocket-pirates-demo.html` (with sound, no dread, no caves, no mixer or test tools).
 
 ## 1. Play-through (do it yourself, fresh save, no dev tools)
 - [ ] New voyage: intro cinematic plays, skip works (Esc / click)
@@ -46,8 +46,10 @@ Build it with `python3 scripts/single.py`, ship `pocket-pirates-demo.html` (sile
 - [ ] Mouse capture / keyboard focus works in the embed (click inside first)
 
 ## 5. Sound (decide now)
-- [ ] The demo is silent by design. Ship silent, or build a demo with sound? (the sound files exist in the dev build)
-- [ ] If silent: say so on the page ("sound comes later")
+- [ ] The demo ships with sound (decided). Final mix done in the dev build (F8), `volumes.json` saved, demo rebuilt
+- [ ] Listen through the whole demo once with headphones: loops are seamless, no clipping, gull/coast/wind are not annoying
+- [ ] Sound and Music toggles in the pause menu work; first click starts audio in the itch embed
+- [ ] Say "sound on" on the page
 
 ## 6. Naming and branding
 - [ ] Title everywhere says HOIST (tab title, file name, page title); repo/internal names do not matter

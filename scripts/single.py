@@ -1,5 +1,5 @@
 """Build the single-file games from dist/ (run after `npx vite build`):  python3 scripts/single.py
-  pocket-pirates-demo.html  for playing and sharing: no sound at all, no test tools
+  pocket-pirates-demo.html  for playing and sharing: sound on (without the dread-stage cues), no mixer, no test tools
   pocket-pirates-dev.html   for working: every sound in public/audio + volumes.json, the mixer (F8) and test tools on"""
 import base64, json, os, re
 
@@ -23,11 +23,14 @@ def build(boot):
   out = re.sub(r'<link rel="stylesheet" crossorigin href="([^"]+)">', lambda m: '<style>' + open(P(m.group(1))).read() + '</style>', out)
   return re.sub(r'url\((fonts/[^)]+\.woff2)\)', lambda m: 'url(data:font/woff2;base64,' + b64(os.path.join(ROOT, 'public', m.group(1))) + ')', out)
 
+# cues the demo never plays (no dread there): not shipped in the demo file
+DEMO_SKIP = {'music_3', 'music_4', 'music_5', 'amb_3', 'amb_4', 'amb_5', 'whisper', 'stage_up'}
+demo_sounds = {k: v for k, v in sounds.items() if k not in DEMO_SKIP}
 for name, boot in [
-    ('pocket-pirates-demo.html', "<script>window.__BUILD='demo';</script>"),
+    ('pocket-pirates-demo.html', f"<script>window.__BUILD='demo';window.__AUDIO={json.dumps(demo_sounds)};window.__VOLUMES={json.dumps(volumes)};</script>"),
     ('pocket-pirates-dev.html', f"<script>window.__BUILD='dev';window.__AUDIO={json.dumps(sounds)};window.__VOLUMES={json.dumps(volumes)};</script>"),
 ]:
   out = build(boot)
   open(os.path.join(ROOT, name), 'w').write(out)
   print(f'{name}: {len(out) / 1e6:.1f} MB')
-print(f'({len(sounds)} sounds, {len(volumes)} volume settings in the dev build)')
+print(f'({len(sounds)} sounds in the dev build, {len(demo_sounds)} in the demo, {len(volumes)} volume settings)')

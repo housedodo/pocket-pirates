@@ -58,4 +58,4 @@ Dread only depends on distance from home; it does not build up over time (only t
 The interface uses DotGothic16 (SIL Open Font License), bundled in `public/fonts/` so the game works offline.
 
 ## Demo and dev builds
-`python3 scripts/single.py` writes two single-file games: `pocket-pirates-demo.html` (silent, no dread, no test tools, for sharing) and `pocket-pirates-dev.html` (all sounds, mixer on F8, test tools). A new voyage opens with a short camera intro and a quiet, step-by-step tutorial led by Mara; see `docs/DESIGN.md`.
+`python3 scripts/single.py` writes two single-file games: `pocket-pirates-demo.html` (with sound, no dread, no mixer or test tools, for sharing) and `pocket-pirates-dev.html` (all sounds, mixer on F8, test tools). A new voyage opens with a short camera intro and a quiet, step-by-step tutorial led by Mara; see `docs/DESIGN.md`.

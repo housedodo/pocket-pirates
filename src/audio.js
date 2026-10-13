@@ -4,7 +4,9 @@
 import { canSynth, synth } from './synth.js';
 
 // Master switch for all sound (files in public/audio/, else the synthesised fallback).
-export const AUDIO_ENABLED = window.__BUILD !== 'demo';   // the demo build ships silent
+export const AUDIO_ENABLED = true;   // the demo ships with sound too (without the dread-stage cues, see DEMO_SKIP)
+// cues the demo never plays (no dread there): left out of the demo file and never loaded, to keep it small and spoiler-free
+const DEMO_SKIP = new Set(['music_3', 'music_4', 'music_5', 'amb_3', 'amb_4', 'amb_5', 'whisper', 'stage_up']);
 
 const STAGES = 5;
 export const CUES = {
@@ -68,6 +70,7 @@ export class AudioBus {
     // one-shots first (cheap), then ambience, then music, yielding between cues so the game stays smooth
     const order = [...CUES.oneShots, 'sea', 'wind', 'surf', 'rain', 'amb_night', 'oars', 'gulls', 'coast', ...CUES.loops.filter((k) => k.startsWith('amb_') && k !== 'amb_night'), ...CUES.loops.filter((k) => k.startsWith('music_'))];
     for (const k of order) {
+      if (window.__BUILD === 'demo' && DEMO_SKIP.has(k)) continue;
       await this.load(k);
       if (CUES.loops.includes(k)) this.startLoop(k);
       await tick();
