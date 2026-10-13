@@ -461,3 +461,4 @@ Read it before building any story part. Decided so far: the final throw of the L
 - **Wind recording:** `public/audio/wind.ogg` is now the supplied wind (mono). `AudioBus.driftWind` slowly varies its volume, stereo pan and pitch, so repeats of the 43 s loop don't sound alike. Dev build only.
 - **Mixer:** new "All to 0%" button (every cue to silence, MASTER/MUSIC kept) for building the mix from scratch; solo/play audition a sound even at 0%.
 - **First custom music:** `music_3.ogg` replaced by the supplied D - G - B "Dread" piece (1:42, melancholic). Plays in the Wrong stage band; dev build only (the demo has no dread and no sound).
+- **Soundtrack key decided:** D (Dm / D Dorian), bass D, home chord D F A, motif D - G - B. Written up in `docs/AUDIO.md` ("Key and theme"); tempo still open.

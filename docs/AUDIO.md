@@ -18,6 +18,12 @@ A panel opens on the right while the game keeps running:
   become the game's volumes for everyone (100% = the file as it is, so only changed sounds are listed). Rebuild
   the single files afterwards and `pocket-pirates-dev.html` carries your mix.
 
+## Key and theme (decided)
+- **Home key: D (D minor / D Dorian).** Bass note D, home chord Dm = D F A. The core motif is D - G - B (the B natural is the Dorian lift). Sailor-music feel: a held or repeated D bass, 6/8 or 2/4, accordion, fiddle, tin whistle, ukulele.
+- **Every stage loop is written in D** so the cross-fades stay musical: bright stages in D major / D Mixolydian or the same melody over Dm, dark stages stay on the D drone with the third dropped (D - A), a flat 2nd (E flat) or a tritone (A flat) added.
+- Chords (D Dorian): Dm, C, G, Am, F, Bb. Shanty: Dm - C - Dm - C. Dorian: Dm - G - Dm - Am. Longing: Dm - Bb - C - Dm.
+- Tempo is not fixed yet (suggest about 90-100 bpm; if 6/8, about 60-66 dotted-quarter beats). Set it once, then use it for all five loops and note it here.
+
 ## Tone: "shanty that slowly forgets how to be a shanty"
 Pick one short, simple melody (8-16 bars). Play it five ways, one per dread stage. The *same* tune
 getting stranger is scarier than new horror music.
