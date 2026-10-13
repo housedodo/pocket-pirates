@@ -17,6 +17,7 @@ import { gossip, lootFor, bottleNote, barrelLoot } from './lore.js';
 import { Weather } from './weather.js';
 import { Fauna } from './fauna.js';
 import { Companion } from './companion.js';
+import { Caves, CAVES } from './caves.js';
 import { Traffic } from './traffic.js';
 import { SeaFeatures } from './seafeatures.js';
 import { makeJob, setReach, findRumour, repOf, friendLevel, discount, bearingName, nearby, RUMOUR_COST, commissionsFor, questProgress, questNeed, questTitle, QUEST_ICON, questIcon, FRUITS, fruitOf, fruitName, plural } from './jobs.js';
@@ -135,6 +136,8 @@ const fauna = new Fauna(scene, world);
 const traffic = new Traffic(scene, world, state.seed);
 const sea = new SeaFeatures(scene, world, state.seed, state.collected);
 const sighting = new Sighting(scene);
+const caves = new Caves(scene, world, state);
+{ const h = world.desc(0, -1); if (h) caves.force(h, 3); }
 const combat = new Combat(scene, fauna);
 sea.syncQuests(state.quests.filter((q) => q.id === state.tracked));
 traffic.onEvent = (what) => {
@@ -428,7 +431,8 @@ function closeModal(silent = false) {
   pauseEl.classList.remove('open'); chartEl.classList.remove('open'); harbourEl.classList.remove('open'); shipEl.classList.remove('open'); yardEl.classList.remove('open'); hutEl.classList.remove('open'); cardEl.classList.remove('open'); pigEl.classList.remove('open'); greetEl.classList.remove('open');
   if (modal === 'pause') audio.setPaused(false);
   if (modal === 'hut') hutLeft();
-  if (modal === 'card') sighting.dismiss();
+  if (modal === 'card' && !caveRun) sighting.dismiss();
+  if (modal === 'card') caveRun = null;
   if (modal === 'yard') { ship.setCustom(state.custom); yardTry = null; }   // anything only tried on is put back
   modal = null; harbourIsl = null;
   if (!silent) lastTs = performance.now();
@@ -556,7 +560,7 @@ window.addEventListener('keydown', (e) => {
   if (modal === 'greet') { if (['KeyE', 'Space', 'Enter', 'NumpadEnter'].includes(e.code)) { e.preventDefault(); greetAdvance(); } return; }
   if (modal === 'card') {
     if ($('roll').classList.contains('open')) return;
-    if (cardBusy === 'done' && (e.code === 'KeyE' || e.code === 'Space' || e.code === 'Enter')) { closeModal(); return; }
+    if (cardBusy === 'done' && (e.code === 'KeyE' || e.code === 'Space' || e.code === 'Enter')) { $('cardDone').click(); return; }
     const n = parseInt(e.key, 10); if (!cardBusy && n >= 1) { const b = cardEl.querySelectorAll('#cardChoices button')[n - 1]; if (b) b.click(); }
     return;
   }
@@ -1145,6 +1149,7 @@ function getInteract() {
   const hi = world.nearest(ship.pos.x, ship.pos.z, 18);
   if (hi && hi.desc.hut) return { kind: 'hut', key: 'hut', isl: hi };
   const sg = sighting.near(ship.pos.x, ship.pos.z); if (sg) return { kind: 'sighting', key: 'sight', s: sg };
+  const cvs = caves.near(ship.pos.x, ship.pos.z); if (cvs) return { kind: 'cave', key: cvs.id, site: cvs };
   // a harbour is entered at its pier; anywhere else along its shore you only get a hint
   const hb = world.nearest(ship.pos.x, ship.pos.z, 30, ['harbour']);
   if (hb) {
@@ -1219,6 +1224,7 @@ function tryInteract() {
   const tg = getInteract();
   if (!tg) return;
   if (tg.kind === 'sighting') { openCard(tg.s.card); return; }
+  if (tg.kind === 'cave') { if (ship.speed > 0.35) { toast('Bring the ship to a full stop first (S to reef the sails).', false, 3000); return; } openCave(tg.site); return; }
   if (tg.kind === 'hut') { if (!state.story.hutKnown) { audio.play('knock'); toast('Nobody answers. Inside, a pen scratches, then stops.', true, 4500); return; } openModal('hut'); return; }
   if ((tg.kind === 'treasure' || tg.kind === 'fruit' || tg.kind === 'wreck') && ship.speed > 0.35) { toast('Bring the ship to a full stop first (S to reef the sails).', false, 3000); return; }
   if (tg.kind === 'harbour') {
@@ -1556,7 +1562,8 @@ const pig = new Pig(pigEl, { onEnd: (won) => { if (won) { state.gold += 20; audi
 $('pigRoll').addEventListener('click', () => pig.roll());
 $('pigHold').addEventListener('click', () => pig.hold());
 $('pigLeave').addEventListener('click', () => { if (pig.busy) return; closeModal(); if (pigHome) { harbourIsl = pigHome; hbTab = 'tavern'; openModal('harbour'); } });
-$('cardDone').addEventListener('click', () => closeModal());
+let cardNext = null;
+$('cardDone').addEventListener('click', () => { if (cardNext) { const f = cardNext; cardNext = null; f(); return; } closeModal(); });
 function cardCtx() {
   return {
     state, FISH,
@@ -1600,13 +1607,45 @@ setAdvProvider((check) => {
 });
 function openCard(card) {
   if (!card) return;
-  cardBusy = false; openModal('card'); audio.play('card');
+  cardBusy = false; cardNext = null; $('cardDone').textContent = 'Sail on [E]'; openModal('card'); audio.play('card');
   const out = (t) => { $('cardOut').textContent = t; $('cardDone').style.display = ''; cardEl.querySelectorAll('#cardChoices button').forEach((b) => { b.disabled = true; }); cardBusy = 'done'; };
   renderCard(card, (ch) => {
     if (cardBusy) return; cardBusy = true;
     if (!ch.check) { out(ch.go(cardCtx())); return; }
     rollCheck(state, ch.check, (ok) => out((ok ? ch.ok : ch.fail)(cardCtx())));
   });
+}
+// ---- one-time caves: a few rooms of choices and d20 checks; when it is over, won or lost, the sea closes over the mouth
+let caveRun = null;
+function openCave(site) {
+  const cv = CAVES[site.kind]; if (!cv) return;
+  caveRun = site; cardNext = null; cardBusy = false; openModal('card'); audio.play('card');
+  const finish = (res) => { caves.finish(site, res); };
+  const show = (id) => {
+    const node = cv.nodes[id]; cardBusy = false; cardNext = null;
+    renderCard({ icon: cv.icon, title: id === 'door' ? cv.name : cv.name, text: node.text, dark: false, choices: node.choices }, (ch) => {
+      if (cardBusy) return; cardBusy = true;
+      const resolve = (r) => {
+        if (r.cancel) { closeModal(); return; }   // not yet: the cave stays
+        let text = r.text || ''; const fx = r.fx || {}, ctx = cardCtx();
+        if (!text && r.next && !Object.keys(fx).length) { show(r.next); return; }   // the doorway: straight into the first room
+        if (fx.gold) { state.gold = Math.max(0, state.gold + fx.gold); text += ` (${fx.gold > 0 ? '+' : ''}${fx.gold} gold)`; }
+        if (fx.hurt) ctx.hurt(fx.hurt);
+        if (fx.note) state.notes.push({ text: fx.note, dark: false });
+        if (fx.time) state.time = (state.time + fx.time) % 1;
+        if (fx.rep) ctx.repNear();
+        if (fx.rumour) { const rm = ctx.rumour('a folded chart in a cave'); text += ` ${rm || 'You cannot read where it leads.'}`; }
+        $('cardOut').textContent = text; cardEl.querySelectorAll('#cardChoices button').forEach((b) => { b.disabled = true; }); cardBusy = 'done';
+        const last = !r.next;
+        if (last) { const res = r.end || 'win'; finish(res); $('cardDone').textContent = res === 'win' ? 'Back to the ship [E]' : 'Back to the ship [E]'; cardNext = null; }
+        else { $('cardDone').textContent = 'Go deeper [E]'; cardNext = () => { $('cardDone').textContent = 'Sail on [E]'; show(r.next); }; }
+        $('cardDone').style.display = '';
+      };
+      if (!ch.check) { resolve(ch.go); return; }
+      rollCheck(state, ch.check, (ok) => resolve(ok ? ch.ok : ch.fail));
+    });
+  };
+  show('door');
 }
 let raiderT = 8;
 function tabletopTick(dt) {
@@ -1621,6 +1660,7 @@ function tabletopTick(dt) {
     } else raiderT = 8; }
   // encounter signs: rare, out on open water, never in weather, never part of any story
   sighting.update(dt, tNow, ship);
+  caves.update(dt, ship, laterOK() && dread < 0.5);
   if (unlocked(state, 'cards') && !sighting.active && ship.speed > 2 && dread < 0.95 && weather.fog < 0.3 && weather.storm < 0.3 && !world.nearest(ship.pos.x, ship.pos.z, 90) && !fishing.active) {
     cardT -= dt;
     if (cardT <= 0) {
@@ -1991,7 +2031,7 @@ function frame() {
     if (dig) { promptTxt.textContent = dig.label || 'Digging...'; promptBar.style.display = 'block'; }
     else {
       promptBar.style.display = 'none';
-      promptTxt.textContent = tgt.kind === 'sighting' ? `[E] ${tgt.s.label}` : tgt.kind === 'harbourfar' ? 'Sail to the pier to go ashore' : tgt.kind === 'hut' ? '[E] Knock on the dark hut' : tgt.kind === 'harbour' ? `[E] Visit ${tgt.isl.desc.name}`
+      promptTxt.textContent = tgt.kind === 'cave' ? (ship.speed > 0.35 ? 'Stop the ship completely (S) to look inside' : '[E] Look into the cave') : tgt.kind === 'sighting' ? `[E] ${tgt.s.label}` : tgt.kind === 'harbourfar' ? 'Sail to the pier to go ashore' : tgt.kind === 'hut' ? '[E] Knock on the dark hut' : tgt.kind === 'harbour' ? `[E] Visit ${tgt.isl.desc.name}`
         : tgt.kind === 'treasure' ? (tgt.isl.dug ? 'Already plundered' : !state.riddles[tgt.isl.desc.id] ? '[E] Study the ancient arch inscription' : '[E] Dig on this shore')
         : tgt.kind === 'fruit' ? (state.harvest[tgt.isl.desc.id] != null && state.harvest[tgt.isl.desc.id] >= state.dayN ? 'Picked clean for today' : `[E] Pick ${plural(fruitName(fruitOf(tgt.isl.desc), tgt.isl.desc.dread), 2)}`)
         : tgt.kind === 'ship' ? (tgt.s.mode === 'derelict' ? `[E] Board the drifting ${KINDS[tgt.s.kind].label}` : tgt.s.mode === 'ghost' ? '[E] Hail the pale ship' : `[E] Hail the ${tgt.s.name}`)
@@ -2061,7 +2101,7 @@ window.__game = {
   setTime(t) { state.time = t; },
   setCam(p, z) { if (p !== undefined) { pitch = pitchT = p; } if (z !== undefined) { zoom = zoomT = z; } },
   setOverride(o) { camOverride = o; },
-  get companions() { return companions; }, petOffer, takePet,
+  get companions() { return companions; }, petOffer, takePet, caves, openCave,
   /** concept sketch: put a cat or a gull on deck (dev only) */
   companion(kind = 'cat', slot = '_pet') { if (this[slot]) ship.root.remove(this[slot].m.g); this[slot] = kind ? new Companion(ship, kind) : null; return !!this[slot]; },
   teleport(x, z, h) { ship.pos.set(x, 0, z); ship.heading = h; camHeading = h; },
