@@ -1684,7 +1684,7 @@ function tabletopTick(dt) {
     } else raiderT = 8; }
   // encounter signs: rare, out on open water, never in weather, never part of any story
   sighting.update(dt, tNow, ship);
-  caves.update(dt, ship, laterOK() && dread < 0.5);
+  caves.update(dt, ship, window.__BUILD !== 'demo' && laterOK() && dread < 0.5);   // caves are a full-game feature: not in the demo build
   if (unlocked(state, 'cards') && !sighting.active && ship.speed > 2 && dread < 0.95 && weather.fog < 0.3 && weather.storm < 0.3 && !world.nearest(ship.pos.x, ship.pos.z, 90) && !fishing.active) {
     cardT -= dt;
     if (cardT <= 0) {
