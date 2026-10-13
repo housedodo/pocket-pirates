@@ -130,3 +130,6 @@ The game expects `music_1`..`music_5` (one loop per dread stage, same length and
 
 ## Free tools
 Audacity, Reaper (free trial), LMMS, BeepBox / Bosca Ceoil (quick chip tunes), jsfxr/sfxr (SFX), Vital/Surge XT (drones), a phone mic for foley (rope, wood, water in a bucket).
+
+### Custom tracks in
+- `music_3.ogg` is the user's own melancholic D - G - B piece ("Dread", 1:42, mono) in place of the synthesised placeholder. It plays in the middle dread band (the Wrong stage, about 0.35 to 0.65 dread, cross-faded with music_2 and music_4). To use it for another stage, rename the file to `music_2` / `music_4` / `music_5`. The old placeholder is in git history.

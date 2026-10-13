@@ -460,3 +460,4 @@ Read it before building any story part. Decided so far: the final throw of the L
 - **Coast bed:** `public/audio/coast.ogg` (supplied coastal breeze and distant gulls) loops softly near island shores and while moored or in a harbour/greeting/shipyard (`coastLevel()` in main.js, runs every frame so it also plays with a menu open). Fades with night, storms and dread. Dev build only (the demo is silent).
 - **Wind recording:** `public/audio/wind.ogg` is now the supplied wind (mono). `AudioBus.driftWind` slowly varies its volume, stereo pan and pitch, so repeats of the 43 s loop don't sound alike. Dev build only.
 - **Mixer:** new "All to 0%" button (every cue to silence, MASTER/MUSIC kept) for building the mix from scratch; solo/play audition a sound even at 0%.
+- **First custom music:** `music_3.ogg` replaced by the supplied D - G - B "Dread" piece (1:42, melancholic). Plays in the Wrong stage band; dev build only (the demo has no dread and no sound).
