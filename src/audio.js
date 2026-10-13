@@ -120,20 +120,20 @@ export class AudioBus {
     this.level[key] = v;
     const g = this.loops.get(key);
     if (this.preview) v = key === this.preview ? 0.8 : 0;   // auditioning one loop: everything else hushes
-    if (g) g.gain.setTargetAtTime(v * this.v(key), this.ctx.currentTime, this.preview ? 0.15 : 0.7);
+    if (g) g.gain.setTargetAtTime(v * (this.preview && key === this.preview ? Math.max(0.5, this.v(key)) : this.v(key)), this.ctx.currentTime, this.preview ? 0.15 : 0.7);   // a soloed loop is audible even at 0%
     if (key === 'gulls' && this.tone) this.tone.frequency.setTargetAtTime(700 + 9500 * Math.min(1, v) * Math.min(1, v), this.ctx.currentTime, 0.7);
   }
 
   /** re-apply every loop's gain now (the mixer calls this so solo works even while the game is paused) */
   refreshLoops() { if (!this.ctx) return; for (const k of this.loops.keys()) this.setLoop(k, this.level[k] || 0); }
 
-  play(key, { vol = 1, rate = 1 } = {}) {
+  play(key, { vol = 1, rate = 1, raw = false } = {}) {
     if (!this.ctx) return;
     const buf = this.buffers.get(key);
     if (!buf) return;
     const src = this.ctx.createBufferSource();
     src.buffer = buf; src.playbackRate.value = rate;
-    const g = this.ctx.createGain(); g.gain.value = vol * this.v(key);
+    const g = this.ctx.createGain(); g.gain.value = vol * (raw ? Math.max(0.5, this.v(key)) : this.v(key));
     src.connect(g).connect(this.master);
     src.start();
   }

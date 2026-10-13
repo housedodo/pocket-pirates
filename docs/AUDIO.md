@@ -13,6 +13,7 @@ A panel opens on the right while the game keeps running:
 - a slider (0-200%) for every sound, plus MASTER and MUSIC for everything at once;
 - **play** fires a one-shot; **solo** plays one loop on its own (everything else goes quiet) until you press it again;
 - rows turn green and get a bar when the game is playing that loop right now, so you can sail around and hear the mix in context;
+- **All to 0%** sets every sound to 0% (MASTER and MUSIC stay) so you can build the mix up one sound at a time; solo and play still let you hear a sound at 0%. **Reset all** puts everything back to 100%;
 - slider changes are kept in your browser; **Save volumes.json** downloads them. Put that file in `public/audio/` and they
   become the game's volumes for everyone (100% = the file as it is, so only changed sounds are listed). Rebuild
   the single files afterwards and `pocket-pirates-dev.html` carries your mix.

@@ -44,13 +44,21 @@ export class Mixer {
         if (this.a.preview && k.startsWith('music_') && !this.a.musicOn) this.toast('Music is switched off in the pause menu, so this solo is silent.', false, 5000);
         if (this.a.muted) this.toast('Sound is switched off in the pause menu.', false, 4000);
         this.list.querySelectorAll('.mxplay').forEach((x) => x.classList.toggle('on', x.closest('.mxrow').dataset.k === this.a.preview));
-      } else this.a.play(k);
+      } else this.a.play(k, { raw: true });   // the play button is audible even at 0%
     });
     document.getElementById('mixClose').addEventListener('click', () => this.toggle(false));
     document.getElementById('mixReset').addEventListener('click', () => {
       for (const k of Object.keys(this.a.vol)) this.a.vol[k] = 1;
       this.list.querySelectorAll('.mxrow').forEach((r) => { r.querySelector('input').value = 100; r.querySelector('.mxval').textContent = '100%'; });
       this.a.setMuted(this.a.muted); this.a.setMusic(this.a.musicOn); this.saveLocal();
+    });
+    document.getElementById('mixZero').addEventListener('click', () => {   // start from silence and build the mix up sound by sound (MASTER and MUSIC stay as they are)
+      this.list.querySelectorAll('.mxrow').forEach((r) => {
+        const k = r.dataset.k; if (k.startsWith('_')) return;
+        this.a.setVol(k, 0); r.querySelector('input').value = 0; r.querySelector('.mxval').textContent = '0%';
+      });
+      this.a.refreshLoops(); this.saveLocal();
+      this.toast('Every sound is at 0%. Raise them one by one; "solo" and "play" still work.', false, 5000);
     });
     document.getElementById('mixSave').addEventListener('click', () => {
       const out = {};
