@@ -16,6 +16,7 @@ import { pickGreeting, portrait, speakerName, rollGreeting, numberWord } from '.
 import { gossip, lootFor, bottleNote, barrelLoot } from './lore.js';
 import { Weather } from './weather.js';
 import { Fauna } from './fauna.js';
+import { Companion } from './companion.js';
 import { Traffic } from './traffic.js';
 import { SeaFeatures } from './seafeatures.js';
 import { makeJob, setReach, findRumour, repOf, friendLevel, discount, bearingName, nearby, RUMOUR_COST, commissionsFor, questProgress, questNeed, questTitle, QUEST_ICON, questIcon, FRUITS, fruitOf, fruitName, plural } from './jobs.js';
@@ -1879,6 +1880,7 @@ function frame() {
   }
   fauna.quiet = !laterOK();
   fauna.update(vdt, waveT, lifeCtx);
+  for (const k of ['_pet', '_pet2']) if (window.__game[k]) window.__game[k].update(vdt);
   traffic.update(dt, waveT, lifeCtx);
   sea.update(dt, waveT, lifeCtx);
 
@@ -2036,6 +2038,8 @@ window.__game = {
   setTime(t) { state.time = t; },
   setCam(p, z) { if (p !== undefined) { pitch = pitchT = p; } if (z !== undefined) { zoom = zoomT = z; } },
   setOverride(o) { camOverride = o; },
+  /** concept sketch: put a cat or a gull on deck (dev only) */
+  companion(kind = 'cat', slot = '_pet') { if (this[slot]) ship.root.remove(this[slot].m.g); this[slot] = kind ? new Companion(ship, kind) : null; return !!this[slot]; },
   teleport(x, z, h) { ship.pos.set(x, 0, z); ship.heading = h; camHeading = h; },
   /** biome concept scenes (dev): kind 'coral' | 'rain' | 'sunken' */
   async biome(kind, x, z) { const { buildBiome } = await import('./concepts.js'); if (this._biome) scene.remove(this._biome); this._biome = buildBiome(scene, kind, x, z); return true; },
