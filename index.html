@@ -124,6 +124,22 @@
     #roll b { font-size: 32px; font-weight: 400; } #roll small { font-size: 16px; color: #c8b890; }
     #rollRes { font-size: 32px; min-height: 40px; } #rollRes.ok { color: #7ee870; } #rollRes.bad { color: #ff6050; }
     /* encounters: the same low box villagers speak in, at the bottom, with the world still visible */
+    /* a cave is its own full screen: a dithered picture, a title, and the same blue-and-gold box the villagers speak in */
+    #cave { align-items: flex-end; background: #05040a; z-index: 5; }
+    #caveCv { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; transform: translateY(-14%) scale(1.2); }   /* the picture sits above the text box */
+    #caveTitle { position: absolute; left: 0; right: 0; top: 18px; text-align: center; color: #f4ead0; text-shadow: 3px 3px 0 #000; }
+    #caveTitle b { display: block; font: 400 44px 'Pirata One', serif; letter-spacing: 1px; } #caveTitle small { font-size: 16px; color: #ffd23a; letter-spacing: 2px; }
+    #caveBox { position: relative; display: flex; gap: 16px; align-items: flex-start; width: min(900px, 94vw); margin-bottom: 32px; padding: 14px 20px 18px; background: #1d1640; image-rendering: pixelated; box-shadow: 0 -4px 0 #c9a85c, 0 4px 0 #c9a85c, -4px 0 0 #c9a85c, 4px 0 0 #c9a85c, 8px 8px 0 4px rgba(0,0,0,.45); text-align: left; }
+    #caveFace { width: 64px; height: 64px; flex: none; background: #2a1a0e; box-shadow: 0 0 0 4px #1a0f08; position: relative; } #caveFace .pxi { width: 48px; height: 48px; margin: 8px; display: block; } #caveFace.gone { display: none; }
+    #caveBody { flex: 1; min-width: 0; } #caveWho { color: #ffd23a; font-size: 16px; min-height: 18px; } #caveSay { font-size: 22px; line-height: 1.3; color: #fff4d8; } #caveBox.resolved #caveChoices { display: none; } #caveBox.resolved #caveSay { opacity: .6; font-size: 18px; }
+    #caveChoices { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
+    #caveChoices button, #caveDone { display: inline-block; width: auto; margin: 0; padding: 6px 14px; font: 18px 'DotGothic16', monospace; letter-spacing: 0; color: #fff4d8; background: #2c2160; border: 0; box-shadow: 0 0 0 2px #4a3aa0; cursor: pointer; text-align: left; }
+    #caveChoices button small { color: #b8a8f0; font-size: 14px; } #caveChoices button:hover:not(:disabled), #caveChoices button:focus, #caveDone:hover, #caveDone:focus { background: #4a3aa0; box-shadow: 0 0 0 2px #ffd23a; outline: none; } #caveChoices button:disabled { opacity: .4; cursor: default; }
+    #caveOut { margin: 10px 0 0; font-size: 24px; line-height: 1.3; color: #c8f0b8; } #caveOut:empty { display: none; }
+    #caveDone { display: none; margin-top: 10px; }
+    #caveTide { display: none; position: absolute; right: 28px; top: 28px; width: 36px; height: 300px; background: #0c1630; box-shadow: 0 0 0 4px #3a3070; } #caveTide i { position: absolute; left: 0; right: 0; bottom: 0; background: #3aa8b8; transition: height 1.2s steps(10); }
+    #cave.passage #caveTide { display: block; }
+    body:has(#cave.open) #mate, body:has(#cave.open) #toasts { visibility: hidden; }
     #card { align-items: flex-end; background: rgba(8,6,22,.18); }
     #cardWide { width: min(900px, 94vw); margin-bottom: 40px; text-align: left; display: grid; grid-template-columns: 64px 1fr; column-gap: 16px; align-items: start; --pxedge: #c9a85c; }
     #card.dark #cardWide { --pxedge: #ff70d0; }
@@ -525,6 +541,7 @@
   </div></div></div>
   <div id="hutmodal" class="modal"><div class="menu" id="hutWide"><h2>THE DARK HUT</h2><canvas id="dieCv" width="72" height="72"></canvas><p class="quote" id="hutTxt"></p><button id="hutRoll">Throw the die [Space]</button><button id="hutLeave">Leave [E]</button></div></div>
   <div id="card" class="modal"><div class="menu" id="cardWide"><div id="cardIcon"></div><h2 id="cardTitle"></h2><p class="quote" id="cardText"></p><div id="cardChoices"></div><p class="quote" id="cardOut"></p><button id="cardDone">Sail on [E]</button></div></div>
+  <div id="cave" class="modal"><canvas id="caveCv" width="320" height="180"></canvas><div id="caveTitle"><b></b><small></small></div><div id="caveTide"><i></i></div><div id="caveBox"><div id="caveFace"></div><div id="caveBody"><div id="caveWho"></div><div id="caveSay"></div><div id="caveChoices"></div><p id="caveOut"></p><button id="caveDone">Sail on [E]</button></div></div></div>
   <div id="pig" class="modal"><div class="menu" id="pigWide"><h2>DICE AT THE TAVERN</h2><div class="pigrow"><div><b>You</b><br><span id="pigMe">0</span></div><canvas id="pigCv"></canvas><div><b id="pigOpp"></b><br><span id="pigThem">0</span></div></div><p class="quote" id="pigLog"></p><button id="pigRoll">Roll [Space]</button><button id="pigHold">Hold [H]</button><button id="pigLeave">Leave [E]</button></div></div>
 <div id="demoend"><h1>TO BE CONTINUED</h1><p>The die is back on the table. Somewhere, a pen is still writing.</p><small>End of the HOIST demo. Thank you for sailing.</small><button id="demoGo">Keep sailing</button></div>
   <div id="mixer"><div class="mxhead"><b>SOUND MIXER</b><small>100% = as the file is. Play / solo to hear a sound; green rows are playing in the game right now.</small>
