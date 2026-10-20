@@ -319,7 +319,7 @@ export function captainMod(hub) {
       const api = hub.api;
       if (n === 'back') { tp.ended = 'back'; tp.stage = 'done'; api.setLook(tp.saved); api.keep('glass', 'A spyglass with the wrong initials', 'It sees a long way. The initials are yours, and not.'); api.state.gold += 40; api.refreshMods(); return ' (+40 gold)'; }
       if (n === 'sink') { tp.ended = 'sunk'; tp.stage = 'done'; api.setLook(tp.saved); api.addMark('salt'); api.refreshMods(); api.state.story.askedWho = true; setTimeout(() => api.say('Captain... who was that?'), 4000); return ''; }
-      if (n === 'stay') { tp.ended = 'stayed'; tp.stage = 'done'; api.addMark('owed'); if (tp.signed) api.addMark('called'); api.refreshMods(); return ''; }
+      if (n === 'stay') { tp.ended = 'stayed'; tp.stage = 'done'; api.addMark('owed'); if (tp.signed) api.addMark('called'); api.refreshMods(); setTimeout(() => api.say('I will take the Gull home, Captain. Somebody should.'), 4000); return ''; }
     },
     modAdjust(m) { if (tp.stage === 'aboard' || tp.ended === 'stayed') { m.speed *= 0.88; m.turn *= 0.85; m.maxHp += 60; } },
     clue: () => 'The shipwright says there is a name scratched inside your hull. Not the Gull. Somebody left it.',
