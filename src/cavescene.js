@@ -47,7 +47,17 @@ function shelves(ctx, jars, glint) {
 function hermit(ctx, x, y) { R(ctx, '#e8e0d0', x, y, 18, 30); R(ctx, '#e8b890', x + 4, y - 6, 10, 10); R(ctx, '#7a3a2a', x - 2, y - 12, 22, 7); R(ctx, '#e8e0d0', x + 2, y + 4, 14, 14); R(ctx, '#1a1a2a', x + 6, y - 4, 2, 2); R(ctx, '#1a1a2a', x + 12, y - 4, 2, 2); }
 
 /** draws the picture for this room; returns { lamps: [[x, y, r, colour]], water: top row of the water or null } */
+const VIOLET = ['#05040a', '#150a22', '#2a1245', '#52208a', '#a050e0', '#f0c8ff'];
 const SCENES = {
+  colourspring(ctx, node) {   // the Colour's spring: a ring of pale stones on a dark sea and a hum of violet coming up through it
+    ramp(ctx, (x, y) => { const r = Math.hypot((x - 160) / 150, (y - 92) / 78), n = fbm(x / 8, y / 8, 41); return Math.max(0, 1.05 - r * 0.95) * (0.55 + 0.7 * n); }, VIOLET);
+    const cx = 160, cy = 96;
+    for (let i = 0; i < 12; i++) { const a = (i / 12) * Math.PI * 2, x = cx + Math.cos(a) * 46, y = cy + Math.sin(a) * 18; R(ctx, '#c8c4d8', x - 6, y - 5, 12, 8); R(ctx, '#7a7690', x - 6, y + 1, 12, 3); }
+    if (node === 'stones' || node === 'seal') { R(ctx, '#07040e', cx - 14, cy - 5, 28, 10); R(ctx, '#e8b0ff', cx - 9, cy - 2, 18, 4); }
+    if (node === 'seal') { R(ctx, '#d8d4e8', cx - 22, cy + 22, 44, 22); R(ctx, '#8a86a4', cx - 22, cy + 38, 44, 6); }
+    for (let i = 0; i < 40; i++) { const a = hash(i, 3, 6) * 6.28, d = 8 + hash(i, 4, 6) * 70; R(ctx, '#f0c8ff', cx + Math.cos(a) * d, cy - 10 - hash(i, 5, 6) * 50 + Math.sin(a) * 8, 1, 1); }
+    return { lamps: [[cx, cy, 82, '#d070ff']] };
+  },
   larder(ctx, node) {
     lantern(ctx, WARM, 160, 74, 130, 95, 8);
     const lamps = [[157, 40, 34, '#ffb050']];
@@ -126,4 +136,4 @@ export class CaveScene {
   start() { if (this.raf) return; let last = 0; const loop = (ts) => { this.raf = requestAnimationFrame(loop); if (ts - last < 110) return; this.t += (ts - last) / 1000 * (last ? 1 : 0); last = ts; this.frame(); }; this.raf = requestAnimationFrame(loop); }
   stop() { cancelAnimationFrame(this.raf); this.raf = 0; }
 }
-export const caveLook = (kind) => (kind === 'grotto' ? 'passage' : 'lantern');
+export const caveLook = (kind) => (kind === 'grotto' ? 'passage' : 'lantern');   // the Colour's spring uses the lantern look

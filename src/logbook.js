@@ -287,6 +287,7 @@ export class Logbook {
       if (l) sub += `${sub ? '<br>' : ''}Caught ${l.count}x, best ${l.best}kg${l.where ? ` \u00b7 ${top(l.where)}` : ''}${l.when ? `, ${top(l.when)}` : ''}`;
       html += ent(l || told ? f.name : '? ? ?', sub, `${f.price}g/kg`, f.dark ? 'dk' : '');
     }
+    { const l = state.fishLog.bright; if (l) html += ent('? ? ? (no name)', `Caught ${l.count}x, best ${l.best}kg \u00b7 the water was the wrong shade`, '', 'dk'); }
     if (unk) html += ent(`? ? ? (${unk} more)`, got || Object.keys(state.fishHeard || {}).length ? 'Nobody has said where these bite. Try other waters and other hours, and ask at the quay.' : 'Slow down and press C at sea. Ask the fishers at a harbour quay where things bite.', '', 'dim');
     return html;
   }

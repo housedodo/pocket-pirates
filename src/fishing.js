@@ -49,6 +49,8 @@ export function habitatFit(id, env) {
   return k;
 }
 
+// the Colour thread's catch (threads.js): not in the species list, so nobody can ask the fishers about it
+export const BRIGHT_FISH = { id: 'bright', name: 'a bright fish', kg: [8, 20], price: 10, diff: 0.25, w: 0, min: 0, max: 1, bright: true };
 export const fishById = (id) => FISH.find((f) => f.id === id);
 
 const rnd = (a, b) => a + Math.random() * (b - a);
@@ -117,6 +119,7 @@ export class Fishing {
     if (text) this.cb.toast(text);
   }
   pick(ctx) {
+    if (ctx.env && ctx.env.colour && Math.random() < 0.7) { this.env = ctx.env; return BRIGHT_FISH; }   // in the wrong water most bites are the wrong fish
     const list = FISH.filter((f) => ctx.dread >= f.min && ctx.dread <= f.max && (!f.night || ctx.night > 0.5));
     this.env = ctx.env || null;
     const ws = list.map((f) => f.w * (f.dark ? 0.4 + ctx.dread : (1.25 - ctx.dread * 0.9) * habitatFit(f.id, ctx.env)));

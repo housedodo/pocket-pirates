@@ -19,6 +19,7 @@ import { Fauna } from './fauna.js';
 import { Companion } from './companion.js';
 import { Caves, CAVES } from './caves.js';
 import { CaveScene, caveLook } from './cavescene.js';
+import { Threads } from './threads.js';
 import { Traffic } from './traffic.js';
 import { SeaFeatures } from './seafeatures.js';
 import { makeJob, setReach, findRumour, repOf, friendLevel, discount, bearingName, nearby, RUMOUR_COST, commissionsFor, questProgress, questNeed, questTitle, QUEST_ICON, questIcon, FRUITS, fruitOf, fruitName, plural } from './jobs.js';
@@ -138,6 +139,7 @@ const traffic = new Traffic(scene, world, state.seed);
 const sea = new SeaFeatures(scene, world, state.seed, state.collected);
 const sighting = new Sighting(scene);
 const caves = new Caves(scene, world, state);
+const threads = new Threads(scene, world, state);   // optional dark threads (Story Bible, "Multiple paths"); the Colour is the first prototype
 { const h = world.desc(0, -1); if (h) caves.force(h, 3); }
 const combat = new Combat(scene, fauna);
 sea.syncQuests(state.quests.filter((q) => q.id === state.tracked));
@@ -293,7 +295,7 @@ function fishEnv() {
   if (edge < 40) zones.push('shallows');
   if (edge > 230) zones.push('deep'); else if (edge > 110) zones.push('open');
   if (!zones.length) zones.push('mid');
-  return { zones, label: ZONE_LABEL[zones[0]], hour: state.time * 24, low: tideAt() < -0.3 };
+  return { zones, label: ZONE_LABEL[zones[0]], hour: state.time * 24, low: tideAt() < -0.3, colour: !!threads.patchAt(x, z, 1) };
 }
 const fishing = new Fishing(scene, ship, {
   toast: (t) => toast(t),
@@ -307,6 +309,11 @@ const fishing = new Fishing(scene, ship, {
     const l = state.fishLog[f.id] || (state.fishLog[f.id] = { count: 0, best: 0 });
     l.count++; l.best = Math.max(l.best, f.kg);
     if (f.zone && !f.dark) { l.where = l.where || {}; l.where[f.zone] = (l.where[f.zone] || 0) + 1; const h = f.hour; l.when = l.when || {}; const per = h >= 5 && h < 11 ? 'morning' : h >= 11 && h < 17 ? 'afternoon' : h >= 17 && h < 22 ? 'evening' : 'night'; l.when[per] = (l.when[per] || 0) + 1; }
+    if (f.bright) {   // the Colour: huge, bright, tasteless, and the crew go a little quiet
+      const c = threads.c; if (c) c.fish++;
+      const c0 = state.crew.find((m) => m.wish && !m.wish.done && !m.wish.faded); if (c0) { c0.wish.faded = true; c0.wish.text = 'has stopped saying what they want'; }
+      toast(`Caught: something bright and enormous, ${f.kg}kg (worth ${f.value}g). It smells of nothing.`, false, 7000); return;
+    }
     toast(`Caught: ${f.name}, ${f.kg}kg (worth ${f.value}g)${l.count === 1 ? ' - new species!' : ''}`, f.dark, 6000);
     if (f.dark) objectives.remark('darkfish', dread);
   },
@@ -845,7 +852,7 @@ function renderHarbour() {
       audio.play('buy'); renderHarbour();
     });
   } else if (hbTab === 'market') {
-    const hg = state.haggle && state.haggle.id === d.id && state.haggle.day === state.dayN ? state.haggle : null, hm = (hg ? hg.mult : 1) / dreamCost() * (isMarketDay() ? 1.25 : 1);
+    const hg = state.haggle && state.haggle.id === d.id && state.haggle.day === state.dayN ? state.haggle : null, hm = (hg ? hg.mult : 1) / dreamCost() * (isMarketDay() ? 1.25 : 1) * (threads.touched(d) ? 1.15 : 1);
     const fishVal = Math.round(state.catch.reduce((a, f) => a + f.value, 0) * 0.7 * (1 + 0.05 * lvl) * hm * (isFestival(d) ? 1.5 : 1));
     const fruitList = Object.entries(state.fruit).filter(([, n]) => n > 0);
     const fruitVal = Math.round(fruitList.reduce((a, [f, n]) => a + FRUITS[f].price * n, 0) * 0.7 * (1 + 0.05 * lvl) * hm);
@@ -855,10 +862,19 @@ function renderHarbour() {
     if (unlocked(state, 'haggle')) html += `<div class="qrow"><div><b>${pxi('coin')} Haggle</b><br><small>${hg ? (hg.mult > 1 ? `they pay ${Math.round((hg.mult - 1) * 100)}% more today` : hg.n === 1 ? 'word got round: 20% less for your catch, everything else 10% dearer' : 'they are offended: 10% less today') : 'a talk roll, once a day: 12 or more'}</small></div>${hg ? '' : '<button id="haggle">Roll</button>'}</div>`;
     html += `<div class="qrow"><div><b>${pxi('fish')} Fish</b><br><small>${state.catch.length ? `${state.catch.length} in the hold` : 'none: slow down and press C at sea'}</small></div>${state.catch.length ? `<button id="sellFish">+${fishVal}g</button>` : ''}</div>`;
     html += `<div class="qrow"><div><b>${pxi('banana')} Fruit</b><br><small>${fruitList.length ? fruitList.map(([f, n]) => `${n} ${plural(fruitName(f, dread), n)}`).join(', ') : 'none: press E at jungle isles'}</small></div>${fruitList.length ? `<button id="sellFruit">+${fruitVal}g</button>` : ''}</div>`;
+    { // the Colour thread: the quiet buyer, and a market the colour has already reached
+      const cb = threads.c, hold = state.catch.filter((f) => f.bright), bv = Math.round(hold.reduce((a, f) => a + f.value, 0) * 2.2);
+      if (threads.touched(d)) html += '<small>The fish stalls are full of bright ones today. Nobody says where from.</small>';
+      if (cb && hold.length && !cb.end) html += `<div class="sec">A QUIET BUYER</div><div class="qrow"><div><b>${pxi('fish')} The bright ones</b><br><small>a stranger in a grey coat would take ${hold.length} off your hands at more than twice the price, and not ask where</small></div><button id="sellBright">+${bv}g</button></div>`;
+    }
     if (unlocked(state, 'cannons')) html += `<div class="sec">BUY</div><div class="qrow"><div><b>${pxi('ball')} 10 cannonballs</b><br><small>you have ${state.ammo}</small></div><button id="buyAmmo" ${state.gold >= ammoCost ? '' : 'disabled'}>${ammoCost}g</button></div>`;
     html += `<div class="sec">SHIPYARD</div><div class="qrow"><div><b>${pxi('paint')} Paint, sails, pennants, figureheads</b></div><button id="openYard">Open</button></div>`;
     pane.innerHTML = html;
     const sf = $('sellFish'); if (sf) sf.addEventListener('click', () => { state.gold += fishVal; toast(`Sold ${state.catch.length} fish for ${fishVal} gold.`); state.catch = []; audio.play('buy'); renderHarbour(); });
+    const sb = $('sellBright'); if (sb) sb.addEventListener('click', () => {
+      const cb = threads.c, hold = state.catch.filter((f) => f.bright), v = Math.round(hold.reduce((a, f) => a + f.value, 0) * 2.2);
+      state.gold += v; state.catch = state.catch.filter((f) => !f.bright); if (cb) cb.end = 'sold'; state.story.marks = { ...(state.story.marks || {}), salt: 1 };
+      toast(`+${v} gold. He does not weigh it. He lifts it once, nods, and is not on the quay when you look again.`, false, 8000); audio.play('buy'); renderHarbour(); });
     const sfr = $('sellFruit'); if (sfr) sfr.addEventListener('click', () => { state.gold += fruitVal; toast(`Sold fruit for ${fruitVal} gold.`); state.fruit = {}; audio.play('buy'); renderHarbour(); });
     if ($('buyAmmo')) $('buyAmmo').addEventListener('click', () => { if (state.gold < ammoCost) return; state.gold -= ammoCost; state.ammo += 10; audio.play('buy'); renderHarbour(); });
     $('openYard').addEventListener('click', () => openModal('yard'));
@@ -886,6 +902,8 @@ function renderHarbour() {
     pane.innerHTML = html;
     $('restBed').addEventListener('click', () => restAtTavern(Math.ceil(8 * discount(rep) * costMul())));
     const af = $('askFish'); if (af) af.addEventListener('click', () => {
+      const cl = threads.c;
+      if (cl && !cl.found && !cl.rumoured && state.fishAsk[d.id] !== state.dayN && Math.random() < 0.5) { cl.rumoured = true; state.fishAsk[d.id] = state.dayN; toast(`A fisher at the quay: "Out by ${cl.src.name} the water has gone a shade I have no word for. The fish there are too big. Nobody has eaten one twice."`, false, 11000); audio.play('ui'); renderHarbour(); return; }
       const unheard = FISH.filter((f) => !f.dark && !state.fishHeard[f.id]); if (!unheard.length || state.fishAsk[d.id] === state.dayN) return;
       const f = unheard[Math.floor(Math.random() * unheard.length)];
       state.fishHeard[f.id] = true; state.fishAsk[d.id] = state.dayN;
@@ -1167,6 +1185,7 @@ function getInteract() {
   if (hi && hi.desc.hut) return { kind: 'hut', key: 'hut', isl: hi };
   const sg = sighting.near(ship.pos.x, ship.pos.z); if (sg) return { kind: 'sighting', key: 'sight', s: sg };
   const cvs = caves.near(ship.pos.x, ship.pos.z); if (cvs) return { kind: 'cave', key: cvs.id, site: cvs };
+  const spr = threads.springNear(ship.pos.x, ship.pos.z); if (spr) return { kind: 'spring', key: 'spring', src: spr };
   // a harbour is entered at its pier; anywhere else along its shore you only get a hint
   const hb = world.nearest(ship.pos.x, ship.pos.z, 30, ['harbour']);
   if (hb) {
@@ -1241,6 +1260,7 @@ function tryInteract() {
   const tg = getInteract();
   if (!tg) return;
   if (tg.kind === 'sighting') { openCard(tg.s.card); return; }
+  if (tg.kind === 'spring') { if (ship.speed > 0.35) { toast('Bring the ship to a full stop first (S to reef the sails).', false, 3000); return; } openCave({ id: `spring:${threads.c.src.id}`, kind: 'colourspring' }); return; }
   if (tg.kind === 'cave') { if (ship.speed > 0.35) { toast('Bring the ship to a full stop first (S to reef the sails).', false, 3000); return; } openCave(tg.site); return; }
   if (tg.kind === 'hut') { if (!state.story.hutKnown) { audio.play('knock'); toast('Nobody answers. Inside, a pen scratches, then stops.', true, 4500); return; } openModal('hut'); return; }
   if ((tg.kind === 'treasure' || tg.kind === 'fruit' || tg.kind === 'wreck') && ship.speed > 0.35) { toast('Bring the ship to a full stop first (S to reef the sails).', false, 3000); return; }
@@ -1635,6 +1655,7 @@ function openCard(card) {
 // ---- one-time caves: a few rooms of choices and d20 checks on their own full screen; when it is over, won or lost, the sea closes over the mouth
 let caveRun = null;
 const caveScene = new CaveScene($('caveCv'));
+const COLOUR_DEEP = new THREE.Color('#5a2a8a'), COLOUR_SHALLOW = new THREE.Color('#b068e8');
 const CAVE_TIDE = { door: 0.2, ledge: 0.34, chest: 0.5 };
 const hermitFace = () => '<i style="position:absolute;left:18px;top:14px;width:28px;height:14px;background:#e8e0d0"></i><i style="position:absolute;left:22px;top:28px;width:20px;height:24px;background:#e8e0d0"></i><i style="position:absolute;left:23px;top:20px;width:18px;height:11px;background:#e8b890"></i><i style="position:absolute;left:10px;top:12px;width:44px;height:7px;background:#7a3a2a"></i>';
 function openCave(site) {
@@ -1649,7 +1670,7 @@ function openCave(site) {
     const node = cv.nodes[id]; cardBusy = false; cardNext = null;
     const tide = CAVE_TIDE[id] != null ? CAVE_TIDE[id] : 0.2;
     caveScene.show(site.kind, id, tide);
-    $('caveTitle').querySelector('small').textContent = site.kind === 'grotto' ? 'THE TIDE IS COMING IN' : id === 'door' ? 'THE MOUTH OF THE CAVE' : '';
+    $('caveTitle').querySelector('small').textContent = site.kind === 'grotto' ? 'THE TIDE IS COMING IN' : site.kind === 'colourspring' ? 'THE WATER HUMS' : id === 'door' ? 'THE MOUTH OF THE CAVE' : '';
     $('caveTide').firstElementChild.style.height = `${Math.round(tide / 0.6 * 100)}%`;
     const face = $('caveFace'); face.classList.toggle('gone', look === 'passage');
     face.innerHTML = site.kind === 'larder' && id === 'tea' ? hermitFace() : `<i class="pxi ico ${cv.icon}"></i>`;
@@ -1667,6 +1688,7 @@ function openCave(site) {
     if (fx.note) state.notes.push({ text: fx.note, dark: false });
     if (fx.time) state.time = (state.time + fx.time) % 1;
     if (fx.rep) ctx.repNear();
+    if (fx.colour === 'seal') threads.seal();
     if (fx.rumour) { const rm = ctx.rumour('a folded chart in a cave'); text += ` ${rm || 'You cannot read where it leads.'}`; }
     $('caveOut').textContent = text; $('caveBox').classList.add('resolved'); cardBusy = 'done';
     if (!r.next) { caves.finish(site, r.end || 'win'); done.textContent = 'Back to the ship [E]'; cardNext = null; }
@@ -1708,7 +1730,7 @@ function tabletopTick(dt) {
   // crew wishes
   if ((wishT -= dt) > 0) return; wishT = 2;
   for (const c of state.crew) {
-    const w = c.wish; if (!w || w.done) continue;
+    const w = c.wish; if (!w || w.done || w.faded) continue;
     const hit = w.kind === 'harbour' ? false : world.nearest(ship.pos.x, ship.pos.z, 70, [w.kind]);
     if (hit) wishDone(c);
   }
@@ -1976,6 +1998,7 @@ function frame() {
   }
   fauna.quiet = !laterOK();
   fauna.update(vdt, waveT, lifeCtx);
+  threads.update(vdt, ship, window.__BUILD !== 'demo' && laterOK(), waveT, lifeCtx.wave, (txt) => { if (!objectives.mate.busy) objectives.mate.say(txt); });
   for (const k of ['_pet', '_pet2']) if (window.__game[k]) window.__game[k].update(vdt);
   for (const c of Object.values(companions)) { c.m.g.visible = c.fly > 0 || dread < 0.6; if (c.m.g.visible) c.update(vdt); }
   traffic.update(dt, waveT, lifeCtx);
@@ -1985,6 +2008,7 @@ function frame() {
   scene.fog.color.copy(stage.fog); scene.fog.near = stage.fogNear; scene.fog.far = stage.fogFar;
   U.uDread.value = dread; U.uTime.value = waveT; U.uLight.value = stage.light; U.uWave.value = stage.wave;
   U.uDeep.value.copy(stage.deep); U.uShallow.value.copy(stage.shallow);
+  if (threads.worldTint > 0.001) { U.uDeep.value.lerp(COLOUR_DEEP, threads.worldTint); U.uShallow.value.lerp(COLOUR_SHALLOW, threads.worldTint * 0.8); scene.fog.color.lerp(COLOUR_SHALLOW, threads.worldTint * 0.25); }   // a sea that is slowly losing a hue
   U.uSnap.value.set(post.internal.w * 0.5 * stage.snap, post.internal.h * 0.5 * stage.snap);
   mats.shallow.color.copy(stage.shallow).lerp(new THREE.Color(1, 1, 1), 0.25);
   mats.foam.color.set(0xffffff).lerp(stage.skyHorizon, 0.25);
@@ -2065,7 +2089,7 @@ function frame() {
     if (dig) { promptTxt.textContent = dig.label || 'Digging...'; promptBar.style.display = 'block'; }
     else {
       promptBar.style.display = 'none';
-      promptTxt.textContent = tgt.kind === 'cave' ? (ship.speed > 0.35 ? 'Stop the ship completely (S) to look inside' : '[E] Look into the cave') : tgt.kind === 'sighting' ? `[E] ${tgt.s.label}` : tgt.kind === 'harbourfar' ? 'Sail to the pier to go ashore' : tgt.kind === 'hut' ? '[E] Knock on the dark hut' : tgt.kind === 'harbour' ? `[E] Visit ${tgt.isl.desc.name}`
+      promptTxt.textContent = tgt.kind === 'spring' ? (ship.speed > 0.35 ? 'Stop the ship completely (S) to look closer' : '[E] Look into the water') : tgt.kind === 'cave' ? (ship.speed > 0.35 ? 'Stop the ship completely (S) to look inside' : '[E] Look into the cave') : tgt.kind === 'sighting' ? `[E] ${tgt.s.label}` : tgt.kind === 'harbourfar' ? 'Sail to the pier to go ashore' : tgt.kind === 'hut' ? '[E] Knock on the dark hut' : tgt.kind === 'harbour' ? `[E] Visit ${tgt.isl.desc.name}`
         : tgt.kind === 'treasure' ? (tgt.isl.dug ? 'Already plundered' : !state.riddles[tgt.isl.desc.id] ? '[E] Study the ancient arch inscription' : '[E] Dig on this shore')
         : tgt.kind === 'fruit' ? (state.harvest[tgt.isl.desc.id] != null && state.harvest[tgt.isl.desc.id] >= state.dayN ? 'Picked clean for today' : `[E] Pick ${plural(fruitName(fruitOf(tgt.isl.desc), tgt.isl.desc.dread), 2)}`)
         : tgt.kind === 'ship' ? (tgt.s.mode === 'derelict' ? `[E] Board the drifting ${KINDS[tgt.s.kind].label}` : tgt.s.mode === 'ghost' ? '[E] Hail the pale ship' : `[E] Hail the ${tgt.s.name}`)
@@ -2135,7 +2159,7 @@ window.__game = {
   setTime(t) { state.time = t; },
   setCam(p, z) { if (p !== undefined) { pitch = pitchT = p; } if (z !== undefined) { zoom = zoomT = z; } },
   setOverride(o) { camOverride = o; },
-  get companions() { return companions; }, petOffer, takePet, caves, openCave,
+  get companions() { return companions; }, petOffer, takePet, caves, openCave, threads,
   /** concept sketch: put a cat or a gull on deck (dev only) */
   companion(kind = 'cat', slot = '_pet') { if (this[slot]) ship.root.remove(this[slot].m.g); this[slot] = kind ? new Companion(ship, kind) : null; return !!this[slot]; },
   teleport(x, z, h) { ship.pos.set(x, 0, z); ship.heading = h; camHeading = h; },

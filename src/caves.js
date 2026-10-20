@@ -83,6 +83,37 @@ export const CAVES = {
     },
   },
 };
+
+// The Colour thread's spring (see threads.js): not a cave you find, but the place where the colour comes up. It runs in the same
+// full-screen scene engine. Winning seals it (fx.colour); losing leaves it open.
+CAVES.colourspring = {
+  id: 'colourspring', name: 'The Spring', icon: 'star', glow: '#d070ff', look: 'lantern',
+  nodes: {
+    door: { text: 'The water here hums. It is a colour you have no word for, and it is warm, and it rises as if somebody were breathing under it.', choices: [
+      { label: 'Go closer', go: { text: '', next: 'rim' } },
+      { label: 'Not yet', go: { cancel: true } }] },
+    rim: { text: 'A ring of pale stones, no bigger than a cartwheel, and the colour coming up between them. The fish keep clear of it. The gulls do not fly over it.', choices: [
+      { label: 'Anchor to the ring', check: { label: 'Seamanship', kind: 'sea', dc: 11 },
+        ok: { text: 'The anchor bites on the first throw. You hang above the hum with the rope singing in your hands.', next: 'stones' },
+        fail: { text: 'The current turns the ship against the stones. Something scrapes the hull and the hull does not mind.', next: 'stones', fx: { hurt: 5 } } },
+      { label: 'Drag a net across it', check: { label: 'Luck', kind: 'luck', dc: 12 },
+        ok: { text: 'The net comes up full and glowing. You pour it back before you can think about it.', next: 'stones' },
+        fail: { text: 'The net comes up violet and empty and you drop it overboard. It does not float.', end: 'lose' } },
+      { label: 'Back away', go: { text: 'You back out of the colour. It follows you, a little, for a day.', end: 'lose' } }] },
+    stones: { text: 'Under the stones there is a hole in the sea floor the size of a barrel. The colour comes up through it. It does not smell of anything.', choices: [
+      { label: 'Pack it with ballast and canvas', check: { label: 'Luck', kind: 'luck', dc: 12 },
+        ok: { text: 'The first sack goes in and stays. The hum drops a note.', next: 'seal' },
+        fail: { text: 'The sacks swell and come out again, slowly, like bread. You keep the shovels and lose them anyway.', next: 'seal', fx: { gold: -20 } } },
+      { label: 'Pour lamp oil on it', go: { text: 'It does nothing. The water burns violet for a moment, and then is only water that smells of lamps.', next: 'seal', fx: { gold: -10 } } }] },
+    seal: { text: 'One last stone, the size of a chest, from the wreck of something older than the island. It must go in all at once.', choices: [
+      { label: 'Roll it in', check: { label: 'Seamanship', kind: 'sea', dc: 13 },
+        ok: { text: 'It drops, it sits, it settles. The hum stops. The water in front of you is the plain blue of anywhere. You put a hand in it to be sure.', end: 'win', fx: { colour: 'seal', gold: 30, note: 'A pale stone from the spring. It has no shadow, and it is not heavy.' } },
+        fail: { text: 'It lands crooked. The colour finds the gap and comes up thinner, and wider.', end: 'lose', fx: { hurt: 6 } } },
+      { label: 'Wait for the tide to turn', check: { label: 'Luck', kind: 'luck', dc: 12 },
+        ok: { text: 'The tide turns, the stone slides in on the swell, and the hum goes out like a held breath.', end: 'win', fx: { colour: 'seal', gold: 30, note: 'A pale stone from the spring. It has no shadow, and it is not heavy.' } },
+        fail: { text: 'The tide does not turn. You wait until you are ashamed of waiting.', end: 'lose' } }] },
+  },
+};
 const KINDS = ['larder', 'grotto', 'niche'];
 const CAVE_TYPES = ['rocky', 'volcano', 'jungle'];
 
