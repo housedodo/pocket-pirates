@@ -340,6 +340,7 @@ export class Logbook {
     html += seen.length ? seen.map((s) => ent(`<span class="fac" style="background:${s.faction.color}"></span> ${s.name}`, s.faction.name, stars(Math.min(3, secs[s.id] || 0)))).join('') : ent('Unseen', '', '', 'dim');
     html += h3('Harbours') + (harbours.length ? harbours.map((h) => ent(h.name, '', stars(h.lvl))).join('') : ent('Nobody knows you yet', 'Visit and deliver.', '', 'dim'));
     { const lines = markLines(state.story && state.story.marks); if (lines.length) html += h3('What is said of you') + lines.map((t) => ent(t, '', '', 'dk')).join(''); }
+    { const ks = (state.story && state.story.keeps) || []; if (ks.length) html += h3('Keepsakes') + ks.map((k) => ent(k.name, k.text, '', 'dk')).join(''); }
     this.body.innerHTML = html;
   }
 

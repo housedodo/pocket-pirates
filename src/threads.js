@@ -3,6 +3,8 @@ import { shoreR } from './world.js';
 import { waveHeight } from './ocean.js';
 import { hash2 } from './util.js';
 import { THREAD_IDS, pickAwake } from './marks.js';
+import { MODS } from './thread_mods.js';
+import './threadscenes.js';   // registers the scenes in CAVES
 
 // MULTIPLE PATHS (Story Bible): optional dark threads built on old horror tales. This file is the first one, as a prototype:
 //   THE COLOUR (after "The Colour Out of Space"). One patch of sea by an atoll is a shade wrong. Fish caught in it are huge, bright and
@@ -28,7 +30,54 @@ export class Threads {
   constructor(scene, world, state) {
     this.scene = scene; this.world = world; this.state = state; this.meshes = new Map(); this.tex = null;
     this.cells = null; this.tint = 0;
+    this.api = null; this.on = false; this.modules = {}; this.live = new Map(); this.cache = {};
   }
+  /** main.js hands over what the threads may touch (toasts, scenes, marks, keepsakes...) */
+  bind(api) { this.api = api; }
+  /** a compass word for where `p` lies from Tama */
+  dir(p) { const h = this.home(); return this.api ? this.api.bearing(p.x - h.x, p.z - h.z) : 'out'; }
+  home() { return this.world.desc(0, -1); }
+  /** per-thread saved state */
+  tp(id, init) { const st = this.state.story; st.tp = st.tp || {}; return st.tp[id] || (st.tp[id] = init); }
+  /** a persistent open-water site for a thread, between min and max from Tama, clear of every island and of other sites */
+  pick(id, min, max) {
+    const tp = this.tp(id, {}); if (tp.site) return tp.site;
+    const h = this.home(), isl = this.scan(), n = THREAD_IDS.indexOf(id) + 1, others = Object.values(this.state.story.tp || {}).map((o) => o.site).filter(Boolean);
+    for (let k = 0; k < 300; k++) {
+      const a = (Math.abs(hash2(this.state.seed, k, 301 + n)) % 628) / 100, r = min + (Math.abs(hash2(this.state.seed, k, 401 + n)) % 1000) / 1000 * (max - min);
+      const x = h.x + Math.cos(a) * r, z = h.z + Math.sin(a) * r;
+      if (isl.some((d) => Math.hypot(d.x - x, d.z - z) < d.r + 55) || others.some((o) => Math.hypot(o.x - x, o.z - z) < 300)) continue;
+      return (tp.site = { x, z });
+    }
+    return (tp.site = { x: h.x + max, z: h.z });
+  }
+  /** the module of an awake thread (the Colour has none: it lives in this file) */
+  mod(id) { if (!this.awake(id) || !MODS[id]) return null; return this.modules[id] || (this.modules[id] = MODS[id](this)); }
+  each(fn) { for (const id of this.state.story.threads || []) { const m = this.mod(id); if (m) fn(m, id); } }
+  flag(spec) { const [id, name, arg] = spec.split(':'); const m = this.mod(id); return !!(m && m.flag && m.flag(name, arg)); }
+  event(spec, arg, site) {
+    const [id, name, a2] = spec.split(':'); const m = this.mod(id);
+    return m && m.event ? m.event(name, arg == null ? a2 : arg, site) : '';
+  }
+  /** a thread-made place or thing near the ship that E can open */
+  interact(ship) { if (!this.on || !this.api) return null; let r = null; this.each((m) => { if (!r && m.interact) r = m.interact({ ship, api: this.api }); }); return r; }
+  /** a row on the harbour board: a passenger asking for passage, a harbourmaster waiting */
+  harbourRows(d) { const rows = []; if (this.on) this.each((m) => { const r = m.harbourRow && m.harbourRow(d); if (r) rows.push(r); }); return rows; }
+  harbourAct(id, d) { this.each((m) => { if (m.act) m.act(id, d); }); }
+  onDock(d) { if (this.on) this.each((m) => { if (m.onDock) m.onDock(d); }); }
+  /** what the harbour says when you arrive, if a thread has a line for it */
+  harbourLine(d) { let r = null; if (this.on) this.each((m) => { if (!r && m.harbourLine) r = m.harbourLine(d); }); return r; }
+  /** extra sentence after a night at the tavern */
+  onRest(d) { const out = []; if (this.on) this.each((m) => { const r = m.onRest && m.onRest(d); if (r) out.push(r); }); return out.join(' '); }
+  onSalvage() { let out = ''; if (this.on) this.each((m) => { if (m.onSalvage) out += m.onSalvage(this.api) || ''; }); return out; }
+  priceMul(d) { let k = 1; if (this.on) this.each((m) => { if (m.priceMul) k *= m.priceMul(d); }); return k; }
+  salvageMul() { let k = 1; this.each((m) => { if (m.salvageMul) k *= m.salvageMul(); }); return k; }
+  fishBonus() { let k = 1; this.each((m) => { if (m.fishBonus) k *= m.fishBonus(); }); return k; }
+  modAdjust(mods) { if (this.on && this.api) this.each((m) => { if (m.modAdjust) m.modAdjust(mods, this.api); }); return mods; }
+  blocksSeat() { let b = false; this.each((m) => { if (m.blocksSeat && m.blocksSeat()) b = true; }); return b; }
+  sight() { const m = this.mod('music'); return !!(m && m.sight()); }
+  /** one rumour line per awake thread, for the tavern and the quay */
+  clueLines() { const o = []; this.each((m) => { if (m.clue) o.push(m.clue()); }); return o; }
   get c() { return this.awake('colour') ? this.state.story.colour : null; }
   /** which threads this voyage has awake (the Tide of Threads). `choice` is a dev override: an array of ids, or null for "by the seed". */
   setup(choice) {
@@ -56,6 +105,8 @@ export class Threads {
     if (!cand.length) return null;
     const d = cand[hash2(this.state.seed, 61, 1) % cand.length], th = ((hash2(Math.round(d.x), Math.round(d.z), this.state.seed + 9) >> 3) % 628) / 100, r = shoreR(d, th) + 22;
     st.colour = { src: { id: d.id, name: d.name, x: d.x + Math.cos(th) * r, z: d.z + Math.sin(th) * r }, found: false, day0: null, lastDay: null, patches: [{ x: d.x + Math.cos(th) * r, z: d.z + Math.sin(th) * r, r: 16 }], fish: 0, end: null, said: false, rumoured: false };
+    const hm = this.mod('hollow'), hh = hm && hm.patchSite();
+    if (hh) st.colour.patches.push({ x: hh.x + 30, z: hh.z + 30, r: 12 });   // the Hollow Harbour is where it went first
     return st.colour;
   }
   patchAt(x, z, k = 0.85) { const c = this.c; if (!c) return null; for (const p of c.patches) if (Math.hypot(p.x - x, p.z - z) < p.r * k) return p; return null; }
@@ -67,6 +118,9 @@ export class Threads {
 
   /** called every frame in the full game; `on` is false in the demo and during the quiet opening */
   update(dt, ship, on, t, amp, say) {
+    this.on = on;
+    if (on && this.api) this.each((m) => m.update && m.update({ ship, t, amp, dt, api: this.api }));
+    else if (this.live.size) { for (const [k, m] of this.live) this.scene.remove(m); this.live.clear(); }
     const c = on ? this.ensure() : null;
     if (!c) { for (const [id, m] of this.meshes) { this.scene.remove(m); this.meshes.delete(id); } this.tint += (0 - this.tint) * Math.min(1, dt); return; }
     const S = this.state;
@@ -106,7 +160,7 @@ export class Threads {
     const c = this.c; if (!this.tex) this.tex = ditherTexture();
     const keep = new Set();
     c.patches.forEach((p, i) => {
-      const id = `p${i}`, near = Math.hypot(p.x - ship.pos.x, p.z - ship.pos.z) < p.r + 380;
+      const id = `p${i}`, near = Math.hypot(p.x - ship.pos.x, p.z - ship.pos.z) < p.r + (this.sight() ? 1200 : 380);
       if (!near) { const m = this.meshes.get(id); if (m) m.visible = false; return; }
       keep.add(id);
       let m = this.meshes.get(id);

@@ -123,7 +123,7 @@ export function caveSite(d, seed, forced) {
   const f = forced && forced[d.id];
   const h = hash2(Math.round(d.x), Math.round(d.z), seed + 77);
   if (!f && h % 9 !== 0) return null;
-  const kind = f || KINDS[(h >> 4) % KINDS.length], th = ((h >> 8) % 628) / 100;
+  const kind = f || KINDS[Math.abs(h >> 4) % KINDS.length], th = ((h >> 8) % 628) / 100;
   const r = shoreR(d, th);
   return { id: `cave:${d.id}`, kind, x: d.x + Math.cos(th) * (r - 0.8), z: d.z + Math.sin(th) * (r - 0.8), th, r };
 }

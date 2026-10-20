@@ -31,6 +31,7 @@ export class AudioBus {
     this.muted = false;
     this.musicOn = true;
     this.ready = false;
+    this.musicRate = 1;      // a thread (the Music out of the Fog) can leave the music a little flat
     this.userVol = { music: 1, amb: 1, sfx: 1 };   // the player's own sliders in the pause menu (0..1), on top of the mix
     this.vol = {};           // per-cue volume (1 = as authored): public/audio/volumes.json, then the mixer's local overrides
     this.preview = null;     // mixer: a loop being auditioned on its own
@@ -125,9 +126,25 @@ export class AudioBus {
     } else src.connect(gain).connect(key.startsWith('music_') ? this.musicBus : this.ambBus);
     src.start();
     this.loops.set(key, gain);
+    (this.srcs || (this.srcs = new Map())).set(key, src);
+    if (key.startsWith('music_') && this.musicRate !== 1) src.playbackRate.value = this.musicRate;
   }
 
   has(key) { return this.buffers.has(key); }
+
+  /** every music loop at this playback rate (1 = as authored; 0.944 = one semitone flat) */
+  setMusicRate(r) { this.musicRate = r; if (this.srcs) for (const [k, src] of this.srcs) if (k.startsWith('music_')) src.playbackRate.value = r; }
+
+  /** a soft bell-like note (for the tune in the fog); `pan` -1..1, `vol` 0..1 */
+  playTone(freq, { dur = 1.8, vol = 0.3, pan = 0 } = {}) {
+    if (!this.ctx || this.muted || this.ctx.state !== 'running') return;
+    const t = this.ctx.currentTime, g = this.ctx.createGain(), p = this.ctx.createStereoPanner(); p.pan.value = Math.max(-1, Math.min(1, pan));
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(Math.max(0.0002, vol), t + 0.03); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    for (const [m, a, type] of [[1, 1, 'sine'], [2.01, 0.35, 'sine'], [3.98, 0.12, 'triangle']]) {
+      const o = this.ctx.createOscillator(), og = this.ctx.createGain(); o.type = type; o.frequency.value = freq * m; og.gain.value = a; o.connect(og).connect(g); o.start(t); o.stop(t + dur + 0.1);
+    }
+    g.connect(p).connect(this.sfxBus || this.master);
+  }
 
   setLoop(key, v) {
     this.level[key] = v;
@@ -140,14 +157,15 @@ export class AudioBus {
   /** re-apply every loop's gain now (the mixer calls this so solo works even while the game is paused) */
   refreshLoops() { if (!this.ctx) return; for (const k of this.loops.keys()) this.setLoop(k, this.level[k] || 0); }
 
-  play(key, { vol = 1, rate = 1, raw = false } = {}) {
+  play(key, { vol = 1, rate = 1, raw = false, pan = null } = {}) {
     if (!this.ctx) return;
     const buf = this.buffers.get(key);
     if (!buf) return;
     const src = this.ctx.createBufferSource();
     src.buffer = buf; src.playbackRate.value = rate;
     const g = this.ctx.createGain(); g.gain.value = vol * (raw ? Math.max(0.5, this.v(key)) : this.v(key));
-    src.connect(g).connect(this.sfxBus || this.master);
+    if (pan != null) { const pn = this.ctx.createStereoPanner(); pn.pan.value = Math.max(-1, Math.min(1, pan)); src.connect(g).connect(pn).connect(this.sfxBus || this.master); }
+    else src.connect(g).connect(this.sfxBus || this.master);
     src.start();
   }
 

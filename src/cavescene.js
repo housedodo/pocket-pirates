@@ -49,6 +49,52 @@ function hermit(ctx, x, y) { R(ctx, '#e8e0d0', x, y, 18, 30); R(ctx, '#e8b890', 
 /** draws the picture for this room; returns { lamps: [[x, y, r, colour]], water: top row of the water or null } */
 const VIOLET = ['#05040a', '#150a22', '#2a1245', '#52208a', '#a050e0', '#f0c8ff'];
 const SCENES = {
+  house(ctx, node) {   // the lamp room: a huge steady lamp, a round desk, a ledger, an hourglass that has stopped
+    lantern(ctx, WARM, 160, 70, 150, 105, 12);
+    R(ctx, '#ffd23a', 146, 30, 28, 26); R(ctx, '#fff4b0', 150, 34, 20, 18); R(ctx, '#3a2210', 138, 56, 44, 6);
+    R(ctx, '#5a3418', 60, 112, 200, 8); R(ctx, '#3a2210', 70, 120, 10, 40); R(ctx, '#3a2210', 240, 120, 10, 40);
+    R(ctx, '#e8dcc0', 120, 100, 44, 12); R(ctx, '#b8a880', 120, 108, 44, 4); R(ctx, '#6a3a1a', 128, 94, 28, 6);
+    R(ctx, '#e8c050', 192, 98, 10, 14); R(ctx, '#ffe88a', 194, 100, 6, 4);
+    if (node !== 'door') { R(ctx, '#2a1a0e', 180, 74, 6, 24); R(ctx, '#e8e0d0', 178, 62, 10, 14); R(ctx, '#e8b890', 180, 66, 6, 6); }   // the keeper
+    return { lamps: [[160, 44, 90, '#ffd070']] };
+  },
+  bellreef(ctx, node) {   // green water over a reef, a belfry roof, a bell
+    ramp(ctx, (x, y) => { const r = Math.hypot((x - 160) / 160, (y - 90) / 90), n = fbm(x / 9, y / 9, 55); return (1.05 - r * 0.8) * (0.55 + 0.6 * n) + 0.08; }, TEAL);
+    for (let i = 0; i < 30; i++) R(ctx, '#9fe0d8', hash(i, 1, 9) * W, 20 + hash(i, 2, 9) * 130, 1, 1);
+    R(ctx, '#3a2f30', 100, 112, 120, 30); R(ctx, '#2a2024', 112, 100, 96, 16);
+    R(ctx, '#5a3418', 128, 68, 64, 40); R(ctx, '#3a2210', 124, 62, 72, 8); R(ctx, '#7a4a22', 136, 54, 48, 10); R(ctx, '#3a2210', 132, 48, 56, 8);
+    R(ctx, '#c9a85c', 148, 78, 24, 22); R(ctx, '#ffd23a', 152, 82, 16, 8); R(ctx, '#8a6a30', 156, 98, 8, 6);
+    if (node === 'town') { for (let i = 0; i < 6; i++) { R(ctx, '#2a1a0e', 20 + i * 52, 118, 36, 26); R(ctx, '#7a3a2a', 16 + i * 52, 108, 44, 12); R(ctx, '#ffd23a', 30 + i * 52, 128, 6, 8); } }
+    return { lamps: [[160, 84, 80, '#58f0e0']] };
+  },
+  ferry(ctx, node) {   // a grey pier and a grey lantern in fog
+    ramp(ctx, (x, y) => (0.3 + 0.4 * (1 - y / H) + 0.2 * fbm(x / 12, y / 12, 61)) * (1 - 0.3 * Math.hypot((x - 160) / 200, (y - 90) / 110)), GREY);
+    R(ctx, '#2a2a38', 40, 118, 240, 10); for (let i = 0; i < 9; i++) R(ctx, '#15151f', 50 + i * 28, 128, 6, 22);
+    R(ctx, '#4a4a5a', 148, 80, 4, 40); R(ctx, '#b8b8c0', 142, 70, 16, 14); R(ctx, '#e8e8f0', 146, 74, 8, 6);
+    R(ctx, '#15151f', 200, 92, 14, 26); R(ctx, '#2a2a38', 202, 84, 10, 10);   // the passenger
+    return { lamps: [[150, 76, 70, '#c8c8d8']] };
+  },
+  hollow(ctx, node) {   // a lamp-lit pier at dusk, a figure with wet hands
+    lantern(ctx, TEAL, 160, 78, 150, 100, 71);
+    R(ctx, '#2a3a48', 30, 118, 260, 10); for (let i = 0; i < 10; i++) R(ctx, '#0b1020', 36 + i * 26, 128, 6, 22);
+    R(ctx, '#1a2a3a', 150, 80, 22, 40); R(ctx, '#e8e0d0', 154, 66, 14, 16); R(ctx, '#1a1a2a', 157, 71, 2, 2); R(ctx, '#1a1a2a', 163, 71, 2, 2);
+    R(ctx, '#9fe0d8', 150, 112, 6, 8); R(ctx, '#9fe0d8', 166, 112, 6, 8);
+    return { lamps: [[160, 70, 90, '#9fe0d8']] };
+  },
+  musichouse(ctx, node) {   // a house on four legs in black water, one window, three notes drifting
+    ramp(ctx, (x, y) => (0.25 + 0.3 * (y / H) + 0.2 * fbm(x / 10, y / 10, 81)) * (1 - 0.4 * Math.hypot((x - 160) / 190, (y - 90) / 100)), ['#05040a', '#0b1020', '#14263a', '#1f3a56', '#3a5a88', '#9fb8e0']);
+    for (const lx of [118, 132, 188, 202]) { R(ctx, '#0b0a12', lx, 100, 4, 50); }
+    R(ctx, '#15151f', 112, 70, 96, 34); R(ctx, '#0b0a12', 108, 62, 104, 10); R(ctx, '#2a2a38', 128, 50, 64, 14);
+    R(ctx, '#ffd23a', 152, 78, 16, 14); R(ctx, '#fff4b0', 156, 82, 8, 6);
+    for (let i = 0; i < 3; i++) { R(ctx, '#e8f0ff', 220 + i * 18, 60 - i * 12, 5, 5); R(ctx, '#e8f0ff', 224 + i * 18, 52 - i * 12, 1, 8); }
+    return { lamps: [[160, 84, 70, '#ffd070']] };
+  },
+  raven(ctx, node) {   // two ships, the same, at dusk
+    ramp(ctx, (x, y) => (y < 100 ? 0.15 + 0.5 * (1 - y / 100) : 0.12 + 0.1 * fbm(x / 8, y / 8, 91)), ['#05040a', '#1a1030', '#3a1a50', '#7a2a60', '#d0603a', '#ffc070']);
+    const ship = (x, y, col, sail) => { R(ctx, col, x, y + 26, 70, 12); R(ctx, '#2a1a0e', x + 6, y + 38, 58, 4); R(ctx, '#3a2210', x + 34, y - 6, 3, 34); R(ctx, sail, x + 8, y, 26, 28); R(ctx, '#ffd23a', x + 50, y + 22, 6, 4); };
+    ship(70, 62, '#7a4a22', '#e8dcc0'); ship(180, 66, '#2a2438', '#6a6a80');
+    return { lamps: [[160, 70, 100, '#ff9a50']] };
+  },
   colourspring(ctx, node) {   // the Colour's spring: a ring of pale stones on a dark sea and a hum of violet coming up through it
     ramp(ctx, (x, y) => { const r = Math.hypot((x - 160) / 150, (y - 92) / 78), n = fbm(x / 8, y / 8, 41); return Math.max(0, 1.05 - r * 0.95) * (0.55 + 0.7 * n); }, VIOLET);
     const cx = 160, cy = 96;

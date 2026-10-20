@@ -151,6 +151,17 @@ function threadChoice() {
 }
 threads.setup(threadChoice());
 function addMark(key) { if (window.__BUILD === 'demo') return; state.story.marks = { ...(state.story.marks || {}), [key]: 1 }; }   // shown only on the Standing page, in the world's words
+function clearMark(key) { if (state.story.marks) { const m = { ...state.story.marks }; delete m[key]; state.story.marks = m; } }
+function keep(id, name, text) { if (window.__BUILD === 'demo') return; const k = state.story.keeps = state.story.keeps || []; if (!k.some((o) => o.id === id)) k.push({ id, name, text }); }
+threads.bind({
+  get state() { return state; }, audio, ship, addMark, clearMark, keep,
+  toast: (t, dark, ms) => toast(t, dark, ms), say: (t) => { if (!objectives.mate.busy) objectives.mate.say(t); },
+  openScene: (kind, id) => openCave({ id, kind }), tide: () => tideAt(), night: () => tod.night, bearing: (dx, dz) => bearingName(dx, dz),
+  refreshMods: () => refreshMods(),
+  cool: () => { for (const r of Object.values(state.rep)) r.visits = Math.max(0, r.visits - 2); },
+  setLook: (c) => { state.custom = { ...state.custom, ...c }; ship.setCustom(state.custom); },
+  teleport: (d) => { const dk = d.dock || { x: 0, z: 0 }; ship.pos.set(d.x + dk.x, 0, d.z + dk.z); ship.speed = 0; state.pos = { x: ship.pos.x, z: ship.pos.z, h: ship.heading }; },
+});
 function markFromRoll(n) { if (n === 1) addMark('counted'); else if (n === 20) addMark('called'); }   // a natural 1 gets you counted, a natural 20 gets you called   // optional dark threads (Story Bible, "Multiple paths"); the Colour is the first prototype
 { const h = world.desc(0, -1); if (h) caves.force(h, 3); }
 const combat = new Combat(scene, fauna);
@@ -176,7 +187,7 @@ if (!saved && !params.has('x')) {
 }
 ship.pos.set(state.pos.x, 0, state.pos.z);
 ship.heading = state.pos.h;
-const refreshMods = () => { ship.mods = computeMods(state.upgrades); state.hp = Math.min(state.hp, ship.mods.maxHp); ship.setUpgradeLook(state.upgrades); };
+const refreshMods = () => { ship.mods = threads.modAdjust(computeMods(state.upgrades)); state.hp = Math.min(state.hp, ship.mods.maxHp); ship.setUpgradeLook(state.upgrades); };
 ship.setCustom(state.custom);
 refreshMods();
 
@@ -317,6 +328,7 @@ const fishing = new Fishing(scene, ship, {
   onBite: (f) => { toast(f.dark ? 'Something heavy takes the bait!' : 'A bite!', f.dark, 1500); audio.play('bite'); },
   onCatch: (f) => {
     f = abyss.wrongCatch(f);
+    if (f.value && threads.fishBonus() > 1) f = { ...f, value: Math.round(f.value * threads.fishBonus()) };
     state.catch.push(f); state.stats.fish++; audio.play('catch');
     const l = state.fishLog[f.id] || (state.fishLog[f.id] = { count: 0, best: 0 });
     l.count++; l.best = Math.max(l.best, f.kg);
@@ -798,7 +810,7 @@ const REST_DARK = ['You sleep. Someone sat by your bed all night; the chair is s
 function restAtTavern(cost) {
   if (state.gold < cost) return;
   state.gold -= cost;
-  const dk = dread > 0.6;
+  const dk = dread > 0.6, hbd = harbourIsl && harbourIsl.desc;
   closeModal();
   $('fade').classList.add('on');
   setTimeout(() => {
@@ -808,6 +820,7 @@ function restAtTavern(cost) {
     $('fade').classList.remove('on');
     toast(dk ? REST_DARK[Math.floor(Math.random() * REST_DARK.length)] : REST_LINES[Math.floor(Math.random() * REST_LINES.length)], dk, 6000);
     objectives.remark('rested', dread);
+    { const x = hbd ? threads.onRest(hbd) : ''; if (x) setTimeout(() => toast(x, true, 8000), 2400); }
   }, 1100);
 }
 function renderHarbour() {
@@ -852,6 +865,7 @@ function renderHarbour() {
     if (r) html += `<div class="sec">RUMOURS</div><div class="qrow"><div><b>${pxi('talk')} A sailor talks of buried treasure</b></div><button id="rumourBuy" ${state.gold >= RUMOUR_COST ? '' : 'disabled'}>${RUMOUR_COST}g</button></div>`;
     const chartCost = Math.ceil(30 * costMul());
     if (!state.charts[d.id]) html += `<div class="sec">LOCAL CHART</div><div class="qrow"><div><b>${pxi('flag')} A hand-drawn chart of these waters</b><br><small>the islands around ${d.name}, as the locals know them</small></div><button id="buyChart" ${state.gold >= chartCost ? '' : 'disabled'}>${chartCost}g</button></div>`;
+    for (const r of threads.harbourRows(d)) html += `<div class="sec">ON THE PIER</div><div class="qrow letter"><div><b>${pxi('talk')} ${r.html}</b></div><button class="thrAct" data-act="${r.id}">${r.btn}</button></div>`;
     const po = petOffer(d); if (po) html += `<div class="sec">ON THE PIER</div><div class="qrow letter"><div><b>${pxi('talk')} ${PETS[po].title}</b><br><small>${PETS[po].sub}</small></div><button id="takePet" data-pet="${po}">${PETS[po].btn}</button></div>`;
     pane.innerHTML = html;
     const bc = $('buyChart'); if (bc) bc.addEventListener('click', () => {
@@ -862,6 +876,7 @@ function renderHarbour() {
       audio.play('buy'); renderHarbour(); });
     const ja = $('jobAccept');
     if (ja) ja.addEventListener('click', () => { state.job = j; toast(`Delivery taken: ${j.toName} (+${j.reward}g)`, j.dark); audio.play('buy'); renderHarbour(); });
+    pane.querySelectorAll('.thrAct').forEach((b) => b.addEventListener('click', () => { const id = b.dataset.act; threads.harbourAct(id, d); if (id === 'hollow') return; renderHarbour(); }));
     const tkp = $('takePet'); if (tkp) tkp.addEventListener('click', () => { takePet(tkp.dataset.pet); renderHarbour(); });
     const tl = $('takeLetter'); if (tl) tl.addEventListener('click', () => { takeLetter(tl.dataset.letter); renderHarbour(); });
     const dv = $('doDeliver'); if (dv) dv.addEventListener('click', () => { completeJobIfHere(d); renderHarbour(); });
@@ -889,7 +904,7 @@ function renderHarbour() {
       audio.play('buy'); renderHarbour();
     });
   } else if (hbTab === 'market') {
-    const hg = state.haggle && state.haggle.id === d.id && state.haggle.day === state.dayN ? state.haggle : null, hm = (hg ? hg.mult : 1) / dreamCost() * (isMarketDay() ? 1.25 : 1) * (threads.touched(d) ? 1.15 : 1);
+    const hg = state.haggle && state.haggle.id === d.id && state.haggle.day === state.dayN ? state.haggle : null, hm = (hg ? hg.mult : 1) / dreamCost() * (isMarketDay() ? 1.25 : 1) * (threads.touched(d) ? 1.15 : 1) * threads.priceMul(d);
     const fishVal = Math.round(state.catch.reduce((a, f) => a + f.value, 0) * 0.7 * (1 + 0.05 * lvl) * hm * (isFestival(d) ? 1.5 : 1));
     const fruitList = Object.entries(state.fruit).filter(([, n]) => n > 0);
     const fruitVal = Math.round(fruitList.reduce((a, [f, n]) => a + FRUITS[f].price * n, 0) * 0.7 * (1 + 0.05 * lvl) * hm);
@@ -928,11 +943,12 @@ function renderHarbour() {
       const asked = state.fishAsk[d.id] === state.dayN, unheard = FISH.filter((f) => !f.dark && !state.fishHeard[f.id]);
       html += `<div class="sec">AT THE QUAY</div><div class="qrow"><div><b>${pxi('fish')} Ask the fishers</b><br><small>${asked ? 'they have said what they will for today' : unheard.length ? 'where does anything bite?' : 'you have heard it all'}</small></div><button id="askFish" ${asked || !unheard.length ? 'disabled' : ''}>Ask</button></div>`;
     }
+    if (window.__BUILD !== 'demo' && laterOK()) { const cl = threads.clueLines(); if (cl.length) html += `<div class="sec">OVERHEARD</div><small>${cl[Math.abs(hash2(d.seed, state.dayN, 5)) % cl.length]}</small>`; }
     if (unlocked(state, 'crew')) { // hands for hire, and dice with the locals
       const hand = crewForHire(d, state.dayN, state, world);
       html += '<div class="sec">AT THE TABLES</div>';
       if (hand && !state.crew.some((c) => c.name === hand.name)) html += `<div class="qrow"><div><b>${pxi('talk')} ${hand.name}, ${hand.look}</b><br><small>${TRAITS[hand.trait].name}: ${TRAITS[hand.trait].text} · ${hand.wish.text} · stays ${hand.stay || 4} days</small></div><button id="hireHand" ${state.gold >= hand.cost && state.crew.length < 2 ? '' : 'disabled'}>${state.crew.length < 2 ? `Hire ${hand.cost}g` : 'Crew full'}</button></div>`;
-      for (const c of state.crew) html += `<div class="qrow"><div><b>${pxi('talk')} ${c.name}</b> <small>(${TRAITS[c.trait].name}, ${daysLeft(c)} days left)</small></div><button data-dismiss="${c.name}">Let go</button></div>`;
+      for (const c of state.crew) html += c.permanent ? `<div class="qrow"><div><b>${pxi('talk')} ${c.name}</b> <small>(${TRAITS[c.trait].name}, stays)</small></div></div>` : `<div class="qrow"><div><b>${pxi('talk')} ${c.name}</b> <small>(${TRAITS[c.trait].name}, ${daysLeft(c)} days left)</small></div><button data-dismiss="${c.name}">Let go</button></div>`;
       html += `<div class="qrow"><div><b>${pxi('pip')} Dice with the locals</b><br><small>first to 30 · stake 10g</small></div><button id="playPig" ${state.gold >= 10 ? '' : 'disabled'}>Sit down</button></div>`;
       pendingHand = hand;
     } else html += '<small>A fiddler, a fire, a lot of very old chairs. Nobody here knows you yet.</small>';
@@ -1223,6 +1239,7 @@ function getInteract() {
   const sg = sighting.near(ship.pos.x, ship.pos.z); if (sg) return { kind: 'sighting', key: 'sight', s: sg };
   const cvs = caves.near(ship.pos.x, ship.pos.z); if (cvs) return { kind: 'cave', key: cvs.id, site: cvs };
   const spr = threads.springNear(ship.pos.x, ship.pos.z); if (spr) return { kind: 'spring', key: 'spring', src: spr };
+  const thr = threads.interact(ship); if (thr) return { kind: 'thread', key: thr.key, th: thr };
   // a harbour is entered at its pier; anywhere else along its shore you only get a hint
   const hb = world.nearest(ship.pos.x, ship.pos.z, 30, ['harbour']);
   if (hb) {
@@ -1297,6 +1314,7 @@ function tryInteract() {
   const tg = getInteract();
   if (!tg) return;
   if (tg.kind === 'sighting') { openCard(tg.s.card); return; }
+  if (tg.kind === 'thread') { if (ship.speed > 0.35) { toast('Bring the ship to a full stop first (S to reef the sails).', false, 3000); return; } tg.th.run(); return; }
   if (tg.kind === 'spring') { if (ship.speed > 0.35) { toast('Bring the ship to a full stop first (S to reef the sails).', false, 3000); return; } openCave({ id: `spring:${threads.c.src.id}`, kind: 'colourspring' }); return; }
   if (tg.kind === 'cave') { if (ship.speed > 0.35) { toast('Bring the ship to a full stop first (S to reef the sails).', false, 3000); return; } openCave(tg.site); return; }
   if (tg.kind === 'hut') { if (!state.story.hutKnown) { audio.play('knock'); toast('Nobody answers. Inside, a pen scratches, then stops.', true, 4500); return; } openModal('hut'); return; }
@@ -1310,6 +1328,7 @@ function tryInteract() {
     const rng = mulberry32(hash2(d.seed, Math.floor(tNow / 8), 3));
     const idx = Math.min(4, Math.floor(dread * 5)), lvl = friendLevel(rep);
     hbShipLine = shipwrightLine(rng, idx);
+    threads.onDock(d);
     // someone on the pier may speak first: always on a first visit or a story beat, otherwise rarely
     let say = null;
     { const cur = objectives.current;
@@ -1323,6 +1342,7 @@ function tryInteract() {
     }
     if (!say && ending && h && h.rolls.length) { say = rollGreeting(h.rolls[h.rolls.length - 1].n, state.time * 24, Math.random); say.endsDemo = true; state.story.rollSeen = h.rolls.length; }
     if (!say && free && laterOK() && (g.day[d.id] == null || Math.random() < 0.3)) say = pickGreeting({ hour: state.time * 24, weather: weather.label, dread, rnd: Math.random, custom: d.custom, event: isFestival(d) ? 'festival' : isMarketDay() ? 'market' : isLanternNight() ? 'lantern' : null, boat: (() => { const b = boatStatus(d, state.dayN, dread, state.seed); return b.today === 'stayed' ? 'stayed' : b.yesterday === 'lost' ? 'lost' : null; })() });
+    if (!say && free && window.__BUILD !== 'demo') { const tl = threads.harbourLine(d); if (tl) say = { speaker: 'fisher', text: tl, dark: true }; }
     harbourIsl = tg.isl; hbTab = 'board'; frameVillage(d); autosave();
     if (lettersAt(d).length) setTimeout(() => toast('A letter waits for you at the harbourmaster\'s board.', false, 6000), 900);
     else if (petOffer(d)) setTimeout(() => { const po = PETS[petOffer(d)]; toast(`${po.title}. ${po.sub[0].toUpperCase()}${po.sub.slice(1)}.`, false, 6000); }, 900);
@@ -1380,7 +1400,9 @@ function tryInteract() {
       loot.name = `From the wreck: ${loot.name}`;
       o.salvaged = true; state.collected.add(o.id); state.stats.wrecks++;
       state.gold += loot.value; state.loot.push(loot);
+      loot.value = Math.round(loot.value * threads.salvageMul());
       toast(`Salvaged! ${loot.name} (+${loot.value} gold)`, loot.dark, 7000);
+      { const x = threads.onSalvage(); if (x) setTimeout(() => toast(x, true, 6000), 1500); }
       audio.play('treasure');
     } };
     audio.play('dig');
@@ -1707,14 +1729,16 @@ function openCave(site) {
     const node = cv.nodes[id]; cardBusy = false; cardNext = null;
     const tide = CAVE_TIDE[id] != null ? CAVE_TIDE[id] : 0.2;
     caveScene.show(site.kind, id, tide);
-    $('caveTitle').querySelector('small').textContent = site.kind === 'grotto' ? 'THE TIDE IS COMING IN' : site.kind === 'colourspring' ? 'THE WATER HUMS' : id === 'door' ? 'THE MOUTH OF THE CAVE' : '';
+    $('caveTitle').querySelector('small').textContent = cv.tag || (site.kind === 'grotto' ? 'THE TIDE IS COMING IN' : site.kind === 'colourspring' ? 'THE WATER HUMS' : id === 'door' ? 'THE MOUTH OF THE CAVE' : '');
+    if (node.enter) threads.event(node.enter, null, site);   // a room can do something when it is shown (the bell tolls)
     $('caveTide').firstElementChild.style.height = `${Math.round(tide / 0.6 * 100)}%`;
     const face = $('caveFace'); face.classList.toggle('gone', look === 'passage');
     face.innerHTML = site.kind === 'larder' && id === 'tea' ? hermitFace() : `<i class="pxi ico ${cv.icon}"></i>`;
     $('caveWho').textContent = site.kind === 'larder' && id === 'tea' ? 'The hermit' : '';
-    $('caveBox').classList.remove('resolved'); $('caveSay').textContent = node.text; $('caveOut').textContent = ''; done.style.display = 'none';
-    $('caveChoices').innerHTML = node.choices.map((ch, i) => `<button data-i="${i}">${i + 1}. ${ch.label}${ch.check ? ` <small>(${ch.check.label} ${ch.check.dc})</small>` : ''}</button>`).join('');
-    $('caveChoices').querySelectorAll('button').forEach((bt) => bt.addEventListener('click', () => choose(node.choices[+bt.dataset.i])));
+    const list = (typeof node.choices === 'function' ? node.choices(threads) : node.choices).filter((ch) => !ch.if || threads.flag(ch.if));
+    $('caveBox').classList.remove('resolved'); $('caveSay').textContent = typeof node.text === 'function' ? node.text(threads) : node.text; $('caveOut').textContent = ''; done.style.display = 'none';
+    $('caveChoices').innerHTML = list.map((ch, i) => `<button data-i="${i}">${i + 1}. ${ch.label}${ch.check ? ` <small>(${ch.check.label} ${ch.check.dc})</small>` : ''}</button>`).join('');
+    $('caveChoices').querySelectorAll('button').forEach((bt) => bt.addEventListener('click', () => choose(list[+bt.dataset.i])));
   };
   const resolve = (r) => {
     if (r.cancel) { closeModal(); return; }   // not yet: the cave stays
@@ -1726,6 +1750,7 @@ function openCave(site) {
     if (fx.time) state.time = (state.time + fx.time) % 1;
     if (fx.rep) ctx.repNear();
     if (fx.colour === 'seal') threads.seal();
+    if (fx.event) { const extra = threads.event(fx.event, fx.arg, site); if (extra) text += ` ${extra}`; }
     if (fx.rumour) { const rm = ctx.rumour('a folded chart in a cave'); text += ` ${rm || 'You cannot read where it leads.'}`; }
     $('caveOut').textContent = text; $('caveBox').classList.add('resolved'); cardBusy = 'done';
     if (!r.next) { caves.finish(site, r.end || 'win'); done.textContent = 'Back to the ship [E]'; cardNext = null; }
@@ -1779,7 +1804,7 @@ const daysLeft = (c) => Math.max(0, (c.until || 0) - state.dayN);
 function crewLeave() {
   for (const c of [...state.crew]) {
     if (c.until == null) c.until = state.dayN + 4;   // crew from an older save
-    if (c.until > state.dayN) continue;
+    if (c.permanent || c.until > state.dayN) continue;
     state.crew = state.crew.filter((x) => x !== c);
     toast(`${c.name} has gone ashore. ${c.wish && c.wish.done ? 'Smiling, mostly.' : 'No hard feelings.'} (${TRAITS[c.trait].name} leaves the crew.)`, false, 7000);
   }
@@ -2126,7 +2151,7 @@ function frame() {
     if (dig) { promptTxt.textContent = dig.label || 'Digging...'; promptBar.style.display = 'block'; }
     else {
       promptBar.style.display = 'none';
-      promptTxt.textContent = tgt.kind === 'spring' ? (ship.speed > 0.35 ? 'Stop the ship completely (S) to look closer' : '[E] Look into the water') : tgt.kind === 'cave' ? (ship.speed > 0.35 ? 'Stop the ship completely (S) to look inside' : '[E] Look into the cave') : tgt.kind === 'sighting' ? `[E] ${tgt.s.label}` : tgt.kind === 'harbourfar' ? 'Sail to the pier to go ashore' : tgt.kind === 'hut' ? '[E] Knock on the dark hut' : tgt.kind === 'harbour' ? `[E] Visit ${tgt.isl.desc.name}`
+      promptTxt.textContent = tgt.kind === 'thread' ? (ship.speed > 0.35 ? 'Stop the ship completely (S)' : tgt.th.prompt) : tgt.kind === 'spring' ? (ship.speed > 0.35 ? 'Stop the ship completely (S) to look closer' : '[E] Look into the water') : tgt.kind === 'cave' ? (ship.speed > 0.35 ? 'Stop the ship completely (S) to look inside' : '[E] Look into the cave') : tgt.kind === 'sighting' ? `[E] ${tgt.s.label}` : tgt.kind === 'harbourfar' ? 'Sail to the pier to go ashore' : tgt.kind === 'hut' ? '[E] Knock on the dark hut' : tgt.kind === 'harbour' ? `[E] Visit ${tgt.isl.desc.name}`
         : tgt.kind === 'treasure' ? (tgt.isl.dug ? 'Already plundered' : !state.riddles[tgt.isl.desc.id] ? '[E] Study the ancient arch inscription' : '[E] Dig on this shore')
         : tgt.kind === 'fruit' ? (state.harvest[tgt.isl.desc.id] != null && state.harvest[tgt.isl.desc.id] >= state.dayN ? 'Picked clean for today' : `[E] Pick ${plural(fruitName(fruitOf(tgt.isl.desc), tgt.isl.desc.dread), 2)}`)
         : tgt.kind === 'ship' ? (tgt.s.mode === 'derelict' ? `[E] Board the drifting ${KINDS[tgt.s.kind].label}` : tgt.s.mode === 'ghost' ? '[E] Hail the pale ship' : `[E] Hail the ${tgt.s.name}`)
