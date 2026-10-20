@@ -20,6 +20,7 @@ import { Companion } from './companion.js';
 import { Caves, CAVES } from './caves.js';
 import { CaveScene, caveLook } from './cavescene.js';
 import { Threads } from './threads.js';
+import { THREAD_DEFS, THREAD_IDS, pickAwake } from './marks.js';
 import { Traffic } from './traffic.js';
 import { SeaFeatures } from './seafeatures.js';
 import { makeJob, setReach, findRumour, repOf, friendLevel, discount, bearingName, nearby, RUMOUR_COST, commissionsFor, questProgress, questNeed, questTitle, QUEST_ICON, questIcon, FRUITS, fruitOf, fruitName, plural } from './jobs.js';
@@ -139,7 +140,18 @@ const traffic = new Traffic(scene, world, state.seed);
 const sea = new SeaFeatures(scene, world, state.seed, state.collected);
 const sighting = new Sighting(scene);
 const caves = new Caves(scene, world, state);
-const threads = new Threads(scene, world, state);   // optional dark threads (Story Bible, "Multiple paths"); the Colour is the first prototype
+const threads = new Threads(scene, world, state);
+// the Tide of Threads: which threads this voyage has awake. In the dev build the title screen can choose (or ?threads=colour,bell / all / none)
+const THREADS_KEY = 'pocket-pirates-threads-v1';
+function threadChoice() {
+  const q = params.get('threads');
+  if (q) return q === 'all' ? [...THREAD_IDS] : q === 'none' ? [] : q === 'seeded' ? null : q.split(',').filter((id) => THREAD_IDS.includes(id));
+  if (DEV) { const c = store.get(THREADS_KEY); if (c && c.mode === 'chosen') return c.ids || []; if (c && c.mode === 'none') return []; }
+  return null;
+}
+threads.setup(threadChoice());
+function addMark(key) { if (window.__BUILD === 'demo') return; state.story.marks = { ...(state.story.marks || {}), [key]: 1 }; }   // shown only on the Standing page, in the world's words
+function markFromRoll(n) { if (n === 1) addMark('counted'); else if (n === 20) addMark('called'); }   // a natural 1 gets you counted, a natural 20 gets you called   // optional dark threads (Story Bible, "Multiple paths"); the Colour is the first prototype
 { const h = world.desc(0, -1); if (h) caves.force(h, 3); }
 const combat = new Combat(scene, fauna);
 sea.syncQuests(state.quests.filter((q) => q.id === state.tracked));
@@ -487,6 +499,7 @@ function endTitle() {
 let newAskT = 0, sailing = false;
 function setSail() {
   if (sailing || started) return; sailing = true;
+  threads.setup(threadChoice());   // dev: the choice made on the title screen
   $('fade').classList.add('on');
   setTimeout(() => { begin(); setTimeout(() => $('fade').classList.remove('on'), 250); }, 1000);
 }
@@ -497,6 +510,29 @@ function titleKey(e) {
   if (['Enter', 'Space', 'KeyE'].includes(e.code)) { e.preventDefault(); (document.activeElement && items.includes(document.activeElement) ? document.activeElement : items[0]).click(); }
 }
 $('tSail').addEventListener('click', (e) => { e.stopPropagation(); setSail(); });
+// ---- dev: choose which threads are awake before the game starts (title screen)
+{
+  const panel = $('thPanel'), btn = $('tThreads');
+  if (DEV && !params.get('threads')) btn.style.display = '';
+  const cur = () => store.get(THREADS_KEY) || { mode: 'seeded', ids: [] };
+  const render = () => {
+    const c = cur(), seeded = pickAwake(state.seed);
+    $('thSeed').textContent = `(this seed wakes: ${seeded.map((id) => THREAD_DEFS.find((t) => t.id === id).name).join(', ')})`;
+    panel.querySelectorAll('input[name=thmode]').forEach((r) => { r.checked = r.value === c.mode; });
+    $('thList').innerHTML = THREAD_DEFS.map((t) => `<label class="throw ${c.mode === 'chosen' ? '' : 'off'}"><input type="checkbox" data-id="${t.id}" ${c.mode === 'chosen' && (c.ids || []).includes(t.id) ? 'checked' : ''} ${c.mode === 'chosen' ? '' : 'disabled'}> <span>${t.name}</span> <small>${t.note}</small> ${t.built ? '' : '<em>not built</em>'}</label>`).join('');
+  };
+  const save = (patch) => { store.set(THREADS_KEY, { ...cur(), ...patch }); render(); };
+  btn.addEventListener('click', (e) => { e.stopPropagation(); render(); panel.classList.add('open'); $('thDone').focus(); });
+  panel.addEventListener('change', (e) => {
+    if (e.target.name === 'thmode') save({ mode: e.target.value });
+    else if (e.target.dataset && e.target.dataset.id) save({ ids: [...panel.querySelectorAll('#thList input:checked')].map((i) => i.dataset.id) });
+  });
+  $('thDone').addEventListener('click', (e) => { e.stopPropagation(); panel.classList.remove('open'); btn.focus(); });
+  panel.addEventListener('pointerdown', (e) => e.stopPropagation());
+  panel.addEventListener('keydown', (e) => { e.stopPropagation(); if (e.code === 'Escape') { panel.classList.remove('open'); btn.focus(); } });
+  panel.addEventListener('keyup', (e) => e.stopPropagation());
+}
+
 // fullscreen: on the title and in the pause menu (holding Esc or F11 also leave it)
 const fsEl = () => document.fullscreenElement || document.webkitFullscreenElement;
 const fsOk = !!(document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen);
@@ -551,6 +587,7 @@ window.addEventListener('pointerdown', () => skipIntro());
 window.addEventListener('keydown', (e) => {
   if (introT >= 0) { skipIntro(); return; }
   if (e.target && e.target.closest && e.target.closest('#mixer') && e.code !== 'F8') return;   // arrow keys on a mixer slider move the slider, not the ship
+  if (!started && $('thPanel').classList.contains('open')) return;
   if (!started) { if (titleScene) titleKey(e); else begin(); return; }
   if (e.code === 'Escape' || e.code === 'KeyP') {
     e.preventDefault();
@@ -873,7 +910,7 @@ function renderHarbour() {
     const sf = $('sellFish'); if (sf) sf.addEventListener('click', () => { state.gold += fishVal; toast(`Sold ${state.catch.length} fish for ${fishVal} gold.`); state.catch = []; audio.play('buy'); renderHarbour(); });
     const sb = $('sellBright'); if (sb) sb.addEventListener('click', () => {
       const cb = threads.c, hold = state.catch.filter((f) => f.bright), v = Math.round(hold.reduce((a, f) => a + f.value, 0) * 2.2);
-      state.gold += v; state.catch = state.catch.filter((f) => !f.bright); if (cb) cb.end = 'sold'; state.story.marks = { ...(state.story.marks || {}), salt: 1 };
+      state.gold += v; state.catch = state.catch.filter((f) => !f.bright); if (cb) cb.end = 'sold'; addMark('salt');
       toast(`+${v} gold. He does not weigh it. He lifts it once, nods, and is not on the quay when you look again.`, false, 8000); audio.play('buy'); renderHarbour(); });
     const sfr = $('sellFruit'); if (sfr) sfr.addEventListener('click', () => { state.gold += fruitVal; toast(`Sold fruit for ${fruitVal} gold.`); state.fruit = {}; audio.play('buy'); renderHarbour(); });
     if ($('buyAmmo')) $('buyAmmo').addEventListener('click', () => { if (state.gold < ammoCost) return; state.gold -= ammoCost; state.ammo += 10; audio.play('buy'); renderHarbour(); });
@@ -1649,7 +1686,7 @@ function openCard(card) {
   renderCard(card, (ch) => {
     if (cardBusy) return; cardBusy = true;
     if (!ch.check) { out(ch.go(cardCtx())); return; }
-    rollCheck(state, ch.check, (ok) => out((ok ? ch.ok : ch.fail)(cardCtx())));
+    rollCheck(state, ch.check, (ok, n) => { markFromRoll(n); out((ok ? ch.ok : ch.fail)(cardCtx())); });
   });
 }
 // ---- one-time caves: a few rooms of choices and d20 checks on their own full screen; when it is over, won or lost, the sea closes over the mouth
@@ -1698,7 +1735,7 @@ function openCave(site) {
   const choose = (ch) => {
     if (cardBusy) return; cardBusy = true;
     if (!ch.check) { resolve(ch.go); return; }
-    rollCheck(state, ch.check, (ok) => resolve(ok ? ch.ok : ch.fail));
+    rollCheck(state, ch.check, (ok, n) => { markFromRoll(n); resolve(ok ? ch.ok : ch.fail); });
   };
   done.onclick = () => { if (cardNext) { const f = cardNext; cardNext = null; f(); return; } closeModal(); };
   show('door');
@@ -2159,7 +2196,7 @@ window.__game = {
   setTime(t) { state.time = t; },
   setCam(p, z) { if (p !== undefined) { pitch = pitchT = p; } if (z !== undefined) { zoom = zoomT = z; } },
   setOverride(o) { camOverride = o; },
-  get companions() { return companions; }, petOffer, takePet, caves, openCave, threads,
+  get companions() { return companions; }, petOffer, takePet, caves, openCave, threads, addMark,
   /** concept sketch: put a cat or a gull on deck (dev only) */
   companion(kind = 'cat', slot = '_pet') { if (this[slot]) ship.root.remove(this[slot].m.g); this[slot] = kind ? new Companion(ship, kind) : null; return !!this[slot]; },
   teleport(x, z, h) { ship.pos.set(x, 0, z); ship.heading = h; camHeading = h; },

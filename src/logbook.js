@@ -5,6 +5,7 @@ import { friendLevel, bearingName, questProgress, questNeed, questTitle, questIc
 import { mulberry32, hash2 } from './util.js';
 import { MAIN_GOALS, SIDE_GOALS, CHAPTERS, goalText, goalCount } from './objectives.js';
 import { FISH, HABITAT } from './fishing.js';
+import { markLines } from './marks.js';
 import { GROUPS, byId } from './customize.js';
 import { TRAITS } from './tabletop.js';
 import { pxi } from './pixelui.js';
@@ -338,6 +339,7 @@ export class Logbook {
     const seen = (state.sectorsSeen || []).map((id) => { const [sx, sz] = id.split(',').map(Number); return sectorInfo(sx, sz, seed); });
     html += seen.length ? seen.map((s) => ent(`<span class="fac" style="background:${s.faction.color}"></span> ${s.name}`, s.faction.name, stars(Math.min(3, secs[s.id] || 0)))).join('') : ent('Unseen', '', '', 'dim');
     html += h3('Harbours') + (harbours.length ? harbours.map((h) => ent(h.name, '', stars(h.lvl))).join('') : ent('Nobody knows you yet', 'Visit and deliver.', '', 'dim'));
+    { const lines = markLines(state.story && state.story.marks); if (lines.length) html += h3('What is said of you') + lines.map((t) => ent(t, '', '', 'dk')).join(''); }
     this.body.innerHTML = html;
   }
 

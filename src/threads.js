@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { shoreR } from './world.js';
 import { waveHeight } from './ocean.js';
 import { hash2 } from './util.js';
+import { THREAD_IDS, pickAwake } from './marks.js';
 
 // MULTIPLE PATHS (Story Bible): optional dark threads built on old horror tales. This file is the first one, as a prototype:
 //   THE COLOUR (after "The Colour Out of Space"). One patch of sea by an atoll is a shade wrong. Fish caught in it are huge, bright and
@@ -28,7 +29,15 @@ export class Threads {
     this.scene = scene; this.world = world; this.state = state; this.meshes = new Map(); this.tex = null;
     this.cells = null; this.tint = 0;
   }
-  get c() { return this.state.story.colour; }
+  get c() { return this.awake('colour') ? this.state.story.colour : null; }
+  /** which threads this voyage has awake (the Tide of Threads). `choice` is a dev override: an array of ids, or null for "by the seed". */
+  setup(choice) {
+    const st = this.state.story;
+    if (Array.isArray(choice)) st.threads = choice.filter((id) => THREAD_IDS.includes(id));
+    else if (!Array.isArray(st.threads)) st.threads = st.colour ? ['colour'] : pickAwake(this.state.seed);   // a voyage from before the Tide had only the Colour
+    return st.threads;
+  }
+  awake(id) { return (this.state.story.threads || []).includes(id); }
   /** every island once, by scanning the cells around Tama (cached) */
   scan() {
     if (this.cells) return this.cells;
@@ -39,6 +48,7 @@ export class Threads {
   /** the atoll that holds the spring: one in reach of Tama's first waters (450 to 1300 away), picked by the voyage's seed */
   ensure() {
     const st = this.state.story;
+    if (!this.awake('colour')) return null;
     if (st.colour) return st.colour;
     const home = this.world.desc(0, -1); if (!home) return null;
     const cand = this.scan().filter((d) => d.type === 'atoll' && Math.hypot(d.x - home.x, d.z - home.z) > 450 && Math.hypot(d.x - home.x, d.z - home.z) < 1300)
