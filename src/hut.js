@@ -59,8 +59,8 @@ export function dieGeometry() {
   return { g, normals, ups };
 }
 
-const WIN_LINES = ['She pushes something across the table without looking at it.', 'A dry little laugh. She pays.', 'She nods once, as if this was always going to happen.'];
-const LOSE_LINES = ['The lady in the hut does not say anything. She writes something down.', 'She does not say anything. Somewhere under the floor, something turns over.', 'The lady does not look up. The candle leans toward you.', 'She says nothing. You are sure she said your name.'];
+const WIN_LINES = ['Something slides across the table out of the dark and stops by your hand.', 'A dry sound from the far chair, like a laugh. Coins on the wood.', 'The pen scratches once, as if this was always going to happen.'];
+const LOSE_LINES = ['Nothing is said. In the dark, a pen writes something down.', 'Nothing is said. Somewhere under the floor, something turns over.', 'The pen does not stop. The candle leans toward you.', 'Nobody speaks. You are sure you heard your name.'];
 const TRINKETS = ['a tooth with a tiny ship carved into it', 'a fishbone needle', 'a jar of very old sand', 'a black pearl that is warm', 'a knot of hair tied in a sailor\'s hitch'];
 
 export class Hut {
@@ -105,7 +105,7 @@ export class Hut {
     const used = h.lastDay === this.d.state.dayN;
     this.txt.textContent = h.visits === 1
       ? 'A table too big for the hut, one candle, and a chair on the far side, deep in the dark. Something there breathes, slow and patient. A yellowed twenty-sided die waits on the wood.'
-      : used ? 'The die is gone from the table. She is writing. Come back tomorrow.' : `The die is already on the table, waiting for you.${this.candles()}`;
+      : used ? 'The die is gone from the table. In the dark, a pen is writing. Come back tomorrow.' : `The die is already on the table, waiting for you.${this.candles()}`;
     this.btn.disabled = used;
     this.result = null;
   }
@@ -161,7 +161,7 @@ export class Hut {
       this.txt.textContent = `${n}. ${rnd(WIN_LINES)} (+${gold} gold${trinket ? `, and ${trinket}` : ''})`;
       this.d.onWin(n);
     } else if (n === 10) {
-      this.txt.textContent = '10. She almost smiles. Nothing happens. That is somehow worse.';
+      this.txt.textContent = '10. The pen lifts, and does not write. Nothing happens. That is somehow worse.';
     } else {
       h.fails++;
       this.txt.textContent = `${n}. ${rnd(LOSE_LINES)}`;

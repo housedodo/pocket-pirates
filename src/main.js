@@ -348,7 +348,7 @@ const fishing = new Fishing(scene, ship, {
 // ---------------------------------------------------------------- the dark hut (storyline minigame)
 let glitchT = 0, preGlitch = 0;
 const hut = new Hut({ state,
-  onWin: (n) => { if (n === 20) toast('A natural twenty. Somewhere far below, something is disappointed.', true, 5000); },
+  onWin: (n) => { if (n === 20) toast('A natural twenty. The candle stands up straight.', true, 5000); },
   onFail: () => { preGlitch = dread; glitchT = 0.75; hutEl.classList.add('glitching'); shake = 0.4; },
   onClose: () => closeModal() });
 // ---- the week: market day everywhere on Wednesdays, lantern night on Saturdays, and each harbour its own festival day
@@ -387,7 +387,7 @@ function hutLeft() {
   const h = state.hut;
   if (!h) return;
   if (h.rolls.length && !state.story.demoEnd) state.story.demoEnd = 'pending';   // the demo ends at the next harbour, when someone speaks of the throw
-  if (h.visits === 1) objectives.mate.say('I did not like that, Captain. She never blinked. Not once.', true);
+  if (h.visits === 1) objectives.mate.say('I did not like that, Captain. Something in there was breathing. Slowly.', true);
   const last = h.rolls[h.rolls.length - 1];
   if (last && h.rolls.length === 1 && !state.story.throwTold) {   // the first throw: Mara notices, and if a bottle called the number, she noticed that too
     state.story.throwTold = true; const n = last.n;
@@ -1316,7 +1316,7 @@ function readArch(d) {
   const p = partnerOf(d), dark = d.dread > 0.5;
   if (p && !state.riddles[p.id]) {
     state.riddles[d.id] = halvesOf(d.puzzle.text)[0]; state.halves[d.id] = p.id;
-    toast(`The arch inscription stops mid-sentence: "${state.riddles[d.id]}" Only half a riddle. The rest must be written on another arch, ${bearingName(p.x - d.x, p.z - d.z)} of here.`, dark, 11000);
+    toast(`Half a riddle: "${state.riddles[d.id]}" The rest is on another arch, ${bearingName(p.x - d.x, p.z - d.z)} of here.`, dark, 11000);
   } else {
     state.riddles[d.id] = d.puzzle.text;
     toast(`The arch inscription reads: "${d.puzzle.text}"`, dark, 11000);
@@ -1385,7 +1385,7 @@ function tryInteract() {
         const ang = Math.atan2(ship.pos.z - d.z, ship.pos.x - d.x);
         if (Math.abs(angleDiff(ang, d.puzzle.angle)) > 0.85) {
           state.attempts[d.id] = (state.attempts[d.id] || 0) + 1;
-          toast(state.attempts[d.id] >= 2 ? 'Nothing here but sand. Reread the riddle in your log (Journal) and try another shore.' : 'The crew digs and finds only sand and crabs. Wrong shore!', false, 6000);
+          toast(state.attempts[d.id] >= 2 ? 'Nothing here but sand. Reread the riddle in your log (Riddles tab) and try another shore.' : 'The crew digs and finds only sand and crabs. Wrong shore!', false, 6000);
           return;
         }
         let loot = abyss.wrongLoot(lootFor(mulberry32(hash2(d.seed, 7, state.seed)), d.dread), state);
@@ -1463,7 +1463,7 @@ function hailShip(sh) {
     sh.state = 'open'; tradeShip = sh; openModal('ship');
   } else {
     sh.state = 'refused';
-    const hint = localStanding(sh.x, sh.z).max < 1 ? ' (Perhaps they would listen if you were better known in these waters.)' : '';
+    const hint = localStanding(sh.x, sh.z).max < 1 ? ' (They do not know you here.)' : '';
     toast(REFUSALS[Math.floor(rng() * REFUSALS.length)] + hint, false, 6000);
   }
 }
@@ -2085,7 +2085,8 @@ function frame() {
   if (live) {
     if (tod.night > 0.35 || tod.twilight > 0.6) objectives.remark('dusk');
     if (weather.storm > 0.4) objectives.remark('storm'); else if (weather.rain > 0.4) objectives.remark('rain'); else if (weather.fog > 0.5) objectives.remark('fog');
-    for (const [k, v] of [['stage2', 0.25], ['stage3', 0.5], ['stage4', 0.75], ['stage5', 0.95]]) if (dread >= v) objectives.remark(k, dread);
+    if (state.hints.stage5) state.hints.village = true;   // an older save heard the village line at full dread already
+    for (const [k, v] of [['stage2', 0.25], ['stage3', 0.5], ['village', 0.65], ['stage4', 0.75]]) if (dread >= v) objectives.remark(k, dread);
     if (traffic.ships.some((x) => x.hostile && x.engaged)) objectives.remark('raider');
   }
   fauna.quiet = !laterOK();

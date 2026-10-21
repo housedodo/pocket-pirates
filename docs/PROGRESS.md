@@ -17,7 +17,7 @@ New voyage goes straight into the game (no title). A new voyage starts moored al
   title, act) shows when one begins; Mara gives a gentle hint after ~4 minutes without progress.
   - I Sea legs (sail, dock at Tama) · II Perrin's riddle (dig, shipwright) · III Earn your keep (delivery, chart 8)
   - IV Check my chart (Perrin's note at Tama names a far island and a detail; sail there and look)
-  - V Strange notes (two bottles that speak of a black hut; a tavern gossip elsewhere reveals it)
+  - V Strange notes (two bottles that speak of a black hut; someone on the pier of another harbour reveals it)
   - VI The table (first throw at the hut) -> demo end card "TO BE CONTINUED", then "Keep sailing" lifts the fog.
 - **Unlocks:** fishing from II; oars and passengers from III; crew, tavern dice, haggling and encounter cards from IV.
 - **The fog wall:** each chapter allows a radius from Tama (430, 430, 820, 1250, 1650, 1650). Near it the fog closes
@@ -84,8 +84,8 @@ New voyage goes straight into the game (no title). A new voyage starts moored al
 
 ### Small things
 - Sail and hull upgrades are visible on the ship (patches, seams, flying jib; strake, iron bands, bow cap).
-- Cannons and raiders are switched off until after the demo (UNLOCK.cannons = 6): no ammo on the HUD, no cannonballs
-  for sale, no hostile raiders. The code is all still there.
+- Cannons and raiders open in chapter IV (UNLOCK.cannons = 3); before that there is no ammo on the HUD, no cannonballs
+  for sale and no hostile raiders.
 - Space or Enter moves Mara's text on / closes it. Fishing casts with a rod animation (back, flick, bobber arcs out).
   The rod is a slim bamboo cane (~1.75 long, a third of the hull) with a cord-wrapped grip.
 - The wind never snaps: the felt wind eases toward its new direction over a few seconds.
@@ -113,7 +113,7 @@ New voyage goes straight into the game (no title). A new voyage starts moored al
 - **d20 checks:** a low-poly 3D d20 (same build as the Lady's, `src/dice3d.js`, paler bone) tumbles on screen against a number (Seamanship, Talk, Luck); crew traits and standing add
   bonuses, natural 20 always wins, natural 1 always fails. Used by haggling (Market tab, once a day per harbour:
   +30% / +50% on a 20, or -10%) and by encounter cards.
-- **Encounter cards:** every 3-6 minutes on open water a card turns over (floating chest, stowaway, peddler, squall,
+- **Encounter cards:** rare signs on open water (the first after 15-25 minutes of sailing, then one every 25-40 minutes; see "Log board, sea encounters") open a card (floating chest, stowaway, peddler, squall,
   castaway, shoal, sails on the horizon, an empty rowboat, a singing buoy, the same gull, and at high dread a patch of glass). Two choices, many with a roll. Keys 1/2.
 - **Crew:** up to two hired hands (taverns, Market tab), each silent, with a trait (Lucky, Old salt, Silver tongue,
   Strong rower, Sharp-eyed, Superstitious) and a wish (see a volcano/atoll/mangrove, visit family in a harbour).
@@ -177,13 +177,13 @@ New voyage goes straight into the game (no title). A new voyage starts moored al
 - The shipwright's line moved to the top of the Shipwright tab.
 
 ### Newest: the dark hut
-- One island 4-6 cells from home (out of sight of the start) has a crooked black hut on stilts,
+- One jungle or rocky island 4-6 cell rings out from the map's centre (about 440-930 units, out of sight of the start) has a crooked black hut on stilts,
   a purple window, bones on poles, a dead tree and a ring of pale stones. On the chart it is a black hut icon.
-- Inside: an old woman who never speaks, and an old twenty-sided bone die (rendered low-poly and pixelated).
+- Inside: a chair in the dark where someone breathes but never speaks or shows herself, and an old twenty-sided bone die (rendered low-poly and pixelated).
 - One throw per in-game day:
   - **11-20:** a small prize (gold, 10 + 2x the roll, +40 on a 20); 17+ also gives a trinket for the journal.
-  - **10:** nothing happens. "She almost smiles."
-  - **1-9:** the screen flips to the full-dread look for a moment and back; she says nothing and writes something down.
+  - **10:** nothing happens. "The pen lifts, and does not write."
+  - **1-9:** the screen flips to the full-dread look for a moment and back; nothing is said, a pen writes something down.
 - Mara comments after the first visit and after the third bad throw.
 
 ### After the first demo playtest
@@ -310,18 +310,18 @@ Concepts: `docs/concept/biome-*.png`, built in-engine with `__game.biome('coral'
 
 ### The Eye
 - The star-eye in the sky at full dread; the leviathan arches; the "Eye awakens" ending
-  (after ~2.5 minutes at full dread). The ending currently loops you back to Tama with a wake-up line.
+  (leviathan after ~140 s at full dread, the Eye at ~170 s). The ending currently loops you back to Tama with a wake-up line.
 - To be linked with the hut: the lady's ledger and the Eye are connected (see brainstorm).
 
 ### The ship and her opposite
 - Your ship is **the Merry Gull** (small, cheerful, ours).
 - Far into the story a ghost ship may appear, or only be mentioned: **the Pained Raven** (working name; maybe the
-  Mournful Raven), the Gull's exact opposite. Not in the game yet. Possible seeds already there: the shipwright finds
+  Mournful Raven), the Gull's exact opposite. Built as the Other Captain thread (full game, see "All seven threads are built"). Seeds already there: the shipwright finds
   another name scratched inside the hull ("Not the Gull. I left it."), and a bottle captain on your exact route.
   Never explain who sails her.
 
 ### Mara
-- At full dread she forgets her village, says things she should not, stops answering hints.
+- In Eerie water (dread 0.65) she cannot remember her village's name; at full dread she says things she should not and stops answering hints.
 - Not resolved: what Mara is, and whether she remembers any of it when you are back home.
 
 ### Old Perrin's riddles
@@ -506,3 +506,8 @@ Built and working in the dev build; switched off when `window.__BUILD === 'demo'
 - **Hull and Cannons upgrades can be bought again:** new voyages and older saves had no `hull` / `cannons` level, so the shipwright showed "NaN" and the buttons stayed disabled. Both now start at 0 (saves are patched on load).
 - **Salvage pays what it says:** the rung bell's +25% is applied before the gold is added, so the toast and the purse agree.
 - **Faction pennants on other ships** use the plain white cloth tile, so Crown, Free Cays and Lantern ships show their own colour instead of a darkened red.
+- **The Lady is never seen, now in every line:** the hut's win, ten and loss lines and the "already thrown" line speak only of sound and objects (the pen, the candle, coins out of the dark); Mara's first-visit line is about breathing, not blinking; a natural 20 now reads "The candle stands up straight."
+- **Text that matches the game:** the Raven crossing says "before the third dusk" (the deadline is three days); the Hollow Harbour's welcome says the fog keeps its distance (accepting lets you see further); Mara sends you to "a pier", not a tavern, for the hut; the dig goal and the wrong-shore toast point to the Riddles tab; Mara's last hint is short and knows whether the fog has lifted.
+- **Mara forgets her village's name earlier:** the remark now comes in Eerie water (dread 0.65) instead of at full dread, where the Bible opens her village story. Older saves that heard it already do not hear it twice. It still opens nothing.
+- **Shorter lines:** the half-riddle toast is one sentence; a refused hail adds only "They do not know you here." where you have no standing.
+- DESIGN.md and PROGRESS.md brought in line with the code (charting +5, seven upgrades, wind numbers, cannons in chapter IV, encounter timing, hut placement, the Raven built as a thread, Eye timing).

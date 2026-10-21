@@ -30,7 +30,7 @@ If the game outgrows the browser, the design, generators and shaders port over; 
 | `ship.js` | Procedural ship, wind-based sailing model, upgrade modifiers, wake, lantern glow |
 | `wind.js` | Wandering wind: big heading swings over minutes + gusts, announced when it shifts |
 | `daynight.js` | Day/night layered on the dread palette (10 min per day: 7.5 min daylight, 2.5 min night): sun, moon, stars, dusk colours, light level |
-| `upgrades.js` | 5 ship upgrades x 3 levels (sails, rudder, lantern, spyglass, crew), costs and effects |
+| `upgrades.js` | 7 ship upgrades x 3 levels (sails, rudder, lantern, spyglass, hull, cannons, crew), costs and effects |
 | `lore.js` | Names, harbour gossip and loot that drift from cosy to cosmic |
 | `audio.js` | Optional drop-in audio, cross-faded per dread stage |
 | `objectives.js` | The main goal chain (sail, harbour, dig, ... hut), `Mate` (Mara's text box and pacing), gated side remarks, pending next goal with a gap |
@@ -48,8 +48,8 @@ Every island has a bright decor set and a "wrong" decor set (dead palms, glowing
 They swap at dread 0.5, and terrain colours blend to a second vertex colour set.
 
 ## Systems added after the slice
-- **Upgrades:** buy at any harbour (E). Gold comes from treasure (+ crew bonus) and +15 per newly charted isle. Sails = speed and upwind ability, Rudder = turning, Lantern = night glow, Spyglass = view distance and zoom, Crew = dig speed and loot value.
-- **Wind:** direction swings up to ~150 degrees over several minutes, strength gusts 45-125%. Waves scale with it. The wind meter (dial / pennant / rose / windsock, chosen in the pause menu) shows where it blows, a green-yellow-red ring around it shows how well the ship's nose would sail in each direction, a cream marker is the nose, and an orange marker points at the tracked mission.
+- **Upgrades:** buy at any harbour (E). Gold comes from treasure (+ crew bonus) and +5 per newly charted isle. Sails = speed and upwind ability, Rudder = turning, Lantern = night glow, Spyglass = view distance and zoom, Crew = dig speed and loot value.
+- **Wind:** direction swings up to ±126 degrees on a ~14-minute cycle plus ±29 degrees on a ~3.4-minute one (measured: a median 155-degree change in any 5 minutes); strength 45-130% with gusts. Waves scale with it. The wind meter (dial / pennant / rose / windsock, chosen in the pause menu) shows where it blows, a green-yellow-red ring around it shows how well the ship's nose would sail in each direction, a cream marker is the nose, and an orange marker points at the tracked mission.
 - **Day/night:** `DAY_LENGTH` in `daynight.js`. Windows, lanterns, fungus and eyes ignore the light level so they glow at night; the lighthouse beam gets stronger.
 - **Pause menu:** Esc/P (also on tab blur). Simulation, time of day and audio freeze while any menu is open.
 
@@ -67,16 +67,16 @@ They swap at dread 0.5, and terrain colours blend to a second vertex colour set.
 
 Population is deliberately sparse (at most ~2 ships, a few gulls, rare dolphins/whales) so the sea feels big. Only about a third of harbours and a few lone crags have a lighthouse.
 
-Other systems: **jobs** (delivery contracts from harbour boards, tracked on the compass), **rumours** (40g, reveals a treasure isle on your chart) and **harbour reputation** (visits and deliveries earn up to 3 stars = up to 15% off upgrades).
+Other systems: **jobs** (delivery contracts from harbour boards, tracked on the compass), **rumours** (40g, marks a treasure isle on your chart; about one in three is false) and **harbour reputation** (visits and deliveries earn up to 3 stars = up to 15% off upgrades).
 **Lighthouses** only shine when it is dark: the sun below ~7 degrees (about 17:30 to 06:30) or during a storm. By day the lamp is dark and the beam is off.
 **Sound** is synthesised in `synth.js` (every cue, music included); real files override it per cue.
 
 ## Starter adventure (first mate, fishing, riddles, looks, combat)
 - **First mate and goals** (`objectives.js`): Mara talks you through a short main chain (sail, make landfall, follow the riddle, spend your loot, deliver a job, chart 6 isles, cross into a new sector) and reacts to events (dusk, storms, raiders, rising dread; she gets more unsettled as it goes on). Seven optional side goals complete themselves. Y or the pause menu asks for a hint; goals can be skipped in the Goals tab.
-- **Fishing** (`fishing.js`): C casts (slow down first), wait for a bite, hook it, then hold Space to keep the marker in the green zone. 11 species, harder ones later; dark species appear with dread and at night. Sell at harbours (reputation adds a bonus); fish log in the Journal.
+- **Fishing** (`fishing.js`): C casts (slow down first), wait for a bite, hook it, then hold Space to keep the marker in the green zone. 15 species (10 bright, 5 dark), harder ones later; dark species appear with dread and at night. Sell at harbours (reputation adds a bonus); fish log in the Journal.
 - **Treasure riddles** (`lore.makePuzzle`, `world.js`): the chest is no longer marked. Each treasure isle's arch carries a riddle (sunrise/sunset/pole star/lone palm) naming the shore where the chest is buried. Study the arch (E), sail to the right shore, dig. Wrong shores cost a few seconds. Riddles also come from Perrin (the starter map) and are kept in the Journal.
 - **Ship looks** (`customize.js`): hull paint, sail colour, pennant and figurehead (parrot, dolphin, mermaid, lion, skull) at harbour shipyards. Some figureheads are earned (catch fish, salvage a wreck, earn 3 stars, sink a raider).
-- **Combat** (`combat.js`, strictly optional): only some Reef Brotherhood ships are raiders. They chase when you are close, circle and fire; you can outrun them, parley (pay tribute, bluff) or fight. Space auto-aims a broadside at the nearest raider. Hull strength and cannon upgrades at the shipwright; cannonballs from harbours or wrecks of raiders. If your hull goes, you wake up at the nearest harbour with 25% less gold (no game over).
+- **Combat** (`combat.js`, strictly optional): only some Reef Brotherhood ships are raiders. They chase when you are close, circle and fire; you can outrun them, parley (pay tribute, bluff) or fight. Space auto-aims a broadside at the nearest raider. Hull strength and cannon upgrades at the shipwright; cannonballs are only bought at harbours (you start with 8). Cannons open in chapter IV. If your hull goes, you wake up at the nearest harbour with 25% less gold (no game over).
 
 ## Commissions, fruit and the log (second pass)
 - **Commissions** (`jobs.commissionsFor`): each harbour board posts a delivery plus two errands, up to 3 held at once: catch specific fish, bring a fruit, recover floating crates from a marked search area, sink raiders, spot dolphins/whales. Hand in at the board (Board tab); rewards also build reputation.
@@ -105,7 +105,7 @@ Other systems: **jobs** (delivery contracts from harbour boards, tracked on the 
 - **Docs for the rest:** `docs/PROGRESS.md` has a dated entry per feature; `docs/concept/` holds the design concepts.
 
 ## Tunables
-- `DREAD_RANGE` in `palette.js`: distance (2200 units now, ~3 min) to reach full dread. Raise it for a longer arc.
+- `DREAD_RANGE` in `palette.js`: distance (2200 units now, ~4 min at average speed) to reach full dread. Raise it for a longer arc.
 - `DARK_THRESHOLD` in `palette.js`: when decor swaps.
 - `CELL`, spawn probability and type weights in `world.js`; `MAX_SPEED` in `ship.js`.
 
@@ -151,4 +151,4 @@ Ten effects (the star-eye and ghost ship were cut) that only run at dread >= ~0.
 8. **Time loop** - a second, pale sun at the horizon; every ~90s the ship and clock jump back up to 20 seconds.
 9. **Wrong ocean** - wave animation runs backwards, the horizon tilts, the sails and flag swing against the wind.
 11. **Wrong catches** - fishing brings up memories (your own compass, Mara's hat); chests and wrecks hold your earlier loot "again".
-12. **Leviathan & the Eye** - giant dark arches rise from the sea ahead; after ~150s at full dread (or via the Ending button) a huge eye opens in the sky, the screen whites out and you wake near Harbour Tama.
+12. **Leviathan & the Eye** - giant dark arches rise from the sea ahead after ~140 s at full dread; at ~170 s (or via the Ending button) a huge eye opens in the sky, the screen whites out and you wake near Harbour Tama.

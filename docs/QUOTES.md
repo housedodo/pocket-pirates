@@ -15,7 +15,7 @@ ledger or anything below the sea. Everything should just feel slightly off.
 - *Stage 1:* "Is it just me, or has it gone very quiet out here?"
 - *Stage 2:* "The gulls are watching us. I mean really watching us. Please tell me I am imagining it."
 - *Stage 3:* "I keep hearing something humming under the keel. Do you hear it?"
-- *Stage 4:* "Captain... how long have we been sailing? I cannot remember the name of my own village."
+- *Eerie water (dread 0.65):* "Captain... how long have we been sailing? I cannot remember the name of my own village."
 - *Odd catch:* "That one looked back at me. Throw it in the sack."
 - *Red sky:* "Red sky tonight... my gran said that means a blow is coming."
 - *Fog wall:* "That fog is like a wall, Captain. Whatever is out there can wait for us."
@@ -28,7 +28,7 @@ ledger or anything below the sea. Everything should just feel slightly off.
 - *Mangrove:* "Mangroves. Mind the roots, Captain, they grab keels."
 - *Village:* "A village! Fresh bread, gossip and somewhere to sleep."
 - *Morning after the tavern:* "Morning, Captain! Fresh bread, fresh wind. The hull is patched, too."
-- *First hut visit:* "I did not like that, Captain. She never blinked. Not once."
+- *First hut visit:* "I did not like that, Captain. Something in there was breathing. Slowly."
 - *Third bad throw:* "Three times now. Captain... what is she writing down?"
 - *Wish fulfilled:* "Look at {crew}. I have never seen anyone smile with only their eyebrows before."
 
@@ -137,10 +137,11 @@ dread stage. A few:
 ### The dark hut
 - *Entering:* "A table too big for the hut, one candle, and a chair on the far side, deep in the dark. Something there breathes, slow and patient. A yellowed twenty-sided die waits on the wood."
 - *Before chapter V:* "Nobody answers. Inside, a pen scratches, then stops."
-- *Already thrown today:* "The die is gone from the table. She is writing. Come back tomorrow."
-- *Win:* "She pushes something across the table without looking at it." · "A dry little laugh. She pays." · "She nods once, as if this was always going to happen."
-- *10:* "She almost smiles. Nothing happens. That is somehow worse."
-- *Lose:* "The lady in the hut does not say anything. She writes something down." · "She does not say anything. Somewhere under the floor, something turns over." · "The lady does not look up. The candle leans toward you." · "She says nothing. You are sure she said your name."
+- *Already thrown today:* "The die is gone from the table. In the dark, a pen is writing. Come back tomorrow."
+- *Win:* "Something slides across the table out of the dark and stops by your hand." · "A dry sound from the far chair, like a laugh. Coins on the wood." · "The pen scratches once, as if this was always going to happen."
+- *Natural 20:* "A natural twenty. The candle stands up straight."
+- *10:* "The pen lifts, and does not write. Nothing happens. That is somehow worse."
+- *Lose:* "Nothing is said. In the dark, a pen writes something down." · "Nothing is said. Somewhere under the floor, something turns over." · "The pen does not stop. The candle leans toward you." · "Nobody speaks. You are sure you heard your name."
 - *Trinkets:* a tooth with a tiny ship carved into it · a fishbone needle · a jar of very old sand · a black pearl that is warm · a knot of hair tied in a sailor's hitch
 - *Demo end:* "TO BE CONTINUED. The die is back on the table. Somewhere, a pen is still writing."
 
@@ -161,7 +162,7 @@ dread stage. A few:
 - *Crew looks:* missing two fingers · humming all the time · with a parrot that does not talk · very tall · barefoot, always · with a tattoo of an eye · who never blinks first
 - *Sleep:* "You sleep like a stone. Gulls wake you at dawn." · "Somebody snored all night. Possibly you." · "You dream of warm water and wake up hungry."
 - *Sleep (dark):* "You sleep. Someone sat by your bed all night; the chair is still warm." · "You wake at dawn. Your boots are wet, and full of sand you do not recognise."
-- *Hailing refused:* "The crew glances at you and looks away." · "A sailor waves you off. They are not in the mood." · "The captain pretends not to hear you." · "They hoist a little more sail and leave you behind."
+- *Hailing refused:* "The crew glances at you and looks away." · "A sailor waves you off. They are not in the mood." · "The captain pretends not to hear you." · "They hoist a little more sail and leave you behind." (+ "They do not know you here." where you have no standing)
 - *Fog wall:* "The fog is a wall here. Somehow the bow always ends up pointing home."
 - *Time loop:* "You have been here before." · "It is this exact moment again."
 

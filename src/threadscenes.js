@@ -72,7 +72,7 @@ CAVES.hollow = {
   id: 'hollow', name: 'The Harbourmaster', icon: 'talk', tag: 'YOU ARE WELCOME HERE', look: 'lantern',
   nodes: {
     door: { text: 'The harbourmaster has been waiting at the end of the pier all week. He has not blinked. "You have been good to us, Captain. Stay. The water is lovely this time of year."', choices: [
-      { label: 'Accept the welcome', go: { text: 'He takes your hand with both of his, and his hands are wet. By morning you have stopped noticing it. The fish bite for you now, and the way home has fog on it.', fx: { event: 'hollow:accept' }, end: 'win' } },
+      { label: 'Accept the welcome', go: { text: 'He takes your hand with both of his, and his hands are wet. By morning you have stopped noticing it. The fish bite for you now, and the fog keeps its distance.', fx: { event: 'hollow:accept' }, end: 'win' } },
       { label: 'Not yet', go: { cancel: true } }] },
   },
 };
@@ -107,12 +107,12 @@ CAVES.musichouse = {
 
 // ---- THE OTHER CAPTAIN: the place where the two ships were swapped
 CAVES.raven = {
-  id: 'raven', name: 'The Crossing', icon: 'star', tag: 'BEFORE DUSK', look: 'lantern',
+  id: 'raven', name: 'The Crossing', icon: 'star', tag: 'BEFORE THE THIRD DUSK', look: 'lantern',
   nodes: {
     door: { text: 'Two ships lie side by side on the swell, the same keel, the same scar on the same plank, and neither one is looking at you. One of them is yours. Somebody on it is waving.', choices: [
       { label: 'Come alongside the Merry Gull', check: { label: 'Seamanship', kind: 'sea', dc: 12 },
         ok: { text: 'The planks meet. You step across, and the deck remembers your feet. The other ship drifts off and is not there when you look for it.', fx: { event: 'captain:back' }, end: 'win' },
-        fail: { text: 'The swell pushes the two hulls apart. You have until dusk.', next: 'door' } },
+        fail: { text: 'The swell pushes the two hulls apart. You have until the third dusk.', next: 'door' } },
       { label: 'Open the Raven\'s hold and let her go down', check: { label: 'Seamanship', kind: 'sea', dc: 13 },
         ok: { text: 'She takes the water without a sound. You cross to the Gull as the last of her deck goes under. When you look back there is only a ring of oil on the water, and a name, floating, upside down.', fx: { event: 'captain:sink' }, end: 'win' },
         fail: { text: 'The hold is already full. She does not sink. She waits.', next: 'door' } },

@@ -43,7 +43,7 @@ export const MAIN_GOALS = [
   },
   {
     id: 'dig', ch: 1, title: 'Follow the riddle', reward: 36,
-    text: 'Perrin\'s riddle is in your log (Journal). Find the right shore of Hollow Cay Galen and dig.',
+    text: 'Perrin\'s riddle is in your log (Riddles tab). Find the right shore of Hollow Cay Galen and dig.',
     // if the letter is already taken and read, she does not tell the player to fetch it
     intro: (c) => (c.state.story.letterP1 === 'taken' ? ['Now to find the shore that riddle means. Stop the ship there and press E to dig.']
       : ['Perrin left you a letter with the harbourmaster: take it at the Board sign in Tama.', 'Then find the shore its riddle means, stop the ship and press E to dig.']),
@@ -187,7 +187,7 @@ export const MAIN_GOALS = [
   {
     id: 'gossip', ch: 4, title: 'Ask around', reward: 18,
     text: 'Somebody in a harbour must know about the hut.',
-    intro: ['Harbours hear everything. Somebody at a tavern will know.'],
+    intro: ['Harbours hear everything. Somebody on a pier will know.'],
     outro: [],
     hints: ['Visit any harbour except Tama. Sailors talk.'],
     check: (c) => !!c.state.story.hutKnown,
@@ -248,7 +248,7 @@ export const REMARKS = {
   stage2: ['Is it just me, or has it gone very quiet out here?'],
   stage3: ['The gulls are watching us. I mean really watching us. Please tell me I am imagining it.'],
   stage4: ['I keep hearing something humming under the keel. Do you hear it?'],
-  stage5: ['Captain... how long have we been sailing? I cannot remember the name of my own village.'],
+  village: ['Captain... how long have we been sailing? I cannot remember the name of my own village.'],   // Eerie water (dread 0.65), where her village story opens
   darkfish: ['That one looked back at me. Throw it in the sack.'],
   sight_volcano: ['Smoke on the horizon! Either a volcano or a very big breakfast.'],
   sight_atoll: ['Look at that water inside the ring. I could swim there all day.'],
@@ -352,7 +352,7 @@ export class Objectives {
   askHint(dread) {
     const g = this.current;
     this.stall = 0;
-    if (!g) { this.mate.say('That is everything we set out to do, Captain. Sail where you like inside the fog: deliveries, errands, treasure and the side goals in your log (Goals tab) are all still there.'); return; }
+    if (!g) { this.mate.say(this.state.story.free ? 'The fog is gone, Captain. Sail where you like.' : 'That is all for now, Captain. Errands and side goals are in the log.'); return; }
     this.mate.say(g.hints[this.hintI++ % g.hints.length], dread > 0.6);
   }
 
