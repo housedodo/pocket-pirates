@@ -9,7 +9,7 @@ area only when the task says so or when the change crosses over (then say which 
 - **Rule:** anything new must match STYLE.md; if the look changes on purpose, update STYLE.md in the same commit.
 
 ## Gameplay (systems and story)
-- **Docs:** `docs/DESIGN.md` (how systems work), `docs/PROGRESS.md` (what exists, open story threads), `docs/ROADMAP.md`, `docs/QUOTES.md`, the Story Bible in the Claude Docs connector.
+- **Docs:** `docs/DESIGN.md` (how systems work), `docs/PROGRESS.md` (what exists, open story threads), `docs/ROADMAP.md`, `docs/TODO.md` (review follow-ups), `docs/QUOTES.md`, the Story Bible in the Claude Docs connector.
 - **Code:** `src/main.js`, `objectives.js`, `jobs.js`, `passengers.js`, `companion.js`, `combat.js`, `traffic.js`, `fishing.js`, `fruit.js`, `upgrades.js`, `tabletop.js`, `dice3d.js`, `hut.js`, `threads.js`, `thread_mods.js`, `threadscenes.js`, `marks.js`, `caves.js`, `lore.js`, `greetings.js`, `logbook.js`, `sectors.js`, `seafeatures.js`, `fauna.js`, `abyss.js`.
 - **Rule:** never resolve a storyline casually; add to PROGRESS.md when a feature or beat lands; horror is implied, never explained; keep HUD text minimal.
 
