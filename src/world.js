@@ -958,7 +958,8 @@ function decorate(d, rng, A, B, D, extra) {
       const dockRoll = rng(), dockTh = d.dockTh;   // Tama's pier faces the start
       const SD = STYLE_DEF[d.style || 'classic'] || STYLE_DEF.classic;
       PAINT = SD.paint ? { walls: SD.paint.walls, roofs: SD.paint.roofs } : null;
-      if (d.custom === 'whitewash') PAINT = SD.paint ? { ...PAINT, wall: '#f4f0e8' } : { wall: '#f4f0e8', roof: '#3c78c8' };   // whitewash keeps each style's own roofs NO_CHILD = d.custom === 'nochildren';
+      if (d.custom === 'whitewash') PAINT = SD.paint ? { ...PAINT, wall: '#f4f0e8' } : { wall: '#f4f0e8', roof: '#3c78c8' };   // whitewash keeps each style's own roofs
+      NO_CHILD = d.custom === 'nochildren';
       const n = Math.round((6 + Math.floor(rng() * 3)) * Math.max(1, d.r / 25));
       let placed = 0;
       const housesLog = [], hk = (a, b, x, y, z, ry, r, k) => { housesLog.push([x, z]); return houseKind(a, b, x, y, z, ry, r, k); };

@@ -2098,7 +2098,8 @@ function frame() {
   // ---- global shader state
   scene.fog.color.copy(stage.fog); scene.fog.near = stage.fogNear; scene.fog.far = stage.fogFar;
   U.uDread.value = dread; U.uTime.value = waveT;
-  if (window.__waterLock) { const wl = window.__waterLock; if (wl.t != null) U.uTime.value = Math.floor(wl.t * 12) / 12; if (wl.rough != null) { waterRough = wl.rough; U.uRough.value = WATER.rough = wl.rough; } }   // dev: water previews (docs/concept/water) U.uLight.value = stage.light; U.uWave.value = stage.wave;
+  if (window.__waterLock) { const wl = window.__waterLock; if (wl.t != null) U.uTime.value = Math.floor(wl.t * 12) / 12; if (wl.rough != null) { waterRough = wl.rough; U.uRough.value = WATER.rough = wl.rough; } }   // dev: water previews (docs/concept/water)
+  U.uLight.value = stage.light; U.uWave.value = stage.wave;
   U.uDeep.value.copy(stage.deep); U.uShallow.value.copy(stage.shallow);
   if (threads.worldTint > 0.001) { U.uDeep.value.lerp(COLOUR_DEEP, threads.worldTint); U.uShallow.value.lerp(COLOUR_SHALLOW, threads.worldTint * 0.8); scene.fog.color.lerp(COLOUR_SHALLOW, threads.worldTint * 0.25); }   // a sea that is slowly losing a hue
   U.uSnap.value.set(post.internal.w * 0.5 * stage.snap, post.internal.h * 0.5 * stage.snap);
