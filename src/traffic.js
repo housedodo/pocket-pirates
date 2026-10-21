@@ -31,7 +31,7 @@ let flagGeo = null;
 function getFlagGeo() {
   if (flagGeo) return flagGeo;
   const b = new Builder(); b.doubleSided = true;
-  b.tri([0, 0.5, 0], [0, 0, 0], [0, 0.25, 1.5], '#ffffff', TILE.flag, [[0, 1], [0, 0], [1, 0.5]]);
+  b.tri([0, 0.5, 0], [0, 0, 0], [0, 0.25, 1.5], '#ffffff', TILE.white, [[0, 1], [0, 0], [1, 0.5]]);
   return (flagGeo = b.geometry());
 }
 

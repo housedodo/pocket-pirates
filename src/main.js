@@ -64,7 +64,7 @@ const state = {
   dug: new Set((saved && saved.dug) || []),
   discovered: (saved && saved.discovered) || {},
   loot: (saved && saved.loot) || [],
-  upgrades: Object.assign({ sails: 0, rudder: 0, lantern: 0, spyglass: 0, crew: 0 }, (saved && saved.upgrades) || {}),
+  upgrades: Object.assign({ sails: 0, rudder: 0, lantern: 0, spyglass: 0, hull: 0, cannons: 0, crew: 0 }, (saved && saved.upgrades) || {}),
   time: params.has('time') ? parseFloat(params.get('time')) : (saved && saved.time != null ? saved.time : 0.33),
   windT: (saved && saved.windT) || 0,
   collected: new Set((saved && saved.collected) || []),
@@ -107,6 +107,7 @@ const state = {
   tracked: (saved && saved.tracked) || null,       // the one errand shown on the tracker and wind meter: 'job' | 'passenger' | quest id          // the dark hut storyline: every throw is remembered
   pos: (saved && saved.pos) || { x: 0, z: 0, h: 0 },
 };
+for (const k of Object.keys(state.upgrades)) if (!Number.isFinite(state.upgrades[k])) state.upgrades[k] = 0;   // older saves had no hull or cannons level
 if (params.has('x')) state.pos = { x: +params.get('x'), z: +params.get('z') || 0, h: +params.get('h') || 0 };
 
 // ---------------------------------------------------------------- renderer & scene
@@ -1420,8 +1421,8 @@ function tryInteract() {
       loot.value = Math.round(loot.value * 1.3 * ship.mods.lootMul * (tideAt() < -0.45 ? 1.3 : 1));   // the tide has uncovered more
       loot.name = `From the wreck: ${loot.name}`;
       o.salvaged = true; state.collected.add(o.id); state.stats.wrecks++;
+      loot.value = Math.round(loot.value * threads.salvageMul());   // the rung bell's bonus, paid as shown
       state.gold += loot.value; state.loot.push(loot);
-      loot.value = Math.round(loot.value * threads.salvageMul());
       toast(`Salvaged! ${loot.name} (+${loot.value} gold)`, loot.dark, 7000);
       { const x = threads.onSalvage(); if (x) setTimeout(() => toast(x, true, 6000), 1500); }
       audio.play('treasure');

@@ -501,3 +501,8 @@ Built and working in the dev build; switched off when `window.__BUILD === 'demo'
 - **Wind wisps broken up:** the drifting wind lines (`src/windfx.js`) were thin, straight and parallel. Now each wisp is two to five short chunky dashes of different lengths, gaps, widths and brightness along a lazy curve that wanders with the gusts, fading in and out over 4-10 s and respawning with new random shapes (flat ribbons, additive, no thin GL lines). No demo rebuilt.
 
 - Sound studio (dev, F9): load own music/sounds, trim on a waveform, place by situation + dread + state (loop/once, fades, hush game music), force situations to test, export soundtrack.json + WAVs. See docs/AUDIO.md.
+
+## Gameplay review fixes
+- **Hull and Cannons upgrades can be bought again:** new voyages and older saves had no `hull` / `cannons` level, so the shipwright showed "NaN" and the buttons stayed disabled. Both now start at 0 (saves are patched on load).
+- **Salvage pays what it says:** the rung bell's +25% is applied before the gold is added, so the toast and the purse agree.
+- **Faction pennants on other ships** use the plain white cloth tile, so Crown, Free Cays and Lantern ships show their own colour instead of a darkened red.
