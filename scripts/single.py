@@ -1,5 +1,6 @@
 """Build the single-file games from dist/ (run after `npx vite build`):  python3 scripts/single.py
   pocket-pirates-demo.html  for playing and sharing: sound on (without the dread-stage cues), no mixer, no test tools
+  pocket-pirates-demo-silent.html  the demo with no sound at all (no files, no synth), small
   pocket-pirates-dev.html   for working: every sound in public/audio + volumes.json, the mixer (F8) and test tools on"""
 import base64, json, os, re
 
@@ -28,6 +29,7 @@ DEMO_SKIP = {'music_3', 'music_4', 'music_5', 'amb_3', 'amb_4', 'amb_5', 'whispe
 demo_sounds = {k: v for k, v in sounds.items() if k not in DEMO_SKIP}
 for name, boot in [
     ('pocket-pirates-demo.html', f"<script>window.__BUILD='demo';window.__AUDIO={json.dumps(demo_sounds)};window.__VOLUMES={json.dumps(volumes)};</script>"),
+    ('pocket-pirates-demo-silent.html', "<script>window.__BUILD='demo';window.__SILENT=true;window.__AUDIO={};window.__VOLUMES={};</script>"),
     ('pocket-pirates-dev.html', f"<script>window.__BUILD='dev';window.__AUDIO={json.dumps(sounds)};window.__VOLUMES={json.dumps(volumes)};</script>"),
 ]:
   out = build(boot)

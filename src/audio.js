@@ -4,7 +4,7 @@
 import { canSynth, synth } from './synth.js';
 
 // Master switch for all sound (files in public/audio/, else the synthesised fallback).
-export const AUDIO_ENABLED = true;   // the demo ships with sound too (without the dread-stage cues, see DEMO_SKIP)
+export const AUDIO_ENABLED = !(typeof window !== 'undefined' && window.__SILENT);   // the demo ships with sound too (without the dread-stage cues, see DEMO_SKIP); the silent build sets __SILENT
 // cues the demo never plays (no dread there): left out of the demo file and never loaded, to keep it small and spoiler-free
 const DEMO_SKIP = new Set(['music_3', 'music_4', 'music_5', 'amb_3', 'amb_4', 'amb_5', 'whisper', 'stage_up']);
 

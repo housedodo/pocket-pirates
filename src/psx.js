@@ -12,7 +12,8 @@ export const U = {
   uDeep: { value: new THREE.Color('#1b86c6') },
   uShallow: { value: new THREE.Color('#4fe0d0') },
   uWave: { value: 1 },
-  uWStyle: { value: 0 },    // water look: 0 = the game's own, 1..4 = the four loop-test styles (dev, see docs/concept/water)
+  uRough: { value: 0 },     // how unruly the sea is, 0 calm toon swell .. 1 dark rollers (eased in main.js)
+  uIsl: { value: Array.from({ length: 12 }, () => new THREE.Vector3(1e6, 1e6, 0)) },   // the nearest islands (x, z, radius): shallow, lighter water around them
 };
 
 const VERT_HEAD = /* glsl */`

@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { clamp, smoothstep, angleDiff, mulberry32, hash2 } from './util.js';
 import { sampleStage, DARK_THRESHOLD, dreadAtDistance } from './palette.js';
 import { U, initMaterials, mats, PostFX } from './psx.js';
-import { Ocean } from './ocean.js';
+import { Ocean, WATER, NISL } from './ocean.js';
 import { Sky } from './sky.js';
 import { World, villager, VILLAGERS, houseKind, HOUSES, shoreR, lighthouseKind } from './world.js';
 import { Builder } from './builder.js';
@@ -1273,6 +1273,7 @@ function completeJobIfHere(d) {
 }
 
 // ashore the camera rests on the village, a little to the left so the panel on the right does not cover it
+let waterRough = -1;
 let ashoreCam = null, ashoreK = 0, animT = 0;
 function frameVillage(d) {
   const dx = d.x - ship.pos.x, dz = d.z - ship.pos.z, L = Math.hypot(dx, dz) || 1, ux = dx / L, uz = dz / L, px = -uz, pz = ux;
@@ -2030,6 +2031,14 @@ function frame() {
     weather.region.rain = R[0]; weather.region.storm = R[1]; weather.region.fog = R[2];
     if (fa && h >= 17 && laterOK() && !state.hints['front:' + state.dayN]) { state.hints['front:' + state.dayN] = true; if (!state.hints.frontSeen) { state.hints.frontSeen = true; objectives.mate.say('That red in the west... a front is coming in tomorrow afternoon, Captain. I would be in a harbour by then.'); } }
   }
+  { // the sea: it grows unruly with distance (dread) and storms, but only slowly, as real water does; and lighter and shallower near islands
+    const target = window.__waterLock && window.__waterLock.rough != null ? window.__waterLock.rough : clamp(0.85 * smoothstep(0.28, 0.82, dread) + 0.95 * weather.storm + 0.3 * weather.rain, 0, 1);
+    waterRough = waterRough < 0 ? target : waterRough + (target - waterRough) * (1 - Math.exp(-Math.min(vdt, 0.5) / 25));
+    WATER.rough = waterRough; U.uRough.value = waterRough;
+    const near = []; for (const isl of world.islands.values()) { const d = isl.desc, dd = Math.hypot(d.x - ship.pos.x, d.z - ship.pos.z); if (dd < 500) near.push([d.x, d.z, d.r, dd]); }
+    near.sort((a, b) => a[3] - b[3]); near.length = Math.min(near.length, NISL); WATER.isl = near;
+    for (let i = 0; i < NISL; i++) { const n = near[i]; U.uIsl.value[i].set(n ? n[0] : 1e6, n ? n[1] : 1e6, n ? n[2] : 0); }
+  }
   world.tick(animT, tod);
   ship.place(vdt, waveT, stage.wave, dark, tod.night);
   const lifeCtx = { ship, dread, wave: stage.wave, audio, wind: windNow, stage, tod, faction: sec.faction.id, sched: { wd: weekday(), hour: state.time * 24, dayN: state.dayN, dread } };
@@ -2070,7 +2079,7 @@ function frame() {
   // ---- global shader state
   scene.fog.color.copy(stage.fog); scene.fog.near = stage.fogNear; scene.fog.far = stage.fogFar;
   U.uDread.value = dread; U.uTime.value = waveT;
-  if (window.__waterLock) { U.uTime.value = Math.floor(window.__waterLock.t * 12) / 12; U.uWStyle.value = window.__waterLock.style; }   // dev: water style tests (docs/concept/water) U.uLight.value = stage.light; U.uWave.value = stage.wave;
+  if (window.__waterLock) { const wl = window.__waterLock; if (wl.t != null) U.uTime.value = Math.floor(wl.t * 12) / 12; if (wl.rough != null) { waterRough = wl.rough; U.uRough.value = WATER.rough = wl.rough; } }   // dev: water previews (docs/concept/water) U.uLight.value = stage.light; U.uWave.value = stage.wave;
   U.uDeep.value.copy(stage.deep); U.uShallow.value.copy(stage.shallow);
   if (threads.worldTint > 0.001) { U.uDeep.value.lerp(COLOUR_DEEP, threads.worldTint); U.uShallow.value.lerp(COLOUR_SHALLOW, threads.worldTint * 0.8); scene.fog.color.lerp(COLOUR_SHALLOW, threads.worldTint * 0.25); }   // a sea that is slowly losing a hue
   U.uSnap.value.set(post.internal.w * 0.5 * stage.snap, post.internal.h * 0.5 * stage.snap);
