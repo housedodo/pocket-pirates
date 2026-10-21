@@ -158,7 +158,7 @@ export class SoundStudio {
       + (this.forceOn ? ' <button data-force="off">Back to live</button>' : '');
     this.chips.onclick = (e) => {
       const c = e.target.closest('[data-chip]'), f = e.target.closest('[data-force]');
-      if (f) { this.forceOn = false; this.drawChips(true); return; }
+      if (f) { this.forceOn = false; this.drawChips(true); this.drawRules(); return; }
       if (!c) return;
       if (!this.forceOn) { this.forceOn = true; this.forced = new Set(this.live.flags); this.fdread = this.live.dread; }
       const k = c.dataset.chip; this.forced.has(k) ? this.forced.delete(k) : this.forced.add(k);
@@ -251,7 +251,7 @@ export class SoundStudio {
       + (this.rules.length ? '' : '<div class="drop">No placements yet. Load a sound, then press "+ New".</div>')
       + this.rules.map((r) => `<div class="rule ${r.on ? '' : 'off'}" data-id="${r.id}">
         <div class="row"><span class="dot"></span><input type="text" data-k="name" value="${r.name}" style="flex:1;min-width:90px"><label><input type="checkbox" data-k="on" ${r.on ? 'checked' : ''}>on</label>
-          <button data-aud class="${this.audition === r.id ? 'on' : ''}" title="Play this placement now, whatever the situation">hear</button><button data-del class="del">delete</button></div>
+          <button data-game class="${this.isPreviewing(r) ? 'on' : ''}" title="Set the situation to this placement's conditions, so it plays the way it will in the game (the game's own sound stays)">preview in game</button><button data-aud class="${this.audition === r.id ? 'on' : ''}" title="Play this placement now, whatever the situation">hear</button><button data-del class="del">delete</button></div>
         <div class="row"><label>Sound <select data-k="clip">${opts(r.clip)}</select></label>
           <label>Mix <select data-k="bus"><option value="music" ${r.bus === 'music' ? 'selected' : ''}>music</option><option value="amb" ${r.bus === 'amb' ? 'selected' : ''}>ambience</option><option value="sfx" ${r.bus === 'sfx' ? 'selected' : ''}>effects</option></select></label>
           <label><input type="checkbox" data-k="loop" ${r.loop ? 'checked' : ''}>loop</label>
@@ -269,6 +269,7 @@ export class SoundStudio {
       const f = e.target.closest('[data-flag]');
       if (f) { const k = f.dataset.flag; if (r.req.includes(k)) { r.req = r.req.filter((x) => x !== k); r.not.push(k); } else if (r.not.includes(k)) r.not = r.not.filter((x) => x !== k); else r.req.push(k); this.saveLocal(); this.drawRules(); return; }
       if (e.target.closest('[data-del]')) { this.killRule(r.id); this.rules = this.rules.filter((x) => x !== r); this.saveLocal(); this.drawRules(); return; }
+      if (e.target.closest('[data-game]')) { if (!this.ensureCtx()) return; if (this.isPreviewing(r)) this.forceOn = false; else { this.audition = null; this.forceOn = true; this.forced = new Set(r.req); this.fdread = (r.dmin + r.dmax) / 2; this.hush(); } this.drawChips(true); this.drawRules(); return; }
       if (e.target.closest('[data-aud]')) { if (!this.ensureCtx()) return; this.audition = this.audition === r.id ? null : r.id; this.drawRules(); }
     };
     this.colRules.oninput = (e) => {
@@ -284,6 +285,8 @@ export class SoundStudio {
       this.saveLocal(); this.liveTune(r);
     };
   }
+  /** is the forced situation exactly this placement's conditions? */
+  isPreviewing(r) { return this.forceOn && this.forced.size === r.req.length && r.req.every((k) => this.forced.has(k)) && Math.abs(this.fdread - (r.dmin + r.dmax) / 2) < 0.01; }
   newRule() {
     this.rules.push({ id: uid(), name: `Placement ${this.rules.length + 1}`, clip: this.sel || '', bus: 'music', loop: true, vol: 0.8, fi: 3, fo: 3, duck: 1, duckAmb: 0, dmin: 0, dmax: 1, req: [], not: [], on: true });
     this.saveLocal(); this.drawRules();
