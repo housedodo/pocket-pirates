@@ -1,4 +1,5 @@
-import { styleOf, shapeOf, STYLE_DEF, SHAPES, stairs, slopeHouses } from './villagestyles.js';
+import { sectorAt } from './sectors.js';
+import { styleOf, shapeOf, STYLE_DEF, SHAPES, stairs, slopeHouses, flagCloth, fort, laundry } from './villagestyles.js';
 import { pushOut } from './solids.js';
 import * as THREE from 'three';
 import { Builder, darken } from './builder.js';
@@ -23,7 +24,7 @@ const COL = {
 const WALLS = ['#f4dfb0', '#f0b3a0', '#a9d6ee', '#f2e48a', '#c9e6a8', '#e8c0e0'];
 const ROOFS = ['#d2483c', '#3c78c8', '#2f9a8a', '#c86a2a', '#7a4ab0'];
 // a village's custom can repaint every house (whitewash) or keep children indoors; set while a harbour is built
-let PAINT = null, NO_CHILD = false;
+let PAINT = null, NO_CHILD = false, CUR_FLAG = null;
 
 // ---------------------------------------------------------------------------
 // Island description (pure function of seed + cell) and terrain height field
@@ -107,6 +108,7 @@ export function describeCell(cx, cz, seed) {
     // every village keeps one custom, and has its own festival day in the week
     desc.custom = key === '0,-1' ? 'bells' : CUSTOMS[hash2(cx, cz, seed + 909) % CUSTOMS.length];
     desc.festival = key === '0,-1' ? 6 : hash2(cx, cz, seed + 910) % 7;
+    desc.flag = sectorAt(x, z, seed).faction.color;   // the colours it flies
     desc.style = styleOf(hash2(cx, cz, seed + 777), key);
     { const vt = typeof window !== 'undefined' && window.__villageTest; if (vt && key === '-2,-1') desc.style = vt.style; }   // dev: force the look of the second harbour (see docs/PROGRESS.md)   // its own island outline, ground, palette, street plan and landmark (villagestyles.js)
     desc.dockTh = key === '0,-1' ? Math.PI / 2 : (Math.abs(hash2(cx, cz, seed + 123)) % 628) / 100;
@@ -481,6 +483,7 @@ export function houseKind(A, B, x, y, z, ry, rng, kind) {
       A.cyl(0, 6.9, 3.6, 1.6, 0, 1.9, 4, '#b8503a', TILE.roof, false);
       A.box(0, 8.7, 3.6, 0.2, 0.9, 0.2, '#f4e8c0', TILE.stone); A.box(0, 9.1, 3.6, 0.6, 0.2, 0.2, '#f4e8c0', TILE.stone);
       A.box(0, 0, 4.72, 1.0, 2.0, 0.1, '#5a3a20', TILE.planks);
+      if (CUR_FLAG) flagCloth(A, 0, 9.4, 3.6, Math.PI / 2, CUR_FLAG, 0.5);   // the faction's flag over the town
       break;
     }
     case 'round': { // a round hut with a thatched cone roof
@@ -958,7 +961,9 @@ function decorate(d, rng, A, B, D, extra) {
       if (d.custom === 'whitewash') PAINT = SD.paint ? { ...PAINT, wall: '#f4f0e8' } : { wall: '#f4f0e8', roof: '#3c78c8' };   // whitewash keeps each style's own roofs NO_CHILD = d.custom === 'nochildren';
       const n = Math.round((6 + Math.floor(rng() * 3)) * Math.max(1, d.r / 25));
       let placed = 0;
-      const VS = { d, rng, dockTh, A, B, D, extra, houseKind, spot, palm, barrel, crateBox, fishRack, fence, ropeCoil, beachedBoat, shoreR, terrainHeight, angleDiff, paint: SD.paint };
+      const housesLog = [], hk = (a, b, x, y, z, ry, r, k) => { housesLog.push([x, z]); return houseKind(a, b, x, y, z, ry, r, k); };
+      CUR_FLAG = d.flag;
+      const VS = { d, rng, dockTh, A, B, D, extra, houseKind: hk, flag: d.flag, spot, palm, barrel, crateBox, fishRack, fence, ropeCoil, beachedBoat, shoreR, terrainHeight, angleDiff, paint: SD.paint };
       if (SD.build) SD.build(VS);
       if (d.sh && d.sh.H > 2.6) stairs(VS);                                                  // steps up the ramp from the pier
       if (d.sh && (d.sh.id === 'terraced' || d.sh.id === 'hill')) slopeHouses(VS, 4 + Math.floor(rng() * 4));   // houses down the slope, on their own levels
@@ -968,9 +973,16 @@ function decorate(d, rng, A, B, D, extra) {
         const rho = shoreR(d, th) * (0.28 + rng() * 0.38);
         const x = Math.cos(th) * rho, z = Math.sin(th) * rho;
         const kind = placed === 0 ? 'tavern' : placed === 1 && (rng() < 0.45 || d.custom === 'bells') ? (d.id === '0,-1' ? 'belltower' : 'church') : pickCol(rng, ['cottage', 'colonial', 'colonial', 'planter', 'thatch', 'thatch', 'townhouse', 'round', 'stilt', 'warehouse']);
-        houseKind(A, B, x, d.H - 0.1, z, Math.atan2(-x, -z), rng, kind);
+        hk(A, B, x, d.H - 0.1, z, Math.atan2(-x, -z), rng, kind);
         if (kind === 'tavern') extra.tavern = { x, z, ry: Math.atan2(-x, -z) };
         placed++;
+      }
+      // a stone fort on the shore (Tama and about half the other ports), and washing lines between the houses
+      if (d.id === '0,-1' || (d.style !== 'fortress' && rng() < 0.55)) fort(VS, dockTh + (rng() < 0.5 ? -1 : 1) * (1.25 + rng() * 0.35));
+      for (let i = 0, nl = 2 + Math.floor(rng() * 3); i < nl && housesLog.length; i++) {
+        const [hx, hz] = housesLog[Math.floor(rng() * housesLog.length)], a = rng() * 6.28, lx = hx + Math.cos(a) * 4.4, lz = hz + Math.sin(a) * 4.4;
+        if (Math.hypot(lx, lz) > shoreR(d, Math.atan2(lz, lx)) * 0.75 || Math.abs(angleDiff(Math.atan2(lz, lx), dockTh)) < 0.4) continue;
+        laundry(VS, lx, lz, a + Math.PI / 2);
       }
       // lighthouse opposite the dock (not every harbour has one)
       const lth = dockTh + Math.PI + (rng() - 0.5) * 0.6, lr = shoreR(d, lth) * 0.74;
@@ -1041,7 +1053,7 @@ function decorate(d, rng, A, B, D, extra) {
         if (d.sleepy) for (let i = 0; i < 2; i++) { const [x, z] = at(0.2, 0.5); hammockSleeper(cr.siesta, x, yy, z, rng() * 6.28, rng); }
         weekAndCustoms(d, rng, cr, { yy, R: Rp, dockTh, z1, n, at, dockAt });
       }
-      PAINT = null; NO_CHILD = false;
+      PAINT = null; NO_CHILD = false; CUR_FLAG = null;
       const nW = 11;
       for (let i = 0; i < nW; i++) {
         const th = (i / nW) * Math.PI * 2 + rng() * 0.2, rho = shoreR(d, th) * 0.8;

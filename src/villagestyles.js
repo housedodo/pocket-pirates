@@ -52,7 +52,7 @@ const bush = (S, x, y, z, col, s = 1) => S.B.blob(x, y + 0.35 * s, z, 0.8 * s, 0
 function cube(S, x, y, z, ry, rng, wall, deck, floors = 1) {
   const A = S.A; A.push(x, y, z, ry);
   const w = rnd(rng, 3.0, 3.8), dep = rnd(rng, 3.0, 3.6), h = 2.4 * floors;
-  A.box(0, 0, 0, w, y0(S, w, dep), dep, wall, TILE.wall, TILE.white);
+  A.box(0, 0, 0, w, h, dep, wall, TILE.wall, TILE.white);
   A.box(0, h, 0, w + 0.3, 0.3, dep + 0.3, deck, TILE.stone);                 // a flat roof slab
   A.box(-w * 0.28, 0, dep / 2 + 0.01, 0.95, 1.8, 0.1, '#3c78c8', TILE.planks);   // blue door
   for (let f = 0; f < floors; f++) for (const sx of [-0.9, 0.9]) A.box(w * 0.2 + sx * 0.45, 0.95 + f * 2.5, dep / 2 + 0.01, 0.55, 0.7, 0.08, '#3c78c8', TILE.planks);
@@ -324,7 +324,7 @@ export function stairs(S) {
   }
 }
 export function slopeHouses(S, n) {
-  const { d, rng } = S, sh = d.sh, kinds = ['cottage', 'cottage', 'townhouse', 'stilt'];
+  const { d, rng } = S, sh = d.sh, kinds = ['colonial', 'colonial', 'planter', 'thatch', 'thatch'];
   const pts = [];
   for (let i = 0; i < 160 && pts.length < n; i++) {
     const th = rng() * Math.PI * 2; if (Math.abs(S.angleDiff(th, S.dockTh)) < 0.8) continue;
@@ -337,4 +337,47 @@ export function slopeHouses(S, n) {
     S.A.push(x, y - 0.1, z, ry); S.A.box(0, -2.2, 0, 4.6, 2.3, 4.2, '#9a968c', TILE.stone, TILE.stone); S.A.pop();   // a stone footing that hides the slope
     S.houseKind(S.A, S.B, x, y - 0.1, z, ry, rng, pick(rng, kinds));
   }
+}
+
+// ---- the landmarks of a colonial port: the faction's flag, a stone fort on the shore, and washing lines between the houses
+/** a tall pole with a big flag in the sector's colours and a pale cross (the faction flag of the old pirate games) */
+export function flagCloth(A, x, y, z, ry, col, s = 1) {
+  A.push(x, y, z, ry, s);
+  A.box(0, 0, 0, 0.24, 5.2, 0.24, '#6b4a2e', TILE.bark);
+  for (let i = 0; i < 4; i++) {   // the cloth in four bending strips, so it reads as blown by the wind
+    const bx = 0.12 + i * 0.7, bz = Math.sin(i * 1.1) * 0.25, h = 2.0 - i * 0.12;
+    A.box(bx + 0.35, 3.1 - i * 0.04, bz, 0.7, h, 0.1, col, TILE.white);
+  }
+  A.box(1.5, 3.95, 0.04, 2.6, 0.32, 0.14, '#f4f0e4', TILE.white); A.box(1.0, 3.2, 0.05, 0.34, 1.7, 0.14, '#f4f0e4', TILE.white);   // the cross
+  A.box(0, 5.2, 0, 0.5, 0.4, 0.5, '#c8a040', TILE.glow);
+  A.pop();
+}
+/** a small stone fort: four walls, round corner towers, a gate, cannons on the sea side and a flag; faces +z (the sea) */
+export function fort(S, th) {
+  const { A, d } = S, R = S.shoreR(d, th) * 0.9, x = Math.cos(th) * R, z = Math.sin(th) * R, g = Math.max(0.5, S.terrainHeight(d, x, z)), ry = Math.atan2(x, z);
+  A.push(x, g - 0.1, z, ry);
+  A.box(0, -2.4, 0, 12.6, 2.5, 10.2, '#b8b2a4', TILE.white, TILE.white);                                   // a footing that hides the slope
+  const W = 9, D = 7, stone = '#e0dacb', top = '#cfc8b8';
+  for (const sz of [-1, 1]) { A.box(0, 0, sz * D / 2, W, 3.0, 1.0, stone, TILE.white, TILE.white); for (let i = 0; i < 5; i++) A.box(-W / 2 + 0.9 + i * (W - 1.8) / 4, 3.0, sz * D / 2, 0.9, 0.7, 1.0, top, TILE.white); }
+  for (const sx of [-1, 1]) { A.box(sx * W / 2, 0, 0, 1.0, 3.0, D, stone, TILE.white, TILE.white); for (let i = 0; i < 3; i++) A.box(sx * W / 2, 3.0, -D / 2 + 1.4 + i * 2.1, 1.0, 0.7, 0.9, top, TILE.white); }
+  for (const [sx, sz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) {
+    A.cyl(sx * W / 2, 0, sz * D / 2, 1.7, 1.55, 4.4, 8, '#d8d2c2', TILE.white, false);
+    A.cyl(sx * W / 2, 4.4, sz * D / 2, 1.9, 1.7, 0.5, 8, top, TILE.white, true);
+    for (let i = 0; i < 6; i++) { const a = i * Math.PI / 3; A.box(sx * W / 2 + Math.cos(a) * 1.8, 4.9, sz * D / 2 + Math.sin(a) * 1.8, 0.6, 0.6, 0.6, top, TILE.white); }
+  }
+  A.box(0, 0, D / 2 + 0.55, 2.0, 2.4, 0.2, '#3a2a1c', TILE.planks);                                         // the gate
+  A.box(0, 2.4, D / 2 + 0.55, 2.4, 0.25, 0.3, top, TILE.white);
+  for (const sx of [-2.4, 2.4, 0]) { if (sx) { A.box(sx, 3.0, D / 2 - 0.05, 1.0, 0.5, 1.0, '#6b4a2e', TILE.planks); A.cyl(sx, 3.5, D / 2 + 0.4, 0.28, 0.24, 1.3, 6, '#2a2a30', TILE.white, true); } }   // cannons over the wall
+  A.box(-1.8, 0, -0.6, 2.4, 1.8, 2.4, '#d8c8a8', TILE.wall, TILE.white); A.gable(-1.8, 1.8, -0.6, 2.8, 1.2, 2.8, '#b8503a', TILE.roof, '#d8c8a8');   // a barracks inside
+  flagCloth(A, -W / 2, 4.9, -D / 2, Math.PI / 2, S.flag || '#c83a2a', 0.8);
+  A.pop();
+}
+/** washing between two poles: a row of cloths in bright colours, on a stretch of ground beside a house */
+export function laundry(S, x, z, ry) {
+  const { A, rng } = S, len = 4.4, y = Math.min(S.d.H - 0.1, S.terrainHeight(S.d, x, z) - 0.05);
+  A.push(x, y, z, ry);
+  for (const sx of [-1, 1]) A.box(sx * len / 2, 0, 0, 0.22, 2.7, 0.22, '#5a3e24', TILE.bark);
+  for (let i = 0; i < 4; i++) A.box(-len / 2 + 0.9 + i * (len - 1.8) / 3, 1.0 + (i % 2) * 0.15, 0, 0.75, 1.1 - (i % 2) * 0.2, 0.1, pick(rng, ['#f4f0e4', '#d83a3a', '#3c78c8', '#e8c060', '#f0a0c0', '#5ec45a']), TILE.white);
+  A.box(0, 2.55, 0, len, 0.16, 0.16, '#8a6a4a', TILE.rope);
+  A.pop();
 }
