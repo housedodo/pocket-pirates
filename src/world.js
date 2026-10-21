@@ -394,7 +394,17 @@ function lanternMan(b, x, y, z, ry, rng) {
 function smoke(b, x, y, z, n = 4) { for (let i = 0; i < n; i++) b.blob(x + i * 0.3, y + i * 0.8, z + Math.sin(i) * 0.3, 0.3 + i * 0.16, 0.25 + i * 0.12, 0.3 + i * 0.16, i < 2 ? '#a8a4a6' : '#d0ccce', TILE.white, 0.35, i + x); }
 
 // ---- house kinds (all face +z local, base at y)
-export const HOUSES = ['cottage', 'townhouse', 'stilt', 'round', 'tavern', 'warehouse', 'belltower'];
+export const HOUSES = ['cottage', 'townhouse', 'stilt', 'round', 'tavern', 'warehouse', 'belltower', 'colonial', 'planter', 'thatch', 'church'];
+// the Caribbean palette (colonial towns, as in the old pirate games): warm terracotta, palm thatch, pastel and whitewashed walls, bright shutters
+const TERRACOTTA = ['#c8643a', '#b8503a', '#d27a3a', '#a84a32'], THATCH = ['#c8a860', '#b89850', '#d8b868', '#a88a48'], SHUTTERS = ['#3f8a6a', '#3c78c8', '#b83a2e', '#2f9a8a', '#e8c060'];
+/** the life in front of a house: a bush or two with flowers, a bench, a hen, a lantern; seeded so no two doors look alike */
+function yard(A, rng, w, dep, sx = 1) {
+  const fz = dep / 2 + 1.5;
+  if (rng() < 0.7) { A.blob(sx * (w / 2 + 0.5), 0.35, fz - 0.6, 0.5, 0.4, 0.5, '#3f8a38', TILE.white, 0.3, 4); for (let i = 0; i < 3; i++) A.blob(sx * (w / 2 + 0.5) + (i - 1) * 0.25, 0.7, fz - 0.6 + (i % 2) * 0.2, 0.13, 0.13, 0.13, pickCol(rng, ['#e8509a', '#f0c030', '#e85a3a', '#ffffff']), TILE.white, 0.05, i); }
+  if (rng() < 0.4) { A.box(-sx * (w * 0.25), 0.2, fz + 0.2, 1.3, 0.12, 0.5, '#6b4a2e', TILE.planks); A.box(-sx * (w * 0.25) - 0.5, 0, fz + 0.2, 0.14, 0.2, 0.4, '#5a3e24', TILE.bark); A.box(-sx * (w * 0.25) + 0.5, 0, fz + 0.2, 0.14, 0.2, 0.4, '#5a3e24', TILE.bark); }
+  if (rng() < 0.35) { A.blob(sx * 0.2, 0.25, fz + 0.9, 0.22, 0.18, 0.28, '#f4f0e4', TILE.white, 0.2, 2); A.box(sx * 0.2, 0.36, fz + 1.08, 0.1, 0.1, 0.1, '#c83a2a', TILE.white); }   // a hen
+  if (rng() < 0.3) { A.box(-sx * (w / 2 + 0.3), 0.0, dep / 2 - 0.1, 0.2, 2.0, 0.2, '#3a3036', TILE.bark); A.box(-sx * (w / 2 + 0.3), 2.0, dep / 2 - 0.1, 0.34, 0.36, 0.34, '#ffffff', TILE.glow); }   // a lantern post
+}
 export function houseKind(A, B, x, y, z, ry, rng, kind) {
   let wall = pickCol(rng, WALLS), roof = pickCol(rng, ROOFS);
   if (PAINT) { if (PAINT.walls) wall = pickCol(rng, PAINT.walls); if (PAINT.roofs) roof = pickCol(rng, PAINT.roofs); if (PAINT.wall) wall = PAINT.wall; if (PAINT.roof) roof = PAINT.roof; }
@@ -421,6 +431,56 @@ export function houseKind(A, B, x, y, z, ry, rng, kind) {
       for (const sx of [-0.3, 0.3]) A.box(sx, -0.1, 1.95, 0.08, 1.45, 0.08, '#5a3a20', TILE.bark);
       for (let i = 0; i < 4; i++) A.box(0, 0.1 + i * 0.33, 1.95, 0.66, 0.06, 0.06, '#5a3a20', TILE.bark);
       A.quad([1.6, 1.36, 0.8], [1.6, 1.36, -0.8], [1.6, 0.2, -0.6], [1.6, 0.3, 0.7], '#c8c0a0', TILE.rope);
+      break;
+    }
+    case 'colonial': { // a low whitewashed house with a hipped terracotta roof and a veranda
+      const w = 3.6 + rng() * 1.2, dep = w - 0.4 + rng() * 0.8, h = 2.2 + rng() * 0.5, rf = PAINT && PAINT.roofs ? roof : pickCol(rng, TERRACOTTA), sh = pickCol(rng, SHUTTERS);
+      A.box(0, 0, 0, w, h, dep, wall, TILE.wall, TILE.white);
+      A.push(0, h, 0, Math.PI / 4); A.cyl(0, 0, 0, Math.max(w, dep) * 0.78 + 0.5, 0.2, 1.6 + rng() * 0.5, 4, rf, TILE.roof, false); A.pop();
+      A.box(0, 0, dep / 2 + 0.9, w + 0.4, 0.22, 1.7, '#8a6238', TILE.planks);            // the veranda floor
+      for (const sx of [-1, 0, 1]) A.box(sx * (w / 2 + 0.1), 0.2, dep / 2 + 1.55, 0.22, 2.0, 0.22, '#f4f0e4', TILE.bark);
+      A.box(0, 2.2, dep / 2 + 0.9, w + 0.7, 0.2, 1.9, rf, TILE.roof);                    // its little roof
+      A.box(0, 0.22, dep / 2 + 0.01, 0.95, 1.8, 0.1, '#5a3a20', TILE.planks);
+      for (const sx of [-1, 1]) { A.box(sx * w * 0.3, 1.0, dep / 2 + 0.03, 0.6, 0.8, 0.08, '#2a2a3a', TILE.white); A.box(sx * w * 0.3 - 0.45, 1.0, dep / 2 + 0.06, 0.2, 0.8, 0.08, sh, TILE.planks); A.box(sx * w * 0.3 + 0.45, 1.0, dep / 2 + 0.06, 0.2, 0.8, 0.08, sh, TILE.planks); }
+      A.box(w * 0.28, h + 0.7, -dep * 0.2, 0.5, 1.1, 0.5, '#a89a88', TILE.stone);
+      yard(A, rng, w, dep, rng() < 0.5 ? 1 : -1);
+      break;
+    }
+    case 'planter': { // a planter's house: stone ground floor, a shuttered upper storey with a balcony, a big hipped roof
+      const w = 4.4 + rng() * 1.0, dep = 3.8 + rng() * 0.6, rf = PAINT && PAINT.roofs ? roof : pickCol(rng, TERRACOTTA), sh = pickCol(rng, SHUTTERS);
+      A.box(0, 0, 0, w, 2.3, dep, '#d8d0c0', TILE.stone, TILE.stone);
+      A.box(0, 2.3, 0, w - 0.3, 2.1, dep - 0.3, wall, TILE.wall, TILE.white);
+      A.box(0, 2.25, dep / 2 + 0.55, w + 0.2, 0.2, 1.1, '#8a6238', TILE.planks);          // balcony
+      for (let i = 0; i < 6; i++) A.box(-w / 2 + 0.2 + i * (w - 0.4) / 5, 2.45, dep / 2 + 1.05, 0.2, 0.9, 0.2, '#f4f0e4', TILE.bark);
+      A.box(0, 3.35, dep / 2 + 1.05, w, 0.2, 0.2, '#f4f0e4', TILE.bark);
+      A.push(0, 4.4, 0, Math.PI / 4); A.cyl(0, 0, 0, Math.max(w, dep) * 0.76 + 0.5, 0.2, 2.0, 4, rf, TILE.roof, false); A.pop();
+      A.box(0, 0, dep / 2 + 0.01, 1.2, 1.9, 0.1, '#5a3a20', TILE.planks);
+      for (const sx of [-1, 1]) { A.box(sx * w * 0.32, 0.9, dep / 2 + 0.03, 0.7, 0.9, 0.08, '#2a2a3a', TILE.white); for (const o of [-0.5, 0.5]) A.box(sx * w * 0.32 + o, 3.1, dep / 2 - 0.1, 0.2, 1.0, 0.08, sh, TILE.planks); }
+      A.box(-w * 0.28, 5.2, -dep * 0.15, 0.55, 1.3, 0.55, '#a89a88', TILE.stone);
+      yard(A, rng, w, dep, rng() < 0.5 ? 1 : -1);
+      break;
+    }
+    case 'thatch': { // a palm-thatch cottage: low walls, a steep overhanging roof, a porch, nets and crabpots
+      const w = 3.0 + rng() * 1.0, dep = 3.4 + rng() * 1.2, th = pickCol(rng, THATCH);
+      A.box(0, 0, 0, w, 1.7, dep, wall, TILE.wall, TILE.white);
+      A.gable(0, 1.7, 0, w + 1.2, 2.2, dep + 1.0, th, TILE.rope, wall);
+      A.box(-w * 0.2, 0, dep / 2 + 0.01, 0.9, 1.5, 0.1, '#5a3a20', TILE.planks);
+      A.box(w * 0.28, 0.9, dep / 2 + 0.03, 0.6, 0.6, 0.08, '#2a2a3a', TILE.white);
+      A.box(0, 0, dep / 2 + 0.7, w * 0.8, 0.18, 1.0, '#8a6238', TILE.planks);
+      for (const sx of [-1, 1]) A.box(sx * w * 0.38, 0, dep / 2 + 1.1, 0.2, 1.7, 0.2, '#5a3e24', TILE.bark);
+      if (rng() < 0.6) A.cyl(w / 2 + 0.5, 0, 0.2, 0.35, 0.3, 0.6, 6, '#c8a860', TILE.rope, true);   // a crab pot
+      yard(A, rng, w, dep, rng() < 0.5 ? 1 : -1);
+      break;
+    }
+    case 'church': { // a white church, a terracotta roof, a bell tower with a small spire at the front
+      A.box(0, 0, 0, 3.6, 3.0, 6.2, '#f6f2ea', TILE.wall, TILE.white);
+      A.gable(0, 3.0, 0, 4.2, 1.8, 6.8, pickCol(rng, TERRACOTTA), TILE.roof, '#f6f2ea');
+      A.box(0, 0, 3.6, 2.2, 5.6, 2.2, '#f6f2ea', TILE.wall, TILE.white);
+      for (const [sx, sz] of [[-0.8, -0.8], [0.8, -0.8], [-0.8, 0.8], [0.8, 0.8]]) A.box(sx, 5.6, 3.6 + sz, 0.26, 1.3, 0.26, '#e8e0d0', TILE.stone);
+      A.cyl(0, 5.8, 3.6, 0.32, 0.2, 0.6, 7, '#c8a040', TILE.glow, true);
+      A.cyl(0, 6.9, 3.6, 1.6, 0, 1.9, 4, '#b8503a', TILE.roof, false);
+      A.box(0, 8.7, 3.6, 0.2, 0.9, 0.2, '#f4e8c0', TILE.stone); A.box(0, 9.1, 3.6, 0.6, 0.2, 0.2, '#f4e8c0', TILE.stone);
+      A.box(0, 0, 4.72, 1.0, 2.0, 0.1, '#5a3a20', TILE.planks);
       break;
     }
     case 'round': { // a round hut with a thatched cone roof
@@ -907,7 +967,7 @@ function decorate(d, rng, A, B, D, extra) {
         if (Math.abs(angleDiff(th, dockTh)) < 0.55) continue;
         const rho = shoreR(d, th) * (0.28 + rng() * 0.38);
         const x = Math.cos(th) * rho, z = Math.sin(th) * rho;
-        const kind = placed === 0 ? 'tavern' : placed === 1 && (rng() < 0.45 || d.custom === 'bells') ? 'belltower' : pickCol(rng, ['cottage', 'cottage', 'townhouse', 'townhouse', 'round', 'stilt', 'warehouse']);
+        const kind = placed === 0 ? 'tavern' : placed === 1 && (rng() < 0.45 || d.custom === 'bells') ? (d.id === '0,-1' ? 'belltower' : 'church') : pickCol(rng, ['cottage', 'colonial', 'colonial', 'planter', 'thatch', 'thatch', 'townhouse', 'round', 'stilt', 'warehouse']);
         houseKind(A, B, x, d.H - 0.1, z, Math.atan2(-x, -z), rng, kind);
         if (kind === 'tavern') extra.tavern = { x, z, ry: Math.atan2(-x, -z) };
         placed++;

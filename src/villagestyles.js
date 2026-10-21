@@ -51,7 +51,7 @@ const bush = (S, x, y, z, col, s = 1) => S.B.blob(x, y + 0.35 * s, z, 0.8 * s, 0
 // ---- buildings (local +z is the front; they stand on y)
 function cube(S, x, y, z, ry, rng, wall, deck, floors = 1) {
   const A = S.A; A.push(x, y, z, ry);
-  const w = rnd(rng, 3.0, 3.8), dep = rnd(rng, 3.0, 3.6), h = 2.5 * floors;
+  const w = rnd(rng, 3.0, 3.8), dep = rnd(rng, 3.0, 3.6), h = 2.4 * floors;
   A.box(0, 0, 0, w, y0(S, w, dep), dep, wall, TILE.wall, TILE.white);
   A.box(0, h, 0, w + 0.3, 0.3, dep + 0.3, deck, TILE.stone);                 // a flat roof slab
   A.box(-w * 0.28, 0, dep / 2 + 0.01, 0.95, 1.8, 0.1, '#3c78c8', TILE.planks);   // blue door
@@ -174,7 +174,7 @@ export const STYLE_DEF = {
     name: 'Fishing village', shapes: ['dune', 'dune', 'bowl'], ground: ['#e2cc8c', '#d2b676'], rMul: 0.85, lobeMul: 1.8, paint: { walls: ['#9aa8a0', '#8a98a0', '#b8a890', '#a89878'], roofs: ['#5a6a70', '#6a5a4a', '#3c6a78'] },
     build(S) {
       const { A, rng, d } = S;
-      ring(S, ['stilt', 'stilt', 'stilt', 'cottage', 'stilt'], 9, 0.5, 0.82, 5.6, true);
+      ring(S, ['stilt', 'stilt', 'thatch', 'thatch', 'stilt'], 9, 0.5, 0.82, 5.6, true);
       for (let i = 0; i < 3; i++) { const th = S.dockTh + 1.2 + i * 1.7 + rng() * 0.3, R = S.shoreR(d, th); A.push(Math.cos(th) * R * 0.8, 0, Math.sin(th) * R * 0.8, Math.PI / 2 - th); A.box(0, 0.62, 5, 1.4, 0.2, 10, '#6b4a2e', TILE.planks); A.pop(); }   // little side jetties
       for (let i = 0; i < 6; i++) { const th = rng() * 6.28; if (!outsideDock(S, th, 0.4)) continue; const [x, z] = Pn(S, th, 0.7 + rng() * 0.2); S.fishRack(A, x, y0(S), z, rng() * 3); }
       for (let i = 0; i < 4; i++) { const th = rng() * 6.28; const [x, z] = Pn(S, th, 0.9); const h = S.terrainHeight(d, x, z); if (h > 0.1) S.beachedBoat(A, x, y0(S, x, z), z, th + 1.57); }
@@ -184,18 +184,19 @@ export const STYLE_DEF = {
   },
 
   terraced: {
-    name: 'White town', shapes: ['terraced', 'terraced', 'hill'], ground: ['#e8e0cc', '#d6ccb4'], rMul: 0.95, lobeMul: 0.8, paint: { walls: ['#f6f2ea', '#efe9dc', '#f4efe4'], roofs: ['#3c78c8', '#3c78c8', '#c86a2a'] },
+    name: 'White town', shapes: ['terraced', 'terraced', 'hill'], ground: ['#e8e0cc', '#d6ccb4'], rMul: 0.95, lobeMul: 0.8, paint: { walls: ['#f6f2ea', '#f2e0b0', '#f0b8a0', '#b8dcd0', '#f6f2ea'], roofs: ['#c8643a', '#b8503a', '#d27a3a'] },
     build(S) {
       const { rng, d } = S, h = y0(S);
       const pts = scatter(S, 13, 0.1, 0.72, 4.6);
       pts.forEach(([x, z], i) => {
         const ry = Math.round(faceIn(x, z) / (Math.PI / 2)) * (Math.PI / 2);
-        if (i === 0) { S.houseKind(S.A, S.B, x, y0(S, x, z), z, ry, rng, 'tavern'); S.extra.tavern = { x, z, ry }; }
-        else if (i === 1) dome(S, x, y0(S, x, z), z, ry);
-        else if (i === 2) S.houseKind(S.A, S.B, x, y0(S, x, z), z, ry, rng, 'belltower');
-        else cube(S, x, y0(S, x, z), z, ry, rng, pick(rng, S.paint.walls), pick(rng, ['#f2ead8', '#d8c8a8', '#c86a2a']), rng() < 0.4 ? 2 : 1);
+        const y = y0(S, x, z);
+        if (i === 0) { S.houseKind(S.A, S.B, x, y, z, ry, rng, 'tavern'); S.extra.tavern = { x, z, ry }; }
+        else if (i === 1) S.houseKind(S.A, S.B, x, y, z, ry, rng, 'church');
+        else if (i === 2) dome(S, x, y, z, ry);
+        else { const k = rng(); if (k < 0.3) cube(S, x, y, z, ry, rng, pick(rng, S.paint.walls), pick(rng, ['#f2ead8', '#d8c8a8']), 1); else S.houseKind(S.A, S.B, x, y, z, ry, rng, k < 0.55 ? 'colonial' : k < 0.8 ? 'planter' : 'thatch'); }
       });
-      for (let i = 0; i < 7; i++) { const p = S.spot(d, rng, 0.2, 0.85, 0.8); if (p) tree(S, p[0], p[1], p[2], 0.8 + rng() * 0.5, 'cypress', '#2f6a3a', rng); }
+      palms(S, 8, 0.2, 0.85, 0.9);
       for (let i = 0; i < 8; i++) { const p = S.spot(d, rng, 0.15, 0.8, 0.8); if (p) bush(S, p[0], p[1], p[2], i % 2 ? '#d83a8a' : '#e8509a', 0.8); }
       well(S, 0, h, 0);
     },
@@ -227,7 +228,7 @@ export const STYLE_DEF = {
           if (Math.hypot(x, z) > S.shoreR(d, Math.atan2(z, x)) * 0.82) continue;
           const ry = Math.atan2(-lx * side, -lz * side);   // front to the street
           if (first) { tavernAt(S, x, z, ry); first = false; continue; }
-          const k = rng(); S.houseKind(S.A, S.B, x, y0(S, x, z), z, ry, rng, k < 0.55 ? 'townhouse' : k < 0.8 ? 'warehouse' : 'cottage');
+          const k = rng(); S.houseKind(S.A, S.B, x, y0(S, x, z), z, ry, rng, k < 0.4 ? 'planter' : k < 0.55 ? 'townhouse' : k < 0.75 ? 'warehouse' : 'colonial');
         }
       }
       { const bx = ax * -R * 0.62, bz = az * -R * 0.62; S.houseKind(S.A, S.B, bx, y0(S, bx, bz), bz, Math.atan2(-ax, -az), rng, 'belltower'); }
@@ -253,7 +254,7 @@ export const STYLE_DEF = {
       }
       { const [x, z] = Pn(S, dockTh + Math.PI, 0.5); keepTower(S, x, y0(S, x, z), z, faceIn(x, z), 1.5); }   // the keep
       const pts = scatter(S, 8, 0.2, 0.7, 5.4);
-      pts.forEach(([x, z], i) => { const ry = faceIn(x, z); if (i === 0) tavernAt(S, x, z, ry); else S.houseKind(S.A, S.B, x, y0(S, x, z), z, ry, rng, pick(rng, ['cottage', 'townhouse', 'warehouse', 'townhouse'])); });
+      pts.forEach(([x, z], i) => { const ry = faceIn(x, z); if (i === 0) tavernAt(S, x, z, ry); else S.houseKind(S.A, S.B, x, y0(S, x, z), z, ry, rng, pick(rng, ['colonial', 'townhouse', 'warehouse', 'planter'])); });
       for (let i = 0; i < 4; i++) { const [x, z] = Pn(S, S.dockTh + (rng() - 0.5) * 1.2, 0.58 + rng() * 0.15); S.A.cyl(x, y0(S, x, z), z, 0.45, 0.4, 0.5, 6, '#2a2a30', TILE.stone, true); S.A.cyl(x + 0.9, h, z, 0.45, 0.4, 0.5, 6, '#2a2a30', TILE.stone, true); }   // cannonballs by the pier
       for (let i = 0; i < 4; i++) { const p = S.spot(d, rng, 0.2, 0.8, 0.8); if (p) bush(S, p[0], p[1], p[2], '#6a8a4a', 0.7); }
     },
@@ -265,7 +266,7 @@ export const STYLE_DEF = {
       const { rng, d } = S, h = y0(S);
       const [wx, wz] = Pn(S, S.dockTh + Math.PI * 0.8, 0.5); windmill(S, wx, y0(S, wx, wz), wz, faceIn(wx, wz));
       const pts = scatter(S, 6, 0.3, 0.55, 6);
-      pts.filter(([x, z]) => Math.hypot(x - wx, z - wz) > 6).forEach(([x, z], i) => { const ry = faceIn(x, z); if (i === 0) tavernAt(S, x, z, ry); else S.houseKind(S.A, S.B, x, y0(S, x, z), z, ry, rng, pick(rng, ['cottage', 'cottage', 'round', 'warehouse'])); });
+      pts.filter(([x, z]) => Math.hypot(x - wx, z - wz) > 6).forEach(([x, z], i) => { const ry = faceIn(x, z); if (i === 0) tavernAt(S, x, z, ry); else S.houseKind(S.A, S.B, x, y0(S, x, z), z, ry, rng, pick(rng, ['thatch', 'thatch', 'colonial', 'warehouse'])); });
       if (!S.extra.tavern) { const [x, z] = Pn(S, S.dockTh + 1.4, 0.42); tavernAt(S, x, z, faceIn(x, z)); }
       for (let i = 0; i < 4; i++) { const th = S.dockTh + 0.9 + i * 1.3, [x, z] = Pn(S, th, 0.7); if (!outsideDock(S, th, 0.5) || Math.hypot(x - wx, z - wz) < 7) continue; field(S, x, y0(S, x, z), z, faceIn(x, z), 6.4, 4.2, pick(rng, ['#8ac455', '#d8b848', '#6aa84a', '#c8782a'])); }
       for (let i = 0; i < 6; i++) { const [x, z] = Pn(S, rng() * 6.28, 0.2 + rng() * 0.5); hayBale(S, x, y0(S, x, z), z, rng() * 3); }
@@ -283,7 +284,7 @@ export const STYLE_DEF = {
       for (let i = 0; i < 4; i++) { const t = R * (0.12 + i * 0.1); stoneLantern(S, ax * t - az * 1.9, h, az * t + ax * 1.9); stoneLantern(S, ax * t + az * 1.9, h, az * t - ax * 1.9); }
       { const [x, z] = Pn(S, dockTh + Math.PI, 0.32); pagoda(S, x, y0(S, x, z), z, faceIn(x, z)); }
       const pts = scatter(S, 7, 0.4, 0.72, 5.4).filter(([x, z]) => Math.abs(S.angleDiff(Math.atan2(z, x), dockTh)) > 0.45);
-      pts.forEach(([x, z], i) => { const ry = faceIn(x, z); if (i === 0) tavernAt(S, x, z, ry); else S.houseKind(S.A, S.B, x, y0(S, x, z), z, ry, rng, pick(rng, ['cottage', 'cottage', 'townhouse'])); });
+      pts.forEach(([x, z], i) => { const ry = faceIn(x, z); if (i === 0) tavernAt(S, x, z, ry); else S.houseKind(S.A, S.B, x, y0(S, x, z), z, ry, rng, pick(rng, ['cottage', 'cottage', 'townhouse', 'thatch'])); });
       for (let i = 0; i < 6; i++) { const p = S.spot(d, rng, 0.2, 0.85, 0.8); if (p) tree(S, p[0], p[1], p[2], 0.9 + rng() * 0.4, 'round', pick(rng, ['#f0a0c0', '#f4b8d0', '#e888b0']), rng); }
       for (let i = 0; i < 4; i++) { const p = S.spot(d, rng, 0.25, 0.9, 0.8); if (p) tree(S, p[0], p[1], p[2], 0.9, 'bamboo', null, rng); }
     },
@@ -295,7 +296,7 @@ export const STYLE_DEF = {
       const { rng, d, dockTh } = S, h = y0(S);
       { const [x, z] = Pn(S, dockTh + Math.PI * 0.9, 0.42); hullHall(S, x, y0(S, x, z), z, faceIn(x, z)); }
       const pts = scatter(S, 10, 0.25, 0.75, 4.2);
-      pts.forEach(([x, z, th], i) => { const ry = faceIn(x, z) + (rng() - 0.5) * 0.9; if (i === 0) tavernAt(S, x, z, ry); else S.houseKind(S.A, S.B, x, y0(S, x, z), z, ry, rng, pick(rng, ['cottage', 'cottage', 'stilt', 'warehouse'])); });
+      pts.forEach(([x, z, th], i) => { const ry = faceIn(x, z) + (rng() - 0.5) * 0.9; if (i === 0) tavernAt(S, x, z, ry); else S.houseKind(S.A, S.B, x, y0(S, x, z), z, ry, rng, pick(rng, ['thatch', 'cottage', 'stilt', 'warehouse'])); });
       for (let i = 0; i < 9; i++) { const [x, z] = Pn(S, rng() * 6.28, 0.2 + rng() * 0.65); ragPole(S, x, y0(S, x, z), z, pick(rng, ['#8a2a2a', '#c8b890', '#3a3a48', '#6a4a7a'])); }
       for (let i = 0; i < 6; i++) { const [x, z] = Pn(S, rng() * 6.28, 0.3 + rng() * 0.5); if (i % 2) S.barrel(S.A, x, y0(S, x, z), z, 1); else S.crateBox(S.A, x, y0(S, x, z), z, rng() * 3); S.ropeCoil(S.A, x + 1, h, z + 0.6, 1); }
       for (let i = 0; i < 4; i++) { const th = rng() * 6.28; if (!outsideDock(S, th, 0.4)) continue; const [x, z] = Pn(S, th, 0.92), hh = S.terrainHeight(d, x, z); if (hh > 0.1) S.beachedBoat(S.A, x, hh, z, th + 1.57); }
