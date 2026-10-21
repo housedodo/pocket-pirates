@@ -7,8 +7,9 @@ const T = 64;
 export const TILE = {
   planks: 0, wall: 1, roof: 2, stone: 3, leaf: 4, bark: 5, glow: 6, white: 7,
   sail: 8, skull: 9, bone: 10, void: 11, flag: 12, rope: 13, spore: 14, sand: 15,
+  plaster: 16, wallB: 17, wallC: 18,   // plain whitewash plaster, and two more window layouts so houses don't all share one face
 };
-const ATLAS = 4;
+const ATLAS = 8;   // 8x8 slots of 64px (512px), the first 19 in use
 const INSET = 0.6 / (T * ATLAS);
 
 export function tileUV(tile) {
@@ -134,6 +135,30 @@ export function makeAtlas() {
   // sand
   fill(TILE.sand, 236, 214, 150, 12);
 
+  // plaster: plain lime-washed wall (no timber frame, no windows: the house models its own shutters), a damp band at the foot, hairline-free cracks in 2px steps
+  fill(TILE.plaster, 240, 232, 214, 7);
+  for (let i = 0; i < 4; i++) { let x = (R(4, 58) | 0) & ~1, y = (R(4, 40) | 0) & ~1; for (let k = 0; k < 5; k++) { rect(TILE.plaster, x, y, 2, 2, 'rgb(200,188,166)'); x += R(0, 1) < 0.5 ? 2 : -2; y += 2; } }
+  rect(TILE.plaster, 0, T - 6, T, 6, 'rgb(214,202,176)');
+
+  // wall B: plaster, one tall shuttered window in the middle (shutters left wood-dark so any wall colour reads)
+  fill(TILE.wallB, 238, 226, 196, 8);
+  rect(TILE.wallB, 0, T - 5, T, 5, 'rgb(150,110,74)');
+  rect(TILE.wallB, 22, 12, 20, 34, 'rgb(90,56,34)');
+  rect(TILE.wallB, 24, 14, 16, 30, 'rgb(255,200,48)');
+  rect(TILE.wallB, 31, 14, 2, 30, 'rgb(90,56,34)'); rect(TILE.wallB, 24, 27, 16, 2, 'rgb(90,56,34)');
+  rect(TILE.wallB, 14, 12, 7, 34, 'rgb(70,96,80)'); rect(TILE.wallB, 43, 12, 7, 34, 'rgb(70,96,80)');
+  for (const sx of [14, 43]) for (let y = 14; y < 46; y += 4) rect(TILE.wallB, sx, y, 7, 1, 'rgb(48,70,58)');
+  rect(TILE.wallB, 20, 46, 24, 3, 'rgb(150,110,74)');   // sill
+
+  // wall C: plaster, a small square window high up and a low wide one with a box of flowers, corner stones
+  fill(TILE.wallC, 236, 224, 200, 8);
+  for (let y = 0; y < T; y += 10) { rect(TILE.wallC, 0, y, 5, 8, 'rgb(196,184,160)'); rect(TILE.wallC, T - 5, y + 4, 5, 8, 'rgb(196,184,160)'); }
+  rect(TILE.wallC, 26, 6, 12, 12, 'rgb(90,56,34)'); rect(TILE.wallC, 28, 8, 8, 8, 'rgb(255,200,48)');
+  rect(TILE.wallC, 10, 28, 44, 20, 'rgb(90,56,34)'); rect(TILE.wallC, 12, 30, 40, 16, 'rgb(255,200,48)');
+  for (const x of [24, 38]) rect(TILE.wallC, x, 30, 2, 16, 'rgb(90,56,34)');
+  rect(TILE.wallC, 10, 48, 44, 4, 'rgb(110,74,46)');
+  for (let x = 12; x < 52; x += 4) rect(TILE.wallC, x, 46, 2, 2, x % 8 ? 'rgb(214,92,150)' : 'rgb(74,138,56)');
+
 
   // ---- grime pass: stains, rain streaks, scratches, damp edges, moss. Keeps glowing windows clean.
   const stain = (t, x, y, w, h, col, a) => { const [ox, oy] = tilePos(t); g.globalAlpha = a; g.fillStyle = col; g.fillRect(ox + x, oy + y, w, h); g.globalAlpha = 1; };
@@ -157,6 +182,9 @@ export function makeAtlas() {
   dirty(TILE.bone, { blotch: 5, streak: 1, scratch: 5, edge: 0.1 });
   dirty(TILE.sand, { blotch: 12, streak: 0, scratch: 0, edge: 0 });
   dirty(TILE.flag, { blotch: 6, streak: 3, scratch: 0, edge: 0.1 });
+  dirty(TILE.plaster, { blotch: 9, streak: 6, moss: 0.45, scratch: 3 });
+  dirty(TILE.wallB, { blotch: 7, streak: 5, moss: 0.4, scratch: 3, clear: [11, 47] });
+  dirty(TILE.wallC, { blotch: 7, streak: 4, moss: 0.4, scratch: 3, clear: [5, 52] });
 
   const tex = new THREE.CanvasTexture(c);
   tex.magFilter = THREE.NearestFilter;

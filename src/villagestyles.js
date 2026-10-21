@@ -1,6 +1,6 @@
 import { TILE } from './textures.js';
 
-// VILLAGE STYLES: every harbour (except Tama, which stays the classic) gets one of nine looks, so villages can be told apart at a glance:
+// VILLAGE STYLES: every harbour (except Tama, which stays the classic) gets one of eight looks, so villages can be told apart at a glance:
 // its own island outline, ground, palette, house shapes, street plan, landmark and plants. Picked from the seed (`styleOf`).
 // A style's build(S) places the houses and extras; S carries the builders (A always, B bright mood, D dark mood) and the world's helpers.
 /** Terrain shapes of a village island: H = height of the village level, te/w = where the ground starts to fall and how long the fall is (cliffs are short),
@@ -52,7 +52,7 @@ const bush = (S, x, y, z, col, s = 1) => S.B.blob(x, y + 0.35 * s, z, 0.8 * s, 0
 function cube(S, x, y, z, ry, rng, wall, deck, floors = 1) {
   const A = S.A; A.push(x, y, z, ry);
   const w = rnd(rng, 3.0, 3.8), dep = rnd(rng, 3.0, 3.6), h = 2.4 * floors;
-  A.box(0, 0, 0, w, h, dep, wall, TILE.wall, TILE.white);
+  A.box(0, 0, 0, w, h, dep, wall, TILE.plaster, TILE.white);   // a whitewashed cube: plain plaster, the blue door and shutters are modelled
   A.box(0, h, 0, w + 0.3, 0.3, dep + 0.3, deck, TILE.stone);                 // a flat roof slab
   A.box(-w * 0.28, 0, dep / 2 + 0.01, 0.95, 1.8, 0.1, '#3c78c8', TILE.planks);   // blue door
   for (let f = 0; f < floors; f++) for (const sx of [-0.9, 0.9]) A.box(w * 0.2 + sx * 0.45, 0.95 + f * 2.5, dep / 2 + 0.01, 0.55, 0.7, 0.08, '#3c78c8', TILE.planks);
@@ -62,8 +62,8 @@ function cube(S, x, y, z, ry, rng, wall, deck, floors = 1) {
 }
 function dome(S, x, y, z, ry) {
   const A = S.A; A.push(x, y, z, ry);
-  A.box(0, 0, 0, 3.8, 3.0, 3.8, '#f6f2ea', TILE.wall, TILE.white);
-  A.cyl(0, 3.0, 0, 1.8, 1.7, 0.4, 8, '#f6f2ea', TILE.wall, false);
+  A.box(0, 0, 0, 3.8, 3.0, 3.8, '#f6f2ea', TILE.wallB, TILE.white);
+  A.cyl(0, 3.0, 0, 1.8, 1.7, 0.4, 8, '#f6f2ea', TILE.plaster, false);
   A.blob(0, 3.4, 0, 1.8, 1.4, 1.8, '#3c78c8', TILE.roof, 0.08, 4);
   A.box(0, 4.7, 0, 0.3, 0.9, 0.3, '#f4e8c0', TILE.stone); A.box(0, 5.0, 0, 0.8, 0.28, 0.3, '#f4e8c0', TILE.stone);
   A.box(0, 0, 1.91, 1.0, 2.0, 0.1, '#5a3a20', TILE.planks);
@@ -79,7 +79,7 @@ function longhouse(S, x, y, z, ry, rng) {
 }
 function windmill(S, x, y, z, ry) {
   const A = S.A; A.push(x, y, z, ry);
-  A.cyl(0, 0, 0, 2.2, 1.4, 5.4, 8, '#e8dcc0', TILE.wall, false);
+  A.cyl(0, 0, 0, 2.2, 1.4, 5.4, 8, '#e8dcc0', TILE.plaster, false);
   A.cyl(0, 5.4, 0, 1.7, 0, 1.8, 8, '#8a4a2e', TILE.roof, false);
   A.box(0, 0, 2.0, 0.9, 1.7, 0.1, '#5a3a20', TILE.planks);
   A.push(0, 4.6, 1.6, 0, 1, 1, 1, 0, 0.5);   // the sails, a cross turned a little
@@ -124,7 +124,7 @@ function hullHall(S, x, y, z, ry) {   // an upturned ship, lived in
   A.box(0, 2.5, -1.0, 0.3, 3.2, 0.3, '#4a3220', TILE.bark); A.box(0, 4.2, -1.0, 1.8, 0.8, 0.12, '#c8b890', TILE.sail);
   A.pop();
 }
-const ragPole = (S, x, y, z, col) => { S.B.box(x, y, z, 0.2, 4.2, 0.2, '#4a3a2a', TILE.bark); S.B.tri([x, y + 4.2, z], [x, y + 3.2, z], [x + 1.3, y + 3.7, z + 0.4], col, TILE.flag); };
+const ragPole = (S, x, y, z, col) => { S.B.box(x, y, z, 0.2, 4.2, 0.2, '#4a3a2a', TILE.bark); S.B.tri([x, y + 4.2, z], [x, y + 3.2, z], [x + 1.3, y + 3.7, z + 0.4], col, TILE.white); };
 
 // ---- layout helpers
 function Pn(S, th, rho) { const R = S.shoreR(S.d, th) * rho; return [Math.cos(th) * R, Math.sin(th) * R]; }
@@ -158,7 +158,7 @@ export const STYLE_DEF = {
     build(S) {
       const { A, rng, d } = S;
       ring(S, ['stilt', 'stilt', 'thatch', 'thatch', 'stilt'], 9, 0.5, 0.82, 5.6, true);
-      for (let i = 0; i < 3; i++) { const th = S.dockTh + 1.2 + i * 1.7 + rng() * 0.3, R = S.shoreR(d, th); A.push(Math.cos(th) * R * 0.8, 0, Math.sin(th) * R * 0.8, Math.PI / 2 - th); A.box(0, 0.62, 5, 1.4, 0.2, 10, '#6b4a2e', TILE.planks); A.pop(); }   // little side jetties
+      for (let i = 0; i < 3; i++) { const th = S.dockTh + 1.2 + i * 1.7 + rng() * 0.3, R = S.shoreR(d, th); A.push(Math.cos(th) * R * 0.8, 0, Math.sin(th) * R * 0.8, Math.PI / 2 - th); A.box(0, 0.62, 5, 1.4, 0.2, 10, '#6b4a2e', TILE.planks); for (const pz of [3, 6.2, 9.4]) for (const sx of [-0.62, 0.62]) A.cyl(sx, -1.8, pz, 0.14, 0.12, 2.65, 5, '#5a3e24', TILE.bark, false); A.pop(); }   // little side jetties on their own piles
       for (let i = 0; i < 6; i++) { const th = rng() * 6.28; if (!outsideDock(S, th, 0.4)) continue; const [x, z] = Pn(S, th, 0.7 + rng() * 0.2); S.fishRack(A, x, y0(S), z, rng() * 3); }
       for (let i = 0; i < 4; i++) { const th = rng() * 6.28; const [x, z] = Pn(S, th, 0.9); const h = S.terrainHeight(d, x, z); if (h > 0.1) S.beachedBoat(A, x, y0(S, x, z), z, th + 1.57); }
       for (let i = 0; i < 5; i++) { const [x, z] = Pn(S, rng() * 6.28, 0.35 + rng() * 0.3); A.box(x, y0(S), z, 0.3, 2.6, 0.3, '#5a3e24', TILE.bark); A.box(x + 1.4, y0(S), z, 0.3, 2.6, 0.3, '#5a3e24', TILE.bark); A.quad([x, y0(S) + 2.5, z], [x + 1.4, y0(S) + 2.5, z], [x + 1.4, y0(S) + 0.9, z], [x, y0(S) + 0.9, z], '#c8c0a0', TILE.rope); }   // nets hung out
@@ -216,7 +216,7 @@ export const STYLE_DEF = {
       }
       { const bx = ax * -R * 0.62, bz = az * -R * 0.62; S.houseKind(S.A, S.B, bx, y0(S, bx, bz), bz, Math.atan2(-ax, -az), rng, 'belltower'); }
       fountain(S, ax * R * 0.05, h, az * R * 0.05);
-      for (let i = -2; i <= 2; i++) if (i) { const x = ax * (R * 0.05 + i * 2.8) + lx * 0, z = az * (R * 0.05 + i * 2.8); S.B.box(x + lx * 3.2, h, z + lz * 3.2, 0.2, 4.6, 0.2, '#6b4a2e', TILE.bark); S.B.tri([x + lx * 3.2, h + 4.6, z + lz * 3.2], [x + lx * 3.2, h + 3.7, z + lz * 3.2], [x + lx * 3.2 + ax * 1.3, h + 4.1, z + lz * 3.2 + az * 1.3], pick(rng, ['#d24a3e', '#e8c060', '#3c78c8']), TILE.flag); }
+      for (let i = -2; i <= 2; i++) if (i) { const x = ax * (R * 0.05 + i * 2.8) + lx * 0, z = az * (R * 0.05 + i * 2.8); S.B.box(x + lx * 3.2, h, z + lz * 3.2, 0.2, 4.6, 0.2, '#6b4a2e', TILE.bark); S.B.tri([x + lx * 3.2, h + 4.6, z + lz * 3.2], [x + lx * 3.2, h + 3.7, z + lz * 3.2], [x + lx * 3.2 + ax * 1.3, h + 4.1, z + lz * 3.2 + az * 1.3], pick(rng, ['#d24a3e', '#e8c060', '#3c78c8']), TILE.white); }
       palms(S, 2, 0.8, 0.9);
     },
   },
@@ -316,10 +316,10 @@ export function flagCloth(A, x, y, z, ry, col, s = 1) {
 /** broken colonial walls on the shore: sun-bleached coral stone, crumbled tops, rubble, moss, an old arch stump and a rusted cannon lying in the sand.
  *  Low and weathered, nothing medieval: what is left of a Spanish landing. Faces +z (the sea). */
 export function ruins(S, th) {
-  const { A, B, d, rng } = S, R = S.shoreR(d, th) * 0.88, x = Math.cos(th) * R, z = Math.sin(th) * R, g = Math.max(0.5, S.terrainHeight(d, x, z)), ry = Math.atan2(x, z);
+  const { A, B, d, rng } = S, R = S.shoreR(d, th) * (d.sh && d.sh.id === 'cliff' ? d.sh.te - 0.07 : 0.8), x = Math.cos(th) * R, z = Math.sin(th) * R, g = Math.max(0.5, S.terrainHeight(d, x, z)), ry = Math.atan2(x, z);   // well inside the shoreline, so nothing overhangs the water
   const col = () => pick(rng, ['#d8c8a8', '#cdbd9c', '#e0d2b4', '#c8b894']);
   A.push(x, g - 0.1, z, ry);
-  A.box(0, -2.0, 0, 10.5, 2.1, 6.6, '#b8aa8a', TILE.stone, TILE.stone);                      // a footing that hides the slope
+  A.box(-0.6, -1.4, -0.4, 8.4, 1.5, 4.8, '#cdbd9c', TILE.stone, TILE.stone);                   // a low footing in the same bleached stone, only where the ground slopes away
   const wall = (cx, cz, len, rot, h) => {
     A.push(cx, 0, cz, rot);
     A.box(0, 0, 0, len, h, 0.9, col(), TILE.stone, TILE.stone);

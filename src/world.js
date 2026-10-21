@@ -5,6 +5,7 @@ import * as THREE from 'three';
 import { Builder, darken } from './builder.js';
 import { TILE } from './textures.js';
 import { mats } from './psx.js';
+import { ISL_LOBES } from './ocean.js';
 import { hash2, mulberry32, fbm, clamp, angleDiff, smoothstep } from './util.js';
 import { dreadAtDistance } from './palette.js';
 import { makeName, makePuzzle } from './lore.js';
@@ -176,32 +177,48 @@ function faceColor(d, hc, slope, noise) {
   return c;
 }
 
-function buildTerrain(d, rng) {
-  const b = new Builder();
-  b.uvFn = (p) => [(p.x + d.x) * 0.12, (p.z + d.z) * 0.12];
+/** the old 22-sided grid's draws from the island's generator, made again so that everything decorate() places afterwards
+ *  (houses, the tavern, the treasure's hiding place) stays exactly where it was before the grid changed */
+function burnLegacyTerrainRng(d, rng) {
   const segs = d.type === 'sandbar' ? 14 : d.sh ? 30 : 22;
   const rings = d.sh ? [0, 0.14, 0.28, 0.4, 0.5, 0.58, 0.64, 0.7, 0.76, 0.82, 0.88, 0.93, 0.97, 1.0, 1.1, 1.3] : [0, 0.2, 0.4, 0.58, 0.72, 0.84, 0.93, 1.0, 1.1, 1.3];
-  const P = rings.map((t) => Array.from({ length: segs }, (_, i) => {
-    const th = (i / segs) * Math.PI * 2, R = shoreR(d, th);
-    const x = Math.cos(th) * R * t, z = Math.sin(th) * R * t;
+  const P = rings.map((t) => Array.from({ length: segs }, (_, i) => { const th = (i / segs) * Math.PI * 2, R = shoreR(d, th), x = Math.cos(th) * R * t, z = Math.sin(th) * R * t; return t === 0 ? terrainHeight(d, 0.001, 0) : terrainHeight(d, x, z); }));
+  for (let r = 0; r < rings.length - 1; r++) for (let i = 0; i < segs; i++) { const j = (i + 1) % segs; rng(); if ((P[r][i] + P[r][j] + P[r + 1][j] + P[r + 1][i]) / 4 > 0.5) rng(); }
+}
+function buildTerrain(d, islandRng) {
+  burnLegacyTerrainRng(d, islandRng);
+  const rng = mulberry32(d.seed * 4111 + 29);   // the ground's own colour jitter
+  const b = new Builder();
+  b.uvFn = (p) => [(p.x + d.x) * 0.12, (p.z + d.z) * 0.12];
+  const segs = d.type === 'sandbar' ? 18 : d.sh ? 36 : 30;
+  const rings = d.sh ? [0, 0.14, 0.28, 0.4, 0.5, 0.58, 0.64, 0.7, 0.76, 0.82, 0.88, 0.93, 0.97, 1.0, 1.1, 1.3] : [0, 0.2, 0.3, 0.4, 0.5, 0.58, 0.66, 0.72, 0.78, 0.84, 0.89, 0.93, 0.97, 1.0, 1.1, 1.3];
+  // the grid is polar, so its vertices are nudged a little (angle and radius, inside the shoreline only): no straight spokes, no wedge-shaped fields
+  const jit = (r, i, k) => { const h = Math.sin((r * 131.7 + i * 17.3 + k) * 12.9898 + d.seed) * 43758.5453; return h - Math.floor(h) - 0.5; };
+  const P = rings.map((t, r) => Array.from({ length: segs }, (_, i) => {
+    const inner = t > 0 && t < 0.95;
+    const th = ((i + (inner ? jit(r, i, 1) * 0.7 : 0)) / segs) * Math.PI * 2, R = shoreR(d, th), tt = inner ? t + jit(r, i, 2) * 0.05 : t;
+    const x = Math.cos(th) * R * tt, z = Math.sin(th) * R * tt;
     return [x, t === 0 ? terrainHeight(d, 0.001, 0) : terrainHeight(d, x, z), z];
   }));
   const tmp = new THREE.Color(), dk = new THREE.Color();
+  // every triangle takes its own ground colour (from its own centre), so grass and sand meet in ragged triangle edges
+  const tri = (p0, p1, p2) => {
+    const hc = (p0[1] + p1[1] + p2[1]) / 3, cx = (p0[0] + p1[0] + p2[0]) / 3, cz = (p0[2] + p1[2] + p2[2]) / 3;
+    const ys = [p0[1], p1[1], p2[1]], dy = Math.max(...ys) - Math.min(...ys), span = Math.max(Math.hypot(p0[0] - p1[0], p0[2] - p1[2]), Math.hypot(p1[0] - p2[0], p1[2] - p2[2]), Math.hypot(p2[0] - p0[0], p2[2] - p0[2]));
+    const slope = clamp(dy / (span + 0.001) * 0.5, 0, 1);
+    const noise = fbm((cx + d.x) * 0.25, (cz + d.z) * 0.25, d.seed + 9);
+    const base = faceColor(d, hc, slope, noise);
+    tmp.copy(base).multiplyScalar(0.88 + rng() * 0.22);
+    darken(tmp, dk);
+    if (hc > 0.5 && rng() < 0.12) dk.lerp(COL.violet, 0.8);
+    b.tri(p0, p1, p2, tmp, TILE.white, undefined, dk);
+  };
   for (let r = 0; r < rings.length - 1; r++) {
     for (let i = 0; i < segs; i++) {
       const j = (i + 1) % segs;
       const a = P[r][i], bb = P[r][j], c = P[r + 1][j], e = P[r + 1][i];
-      const hc = (a[1] + bb[1] + c[1] + e[1]) / 4;
-      const dx = c[0] - e[0], dy = c[1] - e[1], dz = c[2] - e[2];
-      const slope = clamp(Math.abs(dy) / (Math.hypot(dx, dz) + 0.001) * 0.5, 0, 1);
-      const noise = fbm((a[0] + d.x) * 0.25, (a[2] + d.z) * 0.25, d.seed + 9);
-      const base = faceColor(d, hc, slope, noise);
-      const k = 0.88 + rng() * 0.22;
-      tmp.copy(base).multiplyScalar(k);
-      darken(tmp, dk);
-      if (hc > 0.5 && rng() < 0.12) dk.lerp(COL.violet, 0.8);
-      b.tri(a, bb, c, tmp, TILE.white, undefined, dk);
-      b.tri(a, c, e, tmp, TILE.white, undefined, dk);
+      if (r === 0) tri(a, c, e);                                                              // the centre: one fan triangle
+      else if ((i + r) % 2) { tri(a, bb, c); tri(a, c, e); } else { tri(a, bb, e); tri(bb, c, e); }   // alternate the diagonal
     }
   }
   return b;
@@ -270,12 +287,14 @@ export function palm(A, B, D, x, y, z, rng, s = 1) {
   D.blob(px, py - 0.1, pz, 0.28 * s, 0.28 * s, 0.28 * s, '#ffffff', TILE.spore, 0.1, x + z);
 }
 
+/** which of the three windowed wall faces a house gets, from where it stands (not from the island's generator, so nothing else moves) */
+const wallFace = (x, z) => [TILE.wall, TILE.wallB, TILE.wallC][Math.abs(Math.floor(x * 7.3 + z * 13.1)) % 3];
 function house(A, B, x, y, z, ry, rng) {
   const w = 3.2 + rng() * 1.4, dep = 3 + rng() * 1.2, h = 2.1 + rng() * 0.9;
   let wall = pickCol(rng, WALLS), roof = pickCol(rng, ROOFS);
   if (PAINT) { if (PAINT.walls) wall = pickCol(rng, PAINT.walls); if (PAINT.roofs) roof = pickCol(rng, PAINT.roofs); if (PAINT.wall) wall = PAINT.wall; if (PAINT.roof) roof = PAINT.roof; }
   A.push(x, y, z, ry);
-  A.box(0, 0, 0, w, h, dep, wall, TILE.wall, TILE.white);
+  A.box(0, 0, 0, w, h, dep, wall, wallFace(x, z), TILE.white);
   A.gable(0, h, 0, w + 0.6, 1.4 + rng() * 0.5, dep + 0.6, roof, TILE.roof, wall);
   A.box(w * 0.28, h + 0.9, -dep * 0.2, 0.55, 1.1, 0.55, '#a89a88', TILE.stone);
   A.box(-w * 0.2, 0, dep / 2 + 0.01, 0.95, 1.8, 0.12, '#7a4e2c', TILE.planks);
@@ -292,7 +311,7 @@ function house(A, B, x, y, z, ry, rng) {
   if (rng() < 0.6) { // flag pole + pennant (only while it is still a happy town)
     B.push(x, y + h + 1.4, z, ry);
     B.box(0, 0, 0, 0.1, 2.2, 0.1, '#6b4a2e', TILE.bark);
-    B.tri([0, 2.2, 0], [0, 1.6, 0], [0.9, 1.9, 0.5], pickCol(rng, ROOFS), TILE.flag);
+    B.tri([0, 2.2, 0], [0, 1.6, 0], [0.9, 1.9, 0.5], pickCol(rng, ROOFS), TILE.white);
     B.pop();
   }
 }
@@ -378,7 +397,7 @@ function marketStall(b, x, y, z, ry, rng) {
   for (const [sx, sz] of [[-0.9, -0.5], [0.9, -0.5], [-0.9, 0.5], [0.9, 0.5]]) b.box(sx, 0, sz, 0.1, 1.8, 0.1, '#6b4a2e', TILE.bark);
   b.box(0, 0, 0.45, 1.9, 0.75, 0.5, '#9a6a3a', TILE.planks);
   const awn = pickCol(rng, ROOFS);
-  b.push(0, 1.85, 0, 0, 1, 1, 1, 0.25); b.box(0, 0, 0, 2.1, 0.08, 1.5, awn, TILE.flag); b.pop();
+  b.push(0, 1.85, 0, 0, 1, 1, 1, 0.25); b.box(0, 0, 0, 2.1, 0.08, 1.5, awn, TILE.white); b.pop();
   for (let i = 0; i < 5; i++) b.blob(-0.7 + i * 0.35, 0.86, 0.45 + (i % 2) * 0.1, 0.13, 0.11, 0.13, pickCol(rng, ['#f0c030', '#e85a3a', '#5ec45a', '#8a5a30', '#f4a040']), TILE.white, 0.05, i);
   b.pop();
 }
@@ -415,7 +434,7 @@ export function houseKind(A, B, x, y, z, ry, rng, kind) {
   switch (kind) {
     case 'townhouse': { // two storeys, a trim band, a balcony with railings
       const w = 3.2, dep = 3, h = 4.3;
-      A.box(0, 0, 0, w, h, dep, wall, TILE.wall, TILE.white);
+      A.box(0, 0, 0, w, h, dep, wall, wallFace(x, z), TILE.white);
       A.box(0, 2.1, 0, w + 0.1, 0.18, dep + 0.1, '#7a5a3a', TILE.planks);
       A.gable(0, h, 0, w + 0.5, 1.5, dep + 0.5, roof, TILE.roof, wall);
       A.box(0, 2.15, dep / 2 + 0.45, w * 0.7, 0.12, 0.9, '#6b4a2e', TILE.planks);
@@ -428,7 +447,7 @@ export function houseKind(A, B, x, y, z, ry, rng, kind) {
     case 'stilt': { // a fisher's house up on posts, with a ladder and a net
       for (const [sx, sz] of [[-1.3, -1.1], [1.3, -1.1], [-1.3, 1.1], [1.3, 1.1]]) A.cyl(sx, -1.0, sz, 0.12, 0.1, 2.3, 4, '#6b4a2e', TILE.bark);
       A.box(0, 1.2, 0.3, 3.2, 0.16, 3.4, '#8a6238', TILE.planks);
-      A.box(0, 1.36, 0, 2.6, 1.8, 2.4, wall, TILE.wall, TILE.white);
+      A.box(0, 1.36, 0, 2.6, 1.8, 2.4, wall, wallFace(x, z), TILE.white);
       A.gable(0, 3.16, 0, 3.0, 1.2, 2.8, roof, TILE.roof, wall);
       for (const sx of [-0.3, 0.3]) A.box(sx, -0.1, 1.95, 0.08, 1.45, 0.08, '#5a3a20', TILE.bark);
       for (let i = 0; i < 4; i++) A.box(0, 0.1 + i * 0.33, 1.95, 0.66, 0.06, 0.06, '#5a3a20', TILE.bark);
@@ -437,7 +456,7 @@ export function houseKind(A, B, x, y, z, ry, rng, kind) {
     }
     case 'colonial': { // a low whitewashed house with a hipped terracotta roof and a veranda
       const w = 3.6 + rng() * 1.2, dep = w - 0.4 + rng() * 0.8, h = 2.2 + rng() * 0.5, rf = PAINT && PAINT.roofs ? roof : pickCol(rng, TERRACOTTA), sh = pickCol(rng, SHUTTERS);
-      A.box(0, 0, 0, w, h, dep, wall, TILE.wall, TILE.white);
+      A.box(0, 0, 0, w, h, dep, wall, TILE.plaster, TILE.white);   // plain lime-wash: the veranda house models its own windows and shutters
       A.push(0, h, 0, Math.PI / 4); A.cyl(0, 0, 0, Math.max(w, dep) * 0.78 + 0.5, 0.2, 1.6 + rng() * 0.5, 4, rf, TILE.roof, false); A.pop();
       A.box(0, 0, dep / 2 + 0.9, w + 0.4, 0.22, 1.7, '#8a6238', TILE.planks);            // the veranda floor
       for (const sx of [-1, 0, 1]) A.box(sx * (w / 2 + 0.1), 0.2, dep / 2 + 1.55, 0.22, 2.0, 0.22, '#f4f0e4', TILE.bark);
@@ -451,7 +470,7 @@ export function houseKind(A, B, x, y, z, ry, rng, kind) {
     case 'planter': { // a planter's house: stone ground floor, a shuttered upper storey with a balcony, a big hipped roof
       const w = 4.4 + rng() * 1.0, dep = 3.8 + rng() * 0.6, rf = PAINT && PAINT.roofs ? roof : pickCol(rng, TERRACOTTA), sh = pickCol(rng, SHUTTERS);
       A.box(0, 0, 0, w, 2.3, dep, '#d8d0c0', TILE.stone, TILE.stone);
-      A.box(0, 2.3, 0, w - 0.3, 2.1, dep - 0.3, wall, TILE.wall, TILE.white);
+      A.box(0, 2.3, 0, w - 0.3, 2.1, dep - 0.3, wall, TILE.plaster, TILE.white);
       A.box(0, 2.25, dep / 2 + 0.55, w + 0.2, 0.2, 1.1, '#8a6238', TILE.planks);          // balcony
       for (let i = 0; i < 6; i++) A.box(-w / 2 + 0.2 + i * (w - 0.4) / 5, 2.45, dep / 2 + 1.05, 0.2, 0.9, 0.2, '#f4f0e4', TILE.bark);
       A.box(0, 3.35, dep / 2 + 1.05, w, 0.2, 0.2, '#f4f0e4', TILE.bark);
@@ -464,7 +483,7 @@ export function houseKind(A, B, x, y, z, ry, rng, kind) {
     }
     case 'thatch': { // a palm-thatch cottage: low walls, a steep overhanging roof, a porch, nets and crabpots
       const w = 3.0 + rng() * 1.0, dep = 3.4 + rng() * 1.2, th = pickCol(rng, THATCH);
-      A.box(0, 0, 0, w, 1.7, dep, wall, TILE.wall, TILE.white);
+      A.box(0, 0, 0, w, 1.7, dep, wall, TILE.plaster, TILE.white);
       A.gable(0, 1.7, 0, w + 1.2, 2.2, dep + 1.0, th, TILE.rope, wall);
       A.box(-w * 0.2, 0, dep / 2 + 0.01, 0.9, 1.5, 0.1, '#5a3a20', TILE.planks);
       A.box(w * 0.28, 0.9, dep / 2 + 0.03, 0.6, 0.6, 0.08, '#2a2a3a', TILE.white);
@@ -475,9 +494,9 @@ export function houseKind(A, B, x, y, z, ry, rng, kind) {
       break;
     }
     case 'church': { // a white church, a terracotta roof, a bell tower with a small spire at the front
-      A.box(0, 0, 0, 3.6, 3.0, 6.2, '#f6f2ea', TILE.wall, TILE.white);
+      A.box(0, 0, 0, 3.6, 3.0, 6.2, '#f6f2ea', TILE.wallB, TILE.white);
       A.gable(0, 3.0, 0, 4.2, 1.8, 6.8, pickCol(rng, TERRACOTTA), TILE.roof, '#f6f2ea');
-      A.box(0, 0, 3.6, 2.2, 5.6, 2.2, '#f6f2ea', TILE.wall, TILE.white);
+      A.box(0, 0, 3.6, 2.2, 5.6, 2.2, '#f6f2ea', TILE.plaster, TILE.white);
       for (const [sx, sz] of [[-0.8, -0.8], [0.8, -0.8], [-0.8, 0.8], [0.8, 0.8]]) A.box(sx, 5.6, 3.6 + sz, 0.26, 1.3, 0.26, '#e8e0d0', TILE.stone);
       A.cyl(0, 5.8, 3.6, 0.32, 0.2, 0.6, 7, '#c8a040', TILE.glow, true);
       A.cyl(0, 6.9, 3.6, 1.6, 0, 1.9, 4, '#b8503a', TILE.roof, false);
@@ -495,12 +514,12 @@ export function houseKind(A, B, x, y, z, ry, rng, kind) {
     }
     case 'tavern': { // big, warm, a hanging sign, barrels and lanterns by the door
       const w = 5.2, dep = 3.8, h = 2.7;
-      A.box(0, 0, 0, w, h, dep, wall, TILE.wall, TILE.white);
+      A.box(0, 0, 0, w, h, dep, wall, wallFace(x, z), TILE.white);
       A.gable(0, h, 0, w + 0.6, 1.7, dep + 0.6, '#8a3a2a', TILE.roof, wall);
       A.box(0, 0, dep / 2 + 0.01, 1.2, 1.8, 0.12, '#5a3a20', TILE.planks);
       A.box(w / 2 + 0.2, 1.4, dep / 2 - 0.2, 0.1, 1.6, 0.1, '#5a3a20', TILE.bark);
       A.box(w / 2 + 0.7, 2.6, dep / 2 - 0.2, 1.0, 0.08, 0.08, '#5a3a20', TILE.bark);
-      A.box(w / 2 + 0.75, 1.95, dep / 2 - 0.2, 0.8, 0.6, 0.08, '#e8c060', TILE.flag);
+      A.box(w / 2 + 0.75, 1.95, dep / 2 - 0.2, 0.8, 0.6, 0.08, '#e8c060', TILE.white);
       for (const sx of [-0.9, 0.9]) A.box(sx, 1.9, dep / 2 + 0.1, 0.25, 0.3, 0.25, '#ffffff', TILE.glow);
       barrel(A, -w / 2 + 0.6, 0, dep / 2 + 0.6, 1); barrel(A, -w / 2 + 1.4, 0, dep / 2 + 0.7, 0.9); barrel(A, -w / 2 + 1.0, 0.85, dep / 2 + 0.65, 0.8);
       A.box(w * 0.2, 0, dep / 2 + 0.8, 1.6, 0.45, 0.4, '#6b4a2e', TILE.planks);
@@ -555,7 +574,7 @@ function washing(b, x, y, z, ry, rng) {
   b.push(x, y, z, ry);
   for (const sx of [-1.5, 1.5]) b.box(sx, 0, 0, 0.1, 1.9, 0.1, '#5a3e24', TILE.bark);
   b.box(0, 1.75, 0, 3.1, 0.04, 0.04, '#d8d0b0', TILE.rope);
-  for (let i = 0; i < 3; i++) b.quad([-1.1 + i, 1.74, 0], [-0.6 + i, 1.74, 0], [-0.6 + i, 1.05, 0.02], [-1.1 + i, 1.05 - rng() * 0.15, 0.02], pickCol(rng, SHIRTS), TILE.flag);
+  for (let i = 0; i < 3; i++) b.quad([-1.1 + i, 1.74, 0], [-0.6 + i, 1.74, 0], [-0.6 + i, 1.05, 0.02], [-1.1 + i, 1.05 - rng() * 0.15, 0.02], pickCol(rng, SHIRTS), TILE.white);
   b.pop();
 }
 function fence(b, x, y, z, ry, n = 4) {
@@ -756,7 +775,7 @@ function flagLine(b, a, c, k0 = 0) {   // a hanging line of little triangle flag
     const t = (i + 0.5) / n, sag = Math.sin(t * Math.PI) * 0.7;
     const x = a[0] + (c[0] - a[0]) * t, y = a[1] + (c[1] - a[1]) * t - sag, z = a[2] + (c[2] - a[2]) * t;
     const dx = (c[0] - a[0]) / n * 0.45, dz = (c[2] - a[2]) / n * 0.45, col = BUNT[(i + k0) % BUNT.length];
-    b.tri([x - dx, y, z - dz], [x + dx, y, z + dz], [x, y - 0.6, z], col, TILE.flag); b.tri([x + dx, y, z + dz], [x - dx, y, z - dz], [x, y - 0.6, z], col, TILE.flag);
+    b.tri([x - dx, y, z - dz], [x + dx, y, z + dz], [x, y - 0.6, z], col, TILE.white); b.tri([x + dx, y, z + dz], [x - dx, y, z - dz], [x, y - 0.6, z], col, TILE.white);
   }
 }
 function floatLantern(b, x, z) { b.box(x, 0.2, z, 0.7, 0.18, 0.7, '#8a5a30', TILE.planks); b.box(x, 0.38, z, 0.36, 0.42, 0.36, '#ffffff', TILE.glow); }
@@ -780,10 +799,15 @@ function weekAndCustoms(d, rng, cr, g) {
   for (let i = 0; i < 22; i++) { const th = rng() * Math.PI * 2, rho = shoreR(d, th) * (1.12 + rng() * 0.35); floatLantern(L('lantern'), Math.cos(th) * rho, Math.sin(th) * rho); }
   // the village's own custom
   if (d.custom === 'kites') for (let i = 0; i < 4; i++) {
-    const [x, z] = at(0.1, 0.6), h = yy + 9 + rng() * 5, c = BUNT[i % BUNT.length], s = 0.9 + rng() * 0.4, k = L('kites');
-    k.tri([x - s, h, z], [x, h + s * 1.3, z], [x + s, h, z], c, TILE.flag); k.tri([x + s, h, z], [x, h + s * 1.3, z], [x - s, h, z], c, TILE.flag);
-    k.tri([x - s, h, z], [x + s, h, z], [x, h - s * 1.6, z], c, TILE.flag); k.tri([x + s, h, z], [x - s, h, z], [x, h - s * 1.6, z], c, TILE.flag);
-    for (let j = 1; j <= 3; j++) k.box(x + j * 0.25, h - s * 1.6 - j * 0.7, z, 0.28, 0.28, 0.28, BUNT[(i + j) % BUNT.length], TILE.flag);
+    const [hx, hz] = at(0.1, 0.5), a = rng() * 6.28, x = hx + Math.cos(a) * 7, z = hz + Math.sin(a) * 7, h = yy + 9 + rng() * 5, c = BUNT[i % BUNT.length], s = 0.9 + rng() * 0.4, k = L('kites');
+    k.doubleSided = true; k.ambient = 0.85;   // lit on both faces like a flag, so a kite stays bright from every side
+    for (let j = 1, n = 26; j < n; j++) { const t = j / n; k.box(x + (hx - x) * t, h + (yy + 1.0 - h) * t - Math.sin(t * Math.PI) * 0.9 - 0.08, z + (hz - z) * t, 0.17, 0.17, 0.17, '#f4ecd8', TILE.white); }   // the line: chunky beads down to the hand, sagging a little
+    villager(k, hx, yy, hz, Math.atan2(x - hx, z - hz), rng, 'child');   // and somebody holding it
+    k.push(x, h, z, Math.atan2(-Math.cos(a), -Math.sin(a)), 1, 1, 1, 0.7);   // the kite's face turned to the one holding it, leaning back into the wind
+    { const L = [-s, 0, 0], T = [0, s * 1.3, 0], Rt = [s, 0, 0], B = [0, -s * 1.6, 0], C = [0, 0, -0.4 * s];   // bowed on its cross-spar, so it never shows edge-on as a stick
+      for (const [p, q] of [[L, T], [T, Rt], [Rt, B], [B, L]]) { k.tri(p, q, C, c, TILE.white); k.tri(q, p, C, c, TILE.white); } }
+    for (let j = 1; j <= 3; j++) k.box(j * 0.25, -s * 1.6 - j * 0.7, 0, 0.28, 0.28, 0.28, BUNT[(i + j) % BUNT.length], TILE.white);
+    k.pop();
   }
   if (d.custom === 'nightboats') for (let i = 0; i < 4; i++) { const th = dockTh + (i < 2 ? -1 : 1) * (0.95 + (i % 2) * 0.5), rho = shoreR(d, th) * 1.14 + (i % 2) * 5; boatAt(L('nightboats'), Math.cos(th) * rho, Math.sin(th) * rho, th, true); villager(L('nightboats'), Math.cos(th) * rho, 0.3, Math.sin(th) * rho, th, rng, 'fisher'); }
   if (d.custom === 'lanterns') { const k = 10, pts = []; for (let i = 0; i < k; i++) { const th = (i / k) * Math.PI * 2, rho = shoreR(d, th) * 0.5, x = Math.cos(th) * rho, z = Math.sin(th) * rho; L('lamps').box(x, yy, z, 0.16, 2.8, 0.16, '#3a3036', TILE.bark); L('lamps').box(x, yy + 2.8, z, 0.4, 0.44, 0.4, '#ffffff', TILE.glow); pts.push([x, yy + 2.6, z]); }
@@ -1105,6 +1129,7 @@ const LAYER_RULES = {
 export class Island {
   constructor(d, dug) {
     this.desc = d;
+    ISL_LOBES.set(`${d.x},${d.z}`, d.lobes);   // the shallows in the sea shader follow this outline
     const rng = mulberry32(d.seed * 7919 + 13);
     this.group = new THREE.Group();
     this.group.position.set(d.x, 0, d.z);
