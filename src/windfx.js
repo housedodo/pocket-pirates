@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { mulberry32 } from './util.js';
+import { psxMaterial } from './psx.js';
 
 // Wisps of air drifting downwind past the ship: a soft, in-world hint of the wind instead of a number on a gauge. Strength sets how many, how fast and how visible.
 // Each wisp is a few short broken dashes (chunky, never a thin straight line) laid along a lazy curve that wanders with the gusts; it fades in, drifts and fades out, then reappears elsewhere
@@ -17,7 +18,13 @@ export class WindFX {
     g.setAttribute('position', new THREE.BufferAttribute(this.pos, 3));
     g.setAttribute('color', new THREE.BufferAttribute(this.col, 3));
     g.setIndex(idx);
-    this.mat = new THREE.MeshBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.3, fog: false, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide });
+    // PS1 snapping like the rest of the world; additive, so instead of fog each wisp fades out by its distance from the camera
+    // (gone right in front of the lens, where it would be a huge bar, and gone again into the haze far off)
+    this.mat = psxMaterial({
+      vertexColors: true, transparent: true, opacity: 0.3, fog: false, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, key: 'Wi',
+      vertex: { head: 'varying float vWD;', begin: 'vec3 transformed = vec3(position); vWD = -(modelViewMatrix * vec4(position, 1.0)).z;' },
+      fragmentColor: { head: 'varying float vWD;', body: 'diffuseColor.rgb *= smoothstep(4.0, 10.0, vWD) * (1.0 - smoothstep(28.0, 52.0, vWD));' },
+    });
     this.mesh = new THREE.Mesh(g, this.mat);
     this.mesh.frustumCulled = false; this.mesh.renderOrder = 4;
     scene.add(this.mesh);
@@ -27,7 +34,7 @@ export class WindFX {
     const r = this.r;
     if (ship && !anywhere) { q.x = ship.x - wx * BOX * 0.9 + (r() - 0.5) * BOX * 1.8 * sx + (r() - 0.5) * 10 * wx; q.z = ship.z - wz * BOX * 0.9 + (r() - 0.5) * BOX * 1.8 * sz + (r() - 0.5) * 10 * wz; }
     else { q.x = (r() - 0.5) * BOX * 2 + (ship ? ship.x : 0); q.z = (r() - 0.5) * BOX * 2 + (ship ? ship.z : 0); }
-    q.y = 1.5 + r() * 9; q.sp = 0.55 + r() * 0.8; q.ph = r() * 6.28; q.life = anywhere ? r() : 0; q.span = 4 + r() * 6;
+    q.y = 0.9 + r() * 2.6; q.sp = 0.55 + r() * 0.8; q.ph = r() * 6.28; q.life = anywhere ? r() : 0; q.span = 4 + r() * 6;
     q.n = 2 + Math.floor(r() * (K - 1)); q.w = 0.1 + r() * 0.12; q.curl = (r() - 0.5) * 0.16; q.tw = 0.35 + r() * 0.9;
     q.dl = Array.from({ length: K }, () => 0.7 + r() * 1.8); q.gap = Array.from({ length: K }, () => 0.5 + r() * 2.0);
     return q;

@@ -9,12 +9,18 @@ const CELL = 5, SEG = 150, SIZE = CELL * SEG;
 // Near any island the water turns lighter and shallower (WATER.isl, the nearest twelve islands) and the swell flattens a little. Same formulas on the CPU (ship, fauna) and the GPU.
 export const WATER = { rough: 0, isl: [] };   // isl: [[x, z, radius], ...]
 export const NISL = 12;
+/** island outlines for the shallows: "x,z" -> the six lobe numbers of world.js shoreR (registered when an island is built) */
+export const ISL_LOBES = new Map();
+const NO_LOBES = [0, 0, 0, 0, 0, 0];
+const SHORE_FALL = 18;                          // how far out from the shoreline the water stays light and shallow
+/** the island's own shoreline radius in direction (dx, dz), the same formula as world.js shoreR */
+function shoreRad(r, L, dx, dz) { const th = Math.atan2(dz, dx); return r * (1 + L[0] * Math.sin(2 * th + L[3]) + L[1] * Math.sin(3 * th + L[4]) + L[2] * Math.sin(5 * th + L[5])); }
 const W = 1.2566371, WR = 0.6283185;           // swell speed, roller speed (rad/s)
 const sstep = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 /** 0 in open water .. 1 right at an island's shore */
 export function shoreAt(x, z) {
   let s = 0;
-  for (const [ix, iz, r] of WATER.isl) s = Math.max(s, 1 - sstep(0, 40, Math.hypot(x - ix, z - iz) - r * 1.1));
+  for (const [ix, iz, r] of WATER.isl) { const L = ISL_LOBES.get(`${ix},${iz}`) || NO_LOBES; s = Math.max(s, 1 - sstep(0, SHORE_FALL, Math.hypot(x - ix, z - iz) - shoreRad(r, L, x - ix, z - iz) * 1.02)); }
   return s;
 }
 // Real water is never regular: waves of many directions and unrelated speeds, travelling in groups (the envelope), their crests bent a little by a slow warp of the surface.
@@ -34,8 +40,10 @@ export function waveHeight(x, z, t, amp = 1) {
 }
 
 const GLSL_SHORE = /* glsl */`
-uniform vec3 uIsl[${NISL}]; uniform float uRough;
-float shoreF(vec2 p){ float s = 0.0; for (int i = 0; i < ${NISL}; i++) { vec3 I = uIsl[i]; s = max(s, 1.0 - smoothstep(0.0, 40.0, length(p - I.xy) - I.z * 1.1)); } return s; }`;
+uniform vec3 uIsl[${NISL}]; uniform vec3 uIslA[${NISL}]; uniform vec3 uIslB[${NISL}]; uniform float uRough;
+float shoreF(vec2 p){ float s = 0.0; for (int i = 0; i < ${NISL}; i++) { vec3 I = uIsl[i]; vec2 d = p - I.xy; float th = atan(d.y, d.x); vec3 A = uIslA[i], B = uIslB[i];
+  float R = I.z * (1.0 + A.x * sin(2.0 * th + B.x) + A.y * sin(3.0 * th + B.y) + A.z * sin(5.0 * th + B.z));   // follows the island's own lobed outline (world.js shoreR)
+  s = max(s, 1.0 - smoothstep(0.0, ${SHORE_FALL.toFixed(1)}, length(d) - R * 1.02)); } return s; }`;
 const GLSL_WAVE = /* glsl */`
 uniform float uTime; uniform float uWave;
 ${GLSL_SHORE}
@@ -102,8 +110,11 @@ export class Ocean {
           vec3 outB = mix(rb, vec3(0.82, 0.88, 0.86), clamp(streak, 0.0, 1.0) * 0.7) * uLight;
           vec3 outc = mix(outA, outB, uRough * (1.0 - 0.6 * shore));                        // gradual: the roughness itself eases in over time and distance
           // near land: lighter, shallower, more turquoise (the same flat banded look)
-          vec3 shallowTint = mix(uShallow * 1.12, vec3(0.72, 0.95, 0.82), 0.35) * uLight;
-          float band = floor(shore * 4.0 + 0.5) / 4.0;                                     // banded like everything else
+          vec3 shallowTint = mix(uShallow * 1.12, vec3(0.72, 0.95, 0.82), 0.35 * (1.0 - smoothstep(0.4, 0.9, uDread))) * uLight;   // the pale turquoise fades out as dread rises (no milky shores in the dark)
+          ivec2 bq = ivec2(mod(floor(gl_FragCoord.xy), 4.0));                              // ordered 4x4 Bayer dither between three steps, no hard rings
+          float BY[16] = float[16](0., 8., 2., 10., 12., 4., 14., 6., 3., 11., 1., 9., 15., 7., 13., 5.);
+          float bay = BY[bq.x + bq.y * 4];
+          float band = clamp(floor(shore * 3.0 + (bay + 0.5) / 16.0) / 3.0, 0.0, 1.0);
           outc = mix(outc, shallowTint, band * 0.6);
           diffuseColor.rgb = outc;`,
       },
@@ -114,6 +125,10 @@ export class Ocean {
   }
   update(cx, cz) {
     this.mesh.position.set(Math.round(cx / CELL) * CELL, 0, Math.round(cz / CELL) * CELL);
+    for (let i = 0; i < NISL; i++) {   // the outlines of the islands main.js put in uIsl
+      const n = WATER.isl[i], L = (n && ISL_LOBES.get(`${n[0]},${n[1]}`)) || NO_LOBES;
+      U.uIslA.value[i].set(L[0], L[1], L[2]); U.uIslB.value[i].set(L[3], L[4], L[5]);
+    }
   }
 }
 export { U };

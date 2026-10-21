@@ -14,6 +14,8 @@ export const U = {
   uWave: { value: 1 },
   uRough: { value: 0 },     // how unruly the sea is, 0 calm toon swell .. 1 dark rollers (eased in main.js)
   uIsl: { value: Array.from({ length: 12 }, () => new THREE.Vector3(1e6, 1e6, 0)) },   // the nearest islands (x, z, radius): shallow, lighter water around them
+  uIslA: { value: Array.from({ length: 12 }, () => new THREE.Vector3()) },   // their outlines: lobe sizes (world.js shoreR L[0..2])
+  uIslB: { value: Array.from({ length: 12 }, () => new THREE.Vector3()) },   // ...and lobe phases (L[3..5])
 };
 
 const VERT_HEAD = /* glsl */`
@@ -93,9 +95,17 @@ export function initMaterials() {
   mats.props = psxMaterial({ map: a, vertexColors: true, dark: true, grime: true, alphaTest: 0.5, side: THREE.DoubleSide });
   mats.flagP = psxMaterial({ map: a, vertexColors: true, dark: true, alphaTest: 0.5, side: THREE.DoubleSide });
   mats.sail = psxMaterial({ map: a, vertexColors: true, dark: true, grime: true, side: THREE.DoubleSide, key: 'S' });
-  mats.shallow = psxMaterial({ vertexColors: true, transparent: true, depthWrite: false, key: 'A' });
-  mats.foam = psxMaterial({ color: 0xffffff, transparent: true, opacity: 0.5, depthWrite: false, vertexColors: true, key: 'F' });
-  mats.beam = psxMaterial({ color: 0xffe080, transparent: true, opacity: 0.16, depthWrite: false, side: THREE.DoubleSide, fog: false, key: 'B', fragmentColor: { head: '', body: 'diffuseColor.rgb /= max(uLight, 0.05);' } });
+  mats.shallow = psxMaterial({ vertexColors: true, transparent: true, depthWrite: false, key: 'A', fragmentColor: { head: '', body: 'diffuseColor.rgb *= 1.0 - 0.55 * smoothstep(0.5, 1.0, uDread);' } });   // the shore ring sinks into the dark as dread rises (no milky shallows at Cosmic)
+  mats.foam = psxMaterial({ color: 0xffffff, transparent: true, opacity: 0.5, depthWrite: false, vertexColors: true, key: 'F', fragmentColor: { head: '', body: 'diffuseColor.rgb *= 1.0 - 0.5 * smoothstep(0.5, 1.0, uDread);' } });   // the surf line dims with dread too
+  // the lighthouse beam: light added on top of the scene (never a solid plank), bright at the lamp and fading out along its length in dithered steps
+  mats.beam = psxMaterial({
+    color: 0xffe080, transparent: true, opacity: 0.16, depthWrite: false, side: THREE.DoubleSide, fog: false, blending: THREE.AdditiveBlending, key: 'B',
+    vertex: { head: 'varying float vBX;', begin: 'vec3 transformed = vec3(position); vBX = position.x;' },
+    fragmentColor: { head: 'varying float vBX;', body: `diffuseColor.rgb /= max(uLight, 0.05);
+      ivec2 bq = ivec2(mod(floor(gl_FragCoord.xy), 4.0)); float BY[16] = float[16](0., 8., 2., 10., 12., 4., 14., 6., 3., 11., 1., 9., 15., 7., 13., 5.);
+      float f = 1.0 - smoothstep(1.0, 46.0, vBX);
+      diffuseColor.rgb *= clamp(floor(f * 4.0 + (BY[bq.x + bq.y * 4] + 0.5) / 16.0) / 4.0, 0.0, 1.0) * 1.1;` },
+  });
   mats.wake = psxMaterial({ color: 0xffffff, transparent: true, opacity: 0.5, depthWrite: false, vertexColors: true, key: 'Wk', fragmentColor: { head: '', body: 'diffuseColor.rgb /= mix(1.0, max(uLight, 0.05), 0.9);' } });
   mats.glow = psxMaterial({ color: 0xffc060, vertexColors: true, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, fog: false, key: 'G', fragmentColor: { head: '', body: 'diffuseColor.rgb /= max(uLight, 0.05);' } });
   return mats;

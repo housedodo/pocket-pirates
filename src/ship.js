@@ -197,7 +197,7 @@ export function hullGeo(id) {
 
 /** the cloth of the pennant, in a few shapes (the pole is separate) */
 function flagShape(b, shape) {
-  const uv = [[0, 1], [0, 0], [1, 0.5]], T = TILE.flag;
+  const uv = [[0, 1], [0, 0], [1, 0.5]], T = TILE.white;   // plain cloth: the colour comes from the shipyard's pennant colour (the flag tile is red and darkened every other colour)
   if (shape === 'swallow') { b.tri([0, 0.4, 0], [0, -0.1, 0], [0, 0.15, 1.2], '#ffffff', T, uv); b.tri([0, 0.4, 0], [0, 0.15, 1.2], [0, 0.4, 1.8], '#ffffff', T, uv); b.tri([0, -0.1, 0], [0, -0.1, 1.8], [0, 0.15, 1.2], '#ffffff', T, uv); }
   else if (shape === 'banner') b.quad([0, 0.45, 0], [0, -0.15, 0], [0, -0.15, 1.3], [0, 0.45, 1.3], '#ffffff', T);
   else if (shape === 'streamer') b.tri([0, 0.22, 0], [0, 0, 0], [0, 0.11, 3.2], '#ffffff', T, uv);
@@ -295,8 +295,15 @@ export class Ship {
     this.rowing = false; this.oarOut = 0; this.stroke = 0;
 
     // wake puffs
-    this.puffGeo = new THREE.CircleGeometry(1, 6).rotateX(-Math.PI / 2);
-    this.puffGeo.setAttribute('color', new THREE.Float32BufferAttribute(new Float32Array(7 * 4).fill(1), 4));
+    // a puff is a ragged clutch of foam flecks (small square chips of different sizes), not one flat hexagon
+    { const pos = [], idx = []; let s = 77; const r = () => ((s = (s * 16807) % 2147483647) / 2147483647);
+      for (let i = 0; i < 9; i++) {
+        const a = r() * Math.PI * 2, d = Math.sqrt(r()) * 0.85, cx = Math.cos(a) * d, cz = Math.sin(a) * d, h = 0.12 + r() * 0.22, rot = r() * Math.PI, c = Math.cos(rot) * h, sn = Math.sin(rot) * h, b = pos.length / 3;
+        pos.push(cx - c + sn, 0, cz - sn - c, cx + c + sn, 0, cz + sn - c, cx + c - sn, 0, cz + sn + c, cx - c - sn, 0, cz - sn + c);
+        idx.push(b, b + 2, b + 1, b, b + 3, b + 2);
+      }
+      this.puffGeo = new THREE.BufferGeometry(); this.puffGeo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); this.puffGeo.setIndex(idx);
+      this.puffGeo.setAttribute('color', new THREE.Float32BufferAttribute(new Float32Array(pos.length / 3 * 4).fill(1), 4)); }
     this.puffs = [];
     for (let i = 0; i < 30; i++) {
       const m = new THREE.Mesh(this.puffGeo, mats.wake);
