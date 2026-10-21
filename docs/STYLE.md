@@ -10,12 +10,13 @@ A PS1-era, low-poly, **pixelated and slightly dirty** Caribbean world: chunky di
 purple and magenta cosmic horror as dread rises.
 
 ## 2. Pixel grid
-- The 3D world is rendered to a low-res target (about 320x180) and scaled up with nearest-neighbour
-  filtering. **One world pixel is about 4 CSS pixels at 1280x720.** UI pixel art should use the same size.
+- The 3D world is rendered to a low-res target about 270 lines tall (`PostFX.resize` in `src/psx.js`: **427x240 at
+  1280x720, so one world pixel is 3 CSS pixels**; 480x270 and 4 px at 1080p) and scaled up with nearest-neighbour
+  filtering. UI pixel art sits on the same 3-4 px grid: icons at 3 px per pixel, panel tiles and portraits at 4 px.
 - Any canvas made for the UI (wind meter, icons, book cover, pages, die) is drawn **small** and shown with
   `image-rendering: pixelated`. Examples: wind meter 36x36 shown at 144px, Mara's anchor 8x8 shown at 32px,
   HUD icons 7x7 shown at 21px, book cover 150x90, pages 160x90, the die rendered at 72x72 and shown at 216px.
-- No smooth gradients on UI pieces. Shading uses an **ordered 4x4 Bayer dither** between 3-4 palette
+- No smooth gradients on UI pieces; overlays and vignettes (harbour banner, title, the Eye) use stepped bands with hard stops. Shading uses an **ordered 4x4 Bayer dither** between 3-4 palette
   colours (`BAYER = [0,8,2,10,12,4,14,6,3,11,1,9,15,7,13,5]`).
 - No thin lines. Lines are at least one pixel of the pixel grid (2 map pixels / 3-4 CSS px). Hairlines and
   anti-aliased edges are removed with the `#crisp` SVG filter (alpha threshold) or by posterising.
@@ -25,8 +26,12 @@ purple and magenta cosmic horror as dread rises.
   colours**, plus a second "dark mood" colour set (`colorB`) that the shader blends to with dread.
 - Low poly: cylinders with 4-8 sides, icosahedron blobs for rocks/bushes/heads, boxes and gables for houses.
   Things are a little crooked on purpose (tilted roofs, leaning poles).
-- Textures come from the procedural 4x4 atlas (`src/textures.js`), 64px tiles of 2px blocks: planks, plaster
-  with windows, roof, stone, leaves, bark, glow, sail, skull, bone, void eye, flag, rope, spore, sand.
+- Textures come from the procedural atlas (`src/textures.js`, 8x8 slots of 64px, 19 in use), tiles of 2px blocks: planks,
+  three wall faces (half-timbered with two windows, one tall shuttered window, a wide window with a flower box), plain
+  lime-wash plaster, roof, stone, leaves, bark, glow, sail, skull, bone, void eye, flag, rope, spore, sand. Houses pick a
+  wall face from where they stand; colonial and planter houses, the terraced cubes and thatch cottages use plain plaster
+  because they model their own windows and shutters. The flag tile is red cloth: anything in another colour (bunting,
+  kites, pennants, awnings, washing) uses the plain white tile and takes its colour from the vertex colour.
 - **Grime is part of the look:** stained/mossy atlas tiles, per-face dirt in `Builder` (`grime`), and the
   `USE_GRIME` shader option (world-space speckle + damp darkening near the waterline). Things look used:
   patches, barnacles, rope coils, crates, barrels, nets, laundry.
@@ -39,16 +44,23 @@ purple and magenta cosmic horror as dread rises.
 - Villagers (`villager()` in `world.js`): fisher, market woman, old salt, child, docker, harbourmaster. Boxy limbs,
   6-sided torsos, blob heads, one strong prop each (hat, basket, cane, crate, ledger) so they read at a distance.
 - Houses (`houseKind()`): cottage, townhouse, stilt house, round thatched hut, tavern, warehouse, bell tower.
-  Colonial Caribbean kinds (as in the old pirate games): **colonial** (low whitewashed or pastel house, hipped terracotta roof, veranda, shutters), **planter** (stone ground floor, shuttered upper storey with a balcony, big hipped roof), **thatch** (palm-thatch cottage with an overhanging roof and a porch), **church** (white nave, bell tower with spire and cross). Every door gets a bit of life (`yard()`: bushes with flowers, a bench, a hen, a lantern post). Roofs are terracotta or thatch, walls whitewash or pastel, shutters bright; no tall bare boxes.
-- **Village styles** (`src/villagestyles.js`, `STYLE_DEF`): eight looks so no two villages read alike: *classic* (Tama's painted town), *fishing* (sand, stilt houses, side jetties, nets), *terraced* (white flat-roofed cubes, a blue dome, cypresses, a well), *thatch* (round huts and a longhouse round a fire pit and totems), *market* (a street of townhouses from the pier to a fountain square, cobbles), *farm* (windmill, fields, hay, apple trees, sheep), *shrine* (torii at the pier, stone lanterns, a pagoda, blossom and bamboo), *wreckers* (mud, an upturned hull as a hall, rag poles, timbers). Each has its own island outline (`rMul`, `lobeMul`), ground pair, wall and roof palette (`paint`) and plants; a village custom (whitewash etc.) only repaints walls. **Colonial port landmarks** (`flagCloth`, `fort`, `laundry` in villagestyles.js): every church flies a big flag in the colours of the sector's faction (a cross on the faction colour, `desc.flag`), Tama and about half the other ports have a few broken, weathered walls on the shore (`ruins()`: sun-bleached coral stone, crumbled tops, rubble, moss, an arch stump and a rusted cannon in the sand; nothing medieval, no towers or battlements), and every port has a flagpole with the faction flag at the landing (`landingFlag()`), and every village has two to four washing lines of bright cloths beside its houses. **Terrain shapes** (`SHAPES`, `desc.sh`): villages are no longer flat plateaus. Each style picks from *dune* (low, soft slope), *hill* (a raised village, 4-6 up), *cliff* (a mesa with sheer sides, 6-8 up, rock-coloured), *terraced* (stepped hillside) and *bowl* (a low village in a hollow with a ridge behind); Tama stays flat. The village stands on one level (`d.H`) so houses, crowds and layers still sit right; around it the ground falls to the sea, and a ramp always runs down to the pier (`desc.dockTh`, now fixed per island). On hills, cliffs and terraces a flight of steps (stone or plank, with lantern posts) climbs the ramp from the pier (`stairs()`); terraced and hill villages also put 4-7 houses down the slope on stone footings (`slopeHouses()`), and terraces are flat treads with short risers. Pier crowds are placed with `Rp` (further out on shaped islands) and the harbour camera lifts over the lip (`frameVillage`). New style = one entry in `STYLE_DEF` plus its weight in `WEIGHTS`. Tama is always classic, the second harbour always fishing.
+  Colonial Caribbean kinds (as in the old pirate games): **colonial** (low whitewashed or pastel house, hipped terracotta roof, veranda, shutters), **planter** (stone ground floor, shuttered upper storey with a balcony, big hipped roof), **thatch** (palm-thatch cottage with an overhanging roof and a porch), **church** (white nave, bell tower with spire and cross). Every door gets a bit of life (`yard()`: bushes with flowers, a bench, a hen, a lantern post). The colonial kinds take terracotta and the thatch kinds palm thatch; otherwise roofs follow the village style's palette (`paint` in `STYLE_DEF`): Tama's painted town mixes red, blue, teal, orange and purple, the market town red and blue, the fishing village grey-blue and slate, the shrine village slate. Walls are whitewash or pastel, shutters bright; no tall bare boxes.
+- **Village styles** (`src/villagestyles.js`, `STYLE_DEF`): eight looks so no two villages read alike: *classic* (Tama's painted town), *fishing* (sand, stilt houses, side jetties, nets), *terraced* (white flat-roofed cubes, a blue dome, cypresses, a well), *thatch* (round huts and a longhouse round a fire pit and totems), *market* (a street of townhouses from the pier to a fountain square, cobbles), *farm* (windmill, fields, hay, apple trees, sheep), *shrine* (torii at the pier, stone lanterns, a pagoda, blossom and bamboo), *wreckers* (mud, an upturned hull as a hall, rag poles, timbers). Each has its own island outline (`rMul`, `lobeMul`), ground pair, wall and roof palette (`paint`) and plants; a village custom (whitewash etc.) only repaints walls. **Colonial port landmarks** (`flagCloth`, `fort`, `laundry` in villagestyles.js): every church flies a big flag in the colours of the sector's faction (a cross on the faction colour, `desc.flag`), Tama and about half the other ports have a few broken, weathered walls just inside the shore (`ruins()`, on the plateau of cliff islands so nothing overhangs the water: sun-bleached coral stone, crumbled tops, rubble, moss, an arch stump and a rusted cannon in the sand; nothing medieval, no towers or battlements), and every port has a flagpole with the faction flag at the landing (`landingFlag()`), and every village has two to four washing lines of bright cloths beside its houses. **Terrain shapes** (`SHAPES`, `desc.sh`): villages are no longer flat plateaus. Each style picks from *dune* (low, soft slope), *hill* (a raised village, 4-6 up), *cliff* (a mesa with sheer sides, 6-8 up, rock-coloured), *terraced* (stepped hillside) and *bowl* (a low village in a hollow with a ridge behind); Tama stays flat. The village stands on one level (`d.H`) so houses, crowds and layers still sit right; around it the ground falls to the sea, and a ramp always runs down to the pier (`desc.dockTh`, now fixed per island). On hills, cliffs and terraces a flight of steps (stone or plank, with lantern posts) climbs the ramp from the pier (`stairs()`); terraced and hill villages also put 4-7 houses down the slope on stone footings (`slopeHouses()`), and terraces are flat treads with short risers. Pier crowds are placed with `Rp` (further out on shaped islands) and the harbour camera lifts over the lip (`frameVillage`). New style = one entry in `STYLE_DEF` plus its weight in `WEIGHTS`. Tama is always classic, the second harbour always fishing.
   Every harbour gets a tavern first, then a mix.
 - Island kinds: sandbar, jungle, rocky, treasure, harbour, plus rarer volcano (ash cone, glowing crater, smoke),
   atoll (sand ring around a lagoon) and mangrove (mud flats, stilt-rooted trees, herons).
 
 ## 4. Colour and mood
-- The sea is low-poly and faceted: a fine wave mesh with small chop, light banded in ~6 steps by facing to the sun,
-  deeper troughs and chunky foam flecks on the crests. It should never read as a flat plane.
-- **Title screen** (the one exception to the single UI font): the game is called **HOIST**. The logo is "Hoist" in
+- The sea is low-poly and faceted: a fine wave mesh with small chop, three flat tones per facet by how it faces the sun,
+  deeper troughs and foam caps on the crests (torn foam streaks when the sea is rough). It should never read as a flat plane.
+  Near land it turns lighter within about 18 units of the shoreline, following each island's own lobed outline, in three
+  Bayer-dithered steps (never rings round the island); the pale turquoise fades out as dread rises, and the shore ring and
+  surf dim with it. The ship's wake is a clutch of small foam chips, not flat discs.
+- Light in the world is added, not painted: lighthouse beams are additive and fade out along their length in dithered
+  steps. Wind wisps are short chunky dashes low over the water that fade out near the camera and into the distance.
+- Village kites fly from a chunky beaded string held by a child, lit on both faces so they stay bright.
+- **Title screen** (Pirata One is only for this logo and for harbour names; everything else, quest banners and cave names
+  included, is DotGothic16): the game is called **HOIST**. The logo is "Hoist" in
   Pirata One, bone white (`#f4ead0` to `#b8a47c`, dithered) with a dried-blood block shadow (`#5a1612` / `#1a0606`),
   drawn at low resolution and worn. The menu is the game font (DotGothic16, 32px) with a red pennant pointer. Behind it the Merry Gull bobs alone on open
   sea at a random hour: morning, day, dawn, dusk, night or rain (`src/title.js`).
@@ -88,7 +100,8 @@ purple and magenta cosmic horror as dread rises.
   and the village keeps living (people walk, gulls fly, waves move; the clock stands still). Name in Pirata One across
   the top with the last villager line under it in pale rose. Five wooden signposts along the bottom: Board, Market,
   Tavern, Shipwright, Set sail (keys 1-4, E; arrows step). A red number on a sign = something waits there. The chosen
-  place opens as one panel on the right; messages stack on the left under the name, never covered. The sailing HUD
+  place opens as one panel on the right; messages stack on the left under the name, never covered (while a villager's
+  line shows under the name, the panel and the messages start below it). The sailing HUD
   fades out ashore. A villager's line (Mara-style box, 8x8 portrait) still comes first when there is one.
 
 - Dice: the Lady's d20 is yellowed bone with a dark red 1. The check die starts pale bone and darkens in four steps to
@@ -100,8 +113,7 @@ purple and magenta cosmic horror as dread rises.
 - A battered **pixel tome**: dithered, scratched and stained leather cover with missing stitches and dented
   brass corners; dithered pages with foxing, ink blots in the margins, a coffee ring, a crease and a
   dog-ear. **Edges are torn** (transparent pixels), and the pages sit on a stack of hard pixel shadows.
-- Bookmarks are cloth ribbons sticking out of the right side, with frayed pixel ends, uneven lengths and
-  labels in the pixel font. Page text gets the `#roughpx` filter (small displacement + alpha threshold).
+- Bookmarks are pale paper-slip tabs along the top edge (see section 5), labels in the pixel font. Page text gets the `#roughpx` filter (small displacement + alpha threshold).
 - The chart is rendered at half resolution and posterised with an ordered dither. Islands are
   **low-poly fans** (~8 rough corners, flat shaded facets). Only thick, rough strokes; labels in the pixel font;
   folds, stains and pencil notes on the parchment.

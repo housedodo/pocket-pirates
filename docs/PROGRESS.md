@@ -63,6 +63,7 @@ New voyage goes straight into the game (no title). A new voyage starts moored al
 - "LAND HO!" title card the first time an uncharted island comes within ~150 units (Mara comments on new kinds).
 - Harbours are entered only at the end of their pier ("Sail to the pier to go ashore" elsewhere along the shore).
 - Villagers stroll slowly between random spots with pauses instead of pacing the dock.
+- Visual pass against STYLE.md: shallows follow each island's outline in dithered steps (no bullseye rings) and darken with dread; wind wisps stay low and fade by distance; lighthouse beams are additive and fade along their length; kites fly bright on a beaded string; three wall faces plus plain plaster; ragged grass instead of wedges; ruins set back from the water, jetties on piles, wake as foam chips; coloured cloth no longer darkened by the red flag tile; UI text only at 16/32/48px, no blurs or smooth fades; the harbour panel never covers the villager's line; the Hermit's Larder repainted below its title.
 
 ### Errands and passengers
 - Only one errand is followed at a time (delivery, passenger or a commission); pick it with "Follow" in the log's
