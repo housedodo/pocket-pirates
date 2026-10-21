@@ -12,6 +12,7 @@ export const U = {
   uDeep: { value: new THREE.Color('#1b86c6') },
   uShallow: { value: new THREE.Color('#4fe0d0') },
   uWave: { value: 1 },
+  uWStyle: { value: 0 },    // water look: 0 = the game's own, 1..4 = the four loop-test styles (dev, see docs/concept/water)
 };
 
 const VERT_HEAD = /* glsl */`
