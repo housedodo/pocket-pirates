@@ -151,3 +151,5 @@ Load your own music and sounds, cut them, and say where each plays. Open the gam
 - **Test a situation**: the chip bar shows the live situation. Click a chip to force a situation (and the dread slider) without moving the ship; "Back to live" returns. "hear" on a placement plays it whatever the situation.
 - **Keep it**: "Export soundtrack" downloads `soundtrack.json` (the placements) and the trimmed WAVs. Put them in `public/audio/studio/` and the studio loads them at start-up when nothing is saved in the browser. "Import soundtrack.json" restores placements.
 - The studio is dev only: it does not exist in the demo build. Shipping a placement for real means turning it into a cue (or moving the loader out of dev) once the placements are final.
+
+- Final placements to ogg: put the exported soundtrack.json + WAVs in public/audio/studio/, run `python3 scripts/studio_ogg.py` (needs ffmpeg); it writes .ogg files and updates soundtrack.json.
