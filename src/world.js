@@ -1,5 +1,5 @@
 import { sectorAt } from './sectors.js';
-import { styleOf, shapeOf, STYLE_DEF, SHAPES, stairs, slopeHouses, flagCloth, fort, laundry } from './villagestyles.js';
+import { styleOf, shapeOf, STYLE_DEF, SHAPES, stairs, slopeHouses, flagCloth, ruins, landingFlag, laundry } from './villagestyles.js';
 import { pushOut } from './solids.js';
 import * as THREE from 'three';
 import { Builder, darken } from './builder.js';
@@ -977,8 +977,9 @@ function decorate(d, rng, A, B, D, extra) {
         if (kind === 'tavern') extra.tavern = { x, z, ry: Math.atan2(-x, -z) };
         placed++;
       }
-      // a stone fort on the shore (Tama and about half the other ports), and washing lines between the houses
-      if (d.id === '0,-1' || (d.style !== 'fortress' && rng() < 0.55)) fort(VS, dockTh + (rng() < 0.5 ? -1 : 1) * (1.25 + rng() * 0.35));
+      // the flag at the landing, a few broken walls on the shore (Tama and about half the ports), and washing lines between the houses
+      landingFlag(VS);
+      if (d.id === '0,-1' || rng() < 0.5) ruins(VS, dockTh + (rng() < 0.5 ? -1 : 1) * (1.2 + rng() * 0.45));
       for (let i = 0, nl = 2 + Math.floor(rng() * 3); i < nl && housesLog.length; i++) {
         const [hx, hz] = housesLog[Math.floor(rng() * housesLog.length)], a = rng() * 6.28, lx = hx + Math.cos(a) * 4.4, lz = hz + Math.sin(a) * 4.4;
         if (Math.hypot(lx, lz) > shoreR(d, Math.atan2(lz, lx)) * 0.75 || Math.abs(angleDiff(Math.atan2(lz, lx), dockTh)) < 0.4) continue;

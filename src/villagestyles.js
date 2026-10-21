@@ -18,8 +18,8 @@ export function shapeOf(style, h, r01) {
   const lerp = (a) => a[0] + (a[1] - a[0]) * r01;
   return { id, H: lerp(sh.H), te: sh.te, w: sh.w, steps: sh.steps || 0, rim: sh.rim ? lerp(sh.rim) : 0 };
 }
-export const STYLE_IDS = ['classic', 'fishing', 'terraced', 'thatch', 'market', 'fortress', 'farm', 'shrine', 'wreckers'];
-const WEIGHTS = [['fishing', 2], ['terraced', 2], ['thatch', 2], ['market', 2], ['fortress', 1.5], ['farm', 2], ['shrine', 1.5], ['wreckers', 1.5], ['classic', 1]];
+export const STYLE_IDS = ['classic', 'fishing', 'terraced', 'thatch', 'market', 'farm', 'shrine', 'wreckers'];
+const WEIGHTS = [['fishing', 2], ['terraced', 2], ['thatch', 2], ['market', 2], ['farm', 2], ['shrine', 1.5], ['wreckers', 1.5], ['classic', 1]];
 const rnd = (rng, a, b) => a + rng() * (b - a);
 const pick = (rng, arr) => arr[Math.floor(rng() * arr.length) % arr.length];
 
@@ -77,23 +77,6 @@ function longhouse(S, x, y, z, ry, rng) {
   for (let i = 0; i < 3; i++) A.box(-1.65, 0, -2.2 + i * 2.2, 0.3, 2.2, 0.3, '#5a3e24', TILE.bark);
   A.pop();
 }
-function keepTower(S, x, y, z, ry, tall = 1) {
-  const A = S.A; A.push(x, y, z, ry);
-  A.cyl(0, 0, 0, 2.0, 1.8, 5.2 * tall, 8, '#b8b2a6', TILE.stone, false);
-  A.cyl(0, 5.2 * tall, 0, 2.3, 2.0, 0.5, 8, '#a8a296', TILE.stone, true);
-  for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4; A.box(Math.cos(a) * 2.1, 5.7 * tall, Math.sin(a) * 2.1, 0.7, 0.8, 0.7, '#a8a296', TILE.stone); }
-  A.box(0, 0, 1.95, 1.0, 1.8, 0.12, '#3a2a1c', TILE.planks);
-  S.B.box(0, 5.5 * tall, 0, 0.14, 3.4, 0.14, '#6b4a2e', TILE.bark);
-  S.B.tri([0, 8.9 * tall + 0.4 * (1 - tall), 0], [0, 8.1 * tall + 0.4 * (1 - tall), 0], [1.4, 8.5 * tall + 0.4 * (1 - tall), 0.5], '#b02a2a', TILE.flag);
-  A.pop();
-}
-function wallSeg(S, x, y, z, ry, len) {
-  const A = S.A; A.push(x, y, z, ry);
-  A.box(0, 0, 0, len, 2.8, 1.1, '#a8a296', TILE.stone, TILE.stone);
-  for (let i = 0; i < Math.floor(len / 1.6); i++) A.box(-len / 2 + 0.8 + i * 1.6, 2.8, 0, 0.8, 0.7, 1.1, '#a8a296', TILE.stone);
-  A.pop();
-}
-function cannon(S, x, y, z, ry) { const A = S.A; A.push(x, y, z, ry); A.box(0, 0, 0, 0.8, 0.5, 1.4, '#6b4a2e', TILE.planks); A.cyl(0, 0.5, 0, 0.28, 0.24, 1.2, 6, '#2a2a30', TILE.stone, true); A.pop(); }
 function windmill(S, x, y, z, ry) {
   const A = S.A; A.push(x, y, z, ry);
   A.cyl(0, 0, 0, 2.2, 1.4, 5.4, 8, '#e8dcc0', TILE.wall, false);
@@ -238,28 +221,6 @@ export const STYLE_DEF = {
     },
   },
 
-  fortress: {
-    name: 'Fort town', shapes: ['cliff', 'cliff', 'hill'], ground: ['#9a968c', '#8a867c'], rMul: 1.05, lobeMul: 0.3, paint: { walls: ['#c8c2b4', '#b8b2a6', '#d8d0c0'], roofs: ['#8a3a2a', '#7a4a3a', '#5a5a6a'] },
-    build(S) {
-      const { rng, d, dockTh } = S, h = y0(S);
-      const a0 = dockTh + Math.PI - 1.35, a1 = dockTh + Math.PI + 1.35, N = 9;
-      for (let i = 0; i <= N; i++) {
-        const th = a0 + (a1 - a0) * i / N, [x, z] = Pn(S, th, 0.74);
-        if (i === 0 || i === N) keepTower(S, x, y0(S, x, z), z, faceIn(x, z), 0.9);
-        if (i < N) {
-          const [x2, z2] = Pn(S, a0 + (a1 - a0) * (i + 1) / N, 0.74), mx = (x + x2) / 2, mz = (z + z2) / 2;
-          wallSeg(S, mx, y0(S, mx, mz), mz, faceIn(mx, mz), Math.hypot(x2 - x, z2 - z) + 0.4);
-          if (i % 3 === 1) cannon(S, mx * 0.95, y0(S, mx, mz) + 2.9, mz * 0.95, faceIn(mx, mz) + Math.PI);
-        }
-      }
-      { const [x, z] = Pn(S, dockTh + Math.PI, 0.5); keepTower(S, x, y0(S, x, z), z, faceIn(x, z), 1.5); }   // the keep
-      const pts = scatter(S, 8, 0.2, 0.7, 5.4);
-      pts.forEach(([x, z], i) => { const ry = faceIn(x, z); if (i === 0) tavernAt(S, x, z, ry); else S.houseKind(S.A, S.B, x, y0(S, x, z), z, ry, rng, pick(rng, ['colonial', 'townhouse', 'warehouse', 'planter'])); });
-      for (let i = 0; i < 4; i++) { const [x, z] = Pn(S, S.dockTh + (rng() - 0.5) * 1.2, 0.58 + rng() * 0.15); S.A.cyl(x, y0(S, x, z), z, 0.45, 0.4, 0.5, 6, '#2a2a30', TILE.stone, true); S.A.cyl(x + 0.9, h, z, 0.45, 0.4, 0.5, 6, '#2a2a30', TILE.stone, true); }   // cannonballs by the pier
-      for (let i = 0; i < 4; i++) { const p = S.spot(d, rng, 0.2, 0.8, 0.8); if (p) bush(S, p[0], p[1], p[2], '#6a8a4a', 0.7); }
-    },
-  },
-
   farm: {
     name: 'Farm village', shapes: ['hill', 'dune', 'terraced'], ground: ['#62b64f', '#8ac455'], rMul: 1.15, lobeMul: 1.2, paint: { walls: ['#e8d4a8', '#d8b888', '#c8a070', '#f0e0b8'], roofs: ['#c8a860', '#b89850', '#8a5a3a'] },
     build(S) {
@@ -306,7 +267,7 @@ export const STYLE_DEF = {
 };
 
 // ---- shaped islands: steps up the ramp from the pier, and houses on the slope (several levels)
-const STONE_STYLES = ['fortress', 'terraced', 'market', 'shrine'];
+const STONE_STYLES = ['terraced', 'market', 'shrine'];
 export function stairs(S) {
   const { A, d, dockTh } = S, R = S.shoreR(d, dockTh), ax = Math.cos(dockTh), az = Math.sin(dockTh), stone = STONE_STYLES.includes(d.style);
   const col = stone ? '#a8a49c' : '#8a6238', tile = stone ? TILE.stone : TILE.planks, dstep = 1.5;
@@ -352,25 +313,36 @@ export function flagCloth(A, x, y, z, ry, col, s = 1) {
   A.box(0, 5.2, 0, 0.5, 0.4, 0.5, '#c8a040', TILE.glow);
   A.pop();
 }
-/** a small stone fort: four walls, round corner towers, a gate, cannons on the sea side and a flag; faces +z (the sea) */
-export function fort(S, th) {
-  const { A, d } = S, R = S.shoreR(d, th) * 0.9, x = Math.cos(th) * R, z = Math.sin(th) * R, g = Math.max(0.5, S.terrainHeight(d, x, z)), ry = Math.atan2(x, z);
+/** broken colonial walls on the shore: sun-bleached coral stone, crumbled tops, rubble, moss, an old arch stump and a rusted cannon lying in the sand.
+ *  Low and weathered, nothing medieval: what is left of a Spanish landing. Faces +z (the sea). */
+export function ruins(S, th) {
+  const { A, B, d, rng } = S, R = S.shoreR(d, th) * 0.88, x = Math.cos(th) * R, z = Math.sin(th) * R, g = Math.max(0.5, S.terrainHeight(d, x, z)), ry = Math.atan2(x, z);
+  const col = () => pick(rng, ['#d8c8a8', '#cdbd9c', '#e0d2b4', '#c8b894']);
   A.push(x, g - 0.1, z, ry);
-  A.box(0, -2.4, 0, 12.6, 2.5, 10.2, '#b8b2a4', TILE.white, TILE.white);                                   // a footing that hides the slope
-  const W = 9, D = 7, stone = '#e0dacb', top = '#cfc8b8';
-  for (const sz of [-1, 1]) { A.box(0, 0, sz * D / 2, W, 3.0, 1.0, stone, TILE.white, TILE.white); for (let i = 0; i < 5; i++) A.box(-W / 2 + 0.9 + i * (W - 1.8) / 4, 3.0, sz * D / 2, 0.9, 0.7, 1.0, top, TILE.white); }
-  for (const sx of [-1, 1]) { A.box(sx * W / 2, 0, 0, 1.0, 3.0, D, stone, TILE.white, TILE.white); for (let i = 0; i < 3; i++) A.box(sx * W / 2, 3.0, -D / 2 + 1.4 + i * 2.1, 1.0, 0.7, 0.9, top, TILE.white); }
-  for (const [sx, sz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) {
-    A.cyl(sx * W / 2, 0, sz * D / 2, 1.7, 1.55, 4.4, 8, '#d8d2c2', TILE.white, false);
-    A.cyl(sx * W / 2, 4.4, sz * D / 2, 1.9, 1.7, 0.5, 8, top, TILE.white, true);
-    for (let i = 0; i < 6; i++) { const a = i * Math.PI / 3; A.box(sx * W / 2 + Math.cos(a) * 1.8, 4.9, sz * D / 2 + Math.sin(a) * 1.8, 0.6, 0.6, 0.6, top, TILE.white); }
+  A.box(0, -2.0, 0, 10.5, 2.1, 6.6, '#b8aa8a', TILE.stone, TILE.stone);                      // a footing that hides the slope
+  const wall = (cx, cz, len, rot, h) => {
+    A.push(cx, 0, cz, rot);
+    A.box(0, 0, 0, len, h, 0.9, col(), TILE.stone, TILE.stone);
+    if (h > 1.4) A.box(-len * 0.18, h, 0, len * 0.5, 0.5 + rng() * 0.5, 0.9, col(), TILE.stone);                         // a ragged top course, never a level battlement
+    A.blob(len * 0.46, 0.35, 0.6, 0.8, 0.45, 0.7, col(), TILE.stone, 0.4, Math.floor(cx * 7 + cz));                       // fallen stones at the broken end
+    A.blob(-len * 0.1, h + 0.25, 0.1, len * 0.22, 0.2, 0.45, '#4f8a3a', TILE.white, 0.4, 5);                              // moss and creeper
+    A.pop();
+  };
+  wall(-1.2, -2.2, 6.4, 0, 1.9 + rng() * 0.6);
+  wall(-4.4, 0.2, 4.6, Math.PI / 2, 1.2 + rng() * 0.6);
+  wall(2.8, 0.9, 2.6, 0.12, 0.8 + rng() * 0.4);                                                // a stub
+  if (rng() < 0.7) {   // the stump of an arched doorway
+    A.box(3.2, 0, -2.0, 0.9, 2.6, 0.9, col(), TILE.stone, TILE.stone); A.box(4.9, 0, -2.0, 0.9, 1.5, 0.9, col(), TILE.stone, TILE.stone);
+    A.box(3.7, 2.6, -2.0, 1.4, 0.55, 0.9, col(), TILE.stone);
   }
-  A.box(0, 0, D / 2 + 0.55, 2.0, 2.4, 0.2, '#3a2a1c', TILE.planks);                                         // the gate
-  A.box(0, 2.4, D / 2 + 0.55, 2.4, 0.25, 0.3, top, TILE.white);
-  for (const sx of [-2.4, 2.4, 0]) { if (sx) { A.box(sx, 3.0, D / 2 - 0.05, 1.0, 0.5, 1.0, '#6b4a2e', TILE.planks); A.cyl(sx, 3.5, D / 2 + 0.4, 0.28, 0.24, 1.3, 6, '#2a2a30', TILE.white, true); } }   // cannons over the wall
-  A.box(-1.8, 0, -0.6, 2.4, 1.8, 2.4, '#d8c8a8', TILE.wall, TILE.white); A.gable(-1.8, 1.8, -0.6, 2.8, 1.2, 2.8, '#b8503a', TILE.roof, '#d8c8a8');   // a barracks inside
-  flagCloth(A, -W / 2, 4.9, -D / 2, Math.PI / 2, S.flag || '#c83a2a', 0.8);
+  A.box(-0.4, 0.1, 1.9, 1.7, 0.5, 0.55, '#4a3a34', TILE.stone); A.cyl(0.9, 0.25, 1.95, 0.3, 0.26, 0.5, 6, '#3a3a40', TILE.stone, true);   // a rusted cannon in the sand
+  B.blob(-3.2, 0.5, 2.4, 0.9, 0.7, 0.9, '#3f8a38', TILE.white, 0.3, 6); B.blob(4.2, 0.5, 1.2, 0.8, 0.6, 0.8, '#4f9a3a', TILE.white, 0.3, 7);   // scrub grown through it
   A.pop();
+}
+/** the faction's flag on a tall pole beside the landing */
+export function landingFlag(S) {
+  const { A, d, dockTh } = S, R = S.shoreR(d, dockTh), th = dockTh + 0.16, r = R * 0.9, x = Math.cos(th) * r, z = Math.sin(th) * r, g = Math.max(0.5, S.terrainHeight(d, x, z));
+  flagCloth(A, x, g - 0.1, z, dockTh + 0.3, S.flag || '#c83a2a', 0.9);
 }
 /** washing between two poles: a row of cloths in bright colours, on a stretch of ground beside a house */
 export function laundry(S, x, z, ry) {
