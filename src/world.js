@@ -1,4 +1,4 @@
-import { styleOf, shapeOf, STYLE_DEF, SHAPES } from './villagestyles.js';
+import { styleOf, shapeOf, STYLE_DEF, SHAPES, stairs, slopeHouses } from './villagestyles.js';
 import { pushOut } from './solids.js';
 import * as THREE from 'three';
 import { Builder, darken } from './builder.js';
@@ -147,7 +147,7 @@ export function terrainHeight(d, lx, lz) {
       const sh = d.sh; if (!sh) return Math.min(d.H, p * d.H * 3.2);
       const dd = Math.abs(angleDiff(th, d.dockTh)), ramp = 1 - smoothstep(0.35, 1.0, dd), te = sh.te + (0.55 - sh.te) * ramp, w = sh.w + (0.45 - sh.w) * ramp;
       let sS = 1 - smoothstep(te, Math.min(1, te + w), t);
-      if (sh.steps) sS = clamp(sS * 0.3 + Math.round(sS * sh.steps) / sh.steps * 0.7, 0, 1);
+      if (sh.steps) { const lv = sS * sh.steps, f = Math.floor(lv); sS = clamp((f + smoothstep(0.72, 1, lv - f)) / sh.steps, 0, 1); }   // flat treads, short risers
       let h = sh.H * sS;
       if (sh.rim) h += sh.rim * smoothstep(1.4, 2.6, dd) * smoothstep(0.6, 0.82, t) * (1 - smoothstep(0.9, 1.0, t));
       return Math.max(h, 0.5 * (1 - smoothstep(0.85, 1.0, t)));
@@ -898,7 +898,10 @@ function decorate(d, rng, A, B, D, extra) {
       if (d.custom === 'whitewash') PAINT = SD.paint ? { ...PAINT, wall: '#f4f0e8' } : { wall: '#f4f0e8', roof: '#3c78c8' };   // whitewash keeps each style's own roofs NO_CHILD = d.custom === 'nochildren';
       const n = Math.round((6 + Math.floor(rng() * 3)) * Math.max(1, d.r / 25));
       let placed = 0;
-      if (SD.build) SD.build({ d, rng, dockTh, A, B, D, extra, houseKind, spot, palm, barrel, crateBox, fishRack, fence, ropeCoil, beachedBoat, shoreR, terrainHeight, angleDiff, paint: SD.paint });
+      const VS = { d, rng, dockTh, A, B, D, extra, houseKind, spot, palm, barrel, crateBox, fishRack, fence, ropeCoil, beachedBoat, shoreR, terrainHeight, angleDiff, paint: SD.paint };
+      if (SD.build) SD.build(VS);
+      if (d.sh && d.sh.H > 2.6) stairs(VS);                                                  // steps up the ramp from the pier
+      if (d.sh && (d.sh.id === 'terraced' || d.sh.id === 'hill')) slopeHouses(VS, 4 + Math.floor(rng() * 4));   // houses down the slope, on their own levels
       for (let i = 0; i < n * 2 && placed < n && !SD.build; i++) {
         const th = (i / (n * 2)) * Math.PI * 2 + rng() * 0.3;
         if (Math.abs(angleDiff(th, dockTh)) < 0.55) continue;

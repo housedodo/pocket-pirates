@@ -303,3 +303,37 @@ export const STYLE_DEF = {
     },
   },
 };
+
+// ---- shaped islands: steps up the ramp from the pier, and houses on the slope (several levels)
+const STONE_STYLES = ['fortress', 'terraced', 'market', 'shrine'];
+export function stairs(S) {
+  const { A, d, dockTh } = S, R = S.shoreR(d, dockTh), ax = Math.cos(dockTh), az = Math.sin(dockTh), stone = STONE_STYLES.includes(d.style);
+  const col = stone ? '#a8a49c' : '#8a6238', tile = stone ? TILE.stone : TILE.planks, dstep = 1.5;
+  const H = (t) => S.terrainHeight(d, ax * R * t, az * R * t);
+  let n = 0;
+  for (let t = 0.3; t < 0.98; t += dstep / R) {
+    const hA = H(t), hB = H(t + dstep / R), top = Math.max(hA, hB);
+    if (hA - hB < 0.12 || top < 0.9) continue;   // only where the ground really falls
+    const x = ax * R * (t + dstep / (2 * R)), z = az * R * (t + dstep / (2 * R));
+    A.push(x, 0, z, Math.PI / 2 - dockTh);
+    A.box(0, top - 1.4, 0, 3.4, 1.4, dstep + 0.1, col, tile, tile);
+    for (const sx of [-1.9, 1.9]) A.box(sx, top - 1.4, 0, 0.4, 1.9, dstep + 0.1, stone ? '#8a867c' : '#5a3e24', stone ? TILE.stone : TILE.bark);   // low cheek walls
+    if (n % 4 === 2) for (const sx of [-1.9, 1.9]) { A.box(sx, top + 0.4, 0, 0.18, 1.5, 0.18, '#3a3036', TILE.bark); A.box(sx, top + 1.9, 0, 0.34, 0.38, 0.34, '#ffffff', TILE.glow); }   // lanterns on the way up
+    A.pop(); n++;
+  }
+}
+export function slopeHouses(S, n) {
+  const { d, rng } = S, sh = d.sh, kinds = ['cottage', 'cottage', 'townhouse', 'stilt'];
+  const pts = [];
+  for (let i = 0; i < 160 && pts.length < n; i++) {
+    const th = rng() * Math.PI * 2; if (Math.abs(S.angleDiff(th, S.dockTh)) < 0.8) continue;
+    const t = sh.te + (0.08 + rng() * 0.6) * sh.w, R = S.shoreR(d, th) * t, x = Math.cos(th) * R, z = Math.sin(th) * R, y = S.terrainHeight(d, x, z);
+    if (y < 1.2 || pts.some((o) => Math.hypot(o[0] - x, o[1] - z) < 5.4)) continue;
+    pts.push([x, z, y, th]);
+  }
+  for (const [x, z, y, th] of pts) {
+    const ry = Math.atan2(Math.cos(th), Math.sin(th)) ;   // front to the sea
+    S.A.push(x, y - 0.1, z, ry); S.A.box(0, -2.2, 0, 4.6, 2.3, 4.2, '#9a968c', TILE.stone, TILE.stone); S.A.pop();   // a stone footing that hides the slope
+    S.houseKind(S.A, S.B, x, y - 0.1, z, ry, rng, pick(rng, kinds));
+  }
+}
