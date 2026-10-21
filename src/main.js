@@ -11,6 +11,7 @@ import { Ship } from './ship.js';
 import { AudioBus, AUDIO_ENABLED } from './audio.js';
 import { sfx } from './sfx.js';
 import { Mixer } from './mixer.js';
+import { SoundStudio } from './studio.js';
 import { TITLE_SCENES, drawTitleLogo } from './title.js';
 import { pickGreeting, portrait, speakerName, rollGreeting, numberWord } from './greetings.js';
 import { gossip, lootFor, bottleNote, barrelLoot } from './lore.js';
@@ -598,7 +599,7 @@ let forced = params.has('dread') ? clamp(parseFloat(params.get('dread')), 0, 1) 
 window.addEventListener('pointerdown', () => skipIntro());
 window.addEventListener('keydown', (e) => {
   if (introT >= 0) { skipIntro(); return; }
-  if (e.target && e.target.closest && e.target.closest('#mixer') && e.code !== 'F8') return;   // arrow keys on a mixer slider move the slider, not the ship
+  if (e.target && e.target.closest && e.target.closest('#mixer, #studio') && e.code !== 'F8' && e.code !== 'F9') return;   // arrow keys on a mixer slider move the slider, not the ship
   if (!started && $('thPanel').classList.contains('open')) return;
   if (!started) { if (titleScene) titleKey(e); else begin(); return; }
   if (e.code === 'Escape' || e.code === 'KeyP') {
@@ -680,6 +681,7 @@ window.addEventListener('keydown', (e) => {
   if (e.code === 'KeyQ' && !modal) { settings.tracker = settings.tracker === false; store.set(SETTINGS_KEY, settings); }
   if (!DEV) return;   // test keys only with ?dev=1
   if (e.code === 'F8') { e.preventDefault(); mixer.toggle(); }
+  if (e.code === 'F9') { e.preventDefault(); studio.toggle(); }
   if (e.code === 'Backquote') debugEl.style.display = debugEl.style.display === 'block' ? 'none' : 'block';
   if (e.code === 'Digit0') { forced = null; abyss.stopTest(); }
   if (/^Digit[1-5]$/.test(e.code)) forced = (parseInt(e.code.slice(5), 10) - 1) / 4;
@@ -750,9 +752,26 @@ function renderAbyssMenu() {
   }));
   $('abForce').textContent = forced === 1 ? 'Back to automatic dread' : 'Go to full dread now (all ON effects)';
 }
-if (!DEV) { $('pbAbyss').style.display = 'none'; $('pbMixer').style.display = 'none'; $('devKeys').style.display = 'none'; settings.abyss = {}; }   // players get every effect, no test menu
+if (!DEV) { $('pbAbyss').style.display = 'none'; $('pbMixer').style.display = 'none'; $('pbStudio').style.display = 'none'; $('devKeys').style.display = 'none'; settings.abyss = {}; }   // players get every effect, no test menu
 const mixer = new Mixer(audio, (t, d, ms) => toast(t, d, ms));
 $('pbMixer').addEventListener('click', () => { closeModal(); mixer.toggle(true); });
+const studio = DEV ? new SoundStudio(audio, (t, d, ms) => toast(t, d, ms)) : null;   // dev only: load, cut and place your own music
+if (DEV) { window.__studio = studio; $('pbStudio').addEventListener('click', () => { closeModal(); studio.toggle(true); }); }
+/** what is going on right now, as the sound studio's situations (see studio.js) */
+function soundSituation() {
+  const f = new Set(), near = started && !titleScene ? world.nearest(ship.pos.x, ship.pos.z, 60) : null;
+  if (!started || titleScene) f.add('title');
+  else if (!modal) f.add('sailing');
+  if (modal === 'harbour') f.add('harbour'); if (modal === 'yard') f.add('yard'); if (modal === 'hut') f.add('hut'); if (modal === 'cave') f.add('cave');
+  if (modal === 'chart') f.add('chart'); if (modal === 'card') f.add('log'); if (modal === 'greet') f.add('talk'); if (modal === 'pause') f.add('paused');
+  if (fishing.active) f.add('fishing');
+  if (traffic.ships.some((s) => s.hostile && !s.sinking && Math.hypot(s.x - ship.pos.x, s.z - ship.pos.z) < 90)) f.add('combat');
+  if ($('demoend').classList.contains('show')) f.add('ending');
+  f.add(tod.night > 0.6 ? 'night' : tod.twilight > 0.35 ? 'twilight' : 'day');
+  if (weather.rain > 0.3) f.add('rain'); if (weather.storm > 0.3) f.add('storm'); if (weather.fog > 0.4) f.add('fog'); if (wind.strength > 0.9) f.add('windy');
+  f.add(near ? 'land' : 'open');
+  return { flags: f, dread };
+}
 //   // players get every effect, no test menu
 $('pbAbyss').addEventListener('click', () => { $('pauseMain').style.display = 'none'; $('pauseAbyss').style.display = 'block'; renderAbyssMenu(); $('abBack').focus(); });
 $('abBack').addEventListener('click', showPauseMain);
@@ -2178,6 +2197,7 @@ function frame() {
   if (abyss.solo) $('abyssTag').textContent = `Testing: ${EFFECTS.find((f) => f.id === abyss.solo).name}  \u00b7  0 = stop`;
   updateTracker();
   mixer.update();
+  if (studio) studio.update(rawDt, soundSituation());
   $('clockicon').className = `ico ${tod.sunElev > 0 ? 'sun' : 'moon'}`;
   $('sailfill').style.width = `${Math.round(ship.trim * 100)}%`;
   drawCompass(wind, ship.heading);

@@ -31,6 +31,7 @@ export class AudioBus {
     this.muted = false;
     this.musicOn = true;
     this.ready = false;
+    this.studioDuck = 0; this.studioDuckAmb = 0;   // the sound studio hushes the game's own music / ambience while a placement plays
     this.musicRate = 1;      // a thread (the Music out of the Fog) can leave the music a little flat
     this.userVol = { music: 1, amb: 1, sfx: 1 };   // the player's own sliders in the pause menu (0..1), on top of the mix
     this.vol = {};           // per-cue volume (1 = as authored): public/audio/volumes.json, then the mixer's local overrides
@@ -149,6 +150,7 @@ export class AudioBus {
   setLoop(key, v) {
     this.level[key] = v;
     const g = this.loops.get(key);
+    v *= 1 - (key.startsWith('music_') ? this.studioDuck : this.studioDuckAmb);
     if (this.preview) v = key === this.preview ? 0.8 : 0;   // auditioning one loop: everything else hushes
     if (g) g.gain.setTargetAtTime(v * (this.preview && key === this.preview ? Math.max(0.5, this.v(key)) : this.v(key)), this.ctx.currentTime, this.preview ? 0.15 : 0.7);   // a soloed loop is audible even at 0%
     if (key === 'gulls' && this.tone) this.tone.frequency.setTargetAtTime(700 + 9500 * Math.min(1, v) * Math.min(1, v), this.ctx.currentTime, 0.7);

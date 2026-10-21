@@ -142,3 +142,12 @@ Audacity, Reaper (free trial), LMMS, BeepBox / Bosca Ceoil (quick chip tunes), j
 
 ### Custom tracks in
 - `music_3.ogg` is the user's own melancholic D - G - B piece ("Dread", 1:42, mono) in place of the synthesised placeholder. It plays in the middle dread band (the Wrong stage, about 0.35 to 0.65 dread, cross-faded with music_2 and music_4). To use it for another stage, rename the file to `music_2` / `music_4` / `music_5`. The old placeholder is in git history.
+
+## Sound studio (dev, F9)
+Load your own music and sounds, cut them, and say where each plays. Open the game with `?dev=1`, press **F9** (or pause menu, "Sound studio").
+- **Load sounds**: wav / ogg / mp3 / flac, by button or drag and drop. They are kept in this browser (IndexedDB), so they survive a reload.
+- **Cut**: drag on the waveform to pick the part you keep, drag an edge to trim, or type start / end. Fade in / out and gain per sound. Preview once or as a loop; "Save trimmed .wav" writes the cut file.
+- **Placements**: each one links a sound to *where* (situations that must be on / off: title screen, sailing, in harbour, shipyard, hut, cave, chart, log, talking, paused, fishing, raider near, demo end, day, dawn/dusk, night, rain, storm, fog, strong wind, near land, open sea, plus a dread range) and *how* (music / ambience / effects bus, loop or once, volume, fade in / out, how much it hushes the game's own music and ambience). Several can play together; a green row is playing right now.
+- **Test a situation**: the chip bar shows the live situation. Click a chip to force a situation (and the dread slider) without moving the ship; "Back to live" returns. "hear" on a placement plays it whatever the situation.
+- **Keep it**: "Export soundtrack" downloads `soundtrack.json` (the placements) and the trimmed WAVs. Put them in `public/audio/studio/` and the studio loads them at start-up when nothing is saved in the browser. "Import soundtrack.json" restores placements.
+- The studio is dev only: it does not exist in the demo build. Shipping a placement for real means turning it into a cue (or moving the loader out of dev) once the placements are final.
