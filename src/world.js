@@ -1,10 +1,10 @@
-import { styleOf, STYLE_DEF } from './villagestyles.js';
+import { styleOf, shapeOf, STYLE_DEF, SHAPES } from './villagestyles.js';
 import { pushOut } from './solids.js';
 import * as THREE from 'three';
 import { Builder, darken } from './builder.js';
 import { TILE } from './textures.js';
 import { mats } from './psx.js';
-import { hash2, mulberry32, fbm, clamp, angleDiff } from './util.js';
+import { hash2, mulberry32, fbm, clamp, angleDiff, smoothstep } from './util.js';
 import { dreadAtDistance } from './palette.js';
 import { makeName, makePuzzle } from './lore.js';
 import { FRUITS, fruitOf } from './fruit.js';
@@ -109,6 +109,10 @@ export function describeCell(cx, cz, seed) {
     desc.festival = key === '0,-1' ? 6 : hash2(cx, cz, seed + 910) % 7;
     desc.style = styleOf(hash2(cx, cz, seed + 777), key);
     { const vt = typeof window !== 'undefined' && window.__villageTest; if (vt && key === '-2,-1') desc.style = vt.style; }   // dev: force the look of the second harbour (see docs/PROGRESS.md)   // its own island outline, ground, palette, street plan and landmark (villagestyles.js)
+    desc.dockTh = key === '0,-1' ? Math.PI / 2 : (Math.abs(hash2(cx, cz, seed + 123)) % 628) / 100;
+    { const sh = shapeOf(desc.style, hash2(cx, cz, seed + 888), (Math.abs(hash2(cx, cz, seed + 889)) % 1000) / 1000), vt = typeof window !== 'undefined' && window.__villageTest;
+      if (vt && vt.shape && key === '-2,-1') { const q = SHAPES[vt.shape]; Object.assign(sh, { id: vt.shape, H: (q.H[0] + q.H[1]) / 2, te: q.te, w: q.w, steps: q.steps || 0, rim: q.rim ? (q.rim[0] + q.rim[1]) / 2 : 0 }); }
+      desc.sh = sh.id === 'flat' ? null : sh; if (desc.sh) desc.H = sh.H; }
     if (!forced) { const sd = STYLE_DEF[desc.style]; desc.r *= sd.rMul; desc.lobes = desc.lobes.map((v, i) => (i < 3 ? v * sd.lobeMul : v)); }
   }
   if (type === 'treasure') desc.puzzle = makePuzzle(mulberry32(hash2(cx, cz, seed + 31)), name, dread);
@@ -139,7 +143,15 @@ export function terrainHeight(d, lx, lz) {
       return d.H * Math.sin(((t - 0.55) / 0.45) * Math.PI) * (0.7 + n * 0.6);
     }
     case 'mangrove': return d.H * Math.pow(p, 0.6) * (0.6 + n * 0.6);
-    default: return Math.min(d.H, p * d.H * 3.2); // harbour plateau
+    default: { // harbour plateau (flat), or a shaped island: village level, ramp to the pier, dune, hill, cliff, terraces, bowl (villagestyles.js SHAPES)
+      const sh = d.sh; if (!sh) return Math.min(d.H, p * d.H * 3.2);
+      const dd = Math.abs(angleDiff(th, d.dockTh)), ramp = 1 - smoothstep(0.35, 1.0, dd), te = sh.te + (0.55 - sh.te) * ramp, w = sh.w + (0.45 - sh.w) * ramp;
+      let sS = 1 - smoothstep(te, Math.min(1, te + w), t);
+      if (sh.steps) sS = clamp(sS * 0.3 + Math.round(sS * sh.steps) / sh.steps * 0.7, 0, 1);
+      let h = sh.H * sS;
+      if (sh.rim) h += sh.rim * smoothstep(1.4, 2.6, dd) * smoothstep(0.6, 0.82, t) * (1 - smoothstep(0.9, 1.0, t));
+      return Math.max(h, 0.5 * (1 - smoothstep(0.85, 1.0, t)));
+    }
   }
 }
 
@@ -156,7 +168,7 @@ function faceColor(d, hc, slope, noise) {
     case 'rocky': c = slope > 0.45 || hc > d.H * 0.5 ? (noise > 0.5 ? COL.rock2 : COL.rock1) : (hc < 1.8 ? COL.dirt : COL.g3); break;
     case 'jungle': c = slope > 0.55 && hc > 2.5 ? COL.rock1 : hc < 1.6 ? (noise > 0.5 ? COL.g1 : COL.g2) : hc < d.H * 0.65 ? (noise > 0.45 ? COL.g2 : COL.g3) : COL.g3; break;
     case 'treasure': c = noise > 0.55 ? COL.g1 : COL.sand; break;
-    case 'harbour': { const g = STYLE_DEF[d.style] && STYLE_DEF[d.style].ground; c = g ? (noise > 0.55 ? (GC[g[0]] || (GC[g[0]] = C(g[0]))) : (GC[g[1]] || (GC[g[1]] = C(g[1])))) : (noise > 0.62 ? COL.g1 : COL.dirt); break; }
+    case 'harbour': { const g = STYLE_DEF[d.style] && STYLE_DEF[d.style].ground; if (d.sh && slope > 0.3 && hc > 1.2) { c = noise > 0.5 ? COL.rock2 : COL.rock1; break; } c = g ? (noise > 0.55 ? (GC[g[0]] || (GC[g[0]] = C(g[0]))) : (GC[g[1]] || (GC[g[1]] = C(g[1])))) : (noise > 0.62 ? COL.g1 : COL.dirt); break; }
     default: c = COL.sand;
   }
   return c;
@@ -165,8 +177,8 @@ function faceColor(d, hc, slope, noise) {
 function buildTerrain(d, rng) {
   const b = new Builder();
   b.uvFn = (p) => [(p.x + d.x) * 0.12, (p.z + d.z) * 0.12];
-  const segs = d.type === 'sandbar' ? 14 : 22;
-  const rings = [0, 0.2, 0.4, 0.58, 0.72, 0.84, 0.93, 1.0, 1.1, 1.3];
+  const segs = d.type === 'sandbar' ? 14 : d.sh ? 30 : 22;
+  const rings = d.sh ? [0, 0.14, 0.28, 0.4, 0.5, 0.58, 0.64, 0.7, 0.76, 0.82, 0.88, 0.93, 0.97, 1.0, 1.1, 1.3] : [0, 0.2, 0.4, 0.58, 0.72, 0.84, 0.93, 1.0, 1.1, 1.3];
   const P = rings.map((t) => Array.from({ length: segs }, (_, i) => {
     const th = (i / segs) * Math.PI * 2, R = shoreR(d, th);
     const x = Math.cos(th) * R * t, z = Math.sin(th) * R * t;
@@ -880,7 +892,7 @@ function decorate(d, rng, A, B, D, extra) {
       break;
     }
     case 'harbour': {
-      const dockRoll = rng(), dockTh = d.id === '0,-1' ? Math.PI / 2 : dockRoll * Math.PI * 2;   // Tama's pier faces the start
+      const dockRoll = rng(), dockTh = d.dockTh;   // Tama's pier faces the start
       const SD = STYLE_DEF[d.style || 'classic'] || STYLE_DEF.classic;
       PAINT = SD.paint ? { walls: SD.paint.walls, roofs: SD.paint.roofs } : null;
       if (d.custom === 'whitewash') PAINT = SD.paint ? { ...PAINT, wall: '#f4f0e8' } : { wall: '#f4f0e8', roof: '#3c78c8' };   // whitewash keeps each style's own roofs NO_CHILD = d.custom === 'nochildren';
@@ -899,7 +911,7 @@ function decorate(d, rng, A, B, D, extra) {
       }
       // lighthouse opposite the dock (not every harbour has one)
       const lth = dockTh + Math.PI + (rng() - 0.5) * 0.6, lr = shoreR(d, lth) * 0.74;
-      if (hasLighthouse(d)) { lighthouse(A, extra, Math.cos(lth) * lr, d.H - 0.2, Math.sin(lth) * lr, 1, d); d.lhPos = { x: Math.cos(lth) * lr, z: Math.sin(lth) * lr }; }
+      if (hasLighthouse(d)) { lighthouse(A, extra, Math.cos(lth) * lr, Math.min(d.H, terrainHeight(d, Math.cos(lth) * lr, Math.sin(lth) * lr)) - 0.2, Math.sin(lth) * lr, 1, d); d.lhPos = { x: Math.cos(lth) * lr, z: Math.sin(lth) * lr }; }
       // dock
       const R = shoreR(d, dockTh), z0 = R * 0.55, z1 = R + 14, zc = (z0 + z1) / 2;
       d.dock = { x: Math.cos(dockTh) * (R + 10), z: Math.sin(dockTh) * (R + 10), th: dockTh };   // where you moor (local)
@@ -926,26 +938,27 @@ function decorate(d, rng, A, B, D, extra) {
       for (let i = 0; i < 6; i++) {
         const th = dockTh + (rng() - 0.5) * 1.1, rho = shoreR(d, th) * (0.5 + rng() * 0.3), x = Math.cos(th) * rho, z = Math.sin(th) * rho;
         const k = i % 3;
-        if (k === 0) { barrel(A, x, d.H - 0.1, z, 0.9 + rng() * 0.3); barrel(A, x + 0.8, d.H - 0.1, z + 0.2, 0.8); }
-        else if (k === 1) { crateBox(A, x, d.H - 0.1, z, rng() * 3); crateBox(A, x + 0.1, d.H + 0.7, z, rng() * 3, 0.8); }
-        else ropeCoil(A, x, d.H - 0.1, z, 1.1);
+        const gy = Math.min(d.H - 0.1, terrainHeight(d, x, z) - 0.05);
+        if (k === 0) { barrel(A, x, gy, z, 0.9 + rng() * 0.3); barrel(A, x + 0.8, gy, z + 0.2, 0.8); }
+        else if (k === 1) { crateBox(A, x, gy, z, rng() * 3); crateBox(A, x + 0.1, gy + 0.8, z, rng() * 3, 0.8); }
+        else ropeCoil(A, x, gy, z, 1.1);
       }
-      for (let i = 0; i < 2; i++) { const th = dockTh + Math.PI * 0.5 + i * Math.PI * 0.9 + rng() * 0.4, rho = shoreR(d, th) * 0.62; fishRack(A, Math.cos(th) * rho, d.H - 0.1, Math.sin(th) * rho, rng() * 3); }
-      { const th = dockTh - 1.4 - rng() * 0.6, rho = shoreR(d, th) * 0.86; fence(A, Math.cos(th) * rho, d.H - 0.1, Math.sin(th) * rho, th + 1.57, 5); }
+      for (let i = 0; i < 2; i++) { const th = dockTh + Math.PI * 0.5 + i * Math.PI * 0.9 + rng() * 0.4, rho = shoreR(d, th) * 0.62; fishRack(A, Math.cos(th) * rho, Math.min(d.H - 0.1, terrainHeight(d, Math.cos(th) * rho, Math.sin(th) * rho) - 0.05), Math.sin(th) * rho, rng() * 3); }
+      { const th = dockTh - 1.4 - rng() * 0.6, rho = shoreR(d, th) * 0.86; fence(A, Math.cos(th) * rho, Math.min(d.H - 0.1, terrainHeight(d, Math.cos(th) * rho, Math.sin(th) * rho) - 0.05), Math.sin(th) * rho, th + 1.57, 5); }
       { const th = dockTh + 0.7 + rng() * 0.5, rho = shoreR(d, th) * 0.97, h = terrainHeight(d, Math.cos(th) * rho, Math.sin(th) * rho); if (h > 0.1) beachedBoat(A, Math.cos(th) * rho, h, Math.sin(th) * rho, th + 1.57); }
       // people, by the hour (see villagePhase): who is out depends on the time of day and on the village's mood
       {
         const lively = d.lively, n = (k) => Math.max(1, Math.round(k * (0.4 + lively)));
         const cr = extra.crowd = { dawn: new Builder(), day: new Builder(), evening: new Builder(), night: new Builder(), siesta: new Builder() };
-        const yy = d.H - 0.1, at = (t0, t1) => { const th = rng() * Math.PI * 2, rho = shoreR(d, th) * (t0 + rng() * (t1 - t0)); return [Math.cos(th) * rho, Math.sin(th) * rho]; };
+        const Rp = R * (d.sh ? 1.3 : 1), yy = d.H - 0.1, at = (t0, t1) => { const th = rng() * Math.PI * 2, rho = shoreR(d, th) * (t0 + rng() * (t1 - t0)); return [Math.cos(th) * rho, Math.sin(th) * rho]; };
         const dockAt = (r, side) => [Math.cos(dockTh) * r - Math.sin(dockTh) * side, Math.sin(dockTh) * r + Math.cos(dockTh) * side];
         // dawn: fishers on the dock, smoke from the tavern, one early riser
-        for (let i = 0; i < n(3); i++) { const [x, z] = dockAt(R * 0.7 + i * 3.2, i % 2 ? 1.0 : -1.0); villager(cr.dawn, x, 0.84, z, -dockTh + (i % 2 ? 0 : Math.PI), rng, 'fisher'); }
+        for (let i = 0; i < n(3); i++) { const [x, z] = dockAt(Rp * 0.7 + i * 3.2, i % 2 ? 1.0 : -1.0); villager(cr.dawn, x, 0.84, z, -dockTh + (i % 2 ? 0 : Math.PI), rng, 'fisher'); }
         { const [x, z] = at(0.15, 0.4); villager(cr.dawn, x, yy, z, rng() * 6.28, rng, 'market'); }
         // day: market stalls around the square, the full crowd, dockers by the water, laundry out
         for (let i = 0; i < n(3); i++) { const a = rng() * 6.28, r = 3.5 + rng() * 2.5, x = Math.cos(a) * r, z = Math.sin(a) * r; marketStall(cr.day, x, yy, z, Math.atan2(-x, -z) + Math.PI, rng); villager(cr.day, x * 1.25, yy, z * 1.25, Math.atan2(-x, -z), rng, 'market'); }
         for (let i = 0; i < n(11); i++) { const [x, z] = at(0.12, 0.6); villager(cr.day, x, yy, z, rng() * 6.28, rng, pickCol(rng, ['fisher', 'market', 'oldsalt', 'child', 'child', 'docker', 'harbourmaster'])); }
-        for (let i = 0; i < n(2); i++) { const [x, z] = dockAt(R * 0.6 + i * 2.5, i % 2 ? 0.9 : -0.9); villager(cr.day, x, 0.84, z, -dockTh, rng, 'docker'); }
+        for (let i = 0; i < n(2); i++) { const [x, z] = dockAt(Rp * 0.6 + i * 2.5, i % 2 ? 0.9 : -0.9); villager(cr.day, x, 0.84, z, -dockTh, rng, 'docker'); }
         { const th = dockTh + 1.6 + rng() * 0.8, rho = shoreR(d, th) * 0.5; washing(cr.day, Math.cos(th) * rho, yy, Math.sin(th) * rho, rng() * 3, rng); }
         // evening: everyone at the tavern, lanterns lit, smoke
         const tv = extra.tavern;
@@ -960,10 +973,10 @@ function decorate(d, rng, A, B, D, extra) {
           cr.dawn.push(tv.x, yy, tv.z, tv.ry); smoke(cr.dawn, -1.56, 5.2, -0.76, 3); cr.dawn.pop();
         }
         // night: empty streets, one watchman with a lantern near the dock (none at all in a sleepy village)
-        if (lively > 0.3) { const [x, z] = dockAt(R * 0.45, 1.2); lanternMan(cr.night, x, yy, z, -dockTh, rng); }
+        if (lively > 0.3) { const [x, z] = dockAt(Rp * 0.45, 1.2); lanternMan(cr.night, x, yy, z, -dockTh, rng); }
         // siesta (sleepy villages only, midday): hammocks between the houses, nobody else
         if (d.sleepy) for (let i = 0; i < 2; i++) { const [x, z] = at(0.2, 0.5); hammockSleeper(cr.siesta, x, yy, z, rng() * 6.28, rng); }
-        weekAndCustoms(d, rng, cr, { yy, R, dockTh, z1, n, at, dockAt });
+        weekAndCustoms(d, rng, cr, { yy, R: Rp, dockTh, z1, n, at, dockAt });
       }
       PAINT = null; NO_CHILD = false;
       const nW = 11;

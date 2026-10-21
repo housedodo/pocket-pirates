@@ -1276,7 +1276,8 @@ function completeJobIfHere(d) {
 let ashoreCam = null, ashoreK = 0, animT = 0;
 function frameVillage(d) {
   const dx = d.x - ship.pos.x, dz = d.z - ship.pos.z, L = Math.hypot(dx, dz) || 1, ux = dx / L, uz = dz / L, px = -uz, pz = ux;
-  ashoreCam = { pos: new THREE.Vector3(ship.pos.x + ux * 9 - px * 3, 7.5, ship.pos.z + uz * 9 - pz * 3), look: new THREE.Vector3(d.x - ux * d.r * 0.2 + px * d.r * 0.3, 2.5, d.z - uz * d.r * 0.2 + pz * d.r * 0.3) };
+  const up = Math.max(0, d.H - 1.15);   // a village up on a hill or cliff: lift the camera over the lip
+  ashoreCam = { pos: new THREE.Vector3(ship.pos.x + ux * 9 - px * 3, 7.5 + up * 1.15, ship.pos.z + uz * 9 - pz * 3), look: new THREE.Vector3(d.x - ux * d.r * 0.2 + px * d.r * 0.3, 2.5 + up * 0.9, d.z - uz * d.r * 0.2 + pz * d.r * 0.3) };
 }
 // ---- half riddles: now and then an arch holds only half a riddle; the other half is written on a second arch nearby
 const halfSeed = (d) => hash2(Math.round(d.x), Math.round(d.z), state.seed + 55) % 3;
