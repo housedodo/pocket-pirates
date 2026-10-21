@@ -153,3 +153,4 @@ Load your own music and sounds, cut them, and say where each plays. Open the gam
 - The studio is dev only: it does not exist in the demo build. Shipping a placement for real means turning it into a cue (or moving the loader out of dev) once the placements are final.
 
 - Final placements to ogg: put the exported soundtrack.json + WAVs in public/audio/studio/, run `python3 scripts/studio_ogg.py` (needs ffmpeg); it writes .ogg files and updates soundtrack.json.
+- Pop out: the studio header has "Pop out", which moves the panel into its own window (second screen). The game keeps playing and keeps focus behaviour (no auto-pause while it is open); "Dock back" or closing the window returns it. Allow pop-ups for the page.

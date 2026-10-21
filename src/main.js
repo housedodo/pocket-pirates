@@ -689,7 +689,7 @@ window.addEventListener('keydown', (e) => {
   if (e.code === 'BracketLeft') state.time = (state.time - 1 / 24 + 1) % 1;
 });
 window.addEventListener('keyup', (e) => { keys.delete(e.code); if (e.code === 'Space') fishing.hold = false; });
-window.addEventListener('blur', () => { if (started && !modal && !params.get('shot')) openModal('pause'); });
+window.addEventListener('blur', () => { if (started && !modal && !params.get('shot') && !(studio && studio.popped)) openModal('pause'); });   // the studio window may take focus: keep playing
 titleEl.addEventListener('pointerdown', () => { if (!titleScene) begin(); });   // with the live title, only Set sail starts
 
 let zoom = parseFloat(params.get('zoom') || '24'), zoomT = zoom;

@@ -16,6 +16,8 @@ const MIN_FADE = 0.004;   // every cut gets a few milliseconds of fade so it nev
 const css = `
 #studio { position: fixed; left: 12px; right: 12px; bottom: 12px; height: min(58vh, 560px); z-index: 12; display: none; flex-direction: column; background: var(--pxmenu) 0 0 / 32px 32px; image-rendering: pixelated; color: #fff4d8; box-shadow: 0 -4px 0 #c9a85c, 0 4px 0 #c9a85c, -4px 0 0 #c9a85c, 4px 0 0 #c9a85c, 8px 8px 0 rgba(0,0,0,.5); font-size: 15px; }
 #studio.open { display: flex; }
+#studio.popped { position: fixed; inset: 0; height: auto; box-shadow: none; }
+#studio.popped .stbody { grid-template-columns: minmax(380px, 1fr) minmax(380px, 1fr); }
 #studio button, #studio select, #studio input[type=text], #studio input[type=number] { font-family: "DotGothic16", monospace; font-size: 14px; color: #fff4d8; }
 #studio button { background: var(--pxbtn) 0 0 / 32px 32px; border: none; padding: 3px 9px; cursor: pointer; box-shadow: 0 -2px 0 #c9a85c, 0 2px 0 #c9a85c, -2px 0 0 #c9a85c, 2px 0 0 #c9a85c; }
 #studio button:hover { color: #ffd84a; } #studio button.on { background: #5ec45a; color: #10200c; } #studio button.del:hover { color: #ff7a6a; }
@@ -87,7 +89,7 @@ export class SoundStudio {
       <div class="sthead"><b>SOUND STUDIO</b>
         <button data-a="load">Load sounds...</button><button data-a="export">Export soundtrack</button><button data-a="import">Import soundtrack.json</button>
         <label style="display:inline-flex;gap:4px;align-items:center" title="While you preview a clip, the game's own sound is hushed"><input type="checkbox" data-a="hush" checked> hush game on preview</label>
-        <span style="flex:1"></span><button data-a="close">Close (F9)</button>
+        <span style="flex:1"></span><button data-a="pop" title="Open the studio in its own window, e.g. on a second screen">Pop out</button><button data-a="close">Close (F9)</button>
         <input type="file" data-f="audio" accept="audio/*,.wav,.ogg,.mp3,.flac,.m4a" multiple hidden><input type="file" data-f="json" accept=".json,application/json" hidden></div>
       <div class="stchips"></div>
       <div class="stbody"><div class="stcol" data-c="clips"></div><div class="stcol" data-c="rules"></div></div>`;
@@ -97,6 +99,7 @@ export class SoundStudio {
     this.el.addEventListener('click', (e) => {
       const b = e.target.closest('[data-a]'); if (!b) return; const a = b.dataset.a;
       if (a === 'close') this.toggle(false);
+      else if (a === 'pop') this.popped ? this.dock() : this.popOut();
       else if (a === 'load') fa.click();
       else if (a === 'import') fj.click();
       else if (a === 'export') this.exportAll();
@@ -109,7 +112,29 @@ export class SoundStudio {
     this.drawChips(); this.drawClips(); this.drawRules();
   }
 
+  /** move the whole panel into its own window; the game and the sound keep running in this one */
+  popOut() {
+    const w = window.open('', 'pocket-pirates-studio', 'width=1180,height=800');
+    if (!w) { this.toast('The browser blocked the new window: allow pop-ups for this page.', false, 5000); return; }
+    const d = w.document; d.title = 'Pocket Pirates - Sound studio';
+    d.head.innerHTML = ''; for (const n of document.head.querySelectorAll('style, link[rel=stylesheet]')) d.head.appendChild(n.cloneNode(true));
+    d.documentElement.style.cssText = document.documentElement.style.cssText; d.body.style.cssText = 'margin:0;background:#1b1538;font-family:"DotGothic16",monospace';
+    d.body.innerHTML = ''; d.body.appendChild(d.adoptNode(this.el)); this.el.classList.add('popped', 'open');
+    this.win = w; this.popped = true; this.el.querySelector('[data-a=pop]').textContent = 'Dock back';
+    w.addEventListener('pagehide', () => { if (this.win === w) this.dock(true); });
+    window.addEventListener('pagehide', () => { try { w.close(); } catch (e) { /* gone */ } }, { once: true });
+    this.sig = ''; if (this.sel) this.drawClips();
+  }
+  dock(fromClose) {
+    const w = this.win; this.win = null; this.popped = false;
+    document.body.appendChild(document.adoptNode(this.el)); this.el.classList.remove('popped');
+    this.el.classList.toggle('open', !!fromClose); this.el.querySelector('[data-a=pop]').textContent = 'Pop out';
+    if (!fromClose && w) try { w.close(); } catch (e) { /* gone */ }
+    if (fromClose) this.stopPreview();
+    this.sig = ''; if (this.sel) this.drawClips();
+  }
   toggle(on) {
+    if (this.popped) { if (on === false) this.dock(false), this.el.classList.remove('open'); else this.win.focus(); return; }
     on = on === undefined ? !this.el.classList.contains('open') : on;
     this.el.classList.toggle('open', on);
     if (on) { this.ensureCtx(); this.drawChips(true); }
