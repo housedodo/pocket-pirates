@@ -2221,6 +2221,7 @@ window.__game = {
   setTime(t) { state.time = t; },
   setCam(p, z) { if (p !== undefined) { pitch = pitchT = p; } if (z !== undefined) { zoom = zoomT = z; } },
   setOverride(o) { camOverride = o; },
+  setAshoreCam: (pos, look) => { ashoreCam = { pos: new THREE.Vector3(...pos), look: new THREE.Vector3(...look) }; },   // dev: aim the harbour camera (village screenshots)
   get companions() { return companions; }, petOffer, takePet, caves, openCave, threads, addMark,
   /** concept sketch: put a cat or a gull on deck (dev only) */
   companion(kind = 'cat', slot = '_pet') { if (this[slot]) ship.root.remove(this[slot].m.g); this[slot] = kind ? new Companion(ship, kind) : null; return !!this[slot]; },

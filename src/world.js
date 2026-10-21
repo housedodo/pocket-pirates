@@ -1,3 +1,4 @@
+import { styleOf, STYLE_DEF } from './villagestyles.js';
 import { pushOut } from './solids.js';
 import * as THREE from 'three';
 import { Builder, darken } from './builder.js';
@@ -12,6 +13,7 @@ export const CELL = 110;
 const LOAD_R = 4, UNLOAD_R = 6;
 
 const C = (h) => new THREE.Color(h);
+const GC = {};
 const COL = {
   sand: C('#ecd48f'), wet: C('#d2b676'), g1: C('#62b64f'), g2: C('#3f9a47'), g3: C('#2f7d3d'),
   rock1: C('#8f8b84'), rock2: C('#a7a095'), dirt: C('#c9a46a'), violet: C('#4a2f66'),
@@ -105,6 +107,9 @@ export function describeCell(cx, cz, seed) {
     // every village keeps one custom, and has its own festival day in the week
     desc.custom = key === '0,-1' ? 'bells' : CUSTOMS[hash2(cx, cz, seed + 909) % CUSTOMS.length];
     desc.festival = key === '0,-1' ? 6 : hash2(cx, cz, seed + 910) % 7;
+    desc.style = styleOf(hash2(cx, cz, seed + 777), key);
+    { const vt = typeof window !== 'undefined' && window.__villageTest; if (vt && key === '-2,-1') desc.style = vt.style; }   // dev: force the look of the second harbour (see docs/PROGRESS.md)   // its own island outline, ground, palette, street plan and landmark (villagestyles.js)
+    if (!forced) { const sd = STYLE_DEF[desc.style]; desc.r *= sd.rMul; desc.lobes = desc.lobes.map((v, i) => (i < 3 ? v * sd.lobeMul : v)); }
   }
   if (type === 'treasure') desc.puzzle = makePuzzle(mulberry32(hash2(cx, cz, seed + 31)), name, dread);
   return desc;
@@ -151,7 +156,7 @@ function faceColor(d, hc, slope, noise) {
     case 'rocky': c = slope > 0.45 || hc > d.H * 0.5 ? (noise > 0.5 ? COL.rock2 : COL.rock1) : (hc < 1.8 ? COL.dirt : COL.g3); break;
     case 'jungle': c = slope > 0.55 && hc > 2.5 ? COL.rock1 : hc < 1.6 ? (noise > 0.5 ? COL.g1 : COL.g2) : hc < d.H * 0.65 ? (noise > 0.45 ? COL.g2 : COL.g3) : COL.g3; break;
     case 'treasure': c = noise > 0.55 ? COL.g1 : COL.sand; break;
-    case 'harbour': c = noise > 0.62 ? COL.g1 : COL.dirt; break;
+    case 'harbour': { const g = STYLE_DEF[d.style] && STYLE_DEF[d.style].ground; c = g ? (noise > 0.55 ? (GC[g[0]] || (GC[g[0]] = C(g[0]))) : (GC[g[1]] || (GC[g[1]] = C(g[1])))) : (noise > 0.62 ? COL.g1 : COL.dirt); break; }
     default: c = COL.sand;
   }
   return c;
@@ -254,7 +259,7 @@ export function palm(A, B, D, x, y, z, rng, s = 1) {
 function house(A, B, x, y, z, ry, rng) {
   const w = 3.2 + rng() * 1.4, dep = 3 + rng() * 1.2, h = 2.1 + rng() * 0.9;
   let wall = pickCol(rng, WALLS), roof = pickCol(rng, ROOFS);
-  if (PAINT) { wall = PAINT.wall; roof = PAINT.roof; }
+  if (PAINT) { if (PAINT.walls) wall = pickCol(rng, PAINT.walls); if (PAINT.roofs) roof = pickCol(rng, PAINT.roofs); if (PAINT.wall) wall = PAINT.wall; if (PAINT.roof) roof = PAINT.roof; }
   A.push(x, y, z, ry);
   A.box(0, 0, 0, w, h, dep, wall, TILE.wall, TILE.white);
   A.gable(0, h, 0, w + 0.6, 1.4 + rng() * 0.5, dep + 0.6, roof, TILE.roof, wall);
@@ -380,7 +385,7 @@ function smoke(b, x, y, z, n = 4) { for (let i = 0; i < n; i++) b.blob(x + i * 0
 export const HOUSES = ['cottage', 'townhouse', 'stilt', 'round', 'tavern', 'warehouse', 'belltower'];
 export function houseKind(A, B, x, y, z, ry, rng, kind) {
   let wall = pickCol(rng, WALLS), roof = pickCol(rng, ROOFS);
-  if (PAINT) { wall = PAINT.wall; roof = PAINT.roof; }
+  if (PAINT) { if (PAINT.walls) wall = pickCol(rng, PAINT.walls); if (PAINT.roofs) roof = pickCol(rng, PAINT.roofs); if (PAINT.wall) wall = PAINT.wall; if (PAINT.roof) roof = PAINT.roof; }
   if (kind === 'cottage') return house(A, B, x, y, z, ry, rng);
   A.push(x, y, z, ry);
   switch (kind) {
@@ -876,10 +881,13 @@ function decorate(d, rng, A, B, D, extra) {
     }
     case 'harbour': {
       const dockRoll = rng(), dockTh = d.id === '0,-1' ? Math.PI / 2 : dockRoll * Math.PI * 2;   // Tama's pier faces the start
-      PAINT = d.custom === 'whitewash' ? { wall: '#f4f0e8', roof: '#3c78c8' } : null; NO_CHILD = d.custom === 'nochildren';
+      const SD = STYLE_DEF[d.style || 'classic'] || STYLE_DEF.classic;
+      PAINT = SD.paint ? { walls: SD.paint.walls, roofs: SD.paint.roofs } : null;
+      if (d.custom === 'whitewash') PAINT = SD.paint ? { ...PAINT, wall: '#f4f0e8' } : { wall: '#f4f0e8', roof: '#3c78c8' };   // whitewash keeps each style's own roofs NO_CHILD = d.custom === 'nochildren';
       const n = Math.round((6 + Math.floor(rng() * 3)) * Math.max(1, d.r / 25));
       let placed = 0;
-      for (let i = 0; i < n * 2 && placed < n; i++) {
+      if (SD.build) SD.build({ d, rng, dockTh, A, B, D, extra, houseKind, spot, palm, barrel, crateBox, fishRack, fence, ropeCoil, beachedBoat, shoreR, terrainHeight, angleDiff, paint: SD.paint });
+      for (let i = 0; i < n * 2 && placed < n && !SD.build; i++) {
         const th = (i / (n * 2)) * Math.PI * 2 + rng() * 0.3;
         if (Math.abs(angleDiff(th, dockTh)) < 0.55) continue;
         const rho = shoreR(d, th) * (0.28 + rng() * 0.38);
@@ -970,10 +978,12 @@ function decorate(d, rng, A, B, D, extra) {
       D.box(0, d.H - 0.2, 0, 1.4, 1.6, 1.4, '#ffffff', TILE.void);
       D.box(0, d.H + 1.4, 0, 1.1, 1.6, 1.1, '#ffffff', TILE.void);
       D.blob(0, d.H + 3.4, 0, 0.9, 0.9, 0.9, '#ffffff', TILE.spore, 0.1, 5);
-      palms(4, 0.2, 0.7, 0.9, 0.9);
+      if (!SD.build) palms(4, 0.2, 0.7, 0.9, 0.9);
       // bunting poles in bright mood
-      B.box(0, d.H - 0.2, 0, 0.14, 3.2, 0.14, '#6b4a2e', TILE.bark);
-      B.tri([0, d.H + 3.0, 0], [0, d.H + 2.2, 0], [1.4, d.H + 2.6, 0.6], '#d24a3e', TILE.flag);
+      if (!SD.build) {
+        B.box(0, d.H - 0.2, 0, 0.14, 3.2, 0.14, '#6b4a2e', TILE.bark);
+        B.tri([0, d.H + 3.0, 0], [0, d.H + 2.2, 0], [1.4, d.H + 2.6, 0.6], '#d24a3e', TILE.flag);
+      }
       break;
     }
   }
