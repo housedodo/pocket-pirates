@@ -30,7 +30,7 @@ New voyage goes straight into the game (no title). A new voyage starts moored al
 - Endless procedural Caribbean (Three.js + Vite), deterministic from a seed: islands in 110-unit cells,
   550-unit sectors with factions (Crown Traders, Free Cays, Reef Brotherhood, Lantern Guild, The Drowned).
 - PS1 renderer: low-res target, Bayer dither, 15-bit colour, vertex wobble; dirty, low-poly, grimy look.
-- **Dread** depends only on distance from home (0 at Tama, full at about 2200 units). Five stages:
+- **Dread** depends only on distance from home (0 within 300 of Tama, full at about 5200 units: `(d - 300) / 4900`; inside the chapter fog walls it never passes ~0.28). Five stages:
   Sunny, Off, Wrong, Eerie, Cosmic. It does not grow with time.
 - Sailing with a shifting wind (gusts, efficiency by heading), day/night (10 minutes: 7.5 min of daylight 06-19,
   2.5 min of night; rest at a harbour tavern from 17:00 to sleep until 06:00 and mend the hull), weather
@@ -511,3 +511,4 @@ Built and working in the dev build; switched off when `window.__BUILD === 'demo'
 - **Mara forgets her village's name earlier:** the remark now comes in Eerie water (dread 0.65) instead of at full dread, where the Bible opens her village story. Older saves that heard it already do not hear it twice. It still opens nothing.
 - **Shorter lines:** the half-riddle toast is one sentence; a refused hail adds only "They do not know you here." where you have no standing.
 - DESIGN.md and PROGRESS.md brought in line with the code (charting +5, seven upgrades, wind numbers, cannons in chapter IV, encounter timing, hut placement, the Raven built as a thread, Eye timing).
+- **Economy and pacing, five numbers (approved):** fish bite after 10-20 s instead of 2.5-7 (`fishing.js:113`); deliveries pay 0.07 gold per unit of distance instead of 0.12 (`jobs.js:38`); dread is `(distance - 300) / 4900` instead of `distance / 2200` (`palette.js:58-60`), so the first hour stays bright and Off and Wrong, Eerie and Cosmic each get their own water after "Keep sailing"; the wind's slow swing is `1.4 * sin(t * 0.0028)` instead of `2.2 * sin(t * 0.0075)` (`wind.js:21`); the hull mends at 0.1 per second out of combat instead of 1 (`main.js:2071`). The rest of the balance plan (hold cap, repair costs, gates after chapter VI, moving thread sites, encounter timing) is not built.

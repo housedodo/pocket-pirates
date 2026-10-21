@@ -49,7 +49,7 @@ They swap at dread 0.5, and terrain colours blend to a second vertex colour set.
 
 ## Systems added after the slice
 - **Upgrades:** buy at any harbour (E). Gold comes from treasure (+ crew bonus) and +5 per newly charted isle. Sails = speed and upwind ability, Rudder = turning, Lantern = night glow, Spyglass = view distance and zoom, Crew = dig speed and loot value.
-- **Wind:** direction swings up to ±126 degrees on a ~14-minute cycle plus ±29 degrees on a ~3.4-minute one (measured: a median 155-degree change in any 5 minutes); strength 45-130% with gusts. Waves scale with it. The wind meter (dial / pennant / rose / windsock, chosen in the pause menu) shows where it blows, a green-yellow-red ring around it shows how well the ship's nose would sail in each direction, a cream marker is the nose, and an orange marker points at the tracked mission.
+- **Wind:** direction swings up to ±80 degrees on a ~37-minute cycle plus ±29 degrees on a ~3.4-minute one (simulated: a median 45-degree change in any 5 minutes; an upwind leg holds within 45 degrees for ~1.5 minutes); strength 45-130% with gusts. Waves scale with it. The wind meter (dial / pennant / rose / windsock, chosen in the pause menu) shows where it blows, a green-yellow-red ring around it shows how well the ship's nose would sail in each direction, a cream marker is the nose, and an orange marker points at the tracked mission.
 - **Day/night:** `DAY_LENGTH` in `daynight.js`. Windows, lanterns, fungus and eyes ignore the light level so they glow at night; the lighthouse beam gets stronger.
 - **Pause menu:** Esc/P (also on tab blur). Simulation, time of day and audio freeze while any menu is open.
 
@@ -105,7 +105,7 @@ Other systems: **jobs** (delivery contracts from harbour boards, tracked on the 
 - **Docs for the rest:** `docs/PROGRESS.md` has a dated entry per feature; `docs/concept/` holds the design concepts.
 
 ## Tunables
-- `DREAD_RANGE` in `palette.js`: distance (2200 units now, ~4 min at average speed) to reach full dread. Raise it for a longer arc.
+- `DREAD_START` / `DREAD_RANGE` in `palette.js`: dread = (distance - 300) / 4900, so Tama's waters stay at 0, Off begins ~1280, Wrong ~2260, Eerie ~3240, Cosmic ~4220 and full dread ~4955. The chapter fog walls (max 1650) keep chapters I-VI in stages 1-2 (dread <= 0.28). A straight run to full dread is still only ~9-10 minutes: pacing after chapter VI needs story gates, not this constant.
 - `DARK_THRESHOLD` in `palette.js`: when decor swaps.
 - `CELL`, spawn probability and type weights in `world.js`; `MAX_SPEED` in `ship.js`.
 

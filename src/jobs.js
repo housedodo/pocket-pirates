@@ -35,7 +35,7 @@ export function makeJob(world, from, serial) {
   const dark = rng() < smoothstep(0.35, 0.8, dreadAtDistance(Math.hypot(from.x, from.z)));
   return {
     fromId: from.id, fromName: from.name, toId: to.id, toName: to.name, x: to.x, z: to.z,
-    reward: Math.round(20 + dist * 0.12 + to.dread * 40), item: pick(rng, dark ? ITEMS_DARK : ITEMS_BRIGHT), dark, dist: Math.round(dist),
+    reward: Math.round(20 + dist * 0.07 + to.dread * 40), item: pick(rng, dark ? ITEMS_DARK : ITEMS_BRIGHT), dark, dist: Math.round(dist),
   };
 }
 

@@ -2068,7 +2068,7 @@ function frame() {
   fishing.update(dt, waveT, { wave: stage.wave, dread, night: tod.night, env: fishEnv() });
   setDieWear(clamp(state.dayN / 12 + dread * 0.6, 0, 1));
   combat.update(dt, waveT, { ship, traffic, wave: stage.wave, onHitEnemy, onHitPlayer: hurtPlayer });
-  if (live && tNow - lastHit > 12 && state.hp < ship.mods.maxHp) state.hp = Math.min(ship.mods.maxHp, state.hp + dt);
+  if (live && tNow - lastHit > 12 && state.hp < ship.mods.maxHp) state.hp = Math.min(ship.mods.maxHp, state.hp + 0.1 * dt);
   { // while Perrin's letter is being read about, Mara stays on screen even ashore or in the log: she is the tutorial
     const st = state.story, on = st.riddleLine === 'wait' || st.noteLine === 'wait' || (st.mateTail && objectives.mate.busy);
     if (!(st.riddleLine === 'wait' || st.noteLine === 'wait') && !objectives.mate.busy) st.mateTail = false; else if (st.riddleLine === 'done' || st.noteLine === 'done') st.mateTail = true;

@@ -110,7 +110,7 @@ export class Fishing {
     const rx = Math.cos(s.heading), rz = Math.sin(s.heading), fx = Math.sin(s.heading), fz = -Math.cos(s.heading);
     this.pos = { x: s.pos.x + rx * 4.8 + fx * 1.5, z: s.pos.z + rz * 4.8 + fz * 1.5 };
     // swing back, flick forward, the bobber flies out on an arc; then the wait begins
-    this.mode = 'cast'; this.castT = 0; this.timer = 0; this.wait = rnd(2.5, 7) * (1 - 0.25 * this.cb.getCtx().bonus);
+    this.mode = 'cast'; this.castT = 0; this.timer = 0; this.wait = rnd(10, 20) * (1 - 0.25 * this.cb.getCtx().bonus);
     this.rod.visible = true; this.bobber.visible = false; this.line.visible = false;
     this.cb.onStart();
   }

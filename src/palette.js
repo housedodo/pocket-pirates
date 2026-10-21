@@ -55,6 +55,6 @@ export function sampleStage(dread) {
 export const DARK_THRESHOLD = 0.5; // above this, islands swap to their "wrong" decor
 
 // The further from home you sail, the higher the dread (0..1). Tunable.
-export const DREAD_RANGE = 2200;
+export const DREAD_START = 300, DREAD_RANGE = 4900;   // Tama's waters stay bright; Off begins ~1280, Wrong ~2260, Eerie ~3240, Cosmic ~4220, full ~4955
 /** the demo build is the bright game: no dread by distance at all (the dev build keeps it for testing) */
-export const dreadAtDistance = (d) => (window.__BUILD === 'demo' ? 0 : clamp(d / DREAD_RANGE, 0, 1));
+export const dreadAtDistance = (d) => (window.__BUILD === 'demo' ? 0 : clamp((d - DREAD_START) / DREAD_RANGE, 0, 1));
