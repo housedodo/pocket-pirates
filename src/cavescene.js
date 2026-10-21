@@ -44,6 +44,15 @@ function shelves(ctx, jars, glint) {
   for (const y of [70, 100]) { R(ctx, '#5a3418', 62, y, 196, 3); for (let i = 0; i < 9; i++) { const x = 70 + i * 21 + (i % 2) * 3, h = 8 + (i * 7) % 6; R(ctx, ['#a07a3a', '#6a8a5a', '#8a5a3a', '#c8b878'][i % 4], x, y - h, 10, h); R(ctx, '#e8dcc0', x + 2, y - h - 2, 6, 2); } }
   if (glint) { R(ctx, '#ffd23a', 197, 86, 4, 4); R(ctx, '#fff4b0', 198, 87, 2, 2); }
 }
+/** a rect shaded between two colours by an ordered dither; k(x, y) -> 0 (all light) .. 1 (all dark) */
+function dithRect(ctx, x0, y0, w, h, light, dark, k) { for (let y = y0; y < y0 + h; y++) for (let x = x0; x < x0 + w; x++) R(ctx, k(x, y) > BAYER[(y & 3) * 4 + (x & 3)] / 16 ? dark : light, x, y, 1, 1); }
+/** a hanging cloth: lit at the peg, shaded towards the hem and the far edge, a fold down the middle, a ragged hem */
+function cloth(ctx, x0, y0, w, h, light, dark) {
+  dithRect(ctx, x0, y0, w, h, light, dark, (x, y) => 0.1 + 0.45 * (y - y0) / h + 0.3 * (x - x0) / w);
+  if (w > 6) dithRect(ctx, x0 + (w >> 1), y0 + 2, 1, h - 3, light, dark, () => 0.7);
+  for (let x = x0; x < x0 + w; x += 2) if (hash(x, y0, 3) < 0.5) R(ctx, '#05040a', x, y0 + h - 1, 2, 1);
+}
+function pot(ctx, x, y) { dithRect(ctx, x, y + 2, 10, 12, '#7a7a86', '#3a3a46', (px) => 0.15 + 0.7 * (px - x) / 10); R(ctx, '#9a9aa6', x + 2, y, 6, 3); R(ctx, '#2a2a36', x - 1, y + 2, 12, 1); }
 function hermit(ctx, x, y) { R(ctx, '#e8e0d0', x, y, 18, 30); R(ctx, '#e8b890', x + 4, y - 6, 10, 10); R(ctx, '#7a3a2a', x - 2, y - 12, 22, 7); R(ctx, '#e8e0d0', x + 2, y + 4, 14, 14); R(ctx, '#1a1a2a', x + 6, y - 4, 2, 2); R(ctx, '#1a1a2a', x + 12, y - 4, 2, 2); }
 
 /** draws the picture for this room; returns { lamps: [[x, y, r, colour]], water: top row of the water or null } */
@@ -104,23 +113,24 @@ const SCENES = {
     for (let i = 0; i < 40; i++) { const a = hash(i, 3, 6) * 6.28, d = 8 + hash(i, 4, 6) * 70; R(ctx, '#f0c8ff', cx + Math.cos(a) * d, cy - 10 - hash(i, 5, 6) * 50 + Math.sin(a) * 8, 1, 1); }
     return { lamps: [[cx, cy, 82, '#d070ff']] };
   },
-  larder(ctx, node) {
-    lantern(ctx, WARM, 160, 74, 130, 95, 8);
-    const lamps = [[157, 40, 34, '#ffb050']];
+  larder(ctx, node) {   // everything sits below y 64: the top of the picture stays clear for the cave's name
+    lantern(ctx, WARM, 160, 94, 130, 90, 8);
+    const lamps = [[157, 70, 34, '#ffb050']];
     if (node === 'door' || node === 'washing') {
-      R(ctx, '#2a1a0e', 40, 52, 240, 2);   // the line
-      for (let i = 0; i < 9; i++) R(ctx, ['#e8dcc0', '#b8c8d8', '#c87a5a'][i % 3], 60 + i * 24, 54, 10 + (i % 2) * 2, 16 + (i * 5) % 10);
-      R(ctx, '#2a1a0e', 150, 90, 20, 50); R(ctx, '#4a2c16', 146, 86, 28, 4);   // the narrow way on
-      R(ctx, '#5a5a66', 176, 120, 10, 12); R(ctx, '#9a9aa6', 178, 118, 6, 3);
+      for (let x = 40; x < 280; x += 2) R(ctx, '#2a1a0e', x, 76 + Math.round(Math.sin(((x - 40) / 240) * Math.PI) * 4), 2, 2);   // the line, sagging, 2px thick
+      for (let i = 0; i < 9; i++) { const x = 60 + i * 24, y = 78 + Math.round(Math.sin(((x - 40) / 240) * Math.PI) * 4), c = [['#e8dcc0', '#a89878'], ['#b8c8d8', '#6a7a90'], ['#c87a5a', '#7a3a2a']][i % 3]; cloth(ctx, x, y, 10 + (i % 2) * 2, 14 + (i * 5) % 10, c[0], c[1]); }
+      dithRect(ctx, 146, 104, 28, 46, '#2a1a0e', '#120a06', (x, y) => 0.25 + 0.6 * (y - 104) / 46);   // the narrow way on, darker as it goes in
+      R(ctx, '#4a2c16', 142, 100, 36, 4); dithRect(ctx, 142, 104, 4, 46, '#4a2c16', '#2a1a0e', () => 0.5); dithRect(ctx, 174, 104, 4, 46, '#4a2c16', '#2a1a0e', () => 0.5);
+      pot(ctx, 184, 120);
     } else {
       shelves(ctx, true, node === 'pantry');
       R(ctx, '#3a2210', 112, 124, 14, 22); R(ctx, '#7a4a22', 112, 124, 14, 3);
       R(ctx, '#6a3a1a', 192, 126, 30, 20); R(ctx, '#3a2210', 192, 134, 30, 2);
-      if (node !== 'pantry') { hermit(ctx, 150, 100); R(ctx, '#5a5a66', 176, 120, 10, 12); R(ctx, '#9a9aa6', 178, 118, 6, 3); }
-      for (let i = 0; i < 6; i++) R(ctx, '#e8dcc0', 214 + i * 6, 40, 3, 11 + (i * 5) % 7);
-      R(ctx, '#2a1a0e', 210, 38, 38, 2);
+      if (node !== 'pantry') { hermit(ctx, 150, 100); pot(ctx, 176, 122); }
+      for (let x = 210; x < 248; x += 2) R(ctx, '#2a1a0e', x, 66, 2, 2);
+      for (let i = 0; i < 6; i++) cloth(ctx, 214 + i * 6, 68, 3, 11 + (i * 5) % 7, '#e8dcc0', '#a89878');
     }
-    R(ctx, '#ffd23a', 154, 38, 6, 8);
+    R(ctx, '#3a2210', 156, 58, 2, 6); R(ctx, '#ffd23a', 154, 64, 6, 8); R(ctx, '#fff4b0', 156, 66, 2, 3);   // the lamp on its hook
     return { lamps };
   },
   niche(ctx, node) {

@@ -36,7 +36,7 @@
     .toast.dark { border-color: #ff70d0; color: #ffd8f4; }
     @keyframes pop { from { transform: scale(.85); opacity: 0; } to { transform: none; opacity: 1; } }
     #help { position: absolute; left: 12px; bottom: 12px; font-size: 12px; line-height: 1.5; transition: opacity 1.5s; }
-    #help:not(:empty) span { font-size: 18px; }
+    #help:not(:empty) span { font-size: 16px; }
     .onb-off { display: none !important; } .onb-pop { animation: onbpop 3s steps(6) 1; } @keyframes onbpop { 0%, 40% { box-shadow: 0 0 0 4px #ffd23a; } 100% { box-shadow: none; } }
     #debug { position: absolute; left: 50%; top: 6px; transform: translateX(-50%); font-size: 12px; display: none; }
 
@@ -106,7 +106,7 @@
     #chart[data-book="pixel"] .ribbons button::before { background: repeating-linear-gradient(90deg, rgba(0,0,0,.18) 0 4px, transparent 4px 8px); opacity: .5; }
     #chart[data-book="pixel"] .ribbons button em { font: 600 14px "DotGothic16", monospace; font-variant: normal; color: #f4e6c0; text-shadow: 2px 2px 0 rgba(0,0,0,.55); }
     #chart[data-book="pixel"] .ribbons button:hover { transform: translateX(4px); } #chart[data-book="pixel"] .ribbons button.on { transform: translateX(12px); }
-    #chart[data-book="pixel"] .bookbar button, #chart[data-book="pixel"] .mapctl button, #chart[data-book="pixel"] #logBody button.mini { font: 600 15px "DotGothic16", monospace; background: #c9a85c; color: #2a1608; clip-path: none; text-shadow: none; border: none; box-shadow: 0 -3px 0 #2a1608, 0 3px 0 #2a1608, -3px 0 0 #2a1608, 3px 0 0 #2a1608, inset 0 -3px 0 #8a6a28; }
+    #chart[data-book="pixel"] .bookbar button, #chart[data-book="pixel"] .mapctl button, #chart[data-book="pixel"] #logBody button.mini { font: 600 16px "DotGothic16", monospace; background: #c9a85c; color: #2a1608; clip-path: none; text-shadow: none; border: none; box-shadow: 0 -3px 0 #2a1608, 0 3px 0 #2a1608, -3px 0 0 #2a1608, 3px 0 0 #2a1608, inset 0 -3px 0 #8a6a28; }
     /* rougher: torn transparent edges on cover and pages, a stack of pages as pixel shadows, frayed ribbons */
     #chart[data-book="pixel"] .book { clip-path: none; background-color: transparent; }
     #chart[data-book="pixel"] .book .spread { background: none !important; box-shadow: none; z-index: 0; overflow: hidden; }
@@ -128,14 +128,15 @@
     #cave { align-items: flex-end; background: #05040a; z-index: 5; }
     #caveCv { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; transform: translateY(-14%) scale(1.2); }   /* the picture sits above the text box */
     #caveTitle { position: absolute; left: 0; right: 0; top: 18px; text-align: center; color: #f4ead0; text-shadow: 3px 3px 0 #000; }
-    #caveTitle b { display: block; font: 400 44px 'Pirata One', serif; letter-spacing: 1px; } #caveTitle small { font-size: 16px; color: #ffd23a; letter-spacing: 2px; }
+    #caveTitle b { display: block; font: 400 48px 'DotGothic16', monospace; letter-spacing: 1px; } #caveTitle small { font-size: 16px; color: #ffd23a; letter-spacing: 2px; }
     #caveBox { position: relative; display: flex; gap: 16px; align-items: flex-start; width: min(900px, 94vw); margin-bottom: 32px; padding: 14px 20px 18px; background: #1d1640; image-rendering: pixelated; box-shadow: 0 -4px 0 #c9a85c, 0 4px 0 #c9a85c, -4px 0 0 #c9a85c, 4px 0 0 #c9a85c, 8px 8px 0 4px rgba(0,0,0,.45); text-align: left; }
     #caveFace { width: 64px; height: 64px; flex: none; background: #2a1a0e; box-shadow: 0 0 0 4px #1a0f08; position: relative; } #caveFace .pxi { width: 48px; height: 48px; margin: 8px; display: block; } #caveFace.gone { display: none; }
-    #caveBody { flex: 1; min-width: 0; } #caveWho { color: #ffd23a; font-size: 16px; min-height: 18px; } #caveSay { font-size: 22px; line-height: 1.3; color: #fff4d8; } #caveBox.resolved #caveChoices { display: none; } #caveBox.resolved #caveSay { opacity: .6; font-size: 18px; }
+    #caveBody { flex: 1; min-width: 0; } #caveWho { color: #ffd23a; font-size: 16px; min-height: 18px; } #caveSay { font-size: 16px; line-height: 1.3; color: #fff4d8; } #caveBox.resolved #caveChoices { display: none; } #caveBox.resolved #caveSay { opacity: .6; font-size: 16px; }
     #caveChoices { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
-    #caveChoices button, #caveDone { display: inline-block; width: auto; margin: 0; padding: 6px 14px; font: 18px 'DotGothic16', monospace; letter-spacing: 0; color: #fff4d8; background: #2c2160; border: 0; box-shadow: 0 0 0 2px #4a3aa0; cursor: pointer; text-align: left; }
-    #caveChoices button small { color: #b8a8f0; font-size: 14px; } #caveChoices button:hover:not(:disabled), #caveChoices button:focus, #caveDone:hover, #caveDone:focus { background: #4a3aa0; box-shadow: 0 0 0 2px #ffd23a; outline: none; } #caveChoices button:disabled { opacity: .4; cursor: default; }
-    #caveOut { margin: 10px 0 0; font-size: 24px; line-height: 1.3; color: #c8f0b8; } #caveOut:empty { display: none; }
+    #caveChoices button, #caveDone { display: inline-block; width: auto; margin: 3px; padding: 6px 14px; font: 16px 'DotGothic16', monospace; letter-spacing: 0; color: #fff4d8; background: var(--pxbtn) 0 0 / 32px 32px; image-rendering: pixelated; border: 0; cursor: pointer; text-align: left;
+      box-shadow: 0 -3px 0 #120c1c, 0 3px 0 #120c1c, -3px 0 0 #120c1c, 3px 0 0 #120c1c, inset 0 -4px 0 rgba(0,0,0,.35), inset 0 4px 0 rgba(255,255,255,.1); }   /* the same notched pixel buttons as the menus */
+    #caveChoices button small { color: #b8a8f0; font-size: 16px; } #caveChoices button:hover:not(:disabled), #caveChoices button:focus, #caveDone:hover, #caveDone:focus { background: #4a38a0; box-shadow: 0 -3px 0 #ffd23a, 0 3px 0 #ffd23a, -3px 0 0 #ffd23a, 3px 0 0 #ffd23a, inset 0 -4px 0 rgba(0,0,0,.35); outline: none; } #caveChoices button:disabled { opacity: .4; cursor: default; }
+    #caveOut { margin: 10px 0 0; font-size: 16px; line-height: 1.3; color: #c8f0b8; } #caveOut:empty { display: none; }
     #caveDone { display: none; margin-top: 10px; }
     #caveTide { display: none; position: absolute; right: 28px; top: 28px; width: 36px; height: 300px; background: #0c1630; box-shadow: 0 0 0 4px #3a3070; } #caveTide i { position: absolute; left: 0; right: 0; bottom: 0; background: #3aa8b8; transition: height 1.2s steps(10); }
     #cave.passage #caveTide { display: block; }
@@ -172,14 +173,17 @@
     .mxplay { font-size: 16px; padding: 0 4px; } .mxplay.on { background: #5ec45a; color: #10200c; }
     .mxrow em { grid-column: 1 / -1; display: block; height: 4px; } .mxmeter { background: #2a2250; } .mxmeter span { display: block; height: 4px; width: 0; background: #5ec45a; }
     /* harbour: the name across the top of the screen; a villager may speak first (a Mara-style box); the menu sits low */
-    .hbBanner { position: absolute; left: 0; right: 0; top: 0; padding: 24px 40px 32px; text-align: center; background: linear-gradient(rgba(8,6,22,.88), rgba(8,6,22,.55) 75%, rgba(8,6,22,0)); pointer-events: none; }
+    .hbBanner { position: absolute; left: 0; right: 0; top: 0; padding: 24px 40px 32px; text-align: center; background: linear-gradient(rgba(8,6,22,.8) 0 50%, rgba(8,6,22,.64) 50% 66%, rgba(8,6,22,.46) 66% 80%, rgba(8,6,22,.26) 80% 92%, rgba(8,6,22,.1) 92%); pointer-events: none; }   /* stepped bands, no smooth fade */
     .hbName { font: 48px "Pirata One", serif !important; color: #f4ead0; text-shadow: 3px 3px 0 #5a1612, 6px 6px 0 #1a0606; }
     .hbDay { font-size: 16px !important; color: var(--gold); text-shadow: 2px 2px 0 #1a0606; margin-top: 2px; } .hbDay:empty { display: none; }
     .hbSaid { margin: 4px auto 0; max-width: 680px; font-size: 16px !important; line-height: 24px; color: #e8c8d8; text-shadow: 3px 3px 0 #1a0614; }
     @media (max-height: 640px) { .hbSaid { font-size: 16px !important; line-height: 24px; } .hbName { font-size: 32px !important; } }
     #harbour.dark .hbSaid, #greet.dark #grTxt { color: #ffb8e8; }
     /* ashore: the village stays in view and alive; signposts along the pier pick a place, one panel on the right, messages on the left */
-    #harbour { background: linear-gradient(rgba(8,6,22,0) 70%, rgba(8,6,22,.55)); display: none; }
+    #harbour { background: linear-gradient(transparent 0 72%, rgba(8,6,22,.2) 72% 80%, rgba(8,6,22,.38) 80% 90%, rgba(8,6,22,.55) 90%); display: none; }
+    /* the villager's line under the name is never covered: with a line showing, the panel and the messages start below it */
+    #harbour:has(#hbSaid:not(:empty)) #hbWide { top: 200px; max-height: calc(100vh - 372px); }
+    body.ashore:has(#hbSaid:not(:empty)) #toasts { top: 200px; }
     #harbour.open { display: block; }
     #harbour #hbWide { position: absolute; right: 24px; top: 128px; width: min(480px, 92vw); max-height: calc(100vh - 300px); overflow: auto; margin: 0; }
     #harbour .goldline { display: flex; justify-content: space-between; }
@@ -289,7 +293,7 @@
     .yardgrp small { color: var(--ink); opacity: .7; font-weight: 400; }
     /* low-poly icons: faceted shapes from conic gradients + clip-path */
     #placeline { font-size: 13px; border-left-width: 6px; }
-    body.fogged #tracker, body.fogged #compass { filter: blur(2px) contrast(0.6); opacity: 0.55; transition: filter 3s, opacity 3s; }
+    body.fogged #tracker, body.fogged #compass { filter: contrast(0.6) saturate(0.5); opacity: 0.55; transition: filter 3s, opacity 3s; }   /* faded, never blurred */
     #tracker { font-size: 13px; max-width: 280px; padding: 5px 9px; display: none; }
     #tracker .trow { padding: 1px 0; } #tracker .trow.main { color: #ffd23a; font-weight: 700; }
     #tracker .thint { font-size: 10px; opacity: .55; text-align: right; }
@@ -299,13 +303,13 @@
     #mate.glitch #matetxt { color: #ffc0ec; text-shadow: 2px 0 rgba(0,224,255,.55), -2px 0 rgba(255,0,160,.55); }
     #mate.glitch .face { color: #ff50c8; }
     @keyframes mglitch { 0% { margin-left: 0; filter: none; } 50% { margin-left: 3px; filter: hue-rotate(40deg) contrast(1.3); } }
-    #awaken { position: fixed; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: flex-end; padding-bottom: 18vh; gap: 10px; pointer-events: none; z-index: 40; background: radial-gradient(ellipse at 50% 40%, transparent 35%, rgba(10,0,16,.85)); transition: background 2s; }
+    #awaken { position: fixed; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: flex-end; padding-bottom: 18vh; gap: 10px; pointer-events: none; z-index: 40; background: radial-gradient(ellipse at 50% 40%, transparent 0 40%, rgba(10,0,16,.35) 40% 52%, rgba(10,0,16,.6) 52% 64%, rgba(10,0,16,.85) 64%); transition: background 2s; }
     #awaken.show { display: flex; }
     body.awakening #hud { opacity: 0; transition: opacity 1.5s; }
     #awaken.white { background: #fff6fc; }
-    #awaken p { margin: 0; font: italic 700 22px Georgia, serif; color: #ffd8f4; text-shadow: 0 0 12px #ff30c8, 2px 2px 0 #000; animation: awfade 2s ease-out; text-align: center; max-width: 80vw; }
+    #awaken p { margin: 0; font: 32px "DotGothic16", monospace; color: #ffd8f4; text-shadow: 2px 2px 0 #ff30c8, 4px 4px 0 #000; animation: awfade 2s ease-out; text-align: center; max-width: 80vw; }
     #awaken.white p { color: #3a2030; text-shadow: none; }
-    #awaken p.big { font-size: 44px; letter-spacing: .2em; font-style: normal; }
+    #awaken p.big { font-size: 48px; letter-spacing: .2em; font-style: normal; }
     @keyframes awfade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; } }
     #pauseAbyss .tip { font-size: 12px; }
     .abtop { display: flex; gap: 6px; } .abtop button { flex: 1; }
@@ -326,7 +330,7 @@
     #tP { position: fixed; top: 12px; left: 50%; margin-left: -24px; width: 48px; height: 40px; display: none; z-index: 3; font: 700 16px monospace; color: var(--ink); background: var(--panel); border: 2px solid var(--edge); }
     @media (pointer: coarse) { #tP { display: block; } }
 
-    #title { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 6vh; background: radial-gradient(ellipse at 50% 45%, rgba(0,0,0,0) 45%, rgba(4,2,8,.55)); text-align: center; z-index: 5; cursor: pointer; }
+    #title { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 6vh; background: radial-gradient(ellipse at 50% 45%, transparent 0 50%, rgba(4,2,8,.2) 50% 62%, rgba(4,2,8,.38) 62% 74%, rgba(4,2,8,.55) 74%); text-align: center; z-index: 5; cursor: pointer; }
     #titleLogo { width: min(820px, 92vw); image-rendering: pixelated; }
     #titleMenu { position: absolute; left: max(16px, 5vw); bottom: 10vh; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
     #titleMenu button { all: unset; cursor: pointer; position: relative; padding-left: 28px; font-size: 32px !important; line-height: 48px; color: #b8a47c; text-shadow: 2px 0 0 currentColor, 0 2px 0 currentColor, 2px 2px 0 currentColor, 5px 5px 0 #1a0606, 4px 4px 0 #1a0606; }   /* pixel bold: the face drawn twice, a hair apart */
@@ -383,8 +387,8 @@
     #qbanner .qbDone, #qbanner .qbNew { position: absolute; left: 0; right: 0; top: 0; padding: 14px 20px 18px; opacity: 0; background: var(--pxmenu) 0 0 / 32px 32px; image-rendering: pixelated; box-shadow: 0 -4px 0 #ffd23a, 0 4px 0 #ffd23a, -4px 0 0 #ffd23a, 4px 0 0 #ffd23a, 8px 8px 0 4px rgba(0,0,0,.45); }
     #qbanner .qbNew { box-shadow: 0 -4px 0 #c9a85c, 0 4px 0 #c9a85c, -4px 0 0 #c9a85c, 4px 0 0 #c9a85c, 8px 8px 0 4px rgba(0,0,0,.45); }
     #qbanner.show .qbDone { animation: qbdone 3.2s steps(16) forwards; } #qbanner.shownew .qbNew { animation: qbnew 7.2s steps(24) 0s forwards; }
-    .qbBig { font: 56px "Pirata One", serif !important; color: #ffd23a; text-shadow: 4px 4px 0 #5a1612, 8px 8px 0 #1a0606; line-height: 64px; }
-    .qbRew { font-size: 24px !important; color: #f4ead0; } .qbRew em { font-style: normal; color: #ffd23a; margin-left: 16px; }
+    .qbBig { font-size: 48px !important; color: #ffd23a; text-shadow: 4px 4px 0 #5a1612, 8px 8px 0 #1a0606; line-height: 64px; }   /* the game font: Pirata One is only for the HOIST logo and harbour names */
+    .qbRew { font-size: 32px !important; color: #f4ead0; } .qbRew em { font-style: normal; color: #ffd23a; margin-left: 16px; }
     .qbNew small { display: block; color: #ffd23a; letter-spacing: .12em; font-size: 16px !important; } .qbNew span { display: block; font-size: 32px !important; line-height: 44px; color: #fff4d8; }
     .qbNew i { display: block; font-style: normal; font-size: 16px !important; color: #c9b890; margin-top: 4px; }
     @keyframes qbdone { 0% { opacity: 0; transform: translateY(-24px) scale(1.06); } 10% { opacity: 1; transform: none; } 80% { opacity: 1; } 100% { opacity: 0; } }
@@ -411,7 +415,7 @@
     #landho { position: absolute; left: 50%; top: 22%; transform: translateX(-50%); text-align: center; opacity: 0; pointer-events: none; }
     #landho b { display: block; font-size: 18px; color: var(--gold); letter-spacing: .3em; }
     #landho span { display: block; font-size: 40px; color: #fff7d6; text-shadow: 4px 4px 0 var(--shadow); }
-    #landho small { display: block; font-size: 15px !important; opacity: .8; }
+    #landho small { display: block; font-size: 16px !important; opacity: .8; }
     #landho.show { animation: landho 4.5s steps(18) forwards; }
     @keyframes landho { 0% { opacity: 0; transform: translate(-50%, 8px); } 12% { opacity: 1; transform: translate(-50%, 0); } 80% { opacity: 1; } 100% { opacity: 0; } }
     /* readability: the pixel font is only crisp at whole sizes >= 14px and medium weight; no sizes below 14px */
@@ -470,8 +474,8 @@
     #logBody .cork .str { position: absolute; left: 0; top: 0; pointer-events: none; z-index: 1; }
     #logBody .bcard { position: absolute; width: 200px; padding: 14px 10px 8px; background: #e8d9a8; color: #3a2210; box-shadow: inset 0 0 0 3px #c9b07a, 5px 5px 0 rgba(0,0,0,.4); cursor: grab; user-select: none; touch-action: none; z-index: 2; font-size: 16px; line-height: 1.25; }
     #logBody .bcard::before { content: ""; position: absolute; top: -4px; left: 50%; margin-left: -6px; width: 12px; height: 12px; background: #c8402a; box-shadow: inset -3px -3px 0 #8a2418, 2px 2px 0 rgba(0,0,0,.4); }
-    #logBody .bcard h4 { margin: 0 0 3px; font: 400 14px "DotGothic16", monospace; color: #7a3a1c; letter-spacing: 1px; }
-    #logBody .bcard p { margin: 0; font-size: 16px; } #logBody .bcard small { display: block; margin-top: 4px; color: #8a6a3a; font-size: 14px !important; }
+    #logBody .bcard h4 { margin: 0 0 3px; font: 400 16px "DotGothic16", monospace; color: #7a3a1c; letter-spacing: 1px; }
+    #logBody .bcard p { margin: 0; font-size: 16px; } #logBody .bcard small { display: block; margin-top: 4px; color: #8a6a3a; font-size: 16px !important; }
     #logBody .bcard.rum { background: #d8d0b8; } #logBody .bcard.bot { background: #cfe0d0; } #logBody .bcard.dk { color: #5a2a58; }
     #logBody .bcard.done { opacity: .6; } #logBody .bcard.dim { opacity: .45; }
     #logBody .bcard.sel { box-shadow: inset 0 0 0 3px #ffd23a, 0 0 0 3px #ffd23a, 5px 5px 0 rgba(0,0,0,.4); z-index: 3; }
@@ -479,7 +483,7 @@
     #logBody .bbar { display: flex; gap: 12px; align-items: stretch; }
     #logBody #bnote { flex: 1; resize: none; padding: 6px 10px; background: #f1e6c0; color: #3a3a7a; font: italic 16px "DotGothic16", monospace; border: none; box-shadow: inset 0 0 0 3px #c9b07a; outline: none; }
     #logBody .bacts { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; max-width: 46%; justify-content: flex-end; }
-    #logBody #bhint { flex-basis: 100%; text-align: right; color: #5a3a1c; font-size: 14px; }
+    #logBody #bhint { flex-basis: 100%; text-align: right; color: #5a3a1c; font-size: 16px; }
     #logBody button.mini.on { background: #ffd23a; }
     /* the hull as five planks */
     .hp5 { display: inline-flex; gap: 6px; vertical-align: middle; margin-left: 4px; }
@@ -489,12 +493,12 @@
     #yardWide { width: min(430px, 94vw) !important; margin: 24px 0 !important; align-self: flex-start; }
     .ytabs { display: flex; gap: 6px; margin: 6px 0; flex-wrap: wrap; } .ytabs button { width: auto; margin: 0; padding: 4px 10px; } .ytabs button.on { background: #4a38a0; box-shadow: 0 -3px 0 #ffd23a, 0 3px 0 #ffd23a, -3px 0 0 #ffd23a, 3px 0 0 #ffd23a; }
     #yardBody .swatches { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; } #yardBody .swatches button { width: 100%; padding: 4px 8px; } #yardBody .swatches button.lock { opacity: .45; }
-    .ytry { min-height: 44px; margin: 6px 0; color: #ffd23a; } .ytry small { display: block; color: #c8b890; font-size: 14px !important; }
+    .ytry { min-height: 44px; margin: 6px 0; color: #ffd23a; } .ytry small { display: block; color: #c8b890; font-size: 16px !important; }
     .yacts { display: flex; gap: 8px; flex-wrap: wrap; } .yacts button { width: auto; margin: 0; }
     #yardTurn { position: fixed; left: 50%; bottom: 36px; transform: translateX(-62%); display: flex; align-items: center; gap: 12px; z-index: 5; }
-    #yardTurn button { width: 56px; height: 56px; padding: 0; font-size: 24px; border: none; cursor: pointer; background: #2c2160; color: #fff4d8; box-shadow: 0 0 0 3px #4a3aa0; } #yardTurn span, #yardTurn small { background: #17112e; padding: 4px 12px; box-shadow: 0 0 0 3px #3a3070; color: #f4ead0; }
+    #yardTurn button { width: 56px; height: 56px; padding: 0; font-size: 32px; border: none; cursor: pointer; background: #2c2160; color: #fff4d8; box-shadow: 0 0 0 3px #4a3aa0; } #yardTurn span, #yardTurn small { background: #17112e; padding: 4px 12px; box-shadow: 0 0 0 3px #3a3070; color: #f4ead0; }
     #yardmodal:not(.open) #yardTurn { display: none; }
-    .halfmark { display: inline-block; padding: 0 6px; margin-left: 4px; background: #7a3a1c; color: #f4ead0; font-weight: 400; font-size: 14px; }
+    .halfmark { display: inline-block; padding: 0 6px; margin-left: 4px; background: #7a3a1c; color: #f4ead0; font-weight: 400; font-size: 16px; }
     /* Mara stays on screen (bottom left) while the first letters are explained, even ashore or in the log */
     body.onb-mate #hud { z-index: 40; opacity: 1 !important; }
     body.onb-mate #hud > :not(#mate) { visibility: hidden !important; }
