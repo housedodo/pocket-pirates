@@ -227,9 +227,11 @@ export class AudioBus {
     this.setLoop('oars', s.rowing ? 0.7 : 0);
     this.setLoop('gulls', (s.gulls || 0) * 0.9);
     this.driftGulls(dt, s.gulls || 0);
-    const stage = Math.min(STAGES - 1, Math.floor(dread * STAGES));
+    // the sting marks where the next music loop takes over (half-way between loop centres at dread i/4); a little
+    // hysteresis on the way back so sailing along a boundary does not repeat it
+    const stage = Math.round(dread * (STAGES - 1));
     if (stage > this.lastStage) this.play('stage_up');
-    this.lastStage = stage;
+    if (stage > this.lastStage || dread < (this.lastStage - 0.5) / (STAGES - 1) - 0.03) this.lastStage = stage;
     // ship timber (the soundtrack kit's creaks, with the game's own creak): sparse; quick and woody at home, low and slow in the deep
     this.creakTimer -= dt;
     if (this.creakTimer <= 0) {
