@@ -15,7 +15,7 @@ const SEA_LEVEL = [1, 1, 1, 0.6, 0.3], SEA_DARK = [0, 0.15, 0.35, 0.8, 0.9];
 export const CUES = {
   loops: [
     'sea', 'surf', 'wind', 'rain', 'amb_night', 'oars', 'gulls', 'coast',
-    ...Array.from({ length: STAGES }, (_, i) => `amb_${i + 1}`),
+    'amb_3', 'amb_4', 'amb_5',   // stage ambience from stage 3 on (stages 1-2 have none: the world beds carry them)
     ...Array.from({ length: STAGES }, (_, i) => `music_${i + 1}`),
     'music_harbour', 'music_tavern',   // ashore: 16 bars, F minor, 99 BPM, started with the stage loops so they stay on the beat
   ],
@@ -228,7 +228,7 @@ export class AudioBus {
     const dread = s.dread;
     for (let i = 0; i < STAGES; i++) {
       const w = Math.max(0, 1 - Math.abs(dread * (STAGES - 1) - i)); // triangular cross-fade
-      this.setLoop(`amb_${i + 1}`, w * 0.8);
+      if (i >= 2) this.setLoop(`amb_${i + 1}`, w * 0.8);
       this.setLoop(`music_${i + 1}`, w * 0.75);
     }
     // sea: full and bright at home, muffled and thinner in the deep (stage 4-5), from the HOIST soundtrack kit

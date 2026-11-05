@@ -74,7 +74,7 @@ The game expects `music_1`..`music_5` (one loop per dread stage, same length and
 | `wind` | wind bed; louder with wind strength and storms. The loop also drifts on its own: a slow volume swell (about 45% to 120%, new gust target every 4 to 13 s), a stereo pan wandering left and right, and a tiny pitch drift, so it never repeats the same way (`driftWind` in audio.js). Keep the file mono |
 | `rain` | rain bed; follows rain intensity |
 | `amb_night` | night bed (crickets-on-water, creaks), fades in after sunset on top of the stage ambience |
-| `amb_1` .. `amb_5` | ambience per stage (38.8 s: deep rumble from stage 3, howling wind in 4-5; 1-2 silent), cross-faded by dread |
+| `amb_3` .. `amb_5` | ambience per stage (38.8 s: deep rumble from stage 3, howling wind in 4-5), cross-faded by dread; stages 1-2 have none |
 | `music_1` .. `music_5` | music per stage, 4 bars at 99 bpm in F minor (9.70 s, same length to the sample, started together), cross-faded by dread |
 | `gulls` | recorded gull colony (53 s, mono), **not constant**: it calls for about 5-20 s, then goes quiet for roughly 20-65 s (closer to the gulls: longer calls, shorter gaps), with slow fades (`driftGulls` in audio.js). Silent far off, fades up within ~120 units of the nearest circling gull and gets clearer (low-pass opens) as you close in; quieter at night, in rain and storms, gone by dread 0.35. While this file exists the synthesised one-shot `gull` cries are skipped |
 | `coast` | soft coastal breeze, small waves and far-off gulls (32 s). Rises over the last ~110 units before any island shore, full while moored or ashore (harbour, greeting, shipyard). Quieter at night, gone in storms and by dread ~0.4 |
@@ -124,7 +124,7 @@ The game expects `music_1`..`music_5` (one loop per dread stage, same length and
 Audacity, Reaper (free trial), LMMS, BeepBox / Bosca Ceoil (quick chip tunes), jsfxr/sfxr (SFX), Vital/Surge XT (drones), a phone mic for foley (rope, wood, water in a bucket).
 
 ### The HOIST soundtrack (in)
-`music_1..5` and `amb_1..5` come from the HOIST soundtrack kit (F minor, 99 BPM, the clip through the HOIST effect on the music bus; MIDI of the added parts stays with the composer).
+`music_1..5` and `amb_3..5` come from the HOIST soundtrack kit (F minor, 99 BPM, the clip through the HOIST effect on the music bus; MIDI of the added parts stays with the composer).
 | Stage | Music (HOIST tide / dread / mix) |
 |---|---|
 | 1 Fair weather | clip + pluck counter-melody, upright bass, squeezebox off-beats, frame drum + shaker, ship's bell (20 / 8 / 45) |
