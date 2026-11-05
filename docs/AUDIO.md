@@ -83,7 +83,7 @@ The game expects `music_1`..`music_5` (one loop per dread stage, same length and
 **One-shots**
 | File | When |
 |---|---|
-| `creak` | ship timber: every 11-25 s while sailing (and always from dread 0.3), pitched down in the deep, rarer in stage 5 |
+| `creak` | ship timber: every 11-25 s while sailing (and always from dread 0.3), pitched down above dread 0.6, every 22-36 s above dread 0.85 |
 | `splash` | salvaging a barrel, whirlpools |
 | `bump` | hitting an island (volume follows speed) |
 | `dig` | crew starts digging |
@@ -152,6 +152,7 @@ Audacity, Reaper (free trial), LMMS, BeepBox / Bosca Ceoil (quick chip tunes), j
 
 - **Bass low-pass in stages 1-2:** the bass runs through a gentle 12 dB/oct low-pass at 450 Hz so it stays under the tune. The original clip was not in the kit, so the filtered bass was rendered on its own and swapped in (the kit's bass removed, the filtered one added, both through the same HOIST settings).
 - **Loudness:** the loops get quieter by design as dread grows (stage 1 about -17 LUFS, stage 5 about -29); horror by removing.
+- **Mix:** `volumes.json` sets `amb_4` 55% and `amb_5` 50% so the rumble and howl sit back near the kit's own balance and do not bury the stage 4-5 music (the game's bus gains already favour ambience by about 5 dB).
 - **Ambience, one owner per sound.** The kit's ambience baked sea, gulls, creaks, rain, wind, rumble and whispers into each stage loop. The game already plays most of these as their own loops driven by the world, so `amb_1..5` were re-rendered (Chaos_Grain `HoistSoundtrack - <dir> gameamb`, 38.8 s each, so they do not repeat every 9.7 s) with only what nothing else plays. `amb_1` and `amb_2` are silent on purpose (the world beds carry the calm stages); keep the files, or the synthesised fallback would play:
 
 | Sound in the kit's clip | Who plays it in the game |
