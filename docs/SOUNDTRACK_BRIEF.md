@@ -3,7 +3,7 @@
 ## 1. Project & Aesthetic Context
 * **Style:** Rustic, retro game aesthetic (16-bit / PS1 era / classic PC adventure games like *Monkey Island*).
 * **Genre:** Maritime, sea shanty, tavern folk, and epic naval battle music.
-* **Key & Tempo:** **B minor (H-Moll)** / D major family (the game's decided key is D: Bm, G and D all sit in it, so the theme resolves to D). 125 BPM, **6/8** (two big beats per bar, rolling sway). Pick 6/8 and keep it for every piece, so loops from different stages line up.
+* **Key & Tempo (updated):** the main key is now **F minor, 99 BPM, 4/4** (the HOIST soundtrack kit; see docs/AUDIO.md). The B minor / 6/8 / 125 BPM plan below is kept for reference; new pieces go in F minor at 99 BPM.
 
 ---
 
@@ -64,7 +64,7 @@ Route all pirate instruments into a single sub-mix bus before the master output:
 
 ## 5. How it plays in the game (added)
 The game has **five dread stages** (cosy Caribbean -> cosmic horror) and plays one music loop per stage, cross-fading between neighbours, so write the pieces as a family:
-* **Same tempo (125), same 6/8, same key centre** in all five, so a cross-fade never clashes. Stage 1 = the cheerful shanty above. Stage 2 = thinner, slower feel (drop the whistle). Stage 3 = the melody with wrong notes (flat 2nd / tritone, `C5` over Bm, `A#4` over D), sparse. Stage 4 = low D pedal and bass only, melody fragments detuned (-20 to -50 cents). Stage 5 = almost nothing: the D2 rumble, a single held note, the accordion breathing. Horror is implied, never explained: remove and bend things, do not add scary stingers.
+* **Same tempo, metre and key centre** in all five (now 99 BPM, 4/4, F minor), so a cross-fade never clashes. Stage 1 = the cheerful shanty above. Stage 2 = thinner, slower feel (drop the whistle). Stage 3 = the melody with wrong notes (flat 2nd / tritone, `C5` over Bm, `A#4` over D), sparse. Stage 4 = low D pedal and bass only, melody fragments detuned (-20 to -50 cents). Stage 5 = almost nothing: the D2 rumble, a single held note, the accordion breathing. Horror is implied, never explained: remove and bend things, do not add scary stingers.
 * **Seamless loops:** bar-aligned length (16 or 32 bars; in FL at 125 BPM a 6/8 bar is about 1.44 s, so 16 bars is about 23 s, 32 bars about 46 s), render with the reverb tail **wrapped onto the start** (render twice, cut the second pass) so there is no gap.
 * **Export:** WAV, 44.1 kHz, 16-bit, peaks about -3 dB (the game mixes on top; the sub-bus limiter in section 4C already glues it). Stereo is fine, keep it narrow.
 * **Do not put the retro low-pass and the 16 kHz squeeze on everything:** the game's own look is crunchy, but the music should stay audible under waves and wind. Keep the squeeze on the accordion only.

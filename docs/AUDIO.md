@@ -22,10 +22,10 @@ A panel opens on the right while the game keeps running:
   the single files afterwards and `pocket-pirates-dev.html` carries your mix.
 
 ## Key and theme (decided)
-- **Home key: D (D minor / D Dorian).** Bass note D, home chord Dm = D F A. The core motif is D - G - B (the B natural is the Dorian lift). Sailor-music feel: a held or repeated D bass, 6/8 or 2/4, accordion, fiddle, tin whistle, ukulele.
-- **Every stage loop is written in D** so the cross-fades stay musical: bright stages in D major / D Mixolydian or the same melody over Dm, dark stages stay on the D drone with the third dropped (D - A), a flat 2nd (E flat) or a tritone (A flat) added.
-- Chords (D Dorian): Dm, C, G, Am, F, Bb. Shanty: Dm - C - Dm - C. Dorian: Dm - G - Dm - Am. Longing: Dm - Bb - C - Dm.
-- Tempo is not fixed yet (suggest about 90-100 bpm; if 6/8, about 60-66 dotted-quarter beats). Set it once, then use it for all five loops and note it here.
+- **Main key: F minor, 99 BPM, 4/4.** Set by the HOIST soundtrack kit (Chaos_Grain `Tests/HoistSoundtrack.cpp`, made from the user's clip). Harmony of the loop: bars 1-2 Fm, bars 3-4 Db. Bass F / Db, home chord Fm = F Ab C. Every new piece is written in F minor at 99 BPM so it can cross-fade with the stage loops.
+- **Every stage loop is one 4-bar loop of 9.70 s** (`music_1..5`, same length to the sample). The game starts all five on the same sample, so a cross-fade between stages stays on the beat.
+- Dark stages keep F and bend the rest: the counter-melody halves, one wrong note (Gb) and a detuned bell in stage 3, an F2 / Db2 sub drone and heartbeat drum in stage 4, fragments and a low wrong bell in stage 5.
+- The old key (D / D Dorian, 6/8, 125 BPM) is retired; the D "Dread" piece that used to be `music_3` is in git history.
 
 ## Tone: "shanty that slowly forgets how to be a shanty"
 Pick one short, simple melody (8-16 bars). Play it five ways, one per dread stage. The *same* tune
@@ -74,8 +74,8 @@ The game expects `music_1`..`music_5` (one loop per dread stage, same length and
 | `wind` | wind bed; louder with wind strength and storms. The loop also drifts on its own: a slow volume swell (about 45% to 120%, new gust target every 4 to 13 s), a stereo pan wandering left and right, and a tiny pitch drift, so it never repeats the same way (`driftWind` in audio.js). Keep the file mono |
 | `rain` | rain bed; follows rain intensity |
 | `amb_night` | night bed (crickets-on-water, creaks), fades in after sunset on top of the stage ambience |
-| `amb_1` .. `amb_5` | ambience per stage, 30-60 s, cross-faded by dread |
-| `music_1` .. `music_5` | music per stage, e.g. 32 bars at 90-100 bpm, cross-faded by dread |
+| `amb_1` .. `amb_5` | ambience per stage (38.8 s: deep rumble from stage 3, howling wind in 4-5; 1-2 silent), cross-faded by dread |
+| `music_1` .. `music_5` | music per stage, 4 bars at 99 bpm in F minor (9.70 s, same length to the sample, started together), cross-faded by dread |
 | `gulls` | recorded gull colony (53 s, mono), **not constant**: it calls for about 5-20 s, then goes quiet for roughly 20-65 s (closer to the gulls: longer calls, shorter gaps), with slow fades (`driftGulls` in audio.js). Silent far off, fades up within ~120 units of the nearest circling gull and gets clearer (low-pass opens) as you close in; quieter at night, in rain and storms, gone by dread 0.35. While this file exists the synthesised one-shot `gull` cries are skipped |
 | `coast` | soft coastal breeze, small waves and far-off gulls (32 s). Rises over the last ~110 units before any island shore, full while moored or ashore (harbour, greeting, shipyard). Quieter at night, gone in storms and by dread ~0.4 |
 | `oars` | rowing strokes (dip, pull, drip); plays while you row with the oars out (G, then W) |
@@ -83,7 +83,7 @@ The game expects `music_1`..`music_5` (one loop per dread stage, same length and
 **One-shots**
 | File | When |
 |---|---|
-| `creak` | ship timber (loaded, not triggered yet) |
+| `creak` | ship timber: every 11-25 s while sailing (and always from dread 0.3), pitched down in the deep, rarer in stage 5 |
 | `splash` | salvaging a barrel, whirlpools |
 | `bump` | hitting an island (volume follows speed) |
 | `dig` | crew starts digging |
@@ -140,8 +140,31 @@ The game expects `music_1`..`music_5` (one loop per dread stage, same length and
 ## Free tools
 Audacity, Reaper (free trial), LMMS, BeepBox / Bosca Ceoil (quick chip tunes), jsfxr/sfxr (SFX), Vital/Surge XT (drones), a phone mic for foley (rope, wood, water in a bucket).
 
-### Custom tracks in
-- `music_3.ogg` is the user's own melancholic D - G - B piece ("Dread", 1:42, mono) in place of the synthesised placeholder. It plays in the middle dread band (the Wrong stage, about 0.35 to 0.65 dread, cross-faded with music_2 and music_4). To use it for another stage, rename the file to `music_2` / `music_4` / `music_5`. The old placeholder is in git history.
+### The HOIST soundtrack (in)
+`music_1..5` and `amb_1..5` come from the HOIST soundtrack kit (F minor, 99 BPM, the clip through the HOIST effect on the music bus; MIDI of the added parts stays with the composer).
+| Stage | Music (HOIST tide / dread / mix) |
+|---|---|
+| 1 Fair weather | clip + pluck counter-melody, upright bass, squeezebox off-beats, frame drum + shaker, ship's bell (20 / 8 / 45) |
+| 2 Grey skies | squeezebox gone, melody halved, bass on the one, clip low-passed at 3 kHz (42 / 30 / 55) |
+| 3 Something's wrong | the tune bends, one wrong note (Gb), detuned bell, clip at 2 kHz (35 / 50 / 65) |
+| 4 The deep | sub drone, heartbeat drum, clip below 700 Hz (45 / 72 / 75) |
+| 5 Abyss | clip fragments only, a low wrong bell (30 / 95 / 85) |
+
+- **Bass low-pass in stages 1-2:** the bass runs through a gentle 12 dB/oct low-pass at 450 Hz so it stays under the tune. The original clip was not in the kit, so the filtered bass was rendered on its own and swapped in (the kit's bass removed, the filtered one added, both through the same HOIST settings).
+- **Loudness:** the loops get quieter by design as dread grows (stage 1 about -17 LUFS, stage 5 about -29); horror by removing.
+- **Ambience, one owner per sound.** The kit's ambience baked sea, gulls, creaks, rain, wind, rumble and whispers into each stage loop. The game already plays most of these as their own loops driven by the world, so `amb_1..5` were re-rendered (Chaos_Grain `HoistSoundtrack - <dir> gameamb`, 38.8 s each, so they do not repeat every 9.7 s) with only what nothing else plays. `amb_1` and `amb_2` are silent on purpose (the world beds carry the calm stages); keep the files, or the synthesised fallback would play:
+
+| Sound in the kit's clip | Who plays it in the game |
+|---|---|
+| Sea bed, darker and quieter by stage | `sea` loop; a low-pass and level by dread (`SEA_LEVEL` / `SEA_DARK` in audio.js, the kit's values) |
+| Gulls (stage 1-2) | `gulls` recording near gull islands, gone by dread 0.35 (left out of amb) |
+| Rain (stage 2-4) | `rain` loop, follows the weather (left out of amb, or it would rain under a clear sky) |
+| Plain wind | `wind` loop, follows wind and storms (left out of amb) |
+| Howling wind (stage 4-5) | `amb_4`, `amb_5` |
+| Ship creaks (high in 1-3, low and slow in 4-5) | the game's `creak` one-shot (every 11-25 s, rate 0.55-0.65 above dread 0.6); the kit's creaks were almost inaudible |
+| Deep rumble (stage 3-5) | `amb_3..5` |
+| Whispers (stage 4-5) | `whisper` one-shots from dread 0.45 (now a little rarer and softer) plus HOIST's own on the music bus; left out of amb |
+| Ship's bell, drums | inside the music loops |
 
 ## Sound studio (dev, F9)
 Load your own music and sounds, cut them, and say where each plays. Open the game with `?dev=1`, press **F9** (or pause menu, "Sound studio").

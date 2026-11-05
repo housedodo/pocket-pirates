@@ -9,6 +9,8 @@ export const AUDIO_ENABLED = !(typeof window !== 'undefined' && window.__SILENT)
 const DEMO_SKIP = new Set(['music_3', 'music_4', 'music_5', 'amb_3', 'amb_4', 'amb_5', 'whisper', 'stage_up']);
 
 const STAGES = 5;
+// the sea bed per dread stage: level and darkness (low-pass) - the game's sea carries what the soundtrack kit baked into its ambience
+const SEA_LEVEL = [1, 1, 1, 0.6, 0.3], SEA_DARK = [0, 0.15, 0.35, 0.8, 0.9];
 export const CUES = {
   loops: [
     'sea', 'surf', 'wind', 'rain', 'amb_night', 'oars', 'gulls', 'coast',
@@ -27,6 +29,7 @@ export class AudioBus {
     this.buffers = new Map();
     this.loops = new Map();
     this.whisperTimer = 8;
+    this.creakTimer = 6;
     this.lastStage = 0;
     this.muted = false;
     this.musicOn = true;
@@ -83,9 +86,12 @@ export class AudioBus {
     for (const k of order) {
       if (window.__BUILD === 'demo' && DEMO_SKIP.has(k)) continue;
       await this.load(k);
-      if (CUES.loops.includes(k)) this.startLoop(k);
+      if (CUES.loops.includes(k) && !k.startsWith('music_')) this.startLoop(k);
       await tick();
     }
+    // the five music loops share one length, tempo and key: start them on the same sample so a cross-fade stays on the beat
+    const t0 = this.ctx.currentTime + 0.1;
+    for (const k of CUES.loops) if (k.startsWith('music_')) this.startLoop(k, t0);
     this.ready = true;
   }
 
@@ -107,7 +113,7 @@ export class AudioBus {
     }
   }
 
-  startLoop(key) {
+  startLoop(key, when = 0) {
     const buf = this.buffers.get(key);
     if (!buf || this.loops.has(key)) return;
     const src = this.ctx.createBufferSource();
@@ -124,8 +130,12 @@ export class AudioBus {
       const env = this.ctx.createGain(); env.gain.value = 0;   // the colony comes and goes (see driftGulls)
       src.connect(lp).connect(gain).connect(env).connect(this.ambBus);
       this.tone = lp; this.gullEnv = env; this.gullOn = false; this.gullSwitch = 3 + Math.random() * 6;
+    } else if (key === 'sea') {   // the sea gets darker and further away as the dread grows (see update)
+      const lp = this.ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 12000; lp.Q.value = 0.5;
+      src.connect(lp).connect(gain).connect(this.ambBus);
+      this.seaTone = lp;
     } else src.connect(gain).connect(key.startsWith('music_') ? this.musicBus : this.ambBus);
-    src.start();
+    src.start(when);
     this.loops.set(key, gain);
     (this.srcs || (this.srcs = new Map())).set(key, src);
     if (key.startsWith('music_') && this.musicRate !== 1) src.playbackRate.value = this.musicRate;
@@ -205,7 +215,10 @@ export class AudioBus {
       this.setLoop(`amb_${i + 1}`, w * 0.8);
       this.setLoop(`music_${i + 1}`, w * 0.75);
     }
-    this.setLoop('sea', 0.3 + s.speed * 0.45);
+    // sea: full and bright at home, muffled and thinner in the deep (stage 4-5), from the HOIST soundtrack kit
+    const sp = dread * (STAGES - 1), si = Math.min(STAGES - 2, Math.floor(sp)), sf = sp - si, lerp5 = (a) => a[si] + (a[si + 1] - a[si]) * sf;
+    this.setLoop('sea', (0.3 + s.speed * 0.45) * lerp5(SEA_LEVEL));
+    if (this.seaTone) this.seaTone.frequency.setTargetAtTime(200 + 11800 * (1 - lerp5(SEA_DARK)) ** 2, this.ctx.currentTime, 1.2);
     this.driftWind(dt);
     this.setLoop('surf', s.surf * 0.7);
     this.setLoop('wind', Math.min(1, s.wind * 0.35 + s.storm * 0.5));
@@ -217,9 +230,16 @@ export class AudioBus {
     const stage = Math.min(STAGES - 1, Math.floor(dread * STAGES));
     if (stage > this.lastStage) this.play('stage_up');
     this.lastStage = stage;
+    // ship timber (the soundtrack kit's creaks, with the game's own creak): sparse; quick and woody at home, low and slow in the deep
+    this.creakTimer -= dt;
+    if (this.creakTimer <= 0) {
+      if (s.speed > 0.05 || dread > 0.3) this.play('creak', { vol: 0.18 + dread * 0.12, rate: dread > 0.6 ? 0.55 + Math.random() * 0.1 : 0.9 + Math.random() * 0.25, pan: Math.random() * 1.2 - 0.6 });
+      this.creakTimer = (dread > 0.85 ? 22 : 11) + Math.random() * 14;
+    }
     if (dread > 0.45) { // occasional whispers once things get strange
       this.whisperTimer -= dt;
-      if (this.whisperTimer <= 0) { this.play('whisper', { vol: 0.35 + dread * 0.4, rate: 0.85 + Math.random() * 0.3 }); this.whisperTimer = 6 + Math.random() * 14 * (1.2 - dread); }
+      // a little rarer and softer than before: HOIST already lets a few whispers through on the music bus in stages 4-5
+      if (this.whisperTimer <= 0) { this.play('whisper', { vol: 0.25 + dread * 0.3, rate: 0.85 + Math.random() * 0.3 }); this.whisperTimer = 9 + Math.random() * 16 * (1.2 - dread); }
     }
   }
 }
