@@ -39,6 +39,9 @@ for (const k of KEYS) for (const c of COLS) k[c] = new THREE.Color(k[c]);
 export const stage = { dread: 0, index: 0 };
 for (const c of COLS) stage[c] = new THREE.Color();
 
+/** the dread stage 0..4: whichever colour keyframe (and music loop, at dread i/4) is strongest right now */
+export const dreadStage = (dread) => Math.max(0, Math.min(KEYS.length - 1, Math.round(clamp(dread, 0, 1) * (KEYS.length - 1))));
+
 export function sampleStage(dread) {
   dread = clamp(dread, 0, 1);
   const f = dread * (KEYS.length - 1);
@@ -48,7 +51,7 @@ export function sampleStage(dread) {
   for (const c of COLS) stage[c].copy(a[c]).lerp(b[c], t);
   for (const n of NUMS) stage[n] = lerp(a[n], b[n], t);
   stage.dread = dread;
-  stage.index = Math.min(4, Math.floor(dread * 5));
+  stage.index = dreadStage(dread);
   return stage;
 }
 

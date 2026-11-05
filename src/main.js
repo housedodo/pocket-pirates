@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { clamp, smoothstep, angleDiff, mulberry32, hash2 } from './util.js';
-import { sampleStage, DARK_THRESHOLD, dreadAtDistance } from './palette.js';
+import { sampleStage, DARK_THRESHOLD, dreadAtDistance, dreadStage } from './palette.js';
 import { U, initMaterials, mats, PostFX } from './psx.js';
 import { Ocean, WATER, NISL } from './ocean.js';
 import { Sky } from './sky.js';
@@ -224,7 +224,7 @@ function toast(text, dark = false, ms = 5200) {
 
 weather.onThunder = (delay) => setTimeout(() => audio.play('thunder', { vol: 0.9 }), delay * 1000);
 sea.onEvent = (e) => {
-  const idx = Math.min(4, Math.floor(dread * 5));
+  const idx = dreadStage(dread);
   if (e.type === 'qcrate') {
     const have = questProgress(e.q, state), need = questNeed(e.q);
     toast(have >= need ? `Last crate recovered! Return to ${e.q.giverName}.` : `Crate recovered (${have}/${need}).`, false, 4500);
@@ -238,7 +238,7 @@ sea.onEvent = (e) => {
   } else if (e.type === 'bottle') {
     const cur = objectives.current, hutNote = cur && cur.id === 'bottles' ? HUT_NOTES[(state.stats.bottles - (state.story.b0 || 0)) % HUT_NOTES.length] : null;
     if (hutNote && hutNote.includes('{fate}')) { state.story.fate = state.story.fate || 3 + Math.floor(mulberry32(hash2(state.seed, 20, 20))() * 7); state.story.fateRead = true; }
-    const text = hutNote ? hutNote.replace(/\{fate\}/g, numberWord(state.story.fate)) : bottleNote(mulberry32(hash2(e.o.x | 0, e.o.z | 0, state.seed + 3)), Math.min(4, Math.floor(e.o.dread * 5)));
+    const text = hutNote ? hutNote.replace(/\{fate\}/g, numberWord(state.story.fate)) : bottleNote(mulberry32(hash2(e.o.x | 0, e.o.z | 0, state.seed + 3)), dreadStage(e.o.dread));
     state.notes.push({ text, dark: idx >= 2 }); state.stats.bottles++;
     toast(`Message in a bottle: "${text}"`, idx >= 2, 10000);
     audio.play('bottle');
@@ -1347,7 +1347,7 @@ function tryInteract() {
     state.stats.harbours++;
     if (state.hp < ship.mods.maxHp) { state.hp = ship.mods.maxHp; toast('The harbour crew patches up your hull for free.', false, 3000); }
     const rng = mulberry32(hash2(d.seed, Math.floor(tNow / 8), 3));
-    const idx = Math.min(4, Math.floor(dread * 5)), lvl = friendLevel(rep);
+    const idx = dreadStage(dread), lvl = friendLevel(rep);
     hbShipLine = shipwrightLine(rng, idx);
     threads.onDock(d);
     // someone on the pier may speak first: always on a first visit or a story beat, otherwise rarely
@@ -1509,7 +1509,7 @@ function doOffer(i) {
   const sh = tradeShip, o = shipOffers(sh)[i];
   if (!o || o.used || state.gold < o.cost) return;
   const rng = mulberry32(sh.seed + 77 + i);
-  const idx = Math.min(4, Math.floor(dread * 5));
+  const idx = dreadStage(dread);
   if (o.id === 'sellall') {
     const fish = state.catch.reduce((a, f) => a + f.value, 0) * 0.7, fruit = Object.entries(state.fruit).reduce((a, [f, n]) => a + FRUITS[f].price * n, 0) * 0.7, v = Math.round((fish + fruit) * 1.33);
     if (!v) { toast('Nothing in the hold to sell. They are very polite about it.'); return; }

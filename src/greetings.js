@@ -2,6 +2,8 @@
 // Who speaks depends on the hour; what they say on the hour, the weather and how wrong the sea has become.
 // Rare on purpose: a line you only hear sometimes is a line you read.
 
+import { dreadStage } from './palette.js';
+
 // portraits: 8x8, H hair/hat, S skin, E eyes, M mouth, C clothes, A accent
 const FACE = ['..HHHH..', '.HHHHHH.', '.SSSSSS.', '.SESSES.', '.SSSSSS.', '..SMMS..', '.CCACCC.', 'CCCCCCCC'];
 const SPEAKERS = {
@@ -162,7 +164,7 @@ export function dayPhase(hour) { return hour >= 5 && hour < 8 ? 'dawn' : hour >=
 
 /** a speaker and a line for this visit. ctx: { hour, weather (label), dread 0..1, rnd } */
 export function pickGreeting(ctx) {
-  const r = ctx.rnd, stage = Math.min(4, Math.floor(ctx.dread * 5)), phase = dayPhase(ctx.hour);
+  const r = ctx.rnd, stage = dreadStage(ctx.dread), phase = dayPhase(ctx.hour);
   if (ctx.custom === 'silent') {   // nobody here speaks; it is not unfriendly
     const who = Object.keys(SPEAKERS).filter((id) => SPEAKERS[id].when.includes(phase));
     return { speaker: who[Math.floor(r() * who.length)], text: SILENT[Math.floor(r() * SILENT.length)], dark: stage >= 3 };
