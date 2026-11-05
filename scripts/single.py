@@ -25,7 +25,7 @@ def build(boot):
   return re.sub(r'url\((fonts/[^)]+\.woff2)\)', lambda m: 'url(data:font/woff2;base64,' + b64(os.path.join(ROOT, 'public', m.group(1))) + ')', out)
 
 # cues the demo never plays (no dread there): not shipped in the demo file
-DEMO_SKIP = {'music_3', 'music_4', 'music_5', 'amb_3', 'amb_4', 'amb_5', 'whisper', 'stage_up'}
+DEMO_SKIP = {'music_3', 'music_4', 'music_5', 'amb_3', 'amb_4', 'amb_5'}
 demo_sounds = {k: v for k, v in sounds.items() if k not in DEMO_SKIP}
 for name, boot in [
     ('pocket-pirates-demo.html', f"<script>window.__BUILD='demo';window.__AUDIO={json.dumps(demo_sounds)};window.__VOLUMES={json.dumps(volumes)};</script>"),

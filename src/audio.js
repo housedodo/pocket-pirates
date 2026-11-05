@@ -6,9 +6,10 @@ import { canSynth, synth } from './synth.js';
 // Master switch for all sound (files in public/audio/, else the synthesised fallback).
 export const AUDIO_ENABLED = !(typeof window !== 'undefined' && window.__SILENT);   // the demo ships with sound too (without the dread-stage cues, see DEMO_SKIP); the silent build sets __SILENT
 // cues the demo never plays (no dread there): left out of the demo file and never loaded, to keep it small and spoiler-free
-const DEMO_SKIP = new Set(['music_3', 'music_4', 'music_5', 'amb_3', 'amb_4', 'amb_5', 'whisper', 'stage_up']);
+const DEMO_SKIP = new Set(['music_3', 'music_4', 'music_5', 'amb_3', 'amb_4', 'amb_5']);
 
 const STAGES = 5;
+const STAGE_MUSIC = /^music_\d$/;
 // the sea bed per dread stage: level and darkness (low-pass) - the game's sea carries what the soundtrack kit baked into its ambience
 const SEA_LEVEL = [1, 1, 1, 0.6, 0.3], SEA_DARK = [0, 0.15, 0.35, 0.8, 0.9];
 export const CUES = {
@@ -16,10 +17,10 @@ export const CUES = {
     'sea', 'surf', 'wind', 'rain', 'amb_night', 'oars', 'gulls', 'coast',
     ...Array.from({ length: STAGES }, (_, i) => `amb_${i + 1}`),
     ...Array.from({ length: STAGES }, (_, i) => `music_${i + 1}`),
+    'music_harbour', 'music_tavern',   // ashore: 16 bars, F minor, 99 BPM, started with the stage loops so they stay on the beat
   ],
-  oneShots: ['creak', 'splash', 'bump', 'dig', 'treasure', 'discover', 'harbour', 'ui', 'whisper', 'stage_up', 'buy', 'pause',
-    'thunder', 'horn', 'gull', 'dolphin', 'whale', 'bell', 'bottle',
-    'cannon', 'hit', 'cast', 'bite', 'catch', 'roll_d20', 'roll_d6', 'card', 'success', 'fail', 'chapter', 'knock', 'ending'],
+  // the effects the game keeps (menus, dice, fishing, digging); every other play() call is silent (no file, no synth)
+  oneShots: ['ui', 'dig', 'buy', 'pause', 'chapter', 'fail', 'success', 'card', 'roll_d6', 'roll_d20', 'cast', 'bite', 'catch'],
 };
 const tick = () => new Promise((r) => setTimeout(r, 0));
 
@@ -28,13 +29,11 @@ export class AudioBus {
     this.ctx = null;
     this.buffers = new Map();
     this.loops = new Map();
-    this.whisperTimer = 8;
-    this.creakTimer = 6;
-    this.lastStage = 0;
     this.muted = false;
     this.musicOn = true;
     this.ready = false;
     this.studioDuck = 0; this.studioDuckAmb = 0;   // the sound studio hushes the game's own music / ambience while a placement plays
+    this.scene = null; this.sceneMix = 0;   // ashore: 'harbour' | 'tavern' | null, and how far its tune has taken over (0..1)
     this.musicRate = 1;      // a thread (the Music out of the Fog) can leave the music a little flat
     this.userVol = { music: 1, amb: 1, sfx: 1 };   // the player's own sliders in the pause menu (0..1), on top of the mix
     this.vol = {};           // per-cue volume (1 = as authored): public/audio/volumes.json, then the mixer's local overrides
@@ -161,9 +160,21 @@ export class AudioBus {
     this.level[key] = v;
     const g = this.loops.get(key);
     v *= 1 - (key.startsWith('music_') ? this.studioDuck : this.studioDuckAmb);
+    if (STAGE_MUSIC.test(key)) v *= 1 - this.sceneMix;   // a harbour or tavern tune hushes the stage loop
     if (this.preview) v = key === this.preview ? 0.8 : 0;   // auditioning one loop: everything else hushes
     if (g) g.gain.setTargetAtTime(v * (this.preview && key === this.preview ? Math.max(0.5, this.v(key)) : this.v(key)), this.ctx.currentTime, this.preview ? 0.15 : 0.7);   // a soloed loop is audible even at 0%
     if (key === 'gulls' && this.tone) this.tone.frequency.setTargetAtTime(700 + 9500 * Math.min(1, v) * Math.min(1, v), this.ctx.currentTime, 0.7);
+  }
+
+  /** ashore: the harbour or tavern tune takes over from the stage music (about 2 s cross-fade). The tunes belong to the
+   *  calm sea: they thin out as the dread grows and are gone by dread 0.5, where the stage music stays on its own. */
+  setScene(scene, dread = 0) {
+    this.scene = scene;
+    this.sceneMix = scene ? Math.max(0, 1 - dread / 0.5) : 0;
+    if (!this.ctx) return;
+    this.setLoop('music_harbour', scene === 'harbour' ? 0.75 * this.sceneMix : 0);
+    this.setLoop('music_tavern', scene === 'tavern' ? 0.75 * this.sceneMix : 0);
+    for (let i = 1; i <= STAGES; i++) this.setLoop(`music_${i}`, this.level[`music_${i}`] || 0);
   }
 
   /** re-apply every loop's gain now (the mixer calls this so solo works even while the game is paused) */
@@ -227,21 +238,5 @@ export class AudioBus {
     this.setLoop('oars', s.rowing ? 0.7 : 0);
     this.setLoop('gulls', (s.gulls || 0) * 0.9);
     this.driftGulls(dt, s.gulls || 0);
-    // the sting marks where the next music loop takes over (half-way between loop centres at dread i/4); a little
-    // hysteresis on the way back so sailing along a boundary does not repeat it
-    const stage = Math.round(dread * (STAGES - 1));
-    if (stage > this.lastStage) this.play('stage_up');
-    if (stage > this.lastStage || dread < (this.lastStage - 0.5) / (STAGES - 1) - 0.03) this.lastStage = stage;
-    // ship timber (the soundtrack kit's creaks, with the game's own creak): sparse; quick and woody at home, low and slow in the deep
-    this.creakTimer -= dt;
-    if (this.creakTimer <= 0) {
-      if (s.speed > 0.05 || dread > 0.3) this.play('creak', { vol: 0.18 + dread * 0.12, rate: dread > 0.6 ? 0.55 + Math.random() * 0.1 : 0.9 + Math.random() * 0.25, pan: Math.random() * 1.2 - 0.6 });
-      this.creakTimer = (dread > 0.85 ? 22 : 11) + Math.random() * 14;
-    }
-    if (dread > 0.45) { // occasional whispers once things get strange
-      this.whisperTimer -= dt;
-      // a little rarer and softer than before: HOIST already lets a few whispers through on the music bus in stages 4-5
-      if (this.whisperTimer <= 0) { this.play('whisper', { vol: 0.25 + dread * 0.3, rate: 0.85 + Math.random() * 0.3 }); this.whisperTimer = 9 + Math.random() * 16 * (1.2 - dread); }
-    }
   }
 }

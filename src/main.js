@@ -457,6 +457,12 @@ function openModal(name) {
   if (name === 'hut') hut.open();
   audio.play(name === 'pause' ? 'pause' : 'ui');
   audio.setPaused(name === 'pause');
+  audio.setScene(musicScene(), dread);
+}
+// ashore the stage music gives way to the harbour tune, and at the tavern (its tab or the dice table) to the tavern tune
+function musicScene() {
+  if (modal === 'pig' || (modal === 'harbour' && hbTab === 'tavern')) return 'tavern';
+  return modal === 'harbour' || modal === 'greet' || modal === 'yard' ? 'harbour' : null;
 }
 function closeModal(silent = false) {
   if (!modal) return;
@@ -468,7 +474,7 @@ function closeModal(silent = false) {
   if (modal === 'cave') { caveRun = null; caveScene.stop(); }
   if (modal === 'yard') { ship.setCustom(state.custom); yardTry = null; }   // anything only tried on is put back
   modal = null; harbourIsl = null;
-  if (!silent) lastTs = performance.now();
+  if (!silent) { lastTs = performance.now(); audio.setScene(null, dread); }
 }
 
 // ---------------------------------------------------------------- input
@@ -844,6 +850,7 @@ function restAtTavern(cost) {
 }
 function renderHarbour() {
   const d = harbourIsl.desc, rep = repOf(state, d.id), lvl = friendLevel(rep);
+  audio.setScene(musicScene(), dread);   // the Tavern tab has its own tune
   $('hbName').textContent = d.name;
   $('hbLine').textContent = harbourLine;
   $('hbBannerName').textContent = d.name;

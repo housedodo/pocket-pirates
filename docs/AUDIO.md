@@ -4,7 +4,7 @@
 synthesiser (`src/synth.js`). To use your own sound, overwrite the file with the same name: it plays in the game
 at once, no code change. Delete a file and the game falls back to the synthesised version of that cue.
 `python3 scripts/single.py` builds two single-file games: `pocket-pirates-dev.html` carries every file in `public/audio/`
-and `volumes.json` inside it (plus the mixer on F8); `pocket-pirates-demo.html` carries the same sounds without the dread-stage cues (`music_3..5`, `amb_3..5`, `whisper`, `stage_up`, see `DEMO_SKIP` in `audio.js` and `scripts/single.py`) and has no mixer; it has the pause menu Sound and Music toggles. Names must match exactly; `.ogg` preferred (`.mp3`/`.wav` also work).
+and `volumes.json` inside it (plus the mixer on F8); `pocket-pirates-demo.html` carries the same sounds without the dread-stage cues (`music_3..5`, `amb_3..5`, see `DEMO_SKIP` in `audio.js` and `scripts/single.py`) and has no mixer; it has the pause menu Sound and Music toggles. Names must match exactly; `.ogg` preferred (`.mp3`/`.wav` also work).
 The pause menu has Sound and Music toggles.
 
 ## Player volume sliders (pause menu)
@@ -79,31 +79,16 @@ The game expects `music_1`..`music_5` (one loop per dread stage, same length and
 | `gulls` | recorded gull colony (53 s, mono), **not constant**: it calls for about 5-20 s, then goes quiet for roughly 20-65 s (closer to the gulls: longer calls, shorter gaps), with slow fades (`driftGulls` in audio.js). Silent far off, fades up within ~120 units of the nearest circling gull and gets clearer (low-pass opens) as you close in; quieter at night, in rain and storms, gone by dread 0.35. While this file exists the synthesised one-shot `gull` cries are skipped |
 | `coast` | soft coastal breeze, small waves and far-off gulls (32 s). Rises over the last ~110 units before any island shore, full while moored or ashore (harbour, greeting, shipyard). Quieter at night, gone in storms and by dread ~0.4 |
 | `oars` | rowing strokes (dip, pull, drip); plays while you row with the oars out (G, then W) |
+| `music_harbour` | harbour tune (16 bars, 38.8 s, F minor leaning on Ab major, 99 BPM): plays ashore (greeting, harbour board, shipyard) instead of the stage music |
+| `music_tavern` | tavern tune (16 bars, a squeezebox jig over Fm-Eb-Db-C, claps and stomps): the Tavern tab and the dice table |
 
-**One-shots**
+**One-shots** (only these thirteen are kept: menus, dice, fishing, digging. Every other `audio.play` call in the code is silent on purpose: the cue is not in `CUES.oneShots`, so neither a file nor the synthesiser plays it. To bring one back, add its name to `CUES.oneShots` and drop a file in.)
 | File | When |
 |---|---|
-| `creak` | ship timber: every 11-25 s while sailing (and always from dread 0.3), pitched down above dread 0.6, every 22-36 s above dread 0.85 |
-| `splash` | salvaging a barrel, whirlpools |
-| `bump` | hitting an island (volume follows speed) |
 | `dig` | crew starts digging |
-| `treasure` | loot found (stinger; mid-game gets stranger) |
-| `discover` | a new island is charted (short jingle) |
-| `harbour` | visiting a harbour (bell/door/crowd) |
 | `ui` | opening the chart |
-| `whisper` | random, from stage 3 on (pitch is randomised +-15%) |
-| `stage_up` | crossing into a new dread stage (a low sting) |
 | `buy` | buying a ship upgrade (coin + hammer) |
 | `pause` | opening the pause menu |
-| `thunder` | after lightning (delayed 0.3-2.5 s) |
-| `horn` | a passing ship greets you |
-| `gull` | gulls near an island (only while they still sound like gulls) |
-| `dolphin` | dolphins leaping |
-| `whale` | a whale surfaces (and, pitched down, the shadow under the keel) |
-| `bell` | harbour clock on the hour, when you are close to a harbour |
-| `bottle` | picking up a message in a bottle |
-| `cannon` | firing your cannons (Space) |
-| `hit` | your hull takes damage (cannon shot, storm waves, a bad encounter) |
 | `cast` | casting a fishing line (C) |
 | `bite` | a fish bites |
 | `catch` | a fish landed |
@@ -113,8 +98,6 @@ The game expects `music_1`..`music_5` (one loop per dread stage, same length and
 | `fail` | a skill check fails |
 | `card` | an encounter card turns over at sea |
 | `chapter` | a new chapter begins (the CHAPTER card) |
-| `knock` | knocking on the dark hut before it opens (chapter V) |
-| `ending` | the demo end card, TO BE CONTINUED (about 5 s) |
 
 ## Format guidelines
 - 44.1 kHz, OGG Vorbis ~96-128 kbps; mono for SFX, stereo for music/ambience.
@@ -153,5 +136,6 @@ Audacity, Reaper (free trial), LMMS, BeepBox / Bosca Ceoil (quick chip tunes), j
 - **Bass low-pass in stages 1-2:** the bass runs through a gentle 12 dB/oct low-pass at 450 Hz so it stays under the tune. The original clip was not in the kit, so the filtered bass was rendered on its own and swapped in (the kit's bass removed, the filtered one added, both through the same HOIST settings).
 - **Loudness:** the loops get quieter by design as dread grows (stage 1 about -17 LUFS, stage 5 about -29); horror by removing.
 - **Mix:** `volumes.json` sets `amb_4` 55% and `amb_5` 50% so the rumble and howl sit back near the kit's own balance and do not bury the stage 4-5 music (the game's bus gains already favour ambience by about 5 dB).
+- **Harbour and tavern tunes:** `music_harbour` and `music_tavern` (Chaos_Grain `HoistSoundtrack - <dir> tunes`, the same instruments through HOIST at its fair-weather setting with a slow tide drift). `AudioBus.setScene` (called from `openModal` / `closeModal` / `renderHarbour` via `musicScene()` in main.js) cross-fades from the stage music in about 2 s. Both start on the same sample as the stage loops (16 bars = four stage loops), so the cross-fade stays on the beat. They belong to the calm sea: at dread 0.25 they play at half strength, by 0.5 they are gone and the stage music stays on its own ashore.
 - **A new or longer main melody:** `python3 scripts/hoist_soundtrack.py my_melody.wav [--vary] [--chords ...]` rebuilds `music_1..5` through the generator (Chaos_Grain `HoistSoundtrack`, set `HOIST_BIN`). The clip must be F minor at 99 BPM and a whole number of bars (4, 8, 12, 16 ...); a short ring-out after the last bar wraps into the loop's head; other sample rates are converted. The added parts (pluck, bass, squeezebox, drums, bell) follow the clip block by block. They assume Fm Fm Db Db per 4 bars unless `--chords` gives one chord per bar (or `auto`: the generator's guess, printed every run). The bass low-pass in stages 1-2 is always on. With the original clip the result is exact (no splice).
 - **`--vary` (HOIST automation):** tide, dread and mix drift slowly across the loop (tide ±0.12, dread ±0.06, mix ±0.05, whole periods so the loop stays seamless), and the added parts change from pass to pass, mostly by leaving things out: the squeezebox skips half a pass, the pluck thins out, the wrong note (Gb) comes only every other pass, the bell bends further each time, the heartbeat misses a beat, the abyss fragments drift. The loop becomes at least 16 bars (38.8 s at 99 BPM), all five the same length, so the game's cross-fades still line up. Without `--vary` the generator gives exactly the kit's loops.
