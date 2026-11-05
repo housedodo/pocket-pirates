@@ -241,7 +241,7 @@ export function hollowMod(hub) {
 export function musicMod(hub) {
   const tp = hub.tp('music', { nights: [], ended: null, changed: false, t: 0, near: 0 });
   const site = () => hub.pick('music', 1000, 1500);
-  const NOTES = [293.66, 392, 493.88];
+  const NOTES = [349.23, 466.16, 587.33];   // F4 Bb4 D5: the old D-G-B motif moved to F; the D natural sits a little off the F minor loops, on purpose
   let step = 0;
   return {
     heard: () => tp.nights.length,
