@@ -528,3 +528,4 @@ Built and working in the dev build; switched off when `window.__BUILD === 'demo'
 - **Night music:** a calmer version of the song plays from dusk to daybreak instead of the stage-1 band; the night is longer (4 minutes, the day 11.5).
 - **"Dread" (music_3) in the band's key:** shifted from B minor down six semitones to F minor (tempo, length and loudness unchanged), so the cross-fade from the stage-1 band stays in key.
 - **Stage 2 music:** four stems through HOIST (grey skies) play on open sea between the stage-1 band and "Dread"; the night version is louder (it was easy to miss under the sea).
+- **The hut's theme:** on the first visit only, a dread-stage-4 theme (pluck, sub drone, drums through HOIST) rises as you near the hut and plays inside, alone; sailing away brings the normal music back. The hut's island is smaller and the loneliest one out there, harder to stumble on.

@@ -9,7 +9,8 @@ const GROUPS = [
   ['Tavern (muffled, in harbour)', CUES.loops.filter((k) => k.startsWith('tav_'))],
   ['Night (stage 1, dusk to dawn)', CUES.loops.filter((k) => k.startsWith('n1_'))],
   ['Stage 2 (grey skies, open sea)', CUES.loops.filter((k) => k.startsWith('s2_'))],
-  ['Sea and weather loops', CUES.loops.filter((k) => !k.startsWith('music_') && !k.startsWith('s1_') && !k.startsWith('tav_') && !k.startsWith('n1_') && !k.startsWith('s2_'))],
+  ['The hut (first visit)', CUES.loops.filter((k) => k.startsWith('s4_'))],
+  ['Sea and weather loops', CUES.loops.filter((k) => !k.startsWith('music_') && !k.startsWith('s1_') && !k.startsWith('tav_') && !k.startsWith('n1_') && !k.startsWith('s2_') && !k.startsWith('s4_'))],
   ['Effects', CUES.oneShots],
 ];
 const LABEL = { _master: 'MASTER (everything)', _music: 'MUSIC (all music tracks)' };

@@ -1346,21 +1346,24 @@ export class World {
     this.dark = false;
     this.lit = false;
     this.tide = 0;   // -1 low .. +1 high, set by the game from the clock
-    // the dark hut: one island, 4-6 cells out (well past the fog from where you start)
-    let best = null, bh = Infinity;
-    for (let cz = -6; cz <= 6; cz++) for (let cx = -6; cx <= 6; cx++) {
+    // the dark hut: one island 5-7 cells out (well past the fog from where you start), the loneliest one there is: the one
+    // whose nearest neighbour is furthest away, so it is not found by accident on the way to somewhere else
+    let best = null, bs = -Infinity;
+    for (let cz = -7; cz <= 7; cz++) for (let cx = -7; cx <= 7; cx++) {
       const ring = Math.max(Math.abs(cx), Math.abs(cz));
-      if (ring < 4) continue;
+      if (ring < 5) continue;
       const d = this.desc(cx, cz);
       if (!d || (d.type !== 'jungle' && d.type !== 'rocky')) continue;
-      const h = hash2(cx, cz, seed + 77);
-      if (h < bh) { bh = h; best = d; }
+      let near = Infinity;
+      for (let dz = -3; dz <= 3; dz++) for (let dx = -3; dx <= 3; dx++) { if (!dx && !dz) continue; const o = this.desc(cx + dx, cz + dz); if (o) near = Math.min(near, Math.hypot(o.x - d.x, o.z - d.z) - o.r); }
+      const score = Math.min(near, 400) + (hash2(cx, cz, seed + 77) % 1000) / 1000;   // lonely first; the hash only breaks ties
+      if (score > bs) { bs = score; best = d; }
     }
     if (best) {
       best.hut = true; this.hutId = best.id;
       // a land of its own: bigger, a ragged outline, dark ground (faceColor) and dead growth (blightDecor) instead of the bright jungle
       const r2 = mulberry32(hash2(best.seed, 66, 6));
-      best.blight = true; best.r = 27 + r2() * 4; best.H = 5 + r2() * 1.5;
+      best.blight = true; best.r = 20 + r2() * 3; best.H = 4.5 + r2() * 1.2;   // a little smaller
       best.lobes = [0.15 + r2() * 0.05, 0.1 + r2() * 0.05, 0.07 + r2() * 0.04, best.lobes[3], best.lobes[4], best.lobes[5]];
     }
   }

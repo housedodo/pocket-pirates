@@ -70,7 +70,7 @@ purple and magenta cosmic horror as dread rises.
   (`#132630` / `#2f4c52`, rough sea whipped up within seconds, bigger waves), cold flat light with a heavier vignette, dark
   clouds scudding past, a dense fast sheet of rain driven sideways by the wind, and lightning.
 - **The dark hut and its island** (`darkHut`, `blightDecor` in `src/world.js`, `desc.blight`): the one place that is unpleasant
-  in broad daylight. The island is bigger than a normal wild isle (r 27-31) with a ragged outline, black sand (`#3a3437`), grey rock
+  in broad daylight. The island is the loneliest one 5-7 cells out (the most open water round it), a little smaller (r 20-23), with a ragged outline, black sand (`#3a3437`), grey rock
   and dead grass and sick moss (`#545238` / `#454530` / `#33402e`): no palms, flowers or fruit. Bare dead trees with clawing roots,
   pale fungus, black stakes in the shallows, leaning stones, crows that do not fly off. The hut is a witch's hut, not a house: round,
   black logs on crooked stilts, a ragged thatch brim and a crooked hat that bends over with a bird skull on the tip, a bent stone

@@ -1276,6 +1276,16 @@ function inBattle() {
 }
 // the hut exists once the story has reached it: the goal that asks about it ("Ask around") or later, or it is already known
 const GOSSIP_AT = MAIN_GOALS.findIndex((g) => g.id === 'gossip');
+// the hut's theme: the first time only. It rises over the last ~280 units as you sail up to the hut, plays inside, and once
+// you have been inside and sailed ~260 units off, it is done for good and the normal music returns
+function hutMusicTarget() {
+  const st = state.story, hd = world.hutDesc;
+  if (st.hutMusicDone || !world.hutShown || !hd) return 0;
+  if (modal === 'hut') { st.hutEntered = true; return 1; }
+  const d = Math.hypot(ship.pos.x - hd.x, ship.pos.z - hd.z) - hd.r;
+  if (st.hutEntered && d > 260) { st.hutMusicDone = true; return 0; }
+  return 1 - smoothstep(90, 280, d);
+}
 function hutReached() { return !!state.story.hutKnown || (GOSSIP_AT >= 0 && state.goals.i >= GOSSIP_AT); }
 // out on open sea (1) or close to an island (0): the stage-1 music layers fall back near land
 function openSea() {
@@ -2316,6 +2326,7 @@ function frame() {
   audio.setLoop('coast', coastLevel(ashore, tod.night));
   audio.setLoop('forest', forestLevel(ashore) * 0.3);   // ashore on a forest island: very quietly under everything
   if (ashore) audio.setLoop('gulls', gullLevel(tod.night) * 0.3 * 0.9);   // moored: the colony is a background murmur, not a racket
+  audio.hutUpdate(rawDt, hutMusicTarget());   // the hut's theme, first visit only
   audio.tavernUpdate(rawDt, modal === 'pig' || (modal === 'harbour' && hbTab === 'tavern') ? 1 : ashore ? 0.35 : 0);   // tavern music through the wall
   if (live) {
     audio.update(dt, { dread, speed: ship.speed / 11, night: tod.night, wind: wind.strength, rain: weather.rain, storm: weather.storm, gulls: gullLevel(tod.night),

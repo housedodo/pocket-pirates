@@ -100,6 +100,13 @@ only (falls back by the shore, steps aside in harbours and the tavern). All four
 drums / guitar / pluck rests for 15-35 s (never two, never the bass). The order through the dread: stage-1 band (and its night
 version) up to dread ~0.2, stage 2 from 0.2-0.32 to 0.45-0.58, then `music_3` until ~0.8. F8 mixer: group "Stage 2".
 
+## The hut, first visit (`s4_*`, `HutMusic` in `src/layers.js`)
+Dread stage 4 (THE DEEP): `s4_pluck`, `s4_drone` (sub drone), `s4_drums`, through HOIST with sub octave, ghost tails and whispers
+(`HoistLayers game_audio/stage4 <outdir> stage4`; the drone's own loop point clicked, so its rendered loop has a 15 ms fade at each
+end). The first time only: it rises over the last ~280 units as you sail up to the hut, plays inside, and nothing else plays meanwhile
+(the sea's music and the tavern step aside). Once you have been inside and sailed ~260 units off, the normal music comes back and
+the theme is never heard there again (`state.story.hutMusicDone`, `hutMusicTarget` in main.js). F8 mixer: group "The hut".
+
 ## Night (`n1_*`, in `src/layers.js`)
 A calmer version of the song: `n1_pluck`, `n1_shaperbox`, `n1_strings`, `n1_bell` (16 bars at 99 BPM, same length as the band, F minor,
 through HOIST with more space: `HoistLayers game_audio/night <outdir> night`; masters in Chaos_Grain `game_audio/night/`). From dusk

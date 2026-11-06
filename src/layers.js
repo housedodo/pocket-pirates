@@ -237,3 +237,28 @@ export class Tavern {
     return { levels: out, presence: Math.min(1, this.k / 0.35) * (0.6 + 0.4 * inside) };
   }
 }
+
+// The hut's theme (dread stage 4, THE DEEP, through HOIST): pluck, sub drone and drums, and nothing else. It comes in
+// slowly as you sail up to the hut the first time and plays inside; after that first visit, once you have sailed well away, the
+// normal music returns and the theme is never heard there again (main.js: hutMusicTarget). All four start with the rest.
+export const HUT = ['s4_pluck', 's4_drone', 's4_drums'];
+const HUT_PAN = { s4_pluck: 0.35, s4_drone: 0, s4_drums: -0.15 };
+
+export class HutMusic {
+  constructor(ctx, out) {
+    this.ctx = ctx;
+    this.lp = ctx.createBiquadFilter(); this.lp.type = 'lowpass'; this.lp.frequency.value = 2400; this.lp.Q.value = 0.5;
+    this.lp.connect(out);
+    this.srcs = new Map(); this.k = 0;
+  }
+  get ready() { return this.srcs.size > 0; }
+  add(key, src, gain) { const p = this.ctx.createStereoPanner(); p.pan.value = HUT_PAN[key] || 0; src.connect(gain).connect(p).connect(this.lp); this.srcs.set(key, src); }
+  start() { const when = this.ctx.currentTime + 0.15; for (const s of this.srcs.values()) s.start(when); }
+  /** target 0..1 (how close to the hut, 1 inside). Slow: about 15 s to come in, 20 s to go. Returns levels and how present it is */
+  update(dt, target) {
+    this.k += (target - this.k) * (1 - Math.exp(-dt / (target > this.k ? 5 : 7)));
+    const k = smooth(Math.max(0, Math.min(1, this.k))), out = {};
+    for (const key of HUT) out[key] = this.k > 0.002 ? k * 0.9 : 0;
+    return { levels: out, presence: k };
+  }
+}

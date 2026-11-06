@@ -2,7 +2,7 @@
 // synthesised on the fly (src/synth.js), so the game always has sound.
 // See docs/AUDIO.md for the cue list and design notes.
 import { canSynth, synth } from './synth.js';
-import { SeaLayers, LAYERS, Tavern, TAVERN } from './layers.js';
+import { SeaLayers, LAYERS, Tavern, TAVERN, HutMusic, HUT } from './layers.js';
 import { smoothstep } from './util.js';
 
 // Master switch for all sound (files in public/audio/, else the synthesised fallback).
@@ -17,6 +17,7 @@ export const CUES = {
     'music_3',   // the user's own "Dread" piece for the middle dread band; the placeholder music_1/2/4/5 and surf are gone
     ...LAYERS,   // stage 1 on open sea: one instrument more with every quest (src/layers.js)
     ...TAVERN,   // the harbour tavern, muffled through the wall
+    ...HUT,      // the hut's theme, on the first visit
   ],
   // only these effects play. Every other effect the game asks for (splash, treasure, cannon, horn ...) is silent on purpose:
   // it is not listed, so it is never loaded and never synthesised. Add a name back here (and its file) to bring one back.
@@ -81,6 +82,7 @@ export class AudioBus {
     this.musicBus.connect(this.master);
     this.seaMusic = this.ctx.createGain(); this.seaMusic.connect(this.musicBus);   // the music of the sea (stage loops and layers): ducks while the tavern plays
     this.tavern = new Tavern(this.ctx, this.musicBus);
+    this.hut = new HutMusic(this.ctx, this.musicBus); this.tavPresence = 0; this.hutPresence = 0;
     this.layers = new SeaLayers(this.ctx, this.seaMusic); this.layers.setSeed(this.layerSeed); this.layers.pace = this.layerPace;
     this.ambBus = this.ctx.createGain(); this.ambBus.gain.value = this.userVol.amb; this.ambBus.connect(this.master);   // sea, gulls, rain, coast, forest
     this.sfxBus = this.ctx.createGain(); this.sfxBus.gain.value = this.userVol.sfx; this.sfxBus.connect(this.master);   // one-shot effects
@@ -90,7 +92,7 @@ export class AudioBus {
     try { Object.assign(this.vol, JSON.parse(localStorage.getItem('pocket-pirates-mixer') || '{}')); } catch (e) { /* storage blocked */ }
     this.setMuted(this.muted); this.setMusic(this.musicOn);
     // one-shots first (cheap), then ambience, then music, yielding between cues so the game stays smooth
-    const order = [...CUES.oneShots, 'sea', 'rain', 'rain_2', 'rain_storm', 'gulls', 'coast', 'forest', ...CUES.loops.filter((k) => k.startsWith('music_')), ...LAYERS, ...TAVERN];
+    const order = [...CUES.oneShots, 'sea', 'rain', 'rain_2', 'rain_storm', 'gulls', 'coast', 'forest', ...CUES.loops.filter((k) => k.startsWith('music_')), ...LAYERS, ...TAVERN, ...HUT];
     for (const k of order) {
       if (window.__BUILD === 'demo' && DEMO_SKIP.has(k)) continue;
       await this.load(k);
@@ -99,6 +101,7 @@ export class AudioBus {
     }
     this.layers.start();   // the stage-1 stems all start on the same sample (they waited silently until every one had loaded)
     this.tavern.start();
+    this.hut.start();
     this.ready = true;
   }
 
@@ -134,8 +137,9 @@ export class AudioBus {
       this.tone = lp; this.gullEnv = env; this.gullOn = false; this.gullSwitch = 3 + Math.random() * 6;
     } else if (LAYERS.includes(key)) this.layers.add(key, src, gain);   // its own panner, the shared low-pass; started with the others
     else if (TAVERN.includes(key)) this.tavern.add(key, src, gain);
+    else if (HUT.includes(key)) this.hut.add(key, src, gain);
     else src.connect(gain).connect(key.startsWith('music_') ? this.seaMusic : this.ambBus);
-    if (!LAYERS.includes(key) && !TAVERN.includes(key)) src.start();
+    if (!LAYERS.includes(key) && !TAVERN.includes(key) && !HUT.includes(key)) src.start();
     this.loops.set(key, gain);
     (this.srcs || (this.srcs = new Map())).set(key, src);
     if (this.isMusic(key) && this.musicRate !== 1) src.playbackRate.value = this.musicRate;
@@ -145,14 +149,22 @@ export class AudioBus {
 
   /** every music loop at this playback rate (1 = as authored; 0.944 = one semitone flat) */
   setMusicRate(r) { this.musicRate = r; if (this.srcs) for (const [k, src] of this.srcs) if (this.isMusic(k)) src.playbackRate.value = r; }
-  isMusic(k) { return k.startsWith('music_') || LAYERS.includes(k) || TAVERN.includes(k); }
+  isMusic(k) { return k.startsWith('music_') || LAYERS.includes(k) || TAVERN.includes(k) || HUT.includes(k); }
 
   /** every frame, sailing or ashore. where: 0 at sea, 0.35 in a harbour, 1 inside its tavern (or at its dice table) */
   tavernUpdate(dt, where) {
     if (!this.ctx || !this.tavern.ready) return;
     const t = this.tavern.update(dt, where);
-    for (const k of TAVERN) this.setLoop(k, t.levels[k]);
-    this.seaMusic.gain.setTargetAtTime(1 - 0.9 * t.presence, this.ctx.currentTime, 0.5);   // the sea's music steps aside
+    this.tavPresence = t.presence;
+    for (const k of TAVERN) this.setLoop(k, t.levels[k] * (1 - this.hutPresence));
+    this.seaMusic.gain.setTargetAtTime((1 - 0.9 * t.presence) * (1 - this.hutPresence), this.ctx.currentTime, 0.5);   // the sea's music steps aside
+  }
+  /** every frame: target 0..1, how much the hut's theme should play (main.js: hutMusicTarget). While it plays, nothing else does */
+  hutUpdate(dt, target) {
+    if (!this.ctx || !this.hut.ready) return;
+    const h = this.hut.update(dt, target);
+    this.hutPresence = h.presence;
+    for (const k of HUT) this.setLoop(k, h.levels[k]);
   }
 
   /**
