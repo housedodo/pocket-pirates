@@ -23,7 +23,7 @@ export function makeName(rng, type, dread) {
     return `${pick(rng, ELD_PRE)} ${pick(rng, ELD1)}${pick(rng, ELD2)}`;
   }
   const pre = pick(rng, PREFIX[type]), w = `${pick(rng, SYL1)}${pick(rng, SYL2)}`;
-  return `${pre} ${({ Mara: 'Maren', Tama: 'Tamar' })[w] || w}`;   // never the first mate's name, never the home harbour's
+  return `${pre} ${w === 'Mara' ? 'Maren' : w}`;   // never the first mate's name (other islands called Tama are renamed in describeCell)
 }
 
 const GOSSIP = [

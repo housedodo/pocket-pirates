@@ -94,7 +94,8 @@ export function describeCell(cx, cz, seed) {
   const amp = type === 'sandbar' ? 1.6 : 1;
   const lobes = [(0.08 + rng() * 0.1) * amp, (0.05 + rng() * 0.08) * amp, (0.03 + rng() * 0.05) * amp, rng() * 6.28, rng() * 6.28, rng() * 6.28];
   const nameRng = mulberry32(hash2(cx, cz, seed + 5));
-  const name = makeName(nameRng, type, dread);
+  let name = makeName(nameRng, type, dread);
+  if (key !== '0,-1' && / Tama$/.test(name)) name = name.replace(/Tama$/, 'Tamar');   // only the home harbour is Tama
   const desc = { id: key, type, x, z, r, H, lobes, seed: hash2(cx, cz, seed + 1) & 0xffff, name, dread };
   // rarer island kinds, rolled with their own generator so the rest of the world stays where it was
   if (!forced && Math.max(Math.abs(cx), Math.abs(cz)) > 1) {
@@ -102,7 +103,7 @@ export function describeCell(cx, cz, seed) {
     if (type === 'rocky' && v < 0.1) { desc.type = 'volcano'; desc.H = 18 + vr() * 6; desc.r = 30 + vr() * 6; }
     else if (type === 'sandbar' && v < 0.35) { desc.type = 'atoll'; desc.r = 15 + vr() * 6; desc.H = 1.1; }
     else if (type === 'jungle' && v < 0.25) { desc.type = 'mangrove'; desc.H = 1.3 + vr() * 0.6; }
-    if (desc.type !== type) desc.name = makeName(mulberry32(hash2(cx, cz, seed + 4343)), desc.type, dread);
+    if (desc.type !== type) desc.name = makeName(mulberry32(hash2(cx, cz, seed + 4343)), desc.type, dread).replace(/ Tama$/, ' Tamar');
   }
   if (type === 'harbour') {
     desc.lively = (hash2(cx, cz, seed + 808) % 1000) / 1000; desc.sleepy = desc.lively < 0.3;
