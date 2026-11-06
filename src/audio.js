@@ -13,7 +13,7 @@ const DEMO_SKIP = new Set(['music_3']);
 const STAGES = 5;
 export const CUES = {
   loops: [
-    'sea', 'wind', 'rain', 'rain_2', 'rain_storm', 'gulls', 'coast', 'forest',   // the stage ambience amb_1..5, amb_night and oars were removed
+    'sea', 'rain', 'rain_2', 'rain_storm', 'gulls', 'coast', 'forest',   // wind, the stage ambience amb_1..5, amb_night and oars were removed
     'music_3',   // the user's own "Dread" piece for the middle dread band; the placeholder music_1/2/4/5 and surf are gone
     ...LAYERS,   // stage 1 on open sea: one instrument more with every quest (src/layers.js)
     ...TAVERN,   // the harbour tavern, muffled through the wall
@@ -82,7 +82,7 @@ export class AudioBus {
     this.seaMusic = this.ctx.createGain(); this.seaMusic.connect(this.musicBus);   // the music of the sea (stage loops and layers): ducks while the tavern plays
     this.tavern = new Tavern(this.ctx, this.musicBus);
     this.layers = new SeaLayers(this.ctx, this.seaMusic); this.layers.setSeed(this.layerSeed); this.layers.pace = this.layerPace;
-    this.ambBus = this.ctx.createGain(); this.ambBus.gain.value = this.userVol.amb; this.ambBus.connect(this.master);   // sea, wind, gulls, rain, ambience
+    this.ambBus = this.ctx.createGain(); this.ambBus.gain.value = this.userVol.amb; this.ambBus.connect(this.master);   // sea, gulls, rain, coast, forest
     this.sfxBus = this.ctx.createGain(); this.sfxBus.gain.value = this.userVol.sfx; this.sfxBus.connect(this.master);   // one-shot effects
 
     if (window.__VOLUMES) Object.assign(this.vol, window.__VOLUMES);   // the single-file build carries its own
@@ -90,7 +90,7 @@ export class AudioBus {
     try { Object.assign(this.vol, JSON.parse(localStorage.getItem('pocket-pirates-mixer') || '{}')); } catch (e) { /* storage blocked */ }
     this.setMuted(this.muted); this.setMusic(this.musicOn);
     // one-shots first (cheap), then ambience, then music, yielding between cues so the game stays smooth
-    const order = [...CUES.oneShots, 'sea', 'wind', 'rain', 'rain_2', 'rain_storm', 'gulls', 'coast', 'forest', ...CUES.loops.filter((k) => k.startsWith('music_')), ...LAYERS, ...TAVERN];
+    const order = [...CUES.oneShots, 'sea', 'rain', 'rain_2', 'rain_storm', 'gulls', 'coast', 'forest', ...CUES.loops.filter((k) => k.startsWith('music_')), ...LAYERS, ...TAVERN];
     for (const k of order) {
       if (window.__BUILD === 'demo' && DEMO_SKIP.has(k)) continue;
       await this.load(k);
@@ -127,12 +127,7 @@ export class AudioBus {
     src.buffer = buf; src.loop = true;
     const gain = this.ctx.createGain();
     gain.gain.value = 0;
-    if (key === 'wind') {   // the gusts drift: a slow second gain and a stereo pan that wander so the loop never repeats the same way
-      const mod = this.ctx.createGain(), pan = this.ctx.createStereoPanner();
-      mod.gain.value = 1; pan.pan.value = 0;
-      src.connect(gain).connect(mod).connect(pan).connect(this.ambBus);
-      this.windMod = mod; this.windPan = pan; this.windSrc = src; this.windT = 0; this.windGust = 1; this.windSide = 0;
-    } else if (key === 'gulls') {   // far away they are dull and thin; the closer you get, the clearer (low-pass opens with level)
+    if (key === 'gulls') {   // far away they are dull and thin; the closer you get, the clearer (low-pass opens with level)
       const lp = this.ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 900; lp.Q.value = 0.4;
       const env = this.ctx.createGain(); env.gain.value = 0;   // the colony comes and goes (see driftGulls)
       src.connect(lp).connect(gain).connect(env).connect(this.ambBus);
@@ -206,20 +201,6 @@ export class AudioBus {
     this.gullEnv.gain.setTargetAtTime(this.gullOn ? 1 : 0, this.ctx.currentTime, this.gullOn ? 1.2 : 2.2);
   }
 
-  /** wind loop drift: volume swells and fades (about 45% to 120%) and the sound drifts left and right, never the same twice */
-  driftWind(dt) {
-    if (!this.windMod) return;
-    this.windT += dt;
-    const t = this.windT, T = this.ctx.currentTime;
-    this.windNext = (this.windNext || 0) - dt;
-    if (this.windNext <= 0) { this.windNext = 4 + Math.random() * 9; this.windGust = 0.55 + Math.random() * 0.6; this.windSide = (Math.random() * 2 - 1) * 0.8; }
-    const swell = 0.8 + 0.18 * Math.sin(t * 0.21) + 0.12 * Math.sin(t * 0.083 + 1.7);
-    this.windMod.gain.setTargetAtTime(Math.max(0.35, swell * this.windGust), T, 2.2);
-    const pan = Math.max(-0.9, Math.min(0.9, 0.5 * Math.sin(t * 0.11 + 0.6) + 0.35 * Math.sin(t * 0.047) + this.windSide * 0.4));
-    this.windPan.pan.setTargetAtTime(pan, T, 2.5);
-    this.windSrc.playbackRate.setTargetAtTime(1 + 0.025 * Math.sin(t * 0.09 + 2), T, 3);
-  }
-
   /**
    * Rain in two kinds: light rain (two recordings, `rain` and `rain_2`, cross-faded every half minute or so) and a proper
    * storm (`rain_storm`, heavy rain drumming on the deck), blended by how hard it rains and blows. In strong rain a distant
@@ -264,8 +245,6 @@ export class AudioBus {
       for (const k of LAYERS) if (k in lv) this.setLoop(k, lv[k] * 1.5);   // the stems are mastered quiet (about -25 LUFS each): this puts the full band a few dB under the sea
     }
     this.setLoop('sea', 0.3 + s.speed * 0.45);
-    this.driftWind(dt);
-    this.setLoop('wind', Math.min(1, s.wind * 0.35 + s.storm * 0.5));
     this.rainBeds(dt, s);
     this.setLoop('gulls', (s.gulls || 0) * 0.9);
     this.driftGulls(dt, s.gulls || 0);
