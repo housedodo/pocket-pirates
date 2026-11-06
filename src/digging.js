@@ -1,76 +1,84 @@
-// Digging for treasure is a timing game. A needle swings across the gauge; E (or Space) swings the shovel where it is.
-//  - green, the soft sand: digs deep (2)      - yellow, packed sand: digs a little (1)      - anywhere else: mostly air (0)
-//  - grey, a stone: CLANG, the shovel cracks. Two cracks and the hole caves in: the dig fails and the crew must dig out
-//    the collapse before trying again.
-// Every swing moves the sand and the stone and makes the needle a little faster. Better tools (ship upgrades, the dig
-// buff) widen the soft sand; the first treasure (the tutorial) is a little kinder.
-const rnd = (a, b) => a + Math.random() * (b - a);
+// Digging for treasure: probing the shore (hot and cold). The riddle got you to the right shore, not the right spot.
+// The beach is a grid of squares; dig one (click it, or arrows / WASD and E / Space) and the sand tells you how close the
+// chest is: the darker and wetter, the closer. Hidden stones crack the shovel, and the tide creeps up the beach with
+// every dig. It fails when the tide floods the beach before you find it, or when two stones break the shovel; the crew
+// then digs out and you can try again (a new beach, the chest somewhere else).
+// Later in the game (dread) some squares lie about how damp they are.
+const W = 200, H = 136, CW = 22, CH = 20, OX = 12, OY = 14;
 
 export class DigGame {
   constructor(cb) {
-    this.cb = cb;   // { toast, sound(kind) }
+    this.cb = cb;   // { sound(kind) }
     this.ui = document.getElementById('digui');
     this.msg = document.getElementById('digmsg');
-    this.track = document.getElementById('digtrack');
-    this.okEl = document.getElementById('digok'); this.goodEl = document.getElementById('diggood'); this.rockEl = document.getElementById('digrock');
-    this.needle = document.getElementById('digneedle'); this.prog = document.getElementById('digprog'); this.cracksEl = document.getElementById('digcracks');
+    this.cv = document.getElementById('digcv'); this.g = this.cv.getContext('2d'); this.g.imageSmoothingEnabled = false;
     this.active = false;
-    this.ui.addEventListener('pointerdown', (e) => { this.press(); e.preventDefault(); });
+    this.cv.addEventListener('pointerdown', (e) => {
+      if (!this.active) return;
+      const r = this.cv.getBoundingClientRect(), x = (e.clientX - r.left) / r.width * W, y = (e.clientY - r.top) / r.height * H;
+      const gx = Math.floor((x - OX) / CW), gy = Math.floor((y - OY) / CH);
+      if (gx >= 0 && gx < this.cols && gy >= 0 && gy < this.rows) { this.cx = gx; this.cy = gy; this.press(); }
+      e.preventDefault();
+    });
   }
 
-  /** o: { need (depth to reach), ease (0..1: wider soft sand), onDone(), onFail() } */
+  /** o: { cols, rows, digs (before the tide is in), stones, lie (0..1 chance a square lies), onDone(), onFail(reason) } */
   start(o) {
-    this.o = o; this.active = true;
-    this.depth = 0; this.cracks = 0; this.x = 0; this.dir = 1; this.speed = 0.55; this.flash = 0; this.say = 'E / Space: swing the shovel when the needle is on the soft sand';
-    this.roll();
-    this.ui.style.display = 'block';
-    this.render();
+    this.o = o; this.active = true; this.cols = o.cols || 8; this.rows = o.rows || 5;
+    this.cx = Math.floor(this.cols / 2); this.cy = Math.floor(this.rows / 2); this.digs = 0; this.cracks = 0; this.t = 0;
+    this.chest = [Math.floor(Math.random() * this.cols), Math.floor(Math.random() * this.rows)];
+    this.cells = Array.from({ length: this.cols * this.rows }, () => ({ dug: false, stone: false, lie: Math.random() < (o.lie || 0), t: 0 }));
+    for (let s = 0; s < o.stones;) { const i = Math.floor(Math.random() * this.cells.length); if (i !== this.chest[1] * this.cols + this.chest[0] && !this.cells[i].stone) { this.cells[i].stone = true; s++; } }
+    this.say(`Dig a square (click, or arrows and E). The darker the sand, the closer. The tide comes in after ${o.digs} digs.`);
+    this.ui.style.display = 'block'; this.draw();
   }
   cancel() { this.active = false; this.ui.style.display = 'none'; }
-
-  /** new sand and a new stone for the next swing */
-  roll() {
-    const e = this.o.ease || 0;
-    this.gw = 0.11 + 0.09 * e; this.ow = this.gw + 0.2;                 // soft sand inside packed sand
-    this.gc = rnd(0.22, 0.78);
-    let rc = rnd(0.06, 0.94);
-    for (let k = 0; k < 20 && Math.abs(rc - this.gc) < this.ow / 2 + 0.06; k++) rc = rnd(0.06, 0.94);   // the stone never sits in the sand
-    this.rc = rc; this.rw = 0.09;
-  }
+  say(t) { this.msg.textContent = t; }
+  move(dx, dy) { if (!this.active) return; this.cx = Math.max(0, Math.min(this.cols - 1, this.cx + dx)); this.cy = Math.max(0, Math.min(this.rows - 1, this.cy + dy)); this.draw(); }
+  dist(x, y) { return Math.abs(x - this.chest[0]) + Math.abs(y - this.chest[1]); }
 
   press() {
     if (!this.active) return;
-    const x = this.x;
-    if (Math.abs(x - this.rc) < this.rw / 2) {
-      this.cracks++; this.flash = 0.35; this.cb.sound('rock');
-      if (this.cracks >= 2) { this.cancel(); this.o.onFail(); return; }
-      this.say = 'CLANG! A stone. The shovel cracks. One more and the hole caves in.';
-    } else if (Math.abs(x - this.gc) < this.gw / 2) { this.depth += 2; this.say = 'Good swing!'; this.cb.sound('good'); }
-    else if (Math.abs(x - this.gc) < this.ow / 2) { this.depth += 1; this.say = 'A little deeper.'; this.cb.sound('ok'); }
-    else this.say = 'Mostly air.';
-    if (this.depth >= this.o.need) { this.render(); this.cancel(); this.o.onDone(); return; }
-    this.speed = Math.min(1.15, this.speed + 0.06);
-    this.roll();
+    const c = this.cells[this.cy * this.cols + this.cx];
+    if (c.dug) { this.say('Already dug there. Try another square.'); return; }
+    c.dug = true; c.t = 0.25; this.digs++;
+    if (this.cx === this.chest[0] && this.cy === this.chest[1]) { this.cb.sound('found'); this.found = true; this.draw(); this.cancel(); this.o.onDone(); return; }
+    if (c.stone) {
+      this.cracks++; this.cb.sound('rock');
+      if (this.cracks >= 2) { this.cancel(); this.o.onFail('stone'); return; }
+      this.say('CLANG! A stone under the sand. The shovel cracks: one more and it breaks.');
+    } else {
+      this.cb.sound('dig');
+      const d = this.dist(this.cx, this.cy);
+      this.say(d <= 1 ? 'Wet sand. Very close!' : d <= 3 ? 'Damp. Getting closer.' : 'Dry as a biscuit.');
+    }
+    if (this.digs >= this.o.digs) { this.cancel(); this.o.onFail('tide'); return; }
+    this.draw();
   }
 
-  update(dt) {
-    if (!this.active) return;
-    this.x += this.dir * this.speed * dt;
-    if (this.x > 1) { this.x = 2 - this.x; this.dir = -1; } else if (this.x < 0) { this.x = -this.x; this.dir = 1; }
-    this.flash = Math.max(0, this.flash - dt);
-    this.render();
-  }
+  update(dt) { if (!this.active) return; this.t += dt; for (const c of this.cells) c.t = Math.max(0, c.t - dt); this.draw(); }
 
-  render() {
-    const pc = (v) => `${v * 100}%`;
-    this.okEl.style.left = pc(this.gc - this.ow / 2); this.okEl.style.width = pc(this.ow);
-    this.goodEl.style.left = pc(this.gc - this.gw / 2); this.goodEl.style.width = pc(this.gw);
-    this.rockEl.style.left = pc(this.rc - this.rw / 2); this.rockEl.style.width = pc(this.rw);
-    this.needle.style.left = pc(this.x);
-    this.prog.style.width = pc(Math.min(1, this.depth / this.o.need));
-    this.cracksEl.textContent = this.cracks ? 'Shovel: cracked! Mind the stones' : 'Shovel: whole';
-    this.cracksEl.className = this.cracks ? 'bad' : '';
-    this.msg.textContent = this.say;
-    this.track.classList.toggle('shake', this.flash > 0);
+  draw() {
+    const g = this.g, px = (x, y, w, h, c) => { g.fillStyle = c; g.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h)); };
+    px(0, 0, W, H, '#c8a85a');
+    // the tide: the sea creeps up from the bottom with every dig
+    const tide = this.digs / this.o.digs, ty = H - 10 - tide * 18 + Math.sin(this.t * 2.2) * 1.5;
+    px(0, ty, W, H - ty, '#1b86c6'); px(0, ty, W, 2, '#bfeaff');
+    for (let y = 0; y < this.rows; y++) for (let x = 0; x < this.cols; x++) {
+      const c = this.cells[y * this.cols + x], X = OX + x * CW, Y = OY + y * CH;
+      let col = (x + y) % 2 ? '#d2b268' : '#c8a85a';
+      if (c.dug) {
+        if (c.stone) col = '#8a8a92';
+        else { let d = this.dist(x, y); if (c.lie) d = Math.max(0, 6 - d); const k = Math.max(0, 1 - d / 7); col = `rgb(${Math.round(200 - 140 * k)},${Math.round(168 - 122 * k)},${Math.round(92 - 62 * k)})`; }
+      }
+      px(X, Y, CW - 2, CH - 2, col);
+      if (c.dug && !c.stone) px(X + 7, Y + 6, 6, 6 - (c.t > 0 ? 2 : 0), '#3a2414');
+      if (c.dug && c.stone) px(X + 5, Y + 5, 8, 4, '#a8a8b0');
+    }
+    if (this.found) { const X = OX + this.chest[0] * CW, Y = OY + this.chest[1] * CH; px(X + 3, Y + 4, 14, 10, '#ffd23a'); px(X + 3, Y + 8, 14, 2, '#6a4a2e'); }
+    if (this.active) { g.strokeStyle = '#f4ead0'; g.lineWidth = 2; g.strokeRect(OX + this.cx * CW - 1, OY + this.cy * CH - 1, CW, CH); }
+    // the shovel and the tide
+    for (let i = 0; i < 2; i++) px(4 + i * 8, 3, 6, 6, i < this.cracks ? '#ff6a4a' : '#3a3070');
+    px(W - 46, 3, 42, 6, '#3a3070'); px(W - 46, 3, 42 * (1 - tide), 6, '#4fe0d0');
   }
 }

@@ -7,9 +7,10 @@ import { clamp, smoothstep } from './util.js';
 
 // The fishing minigame: C starts a swinging power meter and C again casts: a short cast lands by the boat (small, easy
 // fish), a long one far out (bigger, rarer, harder fish, a longer wait). Wait for a bite and hook it in time (C / Space),
-// then keep the moving marker inside the green zone by holding / releasing Space. Now and then the fish RUNS: hold on
-// through a run and the line's tension climbs, and at the top the line snaps. Ease off, let it run, then reel again.
-// It can go wrong three ways: too slow on the bite, the fish gets away (progress runs out), or the line snaps.
+// then the bite ring (after Dredge): a needle sweeps round the ring; strike (C / Space) on a green mark, better on its gold
+// heart. Each hit pulls the catch meter up and flips the needle; dawdle and the fish drags the meter back down. Bigger fish
+// turn the needle faster and give smaller, fewer marks; dark fish (and dread) make the marks drift and the needle stall.
+// It can go wrong three ways: too slow on the bite, three strikes on empty water, or the meter runs dry.
 // Fish are sold at harbours.
 // Species drift from cheerful to wrong with dread.
 export const FISH = [
@@ -58,6 +59,8 @@ export const BRIGHT_FISH = { id: 'bright', name: 'a bright fish', kg: [8, 20], p
 export const fishById = (id) => FISH.find((f) => f.id === id);
 
 const rnd = (a, b) => a + Math.random() * (b - a);
+const TAU = Math.PI * 2;
+const angDiff = (a, b) => { let d = (a - b) % TAU; if (d > Math.PI) d -= TAU; if (d < -Math.PI) d += TAU; return d; };
 
 export class Fishing {
   constructor(scene, ship, cbs) {
@@ -85,10 +88,8 @@ export class Fishing {
     this.zoneEl = document.getElementById('fishzone');
     this.markEl = document.getElementById('fishmark');
     this.progEl = document.getElementById('fishprog');
-    this.tenEl = document.getElementById('fishten');   // line tension (it snaps at the top)
-    this.ui.addEventListener('pointerdown', (e) => { this.hold = true; this.press(true); e.preventDefault(); });
-    this.ui.addEventListener('pointerup', () => { this.hold = false; });
-    this.ui.addEventListener('pointerleave', () => { this.hold = false; });
+    this.ringCv = document.getElementById('fishring'); this.rg = this.ringCv.getContext('2d'); this.rg.imageSmoothingEnabled = false;
+    this.ui.addEventListener('pointerdown', (e) => { this.press(true); e.preventDefault(); });
   }
 
   /** the rod: a slim bamboo cane with a cord-wrapped grip and darker nodes, built along +z from the butt (the hull is ~5 long) */
@@ -106,6 +107,7 @@ export class Fishing {
   press(fromReel = false) {
     if (this.mode === 'idle') return this.start();
     if (this.mode === 'aim') return this.cast();
+    if (this.mode === 'reel') return this.strike();
     if (this.mode === 'bite') return this.hook();
     if (this.mode === 'wait' && !fromReel) return this.cancel('You reel in the empty line.');
     return null;
@@ -142,10 +144,34 @@ export class Fishing {
   }
   hook() {
     this.mode = 'reel';
-    const f = this.fish;
-    this.diff = Math.min(0.97, f.diff + (this.power || 0) * 0.12);
-    this.zone = 0.5; this.zw = 0.34 - 0.13 * this.diff; this.fp = 0.5; this.ft = 0.5; this.fnext = 0; this.prog = 0.3;
-    this.tension = 0; this.run = 0; this.nextRun = rnd(2.2, 4.5) / (0.6 + this.diff);
+    const f = this.fish, df = this.diff = Math.min(0.97, f.diff + (this.power || 0) * 0.12);
+    this.a = -Math.PI / 2; this.dir = 1; this.speed = 2.0 + df * 2.3; this.meter = 0.25; this.miss = 0; this.flash = 0; this.stall = 0;
+    this.drain = 0.03 + df * 0.025; this.wrong = !!f.dark || (this.cb.getCtx().dread || 0) > 0.5;
+    this.zones = []; for (let i = 0; i < (df > 0.75 ? 2 : 3); i++) this.addZone();
+    this.say = '';
+  }
+  addZone() {
+    const len = (0.85 - this.diff * 0.45) * rnd(0.85, 1.15);
+    let a0 = 0;
+    for (let k = 0; k < 30; k++) { a0 = rnd(0, TAU); if (this.zones.every((z) => Math.abs(angDiff(a0 + len / 2, z.a0 + z.len / 2)) > (len + z.len) / 2 + 0.25)) break; }
+    this.zones.push({ a0, len, drift: rnd(-0.45, 0.45) });
+  }
+  /** C / Space while the ring turns */
+  strike() {
+    const hit = this.zones.find((z) => Math.abs(angDiff(this.a, z.a0 + z.len / 2)) < z.len / 2);
+    if (hit) {
+      const gold = Math.abs(angDiff(this.a, hit.a0 + hit.len / 2)) < hit.len * 0.18;
+      this.meter = Math.min(1, this.meter + (gold ? 0.3 : 0.18)); this.flash = 0.25; this.flashCol = gold ? '#ffd23a' : '#5ec45a';
+      this.zones.splice(this.zones.indexOf(hit), 1); this.addZone(); this.dir *= -1;
+      this.say = gold ? 'Gold! It turns, tired.' : 'A good pull.';
+      if (this.cb.onStrike) this.cb.onStrike(gold ? 'gold' : 'good');
+      if (this.meter >= 1) this.finish(true);
+    } else {
+      this.miss++; this.meter = Math.max(0, this.meter - 0.1); this.flash = 0.3; this.flashCol = '#ff6a4a';
+      this.say = this.miss >= 3 ? '' : `Empty water. ${3 - this.miss} left.`;
+      if (this.cb.onStrike) this.cb.onStrike('miss');
+      if (this.miss >= 3) this.finish(false, 'miss');
+    }
   }
   finish(won, why = '') {
     const f = this.fish;
@@ -153,7 +179,7 @@ export class Fishing {
     if (won) {
       const kg = +(f.kg[0] + Math.pow(Math.random(), 1.6 - 0.9 * (this.power || 0)) * (f.kg[1] - f.kg[0])).toFixed(1);   // far out, the big ones
       this.cb.onCatch({ id: f.id, name: f.name, kg, value: Math.max(1, Math.round(kg * f.price)), dark: !!f.dark, zone: this.env ? this.env.label : '', hour: this.env ? this.env.hour : 12 });
-    } else if (why === 'snap') this.cb.toast(f.dark ? 'The line snaps. Something below kept the hook.' : 'SNAP! The line broke: you held on too hard while it ran.');
+    } else if (why === 'miss') this.cb.toast(f.dark ? 'Three strikes on nothing. Something below let go, slowly.' : 'Three strikes on empty water: it slipped the hook.');
     else this.cb.toast(f.dark ? 'The line goes slack. Something below let go on purpose.' : 'It got away!');
   }
 
@@ -214,35 +240,34 @@ export class Fishing {
 
     // UI
     this.ui.style.display = 'block';
-    this.bar.style.display = this.mode === 'reel' ? 'block' : 'none';
+    this.bar.style.display = 'none';
+    this.ringCv.style.display = this.mode === 'reel' ? 'block' : 'none';
     this.msg.className = this.mode === 'bite' ? 'blink' : '';
-    if (this.mode === 'reel' && this.run > 0) this.msg.className = 'blink';
     this.msg.textContent = this.mode === 'wait' ? 'Line in the water... (C pulls it in)' : this.mode === 'bite' ? (this.fish.dark ? 'SOMETHING PULLS BACK! Press C / Space!' : 'BITE! Press C / Space!')
-      : this.run > 0 ? (this.fish.dark ? 'IT PULLS DOWN! Let go of SPACE!' : 'IT RUNS! Let go of SPACE or the line snaps!') : 'Hold SPACE to reel, release to ease off';
-    if (this.mode === 'reel') {
-      this.zoneEl.style.background = '';
-      if (this.tenEl) { this.tenEl.parentNode.style.display = 'block'; this.tenEl.style.width = `${this.tension * 100}%`; this.tenEl.style.background = this.tension > 0.7 ? '#ff4a3a' : '#e89a3a'; }
-      this.zoneEl.style.left = `${(this.zone - this.zw / 2) * 100}%`; this.zoneEl.style.width = `${this.zw * 100}%`;
-      this.markEl.style.left = `${this.fp * 100}%`;
-      this.progEl.style.width = `${this.prog * 100}%`;
-    }
+      : this.say || 'Strike (C / Space) when the needle is on a green mark. Gold is better.';
+    if (this.mode === 'reel') this.drawRing();
+  }
+
+  /** the bite ring, drawn small and shown pixelated */
+  drawRing() {
+    const g = this.rg, S = 120, cx = 60, cy = 60, r = 46, dark = this.wrong;
+    const arc = (a0, a1, w, col) => { g.strokeStyle = col; g.lineWidth = w; g.beginPath(); g.arc(cx, cy, r, a0, a1); g.stroke(); };
+    g.clearRect(0, 0, S, S);
+    g.fillStyle = '#120c1c'; g.beginPath(); g.arc(cx, cy, r + 9, 0, TAU); g.fill();
+    arc(0, TAU, 10, '#123a5a');
+    for (const z of this.zones) { arc(z.a0, z.a0 + z.len, 10, dark ? '#ff30c8' : '#5ec45a'); const m = z.a0 + z.len / 2; arc(m - z.len * 0.18, m + z.len * 0.18, 10, '#ffd23a'); }
+    g.strokeStyle = dark ? '#ff30c8' : '#4fe0d0'; g.lineWidth = 4; g.beginPath(); g.arc(cx, cy, r - 12, -Math.PI / 2, -Math.PI / 2 + TAU * this.meter); g.stroke();
+    g.strokeStyle = this.flash > 0 ? this.flashCol : '#f4ead0'; g.lineWidth = 3; g.beginPath(); g.moveTo(cx, cy); g.lineTo(cx + Math.cos(this.a) * (r + 6), cy + Math.sin(this.a) * (r + 6)); g.stroke();
+    g.fillStyle = dark ? '#3a2a40' : '#1b86c6'; g.fillRect(cx - 9, cy - 3, 13, 7); g.fillRect(cx + 4, cy - 5, 4, 11); g.fillStyle = dark ? '#ff30c8' : '#0b0716'; g.fillRect(cx - 6, cy - 1, 2, 2);
+    for (let i = 0; i < 3; i++) { g.fillStyle = i < this.miss ? '#ff6a4a' : '#3a3070'; g.fillRect(4 + i * 8, 4, 6, 6); }
   }
 
   reel(dt) {
-    const df = this.diff;
-    // runs: the fish bolts for the edge; hold on through it and the tension climbs
-    this.nextRun -= dt;
-    if (this.run <= 0 && this.nextRun <= 0) { this.run = rnd(0.9, 1.6); this.ft = this.fp < 0.5 ? 0.97 : 0.03; this.nextRun = rnd(2.5, 5.5) / (0.6 + df); }
-    if (this.run > 0) this.run -= dt;
-    this.fnext -= dt;
-    if (this.run <= 0 && this.fnext <= 0) { this.ft = rnd(0.08, 0.92); this.fnext = rnd(0.5, 1.1) / (0.6 + df); }
-    this.fp += clamp(this.ft - this.fp, -1, 1) * Math.min(1, dt * (1.2 + 2.2 * df) * (this.run > 0 ? 1.8 : 1));
-    this.zone = clamp(this.zone + (this.hold ? 0.9 : -0.75) * dt, this.zw / 2, 1 - this.zw / 2);
-    this.tension = clamp(this.tension + (this.run > 0 ? (this.hold ? 0.85 + 0.6 * df : -0.4) : (this.hold ? 0.06 : -0.45)) * dt, 0, 1);
-    const inside = Math.abs(this.fp - this.zone) < this.zw / 2;
-    this.prog += (inside ? 0.3 * (1.2 - df * 0.5) : -0.24) * dt;
-    if (this.tension >= 1) this.finish(false, 'snap');
-    else if (this.prog >= 1) this.finish(true);
-    else if (this.prog <= 0) this.finish(false);
+    this.flash = Math.max(0, this.flash - dt);
+    if (this.wrong && this.stall <= 0 && Math.random() < dt * 0.25) this.stall = 0.6;   // the needle stops, and looks back
+    if (this.stall > 0) this.stall -= dt; else this.a += this.dir * this.speed * dt;
+    if (this.wrong) for (const z of this.zones) z.a0 += z.drift * dt;
+    this.meter = Math.max(0, this.meter - this.drain * dt);
+    if (this.meter <= 0) this.finish(false);
   }
 }

@@ -94,9 +94,7 @@ They are stage 1's music (the old placeholder `music_1` is gone).
 - Test: `?dev=1&musicpace=5` makes the fades and swells five times faster.
 
 ## Battle (`s1_raiders`, in `src/layers.js`)
-`Raiders.wav` (8 bars at 99 BPM) was in **E minor**, a semitone under the stage-1 band (**F minor**): it was shifted up one
-semitone (Rubber Band, tempo unchanged), played twice to the band's 16-bar length and rendered through HOIST like the other stems
-(`Raiders_F.wav` in Chaos_Grain `game_audio/`). It joins the main theme while a fight is on: cannons unlocked and a raider engaged
+`Raiders.wav` (4 bars at 99 BPM, **F minor** like the band) is played four times to the band's 16-bar length and rendered through HOIST like the other stems (`Raiders_x4.wav` in Chaos_Grain `game_audio/`; it replaced an earlier take that had to be shifted up from E minor). It joins the main theme while a fight is on: cannons unlocked and a raider engaged
 or within ~110 units (`inBattle()` in main.js). It comes in within a few seconds, the whole band plays for the fight (no small
 line-ups), the low-pass opens a little, and after the fight it lingers and fades over 10-15 s. Same panning, swell and filter as the band.
 

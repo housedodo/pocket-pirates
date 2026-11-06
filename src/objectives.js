@@ -48,7 +48,7 @@ export const MAIN_GOALS = [
     intro: (c) => (c.state.story.letterP1 === 'taken' ? ['Now to find the shore that riddle means. Stop the ship there and press E to dig.']
       : ['Perrin left you a letter with the harbourmaster: take it at the Board sign in Tama.', 'Then find the shore its riddle means, stop the ship and press E to dig.']),
     outro: ['Ha! Treasure! A captain with gold in the hold is a captain with options.'],
-    hints: ['Take Perrin\'s letter at the Tama Board sign first (the little letter icon). The riddle is then in the log (M, Riddles tab). Sunrise is east, sunset is west.', 'Try the shore the riddle describes. Swing the shovel (E) when the needle is on the green sand, and miss the grey stones: two and the hole caves in.'],
+    hints: ['Take Perrin\'s letter at the Tama Board sign first (the little letter icon). The riddle is then in the log (M, Riddles tab). Sunrise is east, sunset is west.', 'On the right shore, dig squares (click, or arrows and E): darker, wetter sand means the chest is close. The tide comes in with every dig, and two stones break the shovel.'],
     check: (c) => c.state.dug.has(HOME_ISLE),
     tab: 'board', mark: ['takeLetter'],
   },
@@ -65,9 +65,9 @@ export const MAIN_GOALS = [
     id: 'calm', ch: 2, title: 'Dead calm', reward: 24,
     text: 'The wind has died. Put the oars out (G) and row, then catch a fish (stop, then C).',
     intro: ['Not a breath of wind. Press G for the oars, then W to row us a little way.',
-      'Then slow right down and press C: a little meter swings, press C again to cast. Close in for small fish, far out for big ones. When it bites, hold Space to reel, and let go when it runs.'],
+      'Then slow right down and press C: a little meter swings, press C again to cast. Close in for small fish, far out for big ones. When it bites, press C, then strike when the needle is on green.'],
     outro: ['Dinner AND exercise. A full day\'s work for a captain.', 'And listen: there is the wind again. Sails up, Captain.'],
-    hints: ['Press G to put the oars out, then hold W to row. G again puts them away.', 'Stop the ship (S), press C, then C again to cast (a short cast is easier). When it bites, press C or Space, then hold Space to reel; let go when it runs or the line snaps.'],
+    hints: ['Press G to put the oars out, then hold W to row. G again puts them away.', 'Stop the ship (S), press C, then C again to cast (a short cast is easier). When it bites, press C or Space; then strike (C / Space) each time the needle is on a green mark. Three misses and it is gone.'],
     check: (c) => (c.state.stats.rowed || 0) >= ((c.state.story.cal0 || {}).r || 0) + 50 && c.state.stats.fish >= ((c.state.story.cal0 || {}).f || 0) + 1,
     onStart: (c) => { c.state.story.cal0 = { r: c.state.stats.rowed || 0, f: c.state.stats.fish }; if (c.forceCalm) c.forceCalm(420); },
     onDone: (c) => { if (c.forceCalm) c.forceCalm(0); },   // the wind picks up again

@@ -329,7 +329,8 @@ function fishEnv() {
 }
 const fishing = new Fishing(scene, ship, {
   toast: (t) => toast(t),
-  getCtx: () => ({ bonus: Math.max(0, ship.mods.lootMul - 1) }),
+  getCtx: () => ({ bonus: Math.max(0, ship.mods.lootMul - 1), dread }),
+  onStrike: (k) => { if (k === 'miss') audio.playTone(196, { dur: 0.3, vol: 0.06 }); else audio.playTone(k === 'gold' ? 880 : 660, { dur: 0.35, vol: 0.07 }); },   // the bite ring: a soft note per strike
   onStart: () => audio.play('cast'),
   onSplash: () => { audio.play('splash', { vol: 0.4 }); toast('Line cast. Wait for a bite...', false, 2500); },
   onBite: (f) => { toast(f.dark ? 'Something heavy takes the bait!' : 'A bite!', f.dark, 1500); audio.play('bite'); },
@@ -681,6 +682,10 @@ window.addEventListener('keydown', (e) => {
   if (modal) return;
   if (e.code === 'Space') e.preventDefault();
   if (e.repeat) return;
+  if (digGame.active) {   // probing the shore: the arrows / WASD move over the beach, not the ship
+    const mv = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1], KeyA: [-1, 0], KeyD: [1, 0], KeyW: [0, -1], KeyS: [0, 1] }[e.code];
+    if (mv) { digGame.move(...mv); e.preventDefault(); return; }
+  }
   keys.add(e.code);
   if (e.code === 'Space' && digGame.active) { digGame.press(); return; }
   if (e.code === 'Space') { if (fishing.active) { fishing.hold = true; fishing.press(true); } else if (objectives.mate.cur) objectives.mate.skip(); else if (unlocked(state, 'cannons')) fireCannons(); }   // Space (or Enter) moves Mara's text on
@@ -1225,7 +1230,7 @@ let dread = forced !== null ? forced : dreadAtDistance(Math.hypot(ship.pos.x, sh
 let dark = dread > DARK_THRESHOLD;
 let dig = null;     // { isl, t }
 let digFix = 0;     // after a cave-in the crew digs out the collapse until this time
-const digGame = new DigGame({ sound: (k) => { if (k === 'rock') { audio.playTone(1180, { dur: 0.35, vol: 0.09 }); audio.playTone(1530, { dur: 0.25, vol: 0.05 }); } else audio.play('dig', { vol: k === 'good' ? 0.45 : 0.25, rate: 1.25 }); } });
+const digGame = new DigGame({ sound: (k) => { if (k === 'rock') { audio.playTone(1180, { dur: 0.35, vol: 0.09 }); audio.playTone(1530, { dur: 0.25, vol: 0.05 }); } else if (k === 'found') { for (const [f, d] of [[523, 0], [659, 90], [784, 180]]) setTimeout(() => audio.playTone(f, { dur: 0.9, vol: 0.12 }), d); } else audio.play('dig', { vol: 0.35, rate: 1.15 }); } });
 let tNow = 0;
 let curSector = null;
 const sighted = new Set();
@@ -1463,10 +1468,17 @@ function tryInteract() {
         state.dug.add(d.id); tg.isl.setDug(true);   // claimed now, so the throw cannot be started twice
         if (first) land(null); else rollCheck(state, { label: 'The chest: how good a find?', kind: 'luck', dark: loot.dark, tiers: TREASURE_TIERS, treasure: true, attempts: state.attempts[d.id] || 0 }, (ok, n, total, tier) => land(tier));
       } };
-      { const first = d.id === '1,-1';   // the shovel game (digging.js): the first treasure is a little kinder
-        digGame.start({ need: first ? 5 : 6, ease: clamp((1 - ship.mods.digTime) * 1.5 + (state.buffs.dig > 0 ? 0.5 : 0) + (first ? 0.35 : 0), 0, 1),
-          onDone: () => { const done = dig && dig.done; dig = null; if (done) done(); },
-          onFail: () => { dig = null; digFix = tNow + 6; state.attempts[d.id] = (state.attempts[d.id] || 0) + 1; toast('The shovel snaps and the hole caves in! The crew needs a moment to dig out.', false, 5000); } }); }
+      { // probing the shore (digging.js), only on the right shore: a wrong shore is a short dig that finds sand, as before
+        const right = Math.abs(angleDiff(Math.atan2(ship.pos.z - d.z, ship.pos.x - d.x), d.puzzle.angle)) <= 0.85;
+        if (!right) { dig.mini = false; dig.need = 2.2; }
+        else {
+          const first = d.id === '1,-1', tools = (1 - ship.mods.digTime) * 6 + (state.buffs.dig > 0 ? 2 : 0);   // the first treasure (tutorial) is kinder; better tools, more digs before the tide
+          digGame.start({ cols: 8, rows: 5, digs: Math.round((first ? 13 : 10) + tools - (d.dread > 0.5 ? 1 : 0)), stones: first ? 2 : 3 + (d.dread > 0.4 ? 1 : 0), lie: d.dread > 0.5 ? 0.3 : 0,
+            onDone: () => { const done = dig && dig.done; dig = null; if (done) done(); },
+            onFail: (why) => { dig = null; digFix = tNow + 6; state.attempts[d.id] = (state.attempts[d.id] || 0) + 1;
+              toast(why === 'tide' ? 'The tide comes in and fills every hole. The crew waits for it to go out again.' : 'The shovel breaks on a second stone. The crew fetches the spare.', false, 5500); } });
+        }
+      }
       audio.play('dig');
     }
   } else if (tg.kind === 'fruit' && !dig) {
@@ -2069,7 +2081,7 @@ function frame() {
   // ---- ship
   shipInput.steer = (keys.has('KeyD') || keys.has('ArrowRight') || touch.R ? 1 : 0) - (keys.has('KeyA') || keys.has('ArrowLeft') || touch.L ? 1 : 0);
   shipInput.sail = (keys.has('KeyW') || keys.has('ArrowUp') || touch.U ? 1 : 0) - (keys.has('KeyS') || keys.has('ArrowDown') || touch.D ? 1 : 0);
-  if (!live) { shipInput.steer = 0; shipInput.sail = 0; }
+  if (!live || digGame.active) { shipInput.steer = 0; shipInput.sail = 0; }   // (probing the shore: the keys move over the beach)
   if (live && (keys.has('KeyZ') || keys.has('KeyX'))) { yawT += ((keys.has('KeyX') ? 1 : 0) - (keys.has('KeyZ') ? 1 : 0)) * dt * 1.8; lastCamInput = tNow; }
   if (keys.has('KeyV')) { yawT = 0; lastCamInput = tNow; }
   if (!drag && tNow - lastCamInput > 6) yawT += (0 - yawT) * Math.min(1, rawDt * 0.7);   // drifts back behind the boat after a while
@@ -2318,7 +2330,7 @@ function frame() {
 window.__game = {
   readArch, partnerOf, maraMood, windfx, logbook,
   audio,
-  objectives, perrinNote, gateRadius: () => gateRadius(state), trackTarget: () => trackTarget(),
+  objectives, perrinNote, gateRadius: () => gateRadius(state), trackTarget: () => trackTarget(), digGame,
   openCard, sighting, spawnSight: (id) => { const c = (SIGHTS[id] && drawCard(0, [], { [id]: 1 })); return c && sighting.spawn(c, ship, world); },
   weather,
   setDread(v) { forced = v; dread = v; },
