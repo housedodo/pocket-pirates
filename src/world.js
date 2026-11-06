@@ -160,8 +160,15 @@ export function terrainHeight(d, lx, lz) {
 // ---------------------------------------------------------------------------
 // Terrain mesh: polar grid, one flat colour per cell
 // ---------------------------------------------------------------------------
+const BLIGHT = { wet: C('#2a2629'), sand: C('#3a3437'), rock1: C('#3e383c'), rock2: C('#4c4549'), grass1: C('#545238'), grass2: C('#454530'), moss: C('#33402e') };
 function faceColor(d, hc, slope, noise) {
   let c;
+  if (d.blight) {   // the hut's island: black sand, grey rock, dead grass and sick moss
+    if (hc < 0.12) return BLIGHT.wet;
+    if (hc < 0.55) return BLIGHT.sand;
+    if (slope > 0.5) return noise > 0.5 ? BLIGHT.rock2 : BLIGHT.rock1;
+    return noise > 0.62 ? BLIGHT.grass1 : noise > 0.3 ? BLIGHT.grass2 : BLIGHT.moss;
+  }
   if (d.type === 'volcano') return hc < 0.55 ? COL.ash1 : hc > d.H * 0.62 ? (noise > 0.5 ? COL.ember : COL.ash1) : (noise > 0.55 ? COL.ash2 : COL.ash1);
   if (d.type === 'mangrove') return hc < 0.4 ? COL.mud : noise > 0.55 ? COL.mire : COL.mud;
   if (hc < 0.12) c = COL.wet;
@@ -713,38 +720,123 @@ export function lighthouse(A, extra, lx, ly, lz, tall = 1, d = null, forceKind =
   }
 }
 
-// The dark hut (a storyline location): crooked, black-tarred, one sick purple window, bones on poles.
-// Lives in builder A so it looks the same in both moods.
+// A dead tree: a leaning, tapering trunk and a few crooked bare branches (no leaves), roots clawing at the ground.
+function deadTree(A, x, y, z, rng, s = 1) {
+  const lean = (rng() - 0.5) * 0.35, ry = rng() * 6.28, h = (3.2 + rng() * 2.6) * s;
+  A.push(x, y - 0.2, z, ry, 1, 1, 1, lean, lean * 0.6);
+  A.cyl(0, 0, 0, 0.32 * s, 0.07 * s, h, 5, '#2a2226', TILE.bark, false);
+  const nb = 3 + Math.floor(rng() * 3);
+  for (let k = 0; k < nb; k++) {
+    const by = h * (0.45 + 0.45 * (k / nb)), len = (1.2 + rng() * 1.4) * s * (1 - k / (nb + 2));
+    A.push(0, by, 0, rng() * 6.28, 1, 1, 1, 0, 0.7 + rng() * 0.7);
+    A.cyl(0, 0, 0, 0.09 * s, 0.02, len, 3, '#241c20', TILE.bark, false);
+    A.push(0, len * 0.6, 0, rng() * 6.28, 1, 1, 1, 0, 0.8); A.cyl(0, 0, 0, 0.05 * s, 0.01, len * 0.5, 3, '#241c20', TILE.bark, false); A.pop();   // a twig off it
+    A.pop();
+  }
+  A.pop();
+  for (let k = 0; k < 3; k++) { const a = ry + k * 2.1; A.push(x + Math.cos(a) * 0.3, y - 0.05, z + Math.sin(a) * 0.3, -a, 1, 1, 1, 0, 1.25); A.cyl(0, 0, 0, 0.12 * s, 0.03, 1.1 * s, 3, '#2a2226', TILE.bark, false); A.pop(); }   // roots
+}
+
+// The hut's island: no palms, no flowers, no fruit. Dead trees, grey roots, pale fungus, black stakes in the shallows,
+// leaning stones, and crows that do not fly off.
+function blightDecor(d, rng, A) {
+  const spotB = (t0, t1, hMin) => spot(d, rng, t0, t1, hMin);
+  for (let i = 0; i < 11; i++) { const p = spotB(0.15, 0.9, 0.6); if (p) deadTree(A, p[0], p[1], p[2], rng, 0.8 + rng() * 0.6); }
+  for (let i = 0; i < 4; i++) { const p = spotB(0.2, 0.85, 0.6); if (p) fallenLog(A, p[0], p[1], p[2], rng() * 3); }
+  for (let i = 0; i < 7; i++) {   // pale fungus in clusters
+    const p = spotB(0.2, 0.9, 0.5); if (!p) continue;
+    for (let k = 0; k < 3; k++) { const fx = p[0] + (rng() - 0.5) * 1.2, fz = p[2] + (rng() - 0.5) * 1.2, fs = 0.35 + rng() * 0.35;
+      A.cyl(fx, p[1], fz, 0.07 * fs * 2, 0.05 * fs * 2, 0.5 * fs, 4, '#d8d0c8', TILE.bone, false); A.blob(fx, p[1] + 0.55 * fs, fz, 0.32 * fs, 0.14 * fs, 0.32 * fs, '#c8c0a8', TILE.bone, 0.15, k + i * 3); }
+  }
+  for (let i = 0; i < 6; i++) { const p = spotB(0.3, 1.0, 0.3); if (p) A.blob(p[0], p[1] + 0.2, p[2], 0.9 + rng() * 0.9, 0.6 + rng() * 0.5, 0.9 + rng() * 0.9, rng() > 0.5 ? '#4c4549' : '#3e383c', TILE.stone, 0.3, i + d.seed); }
+  for (let i = 0; i < 16; i++) {   // black stakes and dead roots poking out of the shallows all round
+    const th = rng() * 6.28, R = shoreR(d, th) * (0.96 + rng() * 0.16), x = Math.cos(th) * R, z = Math.sin(th) * R;
+    A.push(x, -0.6, z, rng() * 6, 1, 1, 1, (rng() - 0.5) * 0.6, (rng() - 0.5) * 0.6); A.cyl(0, 0, 0, 0.14, 0.04, 1.4 + rng() * 1.4, 4, '#1e181b', TILE.bark, false); A.pop();
+  }
+  for (let i = 0; i < 5; i++) {   // leaning stones, taller than a man
+    const p = spotB(0.35, 0.85, 0.6); if (!p) continue;
+    A.push(p[0], p[1] - 0.3, p[2], rng() * 6.28, 1, 1, 1, (rng() - 0.5) * 0.4, (rng() - 0.5) * 0.4); A.cyl(0, 0, 0, 0.55, 0.3, 2.4 + rng() * 1.6, 4, '#4a4448', TILE.stone); A.pop();
+  }
+}
+
+// The dark hut (a storyline location): a witch's hut in the old sense. Round, low, built of black logs on crooked
+// stilts, under a huge steep thatch that sags to the ground on one side; a bent stone chimney, a doorway hung with a
+// hide, small windows glowing a sick purple, charms of bone and glass hanging from the eaves, a lantern on a crooked
+// post by the path, and a ring of leaning stones round a dark patch of ground. Lives in builder A so it looks the same
+// in both moods.
 function darkHut(d, rng, A) {
   let th = (hash2(d.seed, 3, 9) % 628) / 100, x = 0, z = 0, h = 0;
   for (let k = 0; k < 12; k++) {
-    const t = 0.55, xx = Math.cos(th) * shoreR(d, th) * t, zz = Math.sin(th) * shoreR(d, th) * t, hh = terrainHeight(d, xx, zz);
-    if (hh > 0.6) { x = xx; z = zz; h = hh; break; }
+    const t = 0.48, xx = Math.cos(th) * shoreR(d, th) * t, zz = Math.sin(th) * shoreR(d, th) * t, hh = terrainHeight(d, xx, zz);
+    if (hh > 0.8) { x = xx; z = zz; h = hh; break; }
     th += 0.5;
   }
   d.hutPos = { x, z, y: h, th };
-  const ry = Math.atan2(Math.cos(th), Math.sin(th));   // door looks out to sea
-  A.push(x, h - 0.2, z, ry, 1, 1, 1, 0.04, -0.06);      // a little crooked
-  for (const [sx, sz] of [[-1.4, -1.2], [1.4, -1.2], [-1.4, 1.2], [1.4, 1.2]]) A.cyl(sx, -0.6, sz, 0.14, 0.12, 1.4, 4, '#1c1418', TILE.bark); // stilts
-  A.box(0, 0.6, 0, 3.4, 2.4, 3.0, '#4a3c42', TILE.planks, TILE.planks, '#2a2026');
-  A.box(0, 0.6, 1.55, 3.6, 0.2, 0.3, '#1a1216', TILE.planks);                                       // porch board
-  A.push(0, 3.0, 0, 0, 1, 1, 1, 0, 0.08); A.gable(0, 0, 0, 4.0, 1.9, 3.6, '#2c2228', TILE.roof, '#3a2e34'); A.pop();
-  A.box(-0.5, 0.65, 1.52, 0.85, 1.6, 0.08, '#0c080a', TILE.white);                                  // door, open a crack
-  A.box(0.95, 1.5, 1.52, 0.55, 0.5, 0.06, '#ffffff', TILE.spore);                                   // the window glows
-  A.box(0.95, 1.5, -1.52, 0.4, 0.4, 0.06, '#ffffff', TILE.spore);
-  A.box(-1.0, 3.7, -0.5, 0.35, 1.4, 0.35, '#3a3036', TILE.stone);                                   // bent chimney
-  A.pop();
-  // bones and a skull on poles, a dead tree, a ring of pale stones
-  for (let i = 0; i < 3; i++) {
-    const a = th + (i - 1) * 0.6, px = x + Math.cos(a) * 4.5, pz = z + Math.sin(a) * 4.5, ph = Math.max(0.3, terrainHeight(d, px, pz));
-    A.box(px, ph - 0.2, pz, 0.12, 2.2, 0.12, '#2a2026', TILE.bark);
-    A.blob(px, ph + 2.15, pz, 0.28, 0.3, 0.28, '#e8e0d0', TILE.bone, 0.08, i + 4);
-    A.box(px, ph + 1.4, pz, 0.7, 0.08, 0.08, '#d8d0c0', TILE.bone);
+  const ry = Math.atan2(Math.cos(th), Math.sin(th));   // the door looks out to sea (+z in the hut's frame)
+  A.push(x, h - 0.2, z, ry, 1, 1, 1, 0.05, -0.07);       // the whole thing leans
+  // crooked stilts and a low mound of stones under it
+  for (let i = 0; i < 7; i++) { const a = (i / 7) * 6.28 + 0.3, sx = Math.cos(a) * 1.9, sz = Math.sin(a) * 1.9;
+    A.push(sx, -0.8, sz, a, 1, 1, 1, (i % 2 ? 0.12 : -0.1), (i % 3 ? 0.08 : -0.06)); A.cyl(0, 0, 0, 0.17, 0.12, 1.9, 4, '#1c1418', TILE.bark, false); A.pop(); }
+  A.blob(0, -0.3, 0, 2.6, 0.5, 2.6, '#3e383c', TILE.stone, 0.3, 11);
+  // the body: black logs, round, a little narrower at the top
+  A.cyl(0, 0.75, 0, 2.15, 1.95, 2.5, 7, '#4a3934', TILE.bark, true, '#2a2024');
+  for (let i = 0; i < 3; i++) A.cyl(0, 1.0 + i * 0.8, 0, 2.2 - i * 0.07, 2.18 - i * 0.07, 0.12, 7, '#221a1c', TILE.bark, false);   // log seams
+  // the thatch: a witch's hat, not a tent. A wide low brim of shaggy thatch with ragged flaps hanging off the eaves,
+  // then a crooked cone that bends over halfway up, tip off to one side
+  A.push(0, 3.15, 0, 0.4, 1, 1, 1, 0.06, 0.1);
+  A.cyl(0, 0, 0, 3.0, 1.55, 1.5, 7, '#3e3628', TILE.roof, true, '#2a2418');                 // the brim
+  for (let i = 0; i < 9; i++) { const a = (i / 9) * 6.28 + 0.2, fx = Math.cos(a) * 2.75, fz = Math.sin(a) * 2.75;   // ragged flaps
+    A.push(fx, -0.15, fz, -a + Math.PI / 2, 1, 1, 1, 0.5 + (i % 3) * 0.12, 0); A.box(0, -0.35 - (i % 2) * 0.2, 0, 0.95, 0.75 + (i % 3) * 0.25, 0.14, i % 2 ? '#342d22' : '#3a3226', TILE.roof); A.pop(); }
+  A.push(0, 1.4, 0, 0.9, 1, 1, 1, 0.22, 0.12);
+  A.cyl(0, 0, 0, 1.6, 0.85, 1.6, 7, '#3a3226', TILE.roof, false);                            // the cone, first half
+  A.push(0, 1.5, 0, 0.5, 1, 1, 1, 0.55, 0.25);
+  A.cyl(0, 0, 0, 0.88, 0.05, 1.9, 6, '#342d22', TILE.roof, false);                           // ...bending over
+  // a bent stick at the tip with a bird's skull on it
+  A.push(0, 1.85, 0, 0, 1, 1, 1, 0.3, -0.4); A.cyl(0, 0, 0, 0.05, 0.03, 0.9, 3, '#1c1418', TILE.bark, false); A.blob(0, 0.95, 0.08, 0.16, 0.13, 0.22, '#e8e0d0', TILE.bone, 0.1, 3); A.box(0, 0.95, 0.3, 0.05, 0.05, 0.18, '#d8d0c0', TILE.bone); A.pop();
+  A.pop(); A.pop(); A.pop();
+  // a bent stone chimney through the thatch
+  A.push(-1.25, 3.6, -0.85, 0, 1, 1, 1, -0.14, 0.24); A.box(0, 0, 0, 0.5, 2.4, 0.5, '#3a3036', TILE.stone); A.box(0.1, 1.35, 0, 0.62, 0.3, 0.62, '#2a2226', TILE.stone); A.pop();
+  // the doorway, low, a hide hanging across it, and a plank ramp down to the ground
+  A.box(0, 1.05, 2.02, 1.05, 1.75, 0.2, '#0a0608', TILE.white);
+  A.box(0.18, 1.2, 2.13, 0.7, 1.35, 0.05, '#4a3a30', TILE.planks);   // the hide, pulled half aside
+  A.box(0, 2.05, 2.1, 1.35, 0.18, 0.3, '#1c1418', TILE.bark);        // lintel
+  A.push(0, -0.05, 3.15, 0, 1, 1, 1, 0.42, 0); A.box(0, 0, 0, 1.1, 0.14, 2.2, '#2a2024', TILE.planks); A.pop();
+  // small windows, glowing (sick purple after the first throw, see TILE.spore)
+  A.box(1.35, 1.65, 1.5, 0.5, 0.42, 0.08, '#ffffff', TILE.spore);
+  A.box(-1.45, 1.4, 1.35, 0.32, 0.32, 0.08, '#ffffff', TILE.spore);
+  A.box(0.4, 1.6, -2.05, 0.42, 0.42, 0.08, '#ffffff', TILE.spore);
+  // charms from the eaves: cords with bones, bundles and a glowing jar, turning slowly in no wind
+  const charms = [[1.4, 2.0, 'bone'], [-0.9, 2.2, 'bundle'], [2.3, 0.6, 'jar'], [-2.2, 1.1, 'bone'], [0.7, 2.7, 'bundle']];
+  for (const [cx, cz, kind] of charms) {
+    const len = 0.7 + rng() * 0.5;
+    A.box(cx, 2.75 - len / 2, cz, 0.04, len, 0.04, '#1c1418', TILE.rope);
+    const y = 2.75 - len - 0.12;
+    if (kind === 'bone') { A.box(cx, y, cz, 0.08, 0.3, 0.08, '#e8e0d0', TILE.bone); A.box(cx, y - 0.1, cz, 0.24, 0.06, 0.06, '#e8e0d0', TILE.bone); }
+    else if (kind === 'jar') { A.cyl(cx, y - 0.2, cz, 0.13, 0.11, 0.28, 5, '#ffffff', TILE.spore); }
+    else A.blob(cx, y, cz, 0.16, 0.22, 0.16, '#4a5a34', TILE.white, 0.25, cx * 7);   // a bundle of dried herbs
   }
-  { const a = th + 2.2, px = x + Math.cos(a) * 5, pz = z + Math.sin(a) * 5, ph = Math.max(0.3, terrainHeight(d, px, pz));
-    A.cyl(px, ph - 0.2, pz, 0.3, 0.12, 4.2, 5, '#2a2024', TILE.bark, false);
-    for (let k = 0; k < 4; k++) { A.push(px, ph + 2.5 + k * 0.4, pz, k * 1.7, 1, 1, 1, 0, 1.0); A.cyl(0, 0, 0, 0.08, 0.02, 1.6, 3, '#2a2024', TILE.bark, false); A.pop(); } }
-  for (let i = 0; i < 9; i++) { const a = (i / 9) * Math.PI * 2, px = x + Math.cos(a) * 3.2 + Math.cos(th) * 1.8, pz = z + Math.sin(a) * 3.2 + Math.sin(th) * 1.8; A.blob(px, Math.max(0.2, terrainHeight(d, px, pz)) + 0.1, pz, 0.3, 0.22, 0.3, '#cfc8d8', TILE.stone, 0.2, i); }
+  A.pop();
+  // a lantern on a crooked post by the path down to the water
+  { const a = th + 0.35, px = x + Math.cos(a) * 4.2, pz = z + Math.sin(a) * 4.2, ph = Math.max(0.3, terrainHeight(d, px, pz));
+    A.push(px, ph - 0.2, pz, 0, 1, 1, 1, 0.12, -0.1); A.cyl(0, 0, 0, 0.1, 0.07, 2.6, 4, '#1c1418', TILE.bark, false);
+    A.box(0.35, 2.45, 0, 0.7, 0.08, 0.08, '#1c1418', TILE.bark); A.box(0.62, 2.1, 0, 0.3, 0.42, 0.3, '#ffffff', TILE.spore); A.pop(); }
+  // skulls on poles along the path
+  for (let i = 0; i < 3; i++) {
+    const a = th + (i - 1) * 0.55, px = x + Math.cos(a) * 5.6, pz = z + Math.sin(a) * 5.6, ph = Math.max(0.3, terrainHeight(d, px, pz));
+    A.push(px, ph - 0.2, pz, rng() * 6, 1, 1, 1, (rng() - 0.5) * 0.25, (rng() - 0.5) * 0.25);
+    A.box(0, 1.1, 0, 0.12, 2.4, 0.12, '#2a2026', TILE.bark); A.blob(0, 2.45, 0, 0.28, 0.3, 0.28, '#e8e0d0', TILE.bone, 0.08, i + 4); A.box(0, 1.6, 0, 0.7, 0.08, 0.08, '#d8d0c0', TILE.bone);
+    A.pop();
+  }
+  // a ring of leaning stones round a patch of black ground behind the hut
+  { const a = th + Math.PI * 0.85, rx = x + Math.cos(a) * 6.5, rz = z + Math.sin(a) * 6.5, rh = Math.max(0.3, terrainHeight(d, rx, rz));
+    A.blob(rx, rh - 0.05, rz, 2.3, 0.12, 2.3, '#16121a', TILE.stone, 0.1, 9);
+    for (let i = 0; i < 7; i++) { const b = (i / 7) * 6.28, px = rx + Math.cos(b) * 2.6, pz = rz + Math.sin(b) * 2.6, ph = Math.max(0.3, terrainHeight(d, px, pz));
+      A.push(px, ph - 0.3, pz, b, 1, 1, 1, (rng() - 0.5) * 0.35, 0.2); A.cyl(0, 0, 0, 0.32, 0.18, 1.4 + rng() * 1.0, 4, '#cfc8d8', TILE.stone); A.pop(); } }
+  // a big hollow dead tree beside the hut, with crows that do not fly off
+  { const a = th - 1.3, px = x + Math.cos(a) * 4.6, pz = z + Math.sin(a) * 4.6, ph = Math.max(0.3, terrainHeight(d, px, pz));
+    deadTree(A, px, ph, pz, rng, 1.6);
+    for (let k = 0; k < 3; k++) { const cxw = px + (rng() - 0.5) * 1.6, czw = pz + (rng() - 0.5) * 1.6, cy = ph + 3.2 + k * 0.9;
+      A.blob(cxw, cy, czw, 0.2, 0.22, 0.3, '#0e0a0c', TILE.white, 0.1, k); A.blob(cxw, cy + 0.22, czw + 0.18, 0.12, 0.12, 0.12, '#0e0a0c', TILE.white, 0.1, k + 3); A.box(cxw, cy + 0.2, czw + 0.34, 0.05, 0.05, 0.14, '#2a2a2a', TILE.white); } }
 }
 
 // ---- the week, the village's custom, and how it grows with your trade: extra layers that are switched on
@@ -812,6 +904,7 @@ function weekAndCustoms(d, rng, cr, g) {
 
 function decorate(d, rng, A, B, D, extra) {
   const T = d.type;
+  if (d.blight) { blightDecor(d, rng, A); darkHut(d, rng, A); return; }
   const palms = (n, t0, t1, hMin = 0.8, s0 = 0.9) => {
     for (let i = 0; i < n; i++) { const p = spot(d, rng, t0, t1, hMin); if (p) palm(A, B, D, p[0], p[1], p[2], rng, s0 + rng() * 0.5); }
   };
@@ -853,7 +946,6 @@ function decorate(d, rng, A, B, D, extra) {
     if (T === 'treasure') scatter(2, 0.3, 0.8, 0.6, (p) => stump(A, p[0], p[1], p[2]));
   }
   if (T === 'rocky') scatter(4, 0.2, 0.9, 0.3, (p) => mossRock(A, p[0], p[1], p[2], 0.9 + rng() * 0.8, rng));
-  if (d.hut) darkHut(d, rng, A);
   switch (T) {
     case 'volcano': {
       const rim = terrainHeight(d, shoreR(d, 0) * 0.22, 0);
@@ -1261,7 +1353,13 @@ export class World {
       const h = hash2(cx, cz, seed + 77);
       if (h < bh) { bh = h; best = d; }
     }
-    if (best) { best.hut = true; this.hutId = best.id; }
+    if (best) {
+      best.hut = true; this.hutId = best.id;
+      // a land of its own: bigger, a ragged outline, dark ground (faceColor) and dead growth (blightDecor) instead of the bright jungle
+      const r2 = mulberry32(hash2(best.seed, 66, 6));
+      best.blight = true; best.r = 27 + r2() * 4; best.H = 5 + r2() * 1.5;
+      best.lobes = [0.15 + r2() * 0.05, 0.1 + r2() * 0.05, 0.07 + r2() * 0.04, best.lobes[3], best.lobes[4], best.lobes[5]];
+    }
   }
   get hutDesc() { if (!this.hutId) return null; const [cx, cz] = this.hutId.split(',').map(Number); return this.desc(cx, cz); }
   setLit(on) {

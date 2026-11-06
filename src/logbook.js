@@ -654,8 +654,9 @@ export class Logbook {
     // the hut last, on top of the trees
     if (d.hut && state.story && state.story.hutKnown) { // the dark hut: a black crooked shape with one purple window, big enough to see at any zoom
       const hs = Math.max(2, s * 1.4), hx = px + 4 * s, hz = pz - 3 * s, body = [[hx - 5 * hs, hz + 4 * hs], [hx - 4 * hs, hz - 3 * hs], [hx + 4 * hs, hz - 2 * hs], [hx + 5 * hs, hz + 4 * hs]];
-      sk.wash(body, '#1e1619', 1, 0.6); sk.wash([[hx - 6 * hs, hz - 2 * hs], [hx - 1 * hs, hz - 8 * hs], [hx + 5.5 * hs, hz - 1.5 * hs]], '#120c0e', 1, 0.6);
-      sk.line([...body, [hx + 5.5 * hs, hz - 1.5 * hs], [hx - 1 * hs, hz - 8 * hs], [hx - 6 * hs, hz - 2 * hs]], { col: '#120c0e', w: 1.4, passes: 2, amp: 0.8 });
+      const hat = [[hx - 7 * hs, hz - 1.5 * hs], [hx - 2.5 * hs, hz - 5 * hs], [hx - 0.5 * hs, hz - 9 * hs], [hx + 3.5 * hs, hz - 11.5 * hs], [hx + 1.5 * hs, hz - 7.5 * hs], [hx + 2.5 * hs, hz - 5 * hs], [hx + 7 * hs, hz - 1.5 * hs]];   // the bent witch's-hat thatch
+      sk.wash(body, '#1e1619', 1, 0.6); sk.wash(hat, '#120c0e', 1, 0.6);
+      sk.line(hat, { col: '#120c0e', w: 1.4, passes: 2, amp: 0.8 });
       c.fillStyle = '#c030a0'; c.fillRect(hx + 1 * hs, hz - 1 * hs, 2.5 * hs, 2.5 * hs);
     }
   }
