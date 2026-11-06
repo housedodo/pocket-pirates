@@ -518,3 +518,4 @@ Built and working in the dev build; switched off when `window.__BUILD === 'demo'
 - **Battle music:** the Raiders theme (moved up a semitone to F minor to fit the band, through HOIST) joins the main theme while a fight with raiders is on; the whole band plays and the filter opens a little.
 - **Voice blips:** very soft blips while Mara and villagers talk.
 - **Villager portraits at 16x16:** every speaker has a detailed face of their own (`src/faces.js`).
+- **The interface opens with the story:** at the start only what the current quest needs can be clicked (harbour signs, board buttons, log tabs); the rest is greyed out and opens quest by quest (`src/gates.js`, table in DESIGN.md).

@@ -104,6 +104,28 @@ Other systems: **jobs** (delivery contracts from harbour boards, tracked on the 
 - **Demo build:** `__BUILD==='demo'` has no dread, no spoilers, a second harbour (Velto), fog gate radii in `GATES`, and ends at the next harbour after the first hut throw is remarked on; nothing unlocks afterwards.
 - **Docs for the rest:** `docs/PROGRESS.md` has a dated entry per feature; `docs/concept/` holds the design concepts.
 
+## The interface opens with the story (`src/gates.js`)
+Only what the current quest needs can be clicked. Every other harbour sign, board button and log tab is greyed out and does nothing
+(keys skip it too), and opens when the main goal that first needs it comes up; a sign that has just opened glows teal until you look
+inside once (`state.story.uiSeen`). Opening points (index in `MAIN_GOALS` = main goals done):
+
+| Opens at | What |
+|---|---|
+| 0 | Board sign, Set sail; log: Map, Goals |
+| 2 Follow the riddle | log: Journal, Riddles |
+| 3 Spend your loot | Shipwright sign; log: Ship |
+| 4 Dead calm | Market sign (sell fish, fruit) |
+| 6 Odd jobs | deliveries (Accept, Deliver, Drop off); log: Quests, Standing |
+| 7 Passengers | Take aboard; Shipyard (paint, figureheads) |
+| 8 Chart 8 islands | buy charts, ask the fishers |
+| 9 The tavern | Tavern sign (hire a hand, dice), haggling, cannonballs |
+| 10 Perrin's note | rumours |
+| 12 Errands | commissions (Accept, Finish, Let go) |
+| 15 Rest | a bed at the tavern |
+
+Story moments (a letter, a line on the pier, a pet, the grey buyer) are never locked. Once every main goal is done, everything is open.
+Change an opening point in `GATE` in gates.js.
+
 ## Tunables
 - `DREAD_RANGE` in `palette.js`: distance (2200 units now, ~3 min) to reach full dread. Raise it for a longer arc.
 - `DARK_THRESHOLD` in `palette.js`: when decor swaps.

@@ -84,6 +84,7 @@ purple and magenta cosmic horror as dread rises.
   pipe, the net-mender's bun and spectacles, the fish-stall woman's headscarf and gold earrings, the harbourmaster's peaked cap and
   badge, the docker's bandana, the old salt's white beard and eye patch, the lamplighter's hood and lantern, the watchman's hat and
   lantern). "Someone on the pier" is a black shape with two pale eyes, one a pixel lower than the other.
+- **Locked interface** (gates.js): a sign, button or log tab the story has not reached is grey, dark and half transparent (`.locked`), with no hover; a sign that has just opened pulses teal (`.fresh`) until first opened; the sign/button the current quest needs pulses gold (`.next` / `.hl`).
 - Dread is shown by changing colours, not by adding UI. Five stages: Sunny, Off, Wrong, Eerie, Cosmic
   (`src/palette.js`).
 

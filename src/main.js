@@ -14,6 +14,7 @@ import { Mixer } from './mixer.js';
 import { SoundStudio } from './studio.js';
 import { TITLE_SCENES, drawTitleLogo } from './title.js';
 import { pickGreeting, portrait, speakerName, rollGreeting, numberWord } from './greetings.js';
+import { isOpen, lockPane } from './gates.js';
 import { gossip, lootFor, bottleNote, barrelLoot } from './lore.js';
 import { Weather } from './weather.js';
 import { Fauna } from './fauna.js';
@@ -667,8 +668,9 @@ window.addEventListener('keydown', (e) => {
     const order = ['board', 'market', 'tavern', 'wright'];
     if (e.code === 'KeyE') { closeModal(); return; }
     const n = parseInt(e.key, 10);
-    if (n >= 1 && n <= 4) { hbTab = order[n - 1]; renderHarbour(); }
-    if (e.code === 'ArrowRight' || e.code === 'ArrowLeft') { hbTab = order[(order.indexOf(hbTab) + (e.code === 'ArrowRight' ? 1 : 3)) % 4]; renderHarbour(); }
+    const open = order.filter((t) => isOpen(state, 'tab', t)), go = (t) => { hbTab = t; (state.story.uiSeen || (state.story.uiSeen = {}))[t] = true; renderHarbour(); };
+    if (n >= 1 && n <= 4 && open.includes(order[n - 1])) go(order[n - 1]);
+    if (e.code === 'ArrowRight' || e.code === 'ArrowLeft') go(open[(open.indexOf(hbTab) + (e.code === 'ArrowRight' ? 1 : open.length - 1)) % open.length]);
     return;
   }
   if (e.code === 'KeyM') { logTab = 'map'; openModal('chart'); return; }
@@ -860,6 +862,7 @@ function restAtTavern(cost) {
   }, 1100);
 }
 function renderHarbour() {
+  if (!isOpen(state, 'tab', hbTab)) hbTab = 'board';   // a sign that has not opened yet: back to the board
   const d = harbourIsl.desc, rep = repOf(state, d.id), lvl = friendLevel(rep);
   $('hbName').textContent = d.name;
   $('hbLine').textContent = harbourLine;
@@ -1015,9 +1018,10 @@ function renderHarbour() {
     pane.innerHTML = html;
     pane.querySelectorAll('button[data-id]').forEach((b) => b.addEventListener('click', () => buyUpgrade(b.dataset.id)));
   }
+  lockPane(state, $('hbPane'));   // what the story has not reached yet is greyed out (gates.js)
   tutorialMarks();
 }
-$('hbTabs').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b || !harbourIsl) return; if (b.dataset.t === 'sail') { closeModal(); return; } hbTab = b.dataset.t; audio.play('ui', { vol: 0.4 }); renderHarbour(); });
+$('hbTabs').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b || !harbourIsl) return; if (b.dataset.t === 'sail') { closeModal(); return; } if (!isOpen(state, 'tab', b.dataset.t)) return; hbTab = b.dataset.t; (state.story.uiSeen || (state.story.uiSeen = {}))[hbTab] = true; audio.play('ui', { vol: 0.4 }); renderHarbour(); });
 // a red number on a sign when something waits there
 // the tutorial marks the sign (and the button) the current goal needs; goals later in the story carry no mark at all
 const tutorialGoal = () => { const g = objectives.current; if (!g || !g.tab) return null; try { if (g.check({ state, ship, world })) return null; } catch (e) { /* not checkable yet */ } return g; };   // a goal already done carries no mark
@@ -1030,8 +1034,14 @@ function tutorialMarks() {
   if (g && g.id === 'job' && state.job && harbourIsl && state.job.toId !== harbourIsl.desc.id) g = null;   // accepted already: nothing to press here
   if (g && g.id === 'dig' && (state.story.letterP1 !== 'wait' || !harbourIsl || harbourIsl.desc.id !== '0,-1')) g = null;   // only while Perrin's letter waits, and only at Tama
   // always marked, tutorial or not: a letter waiting for you here (Perrin's), and a passenger asking for passage. Both sit on the board
-  const always = harbourIsl ? [...(lettersAt(harbourIsl.desc).length ? ['takeLetter'] : []), ...(passengerAt(harbourIsl.desc) ? ['takePass'] : [])] : [];
-  $('hbTabs').querySelectorAll('.post').forEach((b) => b.classList.toggle('next', (!!g && b.dataset.t === g.tab) || (always.length > 0 && b.dataset.t === 'board')));
+  const always = harbourIsl ? [...(lettersAt(harbourIsl.desc).length ? ['takeLetter'] : []), ...(passengerAt(harbourIsl.desc) && isOpen(state, 'btn', 'takePass') ? ['takePass'] : [])] : [];
+  const seen = state.story.uiSeen || (state.story.uiSeen = {});
+  $('hbTabs').querySelectorAll('.post').forEach((b) => {
+    const t = b.dataset.t, open = isOpen(state, 'tab', t);
+    b.classList.toggle('locked', !open);
+    b.classList.toggle('fresh', open && t !== 'board' && t !== 'sail' && !seen[t]);   // just opened: it glows until you look inside once
+    b.classList.toggle('next', open && ((!!g && t === g.tab) || (always.length > 0 && t === 'board')));
+  });
   $('hbPane').querySelectorAll('.hl').forEach((e) => e.classList.remove('hl'));
   if (hbTab === 'board') for (const id of always) { const el = $(id); if (el && !el.disabled) el.classList.add('hl'); }
   if (!g || hbTab !== g.tab) return;
@@ -1986,7 +1996,7 @@ $('pbNew').addEventListener('click', () => {
 $('pbHint').addEventListener('click', () => { closeModal(); if (!abyss.maraHint()) objectives.askHint(dread); });
 
 // ---------------------------------------------------------------- captain's log
-const logbook = new Logbook({ abyss, state, world, ship, seed: state.seed, toast: (t) => toast(t), close: () => closeModal(), mate: objectives.mate, dread: () => dread, mood: () => maraMood(), tabOpened: (t) => tabOpened(t),
+const logbook = new Logbook({ abyss, state, world, ship, seed: state.seed, locked: (tab) => !isOpen(state, 'log', tab), toast: (t) => toast(t), close: () => closeModal(), mate: objectives.mate, dread: () => dread, mood: () => maraMood(), tabOpened: (t) => tabOpened(t),
   retrack: () => sea.syncQuests(state.quests.filter((q) => q.id === state.tracked)),
   gate: () => gateRadius(state),
   skipGoal: () => { const g = objectives.current; if (!g) return; if (g.onDone) g.onDone({ state, world, ship, giveMap, forceCalm: setCalm });

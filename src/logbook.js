@@ -174,10 +174,12 @@ export class Logbook {
   }
 
   open(tab = this.tab) {
+    const locked = (t) => !!(this.d.locked && this.d.locked(t));
+    if (locked(tab)) tab = locked(this.tab) ? 'map' : this.tab;   // a tab the story has not opened yet stays shut
     this.tab = tab; this.page = 0;
     if (this.d.tabOpened) this.d.tabOpened(tab);
     if (tab !== 'map' || !this._fromBoard) this.pencil = null;
-    this.tabsEl.querySelectorAll('button').forEach((b) => b.classList.toggle('on', b.dataset.tab === tab));
+    this.tabsEl.querySelectorAll('button').forEach((b) => { b.classList.toggle('on', b.dataset.tab === tab); b.classList.toggle('locked', locked(b.dataset.tab)); });
     this.tabsEl.querySelectorAll('button').forEach((b) => b.classList.toggle('hl', b.dataset.tab === (this.d.state.story || {}).tabMark));   // the tab Mara sent you to
     if (tab === 'map' && this.view.once) this.view.once = false;   // framed for this open (see frame)
     else if (tab === 'map' && this.view.follow) { this.view.cx = this.d.ship.pos.x; this.view.cz = this.d.ship.pos.z; }
@@ -190,7 +192,10 @@ export class Logbook {
     v.sc = Math.max(0.15, Math.min(0.8, Math.min((W - 160) / (Math.abs(x - sx) + 1), (H - 140) / (Math.abs(z - sz) + 1))));
     v.follow = false; this.view.once = true;
   }
-  step(dir) { const i = TABS.findIndex((t) => t[0] === this.tab); this.open(TABS[(i + dir + TABS.length) % TABS.length][0]); }
+  step(dir) {   // skips the tabs that are still shut
+    const open = TABS.filter((t) => !(this.d.locked && this.d.locked(t[0]))), i = open.findIndex((t) => t[0] === this.tab);
+    this.open(open[(i + dir + open.length) % open.length][0]);
+  }
   tabByIndex(i) { if (TABS[i]) this.open(TABS[i][0]); }
 
   turn(dir) {
