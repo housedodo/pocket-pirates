@@ -527,3 +527,4 @@ Built and working in the dev build; switched off when `window.__BUILD === 'demo'
 - **Storms hurt:** a gale with the sails out tears at the rigging (6 hull per hit, a warning the first time: reef with S or take the oars), broadsides hurt more (7), and the hull does not mend during a storm.
 - **Night music:** a calmer version of the song plays from dusk to daybreak instead of the stage-1 band; the night is longer (4 minutes, the day 11.5).
 - **"Dread" (music_3) in the band's key:** shifted from B minor down six semitones to F minor (tempo, length and loudness unchanged), so the cross-fade from the stage-1 band stays in key.
+- **Stage 2 music:** four stems through HOIST (grey skies) play on open sea between the stage-1 band and "Dread"; the night version is louder (it was easy to miss under the sea).

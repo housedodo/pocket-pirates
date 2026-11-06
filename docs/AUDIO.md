@@ -93,10 +93,17 @@ They are stage 1's music (the old placeholder `music_1` is gone).
   playback rate applies to them too. The F8 mixer has its own group for them.
 - Test: `?dev=1&musicpace=5` makes the fades and swells five times faster.
 
+## Stage 2 (`s2_*`, in `src/layers.js`)
+Dread stage 2 (GREY SKIES): `s2_bass`, `s2_drums`, `s2_guitar`, `s2_pluck` (16 bars at 99 BPM, F minor, the band's length; through
+HOIST with more swell and a little tape wow: `HoistLayers game_audio/stage2 <outdir> stage2`). Like the band it plays on open sea
+only (falls back by the shore, steps aside in harbours and the tavern). All four together, each swelling gently; now and then one of
+drums / guitar / pluck rests for 15-35 s (never two, never the bass). The order through the dread: stage-1 band (and its night
+version) up to dread ~0.2, stage 2 from 0.2-0.32 to 0.45-0.58, then `music_3` until ~0.8. F8 mixer: group "Stage 2".
+
 ## Night (`n1_*`, in `src/layers.js`)
 A calmer version of the song: `n1_pluck`, `n1_shaperbox`, `n1_strings`, `n1_bell` (16 bars at 99 BPM, same length as the band, F minor,
 through HOIST with more space: `HoistLayers game_audio/night <outdir> night`; masters in Chaos_Grain `game_audio/night/`). From dusk
-to daybreak it takes over from the stage-1 band (about 15 s cross-fade, all four together, breathing gently); the band comes back at
+to daybreak it takes over from the stage-1 band (about 15 s cross-fade, all four together, breathing gently, as loud as the day band); the band comes back at
 dawn. Only once the first quest has brought music. They start on the same sample as the band, so the hand-over stays in time. The
 night is 4 minutes now (the day 11.5), about six times through the song. F8 mixer: group "Night".
 
