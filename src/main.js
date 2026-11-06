@@ -449,7 +449,11 @@ function openModal(name) {
   if (fishing.active) fishing.cancel();
   ({ pause: pauseEl, chart: chartEl, harbour: harbourEl, ship: shipEl, yard: yardEl, hut: hutEl, card: cardEl, pig: pigEl, greet: greetEl, cave: caveEl })[name].classList.add('open');
   if (name === 'pause') { showPauseMain(); }
-  if (name === 'chart') { abyss.onMapOpen(ship); logbook.open(logTab);
+  if (name === 'chart') { abyss.onMapOpen(ship);
+    // the first look at the chart after the hut has appeared on it: the chart opens on the hut, so Mara's question has something to point at
+    const hd = world.hutDesc;
+    if (hd && state.story.hutNod && !state.story.hutFramed && !(state.hut && state.hut.rolls.length)) { state.story.hutFramed = true; logTab = 'map'; logbook.frame(hd.x, hd.z); }
+    logbook.open(logTab);
     hutNod(1800); }
   if (name === 'harbour') renderHarbour();
   document.body.classList.toggle('ashore', name === 'harbour' || name === 'greet' || name === 'yard');
@@ -1164,7 +1168,9 @@ function trackTarget() {
     for (const c of open) if (Math.hypot(c.x - ship.pos.x, c.z - ship.pos.z) < Math.hypot(best.x - ship.pos.x, best.z - ship.pos.z)) best = c;
     return { x: best.x, z: best.z, label: 'Crate' };
   }
-  const g = objectives.current, cell = g && ({ harbour: [0, -1], dig: [1, -1] })[g.id];
+  // the compass dot for the early story: Tama while a letter from Perrin waits there (or is about to), then the riddle's isle
+  const g = objectives.current, toTama = g && (g.id === 'perrin' || (g.id === 'dig' && state.story.letterP1 !== 'taken'));
+  const cell = g && (toTama ? [0, -1] : ({ harbour: [0, -1], dig: [1, -1] })[g.id]);
   if (cell) { const d = world.desc(cell[0], cell[1]); if (d) return { x: d.x, z: d.z, label: d.name }; }
   return null;
 }
@@ -1890,7 +1896,9 @@ function hutNod(delay) {
   if (state.story.hutNod !== 'pending') return;
   state.story.hutNod = 'done';
   if (state.hut && state.hut.rolls.length) return;
-  setTimeout(() => objectives.mate.say('Captain... was that hut always on our chart? I did not draw it. Did you draw it?', true), delay);
+  const line = state.story.hutFramed ? 'Captain... was that hut always on our chart? I did not draw it. Did you draw it?'
+    : 'Captain... look at our chart. There is a hut on it now. I did not draw it. Did you?';   // not looked yet: she points you to it
+  setTimeout(() => objectives.mate.say(line, true), delay);
 }
 function revealHut() {
   const h = world.hutDesc; if (!h) return;
@@ -2274,7 +2282,7 @@ function frame() {
 window.__game = {
   readArch, partnerOf, maraMood, windfx, logbook,
   audio,
-  objectives, perrinNote, gateRadius: () => gateRadius(state),
+  objectives, perrinNote, gateRadius: () => gateRadius(state), trackTarget: () => trackTarget(),
   openCard, sighting, spawnSight: (id) => { const c = (SIGHTS[id] && drawCard(0, [], { [id]: 1 })); return c && sighting.spawn(c, ship, world); },
   weather,
   setDread(v) { forced = v; dread = v; },

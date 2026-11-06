@@ -510,3 +510,6 @@ Built and working in the dev build; switched off when `window.__BUILD === 'demo'
 - **Stage-1 music in scenes:** the full band alternates with line-ups of two or three instruments (always a different combination), changing on 4-bar phrases (`SeaLayers.nextScene`).
 - **Always-marked buttons at the board:** a waiting letter (Perrin's "Take it", from the very first visit to Tama) and "Take aboard" for a passenger are marked every time, along with the Board sign: later there is no other help.
 - **Oars in the water:** the blades now dip well under the surface on the pull and lift clear on the return (they used to hover at the waterline).
+- **Compass dot to Tama for Perrin's letters:** while a letter from Perrin waits at Tama (the riddle before you have taken it, and "A note from Perrin"), the compass dot points to Harbour Tama.
+- **The hut on the chart can be seen:** the first time you open the chart after the hut appears, it opens framed on the ship and the hut, and the hut is drawn bigger, on top of the trees (it was a speck under the palms). If Mara notices before you have looked, she sends you to the chart instead of asking about something you have not seen.
+- **Fewer wrecks:** half-sunk wrecks are a rare find now (8% of open sea cells, was 20%).

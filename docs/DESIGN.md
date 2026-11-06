@@ -63,7 +63,7 @@ They swap at dread 0.5, and terrain colours blend to a second vertex colour set.
 | Harbour life (`world.js`) | people walk the dock, crowds in the square (they go home at night) | silent figures stand at the shore facing the sea |
 | Weather (`weather.js`) | showers | storms, fog banks, lightning that sometimes reveals a shape in the water |
 | Night sky | shooting stars | they fall upward |
-| Sea features (`seafeatures.js`) | salvage barrels, messages in bottles, wrecks to salvage (E), glowing shoals, whirlpools | stranger loot and notes, magenta glow |
+| Sea features (`seafeatures.js`) | salvage barrels, messages in bottles, wrecks to salvage (E, rare: 8% of open cells), glowing shoals, whirlpools | stranger loot and notes, magenta glow |
 
 Population is deliberately sparse (at most ~2 ships, a few gulls, rare dolphins/whales) so the sea feels big. Only about a third of harbours and a few lone crags have a lighthouse.
 

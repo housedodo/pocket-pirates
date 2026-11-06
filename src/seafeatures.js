@@ -142,7 +142,7 @@ export class SeaFeatures {
         const glint = new THREE.Mesh(glintGeo, mats.props); this.scene.add(glint);
         add({ type: 'bottle', id, x: bx, z: bz, mesh: m, glint, phase: rng() * 6, dread });
       }
-    } else if (roll < 0.46) {
+    } else if (roll < 0.34) {   // wrecks: a rare find (8% of open cells, was 20%); still about ten inside the fog once salvage opens
       const id = `w:${cx},${cz}`;
       const g = new THREE.Group();
       const hull = new THREE.Mesh(shipGeos().hull, mats.props);
@@ -151,6 +151,7 @@ export class SeaFeatures {
       g.rotation.y = rng() * 6.28;
       g.position.set(bx, 0, bz);
       add({ type: 'wreck', id, x: bx, z: bz, mesh: g, dread, salvaged: this.collected.has(id), rngSeed: hash2(cx, cz, this.seed + 5) });
+    } else if (roll < 0.46) {   // nothing: open water
     } else if (roll < 0.54 && dread > 0.08) {
       add({ type: 'whirl', id: `wp:${cx},${cz}`, x: bx, z: bz, mesh: new THREE.Mesh(whirlGeo, this.whirlMat), dread });
     } else if (roll < 0.66) {

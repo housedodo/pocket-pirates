@@ -179,8 +179,16 @@ export class Logbook {
     if (tab !== 'map' || !this._fromBoard) this.pencil = null;
     this.tabsEl.querySelectorAll('button').forEach((b) => b.classList.toggle('on', b.dataset.tab === tab));
     this.tabsEl.querySelectorAll('button').forEach((b) => b.classList.toggle('hl', b.dataset.tab === (this.d.state.story || {}).tabMark));   // the tab Mara sent you to
-    if (tab === 'map' && this.view.follow) { this.view.cx = this.d.ship.pos.x; this.view.cz = this.d.ship.pos.z; }
+    if (tab === 'map' && this.view.once) this.view.once = false;   // framed for this open (see frame)
+    else if (tab === 'map' && this.view.follow) { this.view.cx = this.d.ship.pos.x; this.view.cz = this.d.ship.pos.z; }
     this.render();
+  }
+  /** open the chart framed so both the ship and a spot (x, z) are in view (the next open follows the ship again) */
+  frame(x, z) {
+    const sx = this.d.ship.pos.x, sz = this.d.ship.pos.z, v = this.view;
+    v.cx = (sx + x) / 2; v.cz = (sz + z) / 2;
+    v.sc = Math.max(0.15, Math.min(0.8, Math.min((W - 160) / (Math.abs(x - sx) + 1), (H - 140) / (Math.abs(z - sz) + 1))));
+    v.follow = false; this.view.once = true;
   }
   step(dir) { const i = TABS.findIndex((t) => t[0] === this.tab); this.open(TABS[(i + dir + TABS.length) % TABS.length][0]); }
   tabByIndex(i) { if (TABS[i]) this.open(TABS[i][0]); }
@@ -622,11 +630,6 @@ export class Logbook {
       sk.wash(circ(hx + 1.2 * s, hz - 4.5 * s, 3.5 * s, 7), '#4a9a40', 0.55, 1.2);
       for (const a of [-2.8, -2.1, -1.4, -0.7, 0]) sk.line([[hx + 1.2 * s, hz - 4 * s], [hx + 1.2 * s + Math.cos(a) * 6 * s, hz - 4 * s + Math.sin(a) * 4 * s + 2 * s]], { closed: false, col: '#2e5a24', w: 1, passes: 1, amp: 0.8 });
     };
-    if (d.hut && state.story && state.story.hutKnown) { // the dark hut: a black crooked shape with one purple window
-      const hx = px + 8 * s, hz = pz - 2 * s, body = [[hx - 5 * s, hz + 4 * s], [hx - 4 * s, hz - 3 * s], [hx + 4 * s, hz - 2 * s], [hx + 5 * s, hz + 4 * s]];
-      sk.wash(body, '#1e1619', 1, 0.6); sk.wash([[hx - 6 * s, hz - 2 * s], [hx - 1 * s, hz - 8 * s], [hx + 5.5 * s, hz - 1.5 * s]], '#120c0e', 1, 0.6);
-      c.fillStyle = '#c030a0'; c.fillRect(hx + 1 * s, hz - 1 * s, 2.5 * s, 2.5 * s);
-    }
     if (d.type === 'harbour') {
       for (const [ox, oz, col] of [[-9, 0, '#c0483c'], [3, -4, '#3c78c8'], [10, 5, '#d09a30']]) house(px + ox * s, pz + oz * s, col);
       if (hasLighthouse(d)) tower(px - 14 * s, pz - 6 * s, s);
@@ -647,6 +650,13 @@ export class Logbook {
         for (const ox of [-6, 3]) { const leg = rectP(px + ox * s, pz - 8 * s, 3 * s, 12 * s); sk.wash(leg, '#a8a294', 0.8, 0.6); sk.line(leg, { w: 1.1, amp: 1 }); }
         const top = rectP(px - 7 * s, pz - 10.5 * s, 14 * s, 3 * s); sk.wash(top, '#a8a294', 0.8, 0.6); sk.line(top, { w: 1.1, amp: 1 });
       }
+    }
+    // the hut last, on top of the trees
+    if (d.hut && state.story && state.story.hutKnown) { // the dark hut: a black crooked shape with one purple window, big enough to see at any zoom
+      const hs = Math.max(2, s * 1.4), hx = px + 4 * s, hz = pz - 3 * s, body = [[hx - 5 * hs, hz + 4 * hs], [hx - 4 * hs, hz - 3 * hs], [hx + 4 * hs, hz - 2 * hs], [hx + 5 * hs, hz + 4 * hs]];
+      sk.wash(body, '#1e1619', 1, 0.6); sk.wash([[hx - 6 * hs, hz - 2 * hs], [hx - 1 * hs, hz - 8 * hs], [hx + 5.5 * hs, hz - 1.5 * hs]], '#120c0e', 1, 0.6);
+      sk.line([...body, [hx + 5.5 * hs, hz - 1.5 * hs], [hx - 1 * hs, hz - 8 * hs], [hx - 6 * hs, hz - 2 * hs]], { col: '#120c0e', w: 1.4, passes: 2, amp: 0.8 });
+      c.fillStyle = '#c030a0'; c.fillRect(hx + 1 * hs, hz - 1 * hs, 2.5 * hs, 2.5 * hs);
     }
   }
 }
