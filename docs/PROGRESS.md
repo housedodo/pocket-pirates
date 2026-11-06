@@ -520,3 +520,4 @@ Built and working in the dev build; switched off when `window.__BUILD === 'demo'
 - **Villager portraits at 16x16:** every speaker has a detailed face of their own (`src/faces.js`).
 - **The interface opens with the story:** at the start only what the current quest needs can be clicked (harbour signs, board buttons, log tabs); the rest is greyed out and opens quest by quest (`src/gates.js`, table in DESIGN.md).
 - **"A bed for the night" is no longer a main goal:** it made you wait for 17:00. Beds at the tavern are still there (open with the tavern sign). Old saves past it move back one goal.
+- **A second guitar arp:** two takes of the arp swap at irregular times in stage 1, never overlapping (`s1_guitar2`).

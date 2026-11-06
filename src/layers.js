@@ -12,12 +12,15 @@ import { mulberry32 } from './util.js';
 // the band (one more per quest) and the battle layer (Raiders, up a semitone to F minor, 8 bars twice): it joins the main theme
 // while a fight with raiders is on (cannons out), whatever the quests
 const BAND = ['s1_bass', 's1_shaperbox', 's1_pluck', 's1_drums', 's1_bell', 's1_guitar'], BATTLE = 's1_raiders';
-export const LAYERS = [...BAND, BATTLE];
+// the guitar arp has a second take (4 bars, played four times): one of the two plays in the guitar's place, they swap now and
+// then at no set interval, and never sound together (the one leaving is silent before the other comes in)
+const ARP2 = 's1_guitar2';
+export const LAYERS = [...BAND, ARP2, BATTLE];
 const FIRST = ['s1_bass', 's1_shaperbox'];   // the first quest brings these two in together
 // [home pan -1..1, how far it wanders, how fast]: bass and drums stay near the middle, the rest spread out
 const PLACE = {
   s1_bass: [0, 0.1, 0.031], s1_shaperbox: [-0.3, 0.32, 0.023], s1_pluck: [0.42, 0.3, 0.037],
-  s1_drums: [-0.08, 0.14, 0.019], s1_bell: [0.58, 0.28, 0.027], s1_guitar: [-0.52, 0.28, 0.041], s1_raiders: [0.1, 0.18, 0.033],
+  s1_drums: [-0.08, 0.14, 0.019], s1_bell: [0.58, 0.28, 0.027], s1_guitar: [-0.52, 0.28, 0.041], s1_guitar2: [-0.52, 0.28, 0.041], s1_raiders: [0.1, 0.18, 0.033],
 };
 const FADE_IN = 30;      // seconds for a new instrument to come all the way in
 const PHRASE = 4 * 4 * 60 / 99;   // 4 bars at 99 BPM (9.7 s): scenes change on a phrase
@@ -35,6 +38,7 @@ export class SeaLayers {
     this.pace = 1;           // test flag (?dev=1&musicpace=4): everything moves this many times faster
     this.rnd = Math.random;
     this.order = [...BAND]; this.battle = 0;
+    this.arp = { which: 0, m: [1, 0], hold: (2 + Math.floor(Math.random() * 6)) * PHRASE, armed: -1 };   // which arp take plays, and how far each is faded in
     this.scene = new Set(); this.sceneFull = true; this.sceneLeft = 0; this.recent = []; this.lastN = 0; this.t0 = 0; this.phrase = -1; this.smalls = 0;
   }
   get ready() { return this.srcs.size > 0; }
@@ -112,10 +116,21 @@ export class SeaLayers {
       this.smalls = sc.full ? 0 : this.smalls + 1;
       if (!sc.full) { this.recent.push(keyOf(sc.set)); if (this.recent.length > 4) this.recent.shift(); }
     }
+    // the two arp takes: after holding for 2-7 phrases (chosen at random each time) the swap starts in the last moment of a phrase,
+    // so the new take comes in on the downbeat. The leaving one fades out in 0.3 s; only then does the other fade in (0.5 s)
+    const A = this.arp;
+    A.hold -= d;
+    const toNext = PHRASE - (((T - this.t0) % PHRASE) + PHRASE) % PHRASE;
+    if (A.hold <= 0 && this.srcs.has(ARP2) && (toNext < 0.35 || this.pace !== 1) && A.armed !== phrase) {
+      A.armed = phrase; A.which = 1 - A.which; A.hold = (2 + Math.floor(this.rnd() * 6)) * PHRASE;
+    }
+    const on_ = A.which, off = 1 - on_;
+    A.m[off] = Math.max(0, A.m[off] - d / 0.3);
+    if (A.m[off] === 0) A.m[on_] = Math.min(1, A.m[on_] + d / 0.5);
     const out = {};
     for (const k of LAYERS) {
       const st = this.st.get(k);
-      if (!st) continue;
+      if (!st || k === ARP2) continue;   // the second arp follows the guitar's slot (below)
       if (on.includes(k)) st.intro = Math.min(1, st.intro + d / FADE_IN);
       if (k === BATTLE) {   // not part of the scenes: only the fight brings it in, on top of whatever the band plays
         const [home, wander, sp] = PLACE[k];
@@ -133,6 +148,10 @@ export class SeaLayers {
       const pan = home + wander * (Math.sin(this.t * sp * 6.283 + st.ph) * 0.7 + Math.sin(this.t * sp * 14.4 + st.ph * 1.7) * 0.3);
       this.pans.get(k).pan.setTargetAtTime(Math.max(-0.9, Math.min(0.9, pan)), T, 1);
       out[k] = smooth(st.intro) * st.inScene * st.breath * this.bg * (s.stage ?? 1) * (0.4 + 0.6 * this.open);
+      if (k === 's1_guitar' && this.pans.has(ARP2)) {   // the guitar's slot, split between the two takes (never both at once)
+        out[ARP2] = out[k] * A.m[1]; out[k] *= A.m[0];
+        this.pans.get(ARP2).pan.setTargetAtTime(Math.max(-0.9, Math.min(0.9, pan)), T, 1);
+      }
     }
     return out;
   }

@@ -79,6 +79,10 @@ They are stage 1's music (the old placeholder `music_1` is gone).
   guitar arp + drums + bell, then shaperbox + bell. A small line-up plays a little louder than the same voices in the full band.
   A newcomer always arrives in a full-band scene (its fade-in plus three phrases). On top, each stem swells gently (75-100%) and
   wanders slowly around its own place in the stereo field (bass and drums near the middle, the rest spread out).
+- **Two guitar arps:** `s1_guitar2` is a second take of the arp (4 bars, played four times to the loop length, through HOIST with
+  the same settings, F minor like the band). One of the two plays in the guitar's place; they swap after 2-7 phrases (chosen at
+  random every time, so no pattern), starting just before a phrase so the new take comes in on the downbeat. They never sound
+  together: the leaving take fades out in 0.3 s and only then does the other fade in (0.5 s).
 - **Heard over the waves:** all six share one soft low-pass (about 1.5-3 kHz) that moves with a slow swell, together with a small level
   lift on the crest, and closes further in strong wind.
 - **Open sea:** right by a shore (within about 60 units) they ease down to 40%, slowly. They carry the whole bright half of the
