@@ -703,7 +703,9 @@ window.addEventListener('keydown', (e) => {
   if (e.code === 'F9') { e.preventDefault(); studio.toggle(); }
   if (e.code === 'Backquote') debugEl.style.display = debugEl.style.display === 'block' ? 'none' : 'block';
   if (e.code === 'Digit0') { forced = null; abyss.stopTest(); }
-  if (/^Digit[1-5]$/.test(e.code)) forced = (parseInt(e.code.slice(5), 10) - 1) / 4;
+  if (/^Digit[1-4]$/.test(e.code)) devTime([6.5, 12, 19.2, 0][parseInt(e.code.slice(5), 10) - 1]);   // dawn, noon, dusk, night
+  if (e.code === 'Comma' && started) devQuest(state.goals.i - 1);
+  if (e.code === 'Period' && started) devQuest(state.goals.i + 1);
   if (e.code === 'BracketRight') state.time = (state.time + 1 / 24) % 1;
   if (e.code === 'BracketLeft') state.time = (state.time - 1 / 24 + 1) % 1;
   if (e.code === 'F6') {   // weather: auto -> clear -> light rain -> storm -> auto
@@ -717,6 +719,42 @@ window.addEventListener('keydown', (e) => {
   }
 });
 let devWeather = 3;   // F6 cycles the forced weather
+// ---- dev bar (dev build only): set the hour and jump to any main quest, back and forth
+function devTime(h) { state.time = (((h / 24) % 1) + 1) % 1; devBarRender(); }
+function devQuest(target) {
+  const n = MAIN_GOALS.length; target = Math.max(0, Math.min(n, target));
+  const idx = (id) => MAIN_GOALS.findIndex((g) => g.id === id), st = state.story;
+  state.goals.started = true; st.onbAll = true;
+  if (target > state.goals.i) { while (state.goals.i < target && objectives.current) logbook.d.skipGoal(); }   // forward: each quest's own effects
+  else if (target < state.goals.i) {   // back: rewind the story flags that later quests set
+    state.goals.i = target;
+    if (target <= idx('gossip')) { st.hutKnown = false; st.hutMusicDone = false; st.hutEntered = false; st.hutNod = null; st.hutFramed = false; }
+    if (target <= idx('perrin')) { st.perrinNote = false; st.letterP2 = undefined; st.noteLine = undefined; st.check = undefined; }
+    if (target <= idx('dig')) { state.dug.delete('1,-1'); const t = world.islands.get('1,-1'); if (t) t.setDug(false); }
+    if (target <= idx('harbour')) { st.letterP1 = undefined; st.riddleLine = undefined; }
+    if (target === idx('dig') && !st.letterP1) st.letterP1 = 'wait';
+  }
+  objectives.pending = objectives.current; objectives.gap = 0.3; objectives.newCh = false;   // Mara announces the quest you jumped to
+  const g = objectives.current; if (g && g.onStart) g.onStart({ state, forceCalm: setCalm });
+  toast(`Quest: ${g ? g.title : 'all done'}`, false, 2500); devBarRender();
+}
+let devBar = null;
+function devBarRender() {
+  if (!devBar) return;
+  const g = objectives.current, h = state.time * 24, hh = String(Math.floor(h)).padStart(2, '0'), mm = String(Math.floor((h % 1) * 60)).padStart(2, '0');
+  devBar.querySelector('select').value = String(state.goals.i);
+  devBar.querySelector('.dvq').textContent = g ? `${state.goals.i + 1}/${MAIN_GOALS.length}` : 'done';
+  devBar.querySelector('.dvt').textContent = `${hh}:${mm}`;
+}
+if (DEV) {
+  devBar = document.createElement('div'); devBar.id = 'devbar';
+  devBar.innerHTML = `<button data-q="-1" title="previous quest (,)">&lt;</button><select title="jump to a quest">${MAIN_GOALS.map((g, i) => `<option value="${i}">${i + 1}. ${g.title}</option>`).join('')}<option value="${MAIN_GOALS.length}">(all done)</option></select><button data-q="1" title="next quest (.)">&gt;</button><span class="dvq"></span>
+    <span class="dvsep"></span><button data-h="6.5" title="1">Dawn</button><button data-h="12" title="2">Noon</button><button data-h="19.2" title="3">Dusk</button><button data-h="0" title="4">Night</button><span class="dvt"></span>`;
+  document.body.appendChild(devBar);
+  devBar.addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; if (b.dataset.q) devQuest(state.goals.i + +b.dataset.q); else devTime(+b.dataset.h); b.blur(); });
+  devBar.querySelector('select').addEventListener('change', (e) => { devQuest(+e.target.value); e.target.blur(); });
+  setInterval(devBarRender, 500);
+}
 window.addEventListener('keyup', (e) => { keys.delete(e.code); if (e.code === 'Space') fishing.hold = false; });
 window.addEventListener('blur', () => { if (started && !modal && !params.get('shot') && !(studio && studio.popped)) openModal('pause'); });   // the studio window may take focus: keep playing
 titleEl.addEventListener('pointerdown', () => { if (!titleScene) begin(); });   // with the live title, only Set sail starts
