@@ -15,12 +15,16 @@ const BAND = ['s1_bass', 's1_shaperbox', 's1_pluck', 's1_drums', 's1_bell', 's1_
 // the guitar arp has a second take (4 bars, played four times): one of the two plays in the guitar's place, they swap now and
 // then at no set interval, and never sound together (the one leaving is silent before the other comes in)
 const ARP2 = 's1_guitar2';
-export const LAYERS = [...BAND, ARP2, BATTLE];
+// the night: a calmer version of the song (pluck, shaperbox, strings, bell; same length, through HOIST with more space).
+// From dusk to daybreak it plays instead of the band, all four together, breathing gently; the band comes back at dawn.
+const NIGHT = ['n1_pluck', 'n1_shaperbox', 'n1_strings', 'n1_bell'];
+export const LAYERS = [...BAND, ARP2, BATTLE, ...NIGHT];
 const FIRST = ['s1_bass', 's1_shaperbox'];   // the first quest brings these two in together
 // [home pan -1..1, how far it wanders, how fast]: bass and drums stay near the middle, the rest spread out
 const PLACE = {
   s1_bass: [0, 0.1, 0.031], s1_shaperbox: [-0.3, 0.32, 0.023], s1_pluck: [0.42, 0.3, 0.037],
   s1_drums: [-0.08, 0.14, 0.019], s1_bell: [0.58, 0.28, 0.027], s1_guitar: [-0.52, 0.28, 0.041], s1_guitar2: [-0.52, 0.28, 0.041], s1_raiders: [0.1, 0.18, 0.033],
+  n1_pluck: [0.4, 0.3, 0.021], n1_shaperbox: [-0.35, 0.3, 0.017], n1_strings: [0, 0.2, 0.013], n1_bell: [0.55, 0.3, 0.025],
 };
 const FADE_IN = 30;      // seconds for a new instrument to come all the way in
 const PHRASE = 4 * 4 * 60 / 99;   // 4 bars at 99 BPM (9.7 s): scenes change on a phrase
@@ -37,7 +41,7 @@ export class SeaLayers {
     this.t = 0; this.bg = 0; this.open = 1;
     this.pace = 1;           // test flag (?dev=1&musicpace=4): everything moves this many times faster
     this.rnd = Math.random;
-    this.order = [...BAND]; this.battle = 0;
+    this.order = [...BAND]; this.battle = 0; this.night = 0;
     this.arp = { which: 0, m: [1, 0], hold: (2 + Math.floor(Math.random() * 6)) * PHRASE, armed: -1 };   // which arp take plays, and how far each is faded in
     this.scene = new Set(); this.sceneFull = true; this.sceneLeft = 0; this.recent = []; this.lastN = 0; this.t0 = 0; this.phrase = -1; this.smalls = 0;
   }
@@ -110,6 +114,10 @@ export class SeaLayers {
     const wind = Math.min(1, s.wind || 0);
     // a fight: the battle layer comes in within a few seconds and lingers after; the filter opens a little (still muffled)
     this.battle += ((s.battle ? 1 : 0) - this.battle) * (1 - Math.exp(-d / (s.battle ? 2.5 : 7)));
+    // dusk to daybreak: the night version takes over (once the first quest has brought music at all), over about 15 s
+    const nightT = n >= 1 ? Math.max(0, Math.min(1, ((s.night || 0) - 0.35) / 0.4)) : 0;
+    this.night += (nightT - this.night) * (1 - Math.exp(-d / 6));
+    const nk = smooth(this.night);
     this.lp.frequency.setTargetAtTime(Math.max(800, (1500 + 1500 * wave) * (1 - 0.35 * wind) * (1 + 0.35 * this.battle)), T, 0.5);
 
     // scenes: a newcomer brings a full-band scene (long enough to hear it arrive); otherwise a new scene when the last has run out,
@@ -143,6 +151,15 @@ export class SeaLayers {
       const st = this.st.get(k);
       if (!st || k === ARP2) continue;   // the second arp follows the guitar's slot (below)
       if (on.includes(k)) st.intro = Math.min(1, st.intro + d / FADE_IN);
+      if (NIGHT.includes(k)) {   // the night version: all four, breathing gently, while the band rests
+        st.next -= d;
+        if (st.next <= 0) { st.swell = 0.7 + 0.3 * this.rnd(); st.next = 12 + this.rnd() * 16; }
+        st.breath += (st.swell - st.breath) * (1 - Math.exp(-d / 6));
+        const [home, wander, sp] = PLACE[k];
+        this.pans.get(k).pan.setTargetAtTime(Math.max(-0.9, Math.min(0.9, home + wander * Math.sin(this.t * sp * 6.283 + st.ph))), T, 1);
+        out[k] = nk * st.breath * 0.6 * (s.stage ?? 1) * (0.4 + 0.6 * this.open);
+        continue;
+      }
       if (k === BATTLE) {   // not part of the scenes: only the fight brings it in, on top of whatever the band plays
         const [home, wander, sp] = PLACE[k];
         this.pans.get(k).pan.setTargetAtTime(home + wander * Math.sin(this.t * sp * 6.283 + st.ph), T, 1);
@@ -158,7 +175,7 @@ export class SeaLayers {
       const [home, wander, sp] = PLACE[k];
       const pan = home + wander * (Math.sin(this.t * sp * 6.283 + st.ph) * 0.7 + Math.sin(this.t * sp * 14.4 + st.ph * 1.7) * 0.3);
       this.pans.get(k).pan.setTargetAtTime(Math.max(-0.9, Math.min(0.9, pan)), T, 1);
-      out[k] = smooth(st.intro) * st.inScene * st.breath * this.bg * (s.stage ?? 1) * (0.4 + 0.6 * this.open);
+      out[k] = smooth(st.intro) * st.inScene * st.breath * this.bg * (s.stage ?? 1) * (0.4 + 0.6 * this.open) * (1 - nk);   // the band rests at night
       if (k === 's1_guitar' && this.pans.has(ARP2)) {   // the guitar's slot, split between the two takes (never both at once)
         out[ARP2] = out[k] * A.m[1]; out[k] *= A.m[0];
         this.pans.get(ARP2).pan.setTargetAtTime(Math.max(-0.9, Math.min(0.9, pan)), T, 1);

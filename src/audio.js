@@ -260,7 +260,7 @@ export class AudioBus {
     this.setLoop('music_3', Math.max(0, 1 - Math.abs(dread * (STAGES - 1) - 2)) * 0.75);   // the "Dread" piece, centred on dread 0.5
     if (layered) {
       // the stage-1 band carries the bright half of the sea (dread up to about 0.3, ~660 units from Tama), then hands over to music_3
-      const lv = this.layers.update(dt, { quests: s.quests || 0, open: s.open, wind: s.wind, stage: 1 - smoothstep(0.3, 0.5, dread), battle: !!s.battle });
+      const lv = this.layers.update(dt, { quests: s.quests || 0, open: s.open, wind: s.wind, stage: 1 - smoothstep(0.3, 0.5, dread), battle: !!s.battle, night: s.night });
       for (const k of LAYERS) if (k in lv) this.setLoop(k, lv[k] * 1.5);   // the stems are mastered quiet (about -25 LUFS each): this puts the full band a few dB under the sea
     }
     this.setLoop('sea', 0.3 + s.speed * 0.45);

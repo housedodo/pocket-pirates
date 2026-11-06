@@ -93,6 +93,13 @@ They are stage 1's music (the old placeholder `music_1` is gone).
   playback rate applies to them too. The F8 mixer has its own group for them.
 - Test: `?dev=1&musicpace=5` makes the fades and swells five times faster.
 
+## Night (`n1_*`, in `src/layers.js`)
+A calmer version of the song: `n1_pluck`, `n1_shaperbox`, `n1_strings`, `n1_bell` (16 bars at 99 BPM, same length as the band, F minor,
+through HOIST with more space: `HoistLayers game_audio/night <outdir> night`; masters in Chaos_Grain `game_audio/night/`). From dusk
+to daybreak it takes over from the stage-1 band (about 15 s cross-fade, all four together, breathing gently); the band comes back at
+dawn. Only once the first quest has brought music. They start on the same sample as the band, so the hand-over stays in time. The
+night is 4 minutes now (the day 11.5), about six times through the song. F8 mixer: group "Night".
+
 ## Battle (`s1_raiders`, in `src/layers.js`)
 `Raiders.wav` (4 bars at 99 BPM, **F minor** like the band) is played four times to the band's 16-bar length and rendered through HOIST like the other stems (`Raiders_x4.wav` in Chaos_Grain `game_audio/`; it replaced an earlier take that had to be shifted up from E minor). It joins the main theme while a fight is on: cannons unlocked and a raider engaged
 or within ~110 units (`inBattle()` in main.js). It comes in within a few seconds, the whole band plays for the fight (no small

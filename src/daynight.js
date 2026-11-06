@@ -2,8 +2,8 @@ import * as THREE from 'three';
 import { smoothstep, lerp } from './util.js';
 
 // Day/night layered on top of the dread palette. t: 0 = midnight, 0.25 = sunrise, 0.5 = noon, 0.75 = sunset.
-export const DAY_LENGTH = 600; // real seconds per full day (10 minutes)
-// Uneven pacing: daylight (06:00-19:00) takes 7.5 minutes, the night (19:00-06:00) only 2.5.
+export const DAY_LENGTH = 690; // real seconds per full day (11.5 minutes)
+// Uneven pacing: daylight (06:00-19:00) takes 7.5 minutes, the night (19:00-06:00) 4, long enough for the night music to play out.
 export const DAY_START = 6, DAY_END = 19, DAY_SECONDS = 450, NIGHT_SECONDS = DAY_LENGTH - DAY_SECONDS;
 /** in-game hours that pass per real second at time t (0..1) */
 export function hoursPerSecond(t) {
