@@ -190,8 +190,9 @@ export class Sky {
     this.cloudMat.color.copy(stage.cloud);
     const wx = Math.sin(windDir), wz = -Math.cos(windDir);
     for (const c of this.clouds) {
-      c.position.x += wx * 2.5 * dt;
-      c.position.z += wz * 2.5 * dt;
+      const cs = 2.5 * (stage.cloudSpeed || 1);   // storm clouds scud past
+      c.position.x += wx * cs * dt;
+      c.position.z += wz * cs * dt;
       const dx = c.position.x - cam.position.x, dz = c.position.z - cam.position.z;
       if (dx * dx + dz * dz > 460 * 460) { // wrap to the opposite side
         c.position.x = cam.position.x - dx * 0.92;

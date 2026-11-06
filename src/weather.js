@@ -6,7 +6,13 @@ import { fbm, smoothstep, clamp, mulberry32 } from './util.js';
 const GREY_TOP = new THREE.Color('#56626f'), GREY_HOR = new THREE.Color('#9aa5ad'), GREY_FOG = new THREE.Color('#8c979e');
 const RED_SKY = new THREE.Color('#d8402a'), RED_TOP = new THREE.Color('#6a2038');
 const WHITE = new THREE.Color(1, 1, 1);
-const N = 700, BOX = 36, HEIGHT = 34;
+// light rain: a soft pale-grey drizzle, the sea goes still and milky. A storm: a slate-black sky, a dark heaving sea.
+const DRIZZLE_TOP = new THREE.Color('#8e9aa6'), DRIZZLE_HOR = new THREE.Color('#c3cbd0'), DRIZZLE_FOG = new THREE.Color('#b4bec4');
+const DRIZZLE_DEEP = new THREE.Color('#4c7d92'), DRIZZLE_SHALLOW = new THREE.Color('#86b8b6');
+const STORM_TOP = new THREE.Color('#161c26'), STORM_HOR = new THREE.Color('#3a4450'), STORM_FOG = new THREE.Color('#2c353f');
+const STORM_DEEP = new THREE.Color('#132630'), STORM_SHALLOW = new THREE.Color('#2f4c52'), STORM_CLOUD = new THREE.Color('#3a414c');
+const STORM_TINT = new THREE.Color('#c8d6e6');
+const N = 1400, BOX = 36, HEIGHT = 34;
 
 export class Weather {
   constructor(scene) {
@@ -14,6 +20,7 @@ export class Weather {
     this.cloud = 0; this.rain = 0; this.storm = 0; this.fog = 0; this.darkness = 0;
     this.flash = 0; this.flashQueue = 0; this.nextFlash = 6;
     this.prevRain = 0; this.calm = 0; this.redSky = 0; this.stormAhead = 0;
+    this.heavy = 0; this.drizzle = 0;   // 0..1: how much of it is a proper storm / gentle rain (see update)
     this.onThunder = null;
     this.noCalm = 0;     // seconds with no natural calm (the wind has just picked up again)
     this.calmHold = 0;   // seconds of dead calm the story has asked for
@@ -68,6 +75,8 @@ export class Weather {
     const k = Math.min(1, dt * 0.35);
     for (const key of Object.keys(target)) this[key] += (target[key] - this[key]) * k;
     this.darkness = Math.max(this.storm * 0.9, this.rain * 0.45, this.cloud * 0.25);
+    this.heavy = smoothstep(0.2, 0.65, this.storm);                       // 0 = light rain, 1 = a proper storm
+    this.drizzle = clamp(this.rain * 1.6, 0, 1) * (1 - this.heavy);       // how much of the weather is gentle rain
 
 
     // lightning
@@ -82,22 +91,25 @@ export class Weather {
     }
     if (this.flashQueue === 1 && this.flash < 0.35) { this.flash = 0.8; this.flashQueue = 0; }
 
-    // rain streaks
-    const count = Math.floor(clamp(this.rain, 0, 1) * N);
+    // rain streaks: light rain is a thin, slow, nearly upright drizzle; a storm is a dense, fast sheet driven sideways by the wind
+    const h = this.heavy, wet = Math.max(this.rain, this.storm * 0.8);
+    const count = Math.floor(clamp(wet * 1.4, 0, 1) * N * (0.4 + 0.6 * h));
     this.lines.visible = count > 4;
     if (this.lines.visible) {
       this.lines.geometry.setDrawRange(0, count * 2);
-      this.lines.material.opacity = 0.25 + 0.35 * this.rain;
-      const wx = Math.sin(windDir) * 0.45 * windStr, wz = -Math.cos(windDir) * 0.45 * windStr;
+      this.lines.material.opacity = (0.4 + 0.2 * wet) * (1 - h) + (0.5 + 0.25 * wet) * h;
+      this.lines.material.color.setRGB(0.77 - 0.2 * h, 0.87 - 0.17 * h, 0.95 - 0.13 * h);
+      const fall = 26 + 44 * h, len = 0.8 + 1.8 * h, slant = (0.25 + 1.1 * h) * windStr;
+      const wx = Math.sin(windDir) * slant, wz = -Math.cos(windDir) * slant;
       const v = this.verts;
       for (let i = 0; i < count; i++) {
-        this.py[i] -= 40 * dt;
+        this.py[i] -= fall * dt;
         if (this.py[i] < 0) { this.py[i] += HEIGHT; this.px[i] = cam.position.x + (this.rng() - 0.5) * BOX * 2; this.pz[i] = cam.position.z + (this.rng() - 0.5) * BOX * 2; }
         if (this.px[i] - cam.position.x > BOX) this.px[i] -= BOX * 2; else if (this.px[i] - cam.position.x < -BOX) this.px[i] += BOX * 2;
         if (this.pz[i] - cam.position.z > BOX) this.pz[i] -= BOX * 2; else if (this.pz[i] - cam.position.z < -BOX) this.pz[i] += BOX * 2;
         const o = i * 6;
         v[o] = this.px[i]; v[o + 1] = this.py[i]; v[o + 2] = this.pz[i];
-        v[o + 3] = this.px[i] - wx; v[o + 4] = this.py[i] + 1.2; v[o + 5] = this.pz[i] - wz;
+        v[o + 3] = this.px[i] - wx * len; v[o + 4] = this.py[i] + len; v[o + 5] = this.pz[i] - wz * len;
       }
       this.lines.geometry.attributes.position.needsUpdate = true;
     }
@@ -112,7 +124,19 @@ export class Weather {
     stage.cloud.multiplyScalar(1 - 0.45 * c);
     stage.light = Math.max(0.28, stage.light * (1 - 0.42 * this.darkness));
     stage.sat *= 1 - 0.25 * c;
-    stage.wave *= 1 + 0.7 * this.storm;
+    stage.wave *= (1 - 0.25 * this.drizzle) * (1 + 1.3 * this.storm);   // rain flattens the swell; a storm heaps it up
+    // light rain: pale grey sky, a milky, quiet sea, soft mist. A storm: near-black sky, dark slate water, cold flat light, scudding clouds
+    const dz = this.drizzle, st = this.heavy;
+    stage.skyTop.lerp(DRIZZLE_TOP, dz * 0.85); stage.skyHorizon.lerp(DRIZZLE_HOR, dz * 0.8); stage.fog.lerp(DRIZZLE_FOG, dz * 0.8);
+    stage.deep.lerp(DRIZZLE_DEEP, dz * 0.6); stage.shallow.lerp(DRIZZLE_SHALLOW, dz * 0.55); stage.cloud.lerp(DRIZZLE_HOR, dz * 0.6);
+    stage.skyTop.lerp(STORM_TOP, st * 0.85); stage.skyHorizon.lerp(STORM_HOR, st * 0.8); stage.fog.lerp(STORM_FOG, st * 0.75);
+    stage.deep.lerp(STORM_DEEP, st * 0.75); stage.shallow.lerp(STORM_SHALLOW, st * 0.7); stage.cloud.lerp(STORM_CLOUD, st * 0.8);
+    stage.tint.lerp(STORM_TINT, st * 0.5);
+    stage.light *= (1 - 0.1 * dz) * (1 - 0.35 * st);
+    stage.sat *= (1 - 0.3 * dz) * (1 - 0.35 * st);
+    stage.vig += 0.25 * st;
+    stage.fogFar *= (1 - 0.4 * dz) * (1 - 0.35 * st); stage.fogNear *= (1 - 0.5 * dz) * (1 - 0.4 * st);   // drizzle: a soft mist that swallows the far islands
+    stage.cloudSpeed = 1 + 5 * st;
     stage.fogFar = Math.max(40, stage.fogFar * (1 - 0.6 * this.fog - 0.25 * this.rain));
     stage.fogNear = Math.max(8, stage.fogNear * (1 - 0.7 * this.fog));
     if (this.redSky > 0.02) { stage.skyHorizon.lerp(RED_SKY, this.redSky * 0.6); stage.skyTop.lerp(RED_TOP, this.redSky * 0.35); stage.fog.lerp(RED_SKY, this.redSky * 0.3); }

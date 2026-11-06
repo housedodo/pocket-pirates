@@ -2,7 +2,7 @@
 // synthesised on the fly (src/synth.js), so the game always has sound.
 // See docs/AUDIO.md for the cue list and design notes.
 import { canSynth, synth } from './synth.js';
-import { SeaLayers, LAYERS } from './layers.js';
+import { SeaLayers, LAYERS, Tavern, TAVERN } from './layers.js';
 import { smoothstep } from './util.js';
 
 // Master switch for all sound (files in public/audio/, else the synthesised fallback).
@@ -17,6 +17,7 @@ export const CUES = {
     ...Array.from({ length: STAGES }, (_, i) => `amb_${i + 1}`),
     ...Array.from({ length: STAGES }, (_, i) => `music_${i + 1}`),
     ...LAYERS,   // stage 1 on open sea: one instrument more with every quest (src/layers.js)
+    ...TAVERN,   // the harbour tavern, muffled through the wall
   ],
   oneShots: ['creak', 'splash', 'bump', 'dig', 'treasure', 'discover', 'harbour', 'ui', 'whisper', 'stage_up', 'buy', 'pause',
     'thunder', 'horn', 'gull', 'dolphin', 'whale', 'bell', 'bottle',
@@ -78,7 +79,9 @@ export class AudioBus {
     this.musicBus = this.ctx.createGain();
     this.musicBus.gain.value = this.musicOn ? 0.6 : 0;
     this.musicBus.connect(this.master);
-    this.layers = new SeaLayers(this.ctx, this.musicBus); this.layers.setSeed(this.layerSeed); this.layers.pace = this.layerPace;
+    this.seaMusic = this.ctx.createGain(); this.seaMusic.connect(this.musicBus);   // the music of the sea (stage loops and layers): ducks while the tavern plays
+    this.tavern = new Tavern(this.ctx, this.musicBus);
+    this.layers = new SeaLayers(this.ctx, this.seaMusic); this.layers.setSeed(this.layerSeed); this.layers.pace = this.layerPace;
     this.ambBus = this.ctx.createGain(); this.ambBus.gain.value = this.userVol.amb; this.ambBus.connect(this.master);   // sea, wind, gulls, rain, ambience
     this.sfxBus = this.ctx.createGain(); this.sfxBus.gain.value = this.userVol.sfx; this.sfxBus.connect(this.master);   // one-shot effects
 
@@ -87,7 +90,7 @@ export class AudioBus {
     try { Object.assign(this.vol, JSON.parse(localStorage.getItem('pocket-pirates-mixer') || '{}')); } catch (e) { /* storage blocked */ }
     this.setMuted(this.muted); this.setMusic(this.musicOn);
     // one-shots first (cheap), then ambience, then music, yielding between cues so the game stays smooth
-    const order = [...CUES.oneShots, 'sea', 'wind', 'surf', 'rain', 'rain_2', 'rain_storm', 'amb_night', 'oars', 'gulls', 'coast', 'forest', ...CUES.loops.filter((k) => k.startsWith('amb_') && k !== 'amb_night'), ...CUES.loops.filter((k) => k.startsWith('music_')), ...LAYERS];
+    const order = [...CUES.oneShots, 'sea', 'wind', 'surf', 'rain', 'rain_2', 'rain_storm', 'amb_night', 'oars', 'gulls', 'coast', 'forest', ...CUES.loops.filter((k) => k.startsWith('amb_') && k !== 'amb_night'), ...CUES.loops.filter((k) => k.startsWith('music_')), ...LAYERS, ...TAVERN];
     for (const k of order) {
       if (window.__BUILD === 'demo' && DEMO_SKIP.has(k)) continue;
       await this.load(k);
@@ -95,6 +98,7 @@ export class AudioBus {
       await tick();
     }
     this.layers.start();   // the stage-1 stems all start on the same sample (they waited silently until every one had loaded)
+    this.tavern.start();
     this.ready = true;
   }
 
@@ -134,17 +138,27 @@ export class AudioBus {
       src.connect(lp).connect(gain).connect(env).connect(this.ambBus);
       this.tone = lp; this.gullEnv = env; this.gullOn = false; this.gullSwitch = 3 + Math.random() * 6;
     } else if (LAYERS.includes(key)) this.layers.add(key, src, gain);   // its own panner, the shared low-pass; started with the others
-    else src.connect(gain).connect(key.startsWith('music_') ? this.musicBus : this.ambBus);
-    if (!LAYERS.includes(key)) src.start();
+    else if (TAVERN.includes(key)) this.tavern.add(key, src, gain);
+    else src.connect(gain).connect(key.startsWith('music_') ? this.seaMusic : this.ambBus);
+    if (!LAYERS.includes(key) && !TAVERN.includes(key)) src.start();
     this.loops.set(key, gain);
     (this.srcs || (this.srcs = new Map())).set(key, src);
-    if ((key.startsWith('music_') || LAYERS.includes(key)) && this.musicRate !== 1) src.playbackRate.value = this.musicRate;
+    if (this.isMusic(key) && this.musicRate !== 1) src.playbackRate.value = this.musicRate;
   }
 
   has(key) { return this.buffers.has(key); }
 
   /** every music loop at this playback rate (1 = as authored; 0.944 = one semitone flat) */
-  setMusicRate(r) { this.musicRate = r; if (this.srcs) for (const [k, src] of this.srcs) if (k.startsWith('music_') || LAYERS.includes(k)) src.playbackRate.value = r; }
+  setMusicRate(r) { this.musicRate = r; if (this.srcs) for (const [k, src] of this.srcs) if (this.isMusic(k)) src.playbackRate.value = r; }
+  isMusic(k) { return k.startsWith('music_') || LAYERS.includes(k) || TAVERN.includes(k); }
+
+  /** every frame, sailing or ashore. where: 0 at sea, 0.35 in a harbour, 1 inside its tavern (or at its dice table) */
+  tavernUpdate(dt, where) {
+    if (!this.ctx || !this.tavern.ready) return;
+    const t = this.tavern.update(dt, where);
+    for (const k of TAVERN) this.setLoop(k, t.levels[k]);
+    this.seaMusic.gain.setTargetAtTime(1 - 0.9 * t.presence, this.ctx.currentTime, 0.5);   // the sea's music steps aside
+  }
 
   /** a soft bell-like note (for the tune in the fog); `pan` -1..1, `vol` 0..1 */
   playTone(freq, { dur = 1.8, vol = 0.3, pan = 0 } = {}) {
@@ -160,7 +174,7 @@ export class AudioBus {
   setLoop(key, v) {
     this.level[key] = v;
     const g = this.loops.get(key);
-    v *= 1 - (key.startsWith('music_') || LAYERS.includes(key) ? this.studioDuck : this.studioDuckAmb);
+    v *= 1 - (this.isMusic(key) ? this.studioDuck : this.studioDuckAmb);
     if (this.preview) v = key === this.preview ? 0.8 : 0;   // auditioning one loop: everything else hushes
     if (g) g.gain.setTargetAtTime(v * (this.preview && key === this.preview ? Math.max(0.5, this.v(key)) : this.v(key)), this.ctx.currentTime, this.preview ? 0.15 : 0.7);   // a soloed loop is audible even at 0%
     if (key === 'gulls' && this.tone) this.tone.frequency.setTargetAtTime(700 + 9500 * Math.min(1, v) * Math.min(1, v), this.ctx.currentTime, 0.7);

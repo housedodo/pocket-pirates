@@ -64,6 +64,11 @@ purple and magenta cosmic horror as dread rises.
 - UI ink and wood: cream `#f4ead0`, dark ink `#2a1608`, gold `#ffd23a / #c9a85c`, navy panel `#1b1538-#241c4c`.
 - Horror stage: near-black purples `#06030e`, magenta `#ff30c8 / #ff70d0`, sickly greens, a black sun with a
   magenta corona. Horror elements glow magenta; the friendly world glows warm yellow.
+- **Weather reads at a glance** (`src/weather.js`, `heavy` / `drizzle`): *light rain* is a pale grey sky (`#8e9aa6` /
+  `#c3cbd0`), a milky, quieter sea (`#4c7d92` / `#86b8b6`, smaller swell, less colour), a soft mist that swallows the far
+  islands and a thin, slow, nearly upright drizzle. A *storm* is a slate-black sky (`#161c26` / `#3a4450`), dark heaving water
+  (`#132630` / `#2f4c52`, rough sea whipped up within seconds, bigger waves), cold flat light with a heavier vignette, dark
+  clouds scudding past, a dense fast sheet of rain driven sideways by the wind, and lightning.
 - Dread is shown by changing colours, not by adding UI. Five stages: Sunny, Off, Wrong, Eerie, Cosmic
   (`src/palette.js`).
 

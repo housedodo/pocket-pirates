@@ -95,3 +95,37 @@ export class SeaLayers {
     return out;
   }
 }
+
+// The tavern in every harbour: four stems from the same session (99 BPM, 38.8 s, through HOIST, gently), muffled as if
+// heard through the wall. Inside the tavern (its tab, or the dice game) they play softly with the highs filtered away;
+// elsewhere in the harbour they are fainter and duller still, music from down the street. All four start together.
+export const TAVERN = ['tav_bass', 'tav_shaperbox', 'tav_pluck', 'tav_drums'];
+const TAV_PAN = { tav_bass: 0, tav_shaperbox: -0.25, tav_pluck: 0.3, tav_drums: 0.05 };
+
+export class Tavern {
+  constructor(ctx, out) {
+    this.ctx = ctx;
+    // two low-passes in a row (24 dB/oct): the high notes stay behind the wall
+    this.lp1 = ctx.createBiquadFilter(); this.lp1.type = 'lowpass'; this.lp1.Q.value = 0.6;
+    this.lp2 = ctx.createBiquadFilter(); this.lp2.type = 'lowpass'; this.lp2.Q.value = 0.6;
+    this.lp1.frequency.value = this.lp2.frequency.value = 600;
+    this.lp1.connect(this.lp2).connect(out);
+    this.srcs = new Map();
+    this.k = 0; this.near = 0;
+  }
+  get ready() { return this.srcs.size > 0; }
+  add(key, src, gain) { const p = this.ctx.createStereoPanner(); p.pan.value = TAV_PAN[key] || 0; src.connect(gain).connect(p).connect(this.lp1); this.srcs.set(key, src); }
+  start() { const when = this.ctx.currentTime + 0.15; for (const s of this.srcs.values()) s.start(when); }
+  setRate(r) { for (const s of this.srcs.values()) s.playbackRate.value = r; }
+
+  /** where: 0 away from any harbour, 0.35 in the harbour, 1 inside the tavern. Returns how loud each stem plays and how present the tavern is (0..1) */
+  update(dt, where) {
+    this.k += (where - this.k) * (1 - Math.exp(-dt / (where > this.k ? 1.2 : 0.8)));
+    const inside = Math.max(0, (this.k - 0.35) / 0.65), T = this.ctx.currentTime;
+    const cut = 380 + 820 * inside;   // about 400 Hz from the street, 1.2 kHz inside: still muffled
+    this.lp1.frequency.setTargetAtTime(cut, T, 0.3); this.lp2.frequency.setTargetAtTime(cut * 1.15, T, 0.3);
+    const lv = this.k < 0.01 ? 0 : 0.12 + 0.3 * inside;   // quiet: the room, not a concert
+    const out = {}; for (const k of TAVERN) out[k] = this.k > 0.01 ? lv * Math.min(1, this.k / 0.35) : 0;
+    return { levels: out, presence: Math.min(1, this.k / 0.35) * (0.6 + 0.4 * inside) };
+  }
+}

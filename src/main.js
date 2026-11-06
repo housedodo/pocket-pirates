@@ -2062,8 +2062,8 @@ function frame() {
     if (fa && h >= 17 && laterOK() && !state.hints['front:' + state.dayN]) { state.hints['front:' + state.dayN] = true; if (!state.hints.frontSeen) { state.hints.frontSeen = true; objectives.mate.say('That red in the west... a front is coming in tomorrow afternoon, Captain. I would be in a harbour by then.'); } }
   }
   { // the sea: it grows unruly with distance (dread) and storms, but only slowly, as real water does; and lighter and shallower near islands
-    const target = window.__waterLock && window.__waterLock.rough != null ? window.__waterLock.rough : clamp(0.85 * smoothstep(0.28, 0.82, dread) + 0.95 * weather.storm + 0.3 * weather.rain, 0, 1);
-    waterRough = waterRough < 0 ? target : waterRough + (target - waterRough) * (1 - Math.exp(-Math.min(vdt, 0.5) / 25));
+    const target = window.__waterLock && window.__waterLock.rough != null ? window.__waterLock.rough : clamp(0.85 * smoothstep(0.28, 0.82, dread) + 1.1 * weather.heavy + 0.05 * weather.rain, 0, 1);   // light rain leaves the water quiet; a storm whips it up
+    waterRough = waterRough < 0 ? target : waterRough + (target - waterRough) * (1 - Math.exp(-Math.min(vdt, 0.5) / (25 - 13 * (weather.heavy || 0))));
     WATER.rough = waterRough; U.uRough.value = waterRough;
     const near = []; for (const isl of world.islands.values()) { const d = isl.desc, dd = Math.hypot(d.x - ship.pos.x, d.z - ship.pos.z); if (dd < 500) near.push([d.x, d.z, d.r, dd]); }
     near.sort((a, b) => a[3] - b[3]); near.length = Math.min(near.length, NISL); WATER.isl = near;
@@ -2233,7 +2233,8 @@ function frame() {
     if (_v.z < 1) { eb.style.display = 'block'; eb.style.left = `${(_v.x * 0.5 + 0.5) * window.innerWidth}px`; eb.style.top = `${(-_v.y * 0.5 + 0.5) * window.innerHeight}px`; $('ename').textContent = tgtE.name; $('efill').style.width = `${Math.max(0, (tgtE.hp / tgtE.maxHp) * 100)}%`; } else eb.style.display = 'none';
   } else eb.style.display = 'none';
   audio.setLoop('coast', coastLevel(ashore, tod.night));
-  audio.setLoop('forest', forestLevel(ashore) * 0.3);   // ashore on a forest island: very quietly under everything
+  audio.setLoop('forest', forestLevel(ashore) * 0.3);
+  audio.tavernUpdate(rawDt, modal === 'pig' || (modal === 'harbour' && hbTab === 'tavern') ? 1 : ashore ? 0.35 : 0);   // tavern music through the wall   // ashore on a forest island: very quietly under everything
   if (live) {
     const near = world.nearest(ship.pos.x, ship.pos.z, 45);
     audio.update(dt, { dread, speed: ship.speed / 11, night: tod.night, wind: wind.strength, rain: weather.rain, storm: weather.storm, surf: near ? clamp(1 - world.lastEdge / 45, 0, 1) : 0, rowing: ship.rowIn > 0, gulls: gullLevel(tod.night),

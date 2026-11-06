@@ -84,6 +84,15 @@ They take the place of `music_1` while they exist (delete them and `music_1` com
   playback rate applies to them too. The F8 mixer has its own group for them.
 - Test: `?dev=1&musicpace=5` makes the fades and swells five times faster.
 
+## The tavern (`tav_*`, `Tavern` in `src/layers.js`)
+Four stems from the same session (99 BPM, 38.79 s): `tav_bass`, `tav_shaperbox`, `tav_pluck` (pluck stab), `tav_drums`, rendered
+through HOIST gently (`HoistLayers game_audio/tavern <outdir> tavern` in Chaos_Grain; WAV masters in `game_audio/tavern/`).
+- Quiet and **muffled, as if heard through the tavern wall**: two low-passes in a row (24 dB/oct). Inside the tavern (its tab
+  in the harbour, or the dice table) about 1.2 kHz; anywhere else in the harbour (other tabs, greeting, shipyard) about 400 Hz
+  and fainter, music from down the street. Silent at sea.
+- While it plays, the sea's music (stage loops and stage-1 layers, `seaMusic` gain) steps aside; it comes back as you sail off.
+- All four start on the same sample and keep running, so the song carries on while you are away. F8 mixer: group "Tavern".
+
 ## Cue list (`public/audio/<name>.ogg`)
 **Loops** (seamless; all music loops the **same length and tempo** so cross-fades stay musical)
 | File | Notes |
