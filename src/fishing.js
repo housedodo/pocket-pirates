@@ -145,8 +145,8 @@ export class Fishing {
   hook() {
     this.mode = 'reel';
     const f = this.fish, df = this.diff = Math.min(0.97, f.diff + (this.power || 0) * 0.12);
-    this.a = -Math.PI / 2; this.dir = 1; this.speed = 2.0 + df * 2.3; this.meter = 0.25; this.miss = 0; this.flash = 0; this.stall = 0;
-    this.drain = 0.03 + df * 0.025; this.wrong = !!f.dark || (this.cb.getCtx().dread || 0) > 0.5;
+    this.a = -Math.PI / 2; this.dir = 1; this.speed = 2.0 + df * 2.3; this.meter = 0.35; this.miss = 0; this.flash = 0; this.stall = 0;
+    this.drain = 0.02 + df * 0.02; this.wrong = !!f.dark || (this.cb.getCtx().dread || 0) > 0.5;
     this.zones = []; for (let i = 0; i < (df > 0.75 ? 2 : 3); i++) this.addZone();
     this.say = '';
   }
@@ -167,7 +167,7 @@ export class Fishing {
       if (this.cb.onStrike) this.cb.onStrike(gold ? 'gold' : 'good');
       if (this.meter >= 1) this.finish(true);
     } else {
-      this.miss++; this.meter = Math.max(0, this.meter - 0.1); this.flash = 0.3; this.flashCol = '#ff6a4a';
+      this.miss++; this.flash = 0.3; this.flashCol = '#ff6a4a';   // a miss costs a miss, not the meter (three and it is gone)
       this.say = this.miss >= 3 ? '' : `Empty water. ${3 - this.miss} left.`;
       if (this.cb.onStrike) this.cb.onStrike('miss');
       if (this.miss >= 3) this.finish(false, 'miss');
@@ -179,7 +179,8 @@ export class Fishing {
     if (won) {
       const kg = +(f.kg[0] + Math.pow(Math.random(), 1.6 - 0.9 * (this.power || 0)) * (f.kg[1] - f.kg[0])).toFixed(1);   // far out, the big ones
       this.cb.onCatch({ id: f.id, name: f.name, kg, value: Math.max(1, Math.round(kg * f.price)), dark: !!f.dark, zone: this.env ? this.env.label : '', hour: this.env ? this.env.hour : 12 });
-    } else if (why === 'miss') this.cb.toast(f.dark ? 'Three strikes on nothing. Something below let go, slowly.' : 'Three strikes on empty water: it slipped the hook.');
+    } else if (why === 'slow') this.cb.toast(f.dark ? 'It sank away while you waited.' : 'Too slow: it swam off with the bait.');
+    else if (why === 'miss') this.cb.toast(f.dark ? 'Three strikes on nothing. Something below let go, slowly.' : 'Three strikes on empty water: it slipped the hook.');
     else this.cb.toast(f.dark ? 'The line goes slack. Something below let go on purpose.' : 'It got away!');
   }
 
@@ -268,6 +269,6 @@ export class Fishing {
     if (this.stall > 0) this.stall -= dt; else this.a += this.dir * this.speed * dt;
     if (this.wrong) for (const z of this.zones) z.a0 += z.drift * dt;
     this.meter = Math.max(0, this.meter - this.drain * dt);
-    if (this.meter <= 0) this.finish(false);
+    if (this.meter <= 0) this.finish(false, 'slow');
   }
 }

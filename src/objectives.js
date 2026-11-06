@@ -9,7 +9,7 @@ const HOME_ISLE = '1,-1'; // Hollow Cay Galen, the starter treasure isle
 export const CHAPTERS = [
   { n: 'I', title: 'Sea legs', act: 'Fair winds' },
   { n: 'II', title: "Perrin's riddle", act: 'Fair winds' },
-  { n: 'III', title: 'Earn your keep', act: 'Fair winds' },
+  { n: 'III', title: 'Working waters', act: 'Fair winds' },
   { n: 'IV', title: 'Check my chart', act: 'Loose talk' },
   { n: 'V', title: 'Strange notes', act: 'Loose talk' },
   { n: 'VI', title: 'The table', act: 'Loose talk' },
@@ -65,7 +65,7 @@ export const MAIN_GOALS = [
     id: 'calm', ch: 2, title: 'Dead calm', reward: 24,
     text: 'The wind has died. Put the oars out (G) and row, then catch a fish (stop, then C).',
     intro: ['Not a breath of wind. Press G for the oars, then W to row us a little way.',
-      'Then slow right down and press C: a little meter swings, press C again to cast. Close in for small fish, far out for big ones. When it bites, press C, then strike when the needle is on green.'],
+      'Then stop and press C to fish. The rest you will see on the line.'],
     outro: ['Dinner AND exercise. A full day\'s work for a captain.', 'And listen: there is the wind again. Sails up, Captain.'],
     hints: ['Press G to put the oars out, then hold W to row. G again puts them away.', 'Stop the ship (S), press C, then C again to cast (a short cast is easier). When it bites, press C or Space; then strike (C / Space) each time the needle is on a green mark. Three misses and it is gone.'],
     check: (c) => (c.state.stats.rowed || 0) >= ((c.state.story.cal0 || {}).r || 0) + 50 && c.state.stats.fish >= ((c.state.story.cal0 || {}).f || 0) + 1,
@@ -113,7 +113,7 @@ export const MAIN_GOALS = [
     id: 'tavern', ch: 3, title: 'Meet the locals', reward: 18,
     text: 'In a harbour, open the Tavern sign: hire a hand, or sit down for a game of dice.',
     intro: ['Taverns are hiring hands these days, Captain. And somebody always wants to play dice. Either would do us good.'],
-    outro: ['Good. A crew is only as good as the company it keeps.'],
+    outro: (c) => (c.state.crew && c.state.crew.length ? ['Good. A crew is only as good as the company it keeps.'] : ['Good. Even the dice in there are friendly. Mostly.']),
     hints: ['Dock at any harbour and open the Tavern sign (3). A hired hand costs a few coins; dice cost 10 gold a game.'],
     check: (c) => c.state.crew.length >= 1 || (c.state.stats.pig || 0) >= 1,
     tab: 'tavern', mark: ['hireHand', 'playPig'],
@@ -121,7 +121,7 @@ export const MAIN_GOALS = [
   {
     id: 'perrin', ch: 3, title: 'A note from Perrin', reward: 12,
     text: 'Perrin has sent word to Harbour Tama. A letter waits at the Board.',
-    intro: ['The harbourmaster in Tama waved at us with a letter last time. Perrin again, I bet.'],
+    intro: ['Word from Tama: the harbourmaster is keeping another letter for us. Perrin again, I bet.'],
     outro: [],
     hints: ['Dock at Harbour Tama. A letter icon on the Board sign means something is waiting for you.'],
     check: (c) => !!c.state.story.perrinNote,
@@ -337,7 +337,7 @@ export class Objectives {
     const MECH = ['riddle', 'crew', 'raider', 'noammo', 'notarget', 'lowhp', 'broadside', 'stormpay', 'gate'];
     if (this.d.quiet && this.d.quiet()) return;
     if (this.d.later && !this.d.later() && !MECH.includes(key)) return;
-    if (this.mate.busy) return;   // never pile a remark onto a line she is still saying
+    if (this.mate.busy || this.pending) return;   // never pile a remark onto a line she is still saying, nor in front of the next quest
     const h = this.state.hints;
     if (h[key] || !REMARKS[key]) return;
     h[key] = true;

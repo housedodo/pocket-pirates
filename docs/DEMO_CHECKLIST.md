@@ -9,7 +9,7 @@ Build it with `python3 scripts/single.py`, ship `pocket-pirates-demo.html` (with
 - [ ] Make landfall: "Nicely done" line comes with the NEW QUEST card
 - [ ] Perrin's letter at Tama: "Take it" and the Board sign are marked on the first visit, compass dot points to Tama, Mara asks, log tab marked, riddle shown
 - [ ] Dig: probing the shore on the right shore (damp = close, stones, the tide), a wrong shore is a short dig, a failed probe can be retried
-- [ ] Spend your loot: shipyard turntable, buy/try a hull, sail, flag
+- [ ] Spend your loot: Shipwright sign opens and glows, buy an upgrade (sails, rudder, hull, cannons all show prices); the Shipyard (paint, figureheads) opens later, with passengers
 - [ ] Dead calm: oars dip into the water, wind returns afterwards
 - [ ] Beat to windward (tacking), delivery job, passenger (one is always available), charting counter (x/y)
 - [ ] Second harbour Velto reachable inside the first fog

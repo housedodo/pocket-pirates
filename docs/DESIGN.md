@@ -97,7 +97,7 @@ Other systems: **jobs** (delivery contracts from harbour boards, tracked on the 
 
 ## Quiet start, intro and quest cue (newest layer)
 - **Intro:** a new voyage plays a 9 s cinematic (`INTRO_DUR`, letterbox bars, camera eases down behind the boat; Esc/click skips). Not for continued saves, `autostart`, `nomate` or `x=`; force with `?intro=1`.
-- **Quiet start:** `onbAll()` / `onbQuiet()` / `laterOK()` in `main.js` hide HUD pieces (`ONB_KEYS`, class `.onb-off`, revealed with `.onb-pop`) and hold back everything that is not the current tutorial goal. `onbQuiet` = goals before index 2 (no discovery toasts, land ho, villager text); `onbAll` = HUD complete (goal 3+); `laterOK` = goal 7+ (dolphins, sightings, lighthouse tidbits, market/regatta, side goals). New ambient content should check `laterOK()`.
+- **Quiet start:** `onbAll()` / `onbQuiet()` / `laterOK()` in `main.js` hide HUD pieces (`ONB_KEYS`, class `.onb-off`, revealed with `.onb-pop`) and hold back everything that is not the current tutorial goal. `onbQuiet` = goals before index 2 (no discovery toasts, land ho, villager text); `onbAll` = HUD complete (goal 3+); `laterOK` = goal 9+ (dolphins, sightings, lighthouse tidbits, market/regatta, side goals). New ambient content should check `laterOK()`.
 - **Mara's pacing:** `Mate` holds a line 3.2 s + 0.065 s per character, 1.4 s between lines. Goals have `intro` (array or `function(c)`), `outro`, `waitMate`, `count` ("(x/y)"). Next goal waits a `gap` (8 s early, 5 s later).
 - **Quest cue:** `questCue` shows QUEST COMPLETE at once; `questNew` (called by Objectives when the pending goal is released, i.e. when Mara announces it) shows the NEW QUEST card, tracker entry and compass ping.
 - **Letters:** Perrin's letters are picked up from the Board sign icon (`story.letterP1/P2`), Mara asks about them and marks the log tab (`story.tabMark`).
@@ -137,46 +137,6 @@ Chosen from six playable studies (after Dredge and Undertale): the bite ring for
   close the chest is, darker and wetter = closer. Hidden stones crack the shovel (two break it) and the tide creeps up with every dig
   (10 digs, 13 for Perrin's first chest, more with shipwright upgrades and the dig buff). Fails: the tide floods the beach, or the
   shovel breaks; the crew needs about 6 s, then a fresh try with the chest somewhere else. Dread: some squares lie about the damp.
-
-## Quiet start, intro and quest cue (newest layer)
-- **Intro:** a new voyage plays a 9 s cinematic (`INTRO_DUR`, letterbox bars, camera eases down behind the boat; Esc/click skips). Not for continued saves, `autostart`, `nomate` or `x=`; force with `?intro=1`.
-- **Quiet start:** `onbAll()` / `onbQuiet()` / `laterOK()` in `main.js` hide HUD pieces (`ONB_KEYS`, class `.onb-off`, revealed with `.onb-pop`) and hold back everything that is not the current tutorial goal. `onbQuiet` = goals before index 2 (no discovery toasts, land ho, villager text); `onbAll` = HUD complete (goal 3+); `laterOK` = goal 7+ (dolphins, sightings, lighthouse tidbits, market/regatta, side goals). New ambient content should check `laterOK()`.
-- **Mara's pacing:** `Mate` holds a line 3.2 s + 0.065 s per character, 1.4 s between lines. Goals have `intro` (array or `function(c)`), `outro`, `waitMate`, `count` ("(x/y)"). Next goal waits a `gap` (8 s early, 5 s later).
-- **Quest cue:** `questCue` shows QUEST COMPLETE at once; `questNew` (called by Objectives when the pending goal is released, i.e. when Mara announces it) shows the NEW QUEST card, tracker entry and compass ping.
-- **Letters:** Perrin's letters are picked up from the Board sign icon (`story.letterP1/P2`), Mara asks about them and marks the log tab (`story.tabMark`).
-- **Demo build:** `__BUILD==='demo'` has no dread, no spoilers, a second harbour (Velto), fog gate radii in `GATES`, and ends at the next harbour after the first hut throw is remarked on; nothing unlocks afterwards.
-- **Docs for the rest:** `docs/PROGRESS.md` has a dated entry per feature; `docs/concept/` holds the design concepts.
-
-## The interface opens with the story (`src/gates.js`)
-Only what the current quest needs can be clicked. Every other harbour sign, board button and log tab is greyed out and does nothing
-(keys skip it too), and opens when the main goal that first needs it comes up; a sign that has just opened glows teal until you look
-inside once (`state.story.uiSeen`). Opening points (index in `MAIN_GOALS` = main goals done):
-
-| Opens at | What |
-|---|---|
-| 0 | Board sign, Set sail; log: Map, Goals |
-| 2 Follow the riddle | log: Journal, Riddles |
-| 3 Spend your loot | Shipwright sign; log: Ship |
-| 4 Dead calm | Market sign (sell fish, fruit) |
-| 6 Odd jobs | deliveries (Accept, Deliver, Drop off); log: Quests, Standing |
-| 7 Passengers | Take aboard; Shipyard (paint, figureheads) |
-| 8 Chart 8 islands | buy charts, ask the fishers |
-| 9 The tavern | Tavern sign (hire a hand, dice, a bed for the night), haggling, cannonballs |
-| 10 Perrin's note | rumours |
-| 12 Errands | commissions (Accept, Finish, Let go) |
-
-Story moments (a letter, a line on the pier, a pet, the grey buyer) are never locked. Once every main goal is done, everything is open.
-Change an opening point in `GATE` in gates.js.
-
-## Fishing and digging (skill, and they can fail)
-- **Fishing** (`fishing.js`): C starts a swinging power meter, C again casts. A short cast lands by the boat (small, easy fish), a
-  long one far out (bigger, rarer, harder fish, a longer wait). Hook the bite in time (C / Space), then hold / release Space to keep
-  the fish in the green zone. Now and then it RUNS: hold on through a run and the line's tension bar climbs; at the top the line
-  snaps. Fails: too slow on the bite, the fish gets away, the line snaps.
-- **Digging** (`digging.js`, treasure only): a needle swings across the gauge; E / Space swings the shovel. Green (soft sand) digs 2,
-  yellow (packed) 1, elsewhere nothing; the grey stone cracks the shovel and two cracks cave the hole in: the dig fails and the crew
-  needs about 6 s to dig out. Each swing moves sand and stone and speeds the needle up. Shipwright upgrades and the dig buff widen
-  the soft sand; the first treasure needs a little less and is a little wider.
 
 ## Quiet start
 Mara's chatter (weather, tide, market days, musings, sightings), dolphins, pets (the cat at Tama) and the optional goals wait until

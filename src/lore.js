@@ -22,7 +22,8 @@ export function makeName(rng, type, dread) {
   if (rng() < smoothstep(0.35, 0.85, dread)) {
     return `${pick(rng, ELD_PRE)} ${pick(rng, ELD1)}${pick(rng, ELD2)}`;
   }
-  return `${pick(rng, PREFIX[type])} ${pick(rng, SYL1)}${pick(rng, SYL2)}`;
+  const pre = pick(rng, PREFIX[type]), w = `${pick(rng, SYL1)}${pick(rng, SYL2)}`;
+  return `${pre} ${({ Mara: 'Maren', Tama: 'Tamar' })[w] || w}`;   // never the first mate's name, never the home harbour's
 }
 
 const GOSSIP = [

@@ -5,6 +5,7 @@
 // then digs out and you can try again (a new beach, the chest somewhere else).
 // Later in the game (dread) some squares lie about how damp they are.
 const W = 200, H = 136, CW = 22, CH = 20, OX = 12, OY = 14;
+const DAMP = ['#3a2412', '#3a2412', '#5e3c1e', '#86602e', '#b08c4c', '#efdcaa'];   // by distance to the chest: 1 soaked .. 5+ bone dry (much paler than undug sand)
 
 export class DigGame {
   constructor(cb) {
@@ -69,7 +70,7 @@ export class DigGame {
       let col = (x + y) % 2 ? '#d2b268' : '#c8a85a';
       if (c.dug) {
         if (c.stone) col = '#8a8a92';
-        else { let d = this.dist(x, y); if (c.lie) d = Math.max(0, 6 - d); const k = Math.max(0, 1 - d / 7); col = `rgb(${Math.round(200 - 140 * k)},${Math.round(168 - 122 * k)},${Math.round(92 - 62 * k)})`; }
+        else { let d = this.dist(x, y); if (c.lie) d = Math.max(0, 6 - d); col = DAMP[Math.min(DAMP.length - 1, d)]; }   // clear steps: soaked, wet, damp, dry, bone dry
       }
       px(X, Y, CW - 2, CH - 2, col);
       if (c.dug && !c.stone) px(X + 7, Y + 6, 6, 6 - (c.t > 0 ? 2 : 0), '#3a2414');

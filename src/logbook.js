@@ -310,7 +310,10 @@ export class Logbook {
     const { state } = this.d, dread = this.d.dread();
     const isl = Object.values(state.discovered);
     const types = { harbour: 'Harbours', treasure: 'Treasure isles', jungle: 'Jungles', rocky: 'Rocks', sandbar: 'Sandbars', volcano: 'Volcanoes', atoll: 'Atolls', mangrove: 'Mangroves' };
-    let html = h3(`Charted (${isl.length})`);
+    // letters and bottles first: Perrin's notes are what Mara sends you here for
+    let html = h3(`Letters and bottles (${state.notes.length})`);
+    html += state.notes.length ? state.notes.slice(-4).reverse().map((n) => `<div class="ent ${n.dark ? 'dk' : ''}"><small>“${n.text}”</small></div>`).join('') : ent('None yet', '', '', 'dim');
+    html += h3(`Charted (${isl.length})`);
     for (const [t, label] of Object.entries(types)) { const l = isl.filter((i) => i.type === t); if (l.length) html += ent(`${label} · ${l.length}`, l.slice(0, 6).map((i) => i.name).join(', ') + (l.length > 6 ? '…' : '')); }
     if (!isl.length) html += ent('Nothing yet', '', '', 'dim');
     html += this.fishLogHtml(state);
@@ -320,8 +323,6 @@ export class Logbook {
     html += state.loot.length ? state.loot.slice(-6).reverse().map((l) => ent(l.name, '', `${l.value}g`, l.dark ? 'dk' : '')).join('') + more(state.loot, 6) : ent('None yet', '', '', 'dim');
     const solved = Object.keys(state.riddles).filter((id) => state.dug.has(id));
     if (solved.length) { html += h3(`Solved riddles (${solved.length})`); for (const id of solved) { const [cx, cz] = id.split(',').map(Number), d = this.d.world.desc(cx, cz); html += ent(d ? d.name : 'A treasure isle', `\u201c${state.riddles[id]}\u201d`, pxi('check'), 'done'); } }
-    html += h3(`Bottles (${state.notes.length})`);
-    html += state.notes.length ? state.notes.slice(-4).reverse().map((n) => `<div class="ent ${n.dark ? 'dk' : ''}"><small>“${n.text}”</small></div>`).join('') : ent('None yet', '', '', 'dim');
     this.body.innerHTML = html;
   }
 

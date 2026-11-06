@@ -273,6 +273,7 @@
     #fishui { position: absolute; left: 50%; bottom: 250px; transform: translateX(-50%); width: min(460px, 92vw); text-align: center; pointer-events: auto; touch-action: none; }
     #digui { position: absolute; left: 50%; bottom: 200px; transform: translateX(-50%); width: min(460px, 92vw); text-align: center; pointer-events: auto; touch-action: none; }
     #digmsg { font-size: 15px; min-height: 44px; }
+    #diglegend { font-size: 13px; color: #b8a8f0; margin-top: 6px; }
     #digcv { display: block; width: 100%; max-width: 400px; margin: 6px auto 0; aspect-ratio: 200 / 136; image-rendering: pixelated; cursor: pointer; box-shadow: 0 -3px 0 var(--pxedge), 0 3px 0 var(--pxedge), -3px 0 0 var(--pxedge), 3px 0 0 var(--pxedge); }
     #fishmsg { font-size: 15px; } #fishmsg.blink { animation: blink .5s steps(2) infinite; color: #ffd23a; }
     #fishtrack { position: relative; height: 26px; margin: 8px 0 4px; background: #0a2a4a; border: 2px solid var(--edge); }
@@ -536,7 +537,7 @@
     <div id="combatbox" class="panel txt"><div><i class="ico hull"></i><span id="hptxt"></span></div><div class="bar"><div class="fill" id="hpfill"></div></div><div id="ammotxt"></div><div class="bar thin"><div class="fill" id="reloadfill"></div></div></div>
     <div id="ebar" class="panel txt" style="display:none"><span id="ename"></span><div class="bar"><div class="fill" id="efill"></div></div></div>
     <div id="mate" class="panel txt" style="display:none"><span class="face" id="mateface"></span><div style="flex:1"><b id="mateName">Mara, first mate</b><div id="matetxt"></div></div><span id="matemore"><i class="pxi down"></i></span></div>
-    <div id="digui" class="panel txt" style="display:none"><div id="digmsg"></div><canvas id="digcv" width="200" height="136"></canvas></div>
+    <div id="digui" class="panel txt" style="display:none"><div id="digmsg"></div><canvas id="digcv" width="200" height="136"></canvas><div id="diglegend">dark, wet sand = close · pale = far · red squares: shovel cracks · blue bar: tide</div></div>
     <div id="fishui" class="panel txt" style="display:none"><div id="fishmsg"></div><div id="fishbar" style="display:none"><div id="fishtrack"><div id="fishzone"></div><div id="fishmark"></div></div><div id="fishprogwrap"><div id="fishprog"></div></div></div><canvas id="fishring" width="120" height="120" style="display:none"></canvas></div>
     <div id="prompt" class="panel txt"><div id="prompttxt"></div><div class="bar"><i></i></div></div>
     <div id="toasts"></div>
