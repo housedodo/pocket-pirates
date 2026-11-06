@@ -65,6 +65,25 @@ The game expects `music_1`..`music_5` (one loop per dread stage, same length and
 - Export: `.ogg` (or mp3/wav), loop-tested with no click, about -14 LUFS for music; then balance in the F8 mixer and save `volumes.json`.
 - Name files exactly `music_1.ogg` ... `music_5.ogg` and drop them in `public/audio/`.
 
+## Stage 1 on open sea: one instrument per quest (`src/layers.js`)
+Six stems from one 16-bar loop at **99 BPM, 4/4 (38.79 s)**: `s1_bass`, `s1_shaperbox`, `s1_pluck`, `s1_drums`, `s1_bell`, `s1_guitar`.
+They take the place of `music_1` while they exist (delete them and `music_1` comes back).
+- **Rendered through HOIST** at FAIR WEATHER, one stem at a time, as seamless loops of exactly the same length (Chaos_Grain repo:
+  `Tests/HoistLayers.cpp`, `HoistLayers game_audio <outdir>`; less sway on bass and drums, more space on the bell). WAV masters stay in Chaos_Grain `game_audio/`.
+- **The game starts silent.** The first main quest brings in bass and shaperbox; every quest after that one more instrument
+  (the order of the last four is shuffled once per voyage). A new one fades in over about 30 s. The band grows a little louder as it fills
+  (about 12 dB under the sea with two, about 7 dB under with all six) but stays in the background.
+- **Never the same twice:** each stem swells up and down on its own every 9-27 s; once it has settled (60 s), it may drop out for
+  16-40 s and come back, as long as at least three keep playing (the bass rarely, and never while the band is small). Each wanders slowly
+  around its own place in the stereo field (bass and drums near the middle, the rest spread out).
+- **Heard over the waves:** all six share one soft low-pass (about 1.5-3 kHz) that moves with a slow swell, together with a small level
+  lift on the crest, and closes further in strong wind.
+- **Open sea only:** within about 90 units of a shore they fall back to 15%; they also fade out as dread leaves stage 1. `music_2` now
+  waits until dread is past about 0.06, so home waters stay silent until the first quest.
+- All stems start on the same sample (they wait silently until all six have loaded), so they stay locked together; the Music of the Fog
+  playback rate applies to them too. The F8 mixer has its own group for them.
+- Test: `?dev=1&musicpace=5` makes the fades and swells five times faster.
+
 ## Cue list (`public/audio/<name>.ogg`)
 **Loops** (seamless; all music loops the **same length and tempo** so cross-fades stay musical)
 | File | Notes |

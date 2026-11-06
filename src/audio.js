@@ -2,6 +2,8 @@
 // synthesised on the fly (src/synth.js), so the game always has sound.
 // See docs/AUDIO.md for the cue list and design notes.
 import { canSynth, synth } from './synth.js';
+import { SeaLayers, LAYERS } from './layers.js';
+import { smoothstep } from './util.js';
 
 // Master switch for all sound (files in public/audio/, else the synthesised fallback).
 export const AUDIO_ENABLED = !(typeof window !== 'undefined' && window.__SILENT);   // the demo ships with sound too (without the dread-stage cues, see DEMO_SKIP); the silent build sets __SILENT
@@ -14,6 +16,7 @@ export const CUES = {
     'sea', 'surf', 'wind', 'rain', 'amb_night', 'oars', 'gulls', 'coast',
     ...Array.from({ length: STAGES }, (_, i) => `amb_${i + 1}`),
     ...Array.from({ length: STAGES }, (_, i) => `music_${i + 1}`),
+    ...LAYERS,   // stage 1 on open sea: one instrument more with every quest (src/layers.js)
   ],
   oneShots: ['creak', 'splash', 'bump', 'dig', 'treasure', 'discover', 'harbour', 'ui', 'whisper', 'stage_up', 'buy', 'pause',
     'thunder', 'horn', 'gull', 'dolphin', 'whale', 'bell', 'bottle',
@@ -37,6 +40,8 @@ export class AudioBus {
     this.vol = {};           // per-cue volume (1 = as authored): public/audio/volumes.json, then the mixer's local overrides
     this.preview = null;     // mixer: a loop being auditioned on its own
     this.level = {};         // the level each loop is currently asked to play at (for the mixer's meters)
+    this.layerSeed = 0;      // the voyage's seed: the order the stage-1 instruments arrive in
+    this.layerPace = 1;      // test flag (?dev=1&musicpace=4): the stage-1 layers move this many times faster
   }
   v(key) { return this.vol[key] != null ? this.vol[key] : 1; }
   setVol(key, x) { this.vol[key] = x; }
@@ -71,6 +76,7 @@ export class AudioBus {
     this.musicBus = this.ctx.createGain();
     this.musicBus.gain.value = this.musicOn ? 0.6 : 0;
     this.musicBus.connect(this.master);
+    this.layers = new SeaLayers(this.ctx, this.musicBus); this.layers.setSeed(this.layerSeed); this.layers.pace = this.layerPace;
     this.ambBus = this.ctx.createGain(); this.ambBus.gain.value = this.userVol.amb; this.ambBus.connect(this.master);   // sea, wind, gulls, rain, ambience
     this.sfxBus = this.ctx.createGain(); this.sfxBus.gain.value = this.userVol.sfx; this.sfxBus.connect(this.master);   // one-shot effects
 
@@ -79,13 +85,14 @@ export class AudioBus {
     try { Object.assign(this.vol, JSON.parse(localStorage.getItem('pocket-pirates-mixer') || '{}')); } catch (e) { /* storage blocked */ }
     this.setMuted(this.muted); this.setMusic(this.musicOn);
     // one-shots first (cheap), then ambience, then music, yielding between cues so the game stays smooth
-    const order = [...CUES.oneShots, 'sea', 'wind', 'surf', 'rain', 'amb_night', 'oars', 'gulls', 'coast', ...CUES.loops.filter((k) => k.startsWith('amb_') && k !== 'amb_night'), ...CUES.loops.filter((k) => k.startsWith('music_'))];
+    const order = [...CUES.oneShots, 'sea', 'wind', 'surf', 'rain', 'amb_night', 'oars', 'gulls', 'coast', ...CUES.loops.filter((k) => k.startsWith('amb_') && k !== 'amb_night'), ...CUES.loops.filter((k) => k.startsWith('music_')), ...LAYERS];
     for (const k of order) {
       if (window.__BUILD === 'demo' && DEMO_SKIP.has(k)) continue;
       await this.load(k);
       if (CUES.loops.includes(k)) this.startLoop(k);
       await tick();
     }
+    this.layers.start();   // the stage-1 stems all start on the same sample (they waited silently until every one had loaded)
     this.ready = true;
   }
 
@@ -124,17 +131,18 @@ export class AudioBus {
       const env = this.ctx.createGain(); env.gain.value = 0;   // the colony comes and goes (see driftGulls)
       src.connect(lp).connect(gain).connect(env).connect(this.ambBus);
       this.tone = lp; this.gullEnv = env; this.gullOn = false; this.gullSwitch = 3 + Math.random() * 6;
-    } else src.connect(gain).connect(key.startsWith('music_') ? this.musicBus : this.ambBus);
-    src.start();
+    } else if (LAYERS.includes(key)) this.layers.add(key, src, gain);   // its own panner, the shared low-pass; started with the others
+    else src.connect(gain).connect(key.startsWith('music_') ? this.musicBus : this.ambBus);
+    if (!LAYERS.includes(key)) src.start();
     this.loops.set(key, gain);
     (this.srcs || (this.srcs = new Map())).set(key, src);
-    if (key.startsWith('music_') && this.musicRate !== 1) src.playbackRate.value = this.musicRate;
+    if ((key.startsWith('music_') || LAYERS.includes(key)) && this.musicRate !== 1) src.playbackRate.value = this.musicRate;
   }
 
   has(key) { return this.buffers.has(key); }
 
   /** every music loop at this playback rate (1 = as authored; 0.944 = one semitone flat) */
-  setMusicRate(r) { this.musicRate = r; if (this.srcs) for (const [k, src] of this.srcs) if (k.startsWith('music_')) src.playbackRate.value = r; }
+  setMusicRate(r) { this.musicRate = r; if (this.srcs) for (const [k, src] of this.srcs) if (k.startsWith('music_') || LAYERS.includes(k)) src.playbackRate.value = r; }
 
   /** a soft bell-like note (for the tune in the fog); `pan` -1..1, `vol` 0..1 */
   playTone(freq, { dur = 1.8, vol = 0.3, pan = 0 } = {}) {
@@ -150,7 +158,7 @@ export class AudioBus {
   setLoop(key, v) {
     this.level[key] = v;
     const g = this.loops.get(key);
-    v *= 1 - (key.startsWith('music_') ? this.studioDuck : this.studioDuckAmb);
+    v *= 1 - (key.startsWith('music_') || LAYERS.includes(key) ? this.studioDuck : this.studioDuckAmb);
     if (this.preview) v = key === this.preview ? 0.8 : 0;   // auditioning one loop: everything else hushes
     if (g) g.gain.setTargetAtTime(v * (this.preview && key === this.preview ? Math.max(0.5, this.v(key)) : this.v(key)), this.ctx.currentTime, this.preview ? 0.15 : 0.7);   // a soloed loop is audible even at 0%
     if (key === 'gulls' && this.tone) this.tone.frequency.setTargetAtTime(700 + 9500 * Math.min(1, v) * Math.min(1, v), this.ctx.currentTime, 0.7);
@@ -196,14 +204,20 @@ export class AudioBus {
     this.windSrc.playbackRate.setTargetAtTime(1 + 0.025 * Math.sin(t * 0.09 + 2), T, 3);
   }
 
-  /** s: { dread, speed (0..1), night (0..1), wind (0..1.3), rain, storm, surf (0..1) } */
+  /** s: { dread, speed (0..1), night (0..1), wind (0..1.3), rain, storm, surf (0..1), quests (main goals done), open (0 by the shore .. 1 open sea) } */
   update(dt, s) {
     if (!this.ctx) return;
     const dread = s.dread;
+    const layered = this.layers.ready;   // with the stage-1 stems in, they are stage 1's music (and music_1 stays silent)
     for (let i = 0; i < STAGES; i++) {
       const w = Math.max(0, 1 - Math.abs(dread * (STAGES - 1) - i)); // triangular cross-fade
       this.setLoop(`amb_${i + 1}`, w * 0.8);
-      this.setLoop(`music_${i + 1}`, w * 0.75);
+      // music_2 waits until dread is well on its way, so home waters stay silent until the first quest
+      this.setLoop(`music_${i + 1}`, i === 0 && layered ? 0 : w * 0.75 * (i === 1 && layered ? smoothstep(0.06, 0.25, dread) : 1));
+    }
+    if (layered) {
+      const lv = this.layers.update(dt, { quests: s.quests || 0, open: s.open, wind: s.wind, stage: Math.max(0, 1 - dread * (STAGES - 1)) });
+      for (const k of LAYERS) if (k in lv) this.setLoop(k, lv[k] * 1.5);   // the stems are mastered quiet (about -25 LUFS each): this puts the full band a few dB under the sea
     }
     this.setLoop('sea', 0.3 + s.speed * 0.45);
     this.driftWind(dt);

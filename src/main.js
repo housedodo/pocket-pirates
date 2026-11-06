@@ -130,6 +130,7 @@ const sky = new Sky(scene);
 const world = new World(scene, state.seed, state.dug);
 const ship = new Ship(scene);
 const audio = new AudioBus();
+audio.layerSeed = state.seed; if (DEV && params.get('musicpace')) audio.layerPace = Math.max(0.1, +params.get('musicpace') || 1);   // the stage-1 instruments arrive in a per-voyage order
 sfx.play = (k, o) => audio.play(k, o);
 for (const ev of ['pointerdown', 'keydown']) window.addEventListener(ev, () => { if (audio.ctx && audio.ctx.state === 'suspended' && modal !== 'pause') audio.ctx.resume(); });   // browsers start audio muted until a click or key
 audio.muted = settings.muted; audio.userVol = { music: 1, amb: 1, sfx: 1, ...(settings.vol || {}) };
@@ -1215,6 +1216,11 @@ function coastLevel(moored, night) {
   k = Math.max(k * k * 0.75, moored ? 0.85 : 0);
   return k * (1 - night * 0.5) * (1 - weather.storm * 0.8) * (1 - smoothstep(0.25, 0.4, dread));
 }
+// out on open sea (1) or close to an island (0): the stage-1 music layers fall back near land
+function openSea() {
+  const near = world.nearest(ship.pos.x, ship.pos.z, 140);
+  return near ? smoothstep(20, 90, world.lastEdge) : 1;
+}
 function lighthouseTidbit() {
   state.story.lh = state.story.lh || {};
   for (const isl of world.islands.values()) {
@@ -2224,7 +2230,8 @@ function frame() {
   audio.setLoop('coast', coastLevel(ashore, tod.night));
   if (live) {
     const near = world.nearest(ship.pos.x, ship.pos.z, 45);
-    audio.update(dt, { dread, speed: ship.speed / 11, night: tod.night, wind: wind.strength, rain: weather.rain, storm: weather.storm, surf: near ? clamp(1 - world.lastEdge / 45, 0, 1) : 0, rowing: ship.rowIn > 0, gulls: gullLevel(tod.night) });
+    audio.update(dt, { dread, speed: ship.speed / 11, night: tod.night, wind: wind.strength, rain: weather.rain, storm: weather.storm, surf: near ? clamp(1 - world.lastEdge / 45, 0, 1) : 0, rowing: ship.rowIn > 0, gulls: gullLevel(tod.night),
+      quests: state.goals.i, open: openSea() });   // after `surf`: openSea moves world.lastEdge
     const hour = Math.floor(state.time * 24);
     if (hour !== lastHour) { lastHour = hour; if (world.nearest(ship.pos.x, ship.pos.z, 80, ['harbour'])) audio.play('bell', { vol: 0.6 }); }
   }
