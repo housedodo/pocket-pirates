@@ -72,7 +72,7 @@ export class Ocean {
                 vWP = wp0.xyz + vec3(0.0, wh, 0.0);`,
       },
       fragmentColor: {
-        head: `varying vec3 vWP; uniform vec3 uDeep; uniform vec3 uShallow; uniform vec3 uSunDir; uniform vec3 uSunColor; uniform float uWave; uniform float uTime;
+        head: `varying vec3 vWP; uniform vec3 uDeep; uniform vec3 uShallow; uniform vec3 uSunDir; uniform vec3 uSunColor; uniform float uWave; uniform float uTime; uniform vec3 uMurk;
           ${GLSL_SHORE}
           float rnd(vec2 q) { return fract(sin(dot(q, vec2(12.9898, 78.233))) * 43758.5453); }
           float vn(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f); return mix(mix(rnd(i), rnd(i + vec2(1.0, 0.0)), f.x), mix(rnd(i + vec2(0.0, 1.0)), rnd(i + vec2(1.0, 1.0)), f.x), f.y); }`,
@@ -105,6 +105,16 @@ export class Ocean {
           vec3 shallowTint = mix(uShallow * 1.12, vec3(0.72, 0.95, 0.82), 0.35) * uLight;
           float band = floor(shore * 4.0 + 0.5) / 4.0;                                     // banded like everything else
           outc = mix(outc, shallowTint, band * 0.6);
+          // round the hut's island: no turquoise. Dark, still, murky water, olive-black with drifting scum, the light dying in it;
+          // it thickens towards the shore and fades out over about 90 units, in bands like the shallows
+          float mk = 1.0 - smoothstep(0.0, 90.0, length(vWP.xz - uMurk.xy) - uMurk.z);
+          if (mk > 0.0) {
+            mk = floor(mk * 5.0 + 0.5) / 5.0;
+            vec3 murk = mix(vec3(0.045, 0.06, 0.055), vec3(0.13, 0.15, 0.1), tone * 0.55 + crest * 0.25);   // facets barely lit
+            float scum = step(0.64, vn(floor(vWP.xz * 0.9) / 0.9 * 0.11 + vec2(uTime * 0.012, -uTime * 0.009)));   // slow drifting scum
+            murk = mix(murk, vec3(0.22, 0.22, 0.13), scum * 0.45 * smoothstep(0.3, 1.0, mk));
+            outc = mix(outc, murk * uLight, mk * 0.92);
+          }
           diffuseColor.rgb = outc;`,
       },
     });

@@ -1219,10 +1219,10 @@ export class Island {
     this.bright = add(B, mats.props);
     this.darkMesh = add(D, mats.props);
 
-    const sh = new THREE.Mesh(buildRing(d, 0.9, 1.65, 0.22, 0.8, 0, 30, 3), mats.shallow);
+    const sh = new THREE.Mesh(buildRing(d, 0.9, 1.65, 0.22, 0.8, 0, 30, 3), d.blight ? mats.murkShallow : mats.shallow);
     sh.renderOrder = 1; this.group.add(sh); this.geos.push(sh.geometry);
     if (d.type === 'atoll') { const lg = new THREE.Mesh(buildRing(d, 0.0, 0.56, 0.24, 0.9, 0.9, 30, 3), mats.shallow); lg.renderOrder = 1; this.group.add(lg); this.geos.push(lg.geometry); }
-    const fm = new THREE.Mesh(buildRing(d, 0.97, 1.07, 0.3, 0.9, 0.0, 30, 2), mats.foam);
+    const fm = new THREE.Mesh(buildRing(d, 0.97, 1.07, 0.3, 0.9, 0.0, 30, 2), d.blight ? mats.murkFoam : mats.foam);
     fm.renderOrder = 2; this.group.add(fm); this.geos.push(fm.geometry);
 
     if (d.type === 'treasure' && d.marker) {

@@ -77,6 +77,8 @@ purple and magenta cosmic horror as dread rises.
   chimney, a low doorway hung with a hide, small sick-purple windows, charms of bone, herbs and a glowing jar from the eaves, a
   lantern on a crooked post, skulls on poles along the path, a ring of leaning stones round black ground behind it. The chart
   draws it the same: a black hut under a bent hat, one purple window.
+  The water round it is dark and murky (`uMurk` in ocean.js): no turquoise shallows, olive-black water with drifting scum that
+  thickens towards the shore and fades back to the open sea over about 90 units; its shallows ring is black-green and its foam a dull grey scum.
 - Dread is shown by changing colours, not by adding UI. Five stages: Sunny, Off, Wrong, Eerie, Cosmic
   (`src/palette.js`).
 

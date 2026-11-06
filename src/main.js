@@ -129,6 +129,7 @@ scene.add(ocean.mesh);
 const sky = new Sky(scene);
 const world = new World(scene, state.seed, state.dug);
 const ship = new Ship(scene);
+{ const hd = world.hutDesc; if (hd) U.uMurk.value.set(hd.x, hd.z, hd.r); }   // the dark water round the hut's island (ocean.js)
 const audio = new AudioBus();
 audio.layerSeed = state.seed; if (DEV && params.get('musicpace')) audio.layerPace = Math.max(0.1, +params.get('musicpace') || 1);   // the stage-1 instruments arrive in a per-voyage order
 sfx.play = (k, o) => audio.play(k, o);
