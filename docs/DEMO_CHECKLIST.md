@@ -7,18 +7,20 @@ Build it with `python3 scripts/single.py`, ship `pocket-pirates-demo.html` (with
 - [ ] First minute: only ship, tracker, one Mara line, one control hint
 - [ ] Sail goal: Mara explains steering and wind ring, nothing arrives too fast
 - [ ] Make landfall: "Nicely done" line comes with the NEW QUEST card
-- [ ] Perrin's letter at Tama: pick it up, Mara asks, log tab marked, riddle shown
+- [ ] Perrin's letter at Tama: "Take it" and the Board sign are marked on the first visit, compass dot points to Tama, Mara asks, log tab marked, riddle shown
 - [ ] Dig: find the treasure, treasure die roll works
 - [ ] Spend your loot: shipyard turntable, buy/try a hull, sail, flag
-- [ ] Dead calm: oars, wind returns afterwards
+- [ ] Dead calm: oars dip into the water, wind returns afterwards
 - [ ] Beat to windward (tacking), delivery job, passenger (one is always available), charting counter (x/y)
 - [ ] Second harbour Velto reachable inside the first fog
-- [ ] Tavern: dice game, rumour, crew hire, sleeping a night
+- [ ] Tavern: dice game, rumour, crew hire, a bed (optional now, no quest)
 - [ ] Fishing: cast, bite, reel, fisherman's log, "ask the fishers"
 - [ ] Raider: fights are not constant, escape works, start ammo 8, ammo only bought
 - [ ] Sea encounter card appears at least once and can be skipped
 - [ ] Companions: cat at Tama, gull at Velto (optional, ignorable)
-- [ ] Dark hut: found via goal chain, first throw works, someone comments at the next harbour
+- [ ] Dark hut: found via goal chain; on the chart it opens framed and is easy to see; the island is dark, the water round it murky; first throw works, someone comments at the next harbour
+- [ ] Interface: at each step only what the quest needs can be clicked; the rest is grey and opens quest by quest (new signs glow teal)
+- [ ] Passengers: "Take aboard" is always marked
 - [ ] End card appears ("To be continued"), "Keep sailing" opens nothing new, deliveries etc. still work
 - [ ] Nothing about dread, the Eye or later story is visible anywhere
 
@@ -47,8 +49,11 @@ Build it with `python3 scripts/single.py`, ship `pocket-pirates-demo.html` (with
 
 ## 5. Sound (decide now)
 - [ ] The demo ships with sound (decided). Final mix done in the dev build (F8), `volumes.json` saved, demo rebuilt
-- [ ] Listen through the whole demo once with headphones: loops are seamless, no clipping, gull/coast/wind are not annoying
-- [ ] Sound and Music toggles and the three volume sliders (Music, Sea/wind/gulls, Effects) in the pause menu work, and are remembered; first click starts audio in the itch embed
+- [ ] Listen through the whole demo once with headphones: loops are seamless, no clipping, gulls/coast/rain are not annoying
+- [ ] Music: silent until the first quest, then the band builds up one instrument per quest, plays in changing line-ups, the two guitar arps never overlap; muffled tune in taverns; battle layer during a raider fight
+- [ ] Weather: light rain and a storm look and sound clearly different; distant thunder now and then in strong rain
+- [ ] Voice blips are soft enough not to notice after a minute
+- [ ] Sound and Music toggles and the three volume sliders (Music, Sea/rain/gulls, Effects) in the pause menu work, and are remembered; first click starts audio in the itch embed
 - [ ] Say "sound on" on the page
 
 ## 6. Naming and branding

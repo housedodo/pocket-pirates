@@ -1,14 +1,15 @@
 # Audio guide
 
-**Sound is on.** `public/audio/` holds a **placeholder `.ogg` for every cue below**, rendered from the game's own
-synthesiser (`src/synth.js`). To use your own sound, overwrite the file with the same name: it plays in the game
-at once, no code change. Delete a file and the game falls back to the synthesised version of that cue.
-`python3 scripts/single.py` builds two single-file games: `pocket-pirates-dev.html` carries every file in `public/audio/`
+**Sound is on.** The game loads only the cues listed in `CUES` (`src/audio.js`): the stage-1 band and battle layer, the tavern,
+`music_3`, the recorded sea, rain, storm, thunder and forest, the coast and gulls, and thirteen interface effects (still the
+synthesised placeholders). Everything else the game asks for is silent on purpose (see "One-shots" below). To use your own sound,
+overwrite the file with the same name; to bring a sound back, add its name to `CUES` and its file to `public/audio/`.
+`python3 scripts/single.py` builds the single-file games: `pocket-pirates-dev.html` carries every file in `public/audio/` and `volumes.json` (plus the mixer on F8, the sound studio on F9, and the test keys F6 weather / F7 finish the quest); `pocket-pirates-demo.html` carries the same sounds without `music_3` (no dread in the demo, see `DEMO_SKIP` in `audio.js` and `scripts/single.py`) and has no mixer; `pocket-pirates-demo-silent.html` has no sound at all. Names must match exactly; `.ogg` preferred (`.mp3`/`.wav` also work).
 and `volumes.json` inside it (plus the mixer on F8); `pocket-pirates-demo.html` carries the same sounds without the dread-stage cues (`music_3..5`, `amb_3..5`, `whisper`, `stage_up`, see `DEMO_SKIP` in `audio.js` and `scripts/single.py`) and has no mixer; it has the pause menu Sound and Music toggles. Names must match exactly; `.ogg` preferred (`.mp3`/`.wav` also work).
 The pause menu has Sound and Music toggles.
 
 ## Player volume sliders (pause menu)
-The pause menu stays short (Resume, Ask Mara, Controls, Fullscreen, Captain's log, Sound and music, New voyage). **Sound and music** opens its own panel with the Sound and Music on/off toggles and three sliders: **Music**, **Sea, wind, gulls** (every loop that is not music: sea, rain, gulls, coast, forest) and **Effects** (one-shot sounds). They are 0-100%, saved in the player's settings, and multiply the mix made in the dev mixer (`AudioBus.userVol`, `ambBus`, `sfxBus`, `musicBus`). The sound plays for a moment while a slider is dragged so the level can be heard even though the game is paused.
+The pause menu stays short (Resume, Ask Mara, Controls, Fullscreen, Captain's log, Sound and music, New voyage). **Sound and music** opens its own panel with the Sound and Music on/off toggles and three sliders: **Music**, **Sea, rain, gulls** (every loop that is not music: sea, rain, gulls, coast, forest) and **Effects** (one-shot sounds). They are 0-100%, saved in the player's settings, and multiply the mix made in the dev mixer (`AudioBus.userVol`, `ambBus`, `sfxBus`, `musicBus`). The sound plays for a moment while a slider is dragged so the level can be heard even though the game is paused.
 
 ## The sound mixer (testing volumes in the game)
 Open the game with `?dev=1` (e.g. `http://localhost:5173/?dev=1`), then press **F8** (or Pause > Sound mixer).
@@ -40,7 +41,7 @@ getting stranger is scarier than new horror music.
 | 5 Cosmic | Sub bass (30-45 Hz), reversed/pitched-down shanty, endless descending glissando | deep "whale-like" tones, static, whispers | distorted, pitch-dropped |
 
 ## Instruments and FL Studio (soundtrack plan)
-The game expects `music_1`..`music_5` (one loop per dread stage, same length and tempo, cross-faded). Build the dark loops from the **same instruments** as the bright one, detuned and degraded, so the world sounds like it is forgetting the tune.
+(Composer brief from before the stage-1 stems; kept for the later stages.) The game now plays the stage-1 band for the bright sea and `music_3` for the middle; the placeholder `music_1/2/4/5` are gone. New loops for the deep stages would go in as `music_4` / `music_5` (one loop per dread stage, same tempo, cross-faded). Build the dark loops from the **same instruments** as the bright one, detuned and degraded, so the world sounds like it is forgetting the tune.
 
 ### By stage
 | Stage | Instruments |
