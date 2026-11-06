@@ -9,12 +9,15 @@
 // the music reached you over the waves. Right by a shore they ease down to 40%.
 import { mulberry32 } from './util.js';
 
-export const LAYERS = ['s1_bass', 's1_shaperbox', 's1_pluck', 's1_drums', 's1_bell', 's1_guitar'];
+// the band (one more per quest) and the battle layer (Raiders, up a semitone to F minor, 8 bars twice): it joins the main theme
+// while a fight with raiders is on (cannons out), whatever the quests
+const BAND = ['s1_bass', 's1_shaperbox', 's1_pluck', 's1_drums', 's1_bell', 's1_guitar'], BATTLE = 's1_raiders';
+export const LAYERS = [...BAND, BATTLE];
 const FIRST = ['s1_bass', 's1_shaperbox'];   // the first quest brings these two in together
 // [home pan -1..1, how far it wanders, how fast]: bass and drums stay near the middle, the rest spread out
 const PLACE = {
   s1_bass: [0, 0.1, 0.031], s1_shaperbox: [-0.3, 0.32, 0.023], s1_pluck: [0.42, 0.3, 0.037],
-  s1_drums: [-0.08, 0.14, 0.019], s1_bell: [0.58, 0.28, 0.027], s1_guitar: [-0.52, 0.28, 0.041],
+  s1_drums: [-0.08, 0.14, 0.019], s1_bell: [0.58, 0.28, 0.027], s1_guitar: [-0.52, 0.28, 0.041], s1_raiders: [0.1, 0.18, 0.033],
 };
 const FADE_IN = 30;      // seconds for a new instrument to come all the way in
 const PHRASE = 4 * 4 * 60 / 99;   // 4 bars at 99 BPM (9.7 s): scenes change on a phrase
@@ -31,14 +34,14 @@ export class SeaLayers {
     this.t = 0; this.bg = 0; this.open = 1;
     this.pace = 1;           // test flag (?dev=1&musicpace=4): everything moves this many times faster
     this.rnd = Math.random;
-    this.order = [...LAYERS];
+    this.order = [...BAND]; this.battle = 0;
     this.scene = new Set(); this.sceneFull = true; this.sceneLeft = 0; this.recent = []; this.lastN = 0; this.t0 = 0; this.phrase = -1; this.smalls = 0;
   }
   get ready() { return this.srcs.size > 0; }
 
   /** the order the later instruments arrive in: shuffled once per voyage, bass and shaperbox always first */
   setSeed(seed) {
-    const r = mulberry32((seed ^ 0x51ea) >>> 0), rest = LAYERS.filter((k) => !FIRST.includes(k));
+    const r = mulberry32((seed ^ 0x51ea) >>> 0), rest = BAND.filter((k) => !FIRST.includes(k));
     for (let i = rest.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [rest[i], rest[j]] = [rest[j], rest[i]]; }
     this.order = [...FIRST, ...rest];
   }
@@ -73,11 +76,11 @@ export class SeaLayers {
   setRate(r) { for (const s of this.srcs.values()) s.playbackRate.value = r; }
 
   /** how many instruments the quests have brought in so far */
-  static count(quests) { return quests >= 1 ? Math.min(LAYERS.length, quests + 1) : 0; }
+  static count(quests) { return quests >= 1 ? Math.min(BAND.length, quests + 1) : 0; }
 
   /**
    * One frame. s: { quests (main goals done), open (0 by the shore .. 1 open sea), wind (0..1.3), stage (how much of
-   * dread stage 1 is left, 0..1) }. Returns the level (0..1) each stem should play at.
+   * dread stage 1 is left, 0..1), battle (a fight with raiders is on) }. Returns the level (0..1) each stem should play at.
    */
   update(dt, s) {
     const d = dt * this.pace, T = this.ctx.currentTime;
@@ -90,14 +93,17 @@ export class SeaLayers {
     const wave = 0.5 + 0.3 * Math.sin(this.t * 0.61) + 0.2 * Math.sin(this.t * 0.37 + 1.3);
     this.bus.gain.setTargetAtTime(0.82 + 0.18 * wave, T, 0.4);
     const wind = Math.min(1, s.wind || 0);
-    this.lp.frequency.setTargetAtTime(Math.max(800, (1500 + 1500 * wave) * (1 - 0.35 * wind)), T, 0.5);
+    // a fight: the battle layer comes in within a few seconds and lingers after; the filter opens a little (still muffled)
+    this.battle += ((s.battle ? 1 : 0) - this.battle) * (1 - Math.exp(-d / (s.battle ? 2.5 : 7)));
+    this.lp.frequency.setTargetAtTime(Math.max(800, (1500 + 1500 * wave) * (1 - 0.35 * wind) * (1 + 0.35 * this.battle)), T, 0.5);
 
     // scenes: a newcomer brings a full-band scene (long enough to hear it arrive); otherwise a new scene when the last has run out,
     // on the next phrase
     this.sceneLeft -= d;
     const phrase = Math.floor((T - this.t0) / PHRASE), onPhrase = phrase !== this.phrase;
     this.phrase = phrase;
-    if (on.length !== this.lastN) {
+    if (this.battle > 0.5 && on.length && !this.sceneFull) { this.scene = new Set(on); this.sceneFull = true; this.sceneLeft = 2 * PHRASE; this.smalls = 0; }   // in a fight the whole band plays
+    else if (on.length !== this.lastN) {
       this.lastN = on.length;
       this.scene = new Set(on); this.sceneFull = true; this.sceneLeft = on.length ? FADE_IN + 3 * PHRASE : 0; this.smalls = 0;
     } else if (on.length && this.sceneLeft <= 0 && (onPhrase || this.pace !== 1)) {
@@ -111,6 +117,12 @@ export class SeaLayers {
       const st = this.st.get(k);
       if (!st) continue;
       if (on.includes(k)) st.intro = Math.min(1, st.intro + d / FADE_IN);
+      if (k === BATTLE) {   // not part of the scenes: only the fight brings it in, on top of whatever the band plays
+        const [home, wander, sp] = PLACE[k];
+        this.pans.get(k).pan.setTargetAtTime(home + wander * Math.sin(this.t * sp * 6.283 + st.ph), T, 1);
+        out[k] = smooth(this.battle) * 0.7 * Math.max(0.5, s.stage ?? 1) * (0.4 + 0.6 * this.open);
+        continue;
+      }
       // in or out of the scene: a few seconds to come and go (a small line-up plays a little louder than one voice in the full band)
       const inT = this.scene.has(k) ? (this.sceneFull ? 1 : 1.25) : 0;
       st.inScene += (inT - st.inScene) * (1 - Math.exp(-d / (inT > st.inScene ? 2.5 : 3.5)));

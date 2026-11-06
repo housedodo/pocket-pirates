@@ -87,6 +87,18 @@ They are stage 1's music (the old placeholder `music_1` is gone).
   playback rate applies to them too. The F8 mixer has its own group for them.
 - Test: `?dev=1&musicpace=5` makes the fades and swells five times faster.
 
+## Battle (`s1_raiders`, in `src/layers.js`)
+`Raiders.wav` (8 bars at 99 BPM) was in **E minor**, a semitone under the stage-1 band (**F minor**): it was shifted up one
+semitone (Rubber Band, tempo unchanged), played twice to the band's 16-bar length and rendered through HOIST like the other stems
+(`Raiders_F.wav` in Chaos_Grain `game_audio/`). It joins the main theme while a fight is on: cannons unlocked and a raider engaged
+or within ~110 units (`inBattle()` in main.js). It comes in within a few seconds, the whole band plays for the fight (no small
+line-ups), the low-pass opens a little, and after the fight it lingers and fades over 10-15 s. Same panning, swell and filter as the band.
+
+## Voice blips (`AudioBus.blip`)
+Very soft blips while words type out: every third letter of Mara's lines and of villagers' greetings, a 70 ms rounded,
+low-passed tone (Mara ~290 Hz, villagers ~210 Hz, dark lines lower and duller), a little pitch wobble, never closer than 60 ms.
+Peaks about -40 dBFS at the output, under the music. Synthesised live (no file); follows the Effects slider; `blip` in volumes.json scales it.
+
 ## The tavern (`tav_*`, `Tavern` in `src/layers.js`)
 Four stems from the same session (99 BPM, 38.79 s): `tav_bass`, `tav_shaperbox`, `tav_pluck` (pluck stab), `tav_drums`, rendered
 through HOIST gently (`HoistLayers game_audio/tavern <outdir> tavern` in Chaos_Grain; WAV masters in `game_audio/tavern/`).

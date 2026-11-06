@@ -515,3 +515,6 @@ Built and working in the dev build; switched off when `window.__BUILD === 'demo'
 - **Fewer wrecks:** half-sunk wrecks are a rare find now (8% of open sea cells, was 20%).
 - **The dark hut is a witch's hut on a blighted island:** the hut's island is bigger and ragged, with black sand, dead grass, bare dead trees, pale fungus, stakes in the shallows and crows; the hut is round, on crooked stilts, under a bent witch's-hat thatch with charms hanging from the eaves (STYLE.md). The chart icon matches.
 - **Murky water round the hut:** the sea round the hut's island is olive-black with drifting scum instead of turquoise shallows, fading out over about 90 units (`uMurk`, `mats.murkShallow` / `murkFoam`).
+- **Battle music:** the Raiders theme (moved up a semitone to F minor to fit the band, through HOIST) joins the main theme while a fight with raiders is on; the whole band plays and the filter opens a little.
+- **Voice blips:** very soft blips while Mara and villagers talk.
+- **Villager portraits at 16x16:** every speaker has a detailed face of their own (`src/faces.js`).

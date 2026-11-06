@@ -266,6 +266,7 @@ export class Mate {
     this.more = document.getElementById('matemore');
     this.queue = []; this.cur = null; this.shown = 0; this.acc = 0; this.wait = -1; this.pause = 0; this.pin = false;
     this.history = [];
+    this.onBlip = null;   // (dark, guest) a soft voice blip every few letters (main.js plugs in audio.blip)
     this.el.addEventListener('pointerdown', () => this.skip());
   }
   say(text, dark = false, who = null) { this.queue.push({ text, dark, who }); }
@@ -300,6 +301,8 @@ export class Mate {
         const delay = ',;:'.includes(prev) ? 0.16 : '.!?'.includes(prev) ? 0.34 : 0.032;
         if (this.acc < delay || this.shown >= len) break;
         this.acc -= delay; this.shown++;
+        const ch = this.cur.text[this.shown - 1];
+        if (this.onBlip && this.shown % 3 === 1 && /[A-Za-z0-9]/.test(ch)) this.onBlip(this.cur.dark, !!this.cur.who);
       }
       this.render();
       // Undertale-style: the portrait bobs and tilts while she talks, a little jolt on each few letters

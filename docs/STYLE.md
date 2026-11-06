@@ -13,7 +13,7 @@ purple and magenta cosmic horror as dread rises.
 - The 3D world is rendered to a low-res target (about 320x180) and scaled up with nearest-neighbour
   filtering. **One world pixel is about 4 CSS pixels at 1280x720.** UI pixel art should use the same size.
 - Any canvas made for the UI (wind meter, icons, book cover, pages, die) is drawn **small** and shown with
-  `image-rendering: pixelated`. Examples: wind meter 36x36 shown at 144px, Mara's anchor 8x8 shown at 32px,
+  `image-rendering: pixelated`. Examples: wind meter 36x36 shown at 144px, Mara's anchor 8x8 shown at 32px, villager portraits 16x16 shown at 64px,
   HUD icons 7x7 shown at 21px, book cover 150x90, pages 160x90, the die rendered at 72x72 and shown at 216px.
 - No smooth gradients on UI pieces. Shading uses an **ordered 4x4 Bayer dither** between 3-4 palette
   colours (`BAYER = [0,8,2,10,12,4,14,6,3,11,1,9,15,7,13,5]`).
@@ -79,6 +79,11 @@ purple and magenta cosmic horror as dread rises.
   draws it the same: a black hut under a bent hat, one purple window.
   The water round it is dark and murky (`uMurk` in ocean.js): no turquoise shallows, olive-black water with drifting scum that
   thickens towards the shore and fades back to the open sea over about 90 units; its shallows ring is black-green and its foam a dull grey scum.
+- **Villager portraits** (`src/faces.js`): 16x16, hand-drawn per speaker: a dark outline, skin with a shaded and a lit side,
+  cheeks, eyes with whites, brows, a nose shadow, a mouth, and their own hair, hat, beard and clothes (the fisher's knit cap and
+  pipe, the net-mender's bun and spectacles, the fish-stall woman's headscarf and gold earrings, the harbourmaster's peaked cap and
+  badge, the docker's bandana, the old salt's white beard and eye patch, the lamplighter's hood and lantern, the watchman's hat and
+  lantern). "Someone on the pier" is a black shape with two pale eyes, one a pixel lower than the other.
 - Dread is shown by changing colours, not by adding UI. Five stages: Sunny, Off, Wrong, Eerie, Cosmic
   (`src/palette.js`).
 
@@ -104,7 +109,7 @@ purple and magenta cosmic horror as dread rises.
   the top with the last villager line under it in pale rose. Five wooden signposts along the bottom: Board, Market,
   Tavern, Shipwright, Set sail (keys 1-4, E; arrows step). A red number on a sign = something waits there. The chosen
   place opens as one panel on the right; messages stack on the left under the name, never covered. The sailing HUD
-  fades out ashore. A villager's line (Mara-style box, 8x8 portrait) still comes first when there is one.
+  fades out ashore. A villager's line (Mara-style box, 16x16 portrait) still comes first when there is one.
 
 - Dice: the Lady's d20 is yellowed bone with a dark red 1. The check die starts pale bone and darkens in four steps to
   stained bone with a blood-dark 1; same carved numbers, same pixel texture. Never a new colour, only age.

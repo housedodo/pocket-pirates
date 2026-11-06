@@ -155,6 +155,25 @@ export class AudioBus {
     this.seaMusic.gain.setTargetAtTime(1 - 0.9 * t.presence, this.ctx.currentTime, 0.5);   // the sea's music steps aside
   }
 
+  /**
+   * A very soft voice blip while somebody's words type out (every third letter): a short, rounded, low-passed tone with a
+   * little pitch wobble, quiet enough to sit under everything (peaks about -40 dBFS at the output, under the music). Mara a little higher; guests lower; dark lines
+   * lower and duller. Follows the Effects slider.
+   */
+  blip(dark = false, guest = false) {
+    if (!this.ctx || this.muted || this.ctx.state !== 'running') return;
+    const t = this.ctx.currentTime;
+    if (t - (this.lastBlip || 0) < 0.06) return;   // never a rattle
+    this.lastBlip = t;
+    const base = (guest ? 210 : 290) * (dark ? 0.78 : 1), f = base * (1 + (Math.random() - 0.5) * 0.12);
+    const o = this.ctx.createOscillator(), g = this.ctx.createGain(), lp = this.ctx.createBiquadFilter();
+    o.type = 'triangle'; o.frequency.setValueAtTime(f, t); o.frequency.exponentialRampToValueAtTime(f * 0.94, t + 0.06);
+    lp.type = 'lowpass'; lp.frequency.value = dark ? 900 : 1400; lp.Q.value = 0.3;
+    const vol = 0.012 * this.v('blip');
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.008); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.07);
+    o.connect(lp).connect(g).connect(this.sfxBus || this.master); o.start(t); o.stop(t + 0.09);
+  }
+
   /** a soft bell-like note (for the tune in the fog); `pan` -1..1, `vol` 0..1 */
   playTone(freq, { dur = 1.8, vol = 0.3, pan = 0 } = {}) {
     if (!this.ctx || this.muted || this.ctx.state !== 'running') return;
@@ -241,7 +260,7 @@ export class AudioBus {
     this.setLoop('music_3', Math.max(0, 1 - Math.abs(dread * (STAGES - 1) - 2)) * 0.75);   // the "Dread" piece, centred on dread 0.5
     if (layered) {
       // the stage-1 band carries the bright half of the sea (dread up to about 0.3, ~660 units from Tama), then hands over to music_3
-      const lv = this.layers.update(dt, { quests: s.quests || 0, open: s.open, wind: s.wind, stage: 1 - smoothstep(0.3, 0.5, dread) });
+      const lv = this.layers.update(dt, { quests: s.quests || 0, open: s.open, wind: s.wind, stage: 1 - smoothstep(0.3, 0.5, dread), battle: !!s.battle });
       for (const k of LAYERS) if (k in lv) this.setLoop(k, lv[k] * 1.5);   // the stems are mastered quiet (about -25 LUFS each): this puts the full band a few dB under the sea
     }
     this.setLoop('sea', 0.3 + s.speed * 0.45);

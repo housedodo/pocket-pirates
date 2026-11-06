@@ -299,6 +299,7 @@ const objectives = new Objectives({ state, world, ship, toast: (t, d) => toast(t
   chapterCard: (ch) => { $('qbanner').classList.remove('show'); const el = $('landho'); el.querySelector('b').textContent = `CHAPTER ${ch.n}`; el.querySelector('span').textContent = ch.title; el.querySelector('small').textContent = ch.act; el.classList.remove('show'); void el.offsetWidth; el.classList.add('show'); audio.play('chapter'); },
   questCue: (done, next) => questCue(done, next), questNew: (next, withCard) => questNew(next, withCard),
   onStep: (done, next) => { if (done.id === 'gossip') revealHut(); } });
+objectives.mate.onBlip = (dark, guest) => audio.blip(dark, guest);   // very soft voice blips while she talks
 const abyss = new Abyss({ scene, ship, world, sky, settings, state, mate: objectives.mate, toast: (t, d, ms) => toast(t, d, ms), fade: $('fade'),
   onEnding: () => {
     forced = null; dread = 0.02; abyss.k = 0;
@@ -1111,6 +1112,7 @@ function showGreeting(d, say) {
   $('grTxt').textContent = ''; $('grMore').classList.remove('on');
   greetNow = { say, shown: 0, timer: setInterval(() => {
     const t = greetNow.say.text; greetNow.shown++; greetText(t.slice(0, greetNow.shown), say.slow);
+    if (greetNow.shown % 3 === 1 && /[A-Za-z0-9]/.test(t[greetNow.shown - 1] || '')) audio.blip(!!say.dark, true);   // the villager's voice, softly
     if (greetNow.shown >= t.length) { clearInterval(greetNow.timer); greetNow.timer = null; $('grMore').classList.add('on'); }
   }, say.slow ? 1300 : say.slowWord ? 320 : 34) };   // the stare: one dot at a time, slowly
 }
@@ -1244,6 +1246,10 @@ function coastLevel(moored, night) {
 // islands); when they exist, mark them with desc.forest and this picks them up
 function forestLevel(ashore) {
   return ashore && harbourIsl && harbourIsl.desc && harbourIsl.desc.forest ? 1 : 0;
+}
+// a fight with raiders is on: cannons are yours and a raider is engaged or close (the battle layer joins the music)
+function inBattle() {
+  return unlocked(state, 'cannons') && traffic.ships.some((s) => s.hostile && !s.sinking && s.hp > 0 && (s.engaged || Math.hypot(s.x - ship.pos.x, s.z - ship.pos.z) < 110));
 }
 // out on open sea (1) or close to an island (0): the stage-1 music layers fall back near land
 function openSea() {
@@ -2263,7 +2269,7 @@ function frame() {
   audio.tavernUpdate(rawDt, modal === 'pig' || (modal === 'harbour' && hbTab === 'tavern') ? 1 : ashore ? 0.35 : 0);   // tavern music through the wall
   if (live) {
     audio.update(dt, { dread, speed: ship.speed / 11, night: tod.night, wind: wind.strength, rain: weather.rain, storm: weather.storm, gulls: gullLevel(tod.night),
-      quests: state.goals.i, open: openSea() });
+      quests: state.goals.i, open: openSea(), battle: inBattle() });
     const hour = Math.floor(state.time * 24);
     if (hour !== lastHour) { lastHour = hour; if (world.nearest(ship.pos.x, ship.pos.z, 80, ['harbour'])) audio.play('bell', { vol: 0.6 }); }
   }
