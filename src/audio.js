@@ -8,13 +8,12 @@ import { smoothstep } from './util.js';
 // Master switch for all sound (files in public/audio/, else the synthesised fallback).
 export const AUDIO_ENABLED = !(typeof window !== 'undefined' && window.__SILENT);   // the demo ships with sound too (without the dread-stage cues, see DEMO_SKIP); the silent build sets __SILENT
 // cues the demo never plays (no dread there): left out of the demo file and never loaded, to keep it small and spoiler-free
-const DEMO_SKIP = new Set(['music_3', 'amb_3', 'amb_4', 'amb_5']);
+const DEMO_SKIP = new Set(['music_3']);
 
 const STAGES = 5;
 export const CUES = {
   loops: [
-    'sea', 'wind', 'rain', 'rain_2', 'rain_storm', 'amb_night', 'oars', 'gulls', 'coast', 'forest',
-    ...Array.from({ length: STAGES }, (_, i) => `amb_${i + 1}`),
+    'sea', 'wind', 'rain', 'rain_2', 'rain_storm', 'gulls', 'coast', 'forest',   // the stage ambience amb_1..5, amb_night and oars were removed
     'music_3',   // the user's own "Dread" piece for the middle dread band; the placeholder music_1/2/4/5 and surf are gone
     ...LAYERS,   // stage 1 on open sea: one instrument more with every quest (src/layers.js)
     ...TAVERN,   // the harbour tavern, muffled through the wall
@@ -91,7 +90,7 @@ export class AudioBus {
     try { Object.assign(this.vol, JSON.parse(localStorage.getItem('pocket-pirates-mixer') || '{}')); } catch (e) { /* storage blocked */ }
     this.setMuted(this.muted); this.setMusic(this.musicOn);
     // one-shots first (cheap), then ambience, then music, yielding between cues so the game stays smooth
-    const order = [...CUES.oneShots, 'sea', 'wind', 'rain', 'rain_2', 'rain_storm', 'amb_night', 'oars', 'gulls', 'coast', 'forest', ...CUES.loops.filter((k) => k.startsWith('amb_') && k !== 'amb_night'), ...CUES.loops.filter((k) => k.startsWith('music_')), ...LAYERS, ...TAVERN];
+    const order = [...CUES.oneShots, 'sea', 'wind', 'rain', 'rain_2', 'rain_storm', 'gulls', 'coast', 'forest', ...CUES.loops.filter((k) => k.startsWith('music_')), ...LAYERS, ...TAVERN];
     for (const k of order) {
       if (window.__BUILD === 'demo' && DEMO_SKIP.has(k)) continue;
       await this.load(k);
@@ -257,12 +256,8 @@ export class AudioBus {
   update(dt, s) {
     if (!this.ctx) return;
     const dread = s.dread;
-    const layered = this.layers.ready;   // with the stage-1 stems in, they are stage 1's music (and music_1 stays silent)
-    for (let i = 0; i < STAGES; i++) {
-      const w = Math.max(0, 1 - Math.abs(dread * (STAGES - 1) - i)); // triangular cross-fade
-      this.setLoop(`amb_${i + 1}`, w * 0.8);
-      if (i === 2) this.setLoop('music_3', w * 0.75);   // the "Dread" piece, centred on the middle band
-    }
+    const layered = this.layers.ready;   // the stage-1 stems are the music of the bright sea
+    this.setLoop('music_3', Math.max(0, 1 - Math.abs(dread * (STAGES - 1) - 2)) * 0.75);   // the "Dread" piece, centred on dread 0.5
     if (layered) {
       // the stage-1 band carries the bright half of the sea (dread up to about 0.3, ~660 units from Tama), then hands over to music_3
       const lv = this.layers.update(dt, { quests: s.quests || 0, open: s.open, wind: s.wind, stage: 1 - smoothstep(0.3, 0.5, dread) });
@@ -272,8 +267,6 @@ export class AudioBus {
     this.driftWind(dt);
     this.setLoop('wind', Math.min(1, s.wind * 0.35 + s.storm * 0.5));
     this.rainBeds(dt, s);
-    this.setLoop('amb_night', s.night * 0.7 * (1 - s.rain * 0.7));
-    this.setLoop('oars', s.rowing ? 0.7 : 0);
     this.setLoop('gulls', (s.gulls || 0) * 0.9);
     this.driftGulls(dt, s.gulls || 0);
     const stage = Math.min(STAGES - 1, Math.floor(dread * STAGES));

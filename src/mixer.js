@@ -7,8 +7,7 @@ const GROUPS = [
   ['Music (one per dread stage)', CUES.loops.filter((k) => k.startsWith('music_'))],
   ['Stage 1 open sea (one more per quest)', CUES.loops.filter((k) => k.startsWith('s1_'))],
   ['Tavern (muffled, in harbour)', CUES.loops.filter((k) => k.startsWith('tav_'))],
-  ['Ambience', CUES.loops.filter((k) => k.startsWith('amb_'))],
-  ['Sea and weather loops', CUES.loops.filter((k) => !k.startsWith('music_') && !k.startsWith('amb_') && !k.startsWith('s1_') && !k.startsWith('tav_'))],
+  ['Sea and weather loops', CUES.loops.filter((k) => !k.startsWith('music_') && !k.startsWith('s1_') && !k.startsWith('tav_'))],
   ['Effects', CUES.oneShots],
 ];
 const LABEL = { _master: 'MASTER (everything)', _music: 'MUSIC (all music tracks)' };

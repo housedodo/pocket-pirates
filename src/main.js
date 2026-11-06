@@ -2246,7 +2246,7 @@ function frame() {
   audio.setLoop('forest', forestLevel(ashore) * 0.3);   // ashore on a forest island: very quietly under everything
   audio.tavernUpdate(rawDt, modal === 'pig' || (modal === 'harbour' && hbTab === 'tavern') ? 1 : ashore ? 0.35 : 0);   // tavern music through the wall
   if (live) {
-    audio.update(dt, { dread, speed: ship.speed / 11, night: tod.night, wind: wind.strength, rain: weather.rain, storm: weather.storm, rowing: ship.rowIn > 0, gulls: gullLevel(tod.night),
+    audio.update(dt, { dread, speed: ship.speed / 11, night: tod.night, wind: wind.strength, rain: weather.rain, storm: weather.storm, gulls: gullLevel(tod.night),
       quests: state.goals.i, open: openSea() });
     const hour = Math.floor(state.time * 24);
     if (hour !== lastHour) { lastHour = hour; if (world.nearest(ship.pos.x, ship.pos.z, 80, ['harbour'])) audio.play('bell', { vol: 0.6 }); }

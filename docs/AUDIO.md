@@ -8,7 +8,7 @@ and `volumes.json` inside it (plus the mixer on F8); `pocket-pirates-demo.html` 
 The pause menu has Sound and Music toggles.
 
 ## Player volume sliders (pause menu)
-The pause menu stays short (Resume, Ask Mara, Controls, Fullscreen, Captain's log, Sound and music, New voyage). **Sound and music** opens its own panel with the Sound and Music on/off toggles and three sliders: **Music**, **Sea, wind, gulls** (every loop that is not music: sea, wind, rain, gulls, coast, night, oars, stage ambience) and **Effects** (one-shot sounds). They are 0-100%, saved in the player's settings, and multiply the mix made in the dev mixer (`AudioBus.userVol`, `ambBus`, `sfxBus`, `musicBus`). The sound plays for a moment while a slider is dragged so the level can be heard even though the game is paused.
+The pause menu stays short (Resume, Ask Mara, Controls, Fullscreen, Captain's log, Sound and music, New voyage). **Sound and music** opens its own panel with the Sound and Music on/off toggles and three sliders: **Music**, **Sea, wind, gulls** (every loop that is not music: sea, wind, rain, gulls, coast, forest) and **Effects** (one-shot sounds). They are 0-100%, saved in the player's settings, and multiply the mix made in the dev mixer (`AudioBus.userVol`, `ambBus`, `sfxBus`, `musicBus`). The sound plays for a moment while a slider is dragged so the level can be heard even though the game is paused.
 
 ## The sound mixer (testing volumes in the game)
 Open the game with `?dev=1` (e.g. `http://localhost:5173/?dev=1`), then press **F8** (or Pause > Sound mixer).
@@ -52,7 +52,7 @@ The game expects `music_1`..`music_5` (one loop per dread stage, same length and
 | 5 Cosmic | Sub bass drone (30-50 Hz), the shanty pitched down and bitcrushed, granular pad made from waves or gulls, dissonant string clusters (minor 2nd, tritone), pitch-drifting choir, metallic scrapes, low heartbeat drum near the Eye |
 
 ### Other moods (cues for later)
-- **Night:** celesta, music box, glockenspiel, felt piano, warm pad, long gaps between notes (`amb_night` is the ambience bed; a night music variant is optional).
+- **Night:** celesta, music box, glockenspiel, felt piano, warm pad, long gaps between notes (no night bed in the game at the moment; a night music variant is optional).
 - **Dawn / dusk:** solo flute or tin whistle over a soft pad / slower accordion or low strings.
 - **Harbours:** one signature instrument per village (mandolin, fiddle, hand pan, banjo, small bells). Tavern: fiddle, accordion, claps, stomped bass drum. Shipyard: woodblock and hammer taps in a gentle waltz.
 - **The hut and the Lady:** waterphone, singing bowls, one detuned music-box note, whispered pad.
@@ -102,12 +102,9 @@ through HOIST gently (`HoistLayers game_audio/tavern <outdir> tavern` in Chaos_G
 | `rain`, `rain_2` | **light rain**: two recordings (Cymatics LIFE Rain Light 12 and 2, 39 s / 48 s loops, about -26 LUFS) that cross-fade slowly every 25-65 s so the rain never repeats. Follow rain intensity; they give way to `rain_storm` as it gets heavy |
 | `rain_storm` | **a proper storm**: heavy rain drumming on the deck (Cymatics LIFE Rain on Roof 1, 30 s loop, about -20 LUFS). Fades in with storm 0.25-0.6 or rain above 0.75 |
 | `forest` | forest bed (Cymatics LIFE Forest 2, 28 s loop), very quiet (30%) while you are ashore on a big forest island (`desc.forest`). **No forest islands exist yet** (ROADMAP); the cue is ready for them |
-| `amb_night` | night bed (crickets-on-water, creaks), fades in after sunset on top of the stage ambience |
-| `amb_1` .. `amb_5` | ambience per stage, 30-60 s, cross-faded by dread |
-| `music_3` | the user's own "Dread" piece: the middle of the dread range (dread 0.25-0.75, full at 0.5), after the stage-1 band fades. The placeholder `music_1`, `music_2`, `music_4`, `music_5` and `surf` were removed: no music below dread 0.3 except the stage-1 layers, and none in the deep stages yet |
+| `music_3` | the user's own "Dread" piece: the middle of the dread range (dread 0.25-0.75, full at 0.5), after the stage-1 band fades. The placeholder `music_1`, `music_2`, `music_4`, `music_5`, `surf`, the stage ambience `amb_1`..`amb_5`, `amb_night` and `oars` were removed: no music below dread 0.3 except the stage-1 layers, and none in the deep stages yet |
 | `gulls` | recorded gull colony (53 s, mono), **not constant**: it calls for about 5-20 s, then goes quiet for roughly 20-65 s (closer to the gulls: longer calls, shorter gaps), with slow fades (`driftGulls` in audio.js). Silent far off, fades up within ~120 units of the nearest circling gull and gets clearer (low-pass opens) as you close in; quieter at night, in rain and storms, gone by dread 0.35. |
 | `coast` | soft coastal breeze, small waves and far-off gulls (32 s). Rises over the last ~110 units before any island shore, full while moored or ashore (harbour, greeting, shipyard). Quieter at night, gone in storms and by dread ~0.4 |
-| `oars` | rowing strokes (dip, pull, drip); plays while you row with the oars out (G, then W) |
 
 **One-shots**
 Only these effects play. Everything else the game asks for (splash, treasure, discover, harbour, cannon, hit, horn, gull, dolphin, whale, bell, bottle, creak, bump, whisper, stage_up, knock, ending) is **silent on purpose**: not in `CUES.oneShots`, so never loaded and never synthesised. To bring one back, add its name to `CUES.oneShots` in `src/audio.js` and put its file in `public/audio/`.
