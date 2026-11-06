@@ -688,7 +688,17 @@ window.addEventListener('keydown', (e) => {
   if (/^Digit[1-5]$/.test(e.code)) forced = (parseInt(e.code.slice(5), 10) - 1) / 4;
   if (e.code === 'BracketRight') state.time = (state.time + 1 / 24) % 1;
   if (e.code === 'BracketLeft') state.time = (state.time - 1 / 24 + 1) % 1;
+  if (e.code === 'F6') {   // weather: auto -> clear -> light rain -> storm -> auto
+    e.preventDefault();
+    const W = [['Clear', { cloud: 0, rain: 0, storm: 0, fog: 0 }], ['Light rain', { cloud: 0.7, rain: 0.5, storm: 0, fog: 0 }], ['Storm', { cloud: 1, rain: 1, storm: 0.9, fog: 0 }], ['Auto', null]];
+    devWeather = (devWeather + 1) % W.length; weather.force = W[devWeather][1]; toast(`Weather: ${W[devWeather][0]}`, false, 2500);
+  }
+  if (e.code === 'F7' && started) {   // finish the current main quest (the stage-1 music adds an instrument)
+    e.preventDefault();
+    if (objectives.current) { logbook.d.skipGoal(); toast(`Quests done: ${state.goals.i} (stage-1 instruments: ${Math.min(6, state.goals.i ? state.goals.i + 1 : 0)})`, false, 3500); }
+  }
 });
+let devWeather = 3;   // F6 cycles the forced weather
 window.addEventListener('keyup', (e) => { keys.delete(e.code); if (e.code === 'Space') fishing.hold = false; });
 window.addEventListener('blur', () => { if (started && !modal && !params.get('shot') && !(studio && studio.popped)) openModal('pause'); });   // the studio window may take focus: keep playing
 titleEl.addEventListener('pointerdown', () => { if (!titleScene) begin(); });   // with the live title, only Set sail starts
