@@ -1,9 +1,11 @@
 // Stage 1 out on open sea: the instrument stems (public/audio/s1_*.ogg) come in one by one as the main quests are done.
 // They are one 16-bar loop at 99 BPM (38.8 s, all the same length, rendered through HOIST at FAIR WEATHER), started at
 // the same instant so they stay locked together. Nothing plays before the first quest; quest 1 brings in bass and
-// shaperbox, every quest after that one more instrument (order shuffled per voyage). Each layer breathes on its own
-// (slow swells, and once in a while it drops out briefly and comes back), wanders a little around its place in the
-// stereo field, and all of them sit under a soft low-pass that moves with the swell and closes in strong wind, as if
+// shaperbox, every quest after that one more instrument (order shuffled per voyage). Once three or more are in, the band
+// plays in "scenes": the full band, then a line-up of only two or three (bass + pluck, guitar arp + drums + bell ...),
+// always a different combination from the last ones, then the full band again, and so on. Scenes change on a 4-bar
+// phrase. A newcomer gets a full-band scene while it fades in so you hear it arrive. Each layer also swells gently and
+// wanders a little around its place in the stereo field, and all of them sit under a soft low-pass that moves with the swell and closes in strong wind, as if
 // the music reached you over the waves. Right by a shore they ease down to 40%.
 import { mulberry32 } from './util.js';
 
@@ -15,8 +17,9 @@ const PLACE = {
   s1_drums: [-0.08, 0.14, 0.019], s1_bell: [0.58, 0.28, 0.027], s1_guitar: [-0.52, 0.28, 0.041],
 };
 const FADE_IN = 30;      // seconds for a new instrument to come all the way in
-const SETTLE = 90;       // a new instrument stays put this long before it may drop out
+const PHRASE = 4 * 4 * 60 / 99;   // 4 bars at 99 BPM (9.7 s): scenes change on a phrase
 const smooth = (x) => x * x * (3 - 2 * x);
+const keyOf = (set) => [...set].sort().join('+');
 
 export class SeaLayers {
   constructor(ctx, out) {
@@ -29,6 +32,7 @@ export class SeaLayers {
     this.pace = 1;           // test flag (?dev=1&musicpace=4): everything moves this many times faster
     this.rnd = Math.random;
     this.order = [...LAYERS];
+    this.scene = new Set(); this.sceneFull = true; this.sceneLeft = 0; this.recent = []; this.lastN = 0; this.t0 = 0; this.phrase = -1; this.smalls = 0;
   }
   get ready() { return this.srcs.size > 0; }
 
@@ -44,10 +48,28 @@ export class SeaLayers {
     const p = this.ctx.createStereoPanner(); p.pan.value = PLACE[key][0];
     src.connect(gain).connect(p).connect(this.lp);
     this.pans.set(key, p); this.srcs.set(key, src);
-    this.st.set(key, { intro: 0, age: 0, breath: 1, target: 1, next: 8 + this.rnd() * 10, rest: false, ph: this.rnd() * 6.283 });
+    this.st.set(key, { intro: 0, breath: 1, swell: 1, next: 8 + this.rnd() * 10, inScene: 0, ph: this.rnd() * 6.283 });
   }
   /** start every loaded stem on the same sample so they stay in time */
-  start() { const when = this.ctx.currentTime + 0.15; for (const s of this.srcs.values()) s.start(when); }
+  start() { const when = this.ctx.currentTime + 0.15; this.t0 = when; for (const s of this.srcs.values()) s.start(when); }
+
+  /** the next scene: after a full band a line-up of two or three, never one heard lately and sharing at most one player with the last */
+  nextScene(on) {
+    const full = new Set(on);
+    if (on.length < 3) return { set: full, full: true, len: 4 };
+    const wantFull = !this.sceneFull && (this.smalls >= 2 || this.rnd() < 0.5);   // after one or two small line-ups, the whole band again
+    if (wantFull) return { set: full, full: true, len: 3 + Math.floor(this.rnd() * 3) };
+    const sizes = on.length === 3 ? [2] : [2, 3];
+    let best = null, bestScore = -1;
+    for (let tries = 0; tries < 40; tries++) {
+      const size = sizes[Math.floor(this.rnd() * sizes.length)], pool = [...on], pick = new Set();
+      while (pick.size < size) pick.add(pool.splice(Math.floor(this.rnd() * pool.length), 1)[0]);
+      const shared = this.sceneFull ? 0 : [...pick].filter((k) => this.scene.has(k)).length;
+      const score = (this.recent.includes(keyOf(pick)) ? 0 : 2) + (shared <= 1 ? 1 : 0) + this.rnd() * 0.5;
+      if (score > bestScore) { best = pick; bestScore = score; }
+    }
+    return { set: best, full: false, len: 2 + Math.floor(this.rnd() * 3) };
+  }
   setRate(r) { for (const s of this.srcs.values()) s.playbackRate.value = r; }
 
   /** how many instruments the quests have brought in so far */
@@ -70,27 +92,35 @@ export class SeaLayers {
     const wind = Math.min(1, s.wind || 0);
     this.lp.frequency.setTargetAtTime(Math.max(800, (1500 + 1500 * wave) * (1 - 0.35 * wind)), T, 0.5);
 
-    const sounding = on.filter((k) => !this.st.get(k).rest).length, out = {};
+    // scenes: a newcomer brings a full-band scene (long enough to hear it arrive); otherwise a new scene when the last has run out,
+    // on the next phrase
+    this.sceneLeft -= d;
+    const phrase = Math.floor((T - this.t0) / PHRASE), onPhrase = phrase !== this.phrase;
+    this.phrase = phrase;
+    if (on.length !== this.lastN) {
+      this.lastN = on.length;
+      this.scene = new Set(on); this.sceneFull = true; this.sceneLeft = on.length ? FADE_IN + 3 * PHRASE : 0; this.smalls = 0;
+    } else if (on.length && this.sceneLeft <= 0 && (onPhrase || this.pace !== 1)) {
+      const sc = this.nextScene(on);
+      this.scene = sc.set; this.sceneFull = sc.full; this.sceneLeft = sc.len * PHRASE;
+      this.smalls = sc.full ? 0 : this.smalls + 1;
+      if (!sc.full) { this.recent.push(keyOf(sc.set)); if (this.recent.length > 4) this.recent.shift(); }
+    }
+    const out = {};
     for (const k of LAYERS) {
       const st = this.st.get(k);
       if (!st) continue;
-      const isOn = on.includes(k);
-      if (isOn) { st.intro = Math.min(1, st.intro + d / FADE_IN); st.age += d; }
+      if (on.includes(k)) st.intro = Math.min(1, st.intro + d / FADE_IN);
+      // in or out of the scene: a few seconds to come and go (a small line-up plays a little louder than one voice in the full band)
+      const inT = this.scene.has(k) ? (this.sceneFull ? 1 : 1.25) : 0;
+      st.inScene += (inT - st.inScene) * (1 - Math.exp(-d / (inT > st.inScene ? 2.5 : 3.5)));
       st.next -= d;
-      if (isOn && st.next <= 0) {
-        if (st.rest) { st.rest = false; st.target = 0.7 + 0.3 * this.rnd(); st.next = 20 + this.rnd() * 20; }   // back again
-        else {
-          // drop out for a while, as long as enough of the band keeps playing; the bass only rarely, and never while the band is small
-          const canRest = st.age > SETTLE && sounding >= 3 && (!FIRST.includes(k) || n >= 4);
-          if (canRest && this.rnd() < (k === 's1_bass' ? 0.05 : 0.15)) { st.rest = true; st.target = 0; st.next = 10 + this.rnd() * 12; }
-          else { st.target = 0.65 + 0.35 * this.rnd(); st.next = 12 + this.rnd() * 18; }   // a slow swell up or down
-        }
-      }
-      st.breath += (st.target - st.breath) * (1 - Math.exp(-d / 5));
+      if (st.next <= 0) { st.swell = 0.75 + 0.25 * this.rnd(); st.next = 10 + this.rnd() * 15; }   // and a gentle swell up or down
+      st.breath += (st.swell - st.breath) * (1 - Math.exp(-d / 5));
       const [home, wander, sp] = PLACE[k];
       const pan = home + wander * (Math.sin(this.t * sp * 6.283 + st.ph) * 0.7 + Math.sin(this.t * sp * 14.4 + st.ph * 1.7) * 0.3);
       this.pans.get(k).pan.setTargetAtTime(Math.max(-0.9, Math.min(0.9, pan)), T, 1);
-      out[k] = smooth(st.intro) * st.breath * this.bg * (s.stage ?? 1) * (0.4 + 0.6 * this.open);
+      out[k] = smooth(st.intro) * st.inScene * st.breath * this.bg * (s.stage ?? 1) * (0.4 + 0.6 * this.open);
     }
     return out;
   }

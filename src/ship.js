@@ -421,11 +421,11 @@ export class Ship {
     for (const arm of this.oarArms) {
       arm.visible = o > 0.01;
       const sd = arm.userData.side, st = this.stroke + arm.userData.ph * 0;
-      const sw = this.rowIn ? Math.sin(st) * 0.5 : 0, lift = this.rowIn ? Math.max(0, Math.cos(st)) * 0.25 : 0;
+      const sw = this.rowIn ? Math.sin(st) * 0.5 : 0, lift = this.rowIn ? Math.max(0, Math.cos(st)) * 0.24 : 0;
       arm.rotation.set(0, 0, 0);
       arm.rotation.order = 'YXZ';
       arm.rotation.y = sd * lerp(0, Math.PI / 2, ease) + sd * sw - (1 - ease) * 0;      // stowed pointing aft, out to the side
-      arm.rotation.x = lerp(0, 0.38, ease) - lift;                                       // blades down into the water
+      arm.rotation.x = lerp(0, 0.62, ease) - lift;   // blades well down in the water for the pull (tip ~0.6 under the surface), lifted clear on the way back
     }
 
     // lantern glow

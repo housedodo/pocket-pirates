@@ -889,7 +889,7 @@ function renderHarbour() {
       html += `<div class="qrow"><div><b>${questIcon(o)} ${questTitle(q, dread)}</b><br><small>${o.type === 'crates' ? `lost ${bearingName(o.center.x - d.x, o.center.z - d.z)} of here · ` : ''}${o.reward}g</small></div><button data-accept="${o.id}" ${state.quests.length >= 3 ? 'disabled' : ''}>Accept</button></div>`;
     }
     if (!mine.length && !offers.length) html += '<small>The board is empty. Come back after you have been out to sea.</small>';
-    const pass = !state.passenger && unlocked(state, 'passengers') && makePassenger(world, d, (state.serial[d.id + '#p'] || 0) + state.dayN * 7, !!(objectives.current && objectives.current.id === 'passenger'));
+    const pass = passengerAt(d);
     if (pass) html += `<div class="sec">PASSAGE</div><div class="qrow"><div><b>${pxi('talk')} ${pass.name}, ${pass.who}</b><br><small>wants passage to ${pass.toName} · pays ${pass.reward}g</small></div><button id="takePass">Take aboard</button></div>`;
     const r = findRumour(world, d, state);
     if (r) html += `<div class="sec">RUMOURS</div><div class="qrow"><div><b>${pxi('talk')} A sailor talks of buried treasure</b></div><button id="rumourBuy" ${state.gold >= RUMOUR_COST ? '' : 'disabled'}>${RUMOUR_COST}g</button></div>`;
@@ -1015,12 +1015,19 @@ $('hbTabs').addEventListener('click', (e) => { const b = e.target.closest('butto
 // a red number on a sign when something waits there
 // the tutorial marks the sign (and the button) the current goal needs; goals later in the story carry no mark at all
 const tutorialGoal = () => { const g = objectives.current; if (!g || !g.tab) return null; try { if (g.check({ state, ship, world })) return null; } catch (e) { /* not checkable yet */ } return g; };   // a goal already done carries no mark
+// someone at this harbour asking for passage (the board shows them; the same one every time you look today)
+function passengerAt(d) {
+  return !state.passenger && unlocked(state, 'passengers') && makePassenger(world, d, (state.serial[d.id + '#p'] || 0) + state.dayN * 7, !!(objectives.current && objectives.current.id === 'passenger'));
+}
 function tutorialMarks() {
   let g = tutorialGoal();
   if (g && g.id === 'job' && state.job && harbourIsl && state.job.toId !== harbourIsl.desc.id) g = null;   // accepted already: nothing to press here
   if (g && g.id === 'dig' && (state.story.letterP1 !== 'wait' || !harbourIsl || harbourIsl.desc.id !== '0,-1')) g = null;   // only while Perrin's letter waits, and only at Tama
-  $('hbTabs').querySelectorAll('.post').forEach((b) => b.classList.toggle('next', !!g && b.dataset.t === g.tab));
+  // always marked, tutorial or not: a letter waiting for you here (Perrin's), and a passenger asking for passage. Both sit on the board
+  const always = harbourIsl ? [...(lettersAt(harbourIsl.desc).length ? ['takeLetter'] : []), ...(passengerAt(harbourIsl.desc) ? ['takePass'] : [])] : [];
+  $('hbTabs').querySelectorAll('.post').forEach((b) => b.classList.toggle('next', (!!g && b.dataset.t === g.tab) || (always.length > 0 && b.dataset.t === 'board')));
   $('hbPane').querySelectorAll('.hl').forEach((e) => e.classList.remove('hl'));
+  if (hbTab === 'board') for (const id of always) { const el = $(id); if (el && !el.disabled) el.classList.add('hl'); }
   if (!g || hbTab !== g.tab) return;
   for (const id of g.mark || []) {
     const el = id === 'buy' ? $('hbPane').querySelector('button[data-id]:not([disabled])') : $(id);

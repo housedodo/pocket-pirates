@@ -507,3 +507,6 @@ Built and working in the dev build; switched off when `window.__BUILD === 'demo'
 - **Sound trimmed to the chosen set:** only ui, dig, buy, pause, chapter, fail, success, card, roll_d6, roll_d20, cast, bite, catch and the recorded thunder remain as effects; all other effects, `surf` and the placeholder music (`music_1/2/4/5`) are gone and no longer synthesised. The stage-1 band now lasts longer: full to dread 0.3, only eases to 40% by a shore, and drops instruments out less often.
 - **More placeholders out:** the stage ambience beds (`amb_1`..`amb_5`), the night bed (`amb_night`) and the rowing loop (`oars`) are removed and no longer synthesised.
 - **Wind loop removed** (it was a synthesised placeholder): storms are now heard through the storm rain and the distant thunder.
+- **Stage-1 music in scenes:** the full band alternates with line-ups of two or three instruments (always a different combination), changing on 4-bar phrases (`SeaLayers.nextScene`).
+- **Always-marked buttons at the board:** a waiting letter (Perrin's "Take it", from the very first visit to Tama) and "Take aboard" for a passenger are marked every time, along with the Board sign: later there is no other help.
+- **Oars in the water:** the blades now dip well under the surface on the pull and lift clear on the return (they used to hover at the waterline).

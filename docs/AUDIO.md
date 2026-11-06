@@ -73,9 +73,12 @@ They are stage 1's music (the old placeholder `music_1` is gone).
 - **The game starts silent.** The first main quest brings in bass and shaperbox; every quest after that one more instrument
   (the order of the last four is shuffled once per voyage). A new one fades in over about 30 s. The band grows a little louder as it fills
   (about 12 dB under the sea with two, about 7 dB under with all six) but stays in the background.
-- **Never the same twice:** each stem swells gently up and down on its own every 12-30 s (65-100%); once it has settled (90 s), it may
-  now and then drop out for 10-22 s and come back, as long as at least three keep playing (the bass rarely, and never while the band is small). Each wanders slowly
-  around its own place in the stereo field (bass and drums near the middle, the rest spread out).
+- **Never the same twice: scenes.** Once three or more instruments are in, the band plays in scenes that change on a 4-bar phrase
+  (9.7 s): the full band (3-5 phrases), then one or two line-ups of only two or three (2-4 phrases each), then the full band again.
+  A line-up is never one of the last four and shares at most one player with the one before, so it goes e.g. bass + pluck, then
+  guitar arp + drums + bell, then shaperbox + bell. A small line-up plays a little louder than the same voices in the full band.
+  A newcomer always arrives in a full-band scene (its fade-in plus three phrases). On top, each stem swells gently (75-100%) and
+  wanders slowly around its own place in the stereo field (bass and drums near the middle, the rest spread out).
 - **Heard over the waves:** all six share one soft low-pass (about 1.5-3 kHz) that moves with a slow swell, together with a small level
   lift on the crest, and closes further in strong wind.
 - **Open sea:** right by a shore (within about 60 units) they ease down to 40%, slowly. They carry the whole bright half of the
