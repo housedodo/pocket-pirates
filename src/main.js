@@ -97,7 +97,7 @@ const state = {
   fishLog: (saved && saved.fishLog) || {},
   fishHeard: (saved && saved.fishHeard) || {},   // species whose habitat a fisher has described
   fishAsk: (saved && saved.fishAsk) || {},       // harbour id -> the day you last asked there
-  goals: Object.assign({ i: 0, side: {}, started: false }, (saved && saved.goals) || {}),
+  goals: Object.assign({ i: 0, side: {}, started: false }, (saved && saved.goals) || { v: 2 }),   // v: 2 = goal list without "A bed for the night"
   story: (saved && saved.story) || {},              // chapter flags: perrinNote, check, b0, hutKnown, hutNod, demoEnd, free
   hints: (saved && saved.hints) || {},
   hut: (saved && saved.hut) || null,
@@ -128,6 +128,7 @@ const ocean = new Ocean();
 ocean.material.transparent = true; ocean.mesh.renderOrder = -1; // can turn see-through (glass calm)
 scene.add(ocean.mesh);
 const sky = new Sky(scene);
+if (!state.goals.v) { if (state.goals.i > 15) state.goals.i--; state.goals.v = 2; }   // saves from before "A bed for the night" (goal 15) was dropped: it made you wait for 17:00
 const world = new World(scene, state.seed, state.dug);
 const ship = new Ship(scene);
 { const hd = world.hutDesc; if (hd) U.uMurk.value.set(hd.x, hd.z, hd.r); }   // the dark water round the hut's island (ocean.js)

@@ -159,14 +159,6 @@ export const MAIN_GOALS = [
     check: (c) => (c.state.stats.solved || 0) >= 2,
   },
   {
-    id: 'rest', ch: 3, title: 'A bed for the night', reward: 18,
-    text: 'Sleep at a harbour tavern. Rooms are let from 17:00.',
-    intro: ['Rooms are let from five in the afternoon, and the crew mends the hull while you sleep.'],
-    outro: ['Slept like a log. A very small log. Good morning!'],
-    hints: ['Dock at a harbour after 17:00 and open the Tavern sign.'],
-    check: (c) => c.state.story.restDay != null,
-  },
-  {
     id: 'raider', ch: 3, title: 'Teach a raider a lesson', reward: 36,
     text: 'Raiders sail these waters. Sink one: Space fires the cannons at an attacking raider.',
     intro: ['Raiders, Captain, and one is looking for us. Space fires the cannons: keep her broadside.'],

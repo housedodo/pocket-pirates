@@ -15,7 +15,7 @@ const GATE = {
     buyChart: 8,                                   // charts with "Chart 8 islands"
     hireHand: 9, playPig: 9, haggle: 9,            // the tavern and haggling (chapter III)
     rumourBuy: 10, buyAmmo: 9,                     // rumours with Perrin's note; cannonballs once cannons are yours
-    restBed: 15,                                   // a bed for the night with "Rest"
+    restBed: 9,                                    // a bed for the night, with the tavern
     openYard: 7,                                   // paint and figureheads a little after the first upgrade
   },
   // harbour buttons, by data attribute (commissions)
