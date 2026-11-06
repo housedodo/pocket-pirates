@@ -127,7 +127,7 @@ through HOIST gently (`HoistLayers game_audio/tavern <outdir> tavern` in Chaos_G
 | `rain`, `rain_2` | **light rain**: two recordings (Cymatics LIFE Rain Light 12 and 2, 39 s / 48 s loops, about -26 LUFS) that cross-fade slowly every 25-65 s so the rain never repeats. Follow rain intensity; they give way to `rain_storm` as it gets heavy |
 | `rain_storm` | **a proper storm**: heavy rain drumming on the deck (Cymatics LIFE Rain on Roof 1, 30 s loop, about -20 LUFS). Fades in with storm 0.25-0.6 or rain above 0.75 |
 | `forest` | forest bed (Cymatics LIFE Forest 2, 28 s loop), very quiet (30%) while you are ashore on a big forest island (`desc.forest`). **No forest islands exist yet** (ROADMAP); the cue is ready for them |
-| `music_3` | the user's own "Dread" piece: the middle of the dread range (dread 0.25-0.75, full at 0.5), after the stage-1 band fades. The placeholder `music_1`, `music_2`, `music_4`, `music_5`, `surf`, `wind`, the stage ambience `amb_1`..`amb_5`, `amb_night` and `oars` were removed: no music below dread 0.3 except the stage-1 layers, and none in the deep stages yet |
+| `music_3` | the user's own "Dread" piece (moved from B minor down a tritone to **F minor**, the band's key, tempo and length unchanged; masters in Chaos_Grain `game_audio/dread/`): the middle of the dread range (dread 0.25-0.75, full at 0.5), after the stage-1 band fades. The placeholder `music_1`, `music_2`, `music_4`, `music_5`, `surf`, `wind`, the stage ambience `amb_1`..`amb_5`, `amb_night` and `oars` were removed: no music below dread 0.3 except the stage-1 layers, and none in the deep stages yet |
 | `gulls` | recorded gull colony (53 s, mono), **not constant**: it calls for about 5-20 s, then goes quiet for roughly 20-65 s (closer to the gulls: longer calls, shorter gaps), with slow fades (`driftGulls` in audio.js). Silent far off, fades up within ~120 units of the nearest circling gull and gets clearer (low-pass opens) as you close in; quieter at night, in rain and storms, gone by dread 0.35. |
 | `coast` | soft coastal breeze, small waves and far-off gulls (32 s). Rises over the last ~110 units before any island shore, full while moored or ashore (harbour, greeting, shipyard). Quieter at night, gone in storms and by dread ~0.4 |
 
@@ -176,7 +176,7 @@ Only these effects play. Everything else the game asks for (splash, treasure, di
 Audacity, Reaper (free trial), LMMS, BeepBox / Bosca Ceoil (quick chip tunes), jsfxr/sfxr (SFX), Vital/Surge XT (drones), a phone mic for foley (rope, wood, water in a bucket).
 
 ### Custom tracks in
-- `music_3.ogg` is the user's own melancholic D - G - B piece ("Dread", 1:42, mono) in place of the synthesised placeholder. It plays in the middle dread band (the Wrong stage, about 0.35 to 0.65 dread, cross-faded with music_2 and music_4). To use it for another stage, rename the file to `music_2` / `music_4` / `music_5`. The old placeholder is in git history.
+- `music_3.ogg` is the user's own melancholic piece (now in F minor, see the cue list) ("Dread", 1:42, mono) in place of the synthesised placeholder. It plays in the middle dread band (the Wrong stage, about 0.35 to 0.65 dread, cross-faded with music_2 and music_4). To use it for another stage, rename the file to `music_2` / `music_4` / `music_5`. The old placeholder is in git history.
 
 ## Sound studio (dev, F9)
 Load your own music and sounds, cut them, and say where each plays. Open the game with `?dev=1`, press **F9** (or pause menu, "Sound studio").
