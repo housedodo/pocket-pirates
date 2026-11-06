@@ -144,6 +144,12 @@ the tavern chapter (main goal 9, `laterOK`); before that she only speaks about t
 its turn comes is skipped without its intro (no "good haul" line after you have bought the sails). The hut only stands on its island
 once the story reaches it ("Ask around", `hutReached`); Perrin's isle sits a little further out from Tama.
 
+## Dev build tools
+`pocket-pirates-dev.html` (or `?dev=1`): a dev bar at the top with the quest (dropdown, `<` `>`, keys `,` `.`: forward runs each
+quest's effects, back rewinds the story flags later quests set and Mara announces the quest), the hour (Dawn / Noon / Dusk / Night,
+keys `1`-`4`, `[` `]`) and the dread (slider 0-1 with the stage name; `auto` or `0` returns to dread by distance). F6 weather,
+F7 finish the quest, F8 sound mixer, F9 sound studio, `` ` `` debug line. None of it exists in the demo.
+
 ## Tunables
 - `DREAD_RANGE` in `palette.js`: distance (2200 units now, ~3 min) to reach full dread. Raise it for a longer arc.
 - `DARK_THRESHOLD` in `palette.js`: when decor swaps.

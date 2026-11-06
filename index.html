@@ -272,9 +272,9 @@
     #mate .face { font-size: 34px; } #mate b { color: #ffd23a; font-size: 12px; } #mate.dark { border-color: #ff70d0; } #mate.dark b { color: #ff9ae0; }
     #fishui { position: absolute; left: 50%; bottom: 250px; transform: translateX(-50%); width: min(460px, 92vw); text-align: center; pointer-events: auto; touch-action: none; }
     #digui { position: absolute; left: 50%; bottom: 200px; transform: translateX(-50%); width: min(460px, 92vw); text-align: center; pointer-events: auto; touch-action: none; }
-    #devbar { position: fixed; top: 6px; left: 50%; transform: translateX(-50%); z-index: 60; display: flex; gap: 6px; align-items: center; padding: 6px 10px; background: rgba(11, 7, 22, .88); box-shadow: 0 0 0 3px #3a3070; font: 16px DotGothic16, monospace; color: #f4ead0; }
+    #devbar { position: fixed; top: 6px; left: 50%; transform: translateX(-50%); z-index: 60; display: flex; flex-wrap: wrap; justify-content: center; max-width: 96vw; gap: 6px; align-items: center; padding: 6px 10px; background: rgba(11, 7, 22, .88); box-shadow: 0 0 0 3px #3a3070; font: 16px DotGothic16, monospace; color: #f4ead0; }
     #devbar button, #devbar select { font: 16px DotGothic16, monospace; color: #f4ead0; background: #241c4c; border: 0; padding: 2px 8px; cursor: pointer; }
-    #devbar select { max-width: 260px; } #devbar .dvsep { width: 10px; } #devbar .dvq, #devbar .dvt { color: #ffd23a; min-width: 44px; }
+    #devbar select { max-width: 260px; } #devbar input[type=range] { width: 120px; accent-color: #ff30c8; } #devbar .dvd { color: #ff70d0; min-width: 120px; } #devbar .dvsep { width: 10px; } #devbar .dvq, #devbar .dvt { color: #ffd23a; min-width: 44px; }
     #digmsg { font-size: 15px; min-height: 44px; }
     #diglegend { font-size: 13px; color: #b8a8f0; margin-top: 6px; }
     #digcv { display: block; width: 100%; max-width: 400px; margin: 6px auto 0; aspect-ratio: 200 / 136; image-rendering: pixelated; cursor: pointer; box-shadow: 0 -3px 0 var(--pxedge), 0 3px 0 var(--pxedge), -3px 0 0 var(--pxedge), 3px 0 0 var(--pxedge); }
@@ -603,7 +603,7 @@
         <tr><td>H</td><td>Hide the HUD</td></tr>
         <tr><td>Touch</td><td>On-screen buttons</td></tr>
       </table>
-      <p class="tip">Wind: the ring at the top right is gold where she sails well and red into the wind; the arrow is the wind, the triangle your bow. The wind shifts over time.<br>Treasure: read the riddle in the log, stop at the right shore and press E.<span id="devKeys"><br>Dev: the bar at the top sets the hour and the quest; 1-4 dawn / noon / dusk / night, [ ] change the hour, , . previous / next quest, F7 finish the quest, F6 weather (clear, light rain, storm, auto), ` info line, F8 sound mixer, F9 sound studio.</span></p>
+      <p class="tip">Wind: the ring at the top right is gold where she sails well and red into the wind; the arrow is the wind, the triangle your bow. The wind shifts over time.<br>Treasure: read the riddle in the log, stop at the right shore and press E.<span id="devKeys"><br>Dev: the bar at the top sets the quest, the hour and the dread (auto = by distance again, or 0); 1-4 dawn / noon / dusk / night, [ ] change the hour, , . previous / next quest, F7 finish the quest, F6 weather (clear, light rain, storm, auto), ` info line, F8 sound mixer, F9 sound studio.</span></p>
       <button id="pbBack">Back</button>
     </div>
   </div></div>

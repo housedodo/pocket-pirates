@@ -8,6 +8,20 @@ overwrite the file with the same name; to bring a sound back, add its name to `C
 and `volumes.json` inside it (plus the mixer on F8); `pocket-pirates-demo.html` carries the same sounds without the dread-stage cues (`music_3..5`, `amb_3..5`, `whisper`, `stage_up`, see `DEMO_SKIP` in `audio.js` and `scripts/single.py`) and has no mixer; it has the pause menu Sound and Music toggles. Names must match exactly; `.ogg` preferred (`.mp3`/`.wav` also work).
 The pause menu has Sound and Music toggles.
 
+## Music map (what plays where)
+| Where / when | Music |
+|---|---|
+| Before the first quest | nothing (sea, weather, gulls, coast) |
+| Stage 1 (dread < ~0.2, within ~440 units of Tama), open sea, day | the stage-1 band `s1_*`, one instrument more per quest, in changing line-ups, silences and solos |
+| Same, dusk to daybreak | the night version `n1_*` |
+| Stage 2 (dread ~0.25-0.5), open sea | `s2_*` |
+| Dread ~0.5-0.8 | `music_3` ("Dread") |
+| A raider fight (cannons out) | the battle layer `s1_raiders` on top, the whole band |
+| By any shore | the sea music eases down to 40% |
+| In a harbour / in the tavern | the tavern tune `tav_*`, muffled (fainter elsewhere in the harbour); the sea music steps aside |
+| Near and in the hut, first visit only | the hut's theme `s4_*`, nothing else |
+The dev build's dev bar (top) sets the quest, the hour and the dread, so every row can be heard on purpose.
+
 ## Player volume sliders (pause menu)
 The pause menu stays short (Resume, Ask Mara, Controls, Fullscreen, Captain's log, Sound and music, New voyage). **Sound and music** opens its own panel with the Sound and Music on/off toggles and three sliders: **Music**, **Sea, rain, gulls** (every loop that is not music: sea, rain, gulls, coast, forest) and **Effects** (one-shot sounds). They are 0-100%, saved in the player's settings, and multiply the mix made in the dev mixer (`AudioBus.userVol`, `ambBus`, `sfxBus`, `musicBus`). The sound plays for a moment while a slider is dragged so the level can be heard even though the game is paused.
 
@@ -64,7 +78,7 @@ getting stranger is scarier than new horror music.
 - Look: PS1 style, so a little lo-fi (bitcrush, 22-32 kHz, faint tape noise) suits it.
 - Workflow: one core theme of 4-8 notes, five seamless loops of 1-2 min in the same key, export stems (melody, pad, bass, percussion) if possible so layers can fade later.
 - Export: `.ogg` (or mp3/wav), loop-tested with no click, about -14 LUFS for music; then balance in the F8 mixer and save `volumes.json`.
-- Name files exactly `music_1.ogg` ... `music_5.ogg` and drop them in `public/audio/`.
+- New music now goes in as stems (16 bars at 99 BPM, F minor, the same length as the rest), rendered through HOIST with `HoistLayers` in the Chaos_Grain repo and encoded to `.ogg` in `public/audio/` (see the sections below for the cue names).
 
 ## Stage 1 on open sea: one instrument per quest (`src/layers.js`)
 Six stems from one 16-bar loop at **99 BPM, 4/4 (38.79 s)**: `s1_bass`, `s1_shaperbox`, `s1_pluck`, `s1_drums`, `s1_bell`, `s1_guitar`.
@@ -190,7 +204,9 @@ Only these effects play. Everything else the game asks for (splash, treasure, di
 Audacity, Reaper (free trial), LMMS, BeepBox / Bosca Ceoil (quick chip tunes), jsfxr/sfxr (SFX), Vital/Surge XT (drones), a phone mic for foley (rope, wood, water in a bucket).
 
 ### Custom tracks in
-- `music_3.ogg` is the user's own melancholic piece (now in F minor, see the cue list) ("Dread", 1:42, mono) in place of the synthesised placeholder. It plays in the middle dread band (the Wrong stage, about 0.35 to 0.65 dread, cross-faded with music_2 and music_4). To use it for another stage, rename the file to `music_2` / `music_4` / `music_5`. The old placeholder is in git history.
+All the music is now the user's own, from one session (F minor, 99 BPM, 16-bar loops of 38.79 s), rendered through HOIST in the
+Chaos_Grain repo (`HoistLayers`, masters in `game_audio/`): the stage-1 band and its night version, stage 2, the hut's theme, the
+battle layer, the tavern, and `music_3` ("Dread", the one piece not from that session, moved to F minor). See the music map above.
 
 ## Sound studio (dev, F9)
 Load your own music and sounds, cut them, and say where each plays. Open the game with `?dev=1`, press **F9** (or pause menu, "Sound studio").

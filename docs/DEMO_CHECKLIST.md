@@ -37,7 +37,7 @@ Build it with `python3 scripts/single.py`, ship `pocket-pirates-demo.html` (with
 - [ ] Read every Mara line aloud once: short, charming, no spoilers
 - [ ] Typos pass on harbours, rumours, bottles, encounter cards
 - [ ] HUD text stays minimal; toasts never overlap important text
-- [ ] No test tools: F8, `?dev=1`, dread keys do nothing in the demo file
+- [ ] No test tools: no dev bar, F6-F9 and `?dev=1` do nothing in the demo file
 
 ## 4. Technical
 - [ ] Open the demo html in Chrome, Firefox and Safari (desktop) and on a phone

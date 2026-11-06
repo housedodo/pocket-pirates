@@ -745,13 +745,19 @@ function devBarRender() {
   devBar.querySelector('select').value = String(state.goals.i);
   devBar.querySelector('.dvq').textContent = g ? `${state.goals.i + 1}/${MAIN_GOALS.length}` : 'done';
   devBar.querySelector('.dvt').textContent = `${hh}:${mm}`;
+  const sl = devBar.querySelector('#dvDread'), STG = ['Fair', 'Grey', 'Wrong', 'Deep', 'Abyss'];
+  if (document.activeElement !== sl) sl.value = String(dread);
+  devBar.querySelector('.dvd').textContent = `${dread.toFixed(2)} ${STG[Math.min(4, Math.floor(dread * 5))]}${forced === null ? ' (auto)' : ''}`;
 }
 if (DEV) {
   devBar = document.createElement('div'); devBar.id = 'devbar';
   devBar.innerHTML = `<button data-q="-1" title="previous quest (,)">&lt;</button><select title="jump to a quest">${MAIN_GOALS.map((g, i) => `<option value="${i}">${i + 1}. ${g.title}</option>`).join('')}<option value="${MAIN_GOALS.length}">(all done)</option></select><button data-q="1" title="next quest (.)">&gt;</button><span class="dvq"></span>
-    <span class="dvsep"></span><button data-h="6.5" title="1">Dawn</button><button data-h="12" title="2">Noon</button><button data-h="19.2" title="3">Dusk</button><button data-h="0" title="4">Night</button><span class="dvt"></span>`;
+    <span class="dvsep"></span><button data-h="6.5" title="1">Dawn</button><button data-h="12" title="2">Noon</button><button data-h="19.2" title="3">Dusk</button><button data-h="0" title="4">Night</button><span class="dvt"></span>
+    <span class="dvsep"></span><label for="dvDread">Dread</label><input id="dvDread" type="range" min="0" max="1" step="0.01" value="0"><button data-auto="1" title="dread follows the distance from Tama again (0)">auto</button><span class="dvd"></span>`;
   document.body.appendChild(devBar);
-  devBar.addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; if (b.dataset.q) devQuest(state.goals.i + +b.dataset.q); else devTime(+b.dataset.h); b.blur(); });
+  devBar.addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; if (b.dataset.auto) { forced = null; abyss.stopTest(); } else if (b.dataset.q) devQuest(state.goals.i + +b.dataset.q); else devTime(+b.dataset.h); b.blur(); devBarRender(); });
+  devBar.querySelector('#dvDread').addEventListener('input', (e) => { forced = +e.target.value; devBarRender(); });   // the music and the world follow (eased, like sailing there)
+  devBar.querySelector('#dvDread').addEventListener('change', (e) => e.target.blur());
   devBar.querySelector('select').addEventListener('change', (e) => { devQuest(+e.target.value); e.target.blur(); });
   setInterval(devBarRender, 500);
 }

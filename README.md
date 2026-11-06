@@ -46,7 +46,7 @@ Glass calm · Corrupted HUD · Mad wind meter · Mara breaks · Lighthouses star
 Dread only depends on distance from home; it does not build up over time (only the leviathan ending is time-based).
 
 ## Debug / preview
-- With `?dev=1` only: `1`-`5` force a dread stage, `0` returns to automatic (dread rises with distance from home), `[` `]` shift the hour, `` ` `` shows a debug line.
+- With `?dev=1` (or in `pocket-pirates-dev.html`) only: a dev bar at the top sets the quest (dropdown, `<` `>`, keys `,` `.`), the hour (Dawn / Noon / Dusk / Night, keys `1`-`4`, `[` `]` step) and the dread (slider; `auto` or `0` returns to dread by distance from home); `F6` weather, `F7` finish the quest, `F8` sound mixer, `F9` sound studio, `` ` `` debug line.
 - URL params: `?seed=42`, `?dread=0.8`, `?fresh=1` (ignore save), `?hud=0`, `?zoom=24&pitch=0.7`, `?x=0&z=-50&h=0`, `?time=0.8` (0 = midnight, 0.5 = noon).
 
 ## Docs
