@@ -88,10 +88,12 @@ They take the place of `music_1` while they exist (delete them and `music_1` com
 **Loops** (seamless; all music loops the **same length and tempo** so cross-fades stay musical)
 | File | Notes |
 |---|---|
-| `sea` | constant water bed under everything; louder as the ship speeds up |
+| `sea` | constant water bed under everything; louder as the ship speeds up. Now light ocean waves (Cymatics LIFE Waves Light 3, 19 s seamless loop, about -30 LUFS) |
 | `surf` | breaking waves; fades in when you are close to an island shore |
 | `wind` | wind bed; louder with wind strength and storms. The loop also drifts on its own: a slow volume swell (about 45% to 120%, new gust target every 4 to 13 s), a stereo pan wandering left and right, and a tiny pitch drift, so it never repeats the same way (`driftWind` in audio.js). Keep the file mono |
-| `rain` | rain bed; follows rain intensity |
+| `rain`, `rain_2` | **light rain**: two recordings (Cymatics LIFE Rain Light 12 and 2, 39 s / 48 s loops, about -26 LUFS) that cross-fade slowly every 25-65 s so the rain never repeats. Follow rain intensity; they give way to `rain_storm` as it gets heavy |
+| `rain_storm` | **a proper storm**: heavy rain drumming on the deck (Cymatics LIFE Rain on Roof 1, 30 s loop, about -20 LUFS). Fades in with storm 0.25-0.6 or rain above 0.75 |
+| `forest` | forest bed (Cymatics LIFE Forest 2, 28 s loop), very quiet (30%) while you are ashore on a big forest island (`desc.forest`). **No forest islands exist yet** (ROADMAP); the cue is ready for them |
 | `amb_night` | night bed (crickets-on-water, creaks), fades in after sunset on top of the stage ambience |
 | `amb_1` .. `amb_5` | ambience per stage, 30-60 s, cross-faded by dread |
 | `music_1` .. `music_5` | music per stage, e.g. 32 bars at 90-100 bpm, cross-faded by dread |
@@ -114,7 +116,7 @@ They take the place of `music_1` while they exist (delete them and `music_1` com
 | `stage_up` | crossing into a new dread stage (a low sting) |
 | `buy` | buying a ship upgrade (coin + hammer) |
 | `pause` | opening the pause menu |
-| `thunder` | after lightning (delayed 0.3-2.5 s) |
+| `thunder` | a long distant roll (Cymatics LIFE Thunder Distant 9, the rumble and its tail, 18.5 s): after lightning (delayed 0.3-2.5 s) and, on its own, every 30-80 s in strong rain; never closer than 25 s to the last one, random pan and pitch (`AudioBus.thunder`) |
 | `horn` | a passing ship greets you |
 | `gull` | gulls near an island (only while they still sound like gulls) |
 | `dolphin` | dolphins leaping |

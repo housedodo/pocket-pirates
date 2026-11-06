@@ -48,6 +48,7 @@ The demo (Tama, Velto, the first hut throw, no dread) is done and in playtest. T
 - [ ] Harbour mini-quests (kitten, cake, the other kitten)
 - [ ] More villages with customs and local charts; more species per region
 - [ ] Biomes: coral reef, rain forest isle, sunken area (concepts exist; keep clear of Dredge)
+- [ ] Big forest islands you can step onto: mark them `desc.forest`; the `forest` ambience cue is already in and plays very quietly once you are ashore there (`forestLevel` in main.js)
 - [ ] Optional: walkable beaches, towns, cave mouths
 **Gameplay**
 - [ ] Encounter deck: more cards, advantage/disadvantage sources, hut-roll effects

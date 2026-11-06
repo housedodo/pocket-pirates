@@ -13,7 +13,7 @@ const DEMO_SKIP = new Set(['music_3', 'music_4', 'music_5', 'amb_3', 'amb_4', 'a
 const STAGES = 5;
 export const CUES = {
   loops: [
-    'sea', 'surf', 'wind', 'rain', 'amb_night', 'oars', 'gulls', 'coast',
+    'sea', 'surf', 'wind', 'rain', 'rain_2', 'rain_storm', 'amb_night', 'oars', 'gulls', 'coast', 'forest',
     ...Array.from({ length: STAGES }, (_, i) => `amb_${i + 1}`),
     ...Array.from({ length: STAGES }, (_, i) => `music_${i + 1}`),
     ...LAYERS,   // stage 1 on open sea: one instrument more with every quest (src/layers.js)
@@ -42,6 +42,8 @@ export class AudioBus {
     this.level = {};         // the level each loop is currently asked to play at (for the mixer's meters)
     this.layerSeed = 0;      // the voyage's seed: the order the stage-1 instruments arrive in
     this.layerPace = 1;      // test flag (?dev=1&musicpace=4): the stage-1 layers move this many times faster
+    this.rainMix = 0; this.rainMixT = 0; this.rainSwap = 30;   // the two light-rain recordings cross-fade slowly so the rain never repeats
+    this.thunderT = 20; this.lastThunder = -99;                // distant thunder now and then in strong rain
   }
   v(key) { return this.vol[key] != null ? this.vol[key] : 1; }
   setVol(key, x) { this.vol[key] = x; }
@@ -85,7 +87,7 @@ export class AudioBus {
     try { Object.assign(this.vol, JSON.parse(localStorage.getItem('pocket-pirates-mixer') || '{}')); } catch (e) { /* storage blocked */ }
     this.setMuted(this.muted); this.setMusic(this.musicOn);
     // one-shots first (cheap), then ambience, then music, yielding between cues so the game stays smooth
-    const order = [...CUES.oneShots, 'sea', 'wind', 'surf', 'rain', 'amb_night', 'oars', 'gulls', 'coast', ...CUES.loops.filter((k) => k.startsWith('amb_') && k !== 'amb_night'), ...CUES.loops.filter((k) => k.startsWith('music_')), ...LAYERS];
+    const order = [...CUES.oneShots, 'sea', 'wind', 'surf', 'rain', 'rain_2', 'rain_storm', 'amb_night', 'oars', 'gulls', 'coast', 'forest', ...CUES.loops.filter((k) => k.startsWith('amb_') && k !== 'amb_night'), ...CUES.loops.filter((k) => k.startsWith('music_')), ...LAYERS];
     for (const k of order) {
       if (window.__BUILD === 'demo' && DEMO_SKIP.has(k)) continue;
       await this.load(k);
@@ -204,6 +206,38 @@ export class AudioBus {
     this.windSrc.playbackRate.setTargetAtTime(1 + 0.025 * Math.sin(t * 0.09 + 2), T, 3);
   }
 
+  /**
+   * Rain in two kinds: light rain (two recordings, `rain` and `rain_2`, cross-faded every half minute or so) and a proper
+   * storm (`rain_storm`, heavy rain drumming on the deck), blended by how hard it rains and blows. In strong rain a distant
+   * thunder rolls in now and then.
+   */
+  rainBeds(dt, s) {
+    const sm = (a, b, x) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+    const heavy = this.has('rain_storm') ? Math.max(sm(0.25, 0.6, s.storm), sm(0.75, 1, s.rain)) : 0;
+    const wet = Math.max(s.rain, s.storm * 0.8);
+    this.rainSwap -= dt;
+    if (this.rainSwap <= 0) { this.rainMixT = this.rainMixT > 0.5 ? Math.random() * 0.3 : 0.7 + Math.random() * 0.3; this.rainSwap = 25 + Math.random() * 40; }
+    this.rainMix += (this.rainMixT - this.rainMix) * (1 - Math.exp(-dt / 6));
+    const x = this.has('rain_2') ? this.rainMix : 0, light = wet * 0.85 * (1 - heavy * 0.8);
+    this.setLoop('rain', light * Math.cos(x * Math.PI / 2));
+    this.setLoop('rain_2', light * Math.sin(x * Math.PI / 2));
+    this.setLoop('rain_storm', wet * heavy * 0.9);
+    const strong = Math.max(sm(0.55, 0.8, s.rain), sm(0.3, 0.5, s.storm));
+    if (strong > 0.05) {
+      this.thunderT -= dt * strong;
+      if (this.thunderT <= 0) { this.thunder(0.55 + 0.4 * strong); this.thunderT = 30 + Math.random() * 50; }
+    }
+  }
+
+  /** a distant roll of thunder (lightning asks for one too); never two on top of each other */
+  thunder(vol = 0.9) {
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime;
+    if (t - this.lastThunder < 25) return;   // the roll is long (about 18 s): from time to time, not every flash
+    this.lastThunder = t;
+    this.play('thunder', { vol: vol * (0.75 + Math.random() * 0.25), rate: 0.9 + Math.random() * 0.15, pan: (Math.random() * 2 - 1) * 0.7 });
+  }
+
   /** s: { dread, speed (0..1), night (0..1), wind (0..1.3), rain, storm, surf (0..1), quests (main goals done), open (0 by the shore .. 1 open sea) } */
   update(dt, s) {
     if (!this.ctx) return;
@@ -223,7 +257,7 @@ export class AudioBus {
     this.driftWind(dt);
     this.setLoop('surf', s.surf * 0.7);
     this.setLoop('wind', Math.min(1, s.wind * 0.35 + s.storm * 0.5));
-    this.setLoop('rain', s.rain * 0.85);
+    this.rainBeds(dt, s);
     this.setLoop('amb_night', s.night * 0.7 * (1 - s.rain * 0.7));
     this.setLoop('oars', s.rowing ? 0.7 : 0);
     this.setLoop('gulls', (s.gulls || 0) * 0.9);

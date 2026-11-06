@@ -223,7 +223,7 @@ function toast(text, dark = false, ms = 5200) {
   setTimeout(() => el.remove(), ms);
 }
 
-weather.onThunder = (delay) => setTimeout(() => audio.play('thunder', { vol: 0.9 }), delay * 1000);
+weather.onThunder = (delay) => setTimeout(() => audio.thunder(0.9), delay * 1000);   // the long distant roll: audio.thunder keeps them from piling up
 sea.onEvent = (e) => {
   const idx = Math.min(4, Math.floor(dread * 5));
   if (e.type === 'qcrate') {
@@ -1215,6 +1215,11 @@ function coastLevel(moored, night) {
   let k = near ? 1 - clamp(world.lastEdge / 110, 0, 1) : 0;
   k = Math.max(k * k * 0.75, moored ? 0.85 : 0);
   return k * (1 - night * 0.5) * (1 - weather.storm * 0.8) * (1 - smoothstep(0.25, 0.4, dread));
+}
+// ashore on a big forest island (1): its forest bed plays very quietly. No island is a forest yet (ROADMAP: forest
+// islands); when they exist, mark them with desc.forest and this picks them up
+function forestLevel(ashore) {
+  return ashore && harbourIsl && harbourIsl.desc && harbourIsl.desc.forest ? 1 : 0;
 }
 // out on open sea (1) or close to an island (0): the stage-1 music layers fall back near land
 function openSea() {
@@ -2228,6 +2233,7 @@ function frame() {
     if (_v.z < 1) { eb.style.display = 'block'; eb.style.left = `${(_v.x * 0.5 + 0.5) * window.innerWidth}px`; eb.style.top = `${(-_v.y * 0.5 + 0.5) * window.innerHeight}px`; $('ename').textContent = tgtE.name; $('efill').style.width = `${Math.max(0, (tgtE.hp / tgtE.maxHp) * 100)}%`; } else eb.style.display = 'none';
   } else eb.style.display = 'none';
   audio.setLoop('coast', coastLevel(ashore, tod.night));
+  audio.setLoop('forest', forestLevel(ashore) * 0.3);   // ashore on a forest island: very quietly under everything
   if (live) {
     const near = world.nearest(ship.pos.x, ship.pos.z, 45);
     audio.update(dt, { dread, speed: ship.speed / 11, night: tod.night, wind: wind.strength, rain: weather.rain, storm: weather.storm, surf: near ? clamp(1 - world.lastEdge / 45, 0, 1) : 0, rowing: ship.rowIn > 0, gulls: gullLevel(tod.night),
