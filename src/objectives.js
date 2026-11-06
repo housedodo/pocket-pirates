@@ -36,7 +36,7 @@ export const MAIN_GOALS = [
     id: 'harbour', ch: 0, title: 'Make landfall', reward: 12,
     text: 'Bring her back to Tama\'s pier and press E.',
     intro: ['Nicely done. Now bring her back to Tama\'s pier and press E. The harbourmaster was waving at us.'],
-    outro: ['Old Perrin left something for you with the harbourmaster.'],
+    outro: (c) => (c.state.story.letterP1 === 'taken' ? [] : ['Old Perrin left something for you with the harbourmaster.']),
     hints: ['Tama is the island with the lighthouse and the long wooden pier.', 'Sail right up to the end of the pier, then press E.'],
     check: (c) => c.state.stats.harbours >= 1,
     onDone: (c) => { c.state.story.letterP1 = c.state.story.letterP1 || 'wait'; },   // Perrin's riddle waits at the Tama board as a letter; the player takes it
@@ -48,7 +48,7 @@ export const MAIN_GOALS = [
     intro: (c) => (c.state.story.letterP1 === 'taken' ? ['Now to find the shore that riddle means. Stop the ship there and press E to dig.']
       : ['Perrin left you a letter with the harbourmaster: take it at the Board sign in Tama.', 'Then find the shore its riddle means, stop the ship and press E to dig.']),
     outro: ['Ha! Treasure! A captain with gold in the hold is a captain with options.'],
-    hints: ['Take Perrin\'s letter at the Tama Board sign first (the little letter icon). The riddle is then in the log (M, Riddles tab). Sunrise is east, sunset is west.', 'Try the shore the riddle describes. A wrong shore only costs a few seconds.'],
+    hints: ['Take Perrin\'s letter at the Tama Board sign first (the little letter icon). The riddle is then in the log (M, Riddles tab). Sunrise is east, sunset is west.', 'Try the shore the riddle describes. Swing the shovel (E) when the needle is on the green sand, and miss the grey stones: two and the hole caves in.'],
     check: (c) => c.state.dug.has(HOME_ISLE),
     tab: 'board', mark: ['takeLetter'],
   },
@@ -65,9 +65,9 @@ export const MAIN_GOALS = [
     id: 'calm', ch: 2, title: 'Dead calm', reward: 24,
     text: 'The wind has died. Put the oars out (G) and row, then catch a fish (stop, then C).',
     intro: ['Not a breath of wind. Press G for the oars, then W to row us a little way.',
-      'Then slow right down and press C to fish. When it bites, hold Space to reel, and let go to ease off.'],
+      'Then slow right down and press C: a little meter swings, press C again to cast. Close in for small fish, far out for big ones. When it bites, hold Space to reel, and let go when it runs.'],
     outro: ['Dinner AND exercise. A full day\'s work for a captain.', 'And listen: there is the wind again. Sails up, Captain.'],
-    hints: ['Press G to put the oars out, then hold W to row. G again puts them away.', 'Stop the ship (S), then press C to cast a line. When it bites, press C or Space, then hold Space to reel.'],
+    hints: ['Press G to put the oars out, then hold W to row. G again puts them away.', 'Stop the ship (S), press C, then C again to cast (a short cast is easier). When it bites, press C or Space, then hold Space to reel; let go when it runs or the line snaps.'],
     check: (c) => (c.state.stats.rowed || 0) >= ((c.state.story.cal0 || {}).r || 0) + 50 && c.state.stats.fish >= ((c.state.story.cal0 || {}).f || 0) + 1,
     onStart: (c) => { c.state.story.cal0 = { r: c.state.stats.rowed || 0, f: c.state.stats.fish }; if (c.forceCalm) c.forceCalm(420); },
     onDone: (c) => { if (c.forceCalm) c.forceCalm(0); },   // the wind picks up again
@@ -367,6 +367,8 @@ export class Objectives {
         this.gap -= dt;
         if (this.gap <= 0) {
           const next = this.pending; this.pending = null;
+          let done = false; try { done = next.check(this.d); } catch (e) { /* not checkable yet */ }
+          if (done) { this.timer = 0; return; }   // already done (bought the sails before she could suggest it): no intro, it completes at once
           const card = this.newCh; if (this.newCh) { this.newCh = false; this.chapterCard(next.ch); }
           if (this.d.questNew) this.d.questNew(next, !card);   // the NEW QUEST card comes with her words
           for (const l of (typeof next.intro === 'function' ? next.intro(this.d) : next.intro)) this.mate.say(l, dread > 0.6);
@@ -384,7 +386,7 @@ export class Objectives {
     if (cur && !(cur.waitMate && this.mate.busy) && cur.check(c)) {
       const following = MAIN_GOALS[g.i + 1] || null;
       this.complete(cur, false, following);
-      for (const l of cur.outro || []) this.mate.say(l, dread > 0.6);
+      for (const l of (typeof cur.outro === 'function' ? cur.outro(c) : cur.outro || [])) this.mate.say(l, dread > 0.6);
       if (cur.onDone) cur.onDone(c);
       g.i++; this.hintI = 0; this.stall = 0;
       const next = this.current;

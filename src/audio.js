@@ -157,7 +157,7 @@ export class AudioBus {
 
   /**
    * A very soft voice blip while somebody's words type out (every third letter): a short, rounded, low-passed tone with a
-   * little pitch wobble, quiet enough to sit under everything (peaks about -40 dBFS at the output, under the music). Mara a little higher; guests lower; dark lines
+   * little pitch wobble, soft but clear of the sea's rumble (peaks about -28 dBFS at the output). Mara a little higher; guests lower; dark lines
    * lower and duller. Follows the Effects slider.
    */
   blip(dark = false, guest = false) {
@@ -165,11 +165,11 @@ export class AudioBus {
     const t = this.ctx.currentTime;
     if (t - (this.lastBlip || 0) < 0.06) return;   // never a rattle
     this.lastBlip = t;
-    const base = (guest ? 210 : 290) * (dark ? 0.78 : 1), f = base * (1 + (Math.random() - 0.5) * 0.12);
+    const base = (guest ? 360 : 470) * (dark ? 0.75 : 1), f = base * (1 + (Math.random() - 0.5) * 0.12);   // above the sea's rumble, so it is heard without being loud
     const o = this.ctx.createOscillator(), g = this.ctx.createGain(), lp = this.ctx.createBiquadFilter();
     o.type = 'triangle'; o.frequency.setValueAtTime(f, t); o.frequency.exponentialRampToValueAtTime(f * 0.94, t + 0.06);
-    lp.type = 'lowpass'; lp.frequency.value = dark ? 900 : 1400; lp.Q.value = 0.3;
-    const vol = 0.012 * this.v('blip');
+    lp.type = 'lowpass'; lp.frequency.value = dark ? 1500 : 2600; lp.Q.value = 0.3;
+    const vol = 0.05 * this.v('blip');
     g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.008); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.07);
     o.connect(lp).connect(g).connect(this.sfxBus || this.master); o.start(t); o.stop(t + 0.09);
   }

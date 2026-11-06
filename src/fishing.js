@@ -5,8 +5,12 @@ import { mats } from './psx.js';
 import { waveHeight } from './ocean.js';
 import { clamp, smoothstep } from './util.js';
 
-// A relaxed fishing minigame: cast (C), wait for a bite, hook it (C / Space), then keep the
-// moving marker inside the green zone by holding / releasing Space. Fish are sold at harbours.
+// The fishing minigame: C starts a swinging power meter and C again casts: a short cast lands by the boat (small, easy
+// fish), a long one far out (bigger, rarer, harder fish, a longer wait). Wait for a bite and hook it in time (C / Space),
+// then keep the moving marker inside the green zone by holding / releasing Space. Now and then the fish RUNS: hold on
+// through a run and the line's tension climbs, and at the top the line snaps. Ease off, let it run, then reel again.
+// It can go wrong three ways: too slow on the bite, the fish gets away (progress runs out), or the line snaps.
+// Fish are sold at harbours.
 // Species drift from cheerful to wrong with dread.
 export const FISH = [
   // id, name, weight(rarity), difficulty, price/kg, kg range, dread range, night only, dark?
@@ -81,6 +85,7 @@ export class Fishing {
     this.zoneEl = document.getElementById('fishzone');
     this.markEl = document.getElementById('fishmark');
     this.progEl = document.getElementById('fishprog');
+    this.tenEl = document.getElementById('fishten');   // line tension (it snaps at the top)
     this.ui.addEventListener('pointerdown', (e) => { this.hold = true; this.press(true); e.preventDefault(); });
     this.ui.addEventListener('pointerup', () => { this.hold = false; });
     this.ui.addEventListener('pointerleave', () => { this.hold = false; });
@@ -100,6 +105,7 @@ export class Fishing {
   /** C or tap: cast / hook / pull the line in */
   press(fromReel = false) {
     if (this.mode === 'idle') return this.start();
+    if (this.mode === 'aim') return this.cast();
     if (this.mode === 'bite') return this.hook();
     if (this.mode === 'wait' && !fromReel) return this.cancel('You reel in the empty line.');
     return null;
@@ -107,11 +113,17 @@ export class Fishing {
   start() {
     const s = this.ship;
     if (s.speed > 2.5) { this.cb.toast('Too fast to fish: reef the sails (S) and let the ship slow down.'); return; }
-    const rx = Math.cos(s.heading), rz = Math.sin(s.heading), fx = Math.sin(s.heading), fz = -Math.cos(s.heading);
-    this.pos = { x: s.pos.x + rx * 4.8 + fx * 1.5, z: s.pos.z + rz * 4.8 + fz * 1.5 };
-    // swing back, flick forward, the bobber flies out on an arc; then the wait begins
-    this.mode = 'cast'; this.castT = 0; this.timer = 0; this.wait = rnd(2.5, 7) * (1 - 0.25 * this.cb.getCtx().bonus);
+    // first the power meter: it swings until C is pressed again
+    this.mode = 'aim'; this.aimT = Math.random() * 0.5; this.power = 0;
     this.rod.visible = true; this.bobber.visible = false; this.line.visible = false;
+  }
+  /** C again: cast at the power the meter shows */
+  cast() {
+    const s = this.ship, pw = this.power;
+    const rx = Math.cos(s.heading), rz = Math.sin(s.heading), fx = Math.sin(s.heading), fz = -Math.cos(s.heading), dist = 3.2 + 7.5 * pw;
+    this.pos = { x: s.pos.x + rx * dist + fx * 1.5, z: s.pos.z + rz * dist + fz * 1.5 };
+    // swing back, flick forward, the bobber flies out on an arc; then the wait begins (far out the fish take longer to find it)
+    this.mode = 'cast'; this.castT = 0; this.timer = 0; this.wait = rnd(2.5, 7) * (1 - 0.25 * this.cb.getCtx().bonus) + pw * 2.5;
     this.cb.onStart();
   }
   cancel(text) {
@@ -122,7 +134,8 @@ export class Fishing {
     if (ctx.env && ctx.env.colour && Math.random() < 0.7) { this.env = ctx.env; return BRIGHT_FISH; }   // in the wrong water most bites are the wrong fish
     const list = FISH.filter((f) => ctx.dread >= f.min && ctx.dread <= f.max && (!f.night || ctx.night > 0.5));
     this.env = ctx.env || null;
-    const ws = list.map((f) => f.w * (f.dark ? 0.4 + ctx.dread : (1.25 - ctx.dread * 0.9) * habitatFit(f.id, ctx.env)));
+    const far = (this.power || 0.5) - 0.5;   // a long cast favours the big, hard fish; a short one the small, easy ones
+    const ws = list.map((f) => f.w * Math.exp(far * 3.2 * (f.diff - 0.45)) * (f.dark ? 0.4 + ctx.dread : (1.25 - ctx.dread * 0.9) * habitatFit(f.id, ctx.env)));
     let r = Math.random() * ws.reduce((a, b) => a + b, 0);
     for (let i = 0; i < list.length; i++) { r -= ws[i]; if (r <= 0) return list[i]; }
     return list[0];
@@ -130,15 +143,18 @@ export class Fishing {
   hook() {
     this.mode = 'reel';
     const f = this.fish;
-    this.zone = 0.5; this.zw = 0.34 - 0.13 * f.diff; this.fp = 0.5; this.ft = 0.5; this.fnext = 0; this.prog = 0.3;
+    this.diff = Math.min(0.97, f.diff + (this.power || 0) * 0.12);
+    this.zone = 0.5; this.zw = 0.34 - 0.13 * this.diff; this.fp = 0.5; this.ft = 0.5; this.fnext = 0; this.prog = 0.3;
+    this.tension = 0; this.run = 0; this.nextRun = rnd(2.2, 4.5) / (0.6 + this.diff);
   }
-  finish(won) {
+  finish(won, why = '') {
     const f = this.fish;
     this.cancel();
     if (won) {
-      const kg = +(f.kg[0] + Math.pow(Math.random(), 1.6) * (f.kg[1] - f.kg[0])).toFixed(1);
+      const kg = +(f.kg[0] + Math.pow(Math.random(), 1.6 - 0.9 * (this.power || 0)) * (f.kg[1] - f.kg[0])).toFixed(1);   // far out, the big ones
       this.cb.onCatch({ id: f.id, name: f.name, kg, value: Math.max(1, Math.round(kg * f.price)), dark: !!f.dark, zone: this.env ? this.env.label : '', hour: this.env ? this.env.hour : 12 });
-    } else this.cb.toast(f.dark ? 'The line goes slack. Something below let go on purpose.' : 'It got away!');
+    } else if (why === 'snap') this.cb.toast(f.dark ? 'The line snaps. Something below kept the hook.' : 'SNAP! The line broke: you held on too hard while it ran.');
+    else this.cb.toast(f.dark ? 'The line goes slack. Something below let go on purpose.' : 'It got away!');
   }
 
   update(dt, t, ctx) {
@@ -146,11 +162,21 @@ export class Fishing {
     const s = this.ship;
     if (s.speed > 3.2) { this.cancel('You pull the line in: the ship is moving too fast.'); return; }
     this.timer += dt;
-    const p = this.pos, w = waveHeight(p.x, p.z, t, ctx.wave);
+    const p = this.pos || s.pos, w = waveHeight(p.x, p.z, t, ctx.wave);   // (no bobber yet while aiming)
     let dip = 0;
     // the rod: butt at the starboard rail, pointing out over the water
     const rx = Math.cos(s.heading), rz = Math.sin(s.heading), base = new THREE.Vector3(s.pos.x + rx * 1.1, 1.9, s.pos.z + rz * 1.1);
     let pitch = 0.55;
+    if (this.mode === 'aim') {   // the power meter: a needle swinging from "by the boat" to "far out"
+      this.aimT += dt; const ph = (this.aimT / 1.15) % 2; this.power = ph < 1 ? ph : 2 - ph;
+      pitch = 0.9 + this.power * 0.9;
+      const out0 = Math.cos(pitch) * this.rodLen; this.rod.position.copy(base); this.rod.lookAt(new THREE.Vector3(base.x + rx * out0, base.y + Math.sin(pitch) * this.rodLen, base.z + rz * out0));
+      this.ui.style.display = 'block'; this.bar.style.display = 'block'; this.msg.className = '';
+      this.msg.textContent = 'Press C to cast: short = small fish, far = big fish (harder)';
+      this.zoneEl.style.left = '0%'; this.zoneEl.style.width = `${this.power * 100}%`; this.zoneEl.style.background = 'rgba(255, 210, 58, .5)';
+      this.markEl.style.left = `${this.power * 100}%`; this.progEl.style.width = '0%'; if (this.tenEl) this.tenEl.parentNode.style.display = 'none';
+      return;
+    }
     if (this.mode === 'cast') {
       this.castT += dt; const c = this.castT;
       pitch = c < 0.3 ? 0.55 + (1.9 - 0.55) * smoothstep(0, 0.3, c) : c < 0.5 ? 1.9 - 1.7 * smoothstep(0.3, 0.5, c) : 0.2 + 0.35 * smoothstep(0.5, 1.0, c);
@@ -190,8 +216,12 @@ export class Fishing {
     this.ui.style.display = 'block';
     this.bar.style.display = this.mode === 'reel' ? 'block' : 'none';
     this.msg.className = this.mode === 'bite' ? 'blink' : '';
-    this.msg.textContent = this.mode === 'wait' ? 'Line in the water... (C pulls it in)' : this.mode === 'bite' ? (this.fish.dark ? 'SOMETHING PULLS BACK! Press C / Space!' : 'BITE! Press C / Space!') : 'Hold SPACE to reel, release to ease off';
+    if (this.mode === 'reel' && this.run > 0) this.msg.className = 'blink';
+    this.msg.textContent = this.mode === 'wait' ? 'Line in the water... (C pulls it in)' : this.mode === 'bite' ? (this.fish.dark ? 'SOMETHING PULLS BACK! Press C / Space!' : 'BITE! Press C / Space!')
+      : this.run > 0 ? (this.fish.dark ? 'IT PULLS DOWN! Let go of SPACE!' : 'IT RUNS! Let go of SPACE or the line snaps!') : 'Hold SPACE to reel, release to ease off';
     if (this.mode === 'reel') {
+      this.zoneEl.style.background = '';
+      if (this.tenEl) { this.tenEl.parentNode.style.display = 'block'; this.tenEl.style.width = `${this.tension * 100}%`; this.tenEl.style.background = this.tension > 0.7 ? '#ff4a3a' : '#e89a3a'; }
       this.zoneEl.style.left = `${(this.zone - this.zw / 2) * 100}%`; this.zoneEl.style.width = `${this.zw * 100}%`;
       this.markEl.style.left = `${this.fp * 100}%`;
       this.progEl.style.width = `${this.prog * 100}%`;
@@ -199,14 +229,20 @@ export class Fishing {
   }
 
   reel(dt) {
-    const f = this.fish;
+    const df = this.diff;
+    // runs: the fish bolts for the edge; hold on through it and the tension climbs
+    this.nextRun -= dt;
+    if (this.run <= 0 && this.nextRun <= 0) { this.run = rnd(0.9, 1.6); this.ft = this.fp < 0.5 ? 0.97 : 0.03; this.nextRun = rnd(2.5, 5.5) / (0.6 + df); }
+    if (this.run > 0) this.run -= dt;
     this.fnext -= dt;
-    if (this.fnext <= 0) { this.ft = rnd(0.08, 0.92); this.fnext = rnd(0.5, 1.1) / (0.6 + f.diff); }
-    this.fp += clamp(this.ft - this.fp, -1, 1) * Math.min(1, dt * (1.2 + 2.2 * f.diff));
+    if (this.run <= 0 && this.fnext <= 0) { this.ft = rnd(0.08, 0.92); this.fnext = rnd(0.5, 1.1) / (0.6 + df); }
+    this.fp += clamp(this.ft - this.fp, -1, 1) * Math.min(1, dt * (1.2 + 2.2 * df) * (this.run > 0 ? 1.8 : 1));
     this.zone = clamp(this.zone + (this.hold ? 0.9 : -0.75) * dt, this.zw / 2, 1 - this.zw / 2);
+    this.tension = clamp(this.tension + (this.run > 0 ? (this.hold ? 0.85 + 0.6 * df : -0.4) : (this.hold ? 0.06 : -0.45)) * dt, 0, 1);
     const inside = Math.abs(this.fp - this.zone) < this.zw / 2;
-    this.prog += (inside ? 0.3 * (1.2 - f.diff * 0.5) : -0.24) * dt;
-    if (this.prog >= 1) this.finish(true);
+    this.prog += (inside ? 0.3 * (1.2 - df * 0.5) : -0.24) * dt;
+    if (this.tension >= 1) this.finish(false, 'snap');
+    else if (this.prog >= 1) this.finish(true);
     else if (this.prog <= 0) this.finish(false);
   }
 }

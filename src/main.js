@@ -15,6 +15,7 @@ import { SoundStudio } from './studio.js';
 import { TITLE_SCENES, drawTitleLogo } from './title.js';
 import { pickGreeting, portrait, speakerName, rollGreeting, numberWord } from './greetings.js';
 import { isOpen, lockPane } from './gates.js';
+import { DigGame } from './digging.js';
 import { gossip, lootFor, bottleNote, barrelLoot } from './lore.js';
 import { Weather } from './weather.js';
 import { Fauna } from './fauna.js';
@@ -420,7 +421,7 @@ function onbShow(k) {
   el.classList.remove('onb-off'); el.classList.remove('onb-pop'); void el.offsetWidth; el.classList.add('onb-pop');
   setTimeout(() => el.classList.remove('onb-pop'), 3000);
 }
-const laterOK = () => !!onbAll() || state.goals.i >= 7;   // dolphins, sightings and the optional goals wait until the tutorial is well under way
+const laterOK = () => !!params.get('nomate') || state.goals.i >= 9;   // Mara's chatter, dolphins, sightings, pets and the optional goals wait until the tavern chapter: before that she only talks about the quest in hand
 let onbGold0 = null, onbT0 = null, onbStepT = 0, onbNudged = false;
 function onbTick() {
   if (!started) return;
@@ -451,6 +452,7 @@ function openModal(name) {
   modal = name;
   keys.clear();
   if (fishing.active) fishing.cancel();
+  if (digGame.active) { digGame.cancel(); dig = null; }
   ({ pause: pauseEl, chart: chartEl, harbour: harbourEl, ship: shipEl, yard: yardEl, hut: hutEl, card: cardEl, pig: pigEl, greet: greetEl, cave: caveEl })[name].classList.add('open');
   if (name === 'pause') { showPauseMain(); }
   if (name === 'chart') { abyss.onMapOpen(ship);
@@ -680,11 +682,12 @@ window.addEventListener('keydown', (e) => {
   if (e.code === 'Space') e.preventDefault();
   if (e.repeat) return;
   keys.add(e.code);
+  if (e.code === 'Space' && digGame.active) { digGame.press(); return; }
   if (e.code === 'Space') { if (fishing.active) { fishing.hold = true; fishing.press(true); } else if (objectives.mate.cur) objectives.mate.skip(); else if (unlocked(state, 'cannons')) fireCannons(); }   // Space (or Enter) moves Mara's text on
   if (e.code === 'KeyC' && unlocked(state, 'fish')) fishing.press();
   if (e.code === 'KeyY' && !abyss.maraHint()) objectives.askHint(dread);
   if (e.code === 'Enter' || e.code === 'NumpadEnter') objectives.mate.skip();
-  if (e.code === 'KeyE') tryInteract();
+  if (e.code === 'KeyE') { if (digGame.active) digGame.press(); else tryInteract(); }
   if (e.code === 'KeyH') $('hud').classList.toggle('hidden');
   if (e.code === 'F1') { e.preventDefault(); helpMode = helpMode === 'full' ? 'off' : 'full'; helpEl.innerHTML = '<span>A/D steer &middot; W/S sails &middot; G oars &middot; E interact &middot; C fish<br>M log &middot; J quests &middot; Q tracker &middot; Esc pause &middot; H hide HUD &middot; F1 this help</span>'; helpEl.style.opacity = helpMode === 'full' ? '1' : '0'; }
   if (e.code === 'KeyG' && !modal && started && unlocked(state, 'oars')) { ship.rowing = !ship.rowing; toast(ship.rowing ? 'Oars out' : 'Oars in, sails up', false, 2200); if (ship.rowing) objectives.remark('oars', dread); }
@@ -728,7 +731,7 @@ for (const [id, k] of [['tL', 'L'], ['tR', 'R'], ['tU', 'U'], ['tD', 'D']]) {
   const up = () => { touch[k] = false; };
   el.addEventListener('pointerup', up); el.addEventListener('pointerleave', up); el.addEventListener('pointercancel', up);
 }
-$('tE').addEventListener('pointerdown', (e) => { begin(); if (modal === 'harbour') closeModal(); else tryInteract(); e.preventDefault(); });
+$('tE').addEventListener('pointerdown', (e) => { begin(); if (modal === 'harbour') closeModal(); else if (digGame.active) digGame.press(); else tryInteract(); e.preventDefault(); });
 $('tC').addEventListener('pointerdown', (e) => { begin(); if (fishing.active) { fishing.hold = true; fishing.press(true); } else fishing.press(); e.preventDefault(); });
 $('tC').addEventListener('pointerup', () => { fishing.hold = false; });
 $('tX').addEventListener('pointerdown', (e) => { begin(); fireCannons(); e.preventDefault(); });
@@ -1035,7 +1038,7 @@ function tutorialMarks() {
   if (g && g.id === 'job' && state.job && harbourIsl && state.job.toId !== harbourIsl.desc.id) g = null;   // accepted already: nothing to press here
   if (g && g.id === 'dig' && (state.story.letterP1 !== 'wait' || !harbourIsl || harbourIsl.desc.id !== '0,-1')) g = null;   // only while Perrin's letter waits, and only at Tama
   // always marked, tutorial or not: a letter waiting for you here (Perrin's), and a passenger asking for passage. Both sit on the board
-  const always = harbourIsl ? [...(lettersAt(harbourIsl.desc).length ? ['takeLetter'] : []), ...(passengerAt(harbourIsl.desc) && isOpen(state, 'btn', 'takePass') ? ['takePass'] : [])] : [];
+  const always = harbourIsl ? [...(lettersAt(harbourIsl.desc).length ? ['takeLetter'] : []), ...(passengerAt(harbourIsl.desc) && isOpen(state, 'btn', 'takePass') && !(state.stats.passengers || 0) && !state.passenger ? ['takePass'] : [])] : [];
   const seen = state.story.uiSeen || (state.story.uiSeen = {});
   $('hbTabs').querySelectorAll('.post').forEach((b) => {
     const t = b.dataset.t, open = isOpen(state, 'tab', t);
@@ -1221,6 +1224,8 @@ function updateTracker() {
 let dread = forced !== null ? forced : dreadAtDistance(Math.hypot(ship.pos.x, ship.pos.z));
 let dark = dread > DARK_THRESHOLD;
 let dig = null;     // { isl, t }
+let digFix = 0;     // after a cave-in the crew digs out the collapse until this time
+const digGame = new DigGame({ sound: (k) => { if (k === 'rock') { audio.playTone(1180, { dur: 0.35, vol: 0.09 }); audio.playTone(1530, { dur: 0.25, vol: 0.05 }); } else audio.play('dig', { vol: k === 'good' ? 0.45 : 0.25, rate: 1.25 }); } });
 let tNow = 0;
 let curSector = null;
 const sighted = new Set();
@@ -1262,6 +1267,9 @@ function forestLevel(ashore) {
 function inBattle() {
   return unlocked(state, 'cannons') && traffic.ships.some((s) => s.hostile && !s.sinking && s.hp > 0 && (s.engaged || Math.hypot(s.x - ship.pos.x, s.z - ship.pos.z) < 110));
 }
+// the hut exists once the story has reached it: the goal that asks about it ("Ask around") or later, or it is already known
+const GOSSIP_AT = MAIN_GOALS.findIndex((g) => g.id === 'gossip');
+function hutReached() { return !!state.story.hutKnown || (GOSSIP_AT >= 0 && state.goals.i >= GOSSIP_AT); }
 // out on open sea (1) or close to an island (0): the stage-1 music layers fall back near land
 function openSea() {
   const near = world.nearest(ship.pos.x, ship.pos.z, 140);
@@ -1306,7 +1314,7 @@ function fireCannons() {
 
 function getInteract() {
   const hi = world.nearest(ship.pos.x, ship.pos.z, 18);
-  if (hi && hi.desc.hut) return { kind: 'hut', key: 'hut', isl: hi };
+  if (hi && hi.desc.hut && world.hutShown) return { kind: 'hut', key: 'hut', isl: hi };
   const sg = sighting.near(ship.pos.x, ship.pos.z); if (sg) return { kind: 'sighting', key: 'sight', s: sg };
   const cvs = caves.near(ship.pos.x, ship.pos.z); if (cvs) return { kind: 'cave', key: cvs.id, site: cvs };
   const spr = threads.springNear(ship.pos.x, ship.pos.z); if (spr) return { kind: 'spring', key: 'spring', src: spr };
@@ -1431,8 +1439,10 @@ function tryInteract() {
       audio.play('dig');
     } else if (state.halves[d.id]) {
       toast('Half a riddle is not enough to dig by. The other half is written on another arch.', false, 5000);
+    } else if (digFix > tNow) {
+      toast('The crew is still digging out the collapsed hole.', false, 2500);
     } else {
-      dig = { key: tg.key, t: 0, label: 'Digging...', need: 2.6 * ship.mods.digTime * (state.buffs.dig > 0 ? 0.7 : 1), done: () => {
+      dig = { key: tg.key, t: 0, mini: true, label: 'Digging...', need: 1, done: () => {
         const ang = Math.atan2(ship.pos.z - d.z, ship.pos.x - d.x);
         if (Math.abs(angleDiff(ang, d.puzzle.angle)) > 0.85) {
           state.attempts[d.id] = (state.attempts[d.id] || 0) + 1;
@@ -1453,6 +1463,10 @@ function tryInteract() {
         state.dug.add(d.id); tg.isl.setDug(true);   // claimed now, so the throw cannot be started twice
         if (first) land(null); else rollCheck(state, { label: 'The chest: how good a find?', kind: 'luck', dark: loot.dark, tiers: TREASURE_TIERS, treasure: true, attempts: state.attempts[d.id] || 0 }, (ok, n, total, tier) => land(tier));
       } };
+      { const first = d.id === '1,-1';   // the shovel game (digging.js): the first treasure is a little kinder
+        digGame.start({ need: first ? 5 : 6, ease: clamp((1 - ship.mods.digTime) * 1.5 + (state.buffs.dig > 0 ? 0.5 : 0) + (first ? 0.35 : 0), 0, 1),
+          onDone: () => { const done = dig && dig.done; dig = null; if (done) done(); },
+          onFail: () => { dig = null; digFix = tNow + 6; state.attempts[d.id] = (state.attempts[d.id] || 0) + 1; toast('The shovel snaps and the hole caves in! The crew needs a moment to dig out.', false, 5000); } }); }
       audio.play('dig');
     }
   } else if (tg.kind === 'fruit' && !dig) {
@@ -2112,6 +2126,7 @@ function frame() {
     near.sort((a, b) => a[3] - b[3]); near.length = Math.min(near.length, NISL); WATER.isl = near;
     for (let i = 0; i < NISL; i++) { const n = near[i]; U.uIsl.value[i].set(n ? n[0] : 1e6, n ? n[1] : 1e6, n ? n[2] : 0); }
   }
+  world.hutShown = hutReached();   // no hut on its island before the story gets there
   world.tick(animT, tod);
   ship.place(vdt, waveT, stage.wave, dark, tod.night);
   const lifeCtx = { ship, dread, wave: stage.wave, audio, wind: windNow, stage, tod, faction: sec.faction.id, sched: { wd: weekday(), hour: state.time * 24, dayN: state.dayN, dread } };
@@ -2223,7 +2238,8 @@ function frame() {
 
   const tgt = getInteract();
   if (dig && live) {
-    if (!tgt || tgt.key !== dig.key || ship.speed > 0.6) { dig = null; toast('The crew came back empty-handed. Hold still!'); }
+    if (!tgt || tgt.key !== dig.key || ship.speed > 0.6) { dig = null; digGame.cancel(); toast('The crew came back empty-handed. Hold still!'); }
+    else if (dig.mini) digGame.update(dt);
     else {
       dig.t += dt;
       promptFill.style.width = `${Math.min(100, (dig.t / dig.need) * 100)}%`;
@@ -2232,7 +2248,8 @@ function frame() {
   }
   if (tgt && live) {
     promptEl.style.display = 'block';
-    if (dig) { promptTxt.textContent = dig.label || 'Digging...'; promptBar.style.display = 'block'; }
+    if (dig) { promptTxt.textContent = dig.label || 'Digging...'; promptBar.style.display = dig.mini ? 'none' : 'block'; }
+    else if (digFix > tNow && tgt.kind === 'treasure') { promptBar.style.display = 'none'; promptTxt.textContent = 'Digging out the collapse...'; }
     else {
       promptBar.style.display = 'none';
       promptTxt.textContent = tgt.kind === 'thread' ? (ship.speed > 0.35 ? 'Stop the ship completely (S)' : tgt.th.prompt) : tgt.kind === 'spring' ? (ship.speed > 0.35 ? 'Stop the ship completely (S) to look closer' : '[E] Look into the water') : tgt.kind === 'cave' ? (ship.speed > 0.35 ? 'Stop the ship completely (S) to look inside' : '[E] Look into the cave') : tgt.kind === 'sighting' ? `[E] ${tgt.s.label}` : tgt.kind === 'harbourfar' ? 'Sail to the pier to go ashore' : tgt.kind === 'hut' ? '[E] Knock on the dark hut' : tgt.kind === 'harbour' ? `[E] Visit ${tgt.isl.desc.name}`
@@ -2277,6 +2294,7 @@ function frame() {
   } else eb.style.display = 'none';
   audio.setLoop('coast', coastLevel(ashore, tod.night));
   audio.setLoop('forest', forestLevel(ashore) * 0.3);   // ashore on a forest island: very quietly under everything
+  if (ashore) audio.setLoop('gulls', gullLevel(tod.night) * 0.3 * 0.9);   // moored: the colony is a background murmur, not a racket
   audio.tavernUpdate(rawDt, modal === 'pig' || (modal === 'harbour' && hbTab === 'tavern') ? 1 : ashore ? 0.35 : 0);   // tavern music through the wall
   if (live) {
     audio.update(dt, { dread, speed: ship.speed / 11, night: tod.night, wind: wind.strength, rain: weather.rain, storm: weather.storm, gulls: gullLevel(tod.night),

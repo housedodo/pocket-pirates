@@ -8,13 +8,13 @@ Build it with `python3 scripts/single.py`, ship `pocket-pirates-demo.html` (with
 - [ ] Sail goal: Mara explains steering and wind ring, nothing arrives too fast
 - [ ] Make landfall: "Nicely done" line comes with the NEW QUEST card
 - [ ] Perrin's letter at Tama: "Take it" and the Board sign are marked on the first visit, compass dot points to Tama, Mara asks, log tab marked, riddle shown
-- [ ] Dig: find the treasure, treasure die roll works
+- [ ] Dig: the shovel gauge (green digs, stones crack, two cracks cave in, dig out and retry), treasure found
 - [ ] Spend your loot: shipyard turntable, buy/try a hull, sail, flag
 - [ ] Dead calm: oars dip into the water, wind returns afterwards
 - [ ] Beat to windward (tacking), delivery job, passenger (one is always available), charting counter (x/y)
 - [ ] Second harbour Velto reachable inside the first fog
 - [ ] Tavern: dice game, rumour, crew hire, a bed (optional now, no quest)
-- [ ] Fishing: cast, bite, reel, fisherman's log, "ask the fishers"
+- [ ] Fishing: power meter (short = easy, far = big), bite, reel, a run snaps the line if held, fisherman's log, "ask the fishers"
 - [ ] Raider: fights are not constant, escape works, start ammo 8, ammo only bought
 - [ ] Sea encounter card appears at least once and can be skipped
 - [ ] Companions: cat at Tama, gull at Velto (optional, ignorable)

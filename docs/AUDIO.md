@@ -80,6 +80,7 @@ They are stage 1's music (the old placeholder `music_1` is gone).
   guitar arp + drums + bell, then shaperbox + bell. A small line-up plays a little louder than the same voices in the full band.
   A newcomer always arrives in a full-band scene (its fade-in plus three phrases). On top, each stem swells gently (75-100%) and
   wanders slowly around its own place in the stereo field (bass and drums near the middle, the rest spread out).
+- **Quiet stretches:** now and then the band stops altogether for 1-3 phrases (only the sea), or one instrument plays alone for 2-3 phrases (never the drums on their own); never two quiet stretches in a row.
 - **Two guitar arps:** `s1_guitar2` is a second take of the arp (4 bars, played four times to the loop length, through HOIST with
   the same settings, F minor like the band). One of the two plays in the guitar's place; they swap after 2-7 phrases (chosen at
   random every time, so no pattern), starting just before a phrase so the new take comes in on the downbeat. They never sound
@@ -101,8 +102,8 @@ line-ups), the low-pass opens a little, and after the fight it lingers and fades
 
 ## Voice blips (`AudioBus.blip`)
 Very soft blips while words type out: every third letter of Mara's lines and of villagers' greetings, a 70 ms rounded,
-low-passed tone (Mara ~290 Hz, villagers ~210 Hz, dark lines lower and duller), a little pitch wobble, never closer than 60 ms.
-Peaks about -40 dBFS at the output, under the music. Synthesised live (no file); follows the Effects slider; `blip` in volumes.json scales it.
+low-passed tone (dark lines lower and duller), a little pitch wobble, never closer than 60 ms.
+A little higher and brighter than the sea's rumble (Mara ~470 Hz, villagers ~360 Hz) so they are heard without being loud; peaks about -28 dBFS. Synthesised live (no file); follows the Effects slider; `blip` in volumes.json scales it.
 
 ## The tavern (`tav_*`, `Tavern` in `src/layers.js`)
 Four stems from the same session (99 BPM, 38.79 s): `tav_bass`, `tav_shaperbox`, `tav_pluck` (pluck stab), `tav_drums`, rendered
@@ -184,3 +185,6 @@ Load your own music and sounds, cut them, and say where each plays. Open the gam
 - Final placements to ogg: put the exported soundtrack.json + WAVs in public/audio/studio/, run `python3 scripts/studio_ogg.py` (needs ffmpeg); it writes .ogg files and updates soundtrack.json.
 - Pop out: the studio header has "Pop out", which moves the panel into its own window (second screen). The game keeps playing and keeps focus behaviour (no auto-pause while it is open); "Dock back" or closing the window returns it. Allow pop-ups for the page.
 - "preview in game" on a placement sets the forced situation to that placement's conditions (and the middle of its dread range), so it plays the way it will in the game; press again for live.
+
+## Mix defaults (`public/audio/volumes.json`)
+`chapter` and `dig` at 40% (they were too loud). Change them in the F8 mixer and save a new volumes.json.

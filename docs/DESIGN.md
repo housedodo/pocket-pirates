@@ -125,6 +125,22 @@ inside once (`state.story.uiSeen`). Opening points (index in `MAIN_GOALS` = main
 Story moments (a letter, a line on the pier, a pet, the grey buyer) are never locked. Once every main goal is done, everything is open.
 Change an opening point in `GATE` in gates.js.
 
+## Fishing and digging (skill, and they can fail)
+- **Fishing** (`fishing.js`): C starts a swinging power meter, C again casts. A short cast lands by the boat (small, easy fish), a
+  long one far out (bigger, rarer, harder fish, a longer wait). Hook the bite in time (C / Space), then hold / release Space to keep
+  the fish in the green zone. Now and then it RUNS: hold on through a run and the line's tension bar climbs; at the top the line
+  snaps. Fails: too slow on the bite, the fish gets away, the line snaps.
+- **Digging** (`digging.js`, treasure only): a needle swings across the gauge; E / Space swings the shovel. Green (soft sand) digs 2,
+  yellow (packed) 1, elsewhere nothing; the grey stone cracks the shovel and two cracks cave the hole in: the dig fails and the crew
+  needs about 6 s to dig out. Each swing moves sand and stone and speeds the needle up. Shipwright upgrades and the dig buff widen
+  the soft sand; the first treasure needs a little less and is a little wider.
+
+## Quiet start
+Mara's chatter (weather, tide, market days, musings, sightings), dolphins, pets (the cat at Tama) and the optional goals wait until
+the tavern chapter (main goal 9, `laterOK`); before that she only speaks about the quest in hand. A goal that is already done when
+its turn comes is skipped without its intro (no "good haul" line after you have bought the sails). The hut only stands on its island
+once the story reaches it ("Ask around", `hutReached`); Perrin's isle sits a little further out from Tama.
+
 ## Tunables
 - `DREAD_RANGE` in `palette.js`: distance (2200 units now, ~3 min) to reach full dread. Raise it for a longer arc.
 - `DARK_THRESHOLD` in `palette.js`: when decor swaps.

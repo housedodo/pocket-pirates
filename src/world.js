@@ -32,7 +32,8 @@ let PAINT = null, NO_CHILD = false, CUR_FLAG = null;
 const FORCED = {
   '0,0': null,
   '0,-1': { type: 'harbour', x: 0, z: -118, r: 38 },   // Harbour Tama, the big home island
-  '1,-1': { type: 'treasure', x: 140, z: -172 },
+  '1,-1': { type: 'treasure', x: 182, z: -208 },   // Perrin's isle: far enough from Tama that Mara has said her piece before you are back
+  '2,-2': null,                                         // ...and open water beyond it
   '-1,-1': null,                                        // open water around Tama
   '1,0': null,
   '-2,-1': { type: 'harbour', x: -232, z: -128, r: 30 },   // a second harbour inside the first fog radius, so early errands have somewhere to go
@@ -759,6 +760,7 @@ function blightDecor(d, rng, A) {
   }
 }
 
+let HUT_SHOWN = false;   // the hut stands on its island only once the story has reached it (World.hutShown)
 // The dark hut (a storyline location): a witch's hut in the old sense. Round, low, built of black logs on crooked
 // stilts, under a huge steep thatch that sags to the ground on one side; a bent stone chimney, a doorway hung with a
 // hide, small windows glowing a sick purple, charms of bone and glass hanging from the eaves, a lantern on a crooked
@@ -904,7 +906,7 @@ function weekAndCustoms(d, rng, cr, g) {
 
 function decorate(d, rng, A, B, D, extra) {
   const T = d.type;
-  if (d.blight) { blightDecor(d, rng, A); darkHut(d, rng, A); return; }
+  if (d.blight) { blightDecor(d, rng, A); extra.hutB = new Builder(); darkHut(d, rng, extra.hutB); return; }   // the hut in its own mesh: hidden until the story reaches it
   const palms = (n, t0, t1, hMin = 0.8, s0 = 0.9) => {
     for (let i = 0; i < n; i++) { const p = spot(d, rng, t0, t1, hMin); if (p) palm(A, B, D, p[0], p[1], p[2], rng, s0 + rng() * 0.5); }
   };
@@ -1216,6 +1218,7 @@ export class Island {
     };
     add(terrain, mats.terrain);
     add(A, mats.props);
+    if (extra.hutB) { const hm = add(extra.hutB, mats.props); if (hm) { hm.visible = HUT_SHOWN; this.anim.push(() => { hm.visible = HUT_SHOWN; }); } }
     this.bright = add(B, mats.props);
     this.darkMesh = add(D, mats.props);
 
@@ -1361,6 +1364,8 @@ export class World {
       best.lobes = [0.15 + r2() * 0.05, 0.1 + r2() * 0.05, 0.07 + r2() * 0.04, best.lobes[3], best.lobes[4], best.lobes[5]];
     }
   }
+  set hutShown(v) { HUT_SHOWN = !!v; }
+  get hutShown() { return HUT_SHOWN; }
   get hutDesc() { if (!this.hutId) return null; const [cx, cz] = this.hutId.split(',').map(Number); return this.desc(cx, cz); }
   setLit(on) {
     if (on === this.lit) return;

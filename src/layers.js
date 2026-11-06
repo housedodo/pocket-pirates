@@ -64,6 +64,17 @@ export class SeaLayers {
   nextScene(on) {
     const full = new Set(on);
     if (on.length < 3) return { set: full, full: true, len: 4 };
+    // now and then nothing at all for a while (only the sea), or one instrument alone (never the drums on their own); never two
+    // quiet stretches in a row
+    const wasQuiet = !this.sceneFull && this.scene.size <= 1;
+    if (!wasQuiet) {
+      const r = this.rnd();
+      if (r < 0.17) return { set: new Set(), full: false, len: 1 + Math.floor(this.rnd() * 3) };
+      if (r < 0.37) {
+        const solos = on.filter((k) => k !== 's1_drums');
+        return { set: new Set([solos[Math.floor(this.rnd() * solos.length)]]), full: false, len: 2 + Math.floor(this.rnd() * 2) };
+      }
+    }
     const wantFull = !this.sceneFull && (this.smalls >= 2 || this.rnd() < 0.5);   // after one or two small line-ups, the whole band again
     if (wantFull) return { set: full, full: true, len: 3 + Math.floor(this.rnd() * 3) };
     const sizes = on.length === 3 ? [2] : [2, 3];
@@ -139,7 +150,7 @@ export class SeaLayers {
         continue;
       }
       // in or out of the scene: a few seconds to come and go (a small line-up plays a little louder than one voice in the full band)
-      const inT = this.scene.has(k) ? (this.sceneFull ? 1 : 1.25) : 0;
+      const inT = this.scene.has(k) ? (this.sceneFull ? 1 : this.scene.size === 1 ? 1.35 : 1.25) : 0;
       st.inScene += (inT - st.inScene) * (1 - Math.exp(-d / (inT > st.inScene ? 2.5 : 3.5)));
       st.next -= d;
       if (st.next <= 0) { st.swell = 0.75 + 0.25 * this.rnd(); st.next = 10 + this.rnd() * 15; }   // and a gentle swell up or down
