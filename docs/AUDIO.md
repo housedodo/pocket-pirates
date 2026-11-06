@@ -8,7 +8,7 @@ and `volumes.json` inside it (plus the mixer on F8); `pocket-pirates-demo.html` 
 The pause menu has Sound and Music toggles.
 
 ## Player volume sliders (pause menu)
-The pause menu stays short (Resume, Ask Mara, Controls, Fullscreen, Captain's log, Sound and music, New voyage). **Sound and music** opens its own panel with the Sound and Music on/off toggles and three sliders: **Music**, **Sea, wind, gulls** (every loop that is not music: sea, surf, wind, rain, gulls, coast, night, oars, stage ambience) and **Effects** (one-shot sounds). They are 0-100%, saved in the player's settings, and multiply the mix made in the dev mixer (`AudioBus.userVol`, `ambBus`, `sfxBus`, `musicBus`). The sound plays for a moment while a slider is dragged so the level can be heard even though the game is paused.
+The pause menu stays short (Resume, Ask Mara, Controls, Fullscreen, Captain's log, Sound and music, New voyage). **Sound and music** opens its own panel with the Sound and Music on/off toggles and three sliders: **Music**, **Sea, wind, gulls** (every loop that is not music: sea, wind, rain, gulls, coast, night, oars, stage ambience) and **Effects** (one-shot sounds). They are 0-100%, saved in the player's settings, and multiply the mix made in the dev mixer (`AudioBus.userVol`, `ambBus`, `sfxBus`, `musicBus`). The sound plays for a moment while a slider is dragged so the level can be heard even though the game is paused.
 
 ## The sound mixer (testing volumes in the game)
 Open the game with `?dev=1` (e.g. `http://localhost:5173/?dev=1`), then press **F8** (or Pause > Sound mixer).
@@ -67,19 +67,19 @@ The game expects `music_1`..`music_5` (one loop per dread stage, same length and
 
 ## Stage 1 on open sea: one instrument per quest (`src/layers.js`)
 Six stems from one 16-bar loop at **99 BPM, 4/4 (38.79 s)**: `s1_bass`, `s1_shaperbox`, `s1_pluck`, `s1_drums`, `s1_bell`, `s1_guitar`.
-They take the place of `music_1` while they exist (delete them and `music_1` comes back).
+They are stage 1's music (the old placeholder `music_1` is gone).
 - **Rendered through HOIST** at FAIR WEATHER, one stem at a time, as seamless loops of exactly the same length (Chaos_Grain repo:
   `Tests/HoistLayers.cpp`, `HoistLayers game_audio <outdir>`; less sway on bass and drums, more space on the bell). WAV masters stay in Chaos_Grain `game_audio/`.
 - **The game starts silent.** The first main quest brings in bass and shaperbox; every quest after that one more instrument
   (the order of the last four is shuffled once per voyage). A new one fades in over about 30 s. The band grows a little louder as it fills
   (about 12 dB under the sea with two, about 7 dB under with all six) but stays in the background.
-- **Never the same twice:** each stem swells up and down on its own every 9-27 s; once it has settled (60 s), it may drop out for
-  16-40 s and come back, as long as at least three keep playing (the bass rarely, and never while the band is small). Each wanders slowly
+- **Never the same twice:** each stem swells gently up and down on its own every 12-30 s (65-100%); once it has settled (90 s), it may
+  now and then drop out for 10-22 s and come back, as long as at least three keep playing (the bass rarely, and never while the band is small). Each wanders slowly
   around its own place in the stereo field (bass and drums near the middle, the rest spread out).
 - **Heard over the waves:** all six share one soft low-pass (about 1.5-3 kHz) that moves with a slow swell, together with a small level
   lift on the crest, and closes further in strong wind.
-- **Open sea only:** within about 90 units of a shore they fall back to 15%; they also fade out as dread leaves stage 1. `music_2` now
-  waits until dread is past about 0.06, so home waters stay silent until the first quest.
+- **Open sea:** right by a shore (within about 60 units) they ease down to 40%, slowly. They carry the whole bright half of the
+  sea: full up to dread 0.3 (about 660 units from Tama), then they fade out by 0.5 while `music_3` comes in.
 - All stems start on the same sample (they wait silently until all six have loaded), so they stay locked together; the Music of the Fog
   playback rate applies to them too. The F8 mixer has its own group for them.
 - Test: `?dev=1&musicpace=5` makes the fades and swells five times faster.
@@ -98,42 +98,27 @@ through HOIST gently (`HoistLayers game_audio/tavern <outdir> tavern` in Chaos_G
 | File | Notes |
 |---|---|
 | `sea` | constant water bed under everything; louder as the ship speeds up. Now light ocean waves (Cymatics LIFE Waves Light 3, 19 s seamless loop, about -30 LUFS) |
-| `surf` | breaking waves; fades in when you are close to an island shore |
 | `wind` | wind bed; louder with wind strength and storms. The loop also drifts on its own: a slow volume swell (about 45% to 120%, new gust target every 4 to 13 s), a stereo pan wandering left and right, and a tiny pitch drift, so it never repeats the same way (`driftWind` in audio.js). Keep the file mono |
 | `rain`, `rain_2` | **light rain**: two recordings (Cymatics LIFE Rain Light 12 and 2, 39 s / 48 s loops, about -26 LUFS) that cross-fade slowly every 25-65 s so the rain never repeats. Follow rain intensity; they give way to `rain_storm` as it gets heavy |
 | `rain_storm` | **a proper storm**: heavy rain drumming on the deck (Cymatics LIFE Rain on Roof 1, 30 s loop, about -20 LUFS). Fades in with storm 0.25-0.6 or rain above 0.75 |
 | `forest` | forest bed (Cymatics LIFE Forest 2, 28 s loop), very quiet (30%) while you are ashore on a big forest island (`desc.forest`). **No forest islands exist yet** (ROADMAP); the cue is ready for them |
 | `amb_night` | night bed (crickets-on-water, creaks), fades in after sunset on top of the stage ambience |
 | `amb_1` .. `amb_5` | ambience per stage, 30-60 s, cross-faded by dread |
-| `music_1` .. `music_5` | music per stage, e.g. 32 bars at 90-100 bpm, cross-faded by dread |
-| `gulls` | recorded gull colony (53 s, mono), **not constant**: it calls for about 5-20 s, then goes quiet for roughly 20-65 s (closer to the gulls: longer calls, shorter gaps), with slow fades (`driftGulls` in audio.js). Silent far off, fades up within ~120 units of the nearest circling gull and gets clearer (low-pass opens) as you close in; quieter at night, in rain and storms, gone by dread 0.35. While this file exists the synthesised one-shot `gull` cries are skipped |
+| `music_3` | the user's own "Dread" piece: the middle of the dread range (dread 0.25-0.75, full at 0.5), after the stage-1 band fades. The placeholder `music_1`, `music_2`, `music_4`, `music_5` and `surf` were removed: no music below dread 0.3 except the stage-1 layers, and none in the deep stages yet |
+| `gulls` | recorded gull colony (53 s, mono), **not constant**: it calls for about 5-20 s, then goes quiet for roughly 20-65 s (closer to the gulls: longer calls, shorter gaps), with slow fades (`driftGulls` in audio.js). Silent far off, fades up within ~120 units of the nearest circling gull and gets clearer (low-pass opens) as you close in; quieter at night, in rain and storms, gone by dread 0.35. |
 | `coast` | soft coastal breeze, small waves and far-off gulls (32 s). Rises over the last ~110 units before any island shore, full while moored or ashore (harbour, greeting, shipyard). Quieter at night, gone in storms and by dread ~0.4 |
 | `oars` | rowing strokes (dip, pull, drip); plays while you row with the oars out (G, then W) |
 
 **One-shots**
+Only these effects play. Everything else the game asks for (splash, treasure, discover, harbour, cannon, hit, horn, gull, dolphin, whale, bell, bottle, creak, bump, whisper, stage_up, knock, ending) is **silent on purpose**: not in `CUES.oneShots`, so never loaded and never synthesised. To bring one back, add its name to `CUES.oneShots` in `src/audio.js` and put its file in `public/audio/`.
+
 | File | When |
 |---|---|
-| `creak` | ship timber (loaded, not triggered yet) |
-| `splash` | salvaging a barrel, whirlpools |
-| `bump` | hitting an island (volume follows speed) |
 | `dig` | crew starts digging |
-| `treasure` | loot found (stinger; mid-game gets stranger) |
-| `discover` | a new island is charted (short jingle) |
-| `harbour` | visiting a harbour (bell/door/crowd) |
 | `ui` | opening the chart |
-| `whisper` | random, from stage 3 on (pitch is randomised +-15%) |
-| `stage_up` | crossing into a new dread stage (a low sting) |
 | `buy` | buying a ship upgrade (coin + hammer) |
 | `pause` | opening the pause menu |
 | `thunder` | a long distant roll (Cymatics LIFE Thunder Distant 9, the rumble and its tail, 18.5 s): after lightning (delayed 0.3-2.5 s) and, on its own, every 30-80 s in strong rain; never closer than 25 s to the last one, random pan and pitch (`AudioBus.thunder`) |
-| `horn` | a passing ship greets you |
-| `gull` | gulls near an island (only while they still sound like gulls) |
-| `dolphin` | dolphins leaping |
-| `whale` | a whale surfaces (and, pitched down, the shadow under the keel) |
-| `bell` | harbour clock on the hour, when you are close to a harbour |
-| `bottle` | picking up a message in a bottle |
-| `cannon` | firing your cannons (Space) |
-| `hit` | your hull takes damage (cannon shot, storm waves, a bad encounter) |
 | `cast` | casting a fishing line (C) |
 | `bite` | a fish bites |
 | `catch` | a fish landed |
@@ -143,8 +128,6 @@ through HOIST gently (`HoistLayers game_audio/tavern <outdir> tavern` in Chaos_G
 | `fail` | a skill check fails |
 | `card` | an encounter card turns over at sea |
 | `chapter` | a new chapter begins (the CHAPTER card) |
-| `knock` | knocking on the dark hut before it opens (chapter V) |
-| `ending` | the demo end card, TO BE CONTINUED (about 5 s) |
 
 ## Format guidelines
 - 44.1 kHz, OGG Vorbis ~96-128 kbps; mono for SFX, stereo for music/ambience.

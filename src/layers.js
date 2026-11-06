@@ -2,9 +2,9 @@
 // They are one 16-bar loop at 99 BPM (38.8 s, all the same length, rendered through HOIST at FAIR WEATHER), started at
 // the same instant so they stay locked together. Nothing plays before the first quest; quest 1 brings in bass and
 // shaperbox, every quest after that one more instrument (order shuffled per voyage). Each layer breathes on its own
-// (slow swells, and now and then it drops out for a while and comes back), wanders a little around its place in the
+// (slow swells, and once in a while it drops out briefly and comes back), wanders a little around its place in the
 // stereo field, and all of them sit under a soft low-pass that moves with the swell and closes in strong wind, as if
-// the music reached you over the waves. Near land they fall back almost to nothing.
+// the music reached you over the waves. Right by a shore they ease down to 40%.
 import { mulberry32 } from './util.js';
 
 export const LAYERS = ['s1_bass', 's1_shaperbox', 's1_pluck', 's1_drums', 's1_bell', 's1_guitar'];
@@ -15,7 +15,7 @@ const PLACE = {
   s1_drums: [-0.08, 0.14, 0.019], s1_bell: [0.58, 0.28, 0.027], s1_guitar: [-0.52, 0.28, 0.041],
 };
 const FADE_IN = 30;      // seconds for a new instrument to come all the way in
-const SETTLE = 60;       // a new instrument stays put this long before it may drop out
+const SETTLE = 90;       // a new instrument stays put this long before it may drop out
 const smooth = (x) => x * x * (3 - 2 * x);
 
 export class SeaLayers {
@@ -63,7 +63,7 @@ export class SeaLayers {
     const n = SeaLayers.count(s.quests), on = this.order.filter((k) => this.srcs.has(k)).slice(0, n);
     // the whole band grows a little louder as it fills up, but stays in the background
     this.bg += ((n ? 0.5 + 0.04 * (n - 2) : 0) - this.bg) * (1 - Math.exp(-d / 20));
-    this.open += ((s.open ?? 1) - this.open) * (1 - Math.exp(-dt / 3));
+    this.open += ((s.open ?? 1) - this.open) * (1 - Math.exp(-dt / 8));   // eases down slowly by the shore
     // the swell: two slow waves; the music lifts on the crest and sinks (and darkens) in the trough
     const wave = 0.5 + 0.3 * Math.sin(this.t * 0.61) + 0.2 * Math.sin(this.t * 0.37 + 1.3);
     this.bus.gain.setTargetAtTime(0.82 + 0.18 * wave, T, 0.4);
@@ -78,19 +78,19 @@ export class SeaLayers {
       if (isOn) { st.intro = Math.min(1, st.intro + d / FADE_IN); st.age += d; }
       st.next -= d;
       if (isOn && st.next <= 0) {
-        if (st.rest) { st.rest = false; st.target = 0.65 + 0.35 * this.rnd(); st.next = 14 + this.rnd() * 16; }   // back again
+        if (st.rest) { st.rest = false; st.target = 0.7 + 0.3 * this.rnd(); st.next = 20 + this.rnd() * 20; }   // back again
         else {
           // drop out for a while, as long as enough of the band keeps playing; the bass only rarely, and never while the band is small
           const canRest = st.age > SETTLE && sounding >= 3 && (!FIRST.includes(k) || n >= 4);
-          if (canRest && this.rnd() < (k === 's1_bass' ? 0.12 : 0.3)) { st.rest = true; st.target = 0; st.next = 16 + this.rnd() * 24; }
-          else { st.target = 0.5 + 0.5 * this.rnd(); st.next = 9 + this.rnd() * 18; }   // a slow swell up or down
+          if (canRest && this.rnd() < (k === 's1_bass' ? 0.05 : 0.15)) { st.rest = true; st.target = 0; st.next = 10 + this.rnd() * 12; }
+          else { st.target = 0.65 + 0.35 * this.rnd(); st.next = 12 + this.rnd() * 18; }   // a slow swell up or down
         }
       }
       st.breath += (st.target - st.breath) * (1 - Math.exp(-d / 5));
       const [home, wander, sp] = PLACE[k];
       const pan = home + wander * (Math.sin(this.t * sp * 6.283 + st.ph) * 0.7 + Math.sin(this.t * sp * 14.4 + st.ph * 1.7) * 0.3);
       this.pans.get(k).pan.setTargetAtTime(Math.max(-0.9, Math.min(0.9, pan)), T, 1);
-      out[k] = smooth(st.intro) * st.breath * this.bg * (s.stage ?? 1) * (0.15 + 0.85 * this.open);
+      out[k] = smooth(st.intro) * st.breath * this.bg * (s.stage ?? 1) * (0.4 + 0.6 * this.open);
     }
     return out;
   }

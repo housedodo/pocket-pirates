@@ -1234,7 +1234,7 @@ function forestLevel(ashore) {
 // out on open sea (1) or close to an island (0): the stage-1 music layers fall back near land
 function openSea() {
   const near = world.nearest(ship.pos.x, ship.pos.z, 140);
-  return near ? smoothstep(20, 90, world.lastEdge) : 1;
+  return near ? smoothstep(10, 60, world.lastEdge) : 1;
 }
 function lighthouseTidbit() {
   state.story.lh = state.story.lh || {};
@@ -2243,12 +2243,11 @@ function frame() {
     if (_v.z < 1) { eb.style.display = 'block'; eb.style.left = `${(_v.x * 0.5 + 0.5) * window.innerWidth}px`; eb.style.top = `${(-_v.y * 0.5 + 0.5) * window.innerHeight}px`; $('ename').textContent = tgtE.name; $('efill').style.width = `${Math.max(0, (tgtE.hp / tgtE.maxHp) * 100)}%`; } else eb.style.display = 'none';
   } else eb.style.display = 'none';
   audio.setLoop('coast', coastLevel(ashore, tod.night));
-  audio.setLoop('forest', forestLevel(ashore) * 0.3);
-  audio.tavernUpdate(rawDt, modal === 'pig' || (modal === 'harbour' && hbTab === 'tavern') ? 1 : ashore ? 0.35 : 0);   // tavern music through the wall   // ashore on a forest island: very quietly under everything
+  audio.setLoop('forest', forestLevel(ashore) * 0.3);   // ashore on a forest island: very quietly under everything
+  audio.tavernUpdate(rawDt, modal === 'pig' || (modal === 'harbour' && hbTab === 'tavern') ? 1 : ashore ? 0.35 : 0);   // tavern music through the wall
   if (live) {
-    const near = world.nearest(ship.pos.x, ship.pos.z, 45);
-    audio.update(dt, { dread, speed: ship.speed / 11, night: tod.night, wind: wind.strength, rain: weather.rain, storm: weather.storm, surf: near ? clamp(1 - world.lastEdge / 45, 0, 1) : 0, rowing: ship.rowIn > 0, gulls: gullLevel(tod.night),
-      quests: state.goals.i, open: openSea() });   // after `surf`: openSea moves world.lastEdge
+    audio.update(dt, { dread, speed: ship.speed / 11, night: tod.night, wind: wind.strength, rain: weather.rain, storm: weather.storm, rowing: ship.rowIn > 0, gulls: gullLevel(tod.night),
+      quests: state.goals.i, open: openSea() });
     const hour = Math.floor(state.time * 24);
     if (hour !== lastHour) { lastHour = hour; if (world.nearest(ship.pos.x, ship.pos.z, 80, ['harbour'])) audio.play('bell', { vol: 0.6 }); }
   }

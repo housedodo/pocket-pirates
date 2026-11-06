@@ -8,20 +8,21 @@ import { smoothstep } from './util.js';
 // Master switch for all sound (files in public/audio/, else the synthesised fallback).
 export const AUDIO_ENABLED = !(typeof window !== 'undefined' && window.__SILENT);   // the demo ships with sound too (without the dread-stage cues, see DEMO_SKIP); the silent build sets __SILENT
 // cues the demo never plays (no dread there): left out of the demo file and never loaded, to keep it small and spoiler-free
-const DEMO_SKIP = new Set(['music_3', 'music_4', 'music_5', 'amb_3', 'amb_4', 'amb_5', 'whisper', 'stage_up']);
+const DEMO_SKIP = new Set(['music_3', 'amb_3', 'amb_4', 'amb_5']);
 
 const STAGES = 5;
 export const CUES = {
   loops: [
-    'sea', 'surf', 'wind', 'rain', 'rain_2', 'rain_storm', 'amb_night', 'oars', 'gulls', 'coast', 'forest',
+    'sea', 'wind', 'rain', 'rain_2', 'rain_storm', 'amb_night', 'oars', 'gulls', 'coast', 'forest',
     ...Array.from({ length: STAGES }, (_, i) => `amb_${i + 1}`),
-    ...Array.from({ length: STAGES }, (_, i) => `music_${i + 1}`),
+    'music_3',   // the user's own "Dread" piece for the middle dread band; the placeholder music_1/2/4/5 and surf are gone
     ...LAYERS,   // stage 1 on open sea: one instrument more with every quest (src/layers.js)
     ...TAVERN,   // the harbour tavern, muffled through the wall
   ],
-  oneShots: ['creak', 'splash', 'bump', 'dig', 'treasure', 'discover', 'harbour', 'ui', 'whisper', 'stage_up', 'buy', 'pause',
-    'thunder', 'horn', 'gull', 'dolphin', 'whale', 'bell', 'bottle',
-    'cannon', 'hit', 'cast', 'bite', 'catch', 'roll_d20', 'roll_d6', 'card', 'success', 'fail', 'chapter', 'knock', 'ending'],
+  // only these effects play. Every other effect the game asks for (splash, treasure, cannon, horn ...) is silent on purpose:
+  // it is not listed, so it is never loaded and never synthesised. Add a name back here (and its file) to bring one back.
+  oneShots: ['ui', 'dig', 'buy', 'pause', 'chapter', 'fail', 'success', 'card', 'roll_d6', 'roll_d20', 'cast', 'bite', 'catch',
+    'thunder'],   // thunder: the recorded distant roll (with rain)
 };
 const tick = () => new Promise((r) => setTimeout(r, 0));
 
@@ -90,7 +91,7 @@ export class AudioBus {
     try { Object.assign(this.vol, JSON.parse(localStorage.getItem('pocket-pirates-mixer') || '{}')); } catch (e) { /* storage blocked */ }
     this.setMuted(this.muted); this.setMusic(this.musicOn);
     // one-shots first (cheap), then ambience, then music, yielding between cues so the game stays smooth
-    const order = [...CUES.oneShots, 'sea', 'wind', 'surf', 'rain', 'rain_2', 'rain_storm', 'amb_night', 'oars', 'gulls', 'coast', 'forest', ...CUES.loops.filter((k) => k.startsWith('amb_') && k !== 'amb_night'), ...CUES.loops.filter((k) => k.startsWith('music_')), ...LAYERS, ...TAVERN];
+    const order = [...CUES.oneShots, 'sea', 'wind', 'rain', 'rain_2', 'rain_storm', 'amb_night', 'oars', 'gulls', 'coast', 'forest', ...CUES.loops.filter((k) => k.startsWith('amb_') && k !== 'amb_night'), ...CUES.loops.filter((k) => k.startsWith('music_')), ...LAYERS, ...TAVERN];
     for (const k of order) {
       if (window.__BUILD === 'demo' && DEMO_SKIP.has(k)) continue;
       await this.load(k);
@@ -252,7 +253,7 @@ export class AudioBus {
     this.play('thunder', { vol: vol * (0.75 + Math.random() * 0.25), rate: 0.9 + Math.random() * 0.15, pan: (Math.random() * 2 - 1) * 0.7 });
   }
 
-  /** s: { dread, speed (0..1), night (0..1), wind (0..1.3), rain, storm, surf (0..1), quests (main goals done), open (0 by the shore .. 1 open sea) } */
+  /** s: { dread, speed (0..1), night (0..1), wind (0..1.3), rain, storm, quests (main goals done), open (0 by the shore .. 1 open sea) } */
   update(dt, s) {
     if (!this.ctx) return;
     const dread = s.dread;
@@ -260,16 +261,15 @@ export class AudioBus {
     for (let i = 0; i < STAGES; i++) {
       const w = Math.max(0, 1 - Math.abs(dread * (STAGES - 1) - i)); // triangular cross-fade
       this.setLoop(`amb_${i + 1}`, w * 0.8);
-      // music_2 waits until dread is well on its way, so home waters stay silent until the first quest
-      this.setLoop(`music_${i + 1}`, i === 0 && layered ? 0 : w * 0.75 * (i === 1 && layered ? smoothstep(0.06, 0.25, dread) : 1));
+      if (i === 2) this.setLoop('music_3', w * 0.75);   // the "Dread" piece, centred on the middle band
     }
     if (layered) {
-      const lv = this.layers.update(dt, { quests: s.quests || 0, open: s.open, wind: s.wind, stage: Math.max(0, 1 - dread * (STAGES - 1)) });
+      // the stage-1 band carries the bright half of the sea (dread up to about 0.3, ~660 units from Tama), then hands over to music_3
+      const lv = this.layers.update(dt, { quests: s.quests || 0, open: s.open, wind: s.wind, stage: 1 - smoothstep(0.3, 0.5, dread) });
       for (const k of LAYERS) if (k in lv) this.setLoop(k, lv[k] * 1.5);   // the stems are mastered quiet (about -25 LUFS each): this puts the full band a few dB under the sea
     }
     this.setLoop('sea', 0.3 + s.speed * 0.45);
     this.driftWind(dt);
-    this.setLoop('surf', s.surf * 0.7);
     this.setLoop('wind', Math.min(1, s.wind * 0.35 + s.storm * 0.5));
     this.rainBeds(dt, s);
     this.setLoop('amb_night', s.night * 0.7 * (1 - s.rain * 0.7));
