@@ -604,4 +604,7 @@ From the critique "what goes stale on a long voyage" (compared with Wind Waker, 
   start, room for three, 35 g at any Market (SAILCLOTH); stop anywhere at sea and press E ("Patch the torn sail", 4.5 s).
   **No kit:** any harbour's sailmaker mends it free when you dock. Mara says which. Counts from the Market chapter (like
   oil). Saved as `state.sailsTorn`, `state.patchKits`. The old gale hull damage with the sails out still applies in storms.
+- **Night pad and second pluck:** the night switches between the night band and a big calm pad (`n1_pad`; calm seas favour the
+  pad), and the main melody swaps between the pluck and the composer's variation (`s1_pluck2`), never together. Quest and chapter
+  sounds are quieter. See AUDIO.md.
 

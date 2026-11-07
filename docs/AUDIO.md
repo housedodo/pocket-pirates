@@ -99,6 +99,9 @@ They are stage 1's music (the old placeholder `music_1` is gone).
   the same settings, F minor like the band). One of the two plays in the guitar's place; they swap after 2-7 phrases (chosen at
   random every time, so no pattern), starting just before a phrase so the new take comes in on the downbeat. They never sound
   together: the leaving take fades out in 0.3 s and only then does the other fade in (0.5 s).
+- **Two plucks:** `s1_pluck2` is the composer's variation of the main melody (`Pluck_variation.wav`, raised 6.3 dB to match the
+  original before HOIST, same settings, -26.9 LUFS like `s1_pluck`). It swaps with the pluck exactly like the arps (holds 3-8
+  phrases, swaps just before a phrase, never both at once).
 - **The counter melody** (`s1_counter`, from `Counter_melody.wav`, 16 bars, through HOIST at FAIR WEATHER with a little more space:
   TIDE 0.24, MIX 0.52; -27 LUFS like the other stems). Not part of the scenes: it rests for 2.5-5 minutes, then (once four or more
   instruments are in, by day, not in a fight, while at least two instruments play) it fades in slowly over ~12 s on a phrase,
@@ -132,6 +135,11 @@ through HOIST with more space: `HoistLayers game_audio/night <outdir> night`; ma
 to daybreak it takes over from the stage-1 band (about 15 s cross-fade, all four together, breathing gently, as loud as the day band); the band comes back at
 dawn. Only once the first quest has brought music. They start on the same sample as the band, so the hand-over stays in time. The
 night is 4 minutes now (the day 11.5), about six times through the song. F8 mixer: group "Night".
+- **The night pad** (`n1_pad`, from `Night_pad.wav`, through HOIST night: TIDE 0.26, MIX 0.62; about as loud as the four-part night
+  band together). The night switches between the **band** (it carries the melody) and the **pad** (calm, long, peaceful), crossing
+  over in ~12 s on a phrase, never both for long. A night always opens with the band. On a **calm sea** (wind under 0.45) the pad
+  holds 5-9 phrases and the band only 2-4; in **wind** it is the other way round (pad 2-4, band 4-8). In an 8-minute simulation:
+  calm, pad 65% of the time; windy, band 70%.
 
 ## Battle (`s1_raiders`, in `src/layers.js`)
 `Raiders.wav` (4 bars at 99 BPM, **F minor** like the band) is played four times to the band's 16-bar length and rendered through HOIST like the other stems (`Raiders_x4.wav` in Chaos_Grain `game_audio/`; it replaced an earlier take that had to be shifted up from E minor). It joins the main theme while a fight is on: cannons unlocked and a raider engaged
@@ -233,4 +241,8 @@ Load your own music and sounds, cut them, and say where each plays. Open the gam
 `AudioBus.hush(k)` scales the master gain (0 = normal, 1 = silent) on top of mute and the master level. The glimpse
 (`glimpse.js`) uses it to take every sound away for about nine seconds, once. No new sound was added for it: the
 silence is the effect.
+
+## Quest and chapter cues (quieter)
+The quest-complete and new-quest cards play `discover` at half volume (charting an island keeps it at full); `chapter` is at 0.25
+in `public/audio/volumes.json` (was 0.4).
 

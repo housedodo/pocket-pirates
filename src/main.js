@@ -301,7 +301,7 @@ function questCue(done, next) {
   // QUEST COMPLETE shows at once; the NEW QUEST card waits until Mara has spoken and the next goal is announced (questNew)
   const el = $('qbanner'); $('qbTitle').textContent = done.title; $('qbRew').textContent = `+${done.reward} gold`;
   el.classList.remove('shownew'); el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
-  setTimeout(autosave, 600); audio.play('discover');
+  setTimeout(autosave, 600); audio.play('discover', { vol: 0.5 });
   if (!next) setTimeout(() => questNew(null), 3000);
 }
 function questNew(next, withCard = true) {
@@ -309,7 +309,7 @@ function questNew(next, withCard = true) {
   $('qbNext').textContent = next ? next.title : 'Sail where you like'; $('qbText').textContent = next ? goalText(next, { state, ship }) : 'The side goals in your log are always there.';
   if (withCard) { el.classList.remove('show'); el.classList.remove('shownew'); void el.offsetWidth; el.classList.add('shownew'); }
   trackerNewUntil = performance.now() + 9000; const c = $('compass'); c.classList.remove('ping'); void c.offsetWidth; c.classList.add('ping');
-  setTimeout(() => c.classList.remove('ping'), 8000); audio.play('discover');
+  setTimeout(() => c.classList.remove('ping'), 8000); audio.play('discover', { vol: 0.5 });
 }
 // the story asks for a dead calm (seconds > 0) or for the wind to pick up again (0, and no natural calm for ten minutes)
 function setCalm(s) { if (s > 0) weather.calmHold = s; else { weather.calmHold = 0; weather.noCalm = 600; } }
