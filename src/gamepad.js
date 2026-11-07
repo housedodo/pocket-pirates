@@ -5,9 +5,10 @@
 //   X / Square           fishing (C)             Y / Triangle    captain's log (M)
 //   RT                   strike / fire / skip (Space)            LT    oars (G)
 //   LB / RB, right stick camera (Z / X)          View / Select   tracker (Q)        Menu / Start   pause (Esc)
-const BUTTONS = { 0: 'KeyE', 1: 'Escape', 2: 'KeyC', 3: 'KeyM', 4: 'KeyZ', 5: 'KeyX', 6: 'KeyG', 7: 'Space', 8: 'KeyQ', 9: 'Escape',
+//   left stick press     lantern on / off (L)
+const BUTTONS = { 0: 'KeyE', 1: 'Escape', 2: 'KeyC', 3: 'KeyM', 4: 'KeyZ', 5: 'KeyX', 6: 'KeyG', 7: 'Space', 8: 'KeyQ', 9: 'Escape', 10: 'KeyL',
   12: 'ArrowUp', 13: 'ArrowDown', 14: 'ArrowLeft', 15: 'ArrowRight' };
-const KEYCHAR = { KeyE: 'e', KeyC: 'c', KeyM: 'm', KeyZ: 'z', KeyX: 'x', KeyG: 'g', KeyQ: 'q', KeyA: 'a', KeyD: 'd', KeyW: 'w', KeyS: 's', Space: ' ', Escape: 'Escape' };
+const KEYCHAR = { KeyL: 'l', KeyE: 'e', KeyC: 'c', KeyM: 'm', KeyZ: 'z', KeyX: 'x', KeyG: 'g', KeyQ: 'q', KeyA: 'a', KeyD: 'd', KeyW: 'w', KeyS: 's', Space: ' ', Escape: 'Escape' };
 
 export function installGamepad(onConnect) {
   const held = new Set();

@@ -694,6 +694,7 @@ window.addEventListener('keydown', (e) => {
     return;
   }
   if (e.code === 'KeyM') { logTab = 'map'; openModal('chart'); return; }
+  if (e.code === 'KeyL') { toggleLamp(); return; }
   if (e.code === 'KeyJ') { logTab = 'quests'; openModal('chart'); return; }
   if (modal) return;
   if (e.code === 'Space') e.preventDefault();
@@ -2115,10 +2116,11 @@ let lampOut = false, oilNight = -1;
 function oilCtx() { return { night: tod.night, fog: weather.fog, storm: weather.storm, dread, rowing: ship.rowing }; }
 function oilTick(dt) {
   const cap = oilCap(state.upgrades);
-  if (!oilOn()) { state.oil = cap; lampOut = false; return; }
-  const lit = lanternLit(oilCtx()), before = state.oil;
-  state.oil = clamp(state.oil - oilRate(oilCtx()) * dt, 0, cap);
-  lampOut = lit && state.oil <= 0;
+  const off = !!state.story.lampOff, needed = lanternLit(oilCtx());   // L puts the lantern out by hand (saves oil, sail by moonlight)
+  if (!oilOn()) { state.oil = cap; lampOut = off && needed; return; }
+  const lit = needed && !off, before = state.oil;
+  if (lit) state.oil = clamp(state.oil - oilRate(oilCtx()) * dt, 0, cap);
+  lampOut = needed && (off || state.oil <= 0);
   const night = state.dayN * 2 + (state.time > 0.5 ? 1 : 0);   // one warning of each kind per dark spell
   if (lit && before > cap * 0.25 && state.oil <= cap * 0.25 && oilNight !== night) { oilNight = night; if (!objectives.mate.busy) objectives.mate.say('The lamp is getting low, Captain. Oil at any market, or we turn for home.'); else toast('The lamp oil is running low.', false, 4000); }
   if (before > 0 && state.oil <= 0 && lit) { toast('The lantern gutters out. The dark comes right up to the rail.', dread > 0.4, 6000); if (!state.hints.oilOut) { state.hints.oilOut = true; setTimeout(() => objectives.mate.say('No light, no line, and I can barely see the bow. Buy oil at a market next time, Captain.'), 3500); } }
@@ -2141,6 +2143,14 @@ function sailTick(dt, windNow) {
   } else { sailStrain = Math.max(0, sailStrain - dt * 0.8); if (sailStrain < 1) strainWarned = false; }
 }
 function mendSails(how) { state.sailsTorn = false; ship.setTorn(false); sailStrain = 0; toast(how, false, 4000); }
+function toggleLamp() {
+  const off = !state.story.lampOff;
+  if (!off && oilOn() && state.oil <= 0) { toast('No oil to light it. Buy some at a market.', false, 3500); return; }
+  state.story.lampOff = off;
+  toast(off ? 'Lantern out. Saving oil; you sail by the moon.' : 'Lantern lit.', false, 3000);
+  audio.play('ui', { vol: 0.4 });
+  $('oilrow').classList.toggle('off', off);
+}
 function buyOil(costMulNow) { const cap = oilCap(state.upgrades), need = cap - state.oil, cost = Math.ceil(need * OIL_PRICE * costMulNow); return { need, cost }; }
 
 // tacking: Mara's one-time tip when you point straight into the wind, and progress made upwind for the side goal
@@ -2517,6 +2527,8 @@ function frame() {
 }
 
 // handy for tests / screenshots
+$('oilrow').addEventListener('pointerdown', (e) => { if (started && !modal) { toggleLamp(); e.preventDefault(); } });
+$('oilrow').classList.toggle('off', !!state.story.lampOff);
 installGamepad(() => toast('Controller connected: stick to sail, A to interact, Y for the log, Start to pause.', false, 6000));
 window.__game = { places, seaplay, glimpse, fishing, sails: () => ({ torn: state.sailsTorn, kits: state.patchKits, strain: sailStrain }), oilState: () => ({ oil: state.oil, lampOut }),
   readArch, partnerOf, maraMood, windfx, logbook,

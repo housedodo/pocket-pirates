@@ -267,6 +267,7 @@
     #oilrow { display: flex; align-items: center; gap: 4px; margin-top: 2px; } #oilrow .bar { flex: 1; } #oilfill { background: #ffb43a !important; } #oilrow.low #oilfill { background: #ff6a4a !important; } #oilrow.low .ico.oil { animation: blink 1s steps(2) infinite; }
     .ico.oil { width: 10px; height: 14px; background: linear-gradient(#ffe27a, #ff9a2a 60%, #c8502a); clip-path: polygon(50% 0, 85% 45%, 100% 75%, 75% 100%, 25% 100%, 0 75%, 15% 45%); }
     body.nooil #oilrow { display: none; }
+    #oilrow { cursor: pointer; pointer-events: auto; } #oilrow.off .ico.oil { filter: grayscale(1) brightness(.5); } #oilrow.off #oilfill { opacity: .45; }
     body.nocannons #ammotxt, body.nocannons #combatbox .bar.thin, body.nocannons #tX, body.nocannons .cannonrow { display: none !important; }   /* cannons come later in the story */
     #combatbox .fill { height: 100%; background: #d84a3c; width: 100%; } #reloadfill { background: #8fe6ff !important; }
     #ebar { position: absolute; font-size: 11px; transform: translate(-50%, -100%); padding: 3px 6px; width: 130px; text-align: center; }

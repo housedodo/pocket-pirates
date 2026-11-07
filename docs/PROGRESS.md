@@ -614,4 +614,7 @@ From the critique "what goes stale on a long voyage" (compared with Wind Waker, 
   weather). Fixed; on top: night light floor 0.17 (was 0.3), darker night sky and fog, the view closes in (fog at 45%), and the
   lantern throws a wider, warmer pool on the water so it matters; with the lamp out it is darker still. The ship's wake no
   longer glows cyan at night.
+- **Lantern switch:** L (or click the oil flame, or press the left stick) puts the lantern out or lights it again
+  (`state.story.lampOff`). Out, it burns no oil, but the night is as dark as with an empty lamp (short view, no fishing). It
+  will not light with no oil.
 
