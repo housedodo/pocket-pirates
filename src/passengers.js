@@ -8,37 +8,40 @@ const PEOPLE = [
   { name: 'Old Wendel', who: 'a retired net-mender', lines: [
     'I mended nets in Tama for forty years. Never once caught a fish myself. Did not like the look in their eyes.',
     'My wife said the sea gives back what it takes. She has been gone eleven years. I am still waiting.',
-    'You hold the tiller like my brother did. He was terrible at it too.'] },
+    'You hold the tiller like my brother did. He was terrible at it too.', 'They say a man in a beard lives on one of the empty islands. I knew a man with a beard. Different man, probably.', 'Do you hear the bell, captain? No? Good. Me neither.'] },
   { name: 'Pippa Fairweather', who: 'a travelling cartographer\'s apprentice', lines: [
     'Master Perrin sends his maps by bottle now. Nobody has seen him hand one over in years.',
     'I drew this coast three times. It came out different every time. The coast, I mean. Not my drawing.',
-    'Did you know islands have handwriting? You can tell who drew them by how they curl.'] },
+    'Did you know islands have handwriting? You can tell who drew them by how they curl.', 'I have drawn this coast four times. It is different every time. My master says that is my fault.', 'If two things line up, one behind the other, you are on a line. That is the first thing they teach you. The second is lunch.'] },
   { name: 'Brother Ansel', who: 'a lighthouse monk', lines: [
     'We keep the lamps lit so the ships can find the harbours. And so the harbours can find the ships.',
     'Count the lighthouses on your way. Then count them on your way back. Tell me if the numbers match.',
-    'The oil smells of the deep. We do not ask where the guild gets it.'] },
+    'The oil smells of the deep. We do not ask where the guild gets it.', 'Every lighthouse has its own rhythm. I could tell you which one by the blinking, if I were awake at night. I never am.', 'We pray for sailors. We do not say which way we face while we do it.'] },
   { name: 'Mags & Tully', who: 'two fish-wives with a lot of luggage', lines: [
     'Tully says I talk too much. Tully, I do NOT talk too much. See, captain? She is not even listening.',
     'We are visiting our cousin. She owes us a goat. It is a long story. The goat is longer.',
-    'Best fish soup in the islands is at the far harbour. Worst too. Same pot.'] },
+    'Best fish soup in the islands is at the far harbour. Worst too. Same pot.', 'Mags says you are handsome. Tully says you are tired. They are both right.', 'We have brought fish to sell. Yes, on a boat. Yes, at sea. Do not look at us like that.'] },
   { name: 'Captain Ruy', who: 'a captain without a ship', lines: [
     'Lost mine to a whirlpool off the Pearl Banks. Sail round them, never through. Never.',
     'Raiders fly black flags but sail red hulls. If you see red at dusk, put out your lanterns.',
-    'A good crew is worth more than a good ship. Yours seems... spirited.'] },
+    'A good crew is worth more than a good ship. Yours seems... spirited.', 'I had a ship once. Bigger than this. Slower. Sank on a calm day, which is the worst kind of day to sink.', 'You let the tide do half the work, captain. I approve. I never did, and look at me.'] },
   { name: 'A quiet woman in grey', who: 'going home', lines: [
     'I\'m going home. I\'ll know it when I see it. I always do. It always moves a little.',
     'You have kind hands, captain. Rope-burned. Mine used to be like that.',
-    'No, I don\'t need anything to eat. Thank you. I ate, before.'] },
+    'No, I don\'t need anything to eat. Thank you. I ate, before.', '...', 'I used to know a man who kept a light. He watched the sea from the edge every evening. I never asked what he was looking for.'] },
   { name: 'Pim', who: 'a boy with a lantern', lines: [
     'My mum said keep it lit till we land. She didn\'t say which land.',
     'Do boats dream? I think this one does. It keeps turning left in its sleep.',
-    'I\'m not scared of the dark. The dark is scared of the lantern. Mum said.'] },
+    'I\'m not scared of the dark. The dark is scared of the lantern. Mum said.', "Can I hold the tiller? I won't steer. I just want to hold it.", 'My lantern is out of oil. It is fine. I am not scared. I am a little scared.'] },
   { name: 'Master Odo', who: 'a notary with a sealed letter', lines: [
     'I have a document for someone on board. It says "the captain". It doesn\'t say which one.',
     'Everything must be signed, captain. Births, ships, tides. Somebody signs the tides, you know.',
-    'Your name, for my records? ...Never mind. I seem to have it already.'] },
+    'Your name, for my records? ...Never mind. I seem to have it already.', 'The letter is sealed. I do not know what it says. I would very much like to know what it says.', 'Contracts, captain, are like tides. They come back around.'] },
 ];
 const MARA_BANTER = [
+  ['Does Mara ever sleep?', 'Sleep is for people who do not have a captain.'],
+  ['Why is there a cat on the chart table?', 'She is navigating. Do not interrupt her.'],
+  ['What happens if the lamp goes out?', 'We find out how good the captain is at guessing.'],
   ['Is she always this cheerful?', 'Always! Even in storms. ESPECIALLY in storms.'],
   ['Does the captain ever speak?', 'Only in emergencies. And knots. Very expressive knots.'],
   ['This ship is smaller than it looked from the dock.', 'She is cosy! Cosy is a feature.'],
@@ -47,6 +50,8 @@ const MARA_BANTER = [
   ['I think a gull just stole my hat.', 'He does that. We call him the Quartermaster.'],
 ];
 const SEASICK = [
+  'Is this a storm or is the sea just upset with me personally?',
+  'I am going to lie down on the deck. If I roll overboard, it was a good trip.',
   'Captain, I think my breakfast wants to go home before I do.',
   'Is the ship supposed to lean like this? Do not answer that.',
   'I will pay double if you make it stop. I will pay triple. I have no more money but I will pay it.',

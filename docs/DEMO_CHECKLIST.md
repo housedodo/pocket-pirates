@@ -90,3 +90,19 @@ Build it with `python3 scripts/single.py`, ship `pocket-pirates-demo.html` (with
 - [ ] One test run from the live itch page, by someone who has never seen it
 - [ ] Reddit post (see earlier notes), reply to comments in the first hours
 - [ ] Keep a list of feedback; tag blockers for a quick patch
+
+## 10. Added since the last checklist pass (check each once)
+- [ ] Handling: the rudder barely turns at a standstill, turns slide briefly, the hull carries a little after letting go; oars still turn easily
+- [ ] The ship floats with weight (lags waves, heels, bow lifts, spray in troughs); wake V and bow wave; other ships float and leave wakes
+- [ ] Waves low by islands, bigger in open sea; sets of bigger and smaller waves in calm weather
+- [ ] Ocean design Chop facets by default; Ocean / Night / Lamp buttons in the pause menu work and are remembered
+- [ ] Night: moon phases (new moon pitch dark with no moon, full moon moonlit); candle lamp by default; L puts the lantern out
+- [ ] Lantern upgrades let you see further at night and in fog while lit
+- [ ] Storms: readable sea and horizon, storm wall rising upwind before and during a storm, sail strain only in real storms
+- [ ] Shores: breaking foam lines, seabed and fish shadows in the shallows, rain rings; sun/moon glints twinkle in place (no racing)
+- [ ] Fog wall and fog bank: lost in fog (white-out, no helm), the ship drifts back out; no current leads into fog
+- [ ] World hints: the Kestrel (posts line up on the Tooth and the Bell; cairn drawing, tales), a low-tide wreck, smoke on some days, the dusk watcher at Tama, birds at dusk/dawn
+- [ ] Dig beach: the arch's shadow follows the sun; on a noon-riddle isle the chest is under the noon tip
+- [ ] Shops: shipwright cards (now/next, opens tags, short-by, buy flash), market gauge and kit pips, scroll
+- [ ] Passengers and bottles: new lines appear; nothing explains the horror
+

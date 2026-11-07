@@ -717,4 +717,10 @@ From the critique "what goes stale on a long voyage" (compared with Wind Waker, 
   pip and flashes the gold counter. Fixed: coin, sail and hull icons did not render inline (only as HUD icons).
 - **Market and other harbour tabs:** rows are small cards, buttons wider; lamp oil shows a fill gauge, patch kits three pips;
   the panel scrolls with a visible pixel scrollbar; shops get a wider panel.
+- **Glints fixed** (playtest: the sun/moon reflection raced the other way while sailing): the reflection is a soft path toward
+  the light, and inside it single cells twinkle in place on their own clock (style 0 and the chop styles), instead of a
+  view-dependent threshold that swept across the water as the camera moved.
+- **More voices:** two new lines for each of the eight passengers (some quietly point at the world's hints: lines that line up,
+  the man on the empty island, the watcher at dusk), three more Mara/passenger exchanges, two more seasick lines; 11 new bottle
+  notes across the five dread stages (one mentions the two white posts near the Tooth, one the low tide).
 

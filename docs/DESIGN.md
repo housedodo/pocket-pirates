@@ -213,8 +213,8 @@ Ten effects (the star-eye and ghost ship were cut) that only run at dread >= ~0.
 - **Places** (`places.js`): `BARRIERS` (reef 44, breakers 50, fog 110 from the centre, the upgrade and level that opens
   each). `tick` pushes the ship out and returns a message; `fog` (0..1) thickens the scene fog like the chapter fog wall.
   `visit` returns what is found (`VISITS`: once / again / every N days; gold, ammo, hull, fruit, chart, notes); saved in
-  `state.story.lm` (day of last visit). `labelsTick` draws the far labels (range 170 + 110 per spyglass level).
-- **Sea play** (`seaplay.js`): `LANES` and `ROUND`; `currentAt(x, z)` is the drift (used for the ship and the foam).
+  `state.story.lm` (day of last visit). (`labelsTick` once drew far labels over islands; removed: no text over islands while sailing.)
+- **Sea play** (`seaplay.js`): three `LANES` (`ROUND` is gone), faded out near any fog by `fogEdge`; `currentAt(x, z)` is the drift (used for the ship and the foam).
   Gusts set `ship.gust` (a speed factor in `Ship.update`). `state.story.lanes` remembers currents met.
 - **Glimpse** (`glimpse.js`): `k` 0..1 over nine seconds; main.js applies it to the wind, `stage.wave`, `audio.hush`,
   `fauna` (`ctx.freeze`) and `world.stare`. Starts once (`state.story.glimpse`) while `demoEnd === 'pending'`.
@@ -253,4 +253,19 @@ state.story.secrets camp visit counts). `taleAt(d)` (main.js) tells the pier tal
 found at start in clear water near (100,120) with each post 55 toward its landmark. Daymark rocks are solid (`solids`).
 Noon shadow: world.js sets `desc.puzzle.shadow` (beach facing so the noon shadow falls seaward, dread < 0.3, 70%); main.js
 passes `sun()` and `noon` to `digGame.start`; digging.js places the arch so the noon tip falls on the chest.
+
+## Handling, wakes, light and the shops (later passes)
+- **Handling** (`Ship.update`): the rudder needs flow (`0.08 + 0.62 * speed/5`), yaw builds and dies away (`this.yaw`), the
+  keel kills sideways speed (lateral decay 5.5/s), wave slope costs or gives speed, hard turns drag, leeway from the wind.
+  **Float** (`Ship.place`): height, pitch and roll on damped springs (`this.float`), bow lift, heel, squat, bow spray on a drop.
+- **Wake** (`wake.js`): a trail of stern points opening into a V, a churned strip and a bow wave; one per ship (traffic too).
+- **Water** (`ocean.js`): wave height = swell x sets (`G`) x land factor (`seaScale` / `landNear`) x weather; styles
+  `OCEAN_STYLES` (default 5, Chop facets) via `uOcean`; shores (breakers, seabed, fish shadows), rain rings (`uRain`), gusts
+  (`uGust`), glints that twinkle in place inside the light's path.
+- **Night and lamp** (`daynight.js`): `NIGHT_VIEWS` (far + light), `LAMPS`; main.js `nightMode` (0 = moon phases: each night a
+  new or a full moon from the seed), `ship.lampK`; a lit lantern adds 15% view per level at night/fog; L puts it out
+  (`state.story.lampOff`). Weather only darkens (no light floor).
+- **Storms** (`weather.js`, `sky.js`): softer darkening, lighter horizon; the storm wall (`fx.stormWall`) rises upwind.
+- **Shops** (`renderHarbour`): shipwright cards from `UPGRADES` + `UP_CARD` (icon, stock, opens tags); `upFlash` for the buy
+  flash; `#hbWide.shop` widens the panel for the shipwright and market.
 

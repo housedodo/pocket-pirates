@@ -104,7 +104,10 @@ export class Ocean {
           vec3 calm = mix(uDeep * 0.62, uShallow * 0.92, tone) * (0.85 + 0.15 * crest);
           vec2 blk = floor(vWP.xz * 1.7);
           float cap = step(0.88 - 0.12 * (vn(vWP.xz * 0.35 + vec2(uTime * 0.09, uTime * 0.05)) - 0.5) * 2.0, crest) * step(0.4, rnd(blk));
-          float glint = step(0.9992, dot(normalize(fn + (vec3(rnd(blk), 0.0, rnd(blk + 4.0)) - 0.5) * 0.6), normalize(uSunDir + normalize(cameraPosition - vWP))));
+          // the sun's (moon's) path on the water: a soft band toward the light; inside it single cells twinkle in place on their own clock,
+          // so the sparkle does not race across the sea when the ship (and camera) moves
+          float path = smoothstep(0.93, 0.99, dot(reflect(-uSunDir, vec3(0.0, 1.0, 0.0)), normalize(cameraPosition - vWP)));
+          float glint = path * step(0.94, rnd(blk + floor(uTime * 2.0 + rnd(blk) * 4.0)));
           vec3 outA = mix(calm, vec3(0.95, 0.98, 0.95), cap * 0.85) * uLight + glint * uSunColor;
           // unruly: dark rollers, steep faces, foam streaks blown along the crests
           float dfR = floor((0.45 + 0.35 * max(lit, 0.0)) * 5.0 + 0.5) / 5.0;
@@ -150,7 +153,7 @@ export class Ocean {
               float l = clamp(dot(cn, uSunDir) * 0.65 - 0.02, 0.0, 1.0);
               S = mix(uDeep * 0.6, uShallow * 0.88, floor(l * 3.0 + d) / 3.0 * 0.8);
               float spec = pow(max(dot(reflect(-uSunDir, cn), V), 0.0), 40.0);
-              S += uSunColor * step(0.55 + 0.3 * d, spec) * 0.8;
+              S += uSunColor * step(0.82, spec) * step(0.9, rnd(floor(vWP.xz * 1.7) + floor(uTime * 2.0))) * 0.8 + glint * uSunColor * 0.4;   // twinkles in place
               float fleck = step(0.93 - 0.06 * open, vn(vWP.xz * 0.9 + uWindDir * uTime * 0.7)) * step(0.55, cr) * open;
               S = mix(S, vec3(0.95), fleck * 0.85);
               if (uOcean > 4.5) S = mix(mix(calm, vec3(0.95, 0.98, 0.95), cap * 0.85), S, 0.7);

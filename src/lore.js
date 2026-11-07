@@ -91,6 +91,10 @@ const NOTES = [
     'Day 4. Calm seas. Cook swears the soup tastes of rain. We have not had rain.',
     'Please return this bottle. It is my favourite bottle.',
     'The parrot has learned a new word. None of us said it.',
+    'Day 30. We have eaten all the biscuits. Morale remains excellent, thanks to the parrot.',
+    'Two white posts stand out in the water near the Tooth. Nobody knows who put them there. Very tidy of whoever it was.',
+    'If you find this at low tide, look around. The sea is generous when it is out.',
+    'To my sister in Velto: I am fine. The captain is a fool. The food is good. Burn this.',
   ],
   [ // off
     'Day 20. The gulls have stopped following the boat. Cook says it\'s the weather. There is no weather.',
@@ -98,21 +102,28 @@ const NOTES = [
     'We counted the crew this morning. Eleven. We are ten. Please advise.',
     'Whoever finds this: you have lovely handwriting. I saw it on the letter you have not sent yet.',
     'We dropped anchor and it did not reach the bottom. We pulled it up and it was warm.',
+    'The birds fly home at dusk and we follow them. Tonight they flew the other way.',
+    'Somebody keeps leaving the lantern on the stern lit. Nobody admits it. It is always lit.',
+    'The man on the empty island waved. When we came back, there was no island.',
   ],
   [ // wrong
     'The compass points at the water now, not north. Down. We have stopped looking at it.',
     'Do not trust the harbour lights after midnight. They know your name already.',
     'The fish have started to look at us. I want to be clear: they are looking at us.',
+    'We sank the anchor and it kept going. We cut the rope. It is still going. I can feel it.',
+    'Every harbour has someone watching the water at dusk. They all watch the same way.',
   ],
   [ // eerie
     'I have been writing this note for nine days. It is the same note. I think I am the bottle.',
     'Dont follow the singing. It is not coming from the water. It is coming from underneath the water.',
     'The stars are doing something. Please tell me you can see it too.',
+    'The note in this bottle was written by me tomorrow. I recognise the handwriting. It shakes more.',
   ],
   [ // cosmic
     'y o u  a r e  n e a r l y  h e r e',
     'We are not lost. We have always been exactly here. It was the sea that moved.',
     'Turn back. Or do not. It has already decided and it is not unkind about it.',
+    "d o n ' t  s t o p  r o w i n g",
   ],
 ];
 export const bottleNote = (rng, idx) => pick(rng, NOTES[Math.min(4, idx)]);
