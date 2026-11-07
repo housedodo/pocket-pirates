@@ -156,7 +156,12 @@
     #cardOut:empty { display: none; }
     #cardDone { justify-self: start; margin-top: 10px; grid-column: 2; }
     #pigWide { width: min(420px, 92vw); text-align: center; }
-    #lgWide { width: min(700px, 96vw); text-align: center; } #lgCv { width: min(640px, 90vw); aspect-ratio: 16 / 9; display: block; margin: 6px auto; border: 4px solid #2a2026; border-radius: 6px; box-shadow: 0 6px 0 rgba(0,0,0,.45); } #lgLine { min-height: 2.4em; } .darkline { color: #b8a8c8; }
+    #localgame { background: none !important; display: none; } #localgame.open { display: block; }
+    #lgHud { position: fixed; inset: 0; width: 100vw; height: 100vh; }
+    #lgTitle { position: fixed; top: 18px; left: 0; right: 0; text-align: center; margin: 0; font-size: 34px !important; color: #ffd23a; text-shadow: 0 3px 0 #241a22, 0 0 12px rgba(0,0,0,.5); pointer-events: none; z-index: 2; }
+    #lgFoot { position: fixed; left: 50%; top: 66px; transform: translateX(-50%); width: min(720px, 94vw); display: flex; gap: 12px; align-items: center; background: rgba(28,20,30,.82); border: 3px solid #241a22; border-radius: 8px; padding: 8px 12px; z-index: 2; }
+    #lgFoot p { flex: 1; margin: 0; color: #fff6e4; font-size: 16px; line-height: 1.3; } #lgFoot button { width: auto; margin: 0; white-space: nowrap; }
+    body.minigame > :not(#localgame):not(#game):not(script) { visibility: hidden !important; }
     .pigrow > div { flex: 1; } .pigrow { display: flex; align-items: center; justify-content: space-around; font-size: 32px; margin: 8px 0; } .pigrow b { font-size: 16px; font-weight: 400; color: #c8b890; }
     #pigCv { width: 144px; height: 144px; image-rendering: pixelated; filter: drop-shadow(4px 6px 0 rgba(0,0,0,.6)); }
     .pigdie { display: inline-block; width: 64px; height: 64px; line-height: 64px; background: #efe0b8; color: #2a1608; box-shadow: 0 -4px 0 #2a1608, 0 4px 0 #2a1608, -4px 0 0 #2a1608, 4px 0 0 #2a1608, inset -4px -4px 0 #b8a070; }

@@ -2677,7 +2677,7 @@ function frame() {
   const pu = post.material.uniforms;
   pu.uDread.value = dread; pu.uTime.value = tNow; pu.uSat.value = stage.sat; pu.uVig.value = stage.vig;
   pu.uDither.value = stage.dither; pu.uTint.value.copy(stage.tint);
-  post.render(scene, camera);
+  if (modal === 'local' && localGames.view) localGames.render(post); else post.render(scene, camera);   // a tavern game shows its own little 3D scene
   requestAnimationFrame(frame);
 }
 
