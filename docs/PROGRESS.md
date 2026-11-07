@@ -635,4 +635,12 @@ From the critique "what goes stale on a long voyage" (compared with Wind Waker, 
 - **Night view and lamp settings** (pause menu "Night view" / "Lamp", or `?nightview=0..3&lamp=0..3`): view distance and
   moonlight together: Pitch dark (28% of day view, light 0.11), Dark (45%, 0.17, default), Moonlit (65%, 0.26), Bright moon
   (85%, 0.36); lamp pool: Candle, Lantern (default), Bright, Beacon. Comparison images in docs/concept.
+- **Night = moon phases** (default "Night: Moon phases" in the pause menu; fixed views still selectable): each night (19:00 to
+  06:00) is either a new moon (Pitch dark: 20% of the day's view, light 0.065, no moon, dark clouds) or a full moon (Moonlit:
+  65%, 0.26), chosen per night from the seed. Fixed a weather floor that kept every clear night at 0.28 light.
+- **Lamp default: Candle.** **Ocean default: Chop facets** (new design 5: 70% wind chop over 30% toon facets); the dark rollers
+  of a rough sea get the same chop, so storms match. New settings keys (v2) so the new defaults apply.
+- **No text over islands while sailing:** the far labels are gone (the spyglass is just view distance and zoom again).
+- **Storms easier to read:** less darkening (light x0.82 and x0.7 instead of x0.65 and x0.58), the sea keeps more of its colour,
+  the horizon stays lighter, the view shrinks less, the lantern shows in a storm like at night, and lighthouses already burn.
 

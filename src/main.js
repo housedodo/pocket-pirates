@@ -40,7 +40,7 @@ import { Wind } from './wind.js';
 import { WindFX } from './windfx.js';
 import { drawWind, PX } from './windmeters.js';
 import { installPixelUI, pxi } from './pixelui.js';
-import { applyTimeOfDay, advanceTime, tod, NIGHT_VIEWS, LAMPS, NIGHT_SET } from './daynight.js';
+import { applyTimeOfDay, advanceTime, tod, NIGHT_VIEWS, LAMPS, NIGHT_SET, NIGHT_MODES } from './daynight.js';
 import { UPGRADES, MAX_LEVEL, computeMods, shipwrightLine } from './upgrades.js';
 import { TRAITS, crewForHire, crewBonus, hasTrait, rollCheck, drawCard, renderCard, Pig, setDieWear, setAdvProvider, TREASURE_TIERS } from './tabletop.js';
 import { FISH, HABITAT } from './fishing.js';
@@ -596,15 +596,20 @@ $('tFull').addEventListener('click', (e) => { e.stopPropagation(); toggleFullscr
 $('pbFull').addEventListener('click', () => { toggleFullscreen(); $('pbFull').focus(); });
 // the look of the water (ocean.js OCEAN_STYLES): cycled in the pause menu, remembered; ?ocean=0..4 forces one
 const oceanLabel = () => { $('pbOcean').textContent = `Ocean: ${OCEAN_STYLES[U.uOcean.value | 0]}`; };
-U.uOcean.value = params.has('ocean') ? clamp(parseInt(params.get('ocean'), 10) || 0, 0, OCEAN_STYLES.length - 1) : (settings.ocean | 0) % OCEAN_STYLES.length; oceanLabel();
+U.uOcean.value = params.has('ocean') ? clamp(parseInt(params.get('ocean'), 10) || 0, 0, OCEAN_STYLES.length - 1) : settings.ocean2 != null ? settings.ocean2 % OCEAN_STYLES.length : 5; oceanLabel();   // Chop facets by default
 // night view distance and lamp strength (daynight.js): cycled in the pause menu, remembered; ?nightview= / ?lamp= force one
-const nightLabels = () => { $('pbNight').textContent = `Night view: ${NIGHT_VIEWS[NIGHT_SET.view].name}`; $('pbLamp').textContent = `Lamp: ${LAMPS[NIGHT_SET.lamp].name}`; ship.lampK = LAMPS[NIGHT_SET.lamp].k; };
-NIGHT_SET.view = params.has('nightview') ? clamp(parseInt(params.get('nightview'), 10) || 0, 0, 3) : settings.nightView != null ? settings.nightView : 1;
-NIGHT_SET.lamp = params.has('lamp') ? clamp(parseInt(params.get('lamp'), 10) || 0, 0, 3) : settings.lamp != null ? settings.lamp : 1;
+// night mode: 0 = moon phases (each night a new moon or a full one), 1..4 = one fixed view. Settings keys are new (v2) so the new defaults apply
+let nightMode = params.has('nightview') ? clamp((parseInt(params.get('nightview'), 10) || 0) + 1, 1, 4) : settings.nightMode2 != null ? settings.nightMode2 : 0;
+const nightLabels = () => { $('pbNight').textContent = `Night: ${NIGHT_MODES[nightMode]}`; $('pbLamp').textContent = `Lamp: ${LAMPS[NIGHT_SET.lamp].name}`; ship.lampK = LAMPS[NIGHT_SET.lamp].k; };
+NIGHT_SET.lamp = params.has('lamp') ? clamp(parseInt(params.get('lamp'), 10) || 0, 0, 3) : settings.lamp2 != null ? settings.lamp2 : 0;   // a candle by default
 nightLabels();
-$('pbNight').addEventListener('click', () => { NIGHT_SET.view = (NIGHT_SET.view + 1) % NIGHT_VIEWS.length; settings.nightView = NIGHT_SET.view; store.set(SETTINGS_KEY, settings); nightLabels(); $('pbNight').focus(); });
-$('pbLamp').addEventListener('click', () => { NIGHT_SET.lamp = (NIGHT_SET.lamp + 1) % LAMPS.length; settings.lamp = NIGHT_SET.lamp; store.set(SETTINGS_KEY, settings); nightLabels(); $('pbLamp').focus(); });
-$('pbOcean').addEventListener('click', () => { U.uOcean.value = ((U.uOcean.value | 0) + 1) % OCEAN_STYLES.length; settings.ocean = U.uOcean.value; store.set(SETTINGS_KEY, settings); oceanLabel(); $('pbOcean').focus(); });
+$('pbNight').addEventListener('click', () => { nightMode = (nightMode + 1) % NIGHT_MODES.length; settings.nightMode2 = nightMode; store.set(SETTINGS_KEY, settings); nightLabels(); $('pbNight').focus(); });
+$('pbLamp').addEventListener('click', () => { NIGHT_SET.lamp = (NIGHT_SET.lamp + 1) % LAMPS.length; settings.lamp2 = NIGHT_SET.lamp; store.set(SETTINGS_KEY, settings); nightLabels(); $('pbLamp').focus(); });
+/** tonight's moon: a night runs from 19:00 to 06:00; each one is either a new moon (pitch dark, no moon) or a full moon (moonlit) */
+const nightKey = () => Math.floor(state.dayN + state.time - 0.79 + 1);
+const fullMoon = () => (hash2(state.seed, nightKey(), 717) % 100) < 50;
+function nightViewNow() { NIGHT_SET.view = nightMode ? nightMode - 1 : fullMoon() ? 2 : 0; }
+$('pbOcean').addEventListener('click', () => { U.uOcean.value = ((U.uOcean.value | 0) + 1) % OCEAN_STYLES.length; settings.ocean2 = U.uOcean.value; store.set(SETTINGS_KEY, settings); oceanLabel(); $('pbOcean').focus(); });
 $('tNew').addEventListener('click', (e) => {
   e.stopPropagation();
   if (performance.now() - newAskT > 4000) { newAskT = performance.now(); $('tNew').textContent = 'Really? Press again'; return; }
@@ -2265,7 +2270,7 @@ function frame() {
   wind.update(dt);
   if (dt > 0) { state.buffs.speed = Math.max(0, state.buffs.speed - dt); state.buffs.dig = Math.max(0, state.buffs.dig - dt); }
   ship.buff = state.buffs.speed > 0 ? 1.15 : 1;
-  ship.lampOut = lampOut;
+  ship.lampOut = lampOut; ship.stormLight = weather.heavy || 0;   // the lantern also shows in a storm
   const sec = sectorAt(ship.pos.x, ship.pos.z, state.seed);
   if (sec.id !== curSector) {
     curSector = sec.id;
@@ -2320,6 +2325,7 @@ function frame() {
   if (glitchT > 0) { glitchT -= rawDt; dread = 1; if (glitchT <= 0) { dread = preGlitch; hutEl.classList.remove('glitching'); } } // the hut's bad throw
   dark = dread > DARK_THRESHOLD;
   const stage = sampleStage(dread);
+  nightViewNow();
   applyTimeOfDay(stage, state.time, dread);
   stage.wave *= 0.7 + 0.5 * wind.strength;
   weather.update(dt, wind.t, dread, wind.dir, wind.strength, camera, tod);
@@ -2413,6 +2419,7 @@ function frame() {
   mats.beam.opacity = 0.1 + 0.3 * tod.night;
   mats.wake.color.set(0xffffff).lerp(new THREE.Color(0.35, 1, 0.9), tod.night * 0.9).lerp(new THREE.Color(1, 0.4, 0.95), tod.night * smoothstep(0.55, 0.9, dread) * 0.8);
   sky.update(window.__waterLock ? 0 : dt, camera, stage, wind.dir, tod, { sun2: abyss.sun2 });
+  if (NIGHT_SET.view === 0) sky.moon.visible = false;   // a new moon: no moon in the sky
   ocean.material.opacity = 1 - 0.7 * abyss.seeThrough;
   if (abyss.seeThrough > 0) { U.uDeep.value.lerp(GLASS, 0.8 * abyss.seeThrough); U.uShallow.value.lerp(GLASS, 0.7 * abyss.seeThrough); }
   ocean.update(camera.position.x, camera.position.z);
@@ -2453,7 +2460,6 @@ function frame() {
   camera.lookAt(camLook);
   if (live || params.get('shot')) camera.rotateZ(abyss.roll(tNow));
   camera.updateMatrixWorld();
-  places.labelsTick(camera, ship, state.upgrades.spyglass || 0, state.discovered, innerWidth, innerHeight, (live || !!params.get('shot')) && !onbQuiet());
 
   // ---- discovery / interaction / dig
   // first sight of an island you have never charted: a moment of "land ho!"

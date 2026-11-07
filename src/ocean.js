@@ -24,7 +24,7 @@ export function seaScale(x, z) {
   return 0.35 + 1.35 * (1 - near);
 }
 // the looks the water can take (uOcean); 0 is the original toon facets. Chosen in the pause menu (Ocean) or ?ocean=1..4
-export const OCEAN_STYLES = ['Toon facets', 'Soft swell', 'Painted bands', 'Wind chop', 'Deep sheen'];
+export const OCEAN_STYLES = ['Toon facets', 'Soft swell', 'Painted bands', 'Wind chop', 'Deep sheen', 'Chop facets'];   // 5: mostly wind chop over a little of the toon facets (the default)
 // Real water is never regular: waves of many directions and unrelated speeds, travelling in groups (the envelope), their crests bent a little by a slow warp of the surface.
 const wsin = Math.sin;
 export function waveHeight(x, z, t, amp = 1) {
@@ -119,7 +119,8 @@ export class Ocean {
             vec3 V = normalize(cameraPosition - vWP);
             float open = 1.0 - landNear(vWP.xz), d = bay4(gl_FragCoord.xy);
             float cr = clamp(vWP.y / (1.1 * max(uWave, 0.5)) + 0.5, 0.0, 1.0);
-            vec3 S;
+            vec3 S; vec3 cn = sn;
+            bool chop = (uOcean > 2.5 && uOcean < 3.5) || uOcean > 4.5;
             if (uOcean < 1.5) {
               // 1 SOFT SWELL: gentle light over the swell in five dithered tones, darker troughs, lace foam on the highest crests
               float l = clamp(dot(sn, uSunDir) * 0.55 - 0.12 + cr * 0.5, 0.0, 1.0);
@@ -135,17 +136,19 @@ export class Ocean {
               float line = 1.0 - smoothstep(0.0, 0.07, abs(fract(c * 1.5) - 0.5) - 0.42);
               S = mix(S, mix(uShallow, vec3(1.0), 0.6), line * 0.45 * (0.4 + 0.6 * open));
               S *= 0.9 + 0.2 * clamp(dot(sn, uSunDir), 0.0, 1.0);
-            } else if (uOcean < 3.5) {
+            } else if (chop) {
               // 3 WIND CHOP: a smooth base swell with a small, fast chop on top (stronger out at sea), sparkles and whitecap flecks
+              // 5 CHOP FACETS: the same, laid 70/30 over the original toon facets so the sea keeps a little of its faceted shape
               vec2 cp = vWP.xz * 1.1 + uWindDir * uTime * 1.4;
               float n0 = vn(cp), nx = vn(cp + vec2(0.35, 0.0)), nz = vn(cp + vec2(0.0, 0.35));
-              vec3 cn = normalize(sn + vec3(n0 - nx, 0.0, n0 - nz) * (0.6 + 1.2 * open));
+              cn = normalize(sn + vec3(n0 - nx, 0.0, n0 - nz) * (0.6 + 1.2 * open));
               float l = clamp(dot(cn, uSunDir) * 0.65 - 0.02, 0.0, 1.0);
               S = mix(uDeep * 0.6, uShallow * 0.88, floor(l * 3.0 + d) / 3.0 * 0.8);
               float spec = pow(max(dot(reflect(-uSunDir, cn), V), 0.0), 40.0);
               S += uSunColor * step(0.55 + 0.3 * d, spec) * 0.8;
               float fleck = step(0.93 - 0.06 * open, vn(vWP.xz * 0.9 + uWindDir * uTime * 0.7)) * step(0.55, cr) * open;
               S = mix(S, vec3(0.95), fleck * 0.85);
+              if (uOcean > 4.5) S = mix(mix(calm, vec3(0.95, 0.98, 0.95), cap * 0.85), S, 0.7);
             } else {
               // 4 DEEP SHEEN: dark clear body, the sky's sheen on the faces you see at a slant, long foam streaks drawn out by the wind
               float fres = pow(1.0 - max(dot(sn, V), 0.0), 3.0);
@@ -157,7 +160,15 @@ export class Ocean {
               S = mix(S, vec3(0.9, 0.95, 0.95), step(0.82 - 0.08 * open, st) * step(0.45, cr) * 0.6);
             }
             S = S * uLight + glint * uSunColor * 0.6;
-            outc = mix(S, outB, uRough * (1.0 - 0.6 * shore));
+            vec3 outR = outB;
+            if (chop) {   // the dark rollers get the same chop, so a rough sea matches the calm one
+              float lr = clamp(dot(cn, uSunDir) * 0.6 + 0.25, 0.0, 1.0);
+              vec3 rc = mix(uDeep * vec3(0.42, 0.55, 0.68), uShallow * vec3(0.55, 0.68, 0.7), cr * 0.7) * (floor(lr * 4.0 + d) / 4.0 * 0.7 + 0.3);
+              rc = mix(rc, uDeep * 0.2, (1.0 - cr) * 0.3);
+              vec3 rch = mix(rc, vec3(0.82, 0.88, 0.86), clamp(streak, 0.0, 1.0) * 0.7) * uLight;
+              outR = uOcean > 4.5 ? mix(outB, rch, 0.7) : rch;
+            }
+            outc = mix(S, outR, uRough * (1.0 - 0.6 * shore));
           }
           // near land: lighter, shallower, more turquoise (the same flat banded look)
           vec3 shallowTint = mix(uShallow * 1.12, vec3(0.72, 0.95, 0.82), 0.35) * uLight;

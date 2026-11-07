@@ -122,20 +122,20 @@ export class Weather {
     stage.skyHorizon.lerp(GREY_HOR, Math.max(c, this.fog) * 0.55);
     stage.fog.lerp(GREY_FOG, fogK * 0.7);
     stage.cloud.multiplyScalar(1 - 0.45 * c);
-    stage.light = Math.max(0.28, stage.light * (1 - 0.42 * this.darkness));
+    stage.light *= 1 - 0.3 * this.darkness;   // weather only darkens (it used to hold a floor of 0.28 that also lit up clear nights)
     stage.sat *= 1 - 0.25 * c;
     stage.wave *= (1 - 0.25 * this.drizzle) * (1 + 1.3 * this.storm);   // rain flattens the swell; a storm heaps it up
     // light rain: pale grey sky, a milky, quiet sea, soft mist. A storm: near-black sky, dark slate water, cold flat light, scudding clouds
     const dz = this.drizzle, st = this.heavy;
     stage.skyTop.lerp(DRIZZLE_TOP, dz * 0.85); stage.skyHorizon.lerp(DRIZZLE_HOR, dz * 0.8); stage.fog.lerp(DRIZZLE_FOG, dz * 0.8);
     stage.deep.lerp(DRIZZLE_DEEP, dz * 0.6); stage.shallow.lerp(DRIZZLE_SHALLOW, dz * 0.55); stage.cloud.lerp(DRIZZLE_HOR, dz * 0.6);
-    stage.skyTop.lerp(STORM_TOP, st * 0.85); stage.skyHorizon.lerp(STORM_HOR, st * 0.8); stage.fog.lerp(STORM_FOG, st * 0.75);
-    stage.deep.lerp(STORM_DEEP, st * 0.75); stage.shallow.lerp(STORM_SHALLOW, st * 0.7); stage.cloud.lerp(STORM_CLOUD, st * 0.8);
+    stage.skyTop.lerp(STORM_TOP, st * 0.75); stage.skyHorizon.lerp(STORM_HOR, st * 0.6); stage.fog.lerp(STORM_FOG, st * 0.6);   // the horizon stays lighter: something to steer by
+    stage.deep.lerp(STORM_DEEP, st * 0.5); stage.shallow.lerp(STORM_SHALLOW, st * 0.45); stage.cloud.lerp(STORM_CLOUD, st * 0.8);   // a dark sea, but you can still read the waves
     stage.tint.lerp(STORM_TINT, st * 0.5);
-    stage.light *= (1 - 0.1 * dz) * (1 - 0.35 * st);
+    stage.light *= (1 - 0.1 * dz) * (1 - 0.18 * st);
     stage.sat *= (1 - 0.3 * dz) * (1 - 0.35 * st);
-    stage.vig += 0.25 * st;
-    stage.fogFar *= (1 - 0.4 * dz) * (1 - 0.35 * st); stage.fogNear *= (1 - 0.5 * dz) * (1 - 0.4 * st);   // drizzle: a soft mist that swallows the far islands
+    stage.vig += 0.15 * st;
+    stage.fogFar *= (1 - 0.4 * dz) * (1 - 0.2 * st); stage.fogNear *= (1 - 0.5 * dz) * (1 - 0.3 * st);   // a storm still lets you see islands and lighthouses   // drizzle: a soft mist that swallows the far islands
     stage.cloudSpeed = 1 + 5 * st;
     stage.fogFar = Math.max(40, stage.fogFar * (1 - 0.6 * this.fog - 0.25 * this.rain));
     stage.fogNear = Math.max(8, stage.fogNear * (1 - 0.7 * this.fog));

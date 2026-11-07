@@ -20,9 +20,10 @@ const NIGHT_TINT = new THREE.Color(0.78, 0.88, 1.18), DUSK_TINT = new THREE.Colo
 
 // how far you can see on a clear night, and how strong the lantern is: four settings each, chosen in the pause menu
 // (Night view / Lamp) or ?nightview=0..3&lamp=0..3. far = the share of the day's view distance left at full night.
-export const NIGHT_VIEWS = [{ name: 'Pitch dark', far: 0.28, light: 0.11 }, { name: 'Dark', far: 0.45, light: 0.17 }, { name: 'Moonlit', far: 0.65, light: 0.26 }, { name: 'Bright moon', far: 0.85, light: 0.36 }];   // far: view distance left at full night; light: how much moonlight
+export const NIGHT_VIEWS = [{ name: 'Pitch dark', far: 0.2, light: 0.065 }, { name: 'Dark', far: 0.45, light: 0.17 }, { name: 'Moonlit', far: 0.65, light: 0.26 }, { name: 'Bright moon', far: 0.85, light: 0.36 }];   // far: view distance left at full night; light: how much moonlight
 export const LAMPS = [{ name: 'Candle', k: 0.5 }, { name: 'Lantern', k: 1 }, { name: 'Bright', k: 1.6 }, { name: 'Beacon', k: 2.4 }];
-export const NIGHT_SET = { view: 1, lamp: 1 };
+export const NIGHT_SET = { view: 0, lamp: 0, auto: true };   // auto: moon phases, each night either a new moon (Pitch dark) or a full one (Moonlit)
+export const NIGHT_MODES = ['Moon phases', ...NIGHT_VIEWS.map((v) => v.name)];
 
 export const tod = {
   t: 0.33, sunHeight: 0, day: 1, night: 0, twilight: 0,
@@ -47,7 +48,7 @@ export function applyTimeOfDay(stage, t, dread) {
   stage.skyHorizon.lerp(NIGHT_HOR, nm * 0.92).lerp(DUSK_HOR, tw * 0.75);
   stage.fog.lerp(NIGHT_FOG, nm * 0.96).lerp(DUSK_FOG, tw * 0.5);
   stage.sun.lerp(DUSK_SUN, tw * 0.8);
-  stage.cloud.multiplyScalar(0.35 + 0.65 * day);
+  stage.cloud.multiplyScalar((0.35 + 0.65 * day) * (1 - night * (1 - Math.min(1, 0.4 + 2.2 * NIGHT_VIEWS[NIGHT_SET.view].light))));   // on a new moon the clouds are dark too
   { const nl = NIGHT_VIEWS[NIGHT_SET.view].light; stage.light = Math.max(nl, stage.light * (nl + 0.02 + (0.98 - nl) * day)); }
   { const f = NIGHT_VIEWS[NIGHT_SET.view].far; stage.fogFar *= 1 - (1 - f) * night; stage.fogNear *= 1 - (1 - f * 0.9) * night; }   // the dark closes in: islands are shapes, then nothing
 

@@ -3,7 +3,7 @@ export const UPGRADES = [
   { id: 'sails', name: 'Sails', cost: [120, 300, 650], text: ['Fine canvas: +12% top speed, bites better upwind', 'Double-stitched sails: +24% speed', 'Storm-silk sails: +36% speed, handles headwinds'] },
   { id: 'rudder', name: 'Rudder', cost: [100, 250, 500], text: ['Oiled tiller: turns 22% faster', 'Broad rudder: turns 44% faster, threads the reef gaps', 'Whale-bone rudder: turns 66% faster'] },
   { id: 'lantern', name: 'Lantern', cost: [80, 200, 450], text: ['Brass lantern: a small pool of light at night', 'Lens lantern: wider glow, cuts a road through fog banks', 'Beacon lantern: lights the way, and keeps the dark back'] },
-  { id: 'spyglass', name: 'Spyglass', cost: [100, 250, 500], text: ['Brass spyglass: see further, read far shapes on the horizon', 'Long glass: even further', 'Captain\'s glass: sees almost to the horizon'] },
+  { id: 'spyglass', name: 'Spyglass', cost: [100, 250, 500], text: ['Brass spyglass: see further, zoom out wider', 'Long glass: even further', 'Captain\'s glass: sees almost to the horizon'] },
   { id: 'hull', name: 'Hull', cost: [100, 260, 520], text: ['Oak reinforcement: +30 hull strength', 'Iron-banded hull: +60 hull strength, takes the breakers, storms hurt less', 'Ironwood hull: +90 hull strength'] },
   { id: 'cannons', name: 'Cannons', cost: [140, 320, 640], text: ['Better powder: +4 damage, reload a little faster', 'Long guns: +8 damage, faster reload', 'Master gunners: +12 damage, much faster reload'] },
   { id: 'crew', name: 'Crew', cost: [150, 350, 700], text: ['Seasoned diggers: dig 20% faster, +20% loot value', 'Treasure hounds: 40% faster, +40% value', 'Veteran crew: 60% faster, +60% value'] },
