@@ -62,6 +62,9 @@ purple and magenta cosmic horror as dread rises.
 - **Shores:** foam lines rolling in and breaking in stretches, seabed (sand, rock, weed) dithered through the shallows, fish
   shadows; rain rings on the surface.
 - **Storm wall:** a cloud bank in the sky with rain curtains under it, never a dark mass sitting on the sea (it read as land).
+- **Daymarks:** a black rock, a tarred pole, a white top with a black band; tall enough to stand clear of the horizon.
+- **Dig beach:** top-down pixel beach (two sand tones dithered, shells, pebbles, weed at the tideline, grass edge), the stone
+  arch with its translucent shadow, holes with thrown-up sand rims, corner-bracket cursor, foam edge lapping.
 - **Night is dark:** light floor 0.17 of day, near-black navy sky and fog, a short view; what you see by is the lantern's warm
   pool on the water, lit windows, lighthouses and the moon. With the lamp out the dark comes right up to the hull.
 - **Torn sail:** dark holes you can see through, long thin rips, the clew corner gone, three loose rags flapping; the sail

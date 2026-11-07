@@ -244,3 +244,13 @@ storms heap it up to 2.3x, rain flattens it, a calm takes 75% away). With rough 
 blends into long dark rollers. The same function runs on the GPU (the water) and the CPU (the ship, fauna, bobbers).
 The ship samples four points (bow, stern, both sides) and follows them through springs (`Ship.place`, `this.float`).
 
+## World hints (secrets.js)
+`Secrets.roll(d)` decides per island (cached on the desc, rolled with its own hashes so nothing else moves): `tide` (wreck
+angle), `camp` (camp angle), `watch` (harbours). `update()` builds meshes for loaded islands and removes them as they unload,
+moves the smoke column to the nearest smoking camp (`smoking(d, dayN)`), shows watchers 17:36-19:36, runs one bird flock.
+`near()` gives main.js an interaction (kind `secret`): `secretFound()` applies it (state.collected 'kestrel' / 'tide:<id>',
+state.story.secrets camp visit counts). `taleAt(d)` (main.js) tells the pier tales (state.story.tales). The Kestrel spot is
+found at start in clear water near (100,120) with each post 55 toward its landmark. Daymark rocks are solid (`solids`).
+Noon shadow: world.js sets `desc.puzzle.shadow` (beach facing so the noon shadow falls seaward, dread < 0.3, 70%); main.js
+passes `sun()` and `noon` to `digGame.start`; digging.js places the arch so the noon tip falls on the chest.
+

@@ -678,3 +678,25 @@ From the critique "what goes stale on a long voyage" (compared with Wind Waker, 
   grey rain curtains under it) rises over the horizon upwind as a storm or a front comes near (`fx.stormWall`).
 - **Other ships** float like yours (springs, heel with the wind, squat at speed) and leave wakes.
 
+## World hints: what the sea tells you without words (src/secrets.js, rare and irregular on purpose)
+- **The Kestrel (transits).** Two pilot's daymarks (a tarred pole on a black rock, white top with a black band) stand at sea
+  south-east of Hollowgreen's waters. From one spot only, the near post sits exactly in front of the Grey Tooth and the far
+  post in front of the Drowned Bell's tower; that is where the Kestrel lies. The lines come from the world: the Tooth's cairn
+  lid has a scratched drawing of a white post in front of the rock (and KESTREL crossed off the ship list); two pier tales
+  (Tama, Velto; rare, once each, after the tavern chapter) disagree about everything (calm noon / night squall) except the
+  line each one saw; a third harbour may say there never was a Kestrel. Stopped over the spot a dark shape shows under the
+  water and bubbles rise: send someone down (+180 gold, a note). Tama's dusk watcher looks toward it.
+- **Low-tide wrecks:** off ~7% of islands far from Tama a wreck's ribs and mast come up only at low tide; salvage once.
+- **Smoke:** ~5% of lonely jungle/rocky isles have a man living there; a thin smoke column rises about one day in three. The
+  first visit he scratches a treasure isle into your chart; later visits vary (sometimes only a warm fire).
+- **The dusk watcher:** Tama and ~40% of harbours have one figure who stands at the water's edge at dusk, on the side that
+  faces the nearest secret (smoke isle or low-tide wreck; Tama's faces the Kestrel). Gone once the sea goes wrong.
+- **Birds:** at dusk in open water a small V of gulls flies home toward the nearest land; at dawn they fly out from it. With
+  dread over 0.55 they fly the wrong way.
+- **Cross-swell:** islands bend the swell, so 60-330 out from any shore a second set of crests rolls in toward the land and
+  crosses the main swell: land can be felt beyond the horizon and in fog.
+- **Dig beach redesign + noon shadow:** the dig is now a little beach seen from above (dithered sand, shells, pebbles, weed,
+  waves lapping, the island's edge), with the treasure arch at the top throwing its real sun shadow (long and slanting in the
+  morning, short at noon, none at night). On "noon-shadow" isles (riddle ends "At noon, the arch points.") the chest lies
+  under the noon tip of the shadow of the arch's top.
+
