@@ -69,7 +69,7 @@ export class Places {
   /** each frame: keep the ship out of places it is not fitted for, thicken the fog in the bank. Returns a message to show, or null. */
   tick(dt, ship, upgrades, fogColor, freeze) {
     let msg = null;
-    this.fog = 0;
+    this.fog = 0; this.lost = null;
     for (const [lm, B] of Object.entries(BARRIERS)) {
       const l = LM[lm], dx = ship.pos.x - l.x, dz = ship.pos.z - l.z, d = Math.hypot(dx, dz);
       if (B.kind === 'fog') this.fog = Math.max(this.fog, smoothstep(B.R + 70, B.R - 30, d) * (this.open(lm, upgrades) ? 0.45 : 1));
@@ -80,8 +80,13 @@ export class Places {
         continue;
       }
       // not fitted for it: the reef stops you dead, the breakers throw you back, the fog turns you round
+      if (d < B.R && B.kind === 'fog') {   // lost in the fog: main.js takes the helm and the ship drifts out the way it came
+        this.lost = { x: dx / Math.max(d, 0.01), z: dz / Math.max(d, 0.01) };
+        if ((this.toastT[k] || 0) <= 0) { this.toastT[k] = 25; msg = { text: B.no }; }
+        continue;
+      }
       if (d < B.R) {
-        const push = B.kind === 'fog' ? Math.min(B.R - d, (3 + (B.R - d) * 0.5) * dt) : B.R - d;
+        const push = B.R - d;
         ship.pos.x += dx / Math.max(d, 0.01) * push; ship.pos.z += dz / Math.max(d, 0.01) * push;
         ship.speed *= B.kind === 'fog' ? 1 - Math.min(0.9, dt * 1.6) : 0.4;
         if (B.kind === 'fog') ship.heading += dt * 0.6;   // the bow swings round in the fog

@@ -7,16 +7,15 @@ import * as THREE from 'three';
 import { mulberry32, clamp, smoothstep } from './util.js';
 import { waveHeight } from './ocean.js';
 
-// lanes: [ax, az, bx, bz, half-width, speed]. 'round' is a ring round Tama, clockwise.
+// three lanes, all well inside the fog: Tama to the Grey Tooth, Velto to Hollowgreen, and the Reef Road out to Glass Lagoon.
+// (There were seven, plus a ring round Tama: too many, and one ran into the fog and trapped the ship.) A current fades out
+// near any fog (ctx.fogEdge in update), so it can never carry the ship into it.
 export const LANES = [
-  { id: 'tooth', a: [60, -40], b: [240, 70], w: 22, v: 3.2, name: 'the Tooth Run' },
-  { id: 'west', a: [30, 330], b: [-500, 110], w: 26, v: 3.0, name: 'the Long West' },
-  { id: 'green', a: [-210, -90], b: [-280, 140], w: 20, v: 2.8, name: 'the Green Drift' },
-  { id: 'south', a: [300, -120], b: [420, -280], w: 22, v: 3.0, name: 'Wick\'s Stream' },
-  { id: 'reef', a: [450, -260], b: [520, 300], w: 24, v: 3.2, name: 'the Reef Road' },
-  { id: 'fog', a: [-240, -230], b: [-350, -420], w: 20, v: 2.6, name: 'the Pale Drift' },
+  { id: 'tooth', a: [60, -40], b: [240, 70], w: 22, v: 3.0, name: 'the Tooth Run' },
+  { id: 'green', a: [-210, -90], b: [-280, 140], w: 20, v: 2.6, name: 'the Green Drift' },
+  { id: 'reef', a: [450, -260], b: [520, 300], w: 24, v: 3.0, name: 'the Reef Road' },
 ];
-export const ROUND = { x: 0, z: -118, R: 230, w: 22, v: 2.6, name: 'the Round' };
+export const ROUND = null;
 
 /** the current at a point: { x, z } velocity in world units/s, plus the lane it belongs to */
 export function currentAt(x, z) {
@@ -28,13 +27,11 @@ export function currentAt(x, z) {
     const off = Math.abs((x - ax) * -uz + (z - az) * ux), k = (1 - smoothstep(L.w * 0.5, L.w, off)) * smoothstep(-10, 30, s) * (1 - smoothstep(len - 30, len + 10, s));
     if (k > 0) { vx += ux * L.v * k; vz += uz * L.v * k; if (k > best) { best = k; lane = L; } }
   }
-  { const dx = x - ROUND.x, dz = z - ROUND.z, r = Math.hypot(dx, dz), k = 1 - smoothstep(ROUND.w * 0.5, ROUND.w, Math.abs(r - ROUND.R));
-    if (k > 0) { const ux = -dz / r, uz = dx / r; vx += ux * ROUND.v * k; vz += uz * ROUND.v * k; if (k > best) { best = k; lane = ROUND; } } }
   return { x: vx, z: vz, lane, k: best };
 }
 
 const NG = 4, GD = 60;            // gust patches alive at once, dashes per patch
-const NC = 120;                   // current foam dashes
+const NC = 46;                    // current foam dashes (few and faint: a hint on the water, not a road)
 export class SeaPlay {
   constructor(scene) {
     this.r = mulberry32(31);
@@ -109,20 +106,21 @@ export class SeaPlay {
     ship.gust = 1 + 0.32 * clamp(this.boost / 1.5, 0, 1);
 
     // ---- currents: drift the ship, show the foam
-    const cur = currentAt(ship.pos.x, ship.pos.z);
-    ship.pos.x += cur.x * dt; ship.pos.z += cur.z * dt;
+    const cur = currentAt(ship.pos.x, ship.pos.z), cutK = ctx.fogEdge ? ctx.fogEdge(ship.pos.x, ship.pos.z) : 1;   // no current near fog
+    ship.pos.x += cur.x * dt * cutK; ship.pos.z += cur.z * dt * cutK;
+    if (cutK < 0.5) cur.k = 0;
     ev.lane = cur.k > 0.5 ? cur.lane : null;
     for (let i = 0; i < NC; i++) {
       const q = this.cd[i];
       if (q.life <= 0) {   // try a spot near the ship that is in a current
         const a = r() * 6.28, d = 8 + r() * 110, x = ship.pos.x + Math.cos(a) * d, z = ship.pos.z + Math.sin(a) * d, c = currentAt(x, z);
-        if (c.k > 0.3) { q.x = x; q.z = z; q.ttl = q.life = 2.5 + r() * 3; q.len = 0.8 + r() * 1.6; } else q.life = 0;
+        if (c.k > 0.4) { q.x = x; q.z = z; q.ttl = q.life = 2 + r() * 2.5; q.len = 0.6 + r() * 1.1; } else q.life = 0;
       }
       if (q.life > 0) {
         const c = currentAt(q.x, q.z), sp = Math.hypot(c.x, c.z) || 1;
         q.x += c.x * 2.2 * dt; q.z += c.z * 2.2 * dt; q.life -= dt;
         const a = clamp(Math.min(q.ttl - q.life, q.life) / 0.8, 0, 1) * clamp(c.k * 1.5, 0, 1) * nightK;
-        this.quad(this.cp, this.cc, i, q.x, q.z, waveHeight(q.x, q.z, t, wave) + 0.16, c.x / sp, c.z / sp, q.len, 0.13, [0.9, 0.97, 1, 0.7 * a]);
+        this.quad(this.cp, this.cc, i, q.x, q.z, waveHeight(q.x, q.z, t, wave) + 0.16, c.x / sp, c.z / sp, q.len, 0.08, [0.9, 0.97, 1, 0.32 * a * (ctx.fogEdge ? ctx.fogEdge(q.x, q.z) : 1)]);
       } else this.quad(this.cp, this.cc, i, 0, 0, -50, 1, 0, 0, 0, [0, 0, 0, 0]);
     }
     this.cmesh.geometry.attributes.position.needsUpdate = true; this.cmesh.geometry.attributes.color.needsUpdate = true;

@@ -566,7 +566,7 @@ export class Logbook {
         sk.line([[b[0] - Math.cos(ang - 0.5) * 12, b[1] - Math.sin(ang - 0.5) * 12], b, [b[0] - Math.cos(ang + 0.5) * 12, b[1] - Math.sin(ang + 0.5) * 12]], { closed: false, col: '#2a6a8a', w: 1.6, passes: 1, amp: 0.6 });
       };
       for (const L of LANES) if (all || rode[L.name]) arrow([[X(L.a[0]), Z(L.a[1])], [X((L.a[0] + L.b[0]) / 2), Z((L.a[1] + L.b[1]) / 2)], [X(L.b[0]), Z(L.b[1])]], L.a[0] | 0);
-      if (all || rode[ROUND.name]) for (let q = 0; q < 4; q++) { const pts = []; for (let k = 0; k <= 6; k++) { const a = (q / 4 + k / 6 * 0.2) * Math.PI * 2; pts.push([X(ROUND.x + Math.cos(a) * ROUND.R), Z(ROUND.z + Math.sin(a) * ROUND.R)]); } arrow(pts, 90 + q); }
+      if (ROUND && (all || rode[ROUND.name])) for (let q = 0; q < 4; q++) { const pts = []; for (let k = 0; k <= 6; k++) { const a = (q / 4 + k / 6 * 0.2) * Math.PI * 2; pts.push([X(ROUND.x + Math.cos(a) * ROUND.R), Z(ROUND.z + Math.sin(a) * ROUND.R)]); } arrow(pts, 90 + q); }
     }
     for (const [i, q] of ((state.story && state.story.pins) || []).entries()) {   // your pins
       const px = X(q.x), pz = Z(q.z), sk = sketcher(c, 300 + i);

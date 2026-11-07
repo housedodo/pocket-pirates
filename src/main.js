@@ -2075,7 +2075,26 @@ $('demoGo').addEventListener('click', () => {
   if (window.__BUILD === 'demo') toast('Keep sailing: everything inside the fog is still yours to do.', false, 5000);   // the demo opens nothing more
   else { state.story.free = true; toast('The fog thins. The sea is yours.', false, 5000); }
 });
-let gateFog = 0, gateToastT = 0, musingT = 120;
+let gateFog = 0, gateToastT = 0, musingT = 120, gateLost = null, lostK = 0, lostWob = 0;
+/** where the fog leaves no current: 0 in or near any fog (the chapter wall, the fog bank), 1 in clear water */
+function fogEdge(x, z) {
+  const R = gateRadius(state), d = Math.hypot(x, z);
+  let k = R === Infinity ? 1 : 1 - smoothstep(R - 220, R - 120, d);
+  const b = LM.broken; if (!places.open('broken', state.upgrades)) k = Math.min(k, smoothstep(110 + 40, 110 + 100, Math.hypot(x - b.x, z - b.z)));
+  return k;
+}
+/** lost in fog: you see nothing, the helm does not answer, and the ship wanders but is always drawn back out */
+function fogLost(dt) {
+  const out = gateLost || places.lost;
+  lostK += ((out ? 1 : 0) - lostK) * Math.min(1, dt * (out ? 1.5 : 0.6));
+  if (!out) return;
+  lostWob += dt;
+  const want = Math.atan2(out.x, -out.z) + Math.sin(lostWob * 0.7) * 0.6 + Math.sin(lostWob * 1.9) * 0.25;   // aimless, but always bending outward
+  ship.heading += angleDiff(ship.heading, want) * Math.min(1, dt * 0.5);
+  ship.trim += (0.45 - ship.trim) * Math.min(1, dt * 0.8);
+  ship.speed += (3.2 - ship.speed) * Math.min(1, dt * 0.6);
+  ship.pos.x += out.x * 1.8 * dt; ship.pos.z += out.z * 1.8 * dt;   // and the fog itself lets go of you
+}
 function seaGate(dt) {
   const R = gateRadius(state), d = Math.hypot(ship.pos.x, ship.pos.z);
   setReach(R);
@@ -2085,19 +2104,18 @@ function seaGate(dt) {
     if (o && Math.hypot(o.x, o.z) > R - 30) { state[key] = null; if (state.tracked === key) state.tracked = null; toast(`${label} was bound beyond the fog. It is let go, and nothing is lost.`, false, 6000); }
   }
   gateFog = R === Infinity ? 0 : clamp((d - (R - 160)) / 160, 0, 1);
-  if (d > R) {   // the fog turns you around: push back toward Tama and bleed speed
-    const k = Math.min(d - R + 1, (4 + (d - R) * 0.8) * dt);
-    ship.pos.x -= ship.pos.x / d * k; ship.pos.z -= ship.pos.z / d * k;
-    ship.speed *= 1 - Math.min(0.9, dt * 1.4);
+  gateLost = null;
+  if (d > R) {   // past the fog wall: lost (fogLost takes the helm and the ship drifts back toward Tama)
+    gateLost = { x: -ship.pos.x / d, z: -ship.pos.z / d };
     objectives.remark('gate', dread);
-    if ((gateToastT -= dt) <= 0) { gateToastT = 25; toast('The fog is a wall here. Somehow the bow always ends up pointing home.', false, 4500); }
+    if ((gateToastT -= dt) <= 0) { gateToastT = 25; toast('The fog swallows everything. The helm will not answer; somehow the bow comes round toward home.', false, 5000); }
   }
 }
 
 // gusts, currents and the barriers round the hand-made places (seaplay.js, places.js)
 let laneShown = null;
 function seaTick(dt, windNow) {
-  const ev = seaplay.update(dt, { ship, wind: windNow, t: abyss.waveTime(Math.floor(animT * 12) / 12), wave: seaWave, night: tod.night, calm: weather.calm > 0.5, on: !onbQuiet() && !ship.rowing });
+  const ev = seaplay.update(dt, { ship, wind: windNow, t: abyss.waveTime(Math.floor(animT * 12) / 12), wave: seaWave, night: tod.night, calm: weather.calm > 0.5, on: !onbQuiet() && !ship.rowing && lostK < 0.1, fogEdge });
   if (ev.gust && !state.hints.gust) { state.hints.gust = true; toast('Caught a gust! Steer into the dark patches on the water to fill the sails.', false, 5500); }
   if (ev.lane !== laneShown) {
     laneShown = ev.lane;
@@ -2269,14 +2287,14 @@ function frame() {
   // ---- ship
   shipInput.steer = (keys.has('KeyD') || keys.has('ArrowRight') || touch.R ? 1 : 0) - (keys.has('KeyA') || keys.has('ArrowLeft') || touch.L ? 1 : 0);
   shipInput.sail = (keys.has('KeyW') || keys.has('ArrowUp') || touch.U ? 1 : 0) - (keys.has('KeyS') || keys.has('ArrowDown') || touch.D ? 1 : 0);
-  if (!live || digGame.active) { shipInput.steer = 0; shipInput.sail = 0; }   // (probing the shore: the keys move over the beach)
+  if (!live || digGame.active || lostK > 0.3) { shipInput.steer = 0; shipInput.sail = 0; }   // (lost in fog: the helm does not answer)   // (probing the shore: the keys move over the beach)
   if (live && (keys.has('KeyZ') || keys.has('KeyX'))) { yawT += ((keys.has('KeyX') ? 1 : 0) - (keys.has('KeyZ') ? 1 : 0)) * dt * 1.8; lastCamInput = tNow; }
   if (keys.has('KeyV')) { yawT = 0; lastCamInput = tNow; }
   if (!drag && tNow - lastCamInput > 6) yawT += (0 - yawT) * Math.min(1, rawDt * 0.7);   // drifts back behind the boat after a while
   if (live && keys.has('KeyR')) pitchT = clamp(pitchT - dt * 0.8, PITCH_MIN, 1.35);
   if (live && keys.has('KeyF')) pitchT = clamp(pitchT + dt * 0.8, 0.3, 1.35);
   if (live || params.get('autostart')) ship.update(dt, shipInput, windNow, tNow);
-  if (live && dt > 0) { stormAndCalm(dt); tabletopTick(dt); seaGate(dt); tackTick(dt); seaTick(dt, windNow); oilTick(dt); sailTick(dt, windNow); }
+  if (live && dt > 0) { stormAndCalm(dt); tabletopTick(dt); seaGate(dt); tackTick(dt); seaTick(dt, windNow); oilTick(dt); sailTick(dt, windNow); fogLost(dt); }
   const solid = [];
   traffic.solids(solid); fauna.solids(solid); sea.solids(solid); sighting.solids(solid);
   if (world.collide(ship.pos, 2.2) | pushOut(ship.pos, 2.2, solid)) {
@@ -2299,9 +2317,10 @@ function frame() {
   stage.fogFar += ship.mods.fogBonus; stage.fogNear += ship.mods.fogBonus * 0.5;
   stage.wave *= 1 - 0.85 * glimpse.k;   // the sea goes flat
   seaWave = stage.wave;
-  const fogK = Math.max(gateFog, places.fog);   // the fog wall at the edge of the chapter, or the bank round the Halved Isle
+  const fogK = Math.max(gateFog, places.fog, lostK);   // the fog wall at the edge of the chapter, or the bank round the Halved Isle
   if (lampOut) { stage.fogFar *= 0.32; stage.fogNear *= 0.25; stage.fog.multiplyScalar(1 - 0.6 * tod.night); stage.light *= 1 - 0.35 * tod.night; }   // no lamp: the dark comes in close
   if (fogK > 0) { stage.fogFar = Math.max(30, stage.fogFar * (1 - 0.85 * fogK)); stage.fogNear = Math.max(4, stage.fogNear * (1 - 0.9 * fogK)); stage.fog.lerp(new THREE.Color('#b8c0c4'), fogK * 0.7); }
+  if (lostK > 0) { stage.fogFar = Math.max(10, stage.fogFar * (1 - 0.7 * lostK)); stage.fogNear = Math.max(1, stage.fogNear * (1 - 0.9 * lostK)); stage.fog.lerp(new THREE.Color('#c8ced0'), lostK * 0.5); }   // lost: you can barely see the bow
   abyss.update(dt, { dread, live, camera, camYaw, ch: camHeading + camYaw });
   stage.wave *= abyss.waveMul;
   const waveT = abyss.waveTime(stepT);
@@ -2530,7 +2549,7 @@ function frame() {
 $('oilrow').addEventListener('pointerdown', (e) => { if (started && !modal) { toggleLamp(); e.preventDefault(); } });
 $('oilrow').classList.toggle('off', !!state.story.lampOff);
 installGamepad(() => toast('Controller connected: stick to sail, A to interact, Y for the log, Start to pause.', false, 6000));
-window.__game = { places, seaplay, glimpse, fishing, sails: () => ({ torn: state.sailsTorn, kits: state.patchKits, strain: sailStrain }), oilState: () => ({ oil: state.oil, lampOut }),
+window.__game = { lostState: () => ({ lostK, gateLost, placesLost: places.lost, heading: ship.heading, trim: ship.trim }), places, seaplay, glimpse, fishing, sails: () => ({ torn: state.sailsTorn, kits: state.patchKits, strain: sailStrain }), oilState: () => ({ oil: state.oil, lampOut }),
   readArch, partnerOf, maraMood, windfx, logbook,
   audio,
   objectives, perrinNote, gateRadius: () => gateRadius(state), trackTarget: () => trackTarget(), digGame,

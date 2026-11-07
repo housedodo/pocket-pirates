@@ -25,7 +25,7 @@ export const LM = Object.fromEntries(LANDMARKS.map((l) => [l.lm, l]));
 export const BARRIERS = {
   lagoon: { R: 44, up: 'rudder', lv: 2, kind: 'reef', no: 'The reef is too tight to thread. A broader rudder could do it.', yes: 'The broad rudder threads the reef.' },
   ribs:   { R: 50, up: 'hull', lv: 2, kind: 'breakers', no: 'The breakers would smash the planks. An iron-banded hull could take them.', yes: 'The iron bands take the breakers.' },
-  broken: { R: 110, up: 'lantern', lv: 2, kind: 'fog', no: 'You lose the bow in the fog. A lens lantern might cut it.', yes: 'The lens lantern cuts a road through the fog.' },
+  broken: { R: 110, up: 'lantern', lv: 2, kind: 'fog', no: 'The fog swallows everything. The ship wanders, and drifts back out the way it came. A lens lantern might cut it.', yes: 'The lens lantern cuts a road through the fog.' },
 };
 
 // the forced cells: the landmark itself, and open water in the eight cells round it so it stands alone on the horizon

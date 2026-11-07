@@ -230,3 +230,9 @@ Market's LAMP OIL row and Wick's Rock refill it. Tune the burn in `oilRate`, the
 decays otherwise; warning at 35% of `SAIL_LIMIT` (20), tear at 100% (about 12 s at full sail in a full storm). `ship.torn` multiplies the speed target by 0.66. Mending:
 a patch kit (`getInteract` kind `patch`, lowest priority, anywhere at sea) or docking at a harbour (`mendSails`).
 
+## Lost in fog
+`fogLost(dt)` in main.js: when `gateLost` (past `gateRadius`) or `places.lost` (inside an unopened fog bank) is set, `lostK`
+rises to 1: steering and sail input are ignored, heading eases toward the way out plus a slow weave, trim settles at 0.45,
+speed toward 3.2, and a small outward drift. The scene fog closes to ~10 units. `fogEdge(x, z)` (0 near fog, 1 in clear water)
+scales the currents (seaplay.js) so they never lead into fog.
+

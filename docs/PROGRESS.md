@@ -617,4 +617,11 @@ From the critique "what goes stale on a long voyage" (compared with Wind Waker, 
 - **Lantern switch:** L (or click the oil flame, or press the left stick) puts the lantern out or lights it again
   (`state.story.lampOff`). Out, it burns no oil, but the night is as dark as with an empty lamp (short view, no fishing). It
   will not light with no oil.
+- **Lost in fog** (playtest: a current carried the ship to the fog bank, which pushed back, and it was stuck): fog no longer
+  pushes. Past the chapter fog wall, or inside the fog bank round the Halved Isle without Lantern 2, you are *lost*: the view
+  closes to a white-out (about 10 units), the helm and sail keys do not answer, and the ship wanders (a slow weave) while it
+  is always drawn back out the way it came (`fogLost` in main.js, `places.lost`, `gateLost`). Control returns as you leave.
+- **Fewer, fainter currents:** three lanes now (the Tooth Run, the Green Drift, the Reef Road), all well inside the fog; the
+  ring round Tama and the lanes that ran toward fog are gone. Foam streaks are fewer (46), thinner and half as bright. Every
+  current fades out near any fog (`fogEdge`), so none can carry the ship into it.
 
