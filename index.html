@@ -261,6 +261,9 @@
     #combatbox { position: absolute; right: 12px; top: 244px; width: 124px; font-size: 12px; text-align: center; }
     #combatbox .bar, #ebar .bar { height: 9px; background: #0007; border: 2px solid var(--edge); margin: 3px 0; }
     #combatbox .bar.thin { height: 5px; }
+    #oilrow { display: flex; align-items: center; gap: 4px; margin-top: 2px; } #oilrow .bar { flex: 1; } #oilfill { background: #ffb43a !important; } #oilrow.low #oilfill { background: #ff6a4a !important; } #oilrow.low .ico.oil { animation: blink 1s steps(2) infinite; }
+    .ico.oil { width: 10px; height: 14px; background: linear-gradient(#ffe27a, #ff9a2a 60%, #c8502a); clip-path: polygon(50% 0, 85% 45%, 100% 75%, 75% 100%, 25% 100%, 0 75%, 15% 45%); }
+    body.nooil #oilrow { display: none; }
     body.nocannons #ammotxt, body.nocannons #combatbox .bar.thin, body.nocannons #tX, body.nocannons .cannonrow { display: none !important; }   /* cannons come later in the story */
     #combatbox .fill { height: 100%; background: #d84a3c; width: 100%; } #reloadfill { background: #8fe6ff !important; }
     #ebar { position: absolute; font-size: 11px; transform: translate(-50%, -100%); padding: 3px 6px; width: 130px; text-align: center; }
@@ -539,7 +542,7 @@
     </div>
     <div id="compass" class="windbox"><canvas id="compassCv" width="36" height="36"></canvas></div>
     <div id="sailbar" class="panel txt"><div><i class="ico sail"></i></div><div class="bar"><div class="fill" id="sailfill"></div></div></div>
-    <div id="combatbox" class="panel txt"><div><i class="ico hull"></i><span id="hptxt"></span></div><div class="bar"><div class="fill" id="hpfill"></div></div><div id="ammotxt"></div><div class="bar thin"><div class="fill" id="reloadfill"></div></div></div>
+    <div id="combatbox" class="panel txt"><div><i class="ico hull"></i><span id="hptxt"></span></div><div class="bar"><div class="fill" id="hpfill"></div></div><div id="ammotxt"></div><div class="bar thin"><div class="fill" id="reloadfill"></div></div><div id="oilrow" title="Lamp oil"><i class="ico oil"></i><div class="bar"><div class="fill" id="oilfill"></div></div></div></div>
     <div id="ebar" class="panel txt" style="display:none"><span id="ename"></span><div class="bar"><div class="fill" id="efill"></div></div></div>
     <div id="mate" class="panel txt" style="display:none"><span class="face" id="mateface"></span><div style="flex:1"><b id="mateName">Mara, first mate</b><div id="matetxt"></div></div><span id="matemore"><i class="pxi down"></i></span></div>
     <div id="digui" class="panel txt" style="display:none"><div id="digmsg"></div><canvas id="digcv" width="200" height="136"></canvas><div id="diglegend">dark, wet sand = close · pale = far · red squares: shovel cracks · blue bar: tide</div></div>

@@ -54,6 +54,11 @@ purple and magenta cosmic horror as dread rises.
   a broken ring of black reef knuckles with white wash).
 - **Gusts and currents** (`seaplay.js`): a gust is a patch of short dark-navy scratches across the wind with a few
   winking white flecks, never a UI marker; current foam is thin white streaks drifting along the lane. Both fade at night.
+- **Lamp oil HUD:** a small pixel flame and an amber bar in the hull panel; below a quarter the bar turns red and the
+  flame blinks. With the lamp out the night closes in (short, dark fog), no new effect.
+- **Minigame variants** keep the same pixel ring and grid; only colours change: ring tint per water (wreck brown, night
+  near-black, swell slate, deep navy, reef teal), red snag arcs; beach ground per kind (sand, grey shingle with grey
+  stone dots, pale dunes, brown mud with dark sunk squares).
 - **The glimpse figure:** one tall thin dark shape with a pale featureless head blob, standing in the water. No eyes,
   no glow, no fade: it is there, then it is not.
 

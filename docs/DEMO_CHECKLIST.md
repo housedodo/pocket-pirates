@@ -29,6 +29,9 @@ Build it with `python3 scripts/single.py`, ship `pocket-pirates-demo.html` (with
 - [ ] The glimpse happens once on the way back from the hut (silence, flat sea, the figure), then Mara asks why you went quiet
 - [ ] Controller: stick sails, A interacts, B closes, Y opens the log, Start pauses (test with a real pad in Chrome and Firefox)
 - [ ] Chart pins: click to pin, the compass follows it, it clears when you arrive
+- [ ] Lamp oil: full until the Market opens, then burns at night / fog / storm; Mara warns at a quarter; empty = dark, no fishing; Market refill and Wick refill work
+- [ ] Fishing rings: wreck (snags), night (fading), swell (surging), deep (hold), reef (darting) each show their name and play right
+- [ ] Beaches: shingle (stone dots, three cracks), dunes (holes refill), mud (no tide, squares sink) on different treasure isles
 
 ## 2. Softlocks and edge cases
 - [ ] Accept a delivery before the passenger goal: never stuck

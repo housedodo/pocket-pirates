@@ -17,7 +17,7 @@ npm run build      # static build in dist/
 | G | oars out / in (row in a calm or to the pier) |
 | 1 / 2 | pick a choice on an encounter card |
 | Space / H | tavern dice: roll / hold (Space also throws the die at the hut) |
-| C | fish: cast, hook the bite, pull in (hold Space to reel) |
+| C | fish: cast, hook the bite, strike on the ring (in deep water hold C / Space on the green instead) |
 | Space / Enter | continue / close Mara's text |
 | Space | fire cannons (later in the story) at an attacking raider (auto-aimed) |
 | Y | ask Mara (first mate) for a hint |

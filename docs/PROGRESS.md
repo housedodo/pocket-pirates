@@ -570,3 +570,28 @@ From the critique "what goes stale on a long voyage" (compared with Wind Waker, 
 - **Pins on the chart:** click the map (not in pencil mode) to drop a pin, click it again to remove it; up to six. The
   compass dot follows the newest pin until you are within 22 of it, then it is removed ("You reached your pin").
 
+## Lamp oil and minigame varieties (after the critique pass, part 2)
+- **Lamp oil** (`src/oil.js`): the one thing a voyage uses up. The lantern burns oil whenever it is lit (night, thick fog,
+  a storm): about 0.26 a second, so a full lamp (100, +30 per Lantern level) lasts about a night and a half. The dark is
+  hungrier with dread (up to +80%). It counts from main goal 4 ("Dead calm", when the Market opens); before that the lamp
+  stays full. HUD: a flame and an amber bar under the cannonballs (red and blinking below a quarter). Mara warns at a
+  quarter, once per dark spell. **Empty while lit:** the lantern is out, the fog closes in to a third and goes darker, and
+  you cannot fish ("Too dark to see the line"). Never a game over. **Refill:** the Market sells it ("Fill the lantern",
+  0.42 g a unit, with harbour discounts); Wick at Wick's Rock fills it for nothing. Saved as `state.oil`.
+- **Five ways the fishing ring plays** (`RING_KINDS`, `ringKind` in fishing.js), picked by the water when the fish is
+  hooked; the ring's colour and the first line say which:
+  - *Wreck water* (by a wreck): red snag marks among the green; a snag costs two strikes and the snags move after each hit.
+  - *Night water* (after dark): the marks are invisible except near the needle and in a slow pulse.
+  - *Heavy swell* (rain or storm): the needle surges and slows with the waves.
+  - *Deep water* (far from land): two long marks, a slow heavy needle; **hold** C / Space while on green to pull, let go
+    off it; holding off the mark strains the line (a red ring) and costs a strike.
+  - *Reef water* (by rocks, reefs, a lagoon): the marks dart to a new place every 1-1.6 s, flickering just before.
+  - *Calm* anywhere else: the ring as before.
+- **Three new beaches for digging** (`BEACHES` in digging.js; each treasure isle has one, from its seed; Perrin's first
+  chest is always plain sand):
+  - *Shingle*: grey ground, three more stones, the shovel takes three cracks, and every hole shows how many stones lie
+    next to it (grey dots).
+  - *Dunes*: pale sand; every third dig the wind fills your oldest open hole and its colour is lost.
+  - *Mud shore*: brown ground, no tide (the light fades instead) and three more digs, but after each dig the mud swallows
+    a square beside your holes (never the chest).
+

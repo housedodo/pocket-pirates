@@ -432,7 +432,7 @@ export class Ship {
     const L = this.mods.lantern;
     this.glow.position.set(p.x, 0.8, p.z);
     this.glow.scale.setScalar(5 + 3 * L);
-    mats.glow.opacity = (0.12 + 0.34 * night * (0.6 + 0.2 * L)) * (L === 0 ? 0.6 : 1);
+    mats.glow.opacity = (0.12 + 0.34 * night * (0.6 + 0.2 * L)) * (L === 0 ? 0.6 : 1) * (this.lampOut ? 0.05 : 1);   // no oil: the lantern is out
 
     // wake
     this.puffTimer -= dt;

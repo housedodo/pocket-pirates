@@ -132,6 +132,10 @@ Chosen from six playable studies (after Dredge and Undertale): the bite ring for
   needle sweeps round a ring: strike (C / Space) on a green mark, better on its gold heart. Each hit pulls the catch meter up and
   flips the needle; dawdle and the fish drags it back down. Harder fish: a faster needle, fewer and smaller marks. Dark fish and
   dread: the marks drift and the needle sometimes stops. Fails: too slow on the bite, three strikes on empty water, the meter runs dry.
+- **The water changes the fight** (`RING_KINDS`): wreck water (red snags), night water (fading marks), heavy swell
+  (surging needle), deep water (hold, do not tap; line strain), reef water (darting marks), calm. See PROGRESS.md.
+- **Beaches** (`BEACHES` in digging.js, `o.beach`): sand, shingle (stone counts), dunes (holes fill in), mud (no tide,
+  squares sink). Chosen per treasure isle from `hash2(d.seed, 41, 3)`.
 - **Digging: probing the shore** (`digging.js`, treasure only, right shore only; a wrong shore is still a short dig that finds sand):
   the beach is an 8x5 grid; dig a square (click, or arrows / WASD and E / Space; the ship stays put meanwhile) and the sand shows how
   close the chest is, darker and wetter = closer. Hidden stones crack the shovel (two break it) and the tide creeps up with every dig
@@ -215,4 +219,9 @@ Ten effects (the star-eye and ghost ship were cut) that only run at dread >= ~0.
 - **Glimpse** (`glimpse.js`): `k` 0..1 over nine seconds; main.js applies it to the wind, `stage.wave`, `audio.hush`,
   `fauna` (`ctx.freeze`) and `world.stare`. Starts once (`state.story.glimpse`) while `demoEnd === 'pending'`.
 - **Pins**: `state.story.pins` ([{x, z, on}]); `trackTarget` follows the one that is `on`.
+
+## Lamp oil (`oil.js`)
+`OIL_FROM` (main goal index), `oilCap(upgrades)`, `oilRate(ctx)` and `lanternLit(ctx)`; main.js `oilTick` burns it,
+warns, and sets `lampOut` (ship glow off via `ship.lampOut`, scene fog pulled in and darkened, fishing blocked). The
+Market's LAMP OIL row and Wick's Rock refill it. Tune the burn in `oilRate`, the price in `OIL_PRICE`.
 
