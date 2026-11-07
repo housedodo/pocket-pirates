@@ -10,6 +10,7 @@ import { dreadAtDistance } from './palette.js';
 import { makeName, makePuzzle } from './lore.js';
 import { FRUITS, fruitOf } from './fruit.js';
 
+import { forcedCells, shapeLandmark, cutShore, lmHeight, lmColor, lmDecor } from './landmarks.js';
 export const CELL = 110;
 const LOAD_R = 4, UNLOAD_R = 6;
 
@@ -39,6 +40,8 @@ const FORCED = {
   '-2,-1': { type: 'harbour', x: -232, z: -128, r: 30 },   // a second harbour inside the first fog radius, so early errands have somewhere to go
   '-1,0': { type: 'sandbar', x: -112, z: 30 },
 };
+// the hand-made places (landmarks.js) and the open water round them; the starter cells above win
+for (const [k, v] of Object.entries(forcedCells())) if (!(k in FORCED)) FORCED[k] = v;
 const TYPE_TABLE = [['sandbar', 0.28], ['jungle', 0.28], ['rocky', 0.2], ['treasure', 0.12], ['harbour', 0.12]];
 
 // The sea is mostly open: island chance follows a slow noise field, so there are archipelagos and long
@@ -119,19 +122,22 @@ export function describeCell(cx, cz, seed) {
       desc.sh = sh.id === 'flat' ? null : sh; if (desc.sh) desc.H = sh.H; }
     if (!forced) { const sd = STYLE_DEF[desc.style]; desc.r *= sd.rMul; desc.lobes = desc.lobes.map((v, i) => (i < 3 ? v * sd.lobeMul : v)); }
   }
+  if (forced && forced.lm) shapeLandmark(desc, forced.lm);
   if (type === 'treasure') desc.puzzle = makePuzzle(mulberry32(hash2(cx, cz, seed + 31)), name, dread);
   return desc;
 }
 
 export function shoreR(d, th) {
   const L = d.lobes;
-  return d.r * (1 + L[0] * Math.sin(2 * th + L[3]) + L[1] * Math.sin(3 * th + L[4]) + L[2] * Math.sin(5 * th + L[5]));
+  const R = d.r * (1 + L[0] * Math.sin(2 * th + L[3]) + L[1] * Math.sin(3 * th + L[4]) + L[2] * Math.sin(5 * th + L[5]));
+  return d.cutTh === undefined ? R : cutShore(d, th, R);
 }
 
 export function terrainHeight(d, lx, lz) {
   const rho = Math.hypot(lx, lz), th = Math.atan2(lz, lx), t = rho / shoreR(d, th);
   if (t > 1) return -(t - 1) * 9;
   const n = fbm((lx + d.x) * 0.1, (lz + d.z) * 0.1, d.seed);
+  if (d.lm) { const v = lmHeight(d, t, th, n); if (v !== null) return v; }
   const p = 1 - Math.pow(t, d.type === 'rocky' ? 1.6 : 2.2);
   switch (d.type) {
     case 'sandbar': return d.H * p * (0.6 + n * 0.8);
@@ -171,6 +177,7 @@ function faceColor(d, hc, slope, noise) {
     if (slope > 0.5) return noise > 0.5 ? BLIGHT.rock2 : BLIGHT.rock1;
     return noise > 0.62 ? BLIGHT.grass1 : noise > 0.3 ? BLIGHT.grass2 : BLIGHT.moss;
   }
+  if (d.lm) { const lc = lmColor(d, hc, slope, noise); if (lc) return lc; }
   if (d.type === 'volcano') return hc < 0.55 ? COL.ash1 : hc > d.H * 0.62 ? (noise > 0.5 ? COL.ember : COL.ash1) : (noise > 0.55 ? COL.ash2 : COL.ash1);
   if (d.type === 'mangrove') return hc < 0.4 ? COL.mud : noise > 0.55 ? COL.mire : COL.mud;
   if (hc < 0.12) c = COL.wet;
@@ -188,8 +195,8 @@ function faceColor(d, hc, slope, noise) {
 function buildTerrain(d, rng) {
   const b = new Builder();
   b.uvFn = (p) => [(p.x + d.x) * 0.12, (p.z + d.z) * 0.12];
-  const segs = d.type === 'sandbar' ? 14 : d.sh ? 30 : 22;
-  const rings = d.sh ? [0, 0.14, 0.28, 0.4, 0.5, 0.58, 0.64, 0.7, 0.76, 0.82, 0.88, 0.93, 0.97, 1.0, 1.1, 1.3] : [0, 0.2, 0.4, 0.58, 0.72, 0.84, 0.93, 1.0, 1.1, 1.3];
+  const segs = d.lm ? 44 : d.type === 'sandbar' ? 14 : d.sh ? 30 : 22;
+  const rings = d.lm ? [0, 0.12, 0.25, 0.4, 0.55, 0.68, 0.8, 0.88, 0.94, 0.975, 1.0, 1.1, 1.3] : d.sh ? [0, 0.14, 0.28, 0.4, 0.5, 0.58, 0.64, 0.7, 0.76, 0.82, 0.88, 0.93, 0.97, 1.0, 1.1, 1.3] : [0, 0.2, 0.4, 0.58, 0.72, 0.84, 0.93, 1.0, 1.1, 1.3];
   const P = rings.map((t) => Array.from({ length: segs }, (_, i) => {
     const th = (i / segs) * Math.PI * 2, R = shoreR(d, th);
     const x = Math.cos(th) * R * t, z = Math.sin(th) * R * t;
@@ -907,6 +914,7 @@ function weekAndCustoms(d, rng, cr, g) {
 
 function decorate(d, rng, A, B, D, extra) {
   const T = d.type;
+  if (d.lm) { lmDecor(d, rng, A, B, D, extra, { terrainHeight, shoreR, spot, palm, fern, flowers, mossRock, houseKind, person, beachedBoat, washing, crateBox, barrel, driftwood, chest, lighthouse }); return; }
   if (d.blight) { blightDecor(d, rng, A); extra.hutB = new Builder(); darkHut(d, rng, extra.hutB); return; }   // the hut in its own mesh: hidden until the story reaches it
   const palms = (n, t0, t1, hMin = 0.8, s0 = 0.9) => {
     for (let i = 0; i < n; i++) { const p = spot(d, rng, t0, t1, hMin); if (p) palm(A, B, D, p[0], p[1], p[2], rng, s0 + rng() * 0.5); }
@@ -1354,7 +1362,7 @@ export class World {
       const ring = Math.max(Math.abs(cx), Math.abs(cz));
       if (ring < 5) continue;
       const d = this.desc(cx, cz);
-      if (!d || (d.type !== 'jungle' && d.type !== 'rocky')) continue;
+      if (!d || d.lm || (d.type !== 'jungle' && d.type !== 'rocky')) continue;
       let near = Infinity;
       for (let dz = -3; dz <= 3; dz++) for (let dx = -3; dx <= 3; dx++) { if (!dx && !dz) continue; const o = this.desc(cx + dx, cz + dz); if (o) near = Math.min(near, Math.hypot(o.x - d.x, o.z - d.z) - o.r); }
       const score = Math.min(near, 400) + (hash2(cx, cz, seed + 77) % 1000) / 1000;   // lonely first; the hash only breaks ties

@@ -9,6 +9,7 @@ import { markLines } from './marks.js';
 import { GROUPS, byId } from './customize.js';
 import { TRAITS } from './tabletop.js';
 import { pxi } from './pixelui.js';
+import { LANES, ROUND } from './seaplay.js';
 
 // The captain's log: an old low-poly book. Tabs are cloth bookmarks sticking out of the right side, content flows over two pages
 // (turn with the arrows below / Up and Down), and the Map is a hand-inked low-poly chart.
@@ -362,7 +363,7 @@ export class Logbook {
   renderMap() {
     this.body.innerHTML = `<div class="mapwrap"><canvas id="mapCv" width="${W / 2}" height="${H / 2}"></canvas><canvas id="mapTxt" width="${W}" height="${H}"></canvas>
       <div class="mapctl"><button id="mz+">+</button><button id="mz-">&minus;</button><button id="mc" title="Centre on ship">${pxi('target')}</button></div></div>
-      <div class="legend">${this.pencil ? 'pencil: click an island to circle it (again: rub out) · drag · wheel' : 'drag to pan · wheel to zoom ·'} ${this.pencil ? '' : '<b style="color:#b02818">?</b> rumour · <b style="color:#d07010">flag</b> delivery · <b style="color:#8a5a30">box</b> lost crates'}</div>`;
+      <div class="legend">${this.pencil ? 'pencil: click an island to circle it (again: rub out) · drag · wheel' : 'drag to pan · wheel to zoom · click to pin (again: unpin) ·'} ${this.pencil ? '' : '<b style="color:#b02818">?</b> rumour · <b style="color:#d07010">flag</b> delivery · <b style="color:#8a5a30">box</b> lost crates'}</div>`;
     const cv = document.getElementById('mapCv');
     this.cv = cv; this.c = cv.getContext('2d');
     const v = this.view;
@@ -381,7 +382,15 @@ export class Logbook {
     });
     cv.addEventListener('pointerup', (e) => {
       const moved = drag && Math.hypot(e.clientX - drag.x, e.clientY - drag.y) > 4; drag = null;
-      if (moved || !this.pencil) return;
+      if (moved) return;
+      if (!this.pencil) {   // a pin of your own: the compass follows the newest one until you get there
+        const r = cv.getBoundingClientRect(), wx = v.cx + ((e.clientX - r.left) / r.width * W - W / 2) / v.sc, wz = v.cz + ((e.clientY - r.top) / r.height * H - H / 2) / v.sc;
+        const st = this.d.state.story, pins = st.pins || (st.pins = []);
+        const hit = pins.findIndex((q) => Math.hypot(q.x - wx, q.z - wz) < 22 / v.sc + 4);
+        if (hit >= 0) pins.splice(hit, 1);
+        else { for (const q of pins) q.on = false; pins.push({ x: Math.round(wx), z: Math.round(wz), on: true }); if (pins.length > 6) pins.shift(); }
+        this.drawMap(); return;
+      }
       // the pencil: a free memory aid. It circles an island for the selected card and never sets a course.
       const r = cv.getBoundingClientRect(), wx = v.cx + ((e.clientX - r.left) / r.width * W - W / 2) / v.sc, wz = v.cz + ((e.clientY - r.top) / r.height * H - H / 2) / v.sc;
       const near = this.d.world.nearest(wx, wz, 40 / v.sc + 12), B = this.d.state.board || (this.d.state.board = { pos: {}, ties: [], note: '', guess: [] });
@@ -548,6 +557,22 @@ export class Logbook {
       c.setLineDash([5, 5]); sk.line(circ(px, pz, 70 * sc, 18), { col: '#a06a10', w: 1.4, passes: 1, amp: 2.5 }); c.setLineDash([]);
       sk.wash(rectP(px - 7, pz - 6, 14, 12), '#8a5a30', 0.8, 0.8); sk.line(rectP(px - 7, pz - 6, 14, 12), { w: 1.2, amp: 1.1 });
       sk.line([[px - 7, pz - 6], [px + 7, pz + 6]], { closed: false, w: 0.9, passes: 1 });
+    }
+    { // currents you have ridden (or seen from Wick's gallery): dashed arrows along the lane
+      const all = state.story && state.story.lm && state.story.lm.keeper !== undefined, rode = (state.story && state.story.lanes) || {};
+      const arrow = (pts, seedN) => {
+        const sk = sketcher(c, seedN); c.setLineDash([10, 8]); sk.line(pts, { closed: false, col: '#2a6a8a', w: 1.6, passes: 1, amp: 1.2, alpha: 0.75 }); c.setLineDash([]);
+        const [a, b] = [pts[pts.length - 2], pts[pts.length - 1]], ang = Math.atan2(b[1] - a[1], b[0] - a[0]);
+        sk.line([[b[0] - Math.cos(ang - 0.5) * 12, b[1] - Math.sin(ang - 0.5) * 12], b, [b[0] - Math.cos(ang + 0.5) * 12, b[1] - Math.sin(ang + 0.5) * 12]], { closed: false, col: '#2a6a8a', w: 1.6, passes: 1, amp: 0.6 });
+      };
+      for (const L of LANES) if (all || rode[L.name]) arrow([[X(L.a[0]), Z(L.a[1])], [X((L.a[0] + L.b[0]) / 2), Z((L.a[1] + L.b[1]) / 2)], [X(L.b[0]), Z(L.b[1])]], L.a[0] | 0);
+      if (all || rode[ROUND.name]) for (let q = 0; q < 4; q++) { const pts = []; for (let k = 0; k <= 6; k++) { const a = (q / 4 + k / 6 * 0.2) * Math.PI * 2; pts.push([X(ROUND.x + Math.cos(a) * ROUND.R), Z(ROUND.z + Math.sin(a) * ROUND.R)]); } arrow(pts, 90 + q); }
+    }
+    for (const [i, q] of ((state.story && state.story.pins) || []).entries()) {   // your pins
+      const px = X(q.x), pz = Z(q.z), sk = sketcher(c, 300 + i);
+      sk.line(circ(px, pz, 5, 8), { w: 1.2, amp: 0.5 });
+      sk.line([[px, pz], [px + 6, pz - 26]], { closed: false, w: 2, passes: 1 });
+      sk.wash(circ(px + 6, pz - 31, 9, 10), q.on ? '#c02818' : '#7a5a8a', 0.95, 0.5); sk.line(circ(px + 6, pz - 31, 9, 10), { w: 1.4, amp: 0.6 });
     }
     if (state.job) {
       const px = X(state.job.x), pz = Z(state.job.z), sk = sketcher(c, 77);

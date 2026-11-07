@@ -23,6 +23,12 @@ Build it with `python3 scripts/single.py`, ship `pocket-pirates-demo.html` (with
 - [ ] Passengers: "Take aboard" is always marked
 - [ ] End card appears ("To be continued"), "Keep sailing" opens nothing new, deliveries etc. still work
 - [ ] Nothing about dread, the Eye or later story is visible anywhere
+- [ ] Hand-made places: the Grey Tooth, Hollowgreen and the Drowned Bell are reachable in chapter I-II; going ashore works and charts the next place; Wick's Rock charts the rest
+- [ ] Reef (Glass Lagoon), breakers (the Ribs) and fog bank (the Halved Isle) keep you out and say which upgrade; Rudder 2 / Hull 2 / Lantern 2 let you in
+- [ ] Gusts appear and give a burst when sailed into; currents carry the ship and show on the chart once ridden
+- [ ] The glimpse happens once on the way back from the hut (silence, flat sea, the figure), then Mara asks why you went quiet
+- [ ] Controller: stick sails, A interacts, B closes, Y opens the log, Start pauses (test with a real pad in Chrome and Firefox)
+- [ ] Chart pins: click to pin, the compass follows it, it clears when you arrive
 
 ## 2. Softlocks and edge cases
 - [ ] Accept a delivery before the passenger goal: never stuck

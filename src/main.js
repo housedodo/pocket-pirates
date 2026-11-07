@@ -47,6 +47,11 @@ import { FISH, HABITAT } from './fishing.js';
 import { Sighting, SIGHTS } from './sighting.js';
 import { pushOut } from './solids.js';
 import { Abyss, EFFECTS, WATCHER_STYLES, WATCHER_NAMES } from './abyss.js';
+import { Places } from './places.js';
+import { LM } from './landmarks.js';
+import { SeaPlay } from './seaplay.js';
+import { Glimpse } from './glimpse.js';
+import { installGamepad } from './gamepad.js';
 
 // ---------------------------------------------------------------- params, save, settings
 const params = new URLSearchParams(location.search);
@@ -141,6 +146,11 @@ audio.muted = settings.muted; audio.userVol = { music: 1, amb: 1, sfx: 1, ...(se
 const wind = new Wind(state.windT);
 const weather = new Weather(scene);
 const windfx = new WindFX(scene);
+const places = new Places(scene);    // the hand-made islands: barriers, the fog bank, going ashore, far labels
+const seaplay = new SeaPlay(scene);  // gusts to catch and currents to ride
+const glimpse = new Glimpse(scene);  // one wrong moment on the way home from the hut
+let glimpseWait = 0;
+let seaWave = 1;
 const fauna = new Fauna(scene, world);
 const traffic = new Traffic(scene, world, state.seed);
 const sea = new SeaFeatures(scene, world, state.seed, state.collected);
@@ -1222,6 +1232,8 @@ function trackedOne() {
   return state.tracked;
 }
 function trackTarget() {
+  { const pin = state.story.pins && state.story.pins.find((q) => q.on);   // a pin you put on the chart: the compass follows it until you get there
+    if (pin) { if (Math.hypot(pin.x - ship.pos.x, pin.z - ship.pos.z) < 22) { state.story.pins.splice(state.story.pins.indexOf(pin), 1); toast('You reached your pin.', false, 3000); } else return { x: pin.x, z: pin.z, label: 'Your pin' }; } }
   const tr = trackedOne();
   if (tr === 'job') return { x: state.job.x, z: state.job.z, label: state.job.toName };
   if (tr === 'passenger') return { x: state.passenger.x, z: state.passenger.z, label: state.passenger.toName };
@@ -1312,7 +1324,9 @@ function coastLevel(moored, night) {
 // ashore on a big forest island (1): its forest bed plays very quietly. No island is a forest yet (ROADMAP: forest
 // islands); when they exist, mark them with desc.forest and this picks them up
 function forestLevel(ashore) {
-  return ashore && harbourIsl && harbourIsl.desc && harbourIsl.desc.forest ? 1 : 0;
+  if (ashore && harbourIsl && harbourIsl.desc && harbourIsl.desc.forest) return 1;
+  const g = LM.grove, d = Math.hypot(ship.pos.x - g.x, ship.pos.z - g.z);   // Hollowgreen: the wood can be heard from the water
+  return clamp(1 - (d - g.r - 10) / 40, 0, 1) * 0.8;
 }
 // a fight with raiders is on: cannons are yours and a raider is engaged or close (the battle layer joins the music)
 function inBattle() {
@@ -1359,7 +1373,7 @@ function landHo(d) {
   const el = $('landho');
   el.querySelector('b').textContent = d.dread > 0.6 ? 'LAND?' : 'LAND HO!';
   el.querySelector('span').textContent = d.name;
-  el.querySelector('small').textContent = SIGHT_WORDS[d.type] || 'an island';
+  el.querySelector('small').textContent = (d.lm && LM[d.lm].sight) || SIGHT_WORDS[d.type] || 'an island';
   el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
   if (d.id !== '0,-1') objectives.remark(`sight_${d.type}`, dread);
 }
@@ -1387,6 +1401,8 @@ function getInteract() {
     if (dk && Math.hypot(ship.pos.x - (d.x + dk.x), ship.pos.z - (d.z + dk.z)) < 13) return (!onbAll() && state.goals.i < 1) ? null : { kind: 'harbour', key: d.id, isl: hb };   // no "visit" at the very start: Mara sends you when it is time
     if (world.lastEdge < 16) return { kind: 'harbourfar', key: d.id, isl: hb };
   }
+  const lmI = world.nearest(ship.pos.x, ship.pos.z, 16);
+  if (lmI && lmI.desc.lm) return { kind: 'landmark', key: 'lm' + lmI.desc.id, isl: lmI };
   const isl = world.nearest(ship.pos.x, ship.pos.z, 16, ['treasure']);
   if (isl) return { kind: isl.desc.type, key: isl.desc.id, isl };
   if (sea.nearWreck) return { kind: 'wreck', key: sea.nearWreck.o.id, o: sea.nearWreck.o };
@@ -1460,7 +1476,8 @@ function tryInteract() {
   if (tg.kind === 'spring') { if (ship.speed > 0.35) { toast('Bring the ship to a full stop first (S to reef the sails).', false, 3000); return; } openCave({ id: `spring:${threads.c.src.id}`, kind: 'colourspring' }); return; }
   if (tg.kind === 'cave') { if (ship.speed > 0.35) { toast('Bring the ship to a full stop first (S to reef the sails).', false, 3000); return; } openCave(tg.site); return; }
   if (tg.kind === 'hut') { if (!state.story.hutKnown) { audio.play('knock'); toast('Nobody answers. Inside, a pen scratches, then stops.', true, 4500); return; } openModal('hut'); return; }
-  if ((tg.kind === 'treasure' || tg.kind === 'fruit' || tg.kind === 'wreck') && ship.speed > 0.35) { toast('Bring the ship to a full stop first (S to reef the sails).', false, 3000); return; }
+  if ((tg.kind === 'treasure' || tg.kind === 'fruit' || tg.kind === 'wreck' || tg.kind === 'landmark') && ship.speed > 0.35) { toast('Bring the ship to a full stop first (S to reef the sails).', false, 3000); return; }
+  if (tg.kind === 'landmark') { if (!dig) goAshore(tg); return; }
   if (tg.kind === 'harbour') {
     const d = tg.isl.desc, rep = repOf(state, d.id);
     if (!rep.last || Date.now() - rep.last > 120000) rep.visits++;
@@ -1563,6 +1580,26 @@ function tryInteract() {
     } };
     audio.play('dig');
   }
+}
+
+// going ashore on a hand-made place (places.js says what you find)
+function goAshore(tg) {
+  const d = tg.isl.desc;
+  dig = { key: tg.key, t: 0, label: 'Going ashore...', need: 2.6, done: () => {
+    const r = places.visit(d.lm, state); if (!r) return;
+    const demo = window.__BUILD === 'demo';
+    let text = r.dark && demo ? r.text.split('. ')[0] + '.' : r.text;
+    const bits = [];
+    if (r.gold) { const g = Math.round((r.gold[0] + Math.random() * (r.gold[1] - r.gold[0])) * (r.first ? 1 : ship.mods.lootMul)); state.gold += g; bits.push(`+${g} gold`); audio.play('treasure'); }
+    if (r.ammo) { state.ammo += r.ammo; bits.push(`+${r.ammo} cannonballs`); }
+    if (r.heal && state.hp < ship.mods.maxHp) { state.hp = ship.mods.maxHp; bits.push('hull mended'); }
+    if (r.fruit) { const f = 'mango'; state.fruit[f] = (state.fruit[f] || 0) + r.fruit; bits.push(`+${r.fruit} ${plural(fruitName(f, 0), r.fruit)}`); }
+    if (r.chart) { let n = 0; for (const id of r.chart) { const l = LM[id], [cx, cz] = l.key.split(',').map(Number), o = world.desc(cx, cz); if (o && !state.discovered[o.id]) { state.discovered[o.id] = { name: o.name, type: o.type, x: Math.round(o.x), z: Math.round(o.z) }; n++; } } if (n) bits.push(`${n} new ${n === 1 ? 'place' : 'places'} on your chart`); }
+    if (r.around) { const n = revealAround(d.x, d.z); if (n) bits.push(`${n} isles charted`); }
+    if (r.note) state.notes.push({ text: r.note, dark: false });
+    toast(text + (bits.length ? ` (${bits.join(', ')})` : ''), !!r.dark && !demo, 9000);
+    if (r.first) state.stats.places = (state.stats.places || 0) + 1;
+  } };
 }
 
 // ---------------------------------------------------------------- hailing other ships
@@ -1790,7 +1827,7 @@ function stormAndCalm(dt) {
     const push = st * gust * (2.4 + 3.2 * sail) * (ship.rowing ? 0.6 : 1) * dt;                  // shoved downwind, more with the sail up
     ship.pos.x += Math.sin(wind.dir) * push; ship.pos.z -= Math.cos(wind.dir) * push;
     const side = Math.abs(Math.sin(angleDiff(ship.heading, wind.dir)));   // waves run with the wind
-    const salt = hasTrait(state, 'salt') ? 0.5 : 1;
+    const salt = (hasTrait(state, 'salt') ? 0.5 : 1) * ((state.upgrades.hull || 0) >= 2 ? 0.5 : 1);   // an iron-banded hull rides storms better
     if (st > 0.4 && side > 0.6) {   // waves hitting the side
       stormWear += dt * st * (side - 0.5) * (0.6 + 1.6 * sail) * 1.4 * salt;
       if (stormWear >= 4) { stormWear = 0; hurtPlayer(7); objectives.remark('broadside', dread); }
@@ -2038,6 +2075,22 @@ function seaGate(dt) {
   }
 }
 
+// gusts, currents and the barriers round the hand-made places (seaplay.js, places.js)
+let laneShown = null;
+function seaTick(dt, windNow) {
+  const ev = seaplay.update(dt, { ship, wind: windNow, t: abyss.waveTime(Math.floor(animT * 12) / 12), wave: seaWave, night: tod.night, calm: weather.calm > 0.5, on: !onbQuiet() && !ship.rowing });
+  if (ev.gust && !state.hints.gust) { state.hints.gust = true; toast('Caught a gust! Steer into the dark patches on the water to fill the sails.', false, 5500); }
+  if (ev.lane !== laneShown) {
+    laneShown = ev.lane;
+    if (ev.lane && !onbQuiet()) {
+      const seen = state.story.lanes = state.story.lanes || {};
+      if (!seen[ev.lane.name]) { seen[ev.lane.name] = 1; toast(`A current: ${ev.lane.name}. Ride it and it carries you; fight it and it holds you back.`, false, 6000); }
+    }
+  }
+  const pm = places.tick(dt, ship, state.upgrades, scene.fog.color, false);
+  if (pm) { toast(pm.text, false, 5000); if (pm.hurt) hurtPlayer(pm.hurt); }
+}
+
 // tacking: Mara's one-time tip when you point straight into the wind, and progress made upwind for the side goal
 let intoWindT = 0;
 function tackTick(dt) {
@@ -2138,7 +2191,16 @@ function frame() {
     }
     wind.dir += angleDiff(wind.dir, want) * Math.min(1, dt * 0.45);   // the felt wind swings round over a few seconds
   }
-  const windNow = { dir: wind.dir, strength: Math.min(1.4, wind.strength * (1 + 0.25 * weather.storm)) * (1 - 0.92 * weather.calm) };
+  { // the glimpse: once, a little while after you sail away from your first throw at the hut
+    const hd = world.hutDesc;
+    if (live && state.story.demoEnd === 'pending' && !state.story.glimpse && hd && Math.hypot(ship.pos.x - hd.x, ship.pos.z - hd.z) > 150) {
+      glimpseWait += dt;
+      if (glimpseWait > 12 && !objectives.mate.busy) { state.story.glimpse = 1; glimpse.start(ship); }
+    }
+    if (live && glimpse.update(dt)) setTimeout(() => objectives.mate.say('Captain? You went quiet.'), 2500);
+    audio.hush(glimpse.k * 0.97);
+  }
+  const windNow = { dir: wind.dir, strength: Math.min(1.4, wind.strength * (1 + 0.25 * weather.storm)) * (1 - 0.92 * weather.calm) * (1 - glimpse.k) };
   if (live && wind.shifted() && onbAll()) toast(`The wind is shifting: now from the ${wind.fromName}`, false, 4200);
 
   // ---- ship
@@ -2151,7 +2213,7 @@ function frame() {
   if (live && keys.has('KeyR')) pitchT = clamp(pitchT - dt * 0.8, PITCH_MIN, 1.35);
   if (live && keys.has('KeyF')) pitchT = clamp(pitchT + dt * 0.8, 0.3, 1.35);
   if (live || params.get('autostart')) ship.update(dt, shipInput, windNow, tNow);
-  if (live && dt > 0) { stormAndCalm(dt); tabletopTick(dt); seaGate(dt); tackTick(dt); }
+  if (live && dt > 0) { stormAndCalm(dt); tabletopTick(dt); seaGate(dt); tackTick(dt); seaTick(dt, windNow); }
   const solid = [];
   traffic.solids(solid); fauna.solids(solid); sea.solids(solid); sighting.solids(solid);
   if (world.collide(ship.pos, 2.2) | pushOut(ship.pos, 2.2, solid)) {
@@ -2172,7 +2234,10 @@ function frame() {
   weather.apply(stage);
   if (titleScene && titleScene.sc.tint) { const t = titleScene.sc.tint; stage.skyTop.lerp(new THREE.Color(t.top), t.k * 0.6); stage.skyHorizon.lerp(new THREE.Color(t.hor), t.k); stage.fog.lerp(new THREE.Color(t.fog), t.k); }
   stage.fogFar += ship.mods.fogBonus; stage.fogNear += ship.mods.fogBonus * 0.5;
-  if (gateFog > 0) { stage.fogFar = Math.max(30, stage.fogFar * (1 - 0.85 * gateFog)); stage.fogNear = Math.max(4, stage.fogNear * (1 - 0.9 * gateFog)); stage.fog.lerp(new THREE.Color('#b8c0c4'), gateFog * 0.7); }
+  stage.wave *= 1 - 0.85 * glimpse.k;   // the sea goes flat
+  seaWave = stage.wave;
+  const fogK = Math.max(gateFog, places.fog);   // the fog wall at the edge of the chapter, or the bank round the Halved Isle
+  if (fogK > 0) { stage.fogFar = Math.max(30, stage.fogFar * (1 - 0.85 * fogK)); stage.fogNear = Math.max(4, stage.fogNear * (1 - 0.9 * fogK)); stage.fog.lerp(new THREE.Color('#b8c0c4'), fogK * 0.7); }
   abyss.update(dt, { dread, live, camera, camYaw, ch: camHeading + camYaw });
   stage.wave *= abyss.waveMul;
   const waveT = abyss.waveTime(stepT);
@@ -2181,8 +2246,8 @@ function frame() {
   const first = world.islands.size === 0;
   world.update(ship.pos.x, ship.pos.z, dark, first ? 200 : 2);
   const lp = abyss.lightPhase;
-  world.setLit(lp === 'stare' ? true : lp === 'dead' ? false : tod.sunHeight < 0.12 || weather.darkness > 0.6);
-  world.stare = lp === 'stare' ? ship.pos : null;
+  world.setLit(lp === 'stare' || glimpse.k > 0.5 ? true : lp === 'dead' ? false : tod.sunHeight < 0.12 || weather.darkness > 0.6);
+  world.stare = lp === 'stare' || glimpse.k > 0.5 ? ship.pos : null;
   world.week = { wd: weekday(), market: isMarketDay(), lantern: isLanternNight() }; world.growthOf = growthOf; world.tide = tideAt();
   { // a storm front every sixth afternoon (after chapter III), warned by a red sky the evening before; and the sector's own weather
     const h = state.time * 24, fd = state.dayN % 6 === 5 && unlocked(state, 'passengers'), fa = state.dayN % 6 === 4 && unlocked(state, 'passengers');
@@ -2204,7 +2269,7 @@ function frame() {
   world.hutShown = hutReached();   // no hut on its island before the story gets there
   world.tick(animT, tod);
   ship.place(vdt, waveT, stage.wave, dark, tod.night);
-  const lifeCtx = { ship, dread, wave: stage.wave, audio, wind: windNow, stage, tod, faction: sec.faction.id, sched: { wd: weekday(), hour: state.time * 24, dayN: state.dayN, dread } };
+  const lifeCtx = { freeze: glimpse.k > 0.3 ? 0 : null, ship, dread, wave: stage.wave, audio, wind: windNow, stage, tod, faction: sec.faction.id, sched: { wd: weekday(), hour: state.time * 24, dayN: state.dayN, dread } };
   if (live) { state.stats.dist += ship.speed * dt; if (ship.rowing) state.stats.rowed = (state.stats.rowed || 0) + ship.speed * dt; }
   { const cg = objectives.current; if (cg && cg.id === 'calm' && state.goals.started) weather.calmHold = Math.max(weather.calmHold, 8); }   // the calm lasts until you have rowed and fished
   windfx.update(vdt, animT, windNow.dir, windNow.strength, ship.pos, tod.night, Math.min(1, weather.rain * 1.5));
@@ -2293,6 +2358,7 @@ function frame() {
   camera.lookAt(camLook);
   if (live || params.get('shot')) camera.rotateZ(abyss.roll(tNow));
   camera.updateMatrixWorld();
+  places.labelsTick(camera, ship, state.upgrades.spyglass || 0, state.discovered, innerWidth, innerHeight, (live || !!params.get('shot')) && !onbQuiet());
 
   // ---- discovery / interaction / dig
   // first sight of an island you have never charted: a moment of "land ho!"
@@ -2329,10 +2395,11 @@ function frame() {
       promptBar.style.display = 'none';
       promptTxt.textContent = tgt.kind === 'thread' ? (ship.speed > 0.35 ? 'Stop the ship completely (S)' : tgt.th.prompt) : tgt.kind === 'spring' ? (ship.speed > 0.35 ? 'Stop the ship completely (S) to look closer' : '[E] Look into the water') : tgt.kind === 'cave' ? (ship.speed > 0.35 ? 'Stop the ship completely (S) to look inside' : '[E] Look into the cave') : tgt.kind === 'sighting' ? `[E] ${tgt.s.label}` : tgt.kind === 'harbourfar' ? 'Sail to the pier to go ashore' : tgt.kind === 'hut' ? '[E] Knock on the dark hut' : tgt.kind === 'harbour' ? `[E] Visit ${tgt.isl.desc.name}`
         : tgt.kind === 'treasure' ? (tgt.isl.dug ? 'Already plundered' : !state.riddles[tgt.isl.desc.id] ? '[E] Study the ancient arch inscription' : '[E] Dig on this shore')
+        : tgt.kind === 'landmark' ? `[E] Go ashore on ${tgt.isl.desc.name}`
         : tgt.kind === 'fruit' ? (state.harvest[tgt.isl.desc.id] != null && state.harvest[tgt.isl.desc.id] >= state.dayN ? 'Picked clean for today' : `[E] Pick ${plural(fruitName(fruitOf(tgt.isl.desc), tgt.isl.desc.dread), 2)}`)
         : tgt.kind === 'ship' ? (tgt.s.mode === 'derelict' ? `[E] Board the drifting ${KINDS[tgt.s.kind].label}` : tgt.s.mode === 'ghost' ? '[E] Hail the pale ship' : `[E] Hail the ${tgt.s.name}`)
         : '[E] Salvage the wreck';
-      if ((tgt.kind === 'treasure' || tgt.kind === 'fruit' || tgt.kind === 'wreck') && ship.speed > 0.35) promptTxt.textContent = 'Stop the ship completely (S) to go ashore';
+      if ((tgt.kind === 'treasure' || tgt.kind === 'fruit' || tgt.kind === 'wreck' || tgt.kind === 'landmark') && ship.speed > 0.35) promptTxt.textContent = 'Stop the ship completely (S) to go ashore';
     }
   } else promptEl.style.display = 'none';
 
@@ -2391,7 +2458,8 @@ function frame() {
 }
 
 // handy for tests / screenshots
-window.__game = {
+installGamepad(() => toast('Controller connected: stick to sail, A to interact, Y for the log, Start to pause.', false, 6000));
+window.__game = { places, seaplay, glimpse,
   readArch, partnerOf, maraMood, windfx, logbook,
   audio,
   objectives, perrinNote, gateRadius: () => gateRadius(state), trackTarget: () => trackTarget(), digGame,

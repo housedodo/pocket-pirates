@@ -154,7 +154,7 @@ through HOIST gently (`HoistLayers game_audio/tavern <outdir> tavern` in Chaos_G
 | `sea` | constant water bed under everything; louder as the ship speeds up. Now light ocean waves (Cymatics LIFE Waves Light 3, 19 s seamless loop, about -30 LUFS) |
 | `rain`, `rain_2` | **light rain**: two recordings (Cymatics LIFE Rain Light 12 and 2, 39 s / 48 s loops, about -26 LUFS) that cross-fade slowly every 25-65 s so the rain never repeats. Follow rain intensity; they give way to `rain_storm` as it gets heavy |
 | `rain_storm` | **a proper storm**: heavy rain drumming on the deck (Cymatics LIFE Rain on Roof 1, 30 s loop, about -20 LUFS). Fades in with storm 0.25-0.6 or rain above 0.75 |
-| `forest` | forest bed (Cymatics LIFE Forest 2, 28 s loop), very quiet (30%) while you are ashore on a big forest island (`desc.forest`). **No forest islands exist yet** (ROADMAP); the cue is ready for them |
+| `forest` | forest bed (Cymatics LIFE Forest 2, 28 s loop), very quiet (30%) while you are ashore on a big forest island (`desc.forest`), and now near **Hollowgreen** (the hand-made forest isle): up to 80% of that level within ~40 of its shore (`forestLevel` in main.js) |
 | `music_3` | the user's own "Dread" piece (moved from B minor down a tritone to **F minor**, the band's key, tempo and length unchanged; masters in Chaos_Grain `game_audio/dread/`): the middle of the dread range (dread 0.25-0.75, full at 0.5), after the stage-1 band fades. The placeholder `music_1`, `music_2`, `music_4`, `music_5`, `surf`, `wind`, the stage ambience `amb_1`..`amb_5`, `amb_night` and `oars` were removed: no music below dread 0.3 except the stage-1 layers, and none in the deep stages yet |
 | `gulls` | recorded gull colony (53 s, mono), **not constant**: it calls for about 5-20 s, then goes quiet for roughly 20-65 s (closer to the gulls: longer calls, shorter gaps), with slow fades (`driftGulls` in audio.js). Silent far off, fades up within ~120 units of the nearest circling gull and gets clearer (low-pass opens) as you close in; quieter at night, in rain and storms, gone by dread 0.35. |
 | `coast` | soft coastal breeze, small waves and far-off gulls (32 s). Rises over the last ~110 units before any island shore, full while moored or ashore (harbour, greeting, shipyard). Quieter at night, gone in storms and by dread ~0.4 |
@@ -223,3 +223,9 @@ Load your own music and sounds, cut them, and say where each plays. Open the gam
 
 ## Mix defaults (`public/audio/volumes.json`)
 `chapter` and `dig` at 40% (they were too loud). Change them in the F8 mixer and save a new volumes.json.
+
+## The glimpse: silence
+`AudioBus.hush(k)` scales the master gain (0 = normal, 1 = silent) on top of mute and the master level. The glimpse
+(`glimpse.js`) uses it to take every sound away for about nine seconds, once. No new sound was added for it: the
+silence is the effect.
+

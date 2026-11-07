@@ -44,6 +44,18 @@ purple and magenta cosmic horror as dread rises.
   Every harbour gets a tavern first, then a mix.
 - Island kinds: sandbar, jungle, rocky, treasure, harbour, plus rarer volcano (ash cone, glowing crater, smoke),
   atoll (sand ring around a lagoon) and mangrove (mud flats, stilt-rooted trees, herons).
+- **Hand-made places** (`landmarks.js`): each must read from far off as one strong silhouette, and stay in the same
+  chunky low-poly kit (6-sided basalt columns, blob canopies, boxes, gables), never a different art style:
+  the Grey Tooth (grey basalt, no plants, white guano on ledges, a sea arch), Hollowgreen (dark greens in layered blob
+  canopies, a white fall, a blue pool), the Halved Isle (a sheer cut face in pale ochre / sand / rust bands; the sunken
+  half dark and only just under the water; a white fog dome round it that takes the scene's fog colour), the Drowned Bell
+  (a leaning grey tower on a stack, roofs at the waterline), Wick's Rock (brick lighthouse, one cottage), the Ribs (dark
+  rib pairs on pale sand, a ring of white surf streaks and black rocks), Glass Lagoon (pink / orange / teal coral blobs,
+  a broken ring of black reef knuckles with white wash).
+- **Gusts and currents** (`seaplay.js`): a gust is a patch of short dark-navy scratches across the wind with a few
+  winking white flecks, never a UI marker; current foam is thin white streaks drifting along the lane. Both fade at night.
+- **The glimpse figure:** one tall thin dark shape with a pale featureless head blob, standing in the water. No eyes,
+  no glow, no fade: it is there, then it is not.
 
 ## 4. Colour and mood
 - The sea is low-poly and faceted: a fine wave mesh with small chop, light banded in ~6 steps by facing to the sun,

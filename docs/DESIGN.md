@@ -198,3 +198,21 @@ Ten effects (the star-eye and ghost ship were cut) that only run at dread >= ~0.
 9. **Wrong ocean** - wave animation runs backwards, the horizon tilts, the sails and flag swing against the wind.
 11. **Wrong catches** - fishing brings up memories (your own compass, Mara's hat); chests and wrecks hold your earlier loot "again".
 12. **Leviathan & the Eye** - giant dark arches rise from the sea ahead; after ~150s at full dread (or via the Ending button) a huge eye opens in the sky, the screen whites out and you wake near Harbour Tama.
+
+## Hand-made places, wind play and the glimpse
+- **Landmarks** (`landmarks.js`): `LANDMARKS` lists the seven places (cell key, position, base type, radius, height, the
+  sight word). `forcedCells()` feeds `FORCED` in world.js (the starter cells win) and empties the eight cells round each.
+  `describeCell` calls `shapeLandmark`; `terrainHeight`, `faceColor`, `buildTerrain` (44 segments, extra rings at the
+  shore) and `decorate` ask `lmHeight`, `lmColor` and `lmDecor` first. The Halved Isle uses `cutShore` (a straight chord
+  through the shore radius, `d.cutTh`, `d.cutC`), so collisions follow the cut. Everything else (charting, landfall,
+  nearest) treats a landmark as its base type; `desc.lm` marks it. Landmarks are never chosen for the hut.
+- **Places** (`places.js`): `BARRIERS` (reef 44, breakers 50, fog 110 from the centre, the upgrade and level that opens
+  each). `tick` pushes the ship out and returns a message; `fog` (0..1) thickens the scene fog like the chapter fog wall.
+  `visit` returns what is found (`VISITS`: once / again / every N days; gold, ammo, hull, fruit, chart, notes); saved in
+  `state.story.lm` (day of last visit). `labelsTick` draws the far labels (range 170 + 110 per spyglass level).
+- **Sea play** (`seaplay.js`): `LANES` and `ROUND`; `currentAt(x, z)` is the drift (used for the ship and the foam).
+  Gusts set `ship.gust` (a speed factor in `Ship.update`). `state.story.lanes` remembers currents met.
+- **Glimpse** (`glimpse.js`): `k` 0..1 over nine seconds; main.js applies it to the wind, `stage.wave`, `audio.hush`,
+  `fauna` (`ctx.freeze`) and `world.stare`. Starts once (`state.story.glimpse`) while `demoEnd === 'pending'`.
+- **Pins**: `state.story.pins` ([{x, z, on}]); `trackTarget` follows the one that is `on`.
+

@@ -531,3 +531,42 @@ Built and working in the dev build; switched off when `window.__BUILD === 'demo'
 - **The hut's theme:** on the first visit only, a dread-stage-4 theme (pluck, sub drone, drums through HOIST) rises as you near the hut and plays inside, alone; sailing away brings the normal music back. The hut's island is smaller and the loneliest one out there, harder to stumble on.
 - **Dev bar (dev build only):** a bar at the top sets the hour (dawn, noon, dusk, night; keys 1-4) and jumps to any main quest, back and forth (dropdown, < >, keys , and .); going back rewinds the story flags later quests set. The dread keys are gone (dread follows distance).
 - **Dread slider on the dev bar** (`auto` returns to dread by distance); docs brought up to date (README dev tools, AUDIO music map and custom tracks, DESIGN dev tools, checklist).
+
+## Hand-made places, wind play, upgrades that open places, one glimpse, controller, pins (after the critique pass)
+From the critique "what goes stale on a long voyage" (compared with Wind Waker, Dredge, Sunless Sea, Sea of Thieves):
+- **Seven hand-made islands** (`src/landmarks.js` for the look, `src/places.js` for play). Forced cells with open water in
+  the eight cells round them, so each stands alone on the horizon. Each has its own outline, ground colours and props, a
+  silhouette you can pick out from far off, and something to find ashore (stop, E, "Go ashore"):
+  - **The Grey Tooth** (crag, 280, 100): a bare rock of basalt columns, guano, gannets, a sea arch; a cairn on top with a
+    tin box of ship names. Charts the Ribs and the Drowned Bell.
+  - **Hollowgreen** (grove, -300, 180): a small, very lush wood, broadleaf trees in layers, a spring falling into a pool,
+    a clearing with a stone table and a rope swing. Mends the hull and gives fruit once a day; the forest bed plays near it.
+  - **The Halved Isle** (broken, -380, -500): half the island is missing. A clean cliff with the rock layers showing faces
+    Tama, half a house on the edge, the missing half lies tilted under the water with one chunk still sticking out.
+    Inside a fog bank (a white dome visible from far off). Half a strongbox: 60 gold.
+  - Smaller ones: **The Drowned Bell** (60, 320: a sea stack with a leaning bell tower, the roofs of a drowned street at
+    the waterline; charts Wick's Rock), **Wick's Rock** (430, -320: a lone brick lighthouse, the keeper's cottage, his
+    boat and washing; from his gallery you chart all seven places, the isles round you and every current),
+    **The Ribs** (-560, 70: a sandbar of wrecked ships' ribs, a snapped mast, a buried figurehead, behind a ring of
+    breakers; salvage every three days) and **Glass Lagoon** (540, 360: an atoll with coral and a chest on the bottom,
+    behind a broken reef ring; 150 gold once).
+  - Each place is a chain: the Tooth points to the Bell and the Ribs, the Bell to Wick's Rock, Wick charts the rest.
+  - Not a storyline: the strange touches stay small (the bell has no clapper; nobody came back for the other half).
+- **Upgrades open places** (Dredge-style): Rudder 2 threads the reef round Glass Lagoon, Hull 2 takes the breakers round
+  the Ribs (and halves storm damage), Lantern 2 cuts the fog bank round the Halved Isle. Without them the reef stops you,
+  the breakers throw you back (a little damage), the fog turns the bow round; each says which upgrade would do it.
+  Spyglass: far shapes get a label over them (`?` by eye, "a leaning tower" with a spyglass, the name once charted).
+- **Wind play** (`src/seaplay.js`): **gusts** are dark ruffled patches (cat's paws) that come down the wind from upwind
+  every 5-11 s; steer into one with the sails up for ~4 s of +32% speed. **Currents**: six lanes and a ring round Tama
+  ("the Round") marked by foam streaks drifting along them; they carry the ship (~3 units/s). They link home waters to
+  the hand-made places. The first time you meet each, a short toast names it; ridden currents (or all of them, after
+  Wick's gallery) are drawn on the chart as dashed arrows.
+- **The glimpse** (`src/glimpse.js`): once, about 12 s after you sail more than 150 away from your first throw at the
+  hut: for nine seconds the wind drops, the sea goes flat, all sound goes away, the gulls stop and turn to look, any
+  lighthouse in sight swings its beam onto the deck, and a tall dark figure with a pale blank face stands on the water
+  off the bow (there, then not there). Then everything is normal. Mara: "Captain? You went quiet." It is in the demo too
+  (it uses no dread), so the demo ends on one unexplained moment. Never explained, never referred to again.
+- **Controller** (`src/gamepad.js`): standard-mapping pads become key presses (see README), so every menu works.
+- **Pins on the chart:** click the map (not in pencil mode) to drop a pin, click it again to remove it; up to six. The
+  compass dot follows the newest pin until you are within 22 of it, then it is removed ("You reached your pin").
+

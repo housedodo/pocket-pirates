@@ -28,6 +28,11 @@ npm run build      # static build in dist/
 | wheel | zoom |
 | H | hide HUD |
 | Q | show / hide the mission tracker and the orange target arrow |
+| click on the chart | put a pin there; the compass follows the newest pin until you reach it (click it again to unpin) |
+
+**Controller** (any standard pad: Xbox, PlayStation, Switch Pro, Steam Deck; `src/gamepad.js`): left stick or d-pad steer and
+set sails, A interact, B back, X fish, Y log, RT strike / fire / continue, LT oars, LB / RB or right stick orbit the camera,
+View tracker, Start pause. In menus and the dig grid the d-pad is the arrow keys.
 
 Wind matters and shifts over time: sailing downwind is fast, straight into it is slow. A day/night cycle runs (11.5 min per day: long days, short nights). Rent a tavern bed (Tavern sign, from 17:00) to sleep until morning. Earn gold from treasure, wrecks, salvage, charting and delivery jobs, then buy ship upgrades at any harbour. Weather, wildlife and other ships roam the sea, and lighthouses only light at night. Sound and music are recorded files in `public/audio/` (the stage-1 band builds up quest by quest, a muffled tune plays in harbour taverns, raider fights add a battle layer); effects not on the chosen list are silent on purpose (see `docs/AUDIO.md`). At the start only what the current quest needs can be clicked; the rest of the interface opens as the story goes on. Touch devices get on-screen buttons.
 

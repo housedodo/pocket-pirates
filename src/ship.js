@@ -378,7 +378,7 @@ export class Ship {
     // the slow wedge into the wind; early in the voyage it is narrower and less punishing (floorMin, wedge)
     this.eff = 1 - (1 - Math.max(this.mods.floor, this.floorMin || 0)) * smoothstep(this.wedge || 0.6 * Math.PI, this.wedgeEnd || 0.95 * Math.PI, a);   // close-hauled (45° off the wind) still sails well
     this.rel = angleDiff(this.heading, wind.dir);
-    const target = MAX_SPEED * this.mods.speed * this.buff * this.eff * this.trim * wind.strength;
+    const target = MAX_SPEED * this.mods.speed * this.buff * (this.gust || 1) * this.eff * this.trim * wind.strength;   // gust: a caught cat's paw (seaplay.js)
     const rate = target > this.speed ? 0.5 : 0.7;
     this.speed += (target - this.speed) * Math.min(1, rate * dt);
 

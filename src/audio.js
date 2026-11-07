@@ -52,8 +52,10 @@ export class AudioBus {
 
   setMuted(m) {
     this.muted = m;
-    if (this.master) this.master.gain.value = m ? 0 : 0.8 * this.v('_master');
+    if (this.master) this.master.gain.value = m ? 0 : 0.8 * this.v('_master') * (1 - (this.hushK || 0));
   }
+  /** 0..1: everything goes quiet (the glimpse, glimpse.js) */
+  hush(k) { if (k === (this.hushK || 0)) return; this.hushK = k; if (this.master) this.master.gain.value = this.muted ? 0 : 0.8 * this.v('_master') * (1 - k); }
   setMusic(on) {
     this.musicOn = on;
     if (this.musicBus) this.musicBus.gain.value = on ? 0.6 * this.v('_music') * this.userVol.music : 0;
