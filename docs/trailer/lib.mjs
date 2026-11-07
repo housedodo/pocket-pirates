@@ -1,6 +1,6 @@
 import pw from '/opt/node-tools/node_modules/playwright/index.js';
 import fs from 'fs';
-export const OUT = '/tmp/claude-0/-home-user-pocket-pirates/a2592266-1e06-565b-8be8-51627bf3e1d5/scratchpad/trailer';
+export const OUT = process.env.TRAILER_OUT || '/tmp/claude-0/-home-user-pocket-pirates/37a2ff23-2cf5-5710-8414-270d3e0416b6/scratchpad/trailer';
 export const FPS = 30;
 const VIRTUAL = () => {
   let vt = 0; const base = Date.now(), raf = [], timers = new Map(); let tid = 1;
