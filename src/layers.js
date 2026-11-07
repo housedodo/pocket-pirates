@@ -25,17 +25,17 @@ const NIGHT = ['n1_pluck', 'n1_shaperbox', 'n1_strings', 'n1_bell'];
 // and the pad, crossfading over ~12 s on a phrase; on a calm sea the pad stays longer and comes back sooner, in wind the band does
 const PAD = 'n1_pad';
 // the pluck (the main melody) has a second take, the composer's own variation: it swaps with the original like the two arps
-const PLUCK2 = 's1_pluck2';
+const PLUCK2 = 's1_pluck2', PLUCK3 = 's1_pluck3';   // three takes of the main melody: the original, the composer's variation, off the beat
 // dread stage 2 (GREY SKIES): bass, drums, guitar arp and pluck, through HOIST with more swell and a little tape wow. Like the
 // band it plays on open sea (falls back by the shore, steps aside in harbour); all four together, now and then one of the
 // three upper parts rests for a while so it never sits still
 const STAGE2 = ['s2_bass', 's2_drums', 's2_guitar', 's2_pluck'];
-export const LAYERS = [...BAND, ARP2, PLUCK2, BATTLE, COUNTER, ...NIGHT, PAD, ...STAGE2];
+export const LAYERS = [...BAND, ARP2, PLUCK2, PLUCK3, BATTLE, COUNTER, ...NIGHT, PAD, ...STAGE2];
 const FIRST = ['s1_bass', 's1_shaperbox'];   // the first quest brings these two in together
 // [home pan -1..1, how far it wanders, how fast]: bass and drums stay near the middle, the rest spread out
 const PLACE = {
   s1_bass: [0, 0.1, 0.031], s1_shaperbox: [-0.3, 0.32, 0.023], s1_pluck: [0.42, 0.3, 0.037],
-  s1_drums: [-0.08, 0.14, 0.019], s1_bell: [0.58, 0.28, 0.027], s1_guitar: [-0.52, 0.28, 0.041], s1_guitar2: [-0.52, 0.28, 0.041], s1_raiders: [0.1, 0.18, 0.033], s1_counter: [0.2, 0.32, 0.017], s1_pluck2: [0.42, 0.3, 0.037], n1_pad: [0, 0.14, 0.008],
+  s1_drums: [-0.08, 0.14, 0.019], s1_bell: [0.58, 0.28, 0.027], s1_guitar: [-0.52, 0.28, 0.041], s1_guitar2: [-0.52, 0.28, 0.041], s1_raiders: [0.1, 0.18, 0.033], s1_counter: [0.2, 0.32, 0.017], s1_pluck2: [0.42, 0.3, 0.037], s1_pluck3: [0.42, 0.3, 0.037], n1_pad: [0, 0.14, 0.008],
   s2_bass: [0, 0.1, 0.029], s2_drums: [-0.1, 0.14, 0.02], s2_guitar: [-0.5, 0.3, 0.037], s2_pluck: [0.45, 0.3, 0.031],
   n1_pluck: [0.4, 0.3, 0.021], n1_shaperbox: [-0.35, 0.3, 0.017], n1_strings: [0, 0.2, 0.013], n1_bell: [0.55, 0.3, 0.025],
 };
@@ -57,7 +57,7 @@ export class SeaLayers {
     this.order = [...BAND]; this.battle = 0; this.night = 0; this.s2rest = null; this.s2next = 30;
     this.counter = { k: 0, phase: 'rest', t: 150 + Math.random() * 120, len: 0 };   // the counter melody's own slow cycle
     this.arp = { which: 0, m: [1, 0], hold: (2 + Math.floor(Math.random() * 6)) * PHRASE, armed: -1, min: 2, span: 6 };   // which arp take plays, and how far each is faded in
-    this.pl = { which: 0, m: [1, 0], hold: (3 + Math.floor(Math.random() * 5)) * PHRASE, armed: -1, min: 3, span: 6 };   // the same for the two pluck takes (they hold a little longer)
+    this.pl = { which: 0, m: [1, 0, 0], hold: (3 + Math.floor(Math.random() * 5)) * PHRASE, armed: -1, min: 3, span: 6 };   // the same for the two pluck takes (they hold a little longer)
     this.nm = { pad: 0, k: 0, hold: (3 + Math.floor(Math.random() * 3)) * PHRASE };   // the night: band (0) or pad (1), and the crossfade
     this.scene = new Set(); this.sceneFull = true; this.sceneLeft = 0; this.recent = []; this.lastN = 0; this.t0 = 0; this.phrase = -1; this.smalls = 0;
   }
@@ -165,7 +165,18 @@ export class SeaLayers {
       S.m[b] = Math.max(0, S.m[b] - d / 0.3);
       if (S.m[b] === 0) S.m[a] = Math.min(1, S.m[a] + d / 0.5);
     };
-    swap(A, ARP2); swap(this.pl, PLUCK2);
+    swap(A, ARP2);
+    { // the pluck: three takes, one at a time; after 3-8 phrases it moves to another one at random (never the same twice in a row)
+      const P = this.pl, takes = [0, this.srcs.has(PLUCK2) ? 1 : -1, this.srcs.has(PLUCK3) ? 2 : -1].filter((i) => i >= 0);
+      P.hold -= d;
+      if (P.hold <= 0 && takes.length > 1 && (toNext < 0.35 || this.pace !== 1) && P.armed !== phrase) {
+        const others = takes.filter((i) => i !== P.which);
+        P.armed = phrase; P.which = others[Math.floor(this.rnd() * others.length)]; P.hold = (P.min + Math.floor(this.rnd() * P.span)) * PHRASE;
+      }
+      const leaving = P.m.some((v, i) => i !== P.which && v > 0);
+      for (let i = 0; i < 3; i++) if (i !== P.which) P.m[i] = Math.max(0, P.m[i] - d / 0.3);
+      if (!leaving) P.m[P.which] = Math.min(1, P.m[P.which] + d / 0.5);   // the new take comes in only once the old one is gone
+    }
     { // the night: band or pad, switched on a phrase; calm seas favour the pad (it holds longer and comes back sooner)
       const N = this.nm, calm = wind < 0.45;
       N.hold -= d;
@@ -180,7 +191,7 @@ export class SeaLayers {
     const out = {};
     for (const k of LAYERS) {
       const st = this.st.get(k);
-      if (!st || k === ARP2 || k === PLUCK2) continue;   // the second arp and second pluck follow their part's slot (below)
+      if (!st || k === ARP2 || k === PLUCK2 || k === PLUCK3) continue;   // the second arp and second pluck follow their part's slot (below)
       if (on.includes(k)) st.intro = Math.min(1, st.intro + d / FADE_IN);
       if (STAGE2.includes(k)) {
         const restT = this.s2rest === k ? 0 : 1;
@@ -235,9 +246,9 @@ export class SeaLayers {
       const pan = home + wander * (Math.sin(this.t * sp * 6.283 + st.ph) * 0.7 + Math.sin(this.t * sp * 14.4 + st.ph * 1.7) * 0.3);
       this.pans.get(k).pan.setTargetAtTime(Math.max(-0.9, Math.min(0.9, pan)), T, 1);
       out[k] = smooth(st.intro) * st.inScene * st.breath * this.bg * (s.stage ?? 1) * (0.4 + 0.6 * this.open) * (1 - nk);   // the band rests at night
-      if (k === 's1_pluck' && this.pans.has(PLUCK2)) {   // the pluck's slot, split between the two takes (never both at once)
-        out[PLUCK2] = out[k] * this.pl.m[1]; out[k] *= this.pl.m[0];
-        this.pans.get(PLUCK2).pan.setTargetAtTime(Math.max(-0.9, Math.min(0.9, pan)), T, 1);
+      if (k === 's1_pluck') {   // the pluck's slot, shared by its three takes (only one sounds at a time)
+        for (const [key, i] of [[PLUCK2, 1], [PLUCK3, 2]]) if (this.pans.has(key)) { out[key] = out[k] * this.pl.m[i]; this.pans.get(key).pan.setTargetAtTime(Math.max(-0.9, Math.min(0.9, pan)), T, 1); }
+        out[k] *= this.pl.m[0];
       }
       if (k === 's1_guitar' && this.pans.has(ARP2)) {   // the guitar's slot, split between the two takes (never both at once)
         out[ARP2] = out[k] * A.m[1]; out[k] *= A.m[0];

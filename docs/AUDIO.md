@@ -99,6 +99,9 @@ They are stage 1's music (the old placeholder `music_1` is gone).
   the same settings, F minor like the band). One of the two plays in the guitar's place; they swap after 2-7 phrases (chosen at
   random every time, so no pattern), starting just before a phrase so the new take comes in on the downbeat. They never sound
   together: the leaving take fades out in 0.3 s and only then does the other fade in (0.5 s).
+- **Three plucks:** `s1_pluck3` ("off the beat", `Pluck_off_the_beat.wav`, +4.5 dB to match before HOIST, -26.6 LUFS) joins the
+  rotation: after 3-8 phrases the melody moves to another of the three takes at random, never the same twice in a row, never
+  two at once. 20-minute simulation: 302 / 289 / 239 s heard, 22 changes, no overlap.
 - **Two plucks:** `s1_pluck2` is the composer's variation of the main melody (`Pluck_variation.wav`, raised 6.3 dB to match the
   original before HOIST, same settings, -26.9 LUFS like `s1_pluck`). It swaps with the pluck exactly like the arps (holds 3-8
   phrases, swaps just before a phrase, never both at once).
