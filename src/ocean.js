@@ -81,7 +81,7 @@ export class Ocean {
                 vWP = wp0.xyz + vec3(0.0, wh, 0.0);`,
       },
       fragmentColor: {
-        head: `varying vec3 vWP; uniform vec3 uDeep; uniform vec3 uShallow; uniform vec3 uSunDir; uniform vec3 uSunColor; uniform vec3 uMurk; uniform float uOcean; uniform vec2 uWindDir;
+        head: `varying vec3 vWP; uniform vec3 uDeep; uniform vec3 uShallow; uniform vec3 uSunDir; uniform vec3 uSunColor; uniform vec3 uMurk; uniform float uOcean; uniform vec2 uWindDir; uniform vec4 uGust[4];
           ${GLSL_WAVEFN}
           float bay2(vec2 a) { a = floor(a); return fract(dot(a, vec2(0.5, a.y * 0.75))); }
           float bay4(vec2 a) { return bay2(0.5 * a) * 0.25 + bay2(a); }   // ordered dither, so smooth light still reads as pixels
@@ -174,6 +174,20 @@ export class Ocean {
           vec3 shallowTint = mix(uShallow * 1.12, vec3(0.72, 0.95, 0.82), 0.35) * uLight;
           float band = floor(shore * 4.0 + 0.5) / 4.0;                                     // banded like everything else
           outc = mix(outc, shallowTint, band * 0.6);
+          // gusts (cat's paws): soft, ragged patches of darker, rippled water drifting down the wind, part of the sea itself
+          float gk = 0.0;
+          for (int i = 0; i < 4; i++) {
+            vec4 G = uGust[i]; if (G.w <= 0.001) continue;
+            vec2 dd = vWP.xz - G.xy; vec2 wp2 = vec2(-uWindDir.y, uWindDir.x);
+            float r = length(vec2(dot(dd, uWindDir) * 0.75, dot(dd, wp2) * 1.15));   // a little wider across the wind
+            r += G.z * 0.45 * (vn(vWP.xz * 0.12 + G.xy * 0.01) - 0.5);                // ragged edge
+            gk = max(gk, G.w * (1.0 - smoothstep(G.z * 0.45, G.z, r)));
+          }
+          if (gk > 0.0) {
+            float gq = floor(gk * 3.0 + bay4(gl_FragCoord.xy)) / 3.0;                  // dithered, like the rest of the water
+            float rip = step(0.62, vn(vWP.xz * 1.7 + uWindDir * uTime * 2.2));          // small fast ripples inside the patch
+            outc = mix(outc, outc * vec3(0.66, 0.72, 0.8) + rip * 0.05 * uLight, gq * 0.75);
+          }
           // round the hut's island: no turquoise. Dark, still, murky water, olive-black with drifting scum, the light dying in it;
           // it thickens towards the shore and fades out over about 90 units, in bands like the shallows
           float mk = 1.0 - smoothstep(0.0, 90.0, length(vWP.xz - uMurk.xy) - uMurk.z);

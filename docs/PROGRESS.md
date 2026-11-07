@@ -643,4 +643,8 @@ From the critique "what goes stale on a long voyage" (compared with Wind Waker, 
 - **No text over islands while sailing:** the far labels are gone (the spyglass is just view distance and zoom again).
 - **Storms easier to read:** less darkening (light x0.82 and x0.7 instead of x0.65 and x0.58), the sea keeps more of its colour,
   the horizon stays lighter, the view shrinks less, the lantern shows in a storm like at night, and lighthouses already burn.
+- **Gusts drawn by the water itself** (playtest: the dark scratch lines looked odd): a gust is now a soft, ragged patch of
+  darker, finely rippled water in the ocean shader (`uGust`, four patches from seaplay.js), dithered like the rest of the sea.
+- **Smoother wind streaks:** wisps are continuous, gently curving lines that taper at both ends (thin and faint, no dashes),
+  56 of them, thinner and fainter than before.
 

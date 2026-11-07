@@ -52,8 +52,8 @@ purple and magenta cosmic horror as dread rises.
   (a leaning grey tower on a stack, roofs at the waterline), Wick's Rock (brick lighthouse, one cottage), the Ribs (dark
   rib pairs on pale sand, a ring of white surf streaks and black rocks), Glass Lagoon (pink / orange / teal coral blobs,
   a broken ring of black reef knuckles with white wash).
-- **Gusts and currents** (`seaplay.js`): a gust is a patch of short dark-navy scratches across the wind with a few
-  winking white flecks, never a UI marker; current foam is thin white streaks drifting along the lane. Both fade at night.
+- **Gusts and currents** (`seaplay.js`, `ocean.js` uGust): a gust is a soft ragged patch of darker, finely rippled water
+  drawn by the water shader, never a UI marker; current foam is thin white streaks drifting along the lane. Both fade at night.
 - **Ocean designs** (ocean.js `OCEAN_STYLES`, uOcean): the original toon facets stay the default until one is chosen; every
   design keeps the palette (uDeep, uShallow), the shallows tint, the murk and the rough-sea blend, and dithers its light.
 - **Waves:** low and gentle by land, bigger in the open sea (`seaScale`).

@@ -6,6 +6,7 @@
 import * as THREE from 'three';
 import { mulberry32, clamp, smoothstep } from './util.js';
 import { waveHeight } from './ocean.js';
+import { U } from './psx.js';
 
 // three lanes, all well inside the fog: Tama to the Grey Tooth, Velto to Hollowgreen, and the Reef Road out to Glass Lagoon.
 // (There were seven, plus a ring round Tama: too many, and one ran into the fog and trapped the ship.) A current fades out
@@ -45,7 +46,7 @@ export class SeaPlay {
     this.cp = new Float32Array(NC * 4 * 3); this.cc = new Float32Array(NC * 4 * 4);
     this.cmesh = this.makeMesh(this.cp, this.cc, NC, THREE.NormalBlending);
     this.cd = Array.from({ length: NC }, () => ({ life: 0, x: 0, z: 0 }));
-    scene.add(this.gmesh); scene.add(this.cmesh);
+    scene.add(this.cmesh);   // the gusts are drawn by the water shader itself (uGust), not as a mesh
   }
   makeMesh(pos, col, n, blending) {
     const idx = []; for (let i = 0; i < n; i++) { const b = i * 4; idx.push(b, b + 1, b + 2, b, b + 2, b + 3); }
@@ -101,7 +102,7 @@ export class SeaPlay {
         else this.quad(this.gp, this.gc, i, x, z, y + 0.3, -wz, wx, 1.5 * o[2], 0.5, [0.01, 0.07, 0.16, 0.7 * fade * nightK]);
       }
     }
-    this.gmesh.geometry.attributes.position.needsUpdate = true; this.gmesh.geometry.attributes.color.needsUpdate = true;
+    for (let gi = 0; gi < NG; gi++) { const g = this.gusts[gi], f = g.life > 0 ? clamp(Math.min(g.ttl - g.life, g.life) / 2.5, 0, 1) * (g.taken ? 0.4 : 1) * nightK : 0; U.uGust.value[gi].set(g.x || 1e6, g.z || 1e6, (g.R || 8) * 1.3, f); }
     this.boost = Math.max(0, this.boost - dt);
     ship.gust = 1 + 0.32 * clamp(this.boost / 1.5, 0, 1);
 
