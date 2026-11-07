@@ -53,6 +53,7 @@ import { SeaPlay } from './seaplay.js';
 import { Glimpse } from './glimpse.js';
 import { installGamepad } from './gamepad.js';
 import { Wake } from './wake.js';
+import { Secrets, TALES } from './secrets.js';
 import { OIL_FROM, oilCap, oilRate, lanternLit, OIL_PRICE } from './oil.js';
 
 // ---------------------------------------------------------------- params, save, settings
@@ -153,9 +154,10 @@ const weather = new Weather(scene);
 const windfx = new WindFX(scene);
 const places = new Places(scene);    // the hand-made islands: barriers, the fog bank, going ashore, far labels
 const seaplay = new SeaPlay(scene);  // gusts to catch and currents to ride
-const shipWake = new Wake(scene, { len: 5.2, beam: 1.5 });   // the V wake and bow wave (wake.js)
+const shipWake = new Wake(scene, { len: 5.2, beam: 1.5 });
+const secrets = new Secrets(scene, world, state.seed);   // the Kestrel, low-tide wrecks, smoke, the dusk watcher, birds (secrets.js)   // the V wake and bow wave (wake.js)
 const glimpse = new Glimpse(scene);  // one wrong moment on the way home from the hut
-let glimpseWait = 0;
+let glimpseWait = 0, sunScale = 1;
 let seaWave = 1;
 const fauna = new Fauna(scene, world);
 const traffic = new Traffic(scene, world, state.seed);
@@ -1429,6 +1431,7 @@ function getInteract() {
     if (dk && Math.hypot(ship.pos.x - (d.x + dk.x), ship.pos.z - (d.z + dk.z)) < 13) return (!onbAll() && state.goals.i < 1) ? null : { kind: 'harbour', key: d.id, isl: hb };   // no "visit" at the very start: Mara sends you when it is time
     if (world.lastEdge < 16) return { kind: 'harbourfar', key: d.id, isl: hb };
   }
+  const sc = secrets.near(ship.pos.x, ship.pos.z, state.collected); if (sc) return { kind: 'secret', key: sc.key, sc };
   const lmI = world.nearest(ship.pos.x, ship.pos.z, 16);
   if (lmI && lmI.desc.lm) return { kind: 'landmark', key: 'lm' + lmI.desc.id, isl: lmI };
   const isl = world.nearest(ship.pos.x, ship.pos.z, 16, ['treasure']);
@@ -1507,6 +1510,11 @@ function tryInteract() {
   if (tg.kind === 'hut') { if (!state.story.hutKnown) { audio.play('knock'); toast('Nobody answers. Inside, a pen scratches, then stops.', true, 4500); return; } openModal('hut'); return; }
   if ((tg.kind === 'treasure' || tg.kind === 'fruit' || tg.kind === 'wreck' || tg.kind === 'landmark') && ship.speed > 0.35) { toast('Bring the ship to a full stop first (S to reef the sails).', false, 3000); return; }
   if (tg.kind === 'landmark') { if (!dig) goAshore(tg); return; }
+  if (tg.kind === 'secret') {
+    if (ship.speed > 0.6) { toast('Bring the ship to a full stop first (S to reef the sails).', false, 3000); return; }
+    if (!dig) dig = { key: tg.key, t: 0, label: tg.sc.kind === 'kestrel' ? 'Someone goes down on a rope...' : tg.sc.kind === 'camp' ? 'Going ashore...' : 'Salvaging...', need: tg.sc.kind === 'kestrel' ? 5 : 3.2, done: () => secretFound(tg.sc) };
+    return;
+  }
   if (tg.kind === 'patch') {
     if (ship.speed > 0.6) { toast('Bring the ship to a stop to patch the sail (S, and wait).', false, 3000); return; }
     if (!dig) dig = { key: 'patch', t: 0, label: 'Patching the mainsail...', need: 4.5, done: () => { state.patchKits--; mendSails(`Patched. The sail holds again (${state.patchKits} ${state.patchKits === 1 ? 'kit' : 'kits'} left).`); } };
@@ -1535,6 +1543,7 @@ function tryInteract() {
       if (told === 0 || ending || Math.random() < 0.5) { say = rollGreeting(h.rolls[h.rolls.length - 1].n, state.time * 24, Math.random); if (ending) say.endsDemo = true; }
     }
     if (!say && ending && h && h.rolls.length) { say = rollGreeting(h.rolls[h.rolls.length - 1].n, state.time * 24, Math.random); say.endsDemo = true; state.story.rollSeen = h.rolls.length; }
+    if (!say && free && laterOK() && dread < 0.6) say = taleAt(d);
     if (!say && free && laterOK() && (g.day[d.id] == null || Math.random() < 0.3)) say = pickGreeting({ hour: state.time * 24, weather: weather.label, dread, rnd: Math.random, custom: d.custom, event: isFestival(d) ? 'festival' : isMarketDay() ? 'market' : isLanternNight() ? 'lantern' : null, boat: (() => { const b = boatStatus(d, state.dayN, dread, state.seed); return b.today === 'stayed' ? 'stayed' : b.yesterday === 'lost' ? 'lost' : null; })() });
     if (!say && free && window.__BUILD !== 'demo') { const tl = threads.harbourLine(d); if (tl) say = { speaker: 'fisher', text: tl, dark: true, story: true }; }
     harbourIsl = tg.isl; hbTab = 'board'; frameVillage(d); autosave();
@@ -1583,7 +1592,10 @@ function tryInteract() {
         else {
           const first = d.id === '1,-1', tools = (1 - ship.mods.digTime) * 6 + (state.buffs.dig > 0 ? 2 : 0);   // the first treasure (tutorial) is kinder; better tools, more digs before the tide
           const beach = first ? 'sand' : ['sand', 'shingle', 'dune', 'mud'][Math.abs(hash2(d.seed, 41, 3)) % 4];   // every treasure isle has its own kind of beach (digging.js BEACHES)
-          digGame.start({ cols: 8, rows: 5, beach, digs: Math.round((first ? 13 : 10) + tools - (d.dread > 0.5 ? 1 : 0)), stones: first ? 2 : 3 + (d.dread > 0.4 ? 1 : 0), lie: d.dread > 0.5 ? 0.3 : 0,
+          const pa = d.puzzle.angle, ox = Math.cos(pa), oz = Math.sin(pa), rx = -Math.sin(pa), rz = Math.cos(pa);   // the beach: o out to sea, r along it
+          const sun = () => { const sx = -Math.sin(tod.sunAz), sz = Math.cos(tod.sunAz); return { elev: tod.sunElev, gx: sx * rx + sz * rz, gy: sx * ox + sz * oz }; };   // the arch's shadow on the sand, from where the sun is now
+          const noon = d.puzzle.shadow ? { elev: Math.max(0.3, sunScale), gx: rz, gy: oz } : null;
+          digGame.start({ cols: 8, rows: 5, beach, sun, noon, digs: Math.round((first ? 13 : 10) + tools - (d.dread > 0.5 ? 1 : 0)), stones: first ? 2 : 3 + (d.dread > 0.4 ? 1 : 0), lie: d.dread > 0.5 ? 0.3 : 0,
             onDone: () => { const done = dig && dig.done; dig = null; if (done) done(); },
             onFail: (why) => { dig = null; digFix = tNow + 6; digFixWhy = why; state.attempts[d.id] = (state.attempts[d.id] || 0) + 1;
               toast(why === 'tide' ? 'The tide comes in and fills every hole. The crew waits for it to go out again.' : why === 'mud' ? 'The light goes and the mud is everywhere. The crew scrapes the shovels clean and tries again.' : 'The shovel breaks on a second stone. The crew fetches the spare.', false, 5500); } });
@@ -1616,6 +1628,42 @@ function tryInteract() {
     } };
     audio.play('dig');
   }
+}
+
+// the world's quiet secrets (secrets.js): what is found
+const CAMP_LINES = ['A man with a beard down to his belt. He has been here since before the lighthouse at Tama, he says, and asks for nothing.', 'The fire is warm. Nobody is here. A fish is drying on a stick, half eaten.', 'He is mending a net that will never go in the water. He says the gulls told him you were coming.', 'Nobody. Footprints go down to the water and come back.'];
+function secretFound(sc) {
+  const S = state.story.secrets || (state.story.secrets = {});
+  if (sc.kind === 'kestrel') {
+    state.collected.add('kestrel'); state.gold += 180; state.loot.push({ name: "The Kestrel's bell", value: 180 }); audio.play('treasure');
+    toast('Down in the green dark: a ship on her side, KESTREL on the stern. Her strongbox comes up, and her bell, still ringing. (+180 gold)', false, 9000);
+    state.notes.push({ text: 'Where the two white posts sat on the Tooth and the Bell: the Kestrel, on the bottom. Her bell still rings.', dark: false });
+  } else if (sc.kind === 'tidewreck') {
+    state.collected.add(sc.key);
+    const loot = lootFor(mulberry32(hash2(Math.round(sc.m.x), Math.round(sc.m.z), 41)), dread); loot.value = Math.round(loot.value * 1.4 * ship.mods.lootMul); loot.name = `From the low water: ${loot.name}`;
+    state.gold += loot.value; state.loot.push(loot); audio.play('treasure');
+    toast(`The tide is out and the wreck is bare. ${loot.name} (+${loot.value} gold). The water is already coming back.`, loot.dark, 7000);
+    if (!S.tideNote) { S.tideNote = 1; state.notes.push({ text: 'Some wrecks only show at low water. The tide hides more than it shows.', dark: false }); }
+  } else if (sc.kind === 'camp') {
+    const id = sc.key, n = S[id] = (S[id] || 0) + 1;
+    if (n === 1) {   // the first time he draws an island on your chart
+      let best = null, bd = 900;
+      for (let dz = -7; dz <= 7; dz++) for (let dx = -7; dx <= 7; dx++) { const o = world.desc(Math.round(sc.m.x / 110) + dx, Math.round(sc.m.z / 110) + dz); if (o && o.puzzle && !state.dug.has(o.id) && !state.riddles[o.id]) { const dd = Math.hypot(o.x - sc.m.x, o.z - sc.m.z); if (dd < bd && dd < gateRadius(state) - 40) { bd = dd; best = o; } } }
+      toast(CAMP_LINES[0] + (best ? ' Before you go he scratches an island into your chart with a fish bone.' : ''), false, 9000);
+      if (best) { state.discovered[best.id] = state.discovered[best.id] || { name: best.name, type: best.type, x: Math.round(best.x), z: Math.round(best.z) }; giveMap(best.id, 'The man by the fire', true, true); }
+      state.notes.push({ text: 'Smoke on an empty island: a man who has been there longer than the lighthouse. He drew an island on my chart.', dark: false });
+    } else toast(CAMP_LINES[1 + (n + state.dayN) % 3], false, 6500);
+  }
+}
+/** the pier tales (secrets.js TALES): rare, once each; the two that matter disagree about everything but their line */
+function taleAt(d) {
+  const T = state.story.tales || (state.story.tales = {});
+  for (const [k, tl] of Object.entries(TALES)) {
+    if (T[k]) continue;
+    if (tl.harbour === d.id && Math.random() < 0.3) { T[k] = 1; if (tl.note) state.notes.push({ text: tl.note, dark: false }); return { speaker: tl.speaker, text: tl.text, story: true }; }
+    if (!tl.harbour && d.id !== '0,-1' && d.id !== '-2,-1' && (T.calm || T.squall) && Math.random() < 0.25) { T[k] = 1; return { speaker: tl.speaker, text: tl.text, story: true }; }
+  }
+  return null;
 }
 
 // going ashore on a hand-made place (places.js says what you find)
@@ -2314,7 +2362,7 @@ function frame() {
   if (live || params.get('autostart')) ship.update(dt, shipInput, windNow, tNow);
   if (live && dt > 0) { stormAndCalm(dt); tabletopTick(dt); seaGate(dt); tackTick(dt); seaTick(dt, windNow); oilTick(dt); sailTick(dt, windNow); fogLost(dt); }
   const solid = [];
-  traffic.solids(solid); fauna.solids(solid); sea.solids(solid); sighting.solids(solid);
+  traffic.solids(solid); fauna.solids(solid); sea.solids(solid); sighting.solids(solid); secrets.solids(solid);
   if (world.collide(ship.pos, 2.2) | pushOut(ship.pos, 2.2, solid)) {
     if (ship.speed > 3 && dt > 0) audio.play('bump', { vol: clamp(ship.speed / 10, 0.3, 1) });
     ship.speed *= 0.9;
@@ -2329,6 +2377,7 @@ function frame() {
   const stage = sampleStage(dread);
   nightViewNow();
   applyTimeOfDay(stage, state.time, dread);
+  sunScale = stage.sunElev / 0.62;   // how high the sun climbs today (the dig's noon shadow uses it)
   stage.wave *= 0.7 + 0.5 * wind.strength;
   weather.update(dt, wind.t, dread, wind.dir, wind.strength, camera, tod);
   weather.apply(stage);
@@ -2371,6 +2420,7 @@ function frame() {
   world.hutShown = hutReached();   // no hut on its island before the story gets there
   world.tick(animT, tod);
   ship.place(vdt, waveT, stage.wave, dark, tod.night);
+  secrets.update(vdt, waveT, { ship, time: state.time, dayN: state.dayN, tide: tideAt(), wave: stage.wave, light: Math.min(1, 0.25 + stage.light * 0.9), dread, collected: state.collected, windX: Math.sin(wind.dir), windZ: -Math.cos(wind.dir) });
   shipWake.update(vdt, waveT, stage.wave, { pos: ship.pos, heading: ship.heading, speed: ship.rowing ? ship.speed * 0.6 : ship.speed, max: 11 }, Math.min(1, 0.25 + stage.light * 0.9));
   const lifeCtx = { light: Math.min(1, 0.25 + stage.light * 0.9), freeze: glimpse.k > 0.3 ? 0 : null, ship, dread, wave: stage.wave, audio, wind: windNow, stage, tod, faction: sec.faction.id, sched: { wd: weekday(), hour: state.time * 24, dayN: state.dayN, dread } };
   if (live) { state.stats.dist += ship.speed * dt; if (ship.rowing) state.stats.rowed = (state.stats.rowed || 0) + ship.speed * dt; }
@@ -2500,6 +2550,7 @@ function frame() {
       promptTxt.textContent = tgt.kind === 'thread' ? (ship.speed > 0.35 ? 'Stop the ship completely (S)' : tgt.th.prompt) : tgt.kind === 'spring' ? (ship.speed > 0.35 ? 'Stop the ship completely (S) to look closer' : '[E] Look into the water') : tgt.kind === 'cave' ? (ship.speed > 0.35 ? 'Stop the ship completely (S) to look inside' : '[E] Look into the cave') : tgt.kind === 'sighting' ? `[E] ${tgt.s.label}` : tgt.kind === 'harbourfar' ? 'Sail to the pier to go ashore' : tgt.kind === 'hut' ? '[E] Knock on the dark hut' : tgt.kind === 'harbour' ? `[E] Visit ${tgt.isl.desc.name}`
         : tgt.kind === 'treasure' ? (tgt.isl.dug ? 'Already plundered' : !state.riddles[tgt.isl.desc.id] ? '[E] Study the ancient arch inscription' : '[E] Dig on this shore')
         : tgt.kind === 'landmark' ? `[E] Go ashore on ${tgt.isl.desc.name}`
+        : tgt.kind === 'secret' ? (ship.speed > 0.6 ? 'Stop the ship completely (S)' : `[E] ${tgt.sc.label}`)
         : tgt.kind === 'patch' ? (ship.speed > 0.6 ? 'Stop the ship to patch the torn sail' : `[E] Patch the torn sail (${state.patchKits} ${state.patchKits === 1 ? 'kit' : 'kits'})`)
         : tgt.kind === 'fruit' ? (state.harvest[tgt.isl.desc.id] != null && state.harvest[tgt.isl.desc.id] >= state.dayN ? 'Picked clean for today' : `[E] Pick ${plural(fruitName(fruitOf(tgt.isl.desc), tgt.isl.desc.dread), 2)}`)
         : tgt.kind === 'ship' ? (tgt.s.mode === 'derelict' ? `[E] Board the drifting ${KINDS[tgt.s.kind].label}` : tgt.s.mode === 'ghost' ? '[E] Hail the pale ship' : `[E] Hail the ${tgt.s.name}`)
@@ -2573,7 +2624,7 @@ function frame() {
 $('oilrow').addEventListener('pointerdown', (e) => { if (started && !modal) { toggleLamp(); e.preventDefault(); } });
 $('oilrow').classList.toggle('off', !!state.story.lampOff);
 installGamepad(() => toast('Controller connected: stick to sail, A to interact, Y for the log, Start to pause.', false, 6000));
-window.__game = { lostState: () => ({ lostK, gateLost, placesLost: places.lost, heading: ship.heading, trim: ship.trim }), places, seaplay, glimpse, fishing, sails: () => ({ torn: state.sailsTorn, kits: state.patchKits, strain: sailStrain }), oilState: () => ({ oil: state.oil, lampOut }),
+window.__game = { secrets, tideAt: () => tideAt(), lostState: () => ({ lostK, gateLost, placesLost: places.lost, heading: ship.heading, trim: ship.trim }), places, seaplay, glimpse, fishing, sails: () => ({ torn: state.sailsTorn, kits: state.patchKits, strain: sailStrain }), oilState: () => ({ oil: state.oil, lampOut }),
   readArch, partnerOf, maraMood, windfx, logbook,
   audio,
   objectives, perrinNote, gateRadius: () => gateRadius(state), trackTarget: () => trackTarget(), digGame,

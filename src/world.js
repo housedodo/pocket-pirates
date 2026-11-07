@@ -130,7 +130,11 @@ export function describeCell(cx, cz, seed) {
     if (!forced && desc.type === 'jungle' && vr() < 0.4) { desc.cliffTh = vr() * 6.283; desc.cliffH = 0.7 + vr() * 0.7; }
     if (!forced && desc.type === 'rocky' && vr() < 0.7) desc.stacks = 2 + Math.floor(vr() * 3);
   }
-  if (type === 'treasure') desc.puzzle = makePuzzle(mulberry32(hash2(cx, cz, seed + 31)), name, dread);
+  if (type === 'treasure') {
+    desc.puzzle = makePuzzle(mulberry32(hash2(cx, cz, seed + 31)), name, dread);
+    // some beaches face so that the arch's noon shadow falls across them: there the chest lies under its tip (digging.js)
+    if (key !== '1,-1' && dread < 0.3 && Math.sin(desc.puzzle.angle) > 0.2 && (Math.abs(hash2(cx, cz, seed + 6161)) % 100) < 70) { desc.puzzle.shadow = true; desc.puzzle.text += ' At noon, the arch points.'; }
+  }
   return desc;
 }
 
