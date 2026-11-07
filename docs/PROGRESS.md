@@ -709,3 +709,12 @@ From the critique "what goes stale on a long voyage" (compared with Wind Waker, 
   (wrong loot, threads, stats). Unloaded secret meshes are disposed. The watcher stands at the water's edge, never above 1.5,
   with a lit lantern. The dig shadow fades under cloud and rain.
 
+## Shop polish and the lantern's sight
+- **The lantern lets you see further** while it is lit at night, in fog and in storms: +15% view per level (45% at Beacon).
+- **Shipwright redesigned:** a wider panel with one card per upgrade: a pixel icon (new rudder, spyglass and crew icons), level
+  pips, "Now:" what you have, the next level's effect, a teal tag for what it opens (reef gaps, breakers, fog banks, more oil),
+  a coin price button, "N short" when you cannot afford it, MASTERWORK when maxed. Buying flashes the card gold, pops the new
+  pip and flashes the gold counter. Fixed: coin, sail and hull icons did not render inline (only as HUD icons).
+- **Market and other harbour tabs:** rows are small cards, buttons wider; lamp oil shows a fill gauge, patch kits three pips;
+  the panel scrolls with a visible pixel scrollbar; shops get a wider panel.
+

@@ -41,7 +41,7 @@ import { WindFX } from './windfx.js';
 import { drawWind, PX } from './windmeters.js';
 import { installPixelUI, pxi } from './pixelui.js';
 import { applyTimeOfDay, advanceTime, tod, NIGHT_VIEWS, LAMPS, NIGHT_SET, NIGHT_MODES } from './daynight.js';
-import { UPGRADES, MAX_LEVEL, computeMods, shipwrightLine } from './upgrades.js';
+import { UPGRADES, MAX_LEVEL, computeMods, shipwrightLine, UP_CARD } from './upgrades.js';
 import { TRAITS, crewForHire, crewBonus, hasTrait, rollCheck, drawCard, renderCard, Pig, setDieWear, setAdvProvider, TREASURE_TIERS } from './tabletop.js';
 import { FISH, HABITAT } from './fishing.js';
 import { Sighting, SIGHTS } from './sighting.js';
@@ -963,6 +963,7 @@ function renderHarbour() {
   postBadges(d, rep);
   const pane = $('hbPane');
   let html = '';
+  $('hbWide').classList.toggle('shop', hbTab === 'wright' || hbTab === 'market');   // shops get a wider panel
   if (hbTab === 'board') {
     // finish what you came for first: deliveries, passengers and finished commissions for this harbour
     const due = [];
@@ -1050,8 +1051,8 @@ function renderHarbour() {
       if (cb && hold.length && !cb.end) html += `<div class="sec">A QUIET BUYER</div><div class="qrow"><div><b>${pxi('fish')} The bright ones</b><br><small>a stranger in a grey coat would take ${hold.length} off your hands at more than twice the price, and not ask where</small></div><button id="sellBright">+${bv}g</button></div>`;
     }
     if (unlocked(state, 'cannons')) html += `<div class="sec">BUY</div><div class="qrow"><div><b>${pxi('ball')} 10 cannonballs</b><br><small>you have ${state.ammo}</small></div><button id="buyAmmo" ${state.gold >= ammoCost ? '' : 'disabled'}>${ammoCost}g</button></div>`;
-    if (oilOn()) { const kc = Math.ceil(35 * discount(rep) * costMul()); html += `<div class="sec">SAILCLOTH</div><div class="qrow"><div><b>${pxi('sail')} Sail patch kit</b><br><small>${state.patchKits} aboard (room for 3): mends a torn sail at sea</small></div>${state.patchKits < 3 ? `<button id="buyKit" ${state.gold >= kc ? '' : 'disabled'}>${kc}g</button>` : '<button disabled>Full</button>'}</div>`; }
-    if (oilOn()) { const { need, cost } = buyOil(discount(rep) * costMul()); html += `<div class="sec">LAMP OIL</div><div class="qrow"><div><b>${pxi('lamp')} Fill the lantern</b><br><small>${Math.round(state.oil)} of ${oilCap(state.upgrades)}: it burns at night, in fog and in storms</small></div>${need >= 1 ? `<button id="buyOil" ${state.gold >= cost ? '' : 'disabled'}>${cost}g</button>` : '<button disabled>Full</button>'}</div>`; }
+    if (oilOn()) { const kc = Math.ceil(35 * discount(rep) * costMul()); html += `<div class="sec">SAILCLOTH</div><div class="qrow"><div><b>${pxi('sail')} Sail patch kit</b> <span class="kits">${[0, 1, 2].map((k) => `<i class="${k < state.patchKits ? 'on' : ''}"></i>`).join('')}</span><br><small>${state.patchKits} aboard, room for 3: mends a torn sail at sea</small></div>${state.patchKits < 3 ? `<button id="buyKit" ${state.gold >= kc ? '' : 'disabled'}>${kc}g</button>` : '<button disabled>Full</button>'}</div>`; }
+    if (oilOn()) { const { need, cost } = buyOil(discount(rep) * costMul()); html += `<div class="sec">LAMP OIL</div><div class="qrow"><div><b>${pxi('lamp')} Fill the lantern</b><span class="gauge"><i style="width:${Math.round(state.oil / oilCap(state.upgrades) * 100)}%"></i></span><br><small>${Math.round(state.oil)} of ${oilCap(state.upgrades)}: it burns at night, in fog and in storms</small></div>${need >= 1 ? `<button id="buyOil" ${state.gold >= cost ? '' : 'disabled'}>${cost}g</button>` : '<button disabled>Full</button>'}</div>`; }
     html += `<div class="sec">SHIPYARD</div><div class="qrow"><div><b>${pxi('paint')} Paint, sails, pennants, figureheads</b></div><button id="openYard">Open</button></div>`;
     pane.innerHTML = html;
     { const bk = $('buyKit'); if (bk) bk.addEventListener('click', () => { const kc = Math.ceil(35 * discount(rep) * costMul()); if (state.gold < kc || state.patchKits >= 3) return; state.gold -= kc; state.patchKits++; audio.play('buy'); renderHarbour(); }); }
@@ -1104,14 +1105,24 @@ function renderHarbour() {
   } else {
     if (hbShipLine) html += `<p class="quote">${hbShipLine}</p>`;
     html += priceNote();   // the shipwright talks here, not over the welcome
-    html += UPGRADES.map((u, i) => {
-      const lv = state.upgrades[u.id], maxed = lv >= MAX_LEVEL;
-      const cost = maxed ? 0 : upCost(u, lv, rep);
-      const can = !maxed && state.gold >= cost;
-      return `<div class="qrow"><div><b>${i + 1}. ${u.name}</b> <span class="pips">${pxi('pip').repeat(lv)}${pxi('nopip').repeat(MAX_LEVEL - lv)}</span><br><small>${maxed ? 'Fully upgraded' : u.text[lv]}</small></div><button data-id="${u.id}" ${can ? '' : 'disabled'}>${maxed ? 'MAX' : `${cost}g`}</button></div>`;
-    }).join('');
+    // one card per upgrade: icon, level, what you have, what the next level gives, what it opens up, the price
+    html += '<div class="upgrid">' + UPGRADES.map((u) => {
+      const lv = state.upgrades[u.id], maxed = lv >= MAX_LEVEL, C = UP_CARD[u.id] || {};
+      const cost = maxed ? 0 : upCost(u, lv, rep), can = !maxed && state.gold >= cost, opens = !maxed && C.opens && C.opens[lv + 1];
+      const now = lv ? u.text[lv - 1].split(':')[0] : C.stock;
+      const pips = Array.from({ length: MAX_LEVEL }, (_, k) => `<i class="${k < lv ? 'on' : ''}${k === lv - 1 && upFlash === u.id ? ' pop' : ''}"></i>`).join('');
+      return `<div class="upc${maxed ? ' max' : ''}${can ? '' : ' poor'}${upFlash === u.id ? ' bought' : ''}">
+        <div class="upi">${pxi(C.icon || 'sail')}</div>
+        <div class="upb"><div class="upt"><b>${u.name}</b><span class="lvp">${pips}</span></div>
+          <div class="upnow">Now: ${now}</div>
+          ${maxed ? '<div class="upnext done">The finest there is.</div>' : `<div class="upnext">${u.text[lv]}</div>`}
+          ${opens ? `<div class="upopen">${pxi('open')}${opens}</div>` : ''}</div>
+        <div class="upbuy">${maxed ? '<span class="upmax">MASTERWORK</span>' : `<button data-id="${u.id}" ${can ? '' : 'disabled'}>${pxi('coin')}${cost}</button>${can ? '' : `<small class="short">${cost - state.gold} short</small>`}`}</div>
+      </div>`;
+    }).join('') + '</div>';
     pane.innerHTML = html;
     pane.querySelectorAll('button[data-id]').forEach((b) => b.addEventListener('click', () => buyUpgrade(b.dataset.id)));
+    upFlash = null;
   }
   lockPane(state, $('hbPane'));   // what the story has not reached yet is greyed out (gates.js)
   tutorialMarks();
@@ -1237,6 +1248,7 @@ function greetAdvance() {
 }
 $('grBox').addEventListener('click', () => greetAdvance());
 
+let upFlash = null;   // the card just bought: it flashes gold once
 function buyUpgrade(id) {
   const u = UPGRADES.find((x) => x.id === id), lv = state.upgrades[id];
   const cost = u && lv < MAX_LEVEL ? upCost(u, lv, repOf(state, harbourIsl.desc.id)) : 0;
@@ -1247,7 +1259,8 @@ function buyUpgrade(id) {
   if (id === 'hull') state.hp = ship.mods.maxHp;
   audio.play('buy');
   toast(`${u.name} upgraded to level ${lv + 1}`, dread > 0.5);
-  renderHarbour();
+  upFlash = id; renderHarbour();
+  { const gEl = $('hbGold'); gEl.classList.remove('spent'); void gEl.offsetWidth; gEl.classList.add('spent'); }
 }
 
 // ---------------------------------------------------------------- compass & HUD
@@ -2388,6 +2401,8 @@ function frame() {
   stage.wave *= 1 - 0.85 * glimpse.k;   // the sea goes flat
   seaWave = stage.wave;
   const fogK = Math.max(gateFog, places.fog, lostK);   // the fog wall at the edge of the chapter, or the bank round the Halved Isle
+  { const L = state.upgrades.lantern || 0, dk = Math.max(tod.night, weather.fog || 0, (weather.heavy || 0) * 0.7);   // a lit lantern lets you see further in the dark and in fog: +15% a level
+    if (L && !lampOut && dk > 0.05) { const k = 1 + 0.15 * L * dk; stage.fogFar *= k; stage.fogNear *= k; } }
   if (lampOut) { stage.fogFar *= 0.32; stage.fogNear *= 0.25; stage.fog.multiplyScalar(1 - 0.6 * tod.night); stage.light *= 1 - 0.35 * tod.night; }   // no lamp: the dark comes in close
   if (fogK > 0) { stage.fogFar = Math.max(30, stage.fogFar * (1 - 0.85 * fogK)); stage.fogNear = Math.max(4, stage.fogNear * (1 - 0.9 * fogK)); stage.fog.lerp(new THREE.Color('#b8c0c4'), fogK * 0.7); }
   if (lostK > 0) { stage.fogFar = Math.max(10, stage.fogFar * (1 - 0.7 * lostK)); stage.fogNear = Math.max(1, stage.fogNear * (1 - 0.9 * lostK)); stage.fog.lerp(new THREE.Color('#c8ced0'), lostK * 0.5); }   // lost: you can barely see the bow
