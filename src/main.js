@@ -547,9 +547,12 @@ $('tSail').addEventListener('click', (e) => { e.stopPropagation(); setSail(); })
 }
 
 // fullscreen: on the title and in the pause menu (holding Esc or F11 also leave it)
-const fsEl = () => document.fullscreenElement || document.webkitFullscreenElement;
-const fsOk = !!(document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen);
+// the desktop build (Electron, desktop/) uses the window's own fullscreen: it survives a reload and Esc never leaves it
+const desk = window.hoistDesktop;
+const fsEl = () => (desk ? desk.isFullscreen() : document.fullscreenElement || document.webkitFullscreenElement);
+const fsOk = !!(desk || document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen);
 function toggleFullscreen() {
+  if (desk) { desk.toggleFullscreen(); return; }
   const d = document, el = d.documentElement;
   try {
     if (fsEl()) (d.exitFullscreen || d.webkitExitFullscreen).call(d);
@@ -565,6 +568,11 @@ function fsChanged() {
   try { if (kb && kb.lock) { if (fsEl()) kb.lock(['Escape']).catch(() => {}); else kb.unlock(); } } catch (err) { /* not supported */ }
 }
 document.addEventListener('fullscreenchange', fsChanged); document.addEventListener('webkitfullscreenchange', fsChanged);
+if (desk) { desk.onFullscreen(fsLabels); fsLabels(); }
+// Quit only exists in the desktop build (a browser tab is closed by the player)
+if (desk) {
+  for (const id of ['tQuit', 'pbQuit']) { $(id).style.display = ''; $(id).addEventListener('click', (e) => { e.stopPropagation(); if (started) saveNow(); desk.quit(); }); }
+}
 $('tFull').addEventListener('click', (e) => { e.stopPropagation(); toggleFullscreen(); });
 $('pbFull').addEventListener('click', () => { toggleFullscreen(); $('pbFull').focus(); });
 $('tNew').addEventListener('click', (e) => {

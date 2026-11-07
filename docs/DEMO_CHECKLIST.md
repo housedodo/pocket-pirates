@@ -74,3 +74,16 @@ Build it with `python3 scripts/single.py`, ship `pocket-pirates-demo.html` (with
 - [ ] One test run from the live itch page, by someone who has never seen it
 - [ ] Reddit post (see earlier notes), reply to comments in the first hours
 - [ ] Keep a list of feedback; tag blockers for a quick patch
+
+## 10. Steam (after itch, or alongside it)
+The Steam demo is the desktop app in `desktop/` (see `desktop/README.md`). A demo needs a store page for the full game first.
+- [ ] Steamworks account: identity, tax and bank details; pay the $100 app fee for HOIST (paid back after $1,000 in sales)
+- [ ] Name check: "HOIST" on Steam and in trademark search before paying
+- [ ] Licences: `LICENSES/CREDITS.md` complete; source and licence of `gulls.ogg` and `coast.ogg` written down (commercial use allowed) or the sounds replaced
+- [ ] Store page for the full game ("Coming soon"): capsule art in every required size, 5+ screenshots, trailer, description, tags, content survey (answer the AI-content question honestly)
+- [ ] Store page public about two weeks before the demo goes out; Valve reviews the page (a few business days)
+- [ ] Demo app created under the game in Steamworks; build uploaded with SteamPipe (one depot per OS)
+- [ ] Desktop build tested on Windows (main audience), plus Mac/Linux if offered: starts fullscreen, Quit saves, saves survive a reinstall/update
+- [ ] Controller support, or mark the demo "keyboard and mouse" on the store page
+- [ ] Build review by Valve (a few business days), then release the demo
+- [ ] Optional: sign up for the next Steam Next Fest (deadline several weeks ahead)

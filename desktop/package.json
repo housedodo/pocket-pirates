@@ -1,0 +1,43 @@
+{
+  "name": "hoist-demo",
+  "productName": "HOIST Demo",
+  "version": "0.1.0",
+  "description": "HOIST demo: a low-poly pirate sailing game",
+  "private": true,
+  "main": "main.js",
+  "scripts": {
+    "prepare-game": "node prepare.js",
+    "start": "node prepare.js && electron .",
+    "dist": "node prepare.js && electron-builder",
+    "dist:win": "node prepare.js && electron-builder --win",
+    "dist:mac": "node prepare.js && electron-builder --mac",
+    "dist:linux": "node prepare.js && electron-builder --linux"
+  },
+  "devDependencies": {
+    "electron": "45.2.3",
+    "electron-builder": "26.0.12"
+  },
+  "build": {
+    "appId": "com.hoist.demo",
+    "productName": "HOIST Demo",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "game/**",
+      "LICENSES/**"
+    ],
+    "win": {
+      "target": "dir"
+    },
+    "mac": {
+      "target": "dir"
+    },
+    "linux": {
+      "target": "dir"
+    },
+    "publish": null
+  }
+}

@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "desktop": "npm --prefix desktop install && npm --prefix desktop start",
+    "desktop:dist": "npm --prefix desktop install && npm --prefix desktop run dist"
   },
   "dependencies": {
     "three": "^0.186.1"
