@@ -133,7 +133,7 @@ export function describeCell(cx, cz, seed) {
   if (type === 'treasure') {
     desc.puzzle = makePuzzle(mulberry32(hash2(cx, cz, seed + 31)), name, dread);
     // some beaches face so that the arch's noon shadow falls across them: there the chest lies under its tip (digging.js)
-    if (key !== '1,-1' && dread < 0.3 && Math.sin(desc.puzzle.angle) > 0.2 && (Math.abs(hash2(cx, cz, seed + 6161)) % 100) < 70) { desc.puzzle.shadow = true; desc.puzzle.text += ' At noon, the arch points.'; }
+    if (key !== '1,-1' && Math.sin(desc.puzzle.angle) > 0.2) { desc.puzzle.shadow = true; desc.puzzle.text += ' At noon, the arch points.'; }
   }
   return desc;
 }

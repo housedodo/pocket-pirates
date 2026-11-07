@@ -31,7 +31,7 @@ function daymark(b, h) {   // a pilot's mark: a black rock, a tarred pole, a whi
   b.blob(0, -0.4, 0, 2.6, 1.3, 2.2, '#3a3a40', TILE.stone, 0.3, h);
   b.blob(0, 0.2, 0, 1.3, 0.25, 1.3, '#f2f6f6', TILE.white, 0.3, h + 3);   // surf at its foot
   b.cyl(0, 0.3, 0, 0.36, 0.26, 11, 6, '#2a2420', TILE.bark, false);
-  b.cyl(0, 8.8, 0, 0.78, 0.6, 2.6, 6, '#f4f2ea', TILE.white, true);     // white top, seen from far
+  b.cyl(0, 8.8, 0, 0.78, 0.6, 2.6, 6, '#ffffff', TILE.white, true);     // white top, seen from far
   b.cyl(0, 9.7, 0, 0.82, 0.78, 0.5, 6, '#1a1a1e', TILE.white, false);
 }
 
@@ -55,7 +55,7 @@ export class Secrets {
     this.flock = null; this.flockT = 20; this.birdGeo = this.makeBird();
     this.birds = Array.from({ length: 6 }, () => { const g = new THREE.Group(); const body = new THREE.Mesh(this.birdGeo.body, mats.props); const wl = new THREE.Mesh(this.birdGeo.wing, mats.props), wr = new THREE.Mesh(this.birdGeo.wing, mats.props); wr.scale.x = -1; g.add(body, wl, wr); g.visible = false; scene.add(g); return { g, wl, wr }; });
     // smoke: one column of soft puffs, moved to whichever camp is smoking
-    this.smoke = Array.from({ length: 14 }, (_, i) => { const b = new Builder(); b.blob(0, 0, 0, 1, 1, 1, '#c8c4c0', TILE.white, 0.3, i); const m = new THREE.Mesh(b.geometry(), new THREE.MeshBasicMaterial({ color: 0xbfbab4, transparent: true, opacity: 0.6, depthWrite: false })); m.visible = false; scene.add(m); return { m, age: i / 14 }; });
+    this.smoke = Array.from({ length: 14 }, (_, i) => { const b = new Builder(); b.blob(0, 0, 0, 1, 1, 1, '#c8c4c0', TILE.white, 0.3, i); const m = new THREE.Mesh(b.geometry(), new THREE.MeshBasicMaterial({ color: 0x6e6862, transparent: true, opacity: 0.6, depthWrite: false, fog: false })); m.visible = false; scene.add(m); return { m, age: i / 14 }; });   // unfogged so it reads from far off; faded by hand
   }
 
   /** the Kestrel lies in clear water ~200 from both the Grey Tooth and the Drowned Bell; each post stands 55 toward its landmark */
@@ -95,7 +95,7 @@ export class Secrets {
     // ---- the Kestrel: a dark shape on the bottom only when you are right over it, and a few bubbles
     const K = this.kestrel, dk = Math.hypot(ship.pos.x - K.x, ship.pos.z - K.z), got = c.collected.has('kestrel');
     this.wreckShade.position.set(K.x, waveHeight(K.x, K.z, t, c.wave) + 0.08, K.z);
-    this.shadowMat.opacity = got ? 0 : (1 - smoothstep(10, 34, dk)) * 0.42 * c.light;
+    this.shadowMat.opacity = got ? 0 : (1 - smoothstep(14, 45, dk)) * 0.6 * c.light;
     for (const q of this.bub) {
       if (q.life <= 0 && !got && dk < 60 && Math.random() < dt * 0.35) { q.life = 2.2; q.x = K.x + (Math.random() - 0.5) * 6; q.z = K.z + (Math.random() - 0.5) * 8; }
       if (q.life > 0) { q.life -= dt; q.m.visible = true; q.m.position.set(q.x, waveHeight(q.x, q.z, t, c.wave) + 0.1, q.z); q.m.scale.setScalar(Math.max(0.01, Math.sin((q.life / 2.2) * Math.PI))); } else q.m.visible = false;
@@ -125,19 +125,20 @@ export class Secrets {
         let w = this.watchers.get(d.id);
         if (!w) { w = this.buildWatcher(d); this.watchers.set(d.id, w); }
         const h = c.time * 24;
-        w.mesh.visible = h > 17.6 && h < 19.6 && c.dread < 0.6;   // at dusk only, and not once the sea has gone wrong
+        w.group.visible = h > 17.6 && h < 19.6 && c.dread < 0.6;   // at dusk only, and not once the sea has gone wrong
       }
     }
-    for (const [map, key] of [[this.tideW, 'mesh'], [this.camps, 'group'], [this.watchers, 'mesh']]) for (const [id, m] of map) if (!seen.has(id)) { this.scene.remove(m[key]); map.delete(id); }
+    for (const [map, key] of [[this.tideW, 'mesh'], [this.camps, 'group'], [this.watchers, 'group']]) for (const [id, m] of map) if (!seen.has(id)) { this.scene.remove(m[key]); m[key].traverse((o) => { if (o.geometry) o.geometry.dispose(); }); map.delete(id); }
     // ---- the smoke column over the nearest smoking camp, leaning with the wind
     for (const p of this.smoke) {
       if (!smokeAt) { p.m.visible = false; continue; }
       p.age = (p.age + dt * 0.07) % 1;
-      const a = p.age, rise = a * 34, lean = a * a * 10;
+      const a = p.age, rise = 3 + a * 9, lean = a * 70;   // wind-blown: it rises a little, then lies in a long grey trail over the water downwind, where the eye goes
       p.m.visible = true;
       p.m.position.set(smokeAt.x + c.windX * lean + Math.sin(t * 0.7 + a * 9) * 0.6, smokeAt.y + 1 + rise, smokeAt.z + c.windZ * lean);
-      p.m.scale.setScalar(0.5 + a * 2.6);
-      p.m.material.opacity = 0.55 * Math.sin(Math.min(1, a * 1.15) * Math.PI) * (0.4 + 0.6 * c.light);
+      p.m.scale.setScalar(0.7 + a * 3.4);
+      const far = Math.hypot(smokeAt.x - ship.pos.x, smokeAt.z - ship.pos.z);
+      p.m.material.opacity = 0.6 * Math.sin(Math.min(1, a * 1.15) * Math.PI) * (0.4 + 0.6 * c.light) * (1 - smoothstep((c.fogFar || 330) * 0.9, (c.fogFar || 330) * 1.25, far));
     }
     this.updateBirds(dt, t, c);
   }
@@ -167,10 +168,12 @@ export class Secrets {
   }
   /** a figure at the water's edge on the side nearest the secret it watches */
   buildWatcher(d) {
-    const tg = this.watchTarget(d), th = Math.atan2(tg.z - d.z, tg.x - d.x), R = shoreR(d, th) * 0.94, lx = Math.cos(th) * R, lz = Math.sin(th) * R;
+    const tg = this.watchTarget(d), th = Math.atan2(tg.z - d.z, tg.x - d.x), R = shoreR(d, th) * 1.0, lx = Math.cos(th) * R, lz = Math.sin(th) * R;
     const b = new Builder(); villager(b, 0, 0, 0, -th + Math.PI / 2, mulberry32(d.seed + 5), 'oldsalt');
-    const mesh = new THREE.Mesh(b.geometry(), mats.props); mesh.position.set(d.x + lx, Math.max(0.3, terrainHeight(d, lx, lz)), d.z + lz); mesh.visible = false; this.scene.add(mesh);
-    return { mesh, tg };
+    b.cyl(0.45, 0.9, 0.1, 0.16, 0.14, 0.32, 6, '#ffffff', TILE.glow, true);   // a lantern in hand, so the figure reads from the pier at dusk
+    const group = new THREE.Group(); group.add(new THREE.Mesh(b.geometry(), mats.props));
+    group.position.set(d.x + lx, clamp(terrainHeight(d, lx, lz), 0.3, 1.5), d.z + lz); group.visible = false; this.scene.add(group);
+    return { group, tg };
   }
   /** what a harbour's watcher looks toward: the nearest smoke island or low-tide wreck within reach, else the Kestrel */
   watchTarget(d) {
@@ -198,8 +201,9 @@ export class Secrets {
           let dir = dusk ? toLand : toLand + Math.PI;            // home at dusk, out to the fish at dawn
           if (c.dread > 0.55) dir += Math.PI;                    // further out, they fly the wrong way
           dir += (Math.random() - 0.5) * 0.15;
-          const side = (Math.random() < 0.5 ? -1 : 1) * (25 + Math.random() * 25), back = 45;
-          const sx = ship.pos.x - Math.sin(dir) * back + Math.cos(dir) * side, sz = ship.pos.z + Math.cos(dir) * back + Math.sin(dir) * side;
+          // start off to one side, ahead of the ship, so the V crosses the view ~30 in front of the bow
+          const hx = Math.sin(c.heading || 0), hz = -Math.cos(c.heading || 0), ahead = 30;
+          const cx0 = ship.pos.x + hx * ahead, cz0 = ship.pos.z + hz * ahead, sx = cx0 - Math.sin(dir) * 40, sz = cz0 + Math.cos(dir) * 40;
           this.flock = { x: sx, z: sz, dir, life: 26, n: 4 + Math.floor(Math.random() * 3) };
         }
       }
@@ -209,7 +213,7 @@ export class Secrets {
       if (!F || i >= F.n) { b.g.visible = false; return; }
       const row = Math.ceil(i / 2), sd = i === 0 ? 0 : i % 2 ? -1 : 1;   // a loose V
       const bx = F.x - Math.sin(F.dir) * row * 2.2 + Math.cos(F.dir) * sd * row * 1.8, bz = F.z + Math.cos(F.dir) * row * 2.2 + Math.sin(F.dir) * sd * row * 1.8;
-      b.g.visible = true; b.g.position.set(bx, 16 + Math.sin(t * 0.8 + i) * 0.6, bz); b.g.rotation.set(0, -F.dir, 0);
+      b.g.visible = true; b.g.position.set(bx, 8 + Math.sin(t * 0.8 + i) * 0.5, bz); b.g.rotation.set(0, -F.dir, 0);
       const flap = Math.sin(t * 7 + i * 1.3) * 0.5; b.wl.rotation.z = flap; b.wr.rotation.z = -flap;
       b.g.scale.setScalar(1.3);
     });

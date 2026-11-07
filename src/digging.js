@@ -48,11 +48,16 @@ export class DigGame {
     if (this.beach === 'mud') o = this.o = { ...o, digs: o.digs + 3 };
     this.chest = [Math.floor(Math.random() * this.cols), Math.floor(Math.random() * this.rows)];
     // the arch stands just above the beach; on a noon-shadow isle it is placed so the noon shadow of its top falls on the chest
-    this.arch = { x: 1.5 + Math.random() * (this.cols - 3), y: -0.8 };
+    this.arch = { x: 1.5 + Math.random() * (this.cols - 3), y: -0.8 }; this.archH = ARCH_H;
     if (o.noon) {
-      const L = ARCH_H / Math.tan(o.noon.elev), tipY = this.arch.y + o.noon.gy * L, cy = Math.max(0, Math.min(this.rows - 1, Math.floor(tipY)));
-      const want = 1 + Math.floor(Math.random() * (this.cols - 2));
-      this.arch.x = Math.max(0.6, Math.min(this.cols - 0.6, want + 0.5 - o.noon.gx * L));
+      // a low sun throws a long shadow: if the tip would run off the beach, this arch is simply shorter
+      let L = this.archH / Math.tan(o.noon.elev);
+      if (this.arch.y + o.noon.gy * L > this.rows - 0.5) { this.archH = (this.rows - 0.5 - this.arch.y) * Math.tan(o.noon.elev) / o.noon.gy; L = this.archH / Math.tan(o.noon.elev); }
+      if (Math.abs(o.noon.gx) * L > this.cols - 1.4) { this.archH = (this.cols - 1.4) / Math.abs(o.noon.gx) * Math.tan(o.noon.elev); L = this.archH / Math.tan(o.noon.elev); }   // ...and not so long sideways that the arch would leave the beach
+      const tipY = this.arch.y + o.noon.gy * L, cy = Math.max(0, Math.min(this.rows - 1, Math.floor(tipY)));
+      const dx = o.noon.gx * L, lo = Math.max(0, Math.ceil(0.1 + dx)), hi = Math.min(this.cols - 1, Math.floor(this.cols - 1.1 + dx));   // columns whose arch still stands on the beach
+      const want = lo + Math.floor(Math.random() * (hi - lo + 1));
+      this.arch.x = want + 0.5 - dx;
       this.chest = [Math.max(0, Math.min(this.cols - 1, Math.floor(this.arch.x + o.noon.gx * L))), cy];
     }
     this.bed = this.bakeSand(BEACHES[this.beach]);
@@ -129,8 +134,8 @@ export class DigGame {
     // the arch's shadow, from where the sun is now (top-down: x along the beach, y down toward the sea)
     const sun = this.o.sun ? this.o.sun() : null, A = this.arch, ax = OX + A.x * CW, ay = OY + A.y * CH;
     if (sun && sun.elev > 0.05) {
-      const L = Math.min(9, ARCH_H / Math.tan(sun.elev)), sx = sun.gx * L * CW, sy = sun.gy * L * CH;
-      g.globalAlpha = Math.min(0.32, sun.elev * 0.9);
+      const L = Math.min(9, this.archH / Math.tan(sun.elev)), sx = sun.gx * L * CW, sy = sun.gy * L * CH;
+      g.globalAlpha = Math.min(0.32, sun.elev * 0.9) * (sun.dim ?? 1);   // overcast or rain: a faint shadow
       g.fillStyle = '#2a1c10';
       const leg = (ox) => { g.beginPath(); g.moveTo(ax + ox - 3, ay); g.lineTo(ax + ox + 3, ay); g.lineTo(ax + ox + sx + 3, ay + sy); g.lineTo(ax + ox + sx - 3, ay + sy); g.closePath(); g.fill(); };
       leg(-10); leg(10);

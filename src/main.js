@@ -154,8 +154,8 @@ const weather = new Weather(scene);
 const windfx = new WindFX(scene);
 const places = new Places(scene);    // the hand-made islands: barriers, the fog bank, going ashore, far labels
 const seaplay = new SeaPlay(scene);  // gusts to catch and currents to ride
-const shipWake = new Wake(scene, { len: 5.2, beam: 1.5 });
-const secrets = new Secrets(scene, world, state.seed);   // the Kestrel, low-tide wrecks, smoke, the dusk watcher, birds (secrets.js)   // the V wake and bow wave (wake.js)
+const shipWake = new Wake(scene, { len: 5.2, beam: 1.5 });   // the V wake and bow wave (wake.js)
+const secrets = new Secrets(scene, world, state.seed);   // the Kestrel, low-tide wrecks, smoke, the dusk watcher, birds (secrets.js)
 const glimpse = new Glimpse(scene);  // one wrong moment on the way home from the hut
 let glimpseWait = 0, sunScale = 1;
 let seaWave = 1;
@@ -1431,7 +1431,7 @@ function getInteract() {
     if (dk && Math.hypot(ship.pos.x - (d.x + dk.x), ship.pos.z - (d.z + dk.z)) < 13) return (!onbAll() && state.goals.i < 1) ? null : { kind: 'harbour', key: d.id, isl: hb };   // no "visit" at the very start: Mara sends you when it is time
     if (world.lastEdge < 16) return { kind: 'harbourfar', key: d.id, isl: hb };
   }
-  const sc = secrets.near(ship.pos.x, ship.pos.z, state.collected); if (sc) return { kind: 'secret', key: sc.key, sc };
+  const sc = secrets.near(ship.pos.x, ship.pos.z, state.collected); if (sc && !(sc.kind === 'camp' && state.story.secrets && state.story.secrets[sc.key + '@'] === state.dayN)) return { kind: 'secret', key: sc.key, sc };
   const lmI = world.nearest(ship.pos.x, ship.pos.z, 16);
   if (lmI && lmI.desc.lm) return { kind: 'landmark', key: 'lm' + lmI.desc.id, isl: lmI };
   const isl = world.nearest(ship.pos.x, ship.pos.z, 16, ['treasure']);
@@ -1592,8 +1592,8 @@ function tryInteract() {
         else {
           const first = d.id === '1,-1', tools = (1 - ship.mods.digTime) * 6 + (state.buffs.dig > 0 ? 2 : 0);   // the first treasure (tutorial) is kinder; better tools, more digs before the tide
           const beach = first ? 'sand' : ['sand', 'shingle', 'dune', 'mud'][Math.abs(hash2(d.seed, 41, 3)) % 4];   // every treasure isle has its own kind of beach (digging.js BEACHES)
-          const pa = d.puzzle.angle, ox = Math.cos(pa), oz = Math.sin(pa), rx = -Math.sin(pa), rz = Math.cos(pa);   // the beach: o out to sea, r along it
-          const sun = () => { const sx = -Math.sin(tod.sunAz), sz = Math.cos(tod.sunAz); return { elev: tod.sunElev, gx: sx * rx + sz * rz, gy: sx * ox + sz * oz }; };   // the arch's shadow on the sand, from where the sun is now
+          const pa = d.puzzle.angle, ox = Math.cos(pa), oz = Math.sin(pa), rx = Math.sin(pa), rz = -Math.cos(pa);   // the beach: o out to sea, r along it
+          const sun = () => { const sx = -Math.sin(tod.sunAz), sz = Math.cos(tod.sunAz); return { elev: tod.sunElev, gx: sx * rx + sz * rz, gy: sx * ox + sz * oz, dim: 1 - 0.75 * Math.max(weather.cloud || 0, weather.rain || 0) }; };   // the arch's shadow on the sand, from where the sun is now
           const noon = d.puzzle.shadow ? { elev: Math.max(0.3, sunScale), gx: rz, gy: oz } : null;
           digGame.start({ cols: 8, rows: 5, beach, sun, noon, digs: Math.round((first ? 13 : 10) + tools - (d.dread > 0.5 ? 1 : 0)), stones: first ? 2 : 3 + (d.dread > 0.4 ? 1 : 0), lie: d.dread > 0.5 ? 0.3 : 0,
             onDone: () => { const done = dig && dig.done; dig = null; if (done) done(); },
@@ -1640,8 +1640,9 @@ function secretFound(sc) {
     state.notes.push({ text: 'Where the two white posts sat on the Tooth and the Bell: the Kestrel, on the bottom. Her bell still rings.', dark: false });
   } else if (sc.kind === 'tidewreck') {
     state.collected.add(sc.key);
-    const loot = lootFor(mulberry32(hash2(Math.round(sc.m.x), Math.round(sc.m.z), 41)), dread); loot.value = Math.round(loot.value * 1.4 * ship.mods.lootMul); loot.name = `From the low water: ${loot.name}`;
-    state.gold += loot.value; state.loot.push(loot); audio.play('treasure');
+    const loot = abyss.wrongLoot(lootFor(mulberry32(hash2(Math.round(sc.m.x), Math.round(sc.m.z), 41)), dread), state); loot.value = Math.round(loot.value * 1.4 * ship.mods.lootMul * threads.salvageMul()); loot.name = `From the low water: ${loot.name}`;
+    state.gold += loot.value; state.loot.push(loot); state.stats.wrecks++; audio.play('treasure');
+    { const x = threads.onSalvage(); if (x) setTimeout(() => toast(x, true, 6000), 1500); }
     toast(`The tide is out and the wreck is bare. ${loot.name} (+${loot.value} gold). The water is already coming back.`, loot.dark, 7000);
     if (!S.tideNote) { S.tideNote = 1; state.notes.push({ text: 'Some wrecks only show at low water. The tide hides more than it shows.', dark: false }); }
   } else if (sc.kind === 'camp') {
@@ -1651,8 +1652,9 @@ function secretFound(sc) {
       for (let dz = -7; dz <= 7; dz++) for (let dx = -7; dx <= 7; dx++) { const o = world.desc(Math.round(sc.m.x / 110) + dx, Math.round(sc.m.z / 110) + dz); if (o && o.puzzle && !state.dug.has(o.id) && !state.riddles[o.id]) { const dd = Math.hypot(o.x - sc.m.x, o.z - sc.m.z); if (dd < bd && dd < gateRadius(state) - 40) { bd = dd; best = o; } } }
       toast(CAMP_LINES[0] + (best ? ' Before you go he scratches an island into your chart with a fish bone.' : ''), false, 9000);
       if (best) { state.discovered[best.id] = state.discovered[best.id] || { name: best.name, type: best.type, x: Math.round(best.x), z: Math.round(best.z) }; giveMap(best.id, 'The man by the fire', true, true); }
-      state.notes.push({ text: 'Smoke on an empty island: a man who has been there longer than the lighthouse. He drew an island on my chart.', dark: false });
+      state.notes.push({ text: `Smoke on an empty island: a man who has been there longer than the lighthouse.${best ? ' He drew an island on my chart.' : ''}`, dark: false });
     } else toast(CAMP_LINES[1 + (n + state.dayN) % 3], false, 6500);
+    S[id + '@'] = state.dayN;   // one visit a day: after that it is just an island again until tomorrow
   }
 }
 /** the pier tales (secrets.js TALES): rare, once each; the two that matter disagree about everything but their line */
@@ -2420,7 +2422,7 @@ function frame() {
   world.hutShown = hutReached();   // no hut on its island before the story gets there
   world.tick(animT, tod);
   ship.place(vdt, waveT, stage.wave, dark, tod.night);
-  secrets.update(vdt, waveT, { ship, time: state.time, dayN: state.dayN, tide: tideAt(), wave: stage.wave, light: Math.min(1, 0.25 + stage.light * 0.9), dread, collected: state.collected, windX: Math.sin(wind.dir), windZ: -Math.cos(wind.dir) });
+  secrets.update(vdt, waveT, { ship, time: state.time, dayN: state.dayN, tide: tideAt(), wave: stage.wave, light: Math.min(1, 0.25 + stage.light * 0.9), dread, collected: state.collected, windX: Math.sin(wind.dir), windZ: -Math.cos(wind.dir), heading: ship.heading, fogFar: scene.fog.far });
   shipWake.update(vdt, waveT, stage.wave, { pos: ship.pos, heading: ship.heading, speed: ship.rowing ? ship.speed * 0.6 : ship.speed, max: 11 }, Math.min(1, 0.25 + stage.light * 0.9));
   const lifeCtx = { light: Math.min(1, 0.25 + stage.light * 0.9), freeze: glimpse.k > 0.3 ? 0 : null, ship, dread, wave: stage.wave, audio, wind: windNow, stage, tod, faction: sec.faction.id, sched: { wd: weekday(), hour: state.time * 24, dayN: state.dayN, dread } };
   if (live) { state.stats.dist += ship.speed * dt; if (ship.rowing) state.stats.rowed = (state.stats.rowed || 0) + ship.speed * dt; }
@@ -2550,11 +2552,12 @@ function frame() {
       promptTxt.textContent = tgt.kind === 'thread' ? (ship.speed > 0.35 ? 'Stop the ship completely (S)' : tgt.th.prompt) : tgt.kind === 'spring' ? (ship.speed > 0.35 ? 'Stop the ship completely (S) to look closer' : '[E] Look into the water') : tgt.kind === 'cave' ? (ship.speed > 0.35 ? 'Stop the ship completely (S) to look inside' : '[E] Look into the cave') : tgt.kind === 'sighting' ? `[E] ${tgt.s.label}` : tgt.kind === 'harbourfar' ? 'Sail to the pier to go ashore' : tgt.kind === 'hut' ? '[E] Knock on the dark hut' : tgt.kind === 'harbour' ? `[E] Visit ${tgt.isl.desc.name}`
         : tgt.kind === 'treasure' ? (tgt.isl.dug ? 'Already plundered' : !state.riddles[tgt.isl.desc.id] ? '[E] Study the ancient arch inscription' : '[E] Dig on this shore')
         : tgt.kind === 'landmark' ? `[E] Go ashore on ${tgt.isl.desc.name}`
-        : tgt.kind === 'secret' ? (ship.speed > 0.6 ? 'Stop the ship completely (S)' : `[E] ${tgt.sc.label}`)
+        : tgt.kind === 'secret' ? (ship.speed > 0.6 ? '' : `[E] ${tgt.sc.label}`)
         : tgt.kind === 'patch' ? (ship.speed > 0.6 ? 'Stop the ship to patch the torn sail' : `[E] Patch the torn sail (${state.patchKits} ${state.patchKits === 1 ? 'kit' : 'kits'})`)
         : tgt.kind === 'fruit' ? (state.harvest[tgt.isl.desc.id] != null && state.harvest[tgt.isl.desc.id] >= state.dayN ? 'Picked clean for today' : `[E] Pick ${plural(fruitName(fruitOf(tgt.isl.desc), tgt.isl.desc.dread), 2)}`)
         : tgt.kind === 'ship' ? (tgt.s.mode === 'derelict' ? `[E] Board the drifting ${KINDS[tgt.s.kind].label}` : tgt.s.mode === 'ghost' ? '[E] Hail the pale ship' : `[E] Hail the ${tgt.s.name}`)
         : '[E] Salvage the wreck';
+      if (tgt.kind === 'secret' && ship.speed > 0.6) promptEl.style.display = 'none';
       if ((tgt.kind === 'treasure' || tgt.kind === 'fruit' || tgt.kind === 'wreck' || tgt.kind === 'landmark') && ship.speed > 0.35) promptTxt.textContent = 'Stop the ship completely (S) to go ashore';
     }
   } else promptEl.style.display = 'none';

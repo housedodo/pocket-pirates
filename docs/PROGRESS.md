@@ -693,10 +693,19 @@ From the critique "what goes stale on a long voyage" (compared with Wind Waker, 
   faces the nearest secret (smoke isle or low-tide wreck; Tama's faces the Kestrel). Gone once the sea goes wrong.
 - **Birds:** at dusk in open water a small V of gulls flies home toward the nearest land; at dawn they fly out from it. With
   dread over 0.55 they fly the wrong way.
-- **Cross-swell:** islands bend the swell, so 60-330 out from any shore a second set of crests rolls in toward the land and
-  crosses the main swell: land can be felt beyond the horizon and in fog.
+- **Cross-swell: cut** after the playtest (the sea here is so full of islands that every point was inside the band: it could not
+  hint at anything, and it doubled the water's cost).
 - **Dig beach redesign + noon shadow:** the dig is now a little beach seen from above (dithered sand, shells, pebbles, weed,
   waves lapping, the island's edge), with the treasure arch at the top throwing its real sun shadow (long and slanting in the
   morning, short at noon, none at night). On "noon-shadow" isles (riddle ends "At noon, the arch points.") the chest lies
   under the noon tip of the shadow of the arch's top.
+- **Playtest fixes (gameplay agent's strict review):** noon-shadow riddles had no eligible isle (the dread limit excluded all
+  but Perrin's): the limit is gone, so they are a later-game riddle (12 isles within 25 cells), and the arch is made shorter on
+  beaches where a low sun would throw the tip off the sand or sideways off the beach (chest under the noon tip in 100% of 1200
+  test starts, sun 0.45-1.0). The dig view was mirrored (fixed). The cross-swell was cut (see above). Smoke is unfogged, darker
+  and lies in a low wind-laid trail where the default camera looks. Camp visits: one per day, and the note only says he drew
+  an island when he did. No "Stop the ship" prompt gives the Kestrel away while you sail over it; its shape reads from 45 and
+  stronger. Birds fly lower (8) and cross the view ahead of the bow. Low-tide salvage goes through the normal wreck path
+  (wrong loot, threads, stats). Unloaded secret meshes are disposed. The watcher stands at the water's edge, never above 1.5,
+  with a lit lantern. The dig shadow fades under cloud and rain.
 

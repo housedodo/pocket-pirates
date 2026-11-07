@@ -41,11 +41,7 @@ export function waveHeight(x, z, t, amp = 1) {
   // sets: a slow travelling pattern of bigger and smaller waves (about 0.5x to 1.45x), so even a calm sea is never even
   const G = (0.5 + 0.5 * wsin(0.031 * x + 0.017 * z - 0.45 * t)) * (0.6 + 0.4 * wsin(0.013 * x - 0.021 * z + 0.3 * t + 2.0));
   const big = 0.22 * wsin(0.11 * px + 0.07 * pz + 0.6 * W * t) * G;   // a longer swell that rolls through with the big sets
-  // the cross-swell: islands bend the swell round them, so 70-320 out from any shore a second set of crests rolls in
-  // toward the land, crossing the main swell. A sailor can feel land beyond the horizon (and in fog) by it.
-  let cross = 0;
-  for (const [ix, iz, ir] of WATER.isl) { const dd = Math.hypot(x - ix, z - iz), e = dd - ir * 1.1; if (e > 60 && e < 330) cross += sstep(60, 130, e) * (1 - sstep(210, 330, e)) * wsin(dd * 0.3 + 1.1 * t); }
-  return amp * ((sw + big + 0.17 * cross) * (1 - r) * (0.5 + 0.95 * G) + h * r) * seaScale(x, z);
+  return amp * ((sw + big) * (1 - r) * (0.5 + 0.95 * G) + h * r) * seaScale(x, z);
 }
 
 const GLSL_SHORE = /* glsl */`
@@ -70,9 +66,7 @@ float waveH(vec2 p){
   }
   float G = (0.5 + 0.5 * sin(0.031 * p.x + 0.017 * p.y - 0.45 * t)) * (0.6 + 0.4 * sin(0.013 * p.x - 0.021 * p.y + 0.3 * t + 2.0));   // sets of bigger and smaller waves
   float big = 0.22 * sin(0.11 * q.x + 0.07 * q.y + 0.6 * WS * t) * G;
-  float cross = 0.0;   // the cross-swell bent round islands (see waveHeight)
-  for (int i = 0; i < ${NISL}; i++) { vec3 I = uIsl[i]; float dd = length(p - I.xy), e = dd - I.z * 1.1; cross += smoothstep(60.0, 130.0, e) * (1.0 - smoothstep(210.0, 330.0, e)) * sin(dd * 0.3 + 1.1 * t); }
-  return uWave * (mix((sw + big + 0.17 * cross) * (0.5 + 0.95 * G), h, uRough)) * (0.35 + 1.35 * (1.0 - landNear(p)));   // low by land, big in the open sea
+  return uWave * (mix((sw + big) * (0.5 + 0.95 * G), h, uRough)) * (0.35 + 1.35 * (1.0 - landNear(p)));   // low by land, big in the open sea
 }`;
 const GLSL_WAVE = GLSL_WAVEFN + '\nvarying vec3 vWP;';
 
