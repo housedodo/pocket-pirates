@@ -225,3 +225,8 @@ Ten effects (the star-eye and ghost ship were cut) that only run at dread >= ~0.
 warns, and sets `lampOut` (ship glow off via `ship.lampOut`, scene fog pulled in and darkened, fishing blocked). The
 Market's LAMP OIL row and Wick's Rock refill it. Tune the burn in `oilRate`, the price in `OIL_PRICE`.
 
+## Torn sails
+`sailTick` in main.js: strain grows while `windNow.strength > 1.05 || weather.storm > 0.45` and `ship.trim > 0.55`, decays
+otherwise; warning at 35% of `SAIL_LIMIT` (16), tear at 100%. `ship.torn` multiplies the speed target by 0.66. Mending:
+a patch kit (`getInteract` kind `patch`, lowest priority, anywhere at sea) or docking at a harbour (`mendSails`).
+

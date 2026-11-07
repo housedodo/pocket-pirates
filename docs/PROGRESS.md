@@ -595,3 +595,13 @@ From the critique "what goes stale on a long voyage" (compared with Wind Waker, 
   - *Mud shore*: brown ground, no tide (the light fades instead) and three more digs, but after each dig the mud swallows
     a square beside your holes (never the chest).
 
+## Counter melody, torn sails
+- **Counter melody** in stage 1 (`s1_counter`, layers.js `COUNTER`): rare, slow fade in and out over the band (see AUDIO.md).
+- **Torn sails:** too much canvas in a strong wind (wind strength over 1.05 or a storm over 0.45, sails over 55%) builds strain;
+  the sail bar blinks orange and a toast says to reef (S). Keep going (about 8 s at full sail in a full storm, longer in a plain
+  gale, less with better sails) and the mainsail tears: holes, long rips, the clew gone and three rags flapping
+  (`Ship.setTorn`), the sail bar turns red, and the ship sails at **66%** speed until mended. **Patch kit:** one aboard at the
+  start, room for three, 35 g at any Market (SAILCLOTH); stop anywhere at sea and press E ("Patch the torn sail", 4.5 s).
+  **No kit:** any harbour's sailmaker mends it free when you dock. Mara says which. Counts from the Market chapter (like
+  oil). Saved as `state.sailsTorn`, `state.patchKits`. The old gale hull damage with the sails out still applies in storms.
+

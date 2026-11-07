@@ -97,6 +97,8 @@ const state = {
   hp: saved && saved.hp != null ? saved.hp : 100,
   ammo: saved && saved.ammo != null ? saved.ammo : 8,
   oil: saved && saved.oil != null ? saved.oil : 100,   // lamp oil (oil.js)
+  sailsTorn: !!(saved && saved.sailsTorn),   // a gale tore the mainsail: two thirds speed until patched
+  patchKits: saved && saved.patchKits != null ? saved.patchKits : 1,   // sail patch kits in the hold (one to start with)
   custom: Object.assign({}, DEFAULT_CUSTOM, (saved && saved.custom) || {}),
   owned: new Set((saved && saved.owned) || []),
   riddles: (saved && saved.riddles) || {},
@@ -208,6 +210,7 @@ ship.heading = state.pos.h;
 const refreshMods = () => { ship.mods = threads.modAdjust(computeMods(state.upgrades)); state.hp = Math.min(state.hp, ship.mods.maxHp); ship.setUpgradeLook(state.upgrades); };
 ship.setCustom(state.custom);
 refreshMods();
+ship.setTorn(state.sailsTorn);
 
 function resize() {
   const w = window.innerWidth, h = window.innerHeight;
@@ -281,7 +284,7 @@ function giveMap(id, from, reveal = false, quiet = false) {
 function saveNow() {
   if (params.get('fresh') || noSave) return false;
   lastSave = tNow;
-  store.set(SAVE_KEY, { seed: state.seed, gold: state.gold, dug: [...state.dug], discovered: state.discovered, loot: state.loot, upgrades: state.upgrades, collected: [...state.collected], notes: state.notes, board: state.board, halves: state.halves, frags: state.frags, rumoured: state.rumoured, rep: state.rep, job: state.job, serial: state.serial, sectorsSeen: state.sectorsSeen, jobHistory: state.jobHistory, buffs: state.buffs, stats: state.stats, quests: state.quests, fruit: state.fruit, harvest: state.harvest, dayN: state.dayN, greet: state.greet, charts: state.charts, hp: state.hp, ammo: state.ammo, oil: state.oil, custom: state.custom, owned: [...state.owned], riddles: state.riddles, attempts: state.attempts, catch: state.catch, fishLog: state.fishLog, fishHeard: state.fishHeard, fishAsk: state.fishAsk, hut: state.hut, passenger: state.passenger, story: state.story, crew: state.crew, cardsSeen: state.cardsSeen, haggle: state.haggle, tracked: state.tracked, goals: state.goals, hints: state.hints, time: state.time, windT: wind.t, pos: { x: ship.pos.x, z: ship.pos.z, h: ship.heading } });
+  store.set(SAVE_KEY, { seed: state.seed, gold: state.gold, dug: [...state.dug], discovered: state.discovered, loot: state.loot, upgrades: state.upgrades, collected: [...state.collected], notes: state.notes, board: state.board, halves: state.halves, frags: state.frags, rumoured: state.rumoured, rep: state.rep, job: state.job, serial: state.serial, sectorsSeen: state.sectorsSeen, jobHistory: state.jobHistory, buffs: state.buffs, stats: state.stats, quests: state.quests, fruit: state.fruit, harvest: state.harvest, dayN: state.dayN, greet: state.greet, charts: state.charts, hp: state.hp, ammo: state.ammo, oil: state.oil, sailsTorn: state.sailsTorn, patchKits: state.patchKits, custom: state.custom, owned: [...state.owned], riddles: state.riddles, attempts: state.attempts, catch: state.catch, fishLog: state.fishLog, fishHeard: state.fishHeard, fishAsk: state.fishAsk, hut: state.hut, passenger: state.passenger, story: state.story, crew: state.crew, cardsSeen: state.cardsSeen, haggle: state.haggle, tracked: state.tracked, goals: state.goals, hints: state.hints, time: state.time, windT: wind.t, pos: { x: ship.pos.x, z: ship.pos.z, h: ship.heading } });
   return true;
 }
 const SS_ART = ['.........FF.........', '.........M..........', '........MSS.........', '........MSSs........', '........MSSSs.......', '........MSSSSs......', '........MSSSSSs.....', '........MSSSSSss....', '........M...........', '..HHHHHHHHHHHHHHH...', '...HhhhhhhhhhhhHH...'];
@@ -1026,9 +1029,11 @@ function renderHarbour() {
       if (cb && hold.length && !cb.end) html += `<div class="sec">A QUIET BUYER</div><div class="qrow"><div><b>${pxi('fish')} The bright ones</b><br><small>a stranger in a grey coat would take ${hold.length} off your hands at more than twice the price, and not ask where</small></div><button id="sellBright">+${bv}g</button></div>`;
     }
     if (unlocked(state, 'cannons')) html += `<div class="sec">BUY</div><div class="qrow"><div><b>${pxi('ball')} 10 cannonballs</b><br><small>you have ${state.ammo}</small></div><button id="buyAmmo" ${state.gold >= ammoCost ? '' : 'disabled'}>${ammoCost}g</button></div>`;
+    if (oilOn()) { const kc = Math.ceil(35 * discount(rep) * costMul()); html += `<div class="sec">SAILCLOTH</div><div class="qrow"><div><b>${pxi('sail')} Sail patch kit</b><br><small>${state.patchKits} aboard (room for 3): mends a torn sail at sea</small></div>${state.patchKits < 3 ? `<button id="buyKit" ${state.gold >= kc ? '' : 'disabled'}>${kc}g</button>` : '<button disabled>Full</button>'}</div>`; }
     if (oilOn()) { const { need, cost } = buyOil(discount(rep) * costMul()); html += `<div class="sec">LAMP OIL</div><div class="qrow"><div><b>${pxi('lamp')} Fill the lantern</b><br><small>${Math.round(state.oil)} of ${oilCap(state.upgrades)}: it burns at night, in fog and in storms</small></div>${need >= 1 ? `<button id="buyOil" ${state.gold >= cost ? '' : 'disabled'}>${cost}g</button>` : '<button disabled>Full</button>'}</div>`; }
     html += `<div class="sec">SHIPYARD</div><div class="qrow"><div><b>${pxi('paint')} Paint, sails, pennants, figureheads</b></div><button id="openYard">Open</button></div>`;
     pane.innerHTML = html;
+    { const bk = $('buyKit'); if (bk) bk.addEventListener('click', () => { const kc = Math.ceil(35 * discount(rep) * costMul()); if (state.gold < kc || state.patchKits >= 3) return; state.gold -= kc; state.patchKits++; audio.play('buy'); renderHarbour(); }); }
     { const bo = $('buyOil'); if (bo) bo.addEventListener('click', () => { const { cost } = buyOil(discount(rep) * costMul()); if (state.gold < cost) return; state.gold -= cost; state.oil = oilCap(state.upgrades); audio.play('buy'); toast('The lantern is full.', false, 2500); renderHarbour(); }); }
     const sf = $('sellFish'); if (sf) sf.addEventListener('click', () => { state.gold += fishVal; toast(`Sold ${state.catch.length} fish for ${fishVal} gold.`); state.catch = []; audio.play('buy'); renderHarbour(); });
     const sb = $('sellBright'); if (sb) sb.addEventListener('click', () => {
@@ -1414,6 +1419,7 @@ function getInteract() {
   if (sh) return { kind: 'ship', key: 'ship' + sh.id, s: sh };
   const fi = world.nearest(ship.pos.x, ship.pos.z, 14, ['jungle', 'sandbar']);
   if (fi) return { kind: 'fruit', key: 'fruit' + fi.desc.id, isl: fi };
+  if (state.sailsTorn && state.patchKits > 0) return { kind: 'patch', key: 'patch' };   // anywhere at sea: patch the sail with a kit
   return null;
 }
 
@@ -1482,12 +1488,18 @@ function tryInteract() {
   if (tg.kind === 'hut') { if (!state.story.hutKnown) { audio.play('knock'); toast('Nobody answers. Inside, a pen scratches, then stops.', true, 4500); return; } openModal('hut'); return; }
   if ((tg.kind === 'treasure' || tg.kind === 'fruit' || tg.kind === 'wreck' || tg.kind === 'landmark') && ship.speed > 0.35) { toast('Bring the ship to a full stop first (S to reef the sails).', false, 3000); return; }
   if (tg.kind === 'landmark') { if (!dig) goAshore(tg); return; }
+  if (tg.kind === 'patch') {
+    if (ship.speed > 0.6) { toast('Bring the ship to a stop to patch the sail (S, and wait).', false, 3000); return; }
+    if (!dig) dig = { key: 'patch', t: 0, label: 'Patching the mainsail...', need: 4.5, done: () => { state.patchKits--; mendSails(`Patched. The sail holds again (${state.patchKits} ${state.patchKits === 1 ? 'kit' : 'kits'} left).`); } };
+    return;
+  }
   if (tg.kind === 'harbour') {
     const d = tg.isl.desc, rep = repOf(state, d.id);
     if (!rep.last || Date.now() - rep.last > 120000) rep.visits++;
     rep.last = Date.now();
     state.stats.harbours++;
     if (state.hp < ship.mods.maxHp) { state.hp = ship.mods.maxHp; toast('The harbour crew patches up your hull for free.', false, 3000); }
+    if (state.sailsTorn) setTimeout(() => mendSails('The sailmaker stitches your mainsail whole again.'), 600);
     const rng = mulberry32(hash2(d.seed, Math.floor(tNow / 8), 3));
     const idx = Math.min(4, Math.floor(dread * 5)), lvl = friendLevel(rep);
     hbShipLine = shipwrightLine(rng, idx);
@@ -2111,6 +2123,24 @@ function oilTick(dt) {
   if (lit && before > cap * 0.25 && state.oil <= cap * 0.25 && oilNight !== night) { oilNight = night; if (!objectives.mate.busy) objectives.mate.say('The lamp is getting low, Captain. Oil at any market, or we turn for home.'); else toast('The lamp oil is running low.', false, 4000); }
   if (before > 0 && state.oil <= 0 && lit) { toast('The lantern gutters out. The dark comes right up to the rail.', dread > 0.4, 6000); if (!state.hints.oilOut) { state.hints.oilOut = true; setTimeout(() => objectives.mate.say('No light, no line, and I can barely see the bow. Buy oil at a market next time, Captain.'), 3500); } }
 }
+// torn sails: too much canvas in a strong wind for too long and the mainsail rips (two thirds speed, ship.torn) until a patch
+// kit is used at sea (stop, E) or a harbour's sailmaker mends it. Counts from the same chapter as the oil.
+let sailStrain = 0, strainWarned = false;
+const SAIL_LIMIT = 16;   // seconds of full sail in a gale before it tears (longer with better sails, shorter in a storm)
+function sailTick(dt, windNow) {
+  if (!oilOn() || state.sailsTorn || ship.rowing) { sailStrain = 0; return; }
+  const gale = windNow.strength > 1.05 || weather.storm > 0.45;
+  if (gale && ship.trim > 0.55) {
+    sailStrain += dt * (ship.trim - 0.35) * 1.6 * (1 + Math.max(0, windNow.strength - 1.05) * 2 + weather.storm * 0.6) * (1 - 0.15 * (state.upgrades.sails || 0));
+    if (!strainWarned && sailStrain > SAIL_LIMIT * 0.35) { strainWarned = true; toast('The canvas is straining in this wind! Reef the sails (S) before it tears.', false, 5000); audio.play('ui', { vol: 0.5 }); }
+    if (sailStrain >= SAIL_LIMIT) {
+      state.sailsTorn = true; ship.setTorn(true); sailStrain = 0; strainWarned = false; shake = Math.max(shake, 0.6);
+      toast('RRRIP! The mainsail tears. Two thirds speed until it is patched.', false, 6500);
+      setTimeout(() => objectives.mate.say(state.patchKits > 0 ? 'We have a patch kit, Captain. Bring her to a stop and I will see to it (E).' : 'No patch kit aboard, Captain. We need a harbour and a sailmaker.'), 2500);
+    }
+  } else { sailStrain = Math.max(0, sailStrain - dt * 0.8); if (sailStrain < 1) strainWarned = false; }
+}
+function mendSails(how) { state.sailsTorn = false; ship.setTorn(false); sailStrain = 0; toast(how, false, 4000); }
 function buyOil(costMulNow) { const cap = oilCap(state.upgrades), need = cap - state.oil, cost = Math.ceil(need * OIL_PRICE * costMulNow); return { need, cost }; }
 
 // tacking: Mara's one-time tip when you point straight into the wind, and progress made upwind for the side goal
@@ -2236,7 +2266,7 @@ function frame() {
   if (live && keys.has('KeyR')) pitchT = clamp(pitchT - dt * 0.8, PITCH_MIN, 1.35);
   if (live && keys.has('KeyF')) pitchT = clamp(pitchT + dt * 0.8, 0.3, 1.35);
   if (live || params.get('autostart')) ship.update(dt, shipInput, windNow, tNow);
-  if (live && dt > 0) { stormAndCalm(dt); tabletopTick(dt); seaGate(dt); tackTick(dt); seaTick(dt, windNow); oilTick(dt); }
+  if (live && dt > 0) { stormAndCalm(dt); tabletopTick(dt); seaGate(dt); tackTick(dt); seaTick(dt, windNow); oilTick(dt); sailTick(dt, windNow); }
   const solid = [];
   traffic.solids(solid); fauna.solids(solid); sea.solids(solid); sighting.solids(solid);
   if (world.collide(ship.pos, 2.2) | pushOut(ship.pos, 2.2, solid)) {
@@ -2420,6 +2450,7 @@ function frame() {
       promptTxt.textContent = tgt.kind === 'thread' ? (ship.speed > 0.35 ? 'Stop the ship completely (S)' : tgt.th.prompt) : tgt.kind === 'spring' ? (ship.speed > 0.35 ? 'Stop the ship completely (S) to look closer' : '[E] Look into the water') : tgt.kind === 'cave' ? (ship.speed > 0.35 ? 'Stop the ship completely (S) to look inside' : '[E] Look into the cave') : tgt.kind === 'sighting' ? `[E] ${tgt.s.label}` : tgt.kind === 'harbourfar' ? 'Sail to the pier to go ashore' : tgt.kind === 'hut' ? '[E] Knock on the dark hut' : tgt.kind === 'harbour' ? `[E] Visit ${tgt.isl.desc.name}`
         : tgt.kind === 'treasure' ? (tgt.isl.dug ? 'Already plundered' : !state.riddles[tgt.isl.desc.id] ? '[E] Study the ancient arch inscription' : '[E] Dig on this shore')
         : tgt.kind === 'landmark' ? `[E] Go ashore on ${tgt.isl.desc.name}`
+        : tgt.kind === 'patch' ? (ship.speed > 0.6 ? 'Stop the ship to patch the torn sail' : `[E] Patch the torn sail (${state.patchKits} ${state.patchKits === 1 ? 'kit' : 'kits'})`)
         : tgt.kind === 'fruit' ? (state.harvest[tgt.isl.desc.id] != null && state.harvest[tgt.isl.desc.id] >= state.dayN ? 'Picked clean for today' : `[E] Pick ${plural(fruitName(fruitOf(tgt.isl.desc), tgt.isl.desc.dread), 2)}`)
         : tgt.kind === 'ship' ? (tgt.s.mode === 'derelict' ? `[E] Board the drifting ${KINDS[tgt.s.kind].label}` : tgt.s.mode === 'ghost' ? '[E] Hail the pale ship' : `[E] Hail the ${tgt.s.name}`)
         : '[E] Salvage the wreck';
@@ -2437,6 +2468,7 @@ function frame() {
   if (studio) studio.update(rawDt, soundSituation());
   $('clockicon').className = `ico ${tod.sunElev > 0 ? 'sun' : 'moon'}`;
   $('sailfill').style.width = `${Math.round(ship.trim * 100)}%`;
+  $('sailbar').classList.toggle('torn', state.sailsTorn); $('sailbar').classList.toggle('strain', sailStrain > SAIL_LIMIT * 0.35);
   drawCompass(wind, ship.heading);
   onbTick();
   if (onbAll() && tNow > 18 && helpMode !== 'full') helpEl.style.opacity = '0';
@@ -2485,7 +2517,7 @@ function frame() {
 
 // handy for tests / screenshots
 installGamepad(() => toast('Controller connected: stick to sail, A to interact, Y for the log, Start to pause.', false, 6000));
-window.__game = { places, seaplay, glimpse, fishing, oilState: () => ({ oil: state.oil, lampOut }),
+window.__game = { places, seaplay, glimpse, fishing, sails: () => ({ torn: state.sailsTorn, kits: state.patchKits, strain: sailStrain }), oilState: () => ({ oil: state.oil, lampOut }),
   readArch, partnerOf, maraMood, windfx, logbook,
   audio,
   objectives, perrinNote, gateRadius: () => gateRadius(state), trackTarget: () => trackTarget(), digGame,

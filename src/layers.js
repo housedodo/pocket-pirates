@@ -15,6 +15,9 @@ const BAND = ['s1_bass', 's1_shaperbox', 's1_pluck', 's1_drums', 's1_bell', 's1_
 // the guitar arp has a second take (4 bars, played four times): one of the two plays in the guitar's place, they swap now and
 // then at no set interval, and never sound together (the one leaving is silent before the other comes in)
 const ARP2 = 's1_guitar2';
+// the counter melody: not part of the scenes. Rarely (every two and a half to five minutes, once four or more instruments are
+// in, by day, not in a fight) it fades in slowly on a phrase over the band, plays for three to five phrases and fades out again
+const COUNTER = 's1_counter';
 // the night: a calmer version of the song (pluck, shaperbox, strings, bell; same length, through HOIST with more space).
 // From dusk to daybreak it plays instead of the band, all four together, breathing gently; the band comes back at dawn.
 const NIGHT = ['n1_pluck', 'n1_shaperbox', 'n1_strings', 'n1_bell'];
@@ -22,12 +25,12 @@ const NIGHT = ['n1_pluck', 'n1_shaperbox', 'n1_strings', 'n1_bell'];
 // band it plays on open sea (falls back by the shore, steps aside in harbour); all four together, now and then one of the
 // three upper parts rests for a while so it never sits still
 const STAGE2 = ['s2_bass', 's2_drums', 's2_guitar', 's2_pluck'];
-export const LAYERS = [...BAND, ARP2, BATTLE, ...NIGHT, ...STAGE2];
+export const LAYERS = [...BAND, ARP2, BATTLE, COUNTER, ...NIGHT, ...STAGE2];
 const FIRST = ['s1_bass', 's1_shaperbox'];   // the first quest brings these two in together
 // [home pan -1..1, how far it wanders, how fast]: bass and drums stay near the middle, the rest spread out
 const PLACE = {
   s1_bass: [0, 0.1, 0.031], s1_shaperbox: [-0.3, 0.32, 0.023], s1_pluck: [0.42, 0.3, 0.037],
-  s1_drums: [-0.08, 0.14, 0.019], s1_bell: [0.58, 0.28, 0.027], s1_guitar: [-0.52, 0.28, 0.041], s1_guitar2: [-0.52, 0.28, 0.041], s1_raiders: [0.1, 0.18, 0.033],
+  s1_drums: [-0.08, 0.14, 0.019], s1_bell: [0.58, 0.28, 0.027], s1_guitar: [-0.52, 0.28, 0.041], s1_guitar2: [-0.52, 0.28, 0.041], s1_raiders: [0.1, 0.18, 0.033], s1_counter: [0.2, 0.32, 0.017],
   s2_bass: [0, 0.1, 0.029], s2_drums: [-0.1, 0.14, 0.02], s2_guitar: [-0.5, 0.3, 0.037], s2_pluck: [0.45, 0.3, 0.031],
   n1_pluck: [0.4, 0.3, 0.021], n1_shaperbox: [-0.35, 0.3, 0.017], n1_strings: [0, 0.2, 0.013], n1_bell: [0.55, 0.3, 0.025],
 };
@@ -47,6 +50,7 @@ export class SeaLayers {
     this.pace = 1;           // test flag (?dev=1&musicpace=4): everything moves this many times faster
     this.rnd = Math.random;
     this.order = [...BAND]; this.battle = 0; this.night = 0; this.s2rest = null; this.s2next = 30;
+    this.counter = { k: 0, phase: 'rest', t: 150 + Math.random() * 120, len: 0 };   // the counter melody's own slow cycle
     this.arp = { which: 0, m: [1, 0], hold: (2 + Math.floor(Math.random() * 6)) * PHRASE, armed: -1 };   // which arp take plays, and how far each is faded in
     this.scene = new Set(); this.sceneFull = true; this.sceneLeft = 0; this.recent = []; this.lastN = 0; this.t0 = 0; this.phrase = -1; this.smalls = 0;
   }
@@ -177,6 +181,17 @@ export class SeaLayers {
         const [home, wander, sp] = PLACE[k];
         this.pans.get(k).pan.setTargetAtTime(Math.max(-0.9, Math.min(0.9, home + wander * Math.sin(this.t * sp * 6.283 + st.ph))), T, 1);
         out[k] = nk * st.breath * 1.0 * (s.stage ?? 1) * (0.4 + 0.6 * this.open);   // as present as the day band (the stems are mastered quieter)
+        continue;
+      }
+      if (k === COUNTER) {   // rare: rest a long while, fade in over ~12 s on a phrase, play 3-5 phrases, fade out over ~14 s
+        const C = this.counter, ok = n >= 4 && nk < 0.3 && this.battle < 0.3 && this.scene.size >= 2;
+        if (C.phase === 'rest') { C.t -= d; if (C.t <= 0 && ok && (onPhrase || this.pace !== 1)) { C.phase = 'in'; C.len = (3 + Math.floor(this.rnd() * 3)) * PHRASE; } }
+        else if (C.phase === 'in') { C.k = Math.min(1, C.k + d / 12); if (!ok) C.phase = 'out'; else if (C.k >= 1) { C.phase = 'hold'; C.t = C.len; } }
+        else if (C.phase === 'hold') { C.t -= d; if (C.t <= 0 || !ok) C.phase = 'out'; }
+        else { C.k = Math.max(0, C.k - d / 14); if (C.k <= 0) { C.phase = 'rest'; C.t = 150 + this.rnd() * 150; } }
+        const [home, wander, sp] = PLACE[k];
+        this.pans.get(k).pan.setTargetAtTime(Math.max(-0.9, Math.min(0.9, home + wander * Math.sin(this.t * sp * 6.283 + st.ph))), T, 1);
+        out[k] = smooth(C.k) * 0.9 * this.bg * (s.stage ?? 1) * (0.4 + 0.6 * this.open) * (1 - nk);
         continue;
       }
       if (k === BATTLE) {   // not part of the scenes: only the fight brings it in, on top of whatever the band plays

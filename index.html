@@ -28,6 +28,9 @@
     #sailbar { position: absolute; right: 12px; top: 176px; width: 124px; font-size: 12px; text-align: center; }
     #sailbar .bar { height: 10px; background: #0007; border: 2px solid var(--edge); margin-top: 3px; }
     #sailbar .fill { height: 100%; width: 70%; background: var(--gold); }
+    #sailbar.strain .fill { background: #ff9a3a; animation: blink .6s steps(2) infinite; }   /* too much canvas for this wind */
+    #sailbar.torn .fill { background-color: #e0502e; }   /* torn: two thirds speed */
+    #sailbar.torn .ico.sail { animation: blink 1.2s steps(2) infinite; }
     #prompt { position: absolute; left: 50%; bottom: 84px; transform: translateX(-50%); font-size: 16px; text-align: center; display: none; }
     #prompt .bar { height: 8px; margin-top: 6px; background: #0007; border: 2px solid var(--edge); display: none; }
     #prompt .bar i { display: block; height: 100%; width: 0; background: var(--gold); }

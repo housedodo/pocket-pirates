@@ -121,6 +121,21 @@ function sailStrip(b, v0, v1, col, tile, push = 0.03) {   // a band across the m
 function sailPatch(b, u, v, du, dv, col) {
   for (const sd of [1, -1]) { const q = (a, c) => { const p = sailPt(a, c); return [p[0] + sd * 0.035, p[1], p[2]]; }; b.quad(q(u, v), q(u + du, v), q(u + du, v + dv), q(u, v + dv), col, TILE.sail); }
 }
+// torn sails (a gale with too much canvas out): holes you can see through, long rips, a corner gone (main.js sailTick)
+function buildTorn() {
+  const b = new Builder(); b.doubleSided = true; b.ambient = 0.8;
+  const hole = '#1a120c', rip = '#3a2818';
+  sailPatch(b, 0.14, 0.34, 0.17, 0.12, hole); sailPatch(b, 0.58, 0.6, 0.13, 0.15, hole); sailPatch(b, 0.42, 0.16, 0.11, 0.08, hole);
+  sailPatch(b, 0.7, 0.3, 0.1, 0.07, hole); sailPatch(b, 0.28, 0.78, 0.09, 0.07, hole);
+  for (const [u, v, du] of [[0.3, 0.46, 0.34], [0.12, 0.66, 0.26], [0.5, 0.86, 0.22], [0.6, 0.12, 0.3]]) sailPatch(b, u, v, du, 0.014, rip);   // long rips
+  sailPatch(b, 0.86, 0.0, 0.14, 0.12, hole);   // the clew torn away
+  return b.geometry();
+}
+function buildRag() {   // a loose strip of canvas that flaps in the wind
+  const b = new Builder(); b.doubleSided = true; b.ambient = 0.8;
+  b.quad([0, 0, 0], [0, 0, 0.32], [0, -1.1, 0.22], [0, -1.2, 0.05], '#e8dcc0', TILE.sail);
+  return b.geometry();
+}
 function buildSailLook(level) {
   const b = new Builder(); b.doubleSided = true; b.ambient = 0.8;
   if (level === 0) {                                     // stock: mended, stained, a patch or three
@@ -257,6 +272,9 @@ export class Ship {
     this.sailPivot.position.set(0, 1.0, -0.3);
     this.sail = new THREE.Mesh(shipGeos().sail, mats.sail);
     this.sailLook = new THREE.Mesh(new THREE.BufferGeometry(), mats.sail); this.sail.add(this.sailLook);
+    this.tornLook = new THREE.Mesh(buildTorn(), mats.sail); this.tornLook.visible = false; this.sail.add(this.tornLook);
+    this.rags = [[0.35, 0.2], [0.62, 0.5], [0.2, 0.62]].map(([u, v]) => { const m = new THREE.Mesh(buildRag(), mats.sail); m.position.set(...sailPt(u, v)); m.visible = false; this.sail.add(m); return m; });
+    this.torn = false;
     this.topsail = new THREE.Mesh(buildTopsail(), mats.sail); this.topsail.visible = false;
     this.sailPivot.add(this.sail);
     this.root.add(this.sailPivot);
@@ -342,6 +360,9 @@ export class Ship {
     this.topsail.visible = sl >= 3;
   }
 
+  /** the mainsail is torn (holes, rips, flapping rags) and the ship sails at two thirds speed until it is patched */
+  setTorn(on) { this.torn = !!on; this.tornLook.visible = this.torn; for (const m of this.rags) m.visible = this.torn; }
+
   setCustom(c) {
     this.custom = { ...DEFAULT_CUSTOM, ...c };
     this.hullMesh.geometry = hullGeo(this.custom.hull);
@@ -378,7 +399,7 @@ export class Ship {
     // the slow wedge into the wind; early in the voyage it is narrower and less punishing (floorMin, wedge)
     this.eff = 1 - (1 - Math.max(this.mods.floor, this.floorMin || 0)) * smoothstep(this.wedge || 0.6 * Math.PI, this.wedgeEnd || 0.95 * Math.PI, a);   // close-hauled (45° off the wind) still sails well
     this.rel = angleDiff(this.heading, wind.dir);
-    const target = MAX_SPEED * this.mods.speed * this.buff * (this.gust || 1) * this.eff * this.trim * wind.strength;   // gust: a caught cat's paw (seaplay.js)
+    const target = MAX_SPEED * this.mods.speed * this.buff * (this.gust || 1) * (this.torn ? 0.66 : 1) * this.eff * this.trim * wind.strength;   // gust: a caught cat's paw (seaplay.js)
     const rate = target > this.speed ? 0.5 : 0.7;
     this.speed += (target - this.speed) * Math.min(1, rate * dt);
 
@@ -412,6 +433,7 @@ export class Ship {
     this.jib.scale.y = flat;
     this.topsail.scale.set(this.jib.scale.x, flat, 1);
     this.jib.position.y = (1 - flat) * 0;
+    if (this.torn) this.rags.forEach((m, i) => { m.rotation.x = Math.sin(t * (11 + i * 3) + i * 2) * 0.5 * (0.3 + this.trim); m.rotation.z = Math.sin(t * 7 + i) * 0.25; });
     this.flag.rotation.y = Math.PI - this.rel + Math.sin(t * 9) * 0.18 + (this.wrongSails ? Math.PI : 0);
     this.flagBright.visible = !dark;
     this.flagDark.visible = dark;

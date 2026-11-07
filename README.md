@@ -28,6 +28,7 @@ npm run build      # static build in dist/
 | wheel | zoom |
 | H | hide HUD |
 | Q | show / hide the mission tracker and the orange target arrow |
+| E (at sea, sail torn, ship stopped) | patch the sail with a kit; without one, dock at any harbour |
 | click on the chart | put a pin there; the compass follows the newest pin until you reach it (click it again to unpin) |
 
 **Controller** (any standard pad: Xbox, PlayStation, Switch Pro, Steam Deck; `src/gamepad.js`): left stick or d-pad steer and

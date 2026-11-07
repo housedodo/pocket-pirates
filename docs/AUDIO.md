@@ -99,6 +99,11 @@ They are stage 1's music (the old placeholder `music_1` is gone).
   the same settings, F minor like the band). One of the two plays in the guitar's place; they swap after 2-7 phrases (chosen at
   random every time, so no pattern), starting just before a phrase so the new take comes in on the downbeat. They never sound
   together: the leaving take fades out in 0.3 s and only then does the other fade in (0.5 s).
+- **The counter melody** (`s1_counter`, from `Counter_melody.wav`, 16 bars, through HOIST at FAIR WEATHER with a little more space:
+  TIDE 0.24, MIX 0.52; -27 LUFS like the other stems). Not part of the scenes: it rests for 2.5-5 minutes, then (once four or more
+  instruments are in, by day, not in a fight, while at least two instruments play) it fades in slowly over ~12 s on a phrase,
+  stays 3-5 phrases and fades out over ~14 s. In a 20-minute simulation it came in four times, about a minute each (~18% of the
+  time). Its own place in the stereo field: a little right of centre, wandering slowly.
 - **Heard over the waves:** all six share one soft low-pass (about 1.5-3 kHz) that moves with a slow swell, together with a small level
   lift on the crest, and closes further in strong wind.
 - **Open sea:** right by a shore (within about 60 units) they ease down to 40%, slowly. They carry the whole bright half of the
