@@ -180,7 +180,7 @@ threads.bind({
   refreshMods: () => refreshMods(),
   cool: () => { for (const r of Object.values(state.rep)) r.visits = Math.max(0, r.visits - 2); },
   setLook: (c) => { state.custom = { ...state.custom, ...c }; ship.setCustom(state.custom); },
-  teleport: (d) => { const dk = d.dock || { x: 0, z: 0 }; ship.pos.set(d.x + dk.x, 0, d.z + dk.z); ship.speed = 0; state.pos = { x: ship.pos.x, z: ship.pos.z, h: ship.heading }; },
+  teleport: (d) => { const dk = d.dock || { x: 0, z: 0 }; ship.pos.set(d.x + dk.x, 0, d.z + dk.z); ship.speed = 0; ship.vel = null; state.pos = { x: ship.pos.x, z: ship.pos.z, h: ship.heading }; },
 });
 function markFromRoll(n) { if (n === 1) addMark('counted'); else if (n === 20) addMark('called'); }   // a natural 1 gets you counted, a natural 20 gets you called   // optional dark threads (Story Bible, "Multiple paths"); the Colour is the first prototype
 { const h = world.desc(0, -1); if (h) caves.force(h, 3); }
@@ -2585,7 +2585,7 @@ window.__game = { lostState: () => ({ lostK, gateLost, placesLost: places.lost, 
   get companions() { return companions; }, petOffer, takePet, caves, openCave, threads, addMark,
   /** concept sketch: put a cat or a gull on deck (dev only) */
   companion(kind = 'cat', slot = '_pet') { if (this[slot]) ship.root.remove(this[slot].m.g); this[slot] = kind ? new Companion(ship, kind) : null; return !!this[slot]; },
-  teleport(x, z, h) { ship.pos.set(x, 0, z); ship.heading = h; camHeading = h; },
+  teleport(x, z, h) { ship.pos.set(x, 0, z); ship.heading = h; camHeading = h; ship.vel = null; },
   /** biome concept scenes (dev): kind 'coral' | 'rain' | 'sunken' */
   async biome(kind, x, z) { const { buildBiome } = await import('./concepts.js'); if (this._biome) scene.remove(this._biome); this._biome = buildBiome(scene, kind, x, z); return true; },
   /** design lineups for screenshots: 'villagers' or 'houses' on a raft at (x, z) */

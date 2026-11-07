@@ -376,6 +376,7 @@ export class Ship {
   }
 
   update(dt, input, wind, t) {
+    if (this._px !== undefined && Math.hypot(this.pos.x - this._px, this.pos.z - this._pz) > 20) this.vel = null;   // moved by the game (moor, respawn): no leftover momentum
     this.rudder += (input.steer - this.rudder) * Math.min(1, dt * 4);
     this.oarOut = clamp(this.oarOut + (this.rowing ? 1 : -1) * dt * 0.7, 0, 1);
     if (this.rowing || this.oarOut > 0) {
@@ -399,13 +400,23 @@ export class Ship {
     // the slow wedge into the wind; early in the voyage it is narrower and less punishing (floorMin, wedge)
     this.eff = 1 - (1 - Math.max(this.mods.floor, this.floorMin || 0)) * smoothstep(this.wedge || 0.6 * Math.PI, this.wedgeEnd || 0.95 * Math.PI, a);   // close-hauled (45° off the wind) still sails well
     this.rel = angleDiff(this.heading, wind.dir);
-    const target = MAX_SPEED * this.mods.speed * this.buff * (this.gust || 1) * (this.torn ? 0.66 : 1) * this.eff * this.trim * wind.strength;   // gust: a caught cat's paw (seaplay.js)
+    // the water pushes back: climbing a wave face costs speed, running down one gives a little (surfing)
+    const slopeK = 1 - clamp((this.slope || 0) * 2.2, -0.18, 0.28);
+    const target = MAX_SPEED * this.mods.speed * this.buff * (this.gust || 1) * (this.torn ? 0.66 : 1) * this.eff * this.trim * wind.strength * slopeK;   // gust: a caught cat's paw (seaplay.js)
     const rate = target > this.speed ? 0.5 : 0.7;
     this.speed += (target - this.speed) * Math.min(1, rate * dt);
+    this.speed *= 1 - Math.abs(this.rudder) * clamp(this.speed / MAX_SPEED, 0, 1) * 0.22 * dt;   // a hard turn drags the hull
 
     this.heading += this.rudder * this.mods.turn * (0.28 + 0.8 * clamp(this.speed / 6, 0, 1)) * dt;
-    this.pos.x += Math.sin(this.heading) * this.speed * dt;
-    this.pos.z -= Math.cos(this.heading) * this.speed * dt;
+    // momentum: the hull keeps going the way it was going and only slowly follows the bow, so turns slide a little;
+    // and the wind on the sails pushes it a touch sideways (leeway)
+    const v = this.vel || (this.vel = { x: 0, z: 0 });
+    const wx = Math.sin(this.heading) * this.speed, wz = -Math.cos(this.heading) * this.speed;
+    v.x += (wx - v.x) * Math.min(1, dt * 1.7); v.z += (wz - v.z) * Math.min(1, dt * 1.7);
+    const lee = Math.sin(this.rel) * this.trim * wind.strength * 0.35, rx = Math.cos(this.heading), rz = Math.sin(this.heading);
+    this.pos.x += (v.x - rx * lee) * dt;
+    this.pos.z += (v.z - rz * lee) * dt;
+    this._px = this.pos.x; this._pz = this.pos.z;
   }
 
   // call after collision resolution
@@ -415,10 +426,28 @@ export class Ship {
     const p = this.pos;
     const wh = (ox, oz) => waveHeight(p.x + fx * oz * -1 + rx * ox, p.z + fz * oz * -1 + rz * ox, t, wave);
     const bow = wh(0, -2.6), stern = wh(0, 2.6), right = wh(1.3, 0), left = wh(-1.3, 0);
-    const pitch = Math.atan2(bow - stern, 5.2);
-    const roll = Math.atan2(right - left, 2.6) - Math.sin(this.rel) * 0.1 * this.eff * this.trim - this.rudder * 0.14 * (this.speed / MAX_SPEED);
-    this.root.position.set(p.x, (bow + stern + right + left) / 4 + 0.12, p.z);
-    this.root.rotation.set(pitch, -h, roll);
+    // the water's shape under the hull, and the forces on it: the bow rides up with speed and nods when the ship speeds up
+    // or slows down; the wind in the sails heels it over; a turn leans it out; at speed it sits a little lower (squat)
+    const sp = clamp(this.speed / MAX_SPEED, 0, 1.3), dtc = Math.min(dt, 0.05);
+    this.slope = (bow - stern) / 5.2;
+    const acc = dtc > 0 ? (this.speed - (this.lastSpeed ?? this.speed)) / dtc : 0; this.lastSpeed = this.speed;
+    this.accS = (this.accS || 0) + (acc - (this.accS || 0)) * Math.min(1, dtc * 4);
+    const tPitch = Math.atan2(bow - stern, 5.2) * 0.85 + 0.05 * sp + clamp(this.accS * 0.03, -0.06, 0.06);
+    const tRoll = Math.atan2(right - left, 2.6) * 0.8 - Math.sin(this.rel || 0) * 0.16 * (this.eff ?? 1) * this.trim - this.rudder * 0.18 * sp;
+    const tY = (bow + stern + right + left) / 4 + 0.12 - 0.08 * sp;
+    // a heavy hull: it follows the water through springs, lags behind the waves and settles with a little overshoot
+    const F = this.float || (this.float = { y: tY, vy: 0, p: tPitch, vp: 0, r: tRoll, vr: 0 });
+    const spring = (key, vkey, target, w, z) => { const a = w * w * (target - F[key]) - 2 * z * w * F[vkey]; F[vkey] += a * dtc; F[key] += F[vkey] * dtc; };
+    if (dtc > 0) { spring('y', 'vy', tY, 3.4, 0.5); spring('p', 'vp', tPitch, 2.8, 0.45); spring('r', 'vr', tRoll, 2.3, 0.4); }
+    if (Math.abs(F.y - tY) > 3) { F.y = tY; F.vy = 0; }   // after a teleport
+    this.root.position.set(p.x, F.y, p.z);
+    this.root.rotation.set(F.p, -h, F.r);
+    // the bow slams into a trough at speed: spray thrown up at the bow
+    this.slamT = Math.max(0, (this.slamT || 0) - dt);
+    if (F.vp < -0.09 && sp > 0.35 && this.slamT <= 0) {
+      this.slamT = 0.6;
+      for (let n = 0; n < 3; n++) { const pf = this.puffs.find((q) => q.life <= 0); if (!pf) break; const sd = n - 1, bx = p.x + fx * 2.9 + rx * sd * 0.7, bz = p.z + fz * 2.9 + rz * sd * 0.7; pf.m.position.set(bx, waveHeight(bx, bz, t, wave) + 0.5, bz); pf.life = pf.max = 0.9; pf.size = 0.7 + Math.random() * 0.5 * sp; pf.m.visible = true; }
+    }
 
     // sails follow the wind
     let sgn = this.rel >= 0 ? 1 : -1;

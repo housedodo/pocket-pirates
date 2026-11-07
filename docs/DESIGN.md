@@ -236,3 +236,11 @@ rises to 1: steering and sail input are ignored, heading eases toward the way ou
 speed toward 3.2, and a small outward drift. The scene fog closes to ~10 units. `fogEdge(x, z)` (0 near fog, 1 in clear water)
 scales the currents (seaplay.js) so they never lead into fog.
 
+## Waves and the ship
+Wave height = the swell (several crossing sine waves, crests bent by a slow warp) x the sets (`G`, a slow travelling pattern,
+0.5x to 1.45x, with a longer roller in the big sets) x the land factor (`seaScale` / GLSL `landNear`: 0.35 within ~15 of a
+shore, rising smoothly to 1.7 at 260+ from any of the twelve nearest islands) x the weather (`stage.wave`: wind strength,
+storms heap it up to 2.3x, rain flattens it, a calm takes 75% away). With rough water (`WATER.rough`: storms, dread) the swell
+blends into long dark rollers. The same function runs on the GPU (the water) and the CPU (the ship, fauna, bobbers).
+The ship samples four points (bow, stern, both sides) and follows them through springs (`Ship.place`, `this.float`).
+

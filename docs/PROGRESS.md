@@ -652,4 +652,10 @@ From the critique "what goes stale on a long voyage" (compared with Wind Waker, 
   nothing happened.
 - **Wave sets in any weather:** a slow travelling pattern makes the swell bigger and smaller (about 0.5x to 1.45x) with a longer
   roller in the big sets, on the GPU and the CPU alike. Measured in calm water ~60 from Tama: 6-second ranges 0.41 to 0.98.
+- **The ship floats with weight and meets resistance** (ship.js): height, pitch and roll follow the water through damped springs
+  (a heavy hull that lags the waves and settles with a little overshoot) instead of copying the surface; the bow rides up with
+  speed, nods when the ship speeds up or slows down, it heels with the wind in the sails and leans out in a turn, and squats a
+  little at speed. Climbing a wave face costs up to 28% speed, running down one gives up to 18%; a hard turn drags; the hull
+  keeps its momentum and only slowly follows the bow (turns slide), with a touch of leeway from the wind. When the bow drops
+  into a trough at speed it throws spray. `docs/concept/boat_motion.mp4`.
 
