@@ -22,3 +22,5 @@ area only when the task says so or when the change crosses over (then say which 
 Cave, thread or new-island changes touch all three: gameplay owns the beat, design owns how it looks, audio owns how it sounds.
 The main session coordinates: brief each specialist with only its slice, then check the results agree. Shared files
 (`main.js`, `index.html`, `docs/PROGRESS.md`) are edited carefully by whoever needs them; keep edits small and local.
+
+- `src/harbourlife.js` (gameplay: residents, house dishes, events, gossip, fragments) and `src/localgames.js` (gameplay: the eight tavern games).

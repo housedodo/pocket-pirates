@@ -269,3 +269,10 @@ passes `sun()` and `noon` to `digGame.start`; digging.js places the arch so the 
 - **Shops** (`renderHarbour`): shipwright cards from `UPGRADES` + `UP_CARD` (icon, stock, opens tags); `upFlash` for the buy
   flash; `#hbWide.shop` widens the panel for the shipwright and market.
 
+
+## Harbour life (why visit every harbour)
+Errands alone make every harbour the same. Each harbour adds: a resident whose four-step story ends with a lasting change
+(prop by the pier), a house dish with a one-day buff, a named weekly event that doubles its local game, a local game by
+village style, and one fragment of the old story. Gossip carries what you did to the next harbour. Pacing: one resident
+step a day per harbour, one game a day per harbour, one dish at a time, so a round of several harbours always has
+something to do in each. See PROGRESS.md "Harbour life" for the list.

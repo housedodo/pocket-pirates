@@ -89,7 +89,7 @@ export class SeaPlay {
       const g = this.gusts[gi];
       if (g.life > 0) {
         g.life -= dt; g.x += wx * 6.5 * dt; g.z += wz * 6.5 * dt;
-        if (!g.taken && Math.hypot(ship.pos.x - g.x, ship.pos.z - g.z) < g.R + 2 && ship.trim > 0.3) { g.taken = true; this.boost = 4.5; ev.gust = true; this.caught++; }
+        if (!g.taken && Math.hypot(ship.pos.x - g.x, ship.pos.z - g.z) < g.R + 2 && ship.trim > 0.3) { g.taken = true; this.boost = ctx.gustLong ? 7.5 : 4.5; ev.gust = true; this.caught++; }
       }
       const fade = g.life > 0 ? clamp(Math.min(g.ttl - g.life, g.life) / 2.5, 0, 1) * (g.taken ? 0.35 : 1) : 0;
       for (let k = 0; k < GD; k++) {

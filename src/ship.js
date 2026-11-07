@@ -401,7 +401,7 @@ export class Ship {
       return;
     }
     this.rowIn = 0;
-    this.trim = clamp(this.trim + input.sail * 0.6 * dt, 0, 1);
+    this.trim = clamp(this.trim + input.sail * 0.6 * (this.trimMul || 1) * dt, 0, 1);
 
     // wind
     const a = Math.abs(angleDiff(this.heading, wind.dir));
@@ -504,7 +504,7 @@ export class Ship {
     // lantern glow
     const L = this.mods.lantern;
     this.glow.position.set(p.x, 0.8, p.z);
-    const lk = this.lampK || 1;   // lamp strength setting (daynight.js LAMPS)
+    const lk = (this.lampK || 1) * (this.lampBoost || 1);   // lamp strength setting (daynight.js LAMPS)
     night = Math.max(night, 0.7 * (this.stormLight || 0));   // in a storm the lantern is lit and shows like at night
     this.glow.scale.setScalar((5 + 3 * L + 4 * night) * (0.55 + 0.45 * lk));   // at night the lantern is the light you sail by: a wide warm pool on the water
     mats.glow.opacity = Math.min(0.95, (0.12 + 0.6 * night * (0.7 + 0.15 * L)) * (L === 0 ? 0.75 : 1) * (0.6 + 0.4 * lk)) * (this.lampOut ? 0.05 : 1);   // no oil: the lantern is out

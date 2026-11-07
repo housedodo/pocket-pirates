@@ -36,6 +36,13 @@ HAND-MADE PLACES (built)
 - Glass Lagoon: inside a reef (needs shallow draft); a chest on the bottom.
 - The Halved Isle: inside a fog bank (needs a lantern); half a house, half a strongbox.
 
+HARBOUR LIFE (built): every harbour has a resident with a four-visit story that changes the harbour for good, a house
+dish, a named weekly event, a local game, and one fragment of the old story (12 in all; the table by the water, the one
+who keeps the count). What you do in one harbour is gossiped about in the next. Lines are in Part 2 under
+harbourlife.js and localgames.js.
+  Residents: Ada the baker (Tama, with Ode in Velto) · Tilda and her dog (Velto) · Ines at the lamp · Pim the boatbuilder ·
+  Old Sabe the blind keeper · Lune who sings · Marisol the bride · Corvo who counts ships.
+
 WORLD HINTS (built, rare): the Kestrel's transits with daymarks, tide wrecks at low water, abandoned camps,
 watchers on shores, birds that point the way, the arch's noon shadow over a buried chest.
 
@@ -1658,3 +1665,148 @@ main/world = Mara's remarks, HUD messages and everything else.
 
 --- vr ---
   -  At noon, the arch points.
+
+
+========== harbourlife.js ==========
+
+--- DISHES ---
+  - [classic] the ship feels lighter: a little more speed
+  - [terraced] the crew set and reef the sails faster
+  - [thatch] a caught gust lasts longer
+  - [market] the canvas strains less in a gale
+  - [farm] an extra handful when you pick fruit
+  - [shrine] the lantern reaches further
+  - [wreckers] the hull mends at sea, even in a storm
+
+--- DISH_LINES ---
+  - [pie] Flaky, hot, far too big. The cook watches you finish it.
+  - [stew] Fish, onions, something green. It tastes of the morning catch.
+  - [bread] Still warm. The honey comes from the terraces above the town.
+  - [curry] Hot enough to make your eyes water. The crew ask for seconds.
+  - [rum] It warms you right down to the keel.
+  - [pepper] Beans, peppers, a little pork. Farmers' food: it stays with you.
+  - [tea] Bitter as bark. Afterwards the lamps all seem a little brighter.
+  - [pork] Salt enough to cure a sailor. The wreckers eat it standing up.
+
+--- GAMES ---
+  - [classic] repeat the peal on the bells (1-4)
+  - [fishing] stop the shuttle on each hole (Space)
+  - [terraced] power, then angle (Space)
+  - [thatch] keep it in the band (A / D)
+  - [market] bid or pass: guess what the lot is worth
+  - [farm] throw as the arm swings over a coconut (Space)
+  - [shrine] let go as the gap comes round (Space)
+  - [wreckers] push on the beat (Space)
+
+--- ARCS ---
+  - You stow the loaf. It smells of aniseed.
+  - Ode the baker sniffs Ada's loaf, eats half of it, and says nothing for a long time. Then she wraps one of her own for you. "Tell her nothing. Give her that."
+  - Ode's loaf is still warm. It smells of aniseed too.
+  - Ada tears into her sister's loaf. Her face does several things. "Hers is better," she says at last. "Do not tell her."
+  - Ada is quiet all afternoon. She bakes twice as much as usual.
+  - There are two names over the bakery door now: ADA & ODE. Ode came on the morning boat with her ovens. They argue all day and both seem very happy.
+  - The bun is free. "For the postman," they say together.
+  - Two names over the bakery door. They are still arguing.
+  - A girl called Tilda is crying on the pier. Her dog Biscuit swam after a fishing boat yesterday and did not come back. "He goes where the boats go. Will you look?"
+  - Tilda draws Biscuit for you: four legs, a lot of ears.
+  - Biscuit sits in the bow the whole way, barking at the waves.
+  - Biscuit is over the side and up the pier before you have tied up. Tilda sits down on the planks and holds on to him and does not let go.
+  - Her mother presses a few coins into your hand.
+  - Biscuit barks at the Merry Gull from the end of the pier, every time, until you step ashore. Tilda has taught him to sit. He mostly does not.
+  - Biscuit leans against your leg like a sack of wet flour.
+  - Biscuit barks from the end of the pier until you are ashore.
+  - Ines keeps a lamp lit at the end of the pier for her husband Tomas, out on the Little Wren. "Nineteen days late. He is never late. The lamp must not go out." She is nearly out of oil.
+  - She fills the lamp with careful hands, and thanks you without looking away from the sea.
+  - The scarf smells of tar and of someone else's house.
+  - You fold the scarf. You are not sure what you will tell her.
+  - The lamp at the end of the pier is cold. Ines's door is open and the beds are made. On the table, two cups, both still warm.
+  - You leave the scarf on the table, next to the cups.
+  - Ines's lamp is dark. Nobody lights it, and nobody takes it down.
+  - A boy called Pim is building a boat out of driftwood on the beach. It is mostly holes. "I need nails. The smith takes fruit."
+  - Pim runs off with the fruit and comes back with a fistful of bent nails.
+  - The boat has a bottom now. "Gran says the first fish goes in the hull, for luck. I have never caught a fish."
+  - Pim nails the fish to the inside of the hull, very seriously.
+  - Pim is painting a name on the bow in big red letters: MERRY GULL II. "So she knows where she is going."
+  - Pim stands back and looks at it for a long time.
+  - Launch day. Pim's boat floats. It leaks, and he bails with one hand and waves with the other all the way round the pier and back.
+  - The whole pier cheers. Pim pretends not to hear.
+  - Pim's little boat is out again. It leaks. He bails and waves.
+  - Old Sabe keeps the harbour light, though he can barely see it any more. "Oil, captain, if you have it. The light goes on whether I see it or not."
+  - He fills the lamp by feel, not spilling a drop.
+  - "Sail past the light one night," Sabe says. "Close in. I want to hear a ship go by again."
+  - Sabe is on the steps in the dark when you tie up. "I heard you go by. The gulls told me. They tell me where everyone has been." He gives you a lens from his old glass.
+  - The lens is scratched, and very clear.
+  - A girl keeps the light now. Sabe sits on the steps facing the sea with his eyes shut. "I see it better like this," he says, and tells you where you sailed yesterday.
+  - He is right about every island.
+  - Sabe sits on the steps with his eyes shut, and knows where you have been.
+  - Lune hums the tune until you have it.
+  - You keep the words in your head the whole way back.
+  - You give Lune the words. She sings the whole song for the first time: a table by the water, someone who keeps the count, and everyone asleep. She stops. "That is not how I remember it ending."
+  - The quay is very quiet.
+  - At dusk the whole village sings Lune's song, all the way to the end. Lune does not. She says she never knew the words before, and hums something else.
+  - You find you know all the words.
+  - At dusk they sing Lune's song to the end. Lune hums something else.
+  - The ribbon is blue, with her name sewn on it.
+  - You keep the box somewhere very safe.
+  - Marisol opens the box, laughs, cries, and puts it on the wrong finger. "Come to the wedding. It is on our festival day."
+  - Come back on the festival day.
+  - A wedding on the festival day: flowers on the pier, a cake on a cart, Teo in a coat that is too big. Marisol throws her bouquet, and the crew catch it.
+  - You dance badly and are cheered for it.
+  - Marisol and Teo wave from a blue house above the pier.
+  - [counter] Corvo who counts ships
+  - A man called Corvo stands on the pier with a stick of chalk, writing every ship that comes in on the harbour wall. "Name?" He writes MERRY GULL, very neatly.
+  - Corvo nods and turns back to the sea.
+  - Corvo has filled most of the wall. "Busy week," he says, and writes MERRY GULL again.
+  - He looks at the wall, then at you. "Twice. Yes."
+  - Your ship's name is on the wall three times now. One of them is dated next week. Corvo will not look at you.
+  - Most of the ships on the wall you have never heard of. Two you have.
+  - The wall has been washed clean. There is a new man on the pier with a stick of chalk. "Name?" he says.
+  - He writes MERRY GULL, very neatly.
+  - A man on the pier writes every ship on the wall in chalk. The wall is washed every week.
+
+--- block ---
+  - Come back another day.
+  - needs a fish from your hold
+
+--- GOSSIP ---
+  - [raider] You sent a Brotherhood ship to the bottom, they say. Drinks are on the house. One drink.
+  - [raider] Heard about the raider. The Reef Brotherhood heard too, captain. Mind yourself.
+
+--- FRAG_BY_STYLE ---
+  - [classic] The bell's inscription
+  - [classic] Cut round the rim of the old bell, worn almost smooth: RUNG FOR THE ONE WHO SLEEPS. RING SOFTLY.
+  - [fishing] An old fisher's story
+  - [fishing] An old fisher says his grandfather rowed out one calm night to a little black house on the water, and played a game at a table with a woman who never said a word. He won. The fish came back that year.
+  - [terraced] A painting on the terrace wall
+  - [terraced] Painted along the terrace wall, older than the houses: the sea drawn as a closed eye, the horizon its lid, and a tiny house sitting on the lid.
+  - [thatch] A children's counting rhyme
+  - [thatch] Children skipping on the beach: "One for the gull and two for the bell, three for the one who keeps the sea well... nineteen, twenty, and all of us sleep." They start again at one.
+  - [market] An old woman at the market sells dice, all of them twenty-sided, every one missing a different number. "She would like them back," she says, and does not say who.
+  - [farm] The eggs come wrapped in an old ledger page: two columns, a date and a number from one to twenty, going back two hundred years. The last line is dated next month.
+  - [shrine] A carving over the shrine door
+  - [shrine] Carved over the shrine door: a woman at a table, a die with too many faces. Scratched underneath, later and by another hand: SHE COUNTS SO WE DO NOT HAVE TO.
+  - [wreckers] A figurehead on the beach
+  - [wreckers] An old figurehead stands in the sand: a woman holding a die. The wreckers touch it for luck before they go out. They touch the die. Never her face.
+
+--- FRAG_SPARE ---
+  - A note in the tavern's rafters
+  - Tucked in the rafters, in a careful hand: "Low numbers tonight. Bar the doors. Do not look at the water until she throws again."
+  - The innkeeper always sets one more place than there are guests, at the end of the table nearest the sea. "For the one who is up all night," she says, as if that explains it.
+  - An old sailor shows you a tattoo on his wrist: a single die, showing twenty. "So she knows I am on her side," he says, and pulls his sleeve down.
+  - A sign on the harbour wall
+  - A painted sign by the pier, very old: QUIET AFTER DARK. SHE IS COUNTING.
+
+
+========== localgames.js ==========
+
+--- g ---
+  - Watch the peal, then ring it back on the bells: 1, 2, 3, 4.
+  - The shuttle runs along the torn line: press Space as it crosses the gold hole.
+  - Space to set the power, Space again to set the angle. Low and fast skips best. Three throws.
+  - Gusts push the kite about: hold A and D to keep it in the gold band for 20 seconds.
+  - The arm swings: press Space as it points at a coconut. Five balls.
+  - Let a lantern go with Space: the current carries it up to the rocks. It must pass the gap. Six lanterns.
+  - Push with Space on the beat (when the ring closes). Off the beat you lose your grip.
+  - Your knuckles meet the table. The wreckers cheer, for him. 
+  - Neither of you gives in. He shakes your hand, hard.
+  - His arm goes down! The whole beach shouts.

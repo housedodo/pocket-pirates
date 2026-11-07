@@ -55,6 +55,8 @@ import { installGamepad } from './gamepad.js';
 import { Wake } from './wake.js';
 import { Secrets, TALES } from './secrets.js';
 import { OIL_FROM, oilCap, oilRate, lanternLit, OIL_PRICE } from './oil.js';
+import * as life from './harbourlife.js';
+import { LocalGames } from './localgames.js';
 
 // ---------------------------------------------------------------- params, save, settings
 const params = new URLSearchParams(location.search);
@@ -118,6 +120,7 @@ const state = {
   cardsSeen: (saved && saved.cardsSeen) || [],
   haggle: (saved && saved.haggle) || null,   // someone paying for passage
   tracked: (saved && saved.tracked) || null,       // the one errand shown on the tracker and wind meter: 'job' | 'passenger' | quest id          // the dark hut storyline: every throw is remembered
+  life: (saved && saved.life) || null,   // harbour life: residents, dishes, local games, gossip, fragments (harbourlife.js)
   pos: (saved && saved.pos) || { x: 0, z: 0, h: 0 },
 };
 if (params.has('x')) state.pos = { x: +params.get('x'), z: +params.get('z') || 0, h: +params.get('h') || 0 };
@@ -288,7 +291,7 @@ function giveMap(id, from, reveal = false, quiet = false) {
 function saveNow() {
   if (params.get('fresh') || noSave) return false;
   lastSave = tNow;
-  store.set(SAVE_KEY, { seed: state.seed, gold: state.gold, dug: [...state.dug], discovered: state.discovered, loot: state.loot, upgrades: state.upgrades, collected: [...state.collected], notes: state.notes, board: state.board, halves: state.halves, frags: state.frags, rumoured: state.rumoured, rep: state.rep, job: state.job, serial: state.serial, sectorsSeen: state.sectorsSeen, jobHistory: state.jobHistory, buffs: state.buffs, stats: state.stats, quests: state.quests, fruit: state.fruit, harvest: state.harvest, dayN: state.dayN, greet: state.greet, charts: state.charts, hp: state.hp, ammo: state.ammo, oil: state.oil, sailsTorn: state.sailsTorn, patchKits: state.patchKits, custom: state.custom, owned: [...state.owned], riddles: state.riddles, attempts: state.attempts, catch: state.catch, fishLog: state.fishLog, fishHeard: state.fishHeard, fishAsk: state.fishAsk, hut: state.hut, passenger: state.passenger, story: state.story, crew: state.crew, cardsSeen: state.cardsSeen, haggle: state.haggle, tracked: state.tracked, goals: state.goals, hints: state.hints, time: state.time, windT: wind.t, pos: { x: ship.pos.x, z: ship.pos.z, h: ship.heading } });
+  store.set(SAVE_KEY, { seed: state.seed, gold: state.gold, dug: [...state.dug], discovered: state.discovered, loot: state.loot, upgrades: state.upgrades, collected: [...state.collected], notes: state.notes, board: state.board, halves: state.halves, frags: state.frags, rumoured: state.rumoured, rep: state.rep, job: state.job, serial: state.serial, sectorsSeen: state.sectorsSeen, jobHistory: state.jobHistory, buffs: state.buffs, stats: state.stats, quests: state.quests, fruit: state.fruit, harvest: state.harvest, dayN: state.dayN, greet: state.greet, charts: state.charts, hp: state.hp, ammo: state.ammo, oil: state.oil, sailsTorn: state.sailsTorn, patchKits: state.patchKits, custom: state.custom, owned: [...state.owned], riddles: state.riddles, attempts: state.attempts, catch: state.catch, fishLog: state.fishLog, fishHeard: state.fishHeard, fishAsk: state.fishAsk, hut: state.hut, passenger: state.passenger, story: state.story, crew: state.crew, cardsSeen: state.cardsSeen, haggle: state.haggle, tracked: state.tracked, life: state.life, goals: state.goals, hints: state.hints, time: state.time, windT: wind.t, pos: { x: ship.pos.x, z: ship.pos.z, h: ship.heading } });
   return true;
 }
 const SS_ART = ['.........FF.........', '.........M..........', '........MSS.........', '........MSSs........', '........MSSSs.......', '........MSSSSs......', '........MSSSSSs.....', '........MSSSSSss....', '........M...........', '..HHHHHHHHHHHHHHH...', '...HhhhhhhhhhhhHH...'];
@@ -348,7 +351,7 @@ function fishEnv() {
 }
 const fishing = new Fishing(scene, ship, {
   toast: (t) => toast(t),
-  getCtx: () => ({ bonus: Math.max(0, ship.mods.lootMul - 1), dread }),
+  getCtx: () => ({ bonus: Math.max(0, ship.mods.lootMul - 1) + (life.meal(state) === 'stew' ? 0.8 : 0), dread }),
   onStrike: (k) => { if (k === 'miss') audio.playTone(196, { dur: 0.3, vol: 0.06 }); else audio.playTone(k === 'gold' ? 880 : 660, { dur: 0.35, vol: 0.07 }); },   // the bite ring: a soft note per strike
   onStart: () => audio.play('cast'),
   onSplash: () => { audio.play('splash', { vol: 0.4 }); toast('Line cast. Wait for a bite...', false, 2500); },
@@ -380,6 +383,7 @@ const hut = new Hut({ state,
 const WEEK = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 const weekday = () => state.dayN % 7, isMarketDay = () => weekday() === 2, isLanternNight = () => weekday() === 5;
 const isFestival = (d) => d && d.festival === weekday();
+const lifeOn = () => isOpen(state, 'tab', 'tavern');   // harbour life opens with the tavern (chapter III)
 // two tides a day, drifting a little later each day; low tide (below -0.45) uncovers more at wrecks and widens the shallows
 const tideAt = (time = state.time, day = state.dayN) => Math.sin(Math.PI * 2 * (time * 2 + day * 0.07));
 const tideWord = () => { const a = tideAt(), b = tideAt(state.time + 0.02); return a < -0.45 ? 'low tide' : a > 0.45 ? 'high tide' : b > a ? 'tide coming in' : 'tide going out'; };
@@ -473,7 +477,7 @@ function openModal(name) {
   keys.clear();
   if (fishing.active) fishing.cancel();
   if (digGame.active) { digGame.cancel(); dig = null; }
-  ({ pause: pauseEl, chart: chartEl, harbour: harbourEl, ship: shipEl, yard: yardEl, hut: hutEl, card: cardEl, pig: pigEl, greet: greetEl, cave: caveEl })[name].classList.add('open');
+  ({ pause: pauseEl, chart: chartEl, harbour: harbourEl, ship: shipEl, yard: yardEl, hut: hutEl, card: cardEl, pig: pigEl, greet: greetEl, cave: caveEl, local: localGames.el })[name].classList.add('open');
   if (name === 'pause') { showPauseMain(); }
   if (name === 'chart') { abyss.onMapOpen(ship);
     // the first look at the chart after the hut has appeared on it: the chart opens on the hut, so Mara's question has something to point at
@@ -492,7 +496,7 @@ function openModal(name) {
 function closeModal(silent = false) {
   if (!modal) return;
   document.body.classList.remove('ashore');
-  pauseEl.classList.remove('open'); chartEl.classList.remove('open'); harbourEl.classList.remove('open'); shipEl.classList.remove('open'); yardEl.classList.remove('open'); hutEl.classList.remove('open'); cardEl.classList.remove('open'); pigEl.classList.remove('open'); greetEl.classList.remove('open'); caveEl.classList.remove('open');
+  pauseEl.classList.remove('open'); chartEl.classList.remove('open'); harbourEl.classList.remove('open'); shipEl.classList.remove('open'); yardEl.classList.remove('open'); hutEl.classList.remove('open'); cardEl.classList.remove('open'); pigEl.classList.remove('open'); greetEl.classList.remove('open'); caveEl.classList.remove('open'); if (modal === 'local') localGames.finish();
   if (modal === 'pause') audio.setPaused(false);
   if (modal === 'hut') hutLeft();
   if (modal === 'card') sighting.dismiss();
@@ -681,6 +685,7 @@ window.addEventListener('keydown', (e) => {
     if (e.code === 'KeyE') $('pigLeave').click();
     return;
   }
+  if (modal === 'local') { e.preventDefault(); localGames.key(e.code); return; }
   if (modal === 'hut') {
     if (e.code === 'Space') { e.preventDefault(); hut.roll(); }
     if (e.code === 'KeyE') closeModal();
@@ -972,6 +977,14 @@ function renderHarbour() {
     for (const q of state.quests.filter((x) => x.giverId === d.id && questProgress(x, state) >= questNeed(x))) due.push(`<div class="qrow"><div><b>${questIcon(q)} ${questTitle(q, dread)}</b><br><small>done · +${q.reward}g</small></div><button data-hand="${q.id}">Finish</button></div>`);
     for (const lt of lettersAt(d)) html += `<div class="sec">A LETTER</div><div class="qrow letter"><div><b>${pxi('letter')} ${lt.title}</b><br><small>${lt.sub}</small></div><button id="takeLetter" data-letter="${lt.key}">Take it</button></div>`;
     if (due.length) html += `<div class="sec">FINISH HERE</div>${due.join('')}`;
+    if (lifeOn()) {   // the harbour's own person and their story (harbourlife.js), and this harbour's day in the week
+      for (const r of life.residentRows(state, world, d, { night: state.time * 24 >= 19 || state.time * 24 < 5 })) {
+        if (r.after) html += `<div class="sec">${r.who.toUpperCase()}</div><small class="${r.dark ? 'darkline' : ''}">${r.after}</small>`;
+        else if (r.wait) html += `<div class="sec">${r.who.toUpperCase()}</div><small>${r.text}</small>`;
+        else html += `<div class="sec">${r.who.toUpperCase()}</div><div class="qrow letter"><div><b>${pxi('talk')} ${r.text}</b>${r.block ? `<br><small>${r.block}</small>` : ''}</div><button class="lifeStep" data-k="${r.key}" ${r.block ? 'disabled' : ''}>${r.btn}</button></div>`;
+      }
+      html += `<div class="sec">THIS WEEK</div><small>${life.eventLine(d, state)}: ${life.gameOf(d).name} in the tavern pays double.</small>`;
+    }
     html += '<div class="sec">DELIVERY</div>';
     const j = state.job || makeJob(world, d, state.serial[d.id] || 0, state.goals.i <= 8 ? 420 : 750);   // the first jobs stay close
     if (state.job && state.job.toId === d.id) html += '<small>Deliver the one above first.</small>';
@@ -1009,6 +1022,11 @@ function renderHarbour() {
     if (ja) ja.addEventListener('click', () => { state.job = j; toast(`Delivery taken: ${j.toName} (pays ${j.reward}g on arrival)`, j.dark); audio.play('buy'); renderHarbour(); });
     pane.querySelectorAll('.thrAct').forEach((b) => b.addEventListener('click', () => { const id = b.dataset.act; threads.harbourAct(id, d); if (id === 'hollow') return; renderHarbour(); }));
     const tkp = $('takePet'); if (tkp) tkp.addEventListener('click', () => { takePet(tkp.dataset.pet); renderHarbour(); });
+    pane.querySelectorAll('.lifeStep').forEach((b) => b.addEventListener('click', () => {
+      const r = life.takeStep(state, world, d, b.dataset.k); if (!r) return;
+      toast(r.toast, r.dark, 7000); audio.play(r.ended ? 'discover' : 'ui', { vol: r.ended ? 0.5 : 0.4 });
+      if (r.ended) { autosave(); setTimeout(() => toast(`${d.name} will not be quite the same again.`, r.dark, 5000), 2600); }
+      renderHarbour(); }));
     const tl = $('takeLetter'); if (tl) tl.addEventListener('click', () => { takeLetter(tl.dataset.letter); renderHarbour(); });
     const dv = $('doDeliver'); if (dv) dv.addEventListener('click', () => { completeJobIfHere(d); renderHarbour(); });
     const dp = $('doDropoff'); if (dp) dp.addEventListener('click', () => {
@@ -1070,6 +1088,14 @@ function renderHarbour() {
         state.haggle = { id: d.id, day: state.dayN, n, mult: ok ? (n === 20 ? 1.5 : 1.3) : n === 1 ? 0.8 : 0.9 };
         toast(ok ? 'The fishmonger laughs and gives in.' : n === 1 ? 'The fishmonger spits on the planks. By noon the whole harbour has heard.' : 'The fishmonger folds their arms. Prices just got worse.', false, 4000); if (harbourIsl) renderHarbour(); }); });
   } else if (hbTab === 'tavern') {
+    if (lifeOn()) {   // the house dish, the local game, and the old story this harbour keeps (harbourlife.js)
+      const dish = life.DISHES[d.style] || life.DISHES.classic, cur = life.meal(state), dc = Math.ceil(dish.cost * costMul());
+      html += `<div class="sec">THE HOUSE DISH</div><div class="qrow"><div><b>${pxi('fish')} ${dish.name}</b><br><small>${dish.text}, until the dawn after next${cur ? ` · you have eaten: ${Object.values(life.DISHES).find((x) => x.id === cur).name}` : ''}</small></div><button id="eatDish" ${state.gold >= dc && cur !== dish.id ? '' : 'disabled'}>${cur === dish.id ? 'Full' : `${dc}g`}</button></div>`;
+      const gm = life.gameOf(d), played = life.playedToday(state, d), ev = life.isEvent(d, state);
+      html += `<div class="sec">${ev ? gm.event.toUpperCase() + ' (TODAY)' : 'THE LOCAL GAME'}</div><div class="qrow"><div><b>${pxi('pip')} ${gm.name}</b><br><small>${played ? 'you have played here today' : `${gm.how} · stake 5g · ${ev ? 'double prizes today' : `double on ${life.WEEKDAYS[d.festival]}`}`}</small></div><button id="playLocal" ${!played && state.gold >= 5 ? '' : 'disabled'}>Play</button></div>`;
+      const fr = life.fragmentAt(state, d, state.goals.i >= 12);
+      if (fr && !fr.locked) html += `<div class="sec">AN OLD STORY</div><div class="qrow letter"><div><b>${pxi('talk')} ${fr.src}</b><br><small>the locals know you now</small></div><button id="takeFrag">Listen</button></div>`;
+    }
     { // rooms are let from 17:00, you wake at 06:00 with the hull mended
       const hour = state.time * 24, open = hour >= 17 || hour < 5, bedCost = Math.ceil(8 * discount(rep) * costMul());
       html += `<div class="sec">ROOMS</div><div class="qrow"><div><b>${pxi('bed')} A bed for the night</b><br><small>${open ? 'sleep until 06:00, the crew mends the hull' : 'rooms are let from 17:00'}</small></div><button id="restBed" ${open && state.gold >= bedCost ? '' : 'disabled'}>${bedCost}g</button></div>`;
@@ -1088,6 +1114,19 @@ function renderHarbour() {
       pendingHand = hand;
     } else html += '<small>A fiddler, a fire, a lot of very old chairs. Nobody here knows you yet.</small>';
     pane.innerHTML = html;
+    { const ed = $('eatDish'); if (ed) ed.addEventListener('click', () => { const dish = life.DISHES[d.style] || life.DISHES.classic, dc = Math.ceil(dish.cost * costMul()); if (state.gold < dc) return; state.gold -= dc; toast(`${dish.name}. ${life.eat(state, d)} (${dish.text})`, false, 7000); audio.play('buy'); renderHarbour(); }); }
+    { const pl = $('playLocal'); if (pl) pl.addEventListener('click', () => {
+      if (state.gold < 5 || life.playedToday(state, d)) return; state.gold -= 5; const isl = harbourIsl, gm = life.gameOf(d);
+      openModal('local'); harbourIsl = isl;
+      localGames.open(gm.id, life.isEvent(d, state) ? gm.event.toUpperCase() : gm.name.toUpperCase(), (tier, finished) => {
+        const pr = life.gamePrize(d, state, finished ? tier : 0);
+        if (pr.gold) state.gold += pr.gold + 5;
+        if (pr.ev && tier === 2) life.news(state, 'game', { where: d.name, game: gm.event, at: d.id });
+        setTimeout(() => { harbourIsl = isl; hbTab = 'tavern'; if (modal === 'local' || !modal) { closeModal(true); harbourIsl = isl; openModal('harbour'); }
+          if (pr.gold) toast(`+${pr.gold + 5} gold${pr.ev ? ' (festival prize)' : ''}${pr.keep ? `. And a keepsake: ${pr.keep.name}.` : ''}`, false, 6000); }, 30);
+      }); }); }
+    { const tf = $('takeFrag'); if (tf) tf.addEventListener('click', () => { const fr = life.fragmentAt(state, d, true); if (!fr || fr.locked) return; const n = life.takeFragment(state, d, fr);
+      toast(fr.text, true, 14000); setTimeout(() => toast(`Written in your journal. (${n} of ${life.FRAG_TOTAL} old stories)`, false, 5000), 1500); audio.play('ui'); renderHarbour(); }); }
     $('restBed').addEventListener('click', () => restAtTavern(Math.ceil(8 * discount(rep) * costMul())));
     const af = $('askFish'); if (af) af.addEventListener('click', () => {
       const cl = threads.c;
@@ -1556,6 +1595,7 @@ function tryInteract() {
       if (told === 0 || ending || Math.random() < 0.5) { say = rollGreeting(h.rolls[h.rolls.length - 1].n, state.time * 24, Math.random); if (ending) say.endsDemo = true; }
     }
     if (!say && ending && h && h.rolls.length) { say = rollGreeting(h.rolls[h.rolls.length - 1].n, state.time * 24, Math.random); say.endsDemo = true; state.story.rollSeen = h.rolls.length; }
+    if (!say && free && laterOK() && isOpen(state, 'tab', 'tavern') && Math.random() < 0.6) say = life.gossipAt(state, d);
     if (!say && free && laterOK() && dread < 0.6) say = taleAt(d);
     if (!say && free && laterOK() && (g.day[d.id] == null || Math.random() < 0.3)) say = pickGreeting({ hour: state.time * 24, weather: weather.label, dread, rnd: Math.random, custom: d.custom, event: isFestival(d) ? 'festival' : isMarketDay() ? 'market' : isLanternNight() ? 'lantern' : null, boat: (() => { const b = boatStatus(d, state.dayN, dread, state.seed); return b.today === 'stayed' ? 'stayed' : b.yesterday === 'lost' ? 'lost' : null; })() });
     if (!say && free && window.__BUILD !== 'demo') { const tl = threads.harbourLine(d); if (tl) say = { speaker: 'fisher', text: tl, dark: true, story: true }; }
@@ -1591,7 +1631,7 @@ function tryInteract() {
         const land = (tier) => {
           loot.value = Math.round(loot.value * ship.mods.lootMul * (tier ? tier.mult : 1));
           if (tier && tier.mult < 1) loot.name = `${loot.name} (water-damaged)`; else if (tier && tier.mult >= 2) loot.name = `${loot.name} (and more beneath it)`;
-          state.stats.treasures++; state.stats.solved++;
+          state.stats.treasures++; state.stats.solved++; if (!first) life.news(state, 'treasure', { where: d.name });
           state.gold += loot.value; state.loot.push(loot);
           toast(`Treasure! ${loot.name} (+${loot.value} gold)`, loot.dark, 7000);
           audio.play('treasure');
@@ -1620,7 +1660,7 @@ function tryInteract() {
     const d = tg.isl.desc, f = fruitOf(d);
     if (state.harvest[d.id] != null && state.harvest[d.id] >= state.dayN) { toast(`The ${plural(fruitName(f, d.dread), 2)} here are picked clean for today.`, false, 3500); return; }
     dig = { key: tg.key, t: 0, label: 'Picking fruit...', need: 2.4, done: () => {
-      const n = Math.max(1, Math.round((2 + Math.floor(Math.random() * 3)) * ship.mods.lootMul));
+      const n = Math.max(1, Math.round((2 + Math.floor(Math.random() * 3)) * ship.mods.lootMul)) + (life.meal(state) === 'pepper' ? 2 : 0);
       state.fruit[f] = (state.fruit[f] || 0) + n; state.harvest[d.id] = state.dayN; state.stats.fruitPicked += n;
       toast(`The crew picked ${n} ${plural(fruitName(f, d.dread), n)}.`, d.dread > 0.5, 4500);
     } };
@@ -1953,6 +1993,7 @@ function stormAndCalm(dt) {
 // ---------------------------------------------------------------- tabletop: encounter cards, crew wishes, dice
 const LOCALS = ['a one-eyed net-mender', 'the harbourmaster\'s aunt', 'a sunburnt docker', 'a very calm child', 'a fisherman who smells of tar'];
 let pendingHand = null, pigHome = null, cardT = 900 + Math.random() * 600, cardBusy = false, wishT = 0;
+const localGames = new LocalGames(audio);
 const pig = new Pig(pigEl, { onEnd: (won) => { if (won) { state.gold += 20; audio.play('treasure'); if (Math.random() < 0.5) { const r = cardCtx().rumour('a sore loser at the tavern'); if (r) toast(r, false, 7000); } } } });
 $('pigRoll').addEventListener('click', () => pig.roll());
 $('pigHold').addEventListener('click', () => pig.hold());
@@ -2196,7 +2237,7 @@ function seaGate(dt) {
 // gusts, currents and the barriers round the hand-made places (seaplay.js, places.js)
 let laneShown = null;
 function seaTick(dt, windNow) {
-  const ev = seaplay.update(dt, { ship, wind: windNow, t: abyss.waveTime(Math.floor(animT * 12) / 12), wave: seaWave, night: tod.night, calm: weather.calm > 0.5, on: !onbQuiet() && !ship.rowing && lostK < 0.1, fogEdge });
+  const ev = seaplay.update(dt, { ship, wind: windNow, t: abyss.waveTime(Math.floor(animT * 12) / 12), wave: seaWave, night: tod.night, calm: weather.calm > 0.5, on: !onbQuiet() && !ship.rowing && lostK < 0.1, fogEdge, gustLong: life.meal(state) === 'curry' });
   if (ev.gust && !state.hints.gust) { state.hints.gust = true; toast('Caught a gust! Steer into the dark patches on the water to fill the sails.', false, 5500); }
   if (ev.lane !== laneShown) {
     laneShown = ev.lane;
@@ -2232,7 +2273,7 @@ function sailTick(dt, windNow) {
   if (!oilOn() || state.sailsTorn || ship.rowing) { sailStrain = 0; return; }
   const gale = weather.storm > 0.6 && windNow.strength > 1.0;   // only a real storm: everyday wind, even a fresh breeze, never tears the canvas
   if (gale && ship.trim > 0.55) {
-    sailStrain += dt * (ship.trim - 0.35) * 1.6 * (0.6 + (weather.storm - 0.6) * 2.5 + Math.max(0, windNow.strength - 1.1)) * (1 - 0.15 * (state.upgrades.sails || 0));
+    sailStrain += dt * (ship.trim - 0.35) * 1.6 * (0.6 + (weather.storm - 0.6) * 2.5 + Math.max(0, windNow.strength - 1.1)) * (1 - 0.15 * (state.upgrades.sails || 0)) * (life.meal(state) === 'rum' ? 0.4 : 1);
     if (!strainWarned && sailStrain > SAIL_LIMIT * 0.35) { strainWarned = true; toast('The canvas is straining in this wind! Reef the sails (S) before it tears.', false, 5000); audio.play('ui', { vol: 0.5 }); }
     if (sailStrain >= SAIL_LIMIT) {
       state.sailsTorn = true; ship.setTorn(true); sailStrain = 0; strainWarned = false; shake = Math.max(shake, 0.6);
@@ -2273,7 +2314,7 @@ function onHitEnemy(s, dmg) {
   if (s.hp > 0) return;
   s.sinking = true; s.hostile = false; s.state = 'done'; s.engaged = false;
   const gold = Math.round((45 + Math.random() * 70) * KINDS[s.kind].scale);   // cannonballs are only ever bought, so every volley counts
-  state.gold += gold; state.stats.sunk++;
+  state.gold += gold; state.stats.sunk++; life.news(state, 'raider');
   toast(`Raider sunk! +${gold} gold`, false, 6000);
   if (state.stats.sunk === 1) toast('Unlocked: skull figurehead (see the shipyard).', false, 5000);
 }
@@ -2334,7 +2375,8 @@ function frame() {
     if (pt < 0.27 && state.time >= 0.27) weekMorning(); }
   wind.update(dt);
   if (dt > 0) { state.buffs.speed = Math.max(0, state.buffs.speed - dt); state.buffs.dig = Math.max(0, state.buffs.dig - dt); }
-  ship.buff = state.buffs.speed > 0 ? 1.15 : 1;
+  ship.buff = (state.buffs.speed > 0 ? 1.15 : 1) * (life.meal(state) === 'pie' ? 1.06 : 1);
+  { const m = life.meal(state); ship.trimMul = m === 'bread' ? 1.7 : 1; ship.lampBoost = m === 'tea' ? 1.6 : 1; }   // the house dish you ate (harbourlife.js)
   ship.lampOut = lampOut; ship.stormLight = weather.heavy || 0;   // the lantern also shows in a storm
   const sec = sectorAt(ship.pos.x, ship.pos.z, state.seed);
   if (sec.id !== curSector) {
@@ -2402,7 +2444,8 @@ function frame() {
   seaWave = stage.wave;
   const fogK = Math.max(gateFog, places.fog, lostK);   // the fog wall at the edge of the chapter, or the bank round the Halved Isle
   { const L = state.upgrades.lantern || 0, dk = Math.max(tod.night, weather.fog || 0, (weather.heavy || 0) * 0.7);   // a lit lantern lets you see further in the dark and in fog: +15% a level
-    if (L && !lampOut && dk > 0.05) { const k = 1 + 0.15 * L * dk; stage.fogFar *= k; stage.fogNear *= k; } }
+    const tea = life.meal(state) === 'tea' ? 0.25 : 0;
+    if ((L || tea) && !lampOut && dk > 0.05) { const k = 1 + (0.15 * L + tea) * dk; stage.fogFar *= k; stage.fogNear *= k; } }
   if (lampOut) { stage.fogFar *= 0.32; stage.fogNear *= 0.25; stage.fog.multiplyScalar(1 - 0.6 * tod.night); stage.light *= 1 - 0.35 * tod.night; }   // no lamp: the dark comes in close
   if (fogK > 0) { stage.fogFar = Math.max(30, stage.fogFar * (1 - 0.85 * fogK)); stage.fogNear = Math.max(4, stage.fogNear * (1 - 0.9 * fogK)); stage.fog.lerp(new THREE.Color('#b8c0c4'), fogK * 0.7); }
   if (lostK > 0) { stage.fogFar = Math.max(10, stage.fogFar * (1 - 0.7 * lostK)); stage.fogNear = Math.max(1, stage.fogNear * (1 - 0.9 * lostK)); stage.fog.lerp(new THREE.Color('#c8ced0'), lostK * 0.5); }   // lost: you can barely see the bow
@@ -2416,7 +2459,7 @@ function frame() {
   const lp = abyss.lightPhase;
   world.setLit(lp === 'stare' || glimpse.k > 0.5 ? true : lp === 'dead' ? false : tod.sunHeight < 0.12 || weather.darkness > 0.6);
   world.stare = lp === 'stare' || glimpse.k > 0.5 ? ship.pos : null;
-  world.week = { wd: weekday(), market: isMarketDay(), lantern: isLanternNight() }; world.growthOf = growthOf; world.tide = tideAt();
+  world.week = { wd: weekday(), market: isMarketDay(), lantern: isLanternNight() }; world.growthOf = growthOf; world.lifeDoneOf = (id) => life.arcDone(state, id); world.tide = tideAt();
   { // a storm front every sixth afternoon (after chapter III), warned by a red sky the evening before; and the sector's own weather
     const h = state.time * 24, fd = state.dayN % 6 === 5 && unlocked(state, 'passengers'), fa = state.dayN % 6 === 4 && unlocked(state, 'passengers');
     weather.front = fd ? smoothstep(12, 16, h) * (1 - smoothstep(19, 22, h)) * (0.55 + 0.45 * dread) : 0;
@@ -2446,7 +2489,7 @@ function frame() {
   fishing.update(dt, waveT, { wave: stage.wave, dread, night: tod.night, env: fishEnv() });
   setDieWear(clamp(state.dayN / 12 + dread * 0.6, 0, 1));
   combat.update(dt, waveT, { ship, traffic, wave: stage.wave, onHitEnemy, onHitPlayer: hurtPlayer });
-  if (live && tNow - lastHit > 12 && weather.storm < 0.3 && state.hp < ship.mods.maxHp) state.hp = Math.min(ship.mods.maxHp, state.hp + dt);   // no mending in a storm
+  { const pork = life.meal(state) === 'pork'; if (live && tNow - lastHit > 12 && (weather.storm < 0.3 || pork) && state.hp < ship.mods.maxHp) state.hp = Math.min(ship.mods.maxHp, state.hp + dt * (pork ? 2 : 1)); }   // no mending in a storm
   { // while Perrin's letter is being read about, Mara stays on screen even ashore or in the log: she is the tutorial
     const st = state.story, on = st.riddleLine === 'wait' || st.noteLine === 'wait' || (st.mateTail && objectives.mate.busy);
     if (!(st.riddleLine === 'wait' || st.noteLine === 'wait') && !objectives.mate.busy) st.mateTail = false; else if (st.riddleLine === 'done' || st.noteLine === 'done') st.mateTail = true;
@@ -2644,6 +2687,7 @@ $('oilrow').classList.toggle('off', !!state.story.lampOff);
 installGamepad(() => toast('Controller connected: stick to sail, A to interact, Y for the log, Start to pause.', false, 6000));
 window.__game = { secrets, tideAt: () => tideAt(), lostState: () => ({ lostK, gateLost, placesLost: places.lost, heading: ship.heading, trim: ship.trim }), places, seaplay, glimpse, fishing, sails: () => ({ torn: state.sailsTorn, kits: state.patchKits, strain: sailStrain }), oilState: () => ({ oil: state.oil, lampOut }),
   readArch, partnerOf, maraMood, windfx, logbook,
+  life, localGames, openHarbour(id, tab = 'board') { const isl = [...world.islands.values()].find((i) => i.desc.id === id); if (!isl) return false; closeModal(true); harbourIsl = isl; hbTab = tab; frameVillage(isl.desc); openModal('harbour'); return true; }, renderHarbour: () => renderHarbour(),
   audio,
   objectives, perrinNote, gateRadius: () => gateRadius(state), trackTarget: () => trackTarget(), digGame,
   openCard, sighting, spawnSight: (id) => { const c = (SIGHTS[id] && drawCard(0, [], { [id]: 1 })); return c && sighting.spawn(c, ship, world); },

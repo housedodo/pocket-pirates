@@ -724,3 +724,32 @@ From the critique "what goes stale on a long voyage" (compared with Wind Waker, 
   the man on the empty island, the watcher at dusk), three more Mara/passenger exchanges, two more seasick lines; 11 new bottle
   notes across the five dread stages (one mentions the two white posts near the Tooth, one the low tide).
 
+
+## Harbour life: every harbour its own place (src/harbourlife.js, src/localgames.js)
+From playtest feedback: a tester did every errand on every island, ferrying passengers and goods back and forth, and it
+went stale. Each harbour now has things only it has. All of it opens with the tavern (chapter III).
+- **A resident with a story** (board, top): one named person per harbour, four steps, one step a day. Steps can need a
+  fish, fruit, 10 lamp oil, a night visit or the festival day, and some send you to a partner harbour (the nearest one
+  the fog allows) and back. Tama has Ada the baker (partner Velto), Velto has Tilda and her dog (partner Tama); other
+  harbours get one of: Ines at the lamp, Pim the boatbuilder, Old Sabe, Lune who sings, Marisol the bride, Corvo who
+  counts ships. Some end bright, some end quietly wrong (Ines, Sabe, Lune, Corvo). Nothing is explained.
+- **The harbour changes for good** when a story ends: a prop by the pier (bunting and a two-name sign, the dog, a cold
+  lamp, Pim's little boat with a red sail, Sabe's chair, a ring of candles, a flower arch, a washed wall) and a line on
+  the board.
+- **The house dish** (tavern): one per village style, lasts until the dawn after next, one at a time. Fish pie (speed),
+  fisher's stew (bites), honey bread (sail handling), coconut curry (gusts last longer), spiced rum (less sail strain),
+  pepper pot (more fruit), bitter tea (see further at night and in fog, bigger lamp glow), salt pork (mend at sea, even in storms).
+- **The week's event:** each harbour's festival day has a name by style (Bell Sunday, Fleet Home, Stone Day, Kite Day,
+  The Grand Auction, Harvest Fair, Lantern Vigil, Strongarm Night). The board shows when. The local game pays double that
+  day, and a great score on the day gives a keepsake (state.life.keep).
+- **Local games** (tavern, once a day per harbour, stake 5g), one per style: Ring the peal (Simon on four bells),
+  Mend the net (stop the shuttle), Skip a stone (power + angle), Fly the kite (hold A/D in the band), The auction (bid or
+  pass on lots), Coconut shy (timing), Float the lanterns (through a moving gap), Arm-wrestle (push on the beat).
+- **Gossip travels:** finished stories, treasure, a sunk raider and a festival win are talked about in other harbours
+  (greetings, once per harbour per piece of news).
+- **Fragments of an old story** (tavern, "AN OLD STORY"): one per harbour, once it knows you (two of: a resident step,
+  its game, its dish) and from chapter IV on. The source fits the village (the bell's inscription, a fisher's story, a
+  terrace painting, a counting rhyme, a dice seller, a ledger page wrapping eggs, a shrine carving, a figurehead) plus
+  four spares for a second harbour of the same style. They go into the journal. They point at the table by the water
+  and the one who keeps the count, and never name her. 12 in all.
+- Test: `__game.life`, `__game.openHarbour(id, tab)`, `__game.localGames.open(id, title, cb)`.
