@@ -505,6 +505,8 @@
     .hp5 { display: inline-flex; gap: 6px; vertical-align: middle; margin-left: 4px; }
     .hp5 i { display: block; width: 16px; height: 16px; background: #d84030; box-shadow: inset -4px -4px 0 #8a1c14, inset 4px 4px 0 #f08060, 0 0 0 3px #1a0614; }
     .hp5 i.off { background: #2a1a30; box-shadow: inset 0 0 0 0 #000, 0 0 0 3px #1a0614; }
+    .hp5 i.part { background: linear-gradient(to top, #d84030 var(--f), #2a1a30 var(--f)); box-shadow: inset -2px -2px 0 #8a1c1488, 0 0 0 3px #1a0614; }   /* a damaged plank, drained */
+    .hp5.hurt { animation: hullhit .45s steps(3); } @keyframes hullhit { 0% { transform: translateX(-3px); filter: brightness(1.8); } 50% { transform: translateX(3px); } 100% { transform: none; filter: none; } }
     /* shipyard turntable: a short panel on the right, the ship turning on its own in the middle */
     #yardWide { width: min(430px, 94vw) !important; margin: 24px 0 !important; align-self: flex-start; }
     .ytabs { display: flex; gap: 6px; margin: 6px 0; flex-wrap: wrap; } .ytabs button { width: auto; margin: 0; padding: 4px 10px; } .ytabs button.on { background: #4a38a0; box-shadow: 0 -3px 0 #ffd23a, 0 3px 0 #ffd23a, -3px 0 0 #ffd23a, 3px 0 0 #ffd23a; }

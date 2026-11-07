@@ -647,4 +647,9 @@ From the critique "what goes stale on a long voyage" (compared with Wind Waker, 
   darker, finely rippled water in the ocean shader (`uGust`, four patches from seaplay.js), dithered like the rest of the sea.
 - **Smoother wind streaks:** wisps are continuous, gently curving lines that taper at both ends (thin and faint, no dashes),
   56 of them, thinner and fainter than before.
+- **Every hit shows on the hull:** planks drain partly (a damaged plank fills from the bottom to what is left of it) and the
+  row shakes on a hit; before, a storm's 6-7 point hits only removed a plank every third hit, so the red flash looked like
+  nothing happened.
+- **Wave sets in any weather:** a slow travelling pattern makes the swell bigger and smaller (about 0.5x to 1.45x) with a longer
+  roller in the big sets, on the GPU and the CPU alike. Measured in calm water ~60 from Tama: 6-second ranges 0.41 to 0.98.
 

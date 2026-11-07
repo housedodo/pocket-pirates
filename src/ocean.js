@@ -38,7 +38,10 @@ export function waveHeight(x, z, t, amp = 1) {
       + 0.075 * wsin(-0.62 * px + 0.18 * pz + 2.7 * WR * t + 4.0) + 0.05 * wsin(0.9 * px + 0.7 * pz + 3.3 * WR * t + 5.2) + 0.2 * wsin(0.083 * px - 0.11 * pz + 0.65 * WR * t + 0.7);
     h *= E; h += 0.28 * h * Math.abs(h);
   }
-  return amp * (sw * (1 - r) * (0.85 + 0.15 * E) + h * r) * seaScale(x, z);
+  // sets: a slow travelling pattern of bigger and smaller waves (about 0.5x to 1.45x), so even a calm sea is never even
+  const G = (0.5 + 0.5 * wsin(0.031 * x + 0.017 * z - 0.45 * t)) * (0.6 + 0.4 * wsin(0.013 * x - 0.021 * z + 0.3 * t + 2.0));
+  const big = 0.22 * wsin(0.11 * px + 0.07 * pz + 0.6 * W * t) * G;   // a longer swell that rolls through with the big sets
+  return amp * ((sw + big) * (1 - r) * (0.5 + 0.95 * G) + h * r) * seaScale(x, z);
 }
 
 const GLSL_SHORE = /* glsl */`
@@ -61,7 +64,9 @@ float waveH(vec2 p){
       + 0.075 * sin(-0.62 * q.x + 0.18 * q.y + 2.7 * WRL * t + 4.0) + 0.05 * sin(0.9 * q.x + 0.7 * q.y + 3.3 * WRL * t + 5.2) + 0.2 * sin(0.083 * q.x - 0.11 * q.y + 0.65 * WRL * t + 0.7);
     h *= E; h += 0.28 * h * abs(h);
   }
-  return uWave * (mix(sw * (0.85 + 0.15 * E), h, uRough)) * (0.35 + 1.35 * (1.0 - landNear(p)));   // low by land, big in the open sea
+  float G = (0.5 + 0.5 * sin(0.031 * p.x + 0.017 * p.y - 0.45 * t)) * (0.6 + 0.4 * sin(0.013 * p.x - 0.021 * p.y + 0.3 * t + 2.0));   // sets of bigger and smaller waves
+  float big = 0.22 * sin(0.11 * q.x + 0.07 * q.y + 0.6 * WS * t) * G;
+  return uWave * (mix((sw + big) * (0.5 + 0.95 * G), h, uRough)) * (0.35 + 1.35 * (1.0 - landNear(p)));   // low by land, big in the open sea
 }`;
 const GLSL_WAVE = GLSL_WAVEFN + '\nvarying vec3 vWP;';
 

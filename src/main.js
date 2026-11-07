@@ -2524,9 +2524,13 @@ function frame() {
   if (modal === 'ship') { $('shGold').textContent = state.gold; }
   if (debugEl.style.display === 'block') debugEl.textContent = `tris ${renderer.info.render.triangles} calls ${renderer.info.render.calls}  dread ${dread.toFixed(2)} stage ${stage.index + 1} ${forced !== null ? '(forced)' : '(auto)'}  time ${tod.clock}  pos ${ship.pos.x | 0},${ship.pos.z | 0}  spd ${ship.speed.toFixed(1)}  islands ${world.islands.size}`;
 
-  { // the hull is five planks: each one is a fifth of its strength
-    const frac = Math.max(0, state.hp / ship.mods.maxHp), planks = frac <= 0 ? 0 : Math.max(1, Math.ceil(frac * 5 - 0.001));
-    if (planks !== hullShown) { hullShown = planks; $('hptxt').innerHTML = `<span class="hp5">${[0, 1, 2, 3, 4].map((i) => `<i class="${i < planks ? 'on' : 'off'}"></i>`).join('')}</span>`; $('hpfill').parentNode.style.display = 'none'; }
+  { // the hull is five planks: each one is a fifth of its strength; a damaged plank drains, so every hit shows
+    const frac = Math.max(0, state.hp / ship.mods.maxHp), key = Math.round(frac * 100);
+    if (key !== hullShown) {
+      const hit = hullShown > key; hullShown = key;
+      $('hptxt').innerHTML = `<span class="hp5${hit ? ' hurt' : ''}">${[0, 1, 2, 3, 4].map((i) => { const f = clamp(frac * 5 - i, 0, 1); return f >= 0.999 ? '<i class="on"></i>' : f <= 0.001 ? '<i class="off"></i>' : `<i class="part" style="--f:${Math.round(f * 100)}%"></i>`; }).join('')}</span>`;
+      $('hpfill').parentNode.style.display = 'none';
+    }
   }
   $('ammotxt').textContent = `\u25cf ${state.ammo}`;
   document.body.classList.toggle('nooil', !oilOn());
