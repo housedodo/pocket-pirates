@@ -54,6 +54,9 @@ purple and magenta cosmic horror as dread rises.
   a broken ring of black reef knuckles with white wash).
 - **Gusts and currents** (`seaplay.js`): a gust is a patch of short dark-navy scratches across the wind with a few
   winking white flecks, never a UI marker; current foam is thin white streaks drifting along the lane. Both fade at night.
+- **Ocean designs** (ocean.js `OCEAN_STYLES`, uOcean): the original toon facets stay the default until one is chosen; every
+  design keeps the palette (uDeep, uShallow), the shallows tint, the murk and the rough-sea blend, and dithers its light.
+- **Waves:** low and gentle by land, bigger in the open sea (`seaScale`).
 - **Night is dark:** light floor 0.17 of day, near-black navy sky and fog, a short view; what you see by is the lantern's warm
   pool on the water, lit windows, lighthouses and the moon. With the lamp out the dark comes right up to the hull.
 - **Torn sail:** dark holes you can see through, long thin rips, the clew corner gone, three loose rags flapping; the sail

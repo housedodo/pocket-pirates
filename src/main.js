@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { clamp, smoothstep, angleDiff, mulberry32, hash2 } from './util.js';
 import { sampleStage, DARK_THRESHOLD, dreadAtDistance } from './palette.js';
 import { U, initMaterials, mats, PostFX } from './psx.js';
-import { Ocean, WATER, NISL } from './ocean.js';
+import { Ocean, WATER, NISL, OCEAN_STYLES } from './ocean.js';
 import { Sky } from './sky.js';
 import { World, villager, VILLAGERS, houseKind, HOUSES, shoreR, lighthouseKind } from './world.js';
 import { Builder } from './builder.js';
@@ -40,7 +40,7 @@ import { Wind } from './wind.js';
 import { WindFX } from './windfx.js';
 import { drawWind, PX } from './windmeters.js';
 import { installPixelUI, pxi } from './pixelui.js';
-import { applyTimeOfDay, advanceTime, tod } from './daynight.js';
+import { applyTimeOfDay, advanceTime, tod, NIGHT_VIEWS, LAMPS, NIGHT_SET } from './daynight.js';
 import { UPGRADES, MAX_LEVEL, computeMods, shipwrightLine } from './upgrades.js';
 import { TRAITS, crewForHire, crewBonus, hasTrait, rollCheck, drawCard, renderCard, Pig, setDieWear, setAdvProvider, TREASURE_TIERS } from './tabletop.js';
 import { FISH, HABITAT } from './fishing.js';
@@ -594,6 +594,17 @@ function fsChanged() {
 document.addEventListener('fullscreenchange', fsChanged); document.addEventListener('webkitfullscreenchange', fsChanged);
 $('tFull').addEventListener('click', (e) => { e.stopPropagation(); toggleFullscreen(); });
 $('pbFull').addEventListener('click', () => { toggleFullscreen(); $('pbFull').focus(); });
+// the look of the water (ocean.js OCEAN_STYLES): cycled in the pause menu, remembered; ?ocean=0..4 forces one
+const oceanLabel = () => { $('pbOcean').textContent = `Ocean: ${OCEAN_STYLES[U.uOcean.value | 0]}`; };
+U.uOcean.value = params.has('ocean') ? clamp(parseInt(params.get('ocean'), 10) || 0, 0, OCEAN_STYLES.length - 1) : (settings.ocean | 0) % OCEAN_STYLES.length; oceanLabel();
+// night view distance and lamp strength (daynight.js): cycled in the pause menu, remembered; ?nightview= / ?lamp= force one
+const nightLabels = () => { $('pbNight').textContent = `Night view: ${NIGHT_VIEWS[NIGHT_SET.view].name}`; $('pbLamp').textContent = `Lamp: ${LAMPS[NIGHT_SET.lamp].name}`; ship.lampK = LAMPS[NIGHT_SET.lamp].k; };
+NIGHT_SET.view = params.has('nightview') ? clamp(parseInt(params.get('nightview'), 10) || 0, 0, 3) : settings.nightView != null ? settings.nightView : 1;
+NIGHT_SET.lamp = params.has('lamp') ? clamp(parseInt(params.get('lamp'), 10) || 0, 0, 3) : settings.lamp != null ? settings.lamp : 1;
+nightLabels();
+$('pbNight').addEventListener('click', () => { NIGHT_SET.view = (NIGHT_SET.view + 1) % NIGHT_VIEWS.length; settings.nightView = NIGHT_SET.view; store.set(SETTINGS_KEY, settings); nightLabels(); $('pbNight').focus(); });
+$('pbLamp').addEventListener('click', () => { NIGHT_SET.lamp = (NIGHT_SET.lamp + 1) % LAMPS.length; settings.lamp = NIGHT_SET.lamp; store.set(SETTINGS_KEY, settings); nightLabels(); $('pbLamp').focus(); });
+$('pbOcean').addEventListener('click', () => { U.uOcean.value = ((U.uOcean.value | 0) + 1) % OCEAN_STYLES.length; settings.ocean = U.uOcean.value; store.set(SETTINGS_KEY, settings); oceanLabel(); $('pbOcean').focus(); });
 $('tNew').addEventListener('click', (e) => {
   e.stopPropagation();
   if (performance.now() - newAskT > 4000) { newAskT = performance.now(); $('tNew').textContent = 'Really? Press again'; return; }
@@ -2391,7 +2402,7 @@ function frame() {
   scene.fog.color.copy(stage.fog); scene.fog.near = stage.fogNear; scene.fog.far = stage.fogFar;
   U.uDread.value = dread; U.uTime.value = waveT;
   if (window.__waterLock) { const wl = window.__waterLock; if (wl.t != null) U.uTime.value = Math.floor(wl.t * 12) / 12; if (wl.rough != null) { waterRough = wl.rough; U.uRough.value = WATER.rough = wl.rough; } }   // dev: water previews (docs/concept/water)
-  U.uLight.value = stage.light; U.uWave.value = stage.wave;   // (this sat inside the comment above since 21 Oct: night light and wave height never reached the shaders)
+  U.uLight.value = stage.light; U.uWave.value = stage.wave; U.uWindDir.value.set(Math.sin(wind.dir), -Math.cos(wind.dir));   // (this sat inside the comment above since 21 Oct: night light and wave height never reached the shaders)
   U.uDeep.value.copy(stage.deep); U.uShallow.value.copy(stage.shallow);
   if (threads.worldTint > 0.001) { U.uDeep.value.lerp(COLOUR_DEEP, threads.worldTint); U.uShallow.value.lerp(COLOUR_SHALLOW, threads.worldTint * 0.8); scene.fog.color.lerp(COLOUR_SHALLOW, threads.worldTint * 0.25); }   // a sea that is slowly losing a hue
   U.uSnap.value.set(post.internal.w * 0.5 * stage.snap, post.internal.h * 0.5 * stage.snap);

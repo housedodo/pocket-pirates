@@ -18,6 +18,12 @@ const DUSK_TOP = new THREE.Color('#5a5aa0'), DUSK_HOR = new THREE.Color('#ff9a5a
 const DUSK_SUN = new THREE.Color('#ff8a4a');
 const NIGHT_TINT = new THREE.Color(0.78, 0.88, 1.18), DUSK_TINT = new THREE.Color(1.1, 0.96, 0.86), WHITE = new THREE.Color(1, 1, 1);
 
+// how far you can see on a clear night, and how strong the lantern is: four settings each, chosen in the pause menu
+// (Night view / Lamp) or ?nightview=0..3&lamp=0..3. far = the share of the day's view distance left at full night.
+export const NIGHT_VIEWS = [{ name: 'Pitch dark', far: 0.28, light: 0.11 }, { name: 'Dark', far: 0.45, light: 0.17 }, { name: 'Moonlit', far: 0.65, light: 0.26 }, { name: 'Bright moon', far: 0.85, light: 0.36 }];   // far: view distance left at full night; light: how much moonlight
+export const LAMPS = [{ name: 'Candle', k: 0.5 }, { name: 'Lantern', k: 1 }, { name: 'Bright', k: 1.6 }, { name: 'Beacon', k: 2.4 }];
+export const NIGHT_SET = { view: 1, lamp: 1 };
+
 export const tod = {
   t: 0.33, sunHeight: 0, day: 1, night: 0, twilight: 0,
   sunAz: 0, sunElev: 0.5, moonAz: 0, moonElev: -0.5, clock: '08:00', tint: new THREE.Color(),
@@ -42,8 +48,8 @@ export function applyTimeOfDay(stage, t, dread) {
   stage.fog.lerp(NIGHT_FOG, nm * 0.96).lerp(DUSK_FOG, tw * 0.5);
   stage.sun.lerp(DUSK_SUN, tw * 0.8);
   stage.cloud.multiplyScalar(0.35 + 0.65 * day);
-  stage.light = Math.max(0.17, stage.light * (0.19 + 0.81 * day));
-  stage.fogFar *= 1 - 0.55 * night; stage.fogNear *= 1 - 0.6 * night;   // the dark closes in: islands are shapes, then nothing
+  { const nl = NIGHT_VIEWS[NIGHT_SET.view].light; stage.light = Math.max(nl, stage.light * (nl + 0.02 + (0.98 - nl) * day)); }
+  { const f = NIGHT_VIEWS[NIGHT_SET.view].far; stage.fogFar *= 1 - (1 - f) * night; stage.fogNear *= 1 - (1 - f * 0.9) * night; }   // the dark closes in: islands are shapes, then nothing
 
   tod.tint.copy(WHITE).lerp(NIGHT_TINT, night * 0.8).lerp(DUSK_TINT, tw * 0.7);
   stage.tint.multiply(tod.tint);

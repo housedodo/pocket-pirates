@@ -14,7 +14,9 @@ export const U = {
   uWave: { value: 1 },
   uRough: { value: 0 },     // how unruly the sea is, 0 calm toon swell .. 1 dark rollers (eased in main.js)
   uIsl: { value: Array.from({ length: 12 }, () => new THREE.Vector3(1e6, 1e6, 0)) },   // the nearest islands (x, z, radius): shallow, lighter water around them
-  uMurk: { value: new THREE.Vector3(1e6, 1e6, 0) },   // the hut's island (x, z, radius): the water round it is dark and murky
+  uMurk: { value: new THREE.Vector3(1e6, 1e6, 0) },
+  uOcean: { value: 0 },    // the water's look: 0 toon facets (the original) .. 4 (ocean.js OCEAN_STYLES)
+  uWindDir: { value: new THREE.Vector2(0, 1) },   // where the wind blows to (foam streaks)   // the hut's island (x, z, radius): the water round it is dark and murky
 };
 
 const VERT_HEAD = /* glsl */`

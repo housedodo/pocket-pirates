@@ -17,6 +17,14 @@ export function shoreAt(x, z) {
   for (const [ix, iz, r] of WATER.isl) s = Math.max(s, 1 - sstep(0, 40, Math.hypot(x - ix, z - iz) - r * 1.1));
   return s;
 }
+/** wave size by how far land is: low and gentle by islands and harbours (0.35), normal ~120 out, big in the open sea (1.7, 260+ from any land) */
+export function seaScale(x, z) {
+  let near = 0;
+  for (const [ix, iz, r] of WATER.isl) near = Math.max(near, 1 - sstep(15, 260, Math.hypot(x - ix, z - iz) - r * 1.1));
+  return 0.35 + 1.35 * (1 - near);
+}
+// the looks the water can take (uOcean); 0 is the original toon facets. Chosen in the pause menu (Ocean) or ?ocean=1..4
+export const OCEAN_STYLES = ['Toon facets', 'Soft swell', 'Painted bands', 'Wind chop', 'Deep sheen'];
 // Real water is never regular: waves of many directions and unrelated speeds, travelling in groups (the envelope), their crests bent a little by a slow warp of the surface.
 const wsin = Math.sin;
 export function waveHeight(x, z, t, amp = 1) {
@@ -30,13 +38,14 @@ export function waveHeight(x, z, t, amp = 1) {
       + 0.075 * wsin(-0.62 * px + 0.18 * pz + 2.7 * WR * t + 4.0) + 0.05 * wsin(0.9 * px + 0.7 * pz + 3.3 * WR * t + 5.2) + 0.2 * wsin(0.083 * px - 0.11 * pz + 0.65 * WR * t + 0.7);
     h *= E; h += 0.28 * h * Math.abs(h);
   }
-  return amp * (sw * (1 - r) * (0.85 + 0.15 * E) + h * r) * (1 - 0.45 * shoreAt(x, z));
+  return amp * (sw * (1 - r) * (0.85 + 0.15 * E) + h * r) * seaScale(x, z);
 }
 
 const GLSL_SHORE = /* glsl */`
 uniform vec3 uIsl[${NISL}]; uniform float uRough;
-float shoreF(vec2 p){ float s = 0.0; for (int i = 0; i < ${NISL}; i++) { vec3 I = uIsl[i]; s = max(s, 1.0 - smoothstep(0.0, 40.0, length(p - I.xy) - I.z * 1.1)); } return s; }`;
-const GLSL_WAVE = /* glsl */`
+float shoreF(vec2 p){ float s = 0.0; for (int i = 0; i < ${NISL}; i++) { vec3 I = uIsl[i]; s = max(s, 1.0 - smoothstep(0.0, 40.0, length(p - I.xy) - I.z * 1.1)); } return s; }
+float landNear(vec2 p){ float s = 0.0; for (int i = 0; i < ${NISL}; i++) { vec3 I = uIsl[i]; s = max(s, 1.0 - smoothstep(15.0, 260.0, length(p - I.xy) - I.z * 1.1)); } return s; }`;
+const GLSL_WAVEFN = /* glsl */`
 uniform float uTime; uniform float uWave;
 ${GLSL_SHORE}
 const float WS = 1.2566371; const float WRL = 0.6283185;
@@ -52,9 +61,9 @@ float waveH(vec2 p){
       + 0.075 * sin(-0.62 * q.x + 0.18 * q.y + 2.7 * WRL * t + 4.0) + 0.05 * sin(0.9 * q.x + 0.7 * q.y + 3.3 * WRL * t + 5.2) + 0.2 * sin(0.083 * q.x - 0.11 * q.y + 0.65 * WRL * t + 0.7);
     h *= E; h += 0.28 * h * abs(h);
   }
-  return uWave * (mix(sw * (0.85 + 0.15 * E), h, uRough)) * (1.0 - 0.45 * shoreF(p));
-}
-varying vec3 vWP;`;
+  return uWave * (mix(sw * (0.85 + 0.15 * E), h, uRough)) * (0.35 + 1.35 * (1.0 - landNear(p)));   // low by land, big in the open sea
+}`;
+const GLSL_WAVE = GLSL_WAVEFN + '\nvarying vec3 vWP;';
 
 export class Ocean {
   constructor() {
@@ -72,8 +81,10 @@ export class Ocean {
                 vWP = wp0.xyz + vec3(0.0, wh, 0.0);`,
       },
       fragmentColor: {
-        head: `varying vec3 vWP; uniform vec3 uDeep; uniform vec3 uShallow; uniform vec3 uSunDir; uniform vec3 uSunColor; uniform float uWave; uniform float uTime; uniform vec3 uMurk;
-          ${GLSL_SHORE}
+        head: `varying vec3 vWP; uniform vec3 uDeep; uniform vec3 uShallow; uniform vec3 uSunDir; uniform vec3 uSunColor; uniform vec3 uMurk; uniform float uOcean; uniform vec2 uWindDir;
+          ${GLSL_WAVEFN}
+          float bay2(vec2 a) { a = floor(a); return fract(dot(a, vec2(0.5, a.y * 0.75))); }
+          float bay4(vec2 a) { return bay2(0.5 * a) * 0.25 + bay2(a); }   // ordered dither, so smooth light still reads as pixels
           float rnd(vec2 q) { return fract(sin(dot(q, vec2(12.9898, 78.233))) * 43758.5453); }
           float vn(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f); return mix(mix(rnd(i), rnd(i + vec2(1.0, 0.0)), f.x), mix(rnd(i + vec2(0.0, 1.0)), rnd(i + vec2(1.0, 1.0)), f.x), f.y); }`,
         body: `
@@ -101,6 +112,53 @@ export class Ocean {
           float streak = step(0.92 - 0.14 * (tear - 0.5) * 2.0, crest + 0.06 * (fn2 - 0.5)) * step(0.35, fn1) + step(0.985, crest) * step(0.45, fn2);
           vec3 outB = mix(rb, vec3(0.82, 0.88, 0.86), clamp(streak, 0.0, 1.0) * 0.7) * uLight;
           vec3 outc = mix(outA, outB, uRough * (1.0 - 0.6 * shore));                        // gradual: the roughness itself eases in over time and distance
+          if (uOcean > 0.5) {
+            // the other looks: the same waves, lit with smooth normals (no flat triangles), dithered into a few tones so they stay pixel art
+            float e = 0.7;
+            vec3 sn = normalize(vec3(-(waveH(vWP.xz + vec2(e, 0.0)) - waveH(vWP.xz - vec2(e, 0.0))) / (2.0 * e), 1.0, -(waveH(vWP.xz + vec2(0.0, e)) - waveH(vWP.xz - vec2(0.0, e))) / (2.0 * e)));
+            vec3 V = normalize(cameraPosition - vWP);
+            float open = 1.0 - landNear(vWP.xz), d = bay4(gl_FragCoord.xy);
+            float cr = clamp(vWP.y / (1.1 * max(uWave, 0.5)) + 0.5, 0.0, 1.0);
+            vec3 S;
+            if (uOcean < 1.5) {
+              // 1 SOFT SWELL: gentle light over the swell in five dithered tones, darker troughs, lace foam on the highest crests
+              float l = clamp(dot(sn, uSunDir) * 0.55 - 0.12 + cr * 0.5, 0.0, 1.0);
+              float q = floor(l * 4.0 + d) / 4.0;
+              S = mix(uDeep * 0.58, uShallow * 0.92, q * 0.85);
+              float lace = step(0.86 - 0.1 * open, cr) * step(0.5, vn(vWP.xz * 0.5 + vec2(uTime * 0.12, -uTime * 0.08)) + d * 0.3);
+              S = mix(S, vec3(0.93, 0.97, 0.96), lace * 0.75);
+            } else if (uOcean < 2.5) {
+              // 2 PAINTED BANDS: the sea painted in height bands like a sea chart, thin pale contour lines riding the waves
+              float c = waveH(vWP.xz) / max(uWave * 0.45, 0.2) + 0.6 * vn(vWP.xz * 0.04 + vec2(uTime * 0.02, 0.0));   // the true height per pixel: smooth contours, no triangles
+              float b = clamp(floor(c * 1.5 + 1.5), 0.0, 4.0) / 4.0;
+              S = mix(uDeep * 0.6, uShallow * 0.9, b * 0.8);
+              float line = 1.0 - smoothstep(0.0, 0.07, abs(fract(c * 1.5) - 0.5) - 0.42);
+              S = mix(S, mix(uShallow, vec3(1.0), 0.6), line * 0.45 * (0.4 + 0.6 * open));
+              S *= 0.9 + 0.2 * clamp(dot(sn, uSunDir), 0.0, 1.0);
+            } else if (uOcean < 3.5) {
+              // 3 WIND CHOP: a smooth base swell with a small, fast chop on top (stronger out at sea), sparkles and whitecap flecks
+              vec2 cp = vWP.xz * 1.1 + uWindDir * uTime * 1.4;
+              float n0 = vn(cp), nx = vn(cp + vec2(0.35, 0.0)), nz = vn(cp + vec2(0.0, 0.35));
+              vec3 cn = normalize(sn + vec3(n0 - nx, 0.0, n0 - nz) * (0.6 + 1.2 * open));
+              float l = clamp(dot(cn, uSunDir) * 0.65 - 0.02, 0.0, 1.0);
+              S = mix(uDeep * 0.6, uShallow * 0.88, floor(l * 3.0 + d) / 3.0 * 0.8);
+              float spec = pow(max(dot(reflect(-uSunDir, cn), V), 0.0), 40.0);
+              S += uSunColor * step(0.55 + 0.3 * d, spec) * 0.8;
+              float fleck = step(0.93 - 0.06 * open, vn(vWP.xz * 0.9 + uWindDir * uTime * 0.7)) * step(0.55, cr) * open;
+              S = mix(S, vec3(0.95), fleck * 0.85);
+            } else {
+              // 4 DEEP SHEEN: dark clear body, the sky's sheen on the faces you see at a slant, long foam streaks drawn out by the wind
+              float fres = pow(1.0 - max(dot(sn, V), 0.0), 3.0);
+              vec3 body = mix(uDeep * 0.42, uShallow * 0.62, clamp(cr * 0.55 + dot(sn, uSunDir) * 0.2, 0.0, 1.0));
+              vec3 sky = mix(uShallow, vec3(0.85, 0.93, 1.0), 0.5);
+              S = mix(body, sky, floor(clamp(fres * 1.5, 0.0, 1.0) * 4.0 + d) / 4.0 * 0.6);
+              vec2 wd = uWindDir, wp = vec2(-wd.y, wd.x);
+              float st = vn(vec2(dot(vWP.xz, wd) * 0.05 - uTime * 0.25, dot(vWP.xz, wp) * 0.9));
+              S = mix(S, vec3(0.9, 0.95, 0.95), step(0.82 - 0.08 * open, st) * step(0.45, cr) * 0.6);
+            }
+            S = S * uLight + glint * uSunColor * 0.6;
+            outc = mix(S, outB, uRough * (1.0 - 0.6 * shore));
+          }
           // near land: lighter, shallower, more turquoise (the same flat banded look)
           vec3 shallowTint = mix(uShallow * 1.12, vec3(0.72, 0.95, 0.82), 0.35) * uLight;
           float band = floor(shore * 4.0 + 0.5) / 4.0;                                     // banded like everything else

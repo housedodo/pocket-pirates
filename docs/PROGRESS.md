@@ -624,4 +624,15 @@ From the critique "what goes stale on a long voyage" (compared with Wind Waker, 
 - **Fewer, fainter currents:** three lanes now (the Tooth Run, the Green Drift, the Reef Road), all well inside the fog; the
   ring round Tama and the lanes that ran toward fog are gone. Foam streaks are fewer (46), thinner and half as bright. Every
   current fades out near any fog (`fogEdge`), so none can carry the ship into it.
+- **Waves by distance from land:** one shared factor (`seaScale` / GLSL `landNear`) for the water and everything that floats:
+  0.35 by islands and harbours, about 1 some 120 out, up to 1.7 in open sea 260+ from land. Measured swell at the Tama pier
+  0.32, ~120 out 0.78, open sea 1.44.
+- **Four ocean designs** (pause menu "Ocean", remembered, or `?ocean=0..4`; `docs/concept/ocean_designs.jpg`): 0 Toon facets
+  (the original), 1 Soft swell (smooth light in five dithered tones, lace foam on crests), 2 Painted bands (height bands like a
+  sea chart with pale contour lines riding the waves), 3 Wind chop (a small fast chop over the swell, stronger out at sea, sun
+  sparkles and whitecap flecks), 4 Deep sheen (dark clear water, the sky's sheen at a slant, long wind-drawn foam streaks).
+  Styles 1-4 use smooth normals from the wave function itself (no flat triangles) and an ordered dither so they stay pixel art.
+- **Night view and lamp settings** (pause menu "Night view" / "Lamp", or `?nightview=0..3&lamp=0..3`): view distance and
+  moonlight together: Pitch dark (28% of day view, light 0.11), Dark (45%, 0.17, default), Moonlit (65%, 0.26), Bright moon
+  (85%, 0.36); lamp pool: Candle, Lantern (default), Bright, Beacon. Comparison images in docs/concept.
 
