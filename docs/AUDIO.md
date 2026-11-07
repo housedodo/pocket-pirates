@@ -245,4 +245,4 @@ silence is the effect.
 ## Quest and chapter cues (quieter)
 The quest-complete and new-quest cards play `discover` at half volume (charting an island keeps it at full); `chapter` is at 0.25
 in `public/audio/volumes.json` (was 0.4).
-
+- `buy` is at 0.3 in volumes.json; the `coast` bed drops to 30% while you are docked (was 85%).

@@ -1328,7 +1328,7 @@ function gullLevel(night) {
 function coastLevel(moored, night) {
   const near = world.nearest(ship.pos.x, ship.pos.z, 110);
   let k = near ? 1 - clamp(world.lastEdge / 110, 0, 1) : 0;
-  k = Math.max(k * k * 0.75, moored ? 0.85 : 0);
+  k = moored ? 0.3 : k * k * 0.75;   // docked: the coast drops to a quiet 30% so the harbour and the music come through
   return k * (1 - night * 0.5) * (1 - weather.storm * 0.8) * (1 - smoothstep(0.25, 0.4, dread));
 }
 // ashore on a big forest island (1): its forest bed plays very quietly. No island is a forest yet (ROADMAP: forest
