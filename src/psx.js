@@ -17,6 +17,7 @@ export const U = {
   uMurk: { value: new THREE.Vector3(1e6, 1e6, 0) },
   uOcean: { value: 0 },    // the water's look: 0 toon facets (the original) .. 4 (ocean.js OCEAN_STYLES)
   uWindDir: { value: new THREE.Vector2(0, 1) },
+  uRain: { value: 0 },     // rain on the water (rings), 0..1
   uGust: { value: Array.from({ length: 4 }, () => new THREE.Vector4(1e6, 1e6, 1, 0)) },   // gust patches on the water (x, z, radius, strength): seaplay.js   // where the wind blows to (foam streaks)   // the hut's island (x, z, radius): the water round it is dark and murky
 };
 

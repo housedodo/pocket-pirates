@@ -663,3 +663,18 @@ From the critique "what goes stale on a long voyage" (compared with Wind Waker, 
   Sideways the keel bites hard (lateral speed decays at 5.5/s), so a turn slides only briefly. Measured: half sail 95 deg in 3 s
   (+24 after letting go), full sail 71 deg (+19); sideways slide 0.06-0.11. Rowing keeps its own easy turning for docking.
 
+## Look pass: wake, shores, sails, islands, sky, rain, other ships
+- **Wake and bow wave** (`src/wake.js`): a trail of points behind the stern opens into a V of broken foam (the arms spread with
+  age, thin and fade over ~4 s), a churned strip right behind the stern, and white water peeling off both sides of the bow,
+  longer and brighter with speed. The round wake puffs are fewer. Traffic ships within 220 have their own.
+- **Shores, seabed, fish, rain** (ocean shader): broken lines of foam roll in and break near every shore (uneven spacing, only
+  stretches of each line), a wash at the edge; in the shallows the seabed shows through (sand ripples, darker rock and weed,
+  dithered), small fish shadows drift in loops over it by day; rain leaves rings spreading on the surface near the camera.
+- **Sails and rigging:** pointed too close to the wind the mainsail and jib go slack and flutter (luff); a gust fills the sail
+  fuller; a forestay, two backstays and four shrouds as thin dark lines.
+- **Islands vary** (rolled separately, so the world stays put): a slight colour shift per island, a cliff face on one side of
+  ~40% of jungle isles, two to four sea stacks off ~70% of rocky ones.
+- **Sky:** clouds take the sunrise and sunset colour; a high layer of thin cirrus streaks; a storm wall (a dark cloud bank with
+  grey rain curtains under it) rises over the horizon upwind as a storm or a front comes near (`fx.stormWall`).
+- **Other ships** float like yours (springs, heel with the wind, squat at speed) and leave wakes.
+

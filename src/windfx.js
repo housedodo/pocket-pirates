@@ -35,7 +35,7 @@ export class WindFX {
   update(dt, t, dir, strength, shipPos, night, rain) {
     const wx = Math.sin(dir), wz = -Math.cos(dir), sx = -wz, sz = wx;
     const speed = 3 + strength * 7;
-    this.mat.opacity = Math.max(0, (0.26 + 0.4 * Math.min(1, strength)) * (1 - 0.6 * night) * (1 - rain));
+    this.mat.opacity = Math.max(0, (0.16 + 0.24 * Math.min(1, strength)) * (1 - 0.6 * night) * (1 - rain));
     this.mesh.visible = this.mat.opacity > 0.01;
     const P = this.pos, C = this.col;
     for (let i = 0; i < N; i++) {

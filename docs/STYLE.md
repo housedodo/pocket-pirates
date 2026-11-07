@@ -57,6 +57,11 @@ purple and magenta cosmic horror as dread rises.
 - **Ocean designs** (ocean.js `OCEAN_STYLES`, uOcean): the original toon facets stay the default until one is chosen; every
   design keeps the palette (uDeep, uShallow), the shallows tint, the murk and the rough-sea blend, and dithers its light.
 - **Waves:** low and gentle by land, bigger in the open sea (`seaScale`).
+- **Wake:** a V of broken foam behind the stern (Kelvin-like spread), a churned strip, bow white water by speed; flat quads on
+  the waves, never particles in the air.
+- **Shores:** foam lines rolling in and breaking in stretches, seabed (sand, rock, weed) dithered through the shallows, fish
+  shadows; rain rings on the surface.
+- **Storm wall:** a cloud bank in the sky with rain curtains under it, never a dark mass sitting on the sea (it read as land).
 - **Night is dark:** light floor 0.17 of day, near-black navy sky and fog, a short view; what you see by is the lantern's warm
   pool on the water, lit windows, lighthouses and the moon. With the lamp out the dark comes right up to the hull.
 - **Torn sail:** dark holes you can see through, long thin rips, the clew corner gone, three loose rags flapping; the sail

@@ -282,6 +282,14 @@ export class Ship {
     this.jib = new THREE.Mesh(shipGeos().jib, mats.sail);
     this.root.add(this.jib);
     this.root.add(this.topsail);
+    // rigging: a forestay to the bowsprit tip, backstays to the stern, shrouds to the rails (thin dark lines, like everything else)
+    { const top = [0, 7.2, -0.3], mid = [0, 5.4, -0.3], R = [];
+      const add = (a, b) => R.push(...a, ...b);
+      add(top, [0, 2.0, -4.5]); add(top, [0.95, 1.3, 2.7]); add(top, [-0.95, 1.3, 2.7]);
+      for (const sd of [-1, 1]) { add(mid, [sd * 1.22, 1.0, -0.75]); add(mid, [sd * 1.22, 1.0, 0.25]); }
+      const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(R, 3));
+      this.rigging = new THREE.LineSegments(g, new THREE.LineBasicMaterial({ color: 0x2a1c14 }));
+      this.root.add(this.rigging); }
 
     // pennant (bright: red, dark: black skull)
     this.flag = new THREE.Group();
@@ -464,8 +472,15 @@ export class Ship {
     const flat = 0.14 + 0.86 * this.trim;
     const k = this.mods.sailScale;
     this.sailPivot.scale.set(k, flat * k, k);
-    this.sail.scale.x += (sgn - this.sail.scale.x) * Math.min(1, dt * 2.5);
-    this.jib.scale.x += (sgn - this.jib.scale.x) * Math.min(1, dt * 2.5);
+    // the sail's belly: full with the wind behind or across, fuller in a gust; pointed too close to the wind it goes slack and
+    // flutters (luffs), the canvas shaking
+    const luff = clamp((1 - (this.eff ?? 1)) * 1.5, 0, 1) * Math.min(1, this.trim * 3);
+    const fill = (1 - 0.65 * luff) * (1 + 1.4 * ((this.gust || 1) - 1));
+    this.sailBase = (this.sailBase ?? sgn) + (sgn * fill - (this.sailBase ?? sgn)) * Math.min(1, dt * 2.5);
+    const flutter = luff * (Math.sin(t * 19) * 0.22 + Math.sin(t * 31 + 1.3) * 0.12);
+    this.sail.scale.x = this.sailBase + flutter;
+    this.luff = luff;
+    this.jib.scale.x += (sgn * (1 - 0.6 * (this.luff || 0)) - this.jib.scale.x) * Math.min(1, dt * 2.5); this.jib.scale.x += (this.luff || 0) * Math.sin(t * 23) * 0.18;
     this.jib.scale.y = flat;
     this.topsail.scale.set(this.jib.scale.x, flat, 1);
     this.jib.position.y = (1 - flat) * 0;
@@ -497,7 +512,7 @@ export class Ship {
     // wake
     this.puffTimer -= dt;
     if (this.puffTimer <= 0 && this.speed > 1.2) {
-      this.puffTimer = 0.1;
+      this.puffTimer = 0.3;   // a few churned puffs; the V wake (wake.js) carries the rest
       const pf = this.puffs.find((q) => q.life <= 0);
       if (pf) {
         const side = Math.random() < 0.5 ? -1 : 1;

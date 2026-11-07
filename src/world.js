@@ -123,6 +123,13 @@ export function describeCell(cx, cz, seed) {
     if (!forced) { const sd = STYLE_DEF[desc.style]; desc.r *= sd.rMul; desc.lobes = desc.lobes.map((v, i) => (i < 3 ? v * sd.lobeMul : v)); }
   }
   if (forced && forced.lm) shapeLandmark(desc, forced.lm);
+  { // character, rolled on its own so the rest of the world stays put: a colour shift per island, a cliff on some jungle isles,
+    // sea stacks off most rocky ones
+    const vr = mulberry32(hash2(cx, cz, seed + 5151));
+    desc.hue = (vr() - 0.5) * 0.06; desc.satK = (vr() - 0.5) * 0.2; desc.lumK = (vr() - 0.5) * 0.08;
+    if (!forced && desc.type === 'jungle' && vr() < 0.4) { desc.cliffTh = vr() * 6.283; desc.cliffH = 0.7 + vr() * 0.7; }
+    if (!forced && desc.type === 'rocky' && vr() < 0.7) desc.stacks = 2 + Math.floor(vr() * 3);
+  }
   if (type === 'treasure') desc.puzzle = makePuzzle(mulberry32(hash2(cx, cz, seed + 31)), name, dread);
   return desc;
 }
@@ -141,7 +148,11 @@ export function terrainHeight(d, lx, lz) {
   const p = 1 - Math.pow(t, d.type === 'rocky' ? 1.6 : 2.2);
   switch (d.type) {
     case 'sandbar': return d.H * p * (0.6 + n * 0.8);
-    case 'jungle': return d.H * Math.pow(p, 1.35) * (0.55 + n * 0.8);
+    case 'jungle': {
+      let jh = d.H * Math.pow(p, 1.35) * (0.55 + n * 0.8);
+      if (d.cliffTh !== undefined) { const c = Math.max(0, Math.cos(th - d.cliffTh)); jh += d.H * d.cliffH * c * c * c * (1 - smoothstep(0.86, 0.99, t)) * smoothstep(0.1, 0.6, t); }   // a cliff face on one side
+      return jh;
+    }
     case 'rocky': { const ridge = 1 - Math.abs(n * 2 - 1); return d.H * Math.pow(p, 1.1) * (0.35 + ridge * 1.1); }
     case 'treasure': return d.H * Math.pow(p, 1.4) * (0.7 + n * 0.5);
     case 'volcano': { // a cone with a crater
@@ -212,8 +223,10 @@ function buildTerrain(d, rng) {
       const slope = clamp(Math.abs(dy) / (Math.hypot(dx, dz) + 0.001) * 0.5, 0, 1);
       const noise = fbm((a[0] + d.x) * 0.25, (a[2] + d.z) * 0.25, d.seed + 9);
       const base = faceColor(d, hc, slope, noise);
+      const tv = (d.hue || d.satK || d.lumK) && !d.lm && !d.blight;   // this island's own slight colour shift
       const k = 0.88 + rng() * 0.22;
       tmp.copy(base).multiplyScalar(k);
+      if (tv) tmp.offsetHSL(d.hue, d.satK, d.lumK);
       darken(tmp, dk);
       if (hc > 0.5 && rng() < 0.12) dk.lerp(COL.violet, 0.8);
       b.tri(a, bb, c, tmp, TILE.white, undefined, dk);
@@ -957,6 +970,11 @@ function decorate(d, rng, A, B, D, extra) {
     if (T === 'treasure') scatter(2, 0.3, 0.8, 0.6, (p) => stump(A, p[0], p[1], p[2]));
   }
   if (T === 'rocky') scatter(4, 0.2, 0.9, 0.3, (p) => mossRock(A, p[0], p[1], p[2], 0.9 + rng() * 0.8, rng));
+  if (d.stacks) for (let i = 0; i < d.stacks; i++) {   // sea stacks standing just off the shore, white with spray at the foot
+    const th = rng() * 6.283, R = shoreR(d, th) * (1.0 + rng() * 0.08), x = Math.cos(th) * R, z = Math.sin(th) * R, hh = 3 + rng() * 5, w = 0.9 + rng() * 0.8;
+    A.cyl(x, -2, z, w, w * 0.55, hh + 2, 6, rng() > 0.5 ? '#8a8478' : '#7a746c', TILE.stone, true, '#6e8a52');
+    A.blob(x, 0.1, z, w * 1.5, 0.18, w * 1.5, '#f2f6f6', TILE.white, 0.3, i);
+  }
   switch (T) {
     case 'volcano': {
       const rim = terrainHeight(d, shoreR(d, 0) * 0.22, 0);

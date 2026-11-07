@@ -86,7 +86,7 @@ export class Ocean {
                 vWP = wp0.xyz + vec3(0.0, wh, 0.0);`,
       },
       fragmentColor: {
-        head: `varying vec3 vWP; uniform vec3 uDeep; uniform vec3 uShallow; uniform vec3 uSunDir; uniform vec3 uSunColor; uniform vec3 uMurk; uniform float uOcean; uniform vec2 uWindDir; uniform vec4 uGust[4];
+        head: `varying vec3 vWP; uniform vec3 uDeep; uniform vec3 uShallow; uniform vec3 uSunDir; uniform vec3 uSunColor; uniform vec3 uMurk; uniform float uOcean; uniform vec2 uWindDir; uniform vec4 uGust[4]; uniform float uRain;
           ${GLSL_WAVEFN}
           float bay2(vec2 a) { a = floor(a); return fract(dot(a, vec2(0.5, a.y * 0.75))); }
           float bay4(vec2 a) { return bay2(0.5 * a) * 0.25 + bay2(a); }   // ordered dither, so smooth light still reads as pixels
@@ -179,6 +179,51 @@ export class Ocean {
           vec3 shallowTint = mix(uShallow * 1.12, vec3(0.72, 0.95, 0.82), 0.35) * uLight;
           float band = floor(shore * 4.0 + 0.5) / 4.0;                                     // banded like everything else
           outc = mix(outc, shallowTint, band * 0.6);
+          // ---- near land: the seabed shows through the shallows, fish shadows drift over it, and waves roll in and break on the shore
+          float sd = 1e4;
+          for (int i = 0; i < ${NISL}; i++) { vec3 I = uIsl[i]; sd = min(sd, length(vWP.xz - I.xy) - I.z * 1.1); }
+          float dz = bay4(gl_FragCoord.xy);
+          if (sd < 45.0) {
+            float clear = (1.0 - smoothstep(2.0, 38.0, sd)) * (0.35 + 0.65 * uLight);
+            // the seabed: pale sand in ripples, darker rocks and weed in patches, dithered so it reads as pixels
+            vec2 sp2 = vWP.xz;
+            float rip = 0.5 + 0.5 * sin(dot(sp2, vec2(0.55, 0.32)) + 2.0 * vn(sp2 * 0.08));
+            float rock = step(0.66, vn(sp2 * 0.11 + 7.0)) + step(0.74, vn(sp2 * 0.27 + 3.0)) * 0.6;
+            vec3 bed = mix(vec3(0.86, 0.8, 0.58), vec3(0.95, 0.9, 0.7), rip);
+            bed = mix(bed, vec3(0.28, 0.36, 0.26), clamp(rock, 0.0, 1.0) * 0.8);
+            float bq = floor(clear * 0.62 * 4.0 + dz) / 4.0;
+            outc = mix(outc, bed * mix(uShallow, vec3(1.0), 0.45) * uLight, bq * (1.0 - uRough * 0.8));
+            // fish shadows: small dark shapes that drift in slow loops over the sand by day
+            vec2 cell = floor(vWP.xz / 22.0);
+            if (rnd(cell) > 0.55 && clear > 0.25) {
+              float ph = rnd(cell + 3.0) * 6.283, tt = uTime * (0.25 + 0.2 * rnd(cell + 5.0));
+              vec2 c0 = (cell + 0.5) * 22.0 + vec2(cos(tt + ph), sin(tt * 1.3 + ph)) * 6.0;
+              vec2 vel = normalize(vec2(-sin(tt + ph), 1.3 * cos(tt * 1.3 + ph)) + 1e-4);
+              for (int f = 0; f < 4; f++) {
+                vec2 fo = c0 + vec2(rnd(cell + float(f)) - 0.5, rnd(cell + float(f) + 9.0) - 0.5) * 3.0;
+                vec2 d2 = vWP.xz - fo; float along = dot(d2, vel), across = dot(d2, vec2(-vel.y, vel.x));
+                float fish = 1.0 - smoothstep(0.0, 0.18, (along * along) / 0.5 + (across * across) / 0.06 - 0.2);
+                outc = mix(outc, outc * 0.6, fish * 0.55 * clear * smoothstep(0.3, 0.7, uLight));
+              }
+            }
+            // breakers: lines of foam rolling in toward the shore, broken up, bunching and washing up at the edge
+            float roll = sd / (5.0 + 3.0 * vn(vWP.xz * 0.03)) + uTime * 0.32 + 0.6 * vn(vWP.xz * 0.05);   // uneven spacing, bent lines
+            float brk = step(0.88, fract(roll)) * step(0.5, vn(vWP.xz * 0.045 + vec2(uTime * 0.05, 0.0))) * step(0.4, vn(vWP.xz * 0.4 + vec2(uTime * 0.2, 0.0)));   // only stretches of each line break
+            float near = 1.0 - smoothstep(2.0, 16.0, sd);
+            float wash = (1.0 - smoothstep(0.0, 3.5 + 1.5 * sin(uTime * 0.6), sd)) * step(0.35, vn(vWP.xz * 0.5 + uTime * 0.1));
+            outc = mix(outc, vec3(0.94, 0.97, 0.96) * (0.35 + 0.65 * uLight), clamp(brk * near * 0.8 + wash * 0.7, 0.0, 1.0) * (1.0 - smoothstep(-2.0, 1.0, -sd)));
+          }
+          // rain rings: little circles spreading on the surface wherever drops land, close to the camera
+          if (uRain > 0.05) {
+            float camd = length(cameraPosition.xz - vWP.xz);
+            if (camd < 70.0) {
+              vec2 rc = floor(vWP.xz / 1.6), rf = fract(vWP.xz / 1.6) - 0.5;
+              float on = step(rnd(rc + 11.0), uRain * 0.75);
+              float age = fract(uTime * 0.8 + rnd(rc));
+              float ring = 1.0 - smoothstep(0.0, 0.07, abs(length(rf - (vec2(rnd(rc + 2.0), rnd(rc + 4.0)) - 0.5) * 0.4) - age * 0.42));
+              outc = mix(outc, outc * 1.25 + 0.06, ring * on * (1.0 - age) * 0.7 * (1.0 - smoothstep(30.0, 70.0, camd)));
+            }
+          }
           // gusts (cat's paws): soft, ragged patches of darker, rippled water drifting down the wind, part of the sea itself
           float gk = 0.0;
           for (int i = 0; i < 4; i++) {
