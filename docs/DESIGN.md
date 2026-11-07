@@ -226,7 +226,7 @@ warns, and sets `lampOut` (ship glow off via `ship.lampOut`, scene fog pulled in
 Market's LAMP OIL row and Wick's Rock refill it. Tune the burn in `oilRate`, the price in `OIL_PRICE`.
 
 ## Torn sails
-`sailTick` in main.js: strain grows while `windNow.strength > 1.05 || weather.storm > 0.45` and `ship.trim > 0.55`, decays
-otherwise; warning at 35% of `SAIL_LIMIT` (16), tear at 100%. `ship.torn` multiplies the speed target by 0.66. Mending:
+`sailTick` in main.js: strain grows only in a real storm (`weather.storm > 0.6 && windNow.strength > 1.0`) with `ship.trim > 0.55`,
+decays otherwise; warning at 35% of `SAIL_LIMIT` (20), tear at 100% (about 12 s at full sail in a full storm). `ship.torn` multiplies the speed target by 0.66. Mending:
 a patch kit (`getInteract` kind `patch`, lowest priority, anywhere at sea) or docking at a harbour (`mendSails`).
 

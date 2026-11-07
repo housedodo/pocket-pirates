@@ -607,4 +607,11 @@ From the critique "what goes stale on a long voyage" (compared with Wind Waker, 
 - **Night pad and second pluck:** the night switches between the night band and a big calm pad (`n1_pad`; calm seas favour the
   pad), and the main melody swaps between the pluck and the composer's variation (`s1_pluck2`), never together. Quest and chapter
   sounds are quieter. See AUDIO.md.
+- **Torn sails only in real storms** (playtest: too sensitive): strain builds only when the storm is over 0.6 and the wind over
+  1.0; everyday wind and squalls never tear the sail. In a full storm at full sail: warning after ~4 s, tear after ~12 s.
+- **Darker nights** (playtest: too bright). Found the cause: since 21 Oct the line that passes the light level and wave height
+  to the shaders sat inside a comment, so the world kept daylight brightness at night (and the waves did not follow the
+  weather). Fixed; on top: night light floor 0.17 (was 0.3), darker night sky and fog, the view closes in (fog at 45%), and the
+  lantern throws a wider, warmer pool on the water so it matters; with the lamp out it is darker still. The ship's wake no
+  longer glows cyan at night.
 

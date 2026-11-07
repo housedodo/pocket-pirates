@@ -2126,12 +2126,12 @@ function oilTick(dt) {
 // torn sails: too much canvas in a strong wind for too long and the mainsail rips (two thirds speed, ship.torn) until a patch
 // kit is used at sea (stop, E) or a harbour's sailmaker mends it. Counts from the same chapter as the oil.
 let sailStrain = 0, strainWarned = false;
-const SAIL_LIMIT = 16;   // seconds of full sail in a gale before it tears (longer with better sails, shorter in a storm)
+const SAIL_LIMIT = 20;   // seconds of full sail in a gale before it tears (longer with better sails, shorter in a storm)
 function sailTick(dt, windNow) {
   if (!oilOn() || state.sailsTorn || ship.rowing) { sailStrain = 0; return; }
-  const gale = windNow.strength > 1.05 || weather.storm > 0.45;
+  const gale = weather.storm > 0.6 && windNow.strength > 1.0;   // only a real storm: everyday wind, even a fresh breeze, never tears the canvas
   if (gale && ship.trim > 0.55) {
-    sailStrain += dt * (ship.trim - 0.35) * 1.6 * (1 + Math.max(0, windNow.strength - 1.05) * 2 + weather.storm * 0.6) * (1 - 0.15 * (state.upgrades.sails || 0));
+    sailStrain += dt * (ship.trim - 0.35) * 1.6 * (0.6 + (weather.storm - 0.6) * 2.5 + Math.max(0, windNow.strength - 1.1)) * (1 - 0.15 * (state.upgrades.sails || 0));
     if (!strainWarned && sailStrain > SAIL_LIMIT * 0.35) { strainWarned = true; toast('The canvas is straining in this wind! Reef the sails (S) before it tears.', false, 5000); audio.play('ui', { vol: 0.5 }); }
     if (sailStrain >= SAIL_LIMIT) {
       state.sailsTorn = true; ship.setTorn(true); sailStrain = 0; strainWarned = false; shake = Math.max(shake, 0.6);
@@ -2290,7 +2290,7 @@ function frame() {
   stage.wave *= 1 - 0.85 * glimpse.k;   // the sea goes flat
   seaWave = stage.wave;
   const fogK = Math.max(gateFog, places.fog);   // the fog wall at the edge of the chapter, or the bank round the Halved Isle
-  if (lampOut) { stage.fogFar *= 0.32; stage.fogNear *= 0.25; stage.fog.multiplyScalar(1 - 0.6 * tod.night); }   // no lamp: the dark comes in close
+  if (lampOut) { stage.fogFar *= 0.32; stage.fogNear *= 0.25; stage.fog.multiplyScalar(1 - 0.6 * tod.night); stage.light *= 1 - 0.35 * tod.night; }   // no lamp: the dark comes in close
   if (fogK > 0) { stage.fogFar = Math.max(30, stage.fogFar * (1 - 0.85 * fogK)); stage.fogNear = Math.max(4, stage.fogNear * (1 - 0.9 * fogK)); stage.fog.lerp(new THREE.Color('#b8c0c4'), fogK * 0.7); }
   abyss.update(dt, { dread, live, camera, camYaw, ch: camHeading + camYaw });
   stage.wave *= abyss.waveMul;
@@ -2361,7 +2361,8 @@ function frame() {
   // ---- global shader state
   scene.fog.color.copy(stage.fog); scene.fog.near = stage.fogNear; scene.fog.far = stage.fogFar;
   U.uDread.value = dread; U.uTime.value = waveT;
-  if (window.__waterLock) { const wl = window.__waterLock; if (wl.t != null) U.uTime.value = Math.floor(wl.t * 12) / 12; if (wl.rough != null) { waterRough = wl.rough; U.uRough.value = WATER.rough = wl.rough; } }   // dev: water previews (docs/concept/water) U.uLight.value = stage.light; U.uWave.value = stage.wave;
+  if (window.__waterLock) { const wl = window.__waterLock; if (wl.t != null) U.uTime.value = Math.floor(wl.t * 12) / 12; if (wl.rough != null) { waterRough = wl.rough; U.uRough.value = WATER.rough = wl.rough; } }   // dev: water previews (docs/concept/water)
+  U.uLight.value = stage.light; U.uWave.value = stage.wave;   // (this sat inside the comment above since 21 Oct: night light and wave height never reached the shaders)
   U.uDeep.value.copy(stage.deep); U.uShallow.value.copy(stage.shallow);
   if (threads.worldTint > 0.001) { U.uDeep.value.lerp(COLOUR_DEEP, threads.worldTint); U.uShallow.value.lerp(COLOUR_SHALLOW, threads.worldTint * 0.8); scene.fog.color.lerp(COLOUR_SHALLOW, threads.worldTint * 0.25); }   // a sea that is slowly losing a hue
   U.uSnap.value.set(post.internal.w * 0.5 * stage.snap, post.internal.h * 0.5 * stage.snap);
