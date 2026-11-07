@@ -742,7 +742,7 @@ went stale. Each harbour now has things only it has. All of it opens with the ta
 - **The week's event:** each harbour's festival day has a name by style (Bell Sunday, Fleet Home, Stone Day, Kite Day,
   The Grand Auction, Harvest Fair, Lantern Vigil, Strongarm Night). The board shows when. The local game pays double that
   day, and a great score on the day gives a keepsake (state.life.keep).
-- **Local games** (tavern, once a day per harbour, stake 5g), one per style: Ring the peal (Simon on four bells),
+- **Local games** (painted scenes, crisp at any size, with sparkles, pop-up words and shake; tavern, once a day per harbour, stake 5g), one per style: Ring the peal (Simon on four bells),
   Mend the net (stop the shuttle), Skip a stone (power + angle), Fly the kite (hold A/D in the band), The auction (bid or
   pass on lots), Coconut shy (timing), Float the lanterns (through a moving gap), Arm-wrestle (push on the beat).
 - **Gossip travels:** finished stories, treasure, a sunk raider and a festival win are talked about in other harbours
