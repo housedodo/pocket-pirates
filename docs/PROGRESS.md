@@ -658,4 +658,8 @@ From the critique "what goes stale on a long voyage" (compared with Wind Waker, 
   little at speed. Climbing a wave face costs up to 28% speed, running down one gives up to 18%; a hard turn drags; the hull
   keeps its momentum and only slowly follows the bow (turns slide), with a touch of leeway from the wind. When the bow drops
   into a trough at speed it throws spray. `docs/concept/boat_motion.mp4`.
+- **Handling like a boat** (playtest: turns too floaty and too easy): the rudder needs water flowing past it (at a standstill
+  it barely turns: ~11 deg in 3 s), the swing builds up and dies away (yaw inertia), and very fast it is a little stiffer.
+  Sideways the keel bites hard (lateral speed decays at 5.5/s), so a turn slides only briefly. Measured: half sail 95 deg in 3 s
+  (+24 after letting go), full sail 71 deg (+19); sideways slide 0.06-0.11. Rowing keeps its own easy turning for docking.
 

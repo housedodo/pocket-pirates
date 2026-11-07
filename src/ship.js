@@ -407,12 +407,19 @@ export class Ship {
     this.speed += (target - this.speed) * Math.min(1, rate * dt);
     this.speed *= 1 - Math.abs(this.rudder) * clamp(this.speed / MAX_SPEED, 0, 1) * 0.22 * dt;   // a hard turn drags the hull
 
-    this.heading += this.rudder * this.mods.turn * (0.28 + 0.8 * clamp(this.speed / 6, 0, 1)) * dt;
-    // momentum: the hull keeps going the way it was going and only slowly follows the bow, so turns slide a little;
-    // and the wind on the sails pushes it a touch sideways (leeway)
+    // turning: a rudder only works with water flowing past it (almost nothing at a standstill), and the hull has weight,
+    // so the swing builds up and dies away over about a second instead of snapping round
+    const flow = clamp(this.speed / 5, 0, 1);
+    const wantYaw = this.rudder * this.mods.turn * (0.08 + 0.62 * flow) * (1 - 0.25 * clamp((this.speed - 7) / 5, 0, 1));   // very fast: a little stiffer
+    this.yaw = (this.yaw || 0) + (wantYaw - (this.yaw || 0)) * Math.min(1, dt * 2.2);
+    this.heading += this.yaw * dt;
+    // momentum: forward the hull carries on; sideways the keel bites hard, so a turn slides only briefly; the wind on the
+    // sails pushes it a touch sideways (leeway)
     const v = this.vel || (this.vel = { x: 0, z: 0 });
-    const wx = Math.sin(this.heading) * this.speed, wz = -Math.cos(this.heading) * this.speed;
-    v.x += (wx - v.x) * Math.min(1, dt * 1.7); v.z += (wz - v.z) * Math.min(1, dt * 1.7);
+    const fx = Math.sin(this.heading), fz = -Math.cos(this.heading);
+    const fwd = v.x * fx + v.z * fz, side = v.x * -fz + v.z * fx;
+    const fwd2 = fwd + (this.speed - fwd) * Math.min(1, dt * 2.2), side2 = side * Math.exp(-dt * 5.5);
+    v.x = fx * fwd2 - fz * side2; v.z = fz * fwd2 + fx * side2;
     const lee = Math.sin(this.rel) * this.trim * wind.strength * 0.35, rx = Math.cos(this.heading), rz = Math.sin(this.heading);
     this.pos.x += (v.x - rx * lee) * dt;
     this.pos.z += (v.z - rz * lee) * dt;
