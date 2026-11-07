@@ -90,6 +90,39 @@
     /* handwriting / pixel fonts for the logbook (SIL Open Font License, bundled in public/fonts) */
     @font-face { font-family: "Pirata One"; src: url("/fonts/pirataone.woff2") format("woff2"); font-display: block; }
     @font-face { font-family: "DotGothic16"; src: url("/fonts/dotgothic.woff2") format("woff2"); font-weight: 400; font-display: swap; }
+
+    /* ---- the sea chart (chart.js): the map tab takes nearly the whole screen, a chart plus a parchment side panel */
+    #chart.mapmode .book { width: calc(100vw - 120px); height: calc(100vh - 40px); }
+    #chart.mapmode .book .spread { padding: 8px; background: #e6d3a2; }
+    #chart.mapmode .book .spread::after { display: none; }
+    .chartgrid { display: grid; grid-template-columns: 1fr 270px; gap: 8px; height: 100%; }
+    .chartgrid .mapwrap { position: relative; width: auto; max-width: none; margin: 0; min-height: 0; overflow: hidden; box-shadow: 0 0 0 2px #22180f; }
+    .chartgrid #mapCv, .chartgrid #mapTxt { position: absolute; inset: 0; width: 100% !important; height: 100% !important; max-width: none; aspect-ratio: auto; margin: 0; border: none; image-rendering: pixelated; cursor: crosshair; }
+    .chartgrid #mapTxt { pointer-events: none; }
+    .chartgrid .mapctl { position: absolute; right: 8px; bottom: 8px; top: auto; display: flex; flex-direction: column; gap: 4px; }
+    .chartgrid .mapctl button { width: 32px; height: 32px; padding: 0; font: 400 20px "DotGothic16", monospace; color: #22180f; background: #efe0bc; border: 2px solid #22180f; box-shadow: 2px 2px 0 #22180f; cursor: pointer; }
+    #mapCard { position: absolute; display: none; z-index: 3; pointer-events: none; min-width: 190px; max-width: 280px; padding: 8px 10px; background: #efe0bc; border: 2px solid #22180f; box-shadow: 3px 3px 0 #22180f; font-family: "DotGothic16", monospace; color: #22180f; }
+    #mapCard b { display: block; font: 400 22px "Pirata One", Georgia, serif; line-height: 1; }
+    #mapCard small { display: block; color: #6a5a40; font-size: 13px; margin-top: 2px; }
+    #mapCard hr { border: none; border-top: 2px dotted #22180f55; margin: 6px 0; }
+    .mc-row { display: flex; gap: 6px; align-items: center; font-size: 14px; line-height: 1.25; margin: 3px 0; }
+    .mc-ic { flex: none; display: inline-grid; place-items: center; width: 18px; height: 18px; background: var(--c); border: 2px solid #22180f; border-radius: 50%; }
+    .mc-ic svg { width: 11px; height: 11px; }
+    .chartside { overflow-y: auto; padding: 10px 12px; background: #efe0bc; border: 2px solid #22180f; box-shadow: 3px 3px 0 #22180f; font-family: "DotGothic16", monospace; color: #22180f; }
+    .cs-title { margin: 0; font: 400 30px "Pirata One", Georgia, serif; line-height: 1; }
+    .cs-sub, .cs-none { display: block; color: #6a5a40; font-size: 13px; }
+    .cs-h { margin: 12px 0 5px; font-size: 12px; letter-spacing: .15em; color: #8a5a2a; border-bottom: 2px solid #22180f33; }
+    .cs-follow { display: flex; gap: 8px; align-items: center; padding: 6px 8px; background: #f2c96a55; border: 2px solid #22180f; }
+    .cs-follow b { display: block; font-weight: 400; font-size: 15px; } .cs-follow small { color: #6a5a40; font-size: 13px; }
+    .cs-row { display: flex; align-items: center; gap: 8px; margin: 4px 0; font-size: 15px; cursor: pointer; }
+    .cs-row span { flex: 1; } .cs-row em { font-style: normal; color: #6a5a40; font-size: 13px; }
+    .cs-row input { display: none; } .cs-box { width: 14px; height: 14px; border: 2px solid #22180f; background: #fff8e6; }
+    .cs-row input:checked + .cs-box { background: #22180f; box-shadow: inset 0 0 0 2px #fff8e6; }
+    .cs-ev b { display: block; font-weight: 400; font-size: 15px; } .cs-ev small { color: #6a5a40; font-size: 13px; } .cs-ev { margin: 4px 0 6px; }
+    .cs-line { display: flex; align-items: center; gap: 8px; font-size: 13px; margin: 3px 0; }
+    .cs-line i { width: 24px; height: 0; border-top: 3px dashed var(--c); } .cs-line.dot i { border-top: 3px dotted #2a6a8a; }
+    .cs-keys { margin-top: 12px; font-size: 12px; color: #8a7a60; }
+    #chart.mapmode .legend { display: none; }
     /* ---- book designs (#chart[data-book]); leather is the base look above */
     #chart:not([data-book="leather"]) .book { background-size: 100% 100%; image-rendering: pixelated; clip-path: polygon(0 8px, 8px 8px, 8px 0, calc(100% - 8px) 0, calc(100% - 8px) 8px, 100% 8px, 100% calc(100% - 8px), calc(100% - 8px) calc(100% - 8px), calc(100% - 8px) 100%, 8px 100%, 8px calc(100% - 8px), 0 calc(100% - 8px)); }
     #chart:not([data-book="leather"]) .book::before { display: none; }

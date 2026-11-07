@@ -24,3 +24,4 @@ The main session coordinates: brief each specialist with only its slice, then ch
 (`main.js`, `index.html`, `docs/PROGRESS.md`) are edited carefully by whoever needs them; keep edits small and local.
 
 - `src/harbourlife.js` (gameplay: residents, house dishes, events, gossip, fragments) and `src/localgames.js` (gameplay: the eight tavern games).
+- `src/chart.js` (design: the sea chart in the log's Map tab).

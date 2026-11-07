@@ -10,6 +10,7 @@ import { GROUPS, byId } from './customize.js';
 import { TRAITS } from './tabletop.js';
 import { pxi } from './pixelui.js';
 import { LANES, ROUND } from './seaplay.js';
+import { renderChart, drawChart } from './chart.js';
 
 // The captain's log: an old low-poly book. Tabs are cloth bookmarks sticking out of the right side, content flows over two pages
 // (turn with the arrows below / Up and Down), and the Map is a hand-inked low-poly chart.
@@ -207,6 +208,7 @@ export class Logbook {
   }
 
   render() {
+    this.root.classList.toggle('mapmode', this.tab === 'map');
     this.body.className = this.tab === 'map' ? 'full' : 'cols';
     this.body.scrollLeft = 0;
     ({ map: this.renderMap, goals: this.renderGoals, quests: this.renderQuests, riddles: this.renderRiddles, journal: this.renderJournal, ship: this.renderShip, standing: this.renderStanding })[this.tab].call(this);
@@ -360,47 +362,7 @@ export class Logbook {
   }
 
   // ------------------------------------------------------------ map
-  renderMap() {
-    this.body.innerHTML = `<div class="mapwrap"><canvas id="mapCv" width="${W / 2}" height="${H / 2}"></canvas><canvas id="mapTxt" width="${W}" height="${H}"></canvas>
-      <div class="mapctl"><button id="mz+">+</button><button id="mz-">&minus;</button><button id="mc" title="Centre on ship">${pxi('target')}</button></div></div>
-      <div class="legend">${this.pencil ? 'pencil: click an island to circle it (again: rub out) · drag · wheel' : 'drag to pan · wheel to zoom · click to pin (again: unpin) ·'} ${this.pencil ? '' : '<b style="color:#b02818">?</b> rumour · <b style="color:#d07010">flag</b> delivery · <b style="color:#8a5a30">box</b> lost crates'}</div>`;
-    const cv = document.getElementById('mapCv');
-    this.cv = cv; this.c = cv.getContext('2d');
-    const v = this.view;
-    const zoom = (k) => { v.sc = Math.max(0.15, Math.min(2.4, v.sc * k)); this.drawMap(); };
-    document.getElementById('mz+').onclick = () => zoom(1.25);
-    document.getElementById('mz-').onclick = () => zoom(0.8);
-    document.getElementById('mc').onclick = () => { v.follow = true; v.cx = this.d.ship.pos.x; v.cz = this.d.ship.pos.z; this.drawMap(); };
-    cv.addEventListener('wheel', (e) => { e.preventDefault(); zoom(e.deltaY < 0 ? 1.15 : 0.87); }, { passive: false });
-    let drag = null;
-    cv.addEventListener('pointerdown', (e) => { drag = { x: e.clientX, y: e.clientY, cx: v.cx, cz: v.cz }; cv.setPointerCapture(e.pointerId); });
-    cv.addEventListener('pointermove', (e) => {
-      if (!drag) return;
-      const k = W / cv.getBoundingClientRect().width;
-      v.cx = drag.cx - (e.clientX - drag.x) * k / v.sc; v.cz = drag.cz - (e.clientY - drag.y) * k / v.sc; v.follow = false;
-      this.drawMap();
-    });
-    cv.addEventListener('pointerup', (e) => {
-      const moved = drag && Math.hypot(e.clientX - drag.x, e.clientY - drag.y) > 4; drag = null;
-      if (moved) return;
-      if (!this.pencil) {   // a pin of your own: the compass follows the newest one until you get there
-        const r = cv.getBoundingClientRect(), wx = v.cx + ((e.clientX - r.left) / r.width * W - W / 2) / v.sc, wz = v.cz + ((e.clientY - r.top) / r.height * H - H / 2) / v.sc;
-        const st = this.d.state.story, pins = st.pins || (st.pins = []);
-        const hit = pins.findIndex((q) => Math.hypot(q.x - wx, q.z - wz) < 22 / v.sc + 4);
-        if (hit >= 0) pins.splice(hit, 1);
-        else { for (const q of pins) q.on = false; pins.push({ x: Math.round(wx), z: Math.round(wz), on: true }); if (pins.length > 6) pins.shift(); }
-        this.drawMap(); return;
-      }
-      // the pencil: a free memory aid. It circles an island for the selected card and never sets a course.
-      const r = cv.getBoundingClientRect(), wx = v.cx + ((e.clientX - r.left) / r.width * W - W / 2) / v.sc, wz = v.cz + ((e.clientY - r.top) / r.height * H - H / 2) / v.sc;
-      const near = this.d.world.nearest(wx, wz, 40 / v.sc + 12), B = this.d.state.board || (this.d.state.board = { pos: {}, ties: [], note: '', guess: [] });
-      const gx = near ? near.desc.x : wx, gz = near ? near.desc.z : wz;
-      const i = B.guess.findIndex((g) => g.card === this.pencil && Math.hypot(g.x - gx, g.z - gz) < 30);
-      if (i >= 0) B.guess.splice(i, 1); else B.guess.push({ x: gx, z: gz, card: this.pencil });
-      this.drawMap();
-    });
-    this.drawMap();
-  }
+  renderMap() { renderChart(this); }   // the sea chart lives in chart.js
 
   parchment() {
     if (this.parch) return this.parch;
@@ -458,7 +420,8 @@ export class Logbook {
     return cv;
   }
 
-  drawMap() {
+  drawMap() { drawChart(this); }
+  drawMapOld() {
     const { state, world, ship, seed } = this.d, c = this.c, v = this.view, sc = v.sc;
     if (!c) return;
     TEXTQ = [];

@@ -753,3 +753,18 @@ went stale. Each harbour now has things only it has. All of it opens with the ta
   four spares for a second harbour of the same style. They go into the journal. They point at the table by the water
   and the one who keeps the count, and never name her. 12 in all.
 - Test: `__game.life`, `__game.openHarbour(id, tab)`, `__game.localGames.open(id, title, cb)`.
+
+## The sea chart, redesigned (src/chart.js)
+Playtest note: the old chart was hard to read (beige land on beige paper, faint labels, clutter). Four directions were mocked
+up; the chosen one (D) is built in the game's own style:
+- The Map tab now takes nearly the whole screen: the chart plus a parchment side panel.
+- Chart: drawn at half resolution and shown pixelated. Dithered teal sea, pale shallows and a foam line round every shore,
+  flat sand islands with green or rock interiors and a dark ink coast. Harbours, treasure, rumours, errands and pins are
+  9x9 pixel icons on coloured badges (red = places and finds, gold = errands, purple = your pins). Harbour names in Pirata
+  One, other names in DotGothic16, cream with a dark rim. The fog wall is a grey dither. A dashed gold line runs to the
+  errand you follow; currents you know are dotted lanes. Pixel compass bottom left.
+- Hover an island: a parchment card with its kind, faction, your errands there, the resident's story step, its festival,
+  a buried chest or rumour.
+- Side panel: the sea's name and faction, the errand you follow (bearing and distance), toggles with counts for each
+  marker kind and for island names, this week's festivals in known harbours, and the line key.
+- The full-dread warp (drifting islands, phantoms, TURN BACK) still works on the new chart.
