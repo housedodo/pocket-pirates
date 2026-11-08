@@ -832,3 +832,8 @@ up; the chosen one (D) is built in the game's own style:
 ## The ship rides higher
 - Playtest: still a little low. The hull's lift above the water is now 0.52 (was 0.12; other ships 0.4, was 0.1) and the hull may not go below the water under its middle. Measured: on average 0.45 above the water at its centre in every sea, never below it. If it is too high, `lift` in `ship.js` (and `traffic.js`) is the one number.
 
+## The figure after the first hut throw is now a broken diver
+- `src/glimpse.js`: the figure that stands on the water during the glimpse (about 12 s after you sail 150 away from your first throw) is no longer a tall dark pale-faced shape. It is a deep-sea diver, broken: leaning, standing in the water to the knee, a tipped and dented copper helmet with a cracked front window and one side pane missing, a swollen dark suit hanging in torn strips with kelp in it, one arm hanging too low and the other bent the wrong way, and a snapped air hose trailing from the back of the helmet with its brass fitting open. Scale 1.9 (about 12 units tall). Same timing as before: there at 2 s, gone at 6.6 s, no fade; wind, sea, sound, gulls and lighthouses behave as before.
+- Not changed: the portrait of "Someone on the pier" (a black shape with pale eyes, used for the staring greeting and for "One.") and the full-dread watchers. If the diver should replace the pier portrait too, it is a 16x16 template in `src/faces.js` (`someone`).
+- Story notes: a diver fits the sea theme (someone who went down and was kept there), the Kestrel and the Drowned. Nothing explains it. For the writer: STORY_EXPLORATION.txt does not mention the figure yet; the Q-8 answer (the demo ends after the first throw after the figure appears) now means the diver.
+
