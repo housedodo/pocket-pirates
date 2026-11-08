@@ -829,3 +829,6 @@ up; the chosen one (D) is built in the game's own style:
 - **Camera** rises and falls with the slow swell (65% of the hull's height, smoothed over about a second), so on a big swell the ship does not sit in a pit with water walls above the lens (`camSwell` in `main.js`).
 - If the heave still feels too lively: it follows the swell more exactly than before, so it moves more (heave acceleration about 3x the old, because the old hull lagged). The levers are `OPEN_SEA` in `ocean.js` (1.5 is a good middle) and the heave spring in `float.js` (8 rad/s, 0.9).
 
+## The ship rides higher
+- Playtest: still a little low. The hull's lift above the water is now 0.52 (was 0.12; other ships 0.4, was 0.1) and the hull may not go below the water under its middle. Measured: on average 0.45 above the water at its centre in every sea, never below it. If it is too high, `lift` in `ship.js` (and `traffic.js`) is the one number.
+

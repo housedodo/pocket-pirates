@@ -48,8 +48,8 @@ export function rideWaves(F, w, dt, extra = {}) {
   // a hull tips with the face of a wave but never flips: a hard limit on the angles
   if (F.p > 0.62) { F.p = 0.62; if (F.vp > 0) F.vp = 0; } else if (F.p < -0.62) { F.p = -0.62; if (F.vp < 0) F.vp = 0; }
   if (F.r > 0.68) { F.r = 0.68; if (F.vr > 0) F.vr = 0; } else if (F.r < -0.68) { F.r = -0.68; if (F.vr < 0) F.vr = 0; }
-  // the hull floats: never more than a hand under the water below its middle, never far above it
-  const lowest = w.centre - 0.3, highest = Math.max(w.centre, w.mean) + 0.7;
+  // the hull floats: never below the water under its middle, never far above it
+  const lowest = w.centre + 0.05, highest = Math.max(w.centre, w.mean) + 0.7;
   if (F.y < lowest) { F.y = lowest; if (F.vy < 0) F.vy = 0; }
   if (F.y > highest) { F.y = highest; if (F.vy > 0) F.vy = 0; }
   if (Math.abs(F.y - tY) > 4) { F.y = tY; F.vy = 0; }   // after a teleport

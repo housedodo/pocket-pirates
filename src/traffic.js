@@ -261,7 +261,7 @@ export class Traffic {
       // the same floating as the player's ship (float.js): a stiff buoyant spring that follows the water, heels with the wind, squats at speed
       const sp = clamp(s.speed / 10, 0, 1.2);
       const F = s.float || (s.float = {});
-      rideWaves(F, hullWater(s.x, s.z, s.heading, t, wave, 4.8 * K.scale, 2.4 * K.scale), dt, { lift: 0.1 - 0.06 * sp, pitch: 0.04 * sp, roll: -Math.sin(rel) * 0.12 * (s.mode === 'derelict' ? 0.2 : 1) });
+      rideWaves(F, hullWater(s.x, s.z, s.heading, t, wave, 4.8 * K.scale, 2.4 * K.scale), dt, { lift: 0.4 - 0.08 * sp, pitch: 0.04 * sp, roll: -Math.sin(rel) * 0.12 * (s.mode === 'derelict' ? 0.2 : 1) });
       s.root.position.set(s.x, F.y, s.z);
       s.root.rotation.set(F.p, -s.heading, F.r);
       // and its own wake (only for ships near enough to see it)

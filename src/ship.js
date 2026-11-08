@@ -450,7 +450,7 @@ export class Ship {
     // heels it over; a turn leans it out; at speed it sits a little lower (squat)
     const F = this.float || (this.float = {});
     rideWaves(F, w, dt, {
-      lift: 0.12 - 0.08 * sp,
+      lift: 0.52 - 0.1 * sp,   // rides higher on the water (was 0.12): the hull's lower planks stay clear of it
       pitch: 0.05 * sp + clamp(this.accS * 0.03, -0.06, 0.06),
       roll: -Math.sin(this.rel || 0) * 0.16 * (this.eff ?? 1) * this.trim - this.rudder * 0.18 * sp,
     });
