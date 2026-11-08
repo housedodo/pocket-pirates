@@ -2355,6 +2355,7 @@ const GLASS = new THREE.Color('#07030d');
 const camPos = new THREE.Vector3(), camLook = new THREE.Vector3(), _v = new THREE.Vector3();
 let camHeading = ship.heading;
 let lookUpK = 0;
+let camSwell = 0;   // how far the camera has risen with the swell
 let camOverride = null; // { pos:[x,y,z], look:[x,y,z] } for concept shots
 let lastTs = performance.now();
 
@@ -2550,9 +2551,11 @@ function frame() {
   const ch = camHeading + camYaw;
   const fx = Math.sin(ch), fz = -Math.cos(ch);
   const back = zoom * Math.cos(pitchNow), up = zoom * Math.sin(pitchNow);
-  camPos.set(ship.pos.x - fx * back, up + 1, ship.pos.z - fz * back);
+  // the camera rises and falls with the slow swell (not with every wave), so on a big swell the ship does not sit in a pit with the water walls above the lens
+  camSwell += ((ship.float && ship.float.y !== undefined ? clamp(ship.float.y, -4, 4) * 0.65 : 0) - camSwell) * Math.min(1, rawDt * 1.1);
+  camPos.set(ship.pos.x - fx * back, up + 1 + camSwell, ship.pos.z - fz * back);
   const skyK = clamp((0.3 - pitchNow) / (0.3 - PITCH_MIN), 0, 1);   // below the old limit the camera looks up instead of down
-  camLook.set(ship.pos.x + fx * zoom * 0.2, 1.5 + lookUpK * 9 + skyK * zoom * 0.42, ship.pos.z + fz * zoom * 0.2);
+  camLook.set(ship.pos.x + fx * zoom * 0.2, 1.5 + camSwell * 0.7 + lookUpK * 9 + skyK * zoom * 0.42, ship.pos.z + fz * zoom * 0.2);
   camPos.y = Math.max(camPos.y, 3.2);                                 // never at or under the waterline
   if (shake > 0) { shake = Math.max(0, shake - rawDt * 1.8); camPos.x += Math.sin(tNow * 70) * shake; camPos.y += Math.cos(tNow * 63) * shake * 0.7; }
   if (dread > 0.85 && live) { const s = (dread - 0.85) * 0.5; camPos.x += Math.sin(tNow * 31) * s; camPos.y += Math.sin(tNow * 23 + 1) * s; }
