@@ -1,0 +1,207 @@
+<!doctype html><html><head><meta charset="utf-8">
+<style>html,body{margin:0;background:#000}canvas{display:block}</style></head>
+<body><canvas id="c" width="1280" height="720"></canvas>
+<script>
+const DATA = window.DATA, STYLE = location.hash.slice(1) || 'A';
+const c = document.getElementById('c').getContext('2d');
+const SHIP = { x: 30, z: -40, h: 0.9 }, WAKE = [[-30, -170], [-20, -140], [-5, -110], [10, -80], [22, -58], [30, -40]];
+const VELTO = DATA.find((d) => d.name === 'Harbour Velto'), TAMA = DATA.find((d) => d.name === 'Harbour Tama'), MONAR = DATA.find((d) => d.name === 'Haven Monar');
+const TREAS = DATA.filter((d) => d.type === 'treasure');
+const RUMOUR = TREAS[1] || TREAS[0], LANE = [[60, -40], [240, 70]];
+const PIN = { x: 210, z: -260, text: 'ask Perrin' };
+const seen = (d) => Math.hypot(d.x, d.z) < 520;   // explored so far (for B)
+const serif = '"Georgia", "Times New Roman", serif', sans = '"Trebuchet MS", "Segoe UI", sans-serif';
+let V; // view: world -> screen
+function view(x0, y0, w, h, zoom = 1, cx = 0, cz = -60) { const s = Math.min(w / 1300, h / 1150) * zoom; V = { s, ox: x0 + w / 2 - cx * s, oy: y0 + h / 2 - cz * s, x0, y0, w, h }; }
+const X = (x) => V.ox + x * V.s, Y = (z) => V.oy + z * V.s;
+function shape(d, grow = 0) { c.beginPath(); d.pts.forEach(([x, z], i) => { const dx = x - d.x, dz = z - d.z, k = 1 + grow / Math.max(5, Math.hypot(dx, dz)); const px = X(d.x + dx * k), py = Y(d.z + dz * k); i ? c.lineTo(px, py) : c.moveTo(px, py); }); c.closePath(); }
+function label(t, x, y, { font = sans, size = 13, col = '#fff', stroke = 'rgba(0,0,0,.7)', w = 3, weight = 700, align = 'center', caps = false, spacing = 0 } = {}) {
+  c.font = `${weight} ${size}px ${font}`; c.textAlign = align; c.textBaseline = 'middle'; if (c.letterSpacing !== undefined) c.letterSpacing = spacing + 'px';
+  const s = caps ? t.toUpperCase() : t; if (stroke) { c.lineWidth = w; c.strokeStyle = stroke; c.lineJoin = 'round'; c.strokeText(s, x, y); } c.fillStyle = col; c.fillText(s, x, y); if (c.letterSpacing !== undefined) c.letterSpacing = '0px'; }
+function rr(x, y, w, h, r) { c.beginPath(); c.roundRect(x, y, w, h, r); }
+// one icon family: drawn in a colour, same size
+function icon(kind, x, y, s, col, bg) {
+  c.save(); c.translate(x, y); c.lineWidth = 2; c.strokeStyle = col; c.fillStyle = col; c.lineCap = 'round'; c.lineJoin = 'round';
+  if (bg) { c.beginPath(); c.arc(0, 0, s * 1.05, 0, 6.28); c.fillStyle = bg; c.fill(); c.lineWidth = 1.5; c.strokeStyle = col; c.stroke(); c.fillStyle = col; c.lineWidth = 2; }
+  const k = s * 0.6;
+  if (kind === 'harbour') { c.beginPath(); c.moveTo(0, -k); c.lineTo(0, k); c.moveTo(-k * 0.7, k * 0.35); c.quadraticCurveTo(0, k * 1.3, k * 0.7, k * 0.35); c.moveTo(-k * 0.45, -k * 0.45); c.lineTo(k * 0.45, -k * 0.45); c.stroke(); c.beginPath(); c.arc(0, -k * 0.8, k * 0.22, 0, 6.28); c.stroke(); }
+  else if (kind === 'treasure') { c.beginPath(); c.moveTo(-k * 0.7, -k * 0.7); c.lineTo(k * 0.7, k * 0.7); c.moveTo(k * 0.7, -k * 0.7); c.lineTo(-k * 0.7, k * 0.7); c.stroke(); }
+  else if (kind === 'jungle') { c.beginPath(); c.moveTo(0, k); c.lineTo(0, -k * 0.3); c.stroke(); for (const a of [-2.5, -1.6, -0.6]) { c.beginPath(); c.moveTo(0, -k * 0.3); c.quadraticCurveTo(Math.cos(a) * k * 0.7, -k * 0.3 + Math.sin(a) * k * 0.9, Math.cos(a) * k * 1.0, -k * 0.1 + Math.sin(a) * k * 0.4); c.stroke(); } }
+  else if (kind === 'rocky') { c.beginPath(); c.moveTo(-k, k * 0.7); c.lineTo(-k * 0.3, -k * 0.6); c.lineTo(k * 0.15, k * 0.1); c.lineTo(k * 0.45, -k * 0.3); c.lineTo(k, k * 0.7); c.closePath(); c.stroke(); }
+  else if (kind === 'sandbar') { for (const [a, b] of [[-0.5, 0.2], [0.1, -0.3], [0.5, 0.3]]) { c.beginPath(); c.arc(a * k, b * k, k * 0.18, 0, 6.28); c.fill(); } }
+  else if (kind === 'atoll') { c.beginPath(); c.arc(0, 0, k * 0.75, 0, 6.28); c.stroke(); c.beginPath(); c.arc(0, 0, k * 0.3, 0, 6.28); c.stroke(); }
+  else if (kind === 'rumour') { c.font = `900 ${s * 1.3}px ${sans}`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('?', 0, 1); }
+  else if (kind === 'pin') { c.beginPath(); c.moveTo(0, k); c.lineTo(-k * 0.6, -k * 0.1); c.arc(0, -k * 0.3, k * 0.6, Math.PI * 0.85, Math.PI * 0.15); c.closePath(); c.fill(); }
+  else if (kind === 'errand') { c.beginPath(); c.moveTo(-k * 0.5, k); c.lineTo(-k * 0.5, -k); c.lineTo(k * 0.8, -k * 0.55); c.lineTo(-k * 0.5, -k * 0.1); c.stroke(); }
+  c.restore();
+}
+function ship(x, y, h, s, col, out) { c.save(); c.translate(x, y); c.rotate(h); c.beginPath(); c.moveTo(0, -s); c.lineTo(s * 0.62, s * 0.8); c.lineTo(0, s * 0.45); c.lineTo(-s * 0.62, s * 0.8); c.closePath(); c.fillStyle = col; c.fill(); c.lineWidth = 2; c.strokeStyle = out; c.stroke(); c.restore(); }
+function wake(col, w = 2, dash = []) { c.save(); c.setLineDash(dash); c.strokeStyle = col; c.lineWidth = w; c.beginPath(); WAKE.forEach(([x, z], i) => (i ? c.lineTo(X(x), Y(z)) : c.moveTo(X(x), Y(z)))); c.stroke(); c.restore(); }
+function route(to, col, w = 2) { c.save(); c.setLineDash([7, 6]); c.strokeStyle = col; c.lineWidth = w; c.beginPath(); c.moveTo(X(SHIP.x), Y(SHIP.z)); c.lineTo(X(to.x), Y(to.z)); c.stroke(); c.restore(); }
+function lane(col, w) { const [a, b] = LANE; c.save(); c.strokeStyle = col; c.lineWidth = w; c.setLineDash([2, 7]); for (let o = -6; o <= 6; o += 6) { c.beginPath(); c.moveTo(X(a[0]) + o, Y(a[1]) - o); c.lineTo(X(b[0]) + o, Y(b[1]) - o); c.stroke(); } c.setLineDash([]); const mx = (X(a[0]) + X(b[0])) / 2, my = (Y(a[1]) + Y(b[1])) / 2, ang = Math.atan2(Y(b[1]) - Y(a[1]), X(b[0]) - X(a[0])); c.translate(mx, my); c.rotate(ang); c.fillStyle = col; c.beginPath(); c.moveTo(10, 0); c.lineTo(-4, -6); c.lineTo(-4, 6); c.fill(); c.restore(); }
+function noise(alpha, n = 9000, cols = ['#000']) { for (let i = 0; i < n; i++) { c.fillStyle = cols[i % cols.length]; c.globalAlpha = alpha * Math.random(); c.fillRect(Math.random() * 1280, Math.random() * 720, 1.5, 1.5); } c.globalAlpha = 1; }
+const typeName = { harbour: 'Harbour', jungle: 'Jungle isle', rocky: 'Rocks', sandbar: 'Sandbar', treasure: 'Treasure isle', atoll: 'Atoll' };
+
+// ================================================================ A: Admiralty sea chart
+function A() {
+  c.fillStyle = '#e9e4d4'; c.fillRect(0, 0, 1280, 720);
+  view(20, 20, 1240, 680, 1.05);
+  // sea: pale blue with depth contours round islands
+  c.fillStyle = '#cfe0e6'; c.fillRect(20, 20, 1240, 680);
+  for (const [g, col] of [[34, '#d9e7eb'], [20, '#e2edef'], [9, '#bcd8df']]) for (const d of DATA) { shape(d, g); c.fillStyle = col; c.fill(); }
+  for (const d of DATA) for (const g of [34, 20]) { shape(d, g); c.strokeStyle = 'rgba(70,110,130,.35)'; c.lineWidth = 0.8; c.setLineDash(g === 34 ? [2, 3] : []); c.stroke(); c.setLineDash([]); }
+  // grid of lat/long
+  c.strokeStyle = 'rgba(60,80,100,.18)'; c.lineWidth = 1; for (let x = -800; x <= 800; x += 200) { c.beginPath(); c.moveTo(X(x), 20); c.lineTo(X(x), 700); c.stroke(); } for (let z = -800; z <= 800; z += 200) { c.beginPath(); c.moveTo(20, Y(z)); c.lineTo(1260, Y(z)); c.stroke(); }
+  // depth soundings
+  c.fillStyle = 'rgba(50,80,100,.55)'; c.font = `italic 10px ${serif}`; c.textAlign = 'center'; for (let i = 0; i < 70; i++) { const x = ((i * 137) % 1500) - 750, z = ((i * 251) % 1400) - 750; if (DATA.some((d) => Math.hypot(d.x - x, d.z - z) < d.r + 30)) continue; c.fillText(String(8 + (i * 7) % 40), X(x), Y(z)); }
+  lane('rgba(30,90,140,.75)', 1.4);
+  // land
+  for (const d of DATA) { shape(d); c.fillStyle = d.type === 'harbour' ? '#efe0bc' : '#f2e6c4'; c.fill(); c.strokeStyle = '#3a3226'; c.lineWidth = 1.6; c.stroke();
+    if (d.type === 'jungle' || d.type === 'atoll' || d.type === 'treasure') { shape(d, -Math.max(4, d.r * 0.35)); c.fillStyle = 'rgba(120,140,90,.35)'; c.fill(); }
+    if (d.type === 'rocky') { c.strokeStyle = 'rgba(58,50,38,.6)'; c.lineWidth = 1; for (let i = 0; i < 6; i++) { const a = i * 1.1; c.beginPath(); c.moveTo(X(d.x + Math.cos(a) * d.r * 0.3), Y(d.z + Math.sin(a) * d.r * 0.3)); c.lineTo(X(d.x + Math.cos(a) * d.r * 0.75), Y(d.z + Math.sin(a) * d.r * 0.75)); c.stroke(); } } }
+  // harbours: a red anchor; names in serif caps
+  for (const d of DATA) { const y = Y(d.z) + Math.max(14, d.r * V.s) + 10;
+    if (d.type === 'harbour') { icon('harbour', X(d.x), Y(d.z), 9, '#a8241c'); label(d.name, X(d.x), y, { font: serif, size: 13, col: '#a8241c', stroke: 'rgba(233,228,212,.95)', w: 4, weight: 700, caps: true, spacing: 1.5 }); }
+    else label(d.name, X(d.x), y - 2, { font: serif, size: 10.5, col: '#2c3a44', stroke: 'rgba(233,228,212,.9)', w: 3, weight: 400, spacing: 0.5 }); }
+  for (const d of TREAS) icon('treasure', X(d.x) + 10, Y(d.z) - 10, 7, '#a8241c');
+  icon('rumour', X(RUMOUR.x) - 12, Y(RUMOUR.z) - 12, 8, '#a8241c');
+  wake('rgba(30,50,70,.55)', 1.4, [3, 3]); route(VELTO, '#a8241c', 1.6);
+  ship(X(SHIP.x), Y(SHIP.z), SHIP.h, 9, '#1c2a36', '#e9e4d4');
+  icon('pin', X(PIN.x), Y(PIN.z), 8, '#1c4a8a'); label(PIN.text, X(PIN.x) + 10, Y(PIN.z) - 2, { font: serif, size: 11, col: '#1c4a8a', stroke: 'rgba(233,228,212,.9)', w: 3, weight: 400, align: 'left' });
+  // cartouche, compass, scale, border
+  c.strokeStyle = '#2c2a24'; c.lineWidth = 3; c.strokeRect(20, 20, 1240, 680); c.lineWidth = 1; c.strokeRect(28, 28, 1224, 664);
+  rr(44, 40, 300, 66, 2); c.fillStyle = 'rgba(233,228,212,.95)'; c.fill(); c.strokeStyle = '#2c2a24'; c.lineWidth = 1.2; c.stroke();
+  label('A CHART OF', 194, 56, { font: serif, size: 10, col: '#2c2a24', stroke: null, weight: 400, spacing: 3 }); label('TAMA SOUND', 194, 76, { font: serif, size: 20, col: '#2c2a24', stroke: null, spacing: 3 }); label('& the waters of the Crown Traders', 194, 95, { font: serif, size: 10, col: '#2c2a24', stroke: null, weight: 400 });
+  const cx = 1180, cy = 620; c.strokeStyle = '#2c2a24'; c.lineWidth = 1; c.beginPath(); c.arc(cx, cy, 34, 0, 6.28); c.stroke(); c.beginPath(); c.arc(cx, cy, 28, 0, 6.28); c.stroke();
+  for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4 - Math.PI / 2, l = i % 2 ? 18 : 34; c.beginPath(); c.moveTo(cx, cy); c.lineTo(cx + Math.cos(a) * l, cy + Math.sin(a) * l); c.stroke(); } label('N', cx, cy - 44, { font: serif, size: 12, col: '#2c2a24', stroke: null });
+  c.fillStyle = '#2c2a24'; for (let i = 0; i < 4; i++) { c.fillStyle = i % 2 ? '#e9e4d4' : '#2c2a24'; c.fillRect(48 + i * 30, 670, 30, 6); } c.strokeRect(48, 670, 120, 6); label('200 fathoms', 108, 662, { font: serif, size: 10, col: '#2c2a24', stroke: null, weight: 400 });
+  // legend
+  rr(1056, 40, 196, 128, 2); c.fillStyle = 'rgba(233,228,212,.95)'; c.fill(); c.stroke();
+  [['harbour', 'Harbour', '#a8241c'], ['treasure', 'Treasure', '#a8241c'], ['rumour', 'Rumour', '#a8241c'], ['pin', 'Your note', '#1c4a8a']].forEach(([k, t, col], i) => { icon(k, 1074, 58 + i * 20, 7, col); label(t, 1090, 58 + i * 20, { font: serif, size: 11, col: '#2c2a24', stroke: null, weight: 400, align: 'left' }); });
+  c.strokeStyle = 'rgba(30,90,140,.75)'; c.setLineDash([2, 5]); c.lineWidth = 1.4; c.beginPath(); c.moveTo(1066, 140); c.lineTo(1084, 140); c.stroke(); c.setLineDash([]); label('Current', 1090, 140, { font: serif, size: 11, col: '#2c2a24', stroke: null, weight: 400, align: 'left' });
+  c.strokeStyle = '#a8241c'; c.setLineDash([5, 4]); c.beginPath(); c.moveTo(1066, 158); c.lineTo(1084, 158); c.stroke(); c.setLineDash([]); label('Course to errand', 1090, 158, { font: serif, size: 11, col: '#2c2a24', stroke: null, weight: 400, align: 'left' });
+  noise(0.08, 12000, ['#5a4a30']);
+}
+
+// ================================================================ B: explorer's parchment, fills in as you sail
+function B() {
+  const g = c.createRadialGradient(640, 360, 100, 640, 360, 800); g.addColorStop(0, '#efe0bc'); g.addColorStop(1, '#c9ac78'); c.fillStyle = g; c.fillRect(0, 0, 1280, 720);
+  view(40, 60, 1200, 620, 1.05);
+  // explored sea: inked blue-grey wash with a soft torn edge; unexplored stays bare paper
+  c.save(); c.beginPath(); for (let i = 0; i <= 64; i++) { const a = (i / 64) * Math.PI * 2, r = 520 + Math.sin(a * 5) * 30 + Math.sin(a * 11) * 14; const px = X(Math.cos(a) * r), py = Y(Math.sin(a) * r); i ? c.lineTo(px, py) : c.moveTo(px, py); } c.closePath();
+  c.fillStyle = '#7d98a0'; c.fill(); c.lineWidth = 8; c.strokeStyle = 'rgba(125,152,160,.4)'; c.stroke(); c.lineWidth = 16; c.strokeStyle = 'rgba(125,152,160,.2)'; c.stroke(); c.clip();
+  for (const d of DATA.filter(seen)) { shape(d, 14); c.fillStyle = '#9cb4b6'; c.fill(); }
+  c.strokeStyle = 'rgba(255,255,255,.28)'; c.lineWidth = 1; for (let i = 0; i < 90; i++) { const x = ((i * 173) % 1100) - 550, z = ((i * 97) % 1100) - 550; c.beginPath(); c.arc(X(x), Y(z), 5, Math.PI * 1.15, Math.PI * 1.85); c.stroke(); }
+  lane('rgba(255,255,255,.75)', 1.6);
+  c.restore();
+  // explored land: warm sand, strong ink outline; unexplored islands: only a faint pencil outline
+  for (const d of DATA) { shape(d); if (seen(d)) { c.fillStyle = '#f1dfae'; c.fill(); c.strokeStyle = '#3a2814'; c.lineWidth = 2.2; c.stroke(); } else { c.strokeStyle = 'rgba(80,60,30,.25)'; c.lineWidth = 1; c.setLineDash([3, 3]); c.stroke(); c.setLineDash([]); } }
+  // one icon family, colour = meaning
+  const COL = { harbour: '#2a5a8a', treasure: '#b02a1c', rumour: '#b02a1c', errand: '#c87a10', pin: '#5a3a8a' };
+  for (const d of DATA.filter(seen)) { const lx = X(d.x), ly = Y(d.z) + Math.max(12, d.r * V.s) + 11;
+    if (d.type === 'harbour') { icon('harbour', lx, Y(d.z), 9, '#fff', COL.harbour); label(d.name, lx, ly + 4, { font: serif, size: 14, col: '#2a1c0c', stroke: 'rgba(241,223,174,.95)', w: 4 }); }
+    else { icon(d.type, lx, Y(d.z), 6, '#3a2814'); label(d.name, lx, ly, { font: serif, size: 11, col: '#3a2814', stroke: 'rgba(241,223,174,.9)', w: 3, weight: 400 }); } }
+  icon('treasure', X(TREAS[0].x) + 14, Y(TREAS[0].z) - 12, 8, '#fff', COL.treasure);
+  icon('rumour', X(RUMOUR.x) + 14, Y(RUMOUR.z) - 12, 8, '#fff', COL.rumour);
+  icon('errand', X(VELTO.x) + 16, Y(VELTO.z) - 14, 8, '#fff', COL.errand);
+  icon('pin', X(PIN.x), Y(PIN.z), 8, '#fff', COL.pin); label(PIN.text, X(PIN.x) + 14, Y(PIN.z), { font: serif, size: 12, col: '#fff', stroke: 'rgba(40,30,60,.8)', w: 3, align: 'left', weight: 400 });
+  label('? uncharted', X(-700), Y(-640), { font: serif, size: 13, col: 'rgba(80,60,30,.55)', stroke: null, weight: 400 });
+  wake('rgba(255,255,255,.85)', 2, [4, 4]); route(VELTO, '#c87a10', 2.2);
+  ship(X(SHIP.x), Y(SHIP.z), SHIP.h, 11, '#b02a1c', '#fff');
+  // tabs on top (kept from the log book), slim frame
+  c.strokeStyle = '#3a2814'; c.lineWidth = 3; c.strokeRect(14, 50, 1252, 656);
+  ['Map', 'Goals', 'Quests', 'Riddles', 'Journal', 'Ship', 'Standing'].forEach((t, i) => { rr(24 + i * 104, 12, 98, 34, 4); c.fillStyle = i ? '#d9c08c' : '#f1dfae'; c.fill(); c.strokeStyle = '#3a2814'; c.lineWidth = 2; c.stroke(); label(t, 73 + i * 104, 30, { font: serif, size: 15, col: '#2a1c0c', stroke: null }); });
+  // legend chips
+  const L = [['harbour', 'Harbour', COL.harbour], ['treasure', 'Treasure', COL.treasure], ['rumour', 'Rumour', COL.rumour], ['errand', 'Errand', COL.errand], ['pin', 'My note', COL.pin]];
+  rr(1006, 560, 246, 136, 6); c.fillStyle = 'rgba(241,223,174,.94)'; c.fill(); c.strokeStyle = '#3a2814'; c.lineWidth = 2; c.stroke();
+  L.forEach(([k, t, col], i) => { icon(k, 1028, 580 + i * 24, 8, '#fff', col); label(t, 1044, 580 + i * 24, { font: serif, size: 13, col: '#2a1c0c', stroke: null, align: 'left', weight: 400 }); });
+  label('Tama Sound', 640, 80, { font: serif, size: 22, col: '#2a1c0c', stroke: 'rgba(241,223,174,.8)', w: 5, spacing: 2 });
+  noise(0.06, 9000, ['#6a4a20']);
+}
+
+// ================================================================ C: clean game-UI map with side panel and filters
+function C() {
+  c.fillStyle = '#0f2233'; c.fillRect(0, 0, 1280, 720);
+  view(0, 0, 940, 720, 1.25, 0, -40);
+  c.fillStyle = '#12304a'; c.fillRect(0, 0, 940, 720);
+  for (const d of DATA) { shape(d, 16); c.fillStyle = '#1a4766'; c.fill(); }
+  c.strokeStyle = 'rgba(255,255,255,.05)'; c.lineWidth = 1; for (let x = -1000; x <= 1000; x += 100) { c.beginPath(); c.moveTo(X(x), 0); c.lineTo(X(x), 720); c.stroke(); c.beginPath(); c.moveTo(0, Y(x)); c.lineTo(940, Y(x)); c.stroke(); }
+  lane('rgba(120,200,255,.6)', 2);
+  for (const d of DATA) { shape(d); c.fillStyle = d.type === 'harbour' ? '#e6d7b0' : '#c9bd98'; c.fill(); c.strokeStyle = '#0a1622'; c.lineWidth = 1.5; c.stroke(); }
+  const hov = VELTO;
+  for (const d of DATA) { const ly = Y(d.z) + Math.max(14, d.r * V.s) + 12;
+    if (d.type === 'harbour') { icon('harbour', X(d.x), Y(d.z), 11, '#fff', '#2d6fb0'); label(d.name, X(d.x), ly + 4, { size: 15, col: '#fff', stroke: 'rgba(8,16,26,.9)', w: 4 }); }
+    else { icon(d.type, X(d.x), Y(d.z), 7, '#1c2a36'); label(d.name, X(d.x), ly, { size: 11, col: 'rgba(230,240,250,.9)', stroke: 'rgba(8,16,26,.85)', w: 3, weight: 600 }); } }
+  icon('treasure', X(TREAS[0].x) + 15, Y(TREAS[0].z) - 13, 9, '#fff', '#c0392b'); icon('rumour', X(RUMOUR.x) + 15, Y(RUMOUR.z) - 13, 9, '#fff', '#c0392b');
+  icon('errand', X(VELTO.x) + 18, Y(VELTO.z) - 16, 9, '#1a1a1a', '#f2b632'); icon('pin', X(PIN.x), Y(PIN.z), 9, '#fff', '#8e5cc0');
+  wake('rgba(255,255,255,.5)', 2, [3, 4]); route(VELTO, '#f2b632', 2.5);
+  c.beginPath(); c.arc(X(SHIP.x), Y(SHIP.z), 22, 0, 6.28); c.fillStyle = 'rgba(255,255,255,.12)'; c.fill(); ship(X(SHIP.x), Y(SHIP.z), SHIP.h, 12, '#fff', '#0a1622');
+  // hover card over Velto
+  const hx = X(hov.x) + 30, hy = Y(hov.z) - 90; rr(hx, hy, 230, 112, 8); c.fillStyle = 'rgba(10,22,34,.95)'; c.fill(); c.strokeStyle = '#2d6fb0'; c.lineWidth = 2; c.stroke();
+  label('Harbour Velto', hx + 14, hy + 20, { size: 16, col: '#fff', stroke: null, align: 'left' }); label('Fishing town · Crown Traders', hx + 14, hy + 40, { size: 11, col: '#9fb8cc', stroke: null, align: 'left', weight: 600 });
+  [['errand', 'Deliver: a parcel of fine tea', '#f2b632'], ['harbour', 'Tilda and her dog', '#7fc0ff'], ['rumour', 'Fleet Home: Thursday', '#9fb8cc']].forEach(([k, t, col], i) => { icon(k, hx + 22, hy + 62 + i * 17, 6, col); label(t, hx + 34, hy + 62 + i * 17, { size: 12, col: '#e6eef5', stroke: null, align: 'left', weight: 600 }); });
+  // right panel
+  c.fillStyle = '#0a1622'; c.fillRect(940, 0, 340, 720); c.fillStyle = '#2d6fb0'; c.fillRect(940, 0, 3, 720);
+  label('TAMA SOUND', 960, 34, { size: 20, col: '#fff', stroke: null, align: 'left', spacing: 2 }); label('Crown Traders · charted 14 of 28', 960, 58, { size: 12, col: '#9fb8cc', stroke: null, align: 'left', weight: 600 });
+  label('SHOW', 960, 96, { size: 11, col: '#6f8aa0', stroke: null, align: 'left', spacing: 2 });
+  [['harbour', 'Harbours', '#2d6fb0', true], ['treasure', 'Treasure', '#c0392b', true], ['rumour', 'Rumours', '#c0392b', true], ['errand', 'Errands', '#f2b632', true], ['pin', 'My notes', '#8e5cc0', true], ['jungle', 'All islands', '#4a6a5a', false]].forEach(([k, t, col, on], i) => {
+    const y = 122 + i * 34; rr(958, y - 14, 304, 28, 6); c.fillStyle = on ? 'rgba(45,111,176,.18)' : 'rgba(255,255,255,.04)'; c.fill(); icon(k, 978, y, 8, '#fff', col); label(t, 996, y, { size: 14, col: on ? '#fff' : '#7a8a9a', stroke: null, align: 'left', weight: 600 });
+    rr(1222, y - 8, 30, 16, 8); c.fillStyle = on ? '#2d6fb0' : '#2a3a4a'; c.fill(); c.beginPath(); c.arc(on ? 1244 : 1230, y, 6, 0, 6.28); c.fillStyle = '#fff'; c.fill(); });
+  label('FOLLOWING', 960, 342, { size: 11, col: '#6f8aa0', stroke: null, align: 'left', spacing: 2 });
+  rr(958, 356, 304, 62, 8); c.fillStyle = 'rgba(242,182,50,.12)'; c.fill(); c.strokeStyle = '#f2b632'; c.lineWidth = 1.5; c.stroke(); icon('errand', 980, 387, 9, '#1a1a1a', '#f2b632');
+  label('A parcel of fine tea', 1000, 377, { size: 14, col: '#fff', stroke: null, align: 'left' }); label('to Harbour Velto · west · 260', 1000, 398, { size: 12, col: '#c8b890', stroke: null, align: 'left', weight: 600 });
+  label('NEARBY', 960, 446, { size: 11, col: '#6f8aa0', stroke: null, align: 'left', spacing: 2 });
+  [['harbour', 'Harbour Tama', 'home · 85'], ['treasure', DATA.find((d) => d.type === 'treasure').name, 'chest still buried'], ['rumour', RUMOUR.name, 'a sailor\'s rumour'], ['pin', 'ask Perrin', 'your note']].forEach(([k, t, s], i) => { const y = 474 + i * 44; icon(k, 978, y, 8, '#fff', { harbour: '#2d6fb0', treasure: '#c0392b', rumour: '#c0392b', pin: '#8e5cc0' }[k]); label(t, 996, y - 7, { size: 14, col: '#fff', stroke: null, align: 'left', weight: 600 }); label(s, 996, y + 10, { size: 11, col: '#8aa0b4', stroke: null, align: 'left', weight: 600 }); });
+  label('M close   ·   drag pan   ·   wheel zoom   ·   click pin', 1110, 700, { size: 11, col: '#6f8aa0', stroke: null, weight: 600 });
+  // tabs top-left
+  ['MAP', 'GOALS', 'QUESTS', 'JOURNAL'].forEach((t, i) => { label(t, 30 + i * 96, 30, { size: 14, col: i ? '#7a90a4' : '#fff', stroke: 'rgba(8,16,26,.8)', w: 3, align: 'left', spacing: 1.5 }); if (!i) { c.fillStyle = '#f2b632'; c.fillRect(30, 42, 40, 3); } });
+  // zoom buttons
+  [['+', 600], ['−', 640], ['◎', 680]].forEach(([t, y]) => { rr(892, y - 16, 32, 32, 6); c.fillStyle = 'rgba(10,22,34,.9)'; c.fill(); c.strokeStyle = '#2d6fb0'; c.lineWidth = 1.5; c.stroke(); label(t, 908, y, { size: 16, col: '#fff', stroke: null }); });
+}
+
+// ================================================================ D: hybrid: chart look, full screen, panel + hover, legend
+function D() {
+  c.fillStyle = '#1c2e3a'; c.fillRect(0, 0, 1280, 720);
+  view(0, 0, 960, 720, 1.3, 0, -40);
+  const sg = c.createRadialGradient(X(0), Y(-60), 50, X(0), Y(-60), 700); sg.addColorStop(0, '#2f6f86'); sg.addColorStop(1, '#1f4a60'); c.fillStyle = sg; c.fillRect(0, 0, 960, 720);
+  for (const [g, col] of [[24, 'rgba(90,170,180,.35)'], [11, 'rgba(120,200,200,.55)']]) for (const d of DATA) { shape(d, g); c.fillStyle = col; c.fill(); }
+  for (const d of DATA) { shape(d, 24); c.strokeStyle = 'rgba(200,240,240,.22)'; c.lineWidth = 1; c.setLineDash([2, 3]); c.stroke(); c.setLineDash([]); }
+  c.strokeStyle = 'rgba(255,255,255,.06)'; for (let x = -1000; x <= 1000; x += 100) { c.beginPath(); c.moveTo(X(x), 0); c.lineTo(X(x), 720); c.stroke(); c.beginPath(); c.moveTo(0, Y(x)); c.lineTo(960, Y(x)); c.stroke(); }
+  lane('rgba(200,240,255,.7)', 1.6);
+  for (const d of DATA) { shape(d); c.fillStyle = '#e8d2a0'; c.fill(); if (d.type === 'jungle' || d.type === 'atoll' || d.type === 'treasure' || d.type === 'harbour') { shape(d, -Math.max(3, d.r * 0.3)); c.fillStyle = 'rgba(110,150,80,.45)'; c.fill(); } shape(d); c.strokeStyle = '#2a2016'; c.lineWidth = 1.8; c.stroke(); }
+  for (const d of DATA) { const ly = Y(d.z) + Math.max(14, d.r * V.s) + 12;
+    if (d.type === 'harbour') { icon('harbour', X(d.x), Y(d.z), 11, '#fff', '#a8341c'); label(d.name, X(d.x), ly + 5, { font: serif, size: 16, col: '#fff3d8', stroke: 'rgba(20,16,12,.9)', w: 4, spacing: 1 }); }
+    else { icon(d.type, X(d.x), Y(d.z), 6.5, '#2a2016'); label(d.name, X(d.x), ly, { font: serif, size: 11.5, col: '#f2e6c8', stroke: 'rgba(20,16,12,.8)', w: 3, weight: 400 }); } }
+  icon('treasure', X(TREAS[0].x) + 15, Y(TREAS[0].z) - 13, 9, '#fff', '#a8341c'); icon('rumour', X(RUMOUR.x) + 15, Y(RUMOUR.z) - 13, 9, '#fff', '#a8341c');
+  icon('errand', X(VELTO.x) + 18, Y(VELTO.z) - 16, 9, '#2a2016', '#f0b43a'); icon('pin', X(PIN.x), Y(PIN.z), 9, '#fff', '#6a4aa0'); label(PIN.text, X(PIN.x) + 15, Y(PIN.z), { font: serif, size: 12, col: '#fff', stroke: 'rgba(20,16,12,.8)', w: 3, align: 'left', weight: 400 });
+  wake('rgba(255,255,255,.7)', 2, [3, 4]); route(VELTO, '#f0b43a', 2.4);
+  c.beginPath(); c.arc(X(SHIP.x), Y(SHIP.z), 20, 0, 6.28); c.strokeStyle = 'rgba(255,255,255,.5)'; c.lineWidth = 1.5; c.stroke(); ship(X(SHIP.x), Y(SHIP.z), SHIP.h, 11, '#c0392b', '#fff');
+  // hover card (parchment)
+  const hx = X(VELTO.x) + 30, hy = Y(VELTO.z) - 100; rr(hx, hy, 236, 118, 4); c.fillStyle = '#efe0bc'; c.fill(); c.strokeStyle = '#2a2016'; c.lineWidth = 2; c.stroke();
+  label('HARBOUR VELTO', hx + 14, hy + 20, { font: serif, size: 15, col: '#2a2016', stroke: null, align: 'left', spacing: 1.5 }); label('fishing town · Crown Traders', hx + 14, hy + 38, { font: serif, size: 11, col: '#6a5a40', stroke: null, align: 'left', weight: 400 });
+  c.strokeStyle = 'rgba(42,32,22,.3)'; c.beginPath(); c.moveTo(hx + 12, hy + 48); c.lineTo(hx + 224, hy + 48); c.stroke();
+  [['errand', 'Deliver a parcel of fine tea', '#f0b43a'], ['harbour', 'Tilda is looking for her dog', '#a8341c'], ['rumour', 'Fleet Home on Thursday', '#2f6f86']].forEach(([k, t, col], i) => { icon(k, hx + 22, hy + 64 + i * 18, 7, '#fff', col); label(t, hx + 36, hy + 64 + i * 18, { font: serif, size: 12, col: '#2a2016', stroke: null, align: 'left', weight: 400 }); });
+  // side panel (parchment strip)
+  const pg = c.createLinearGradient(960, 0, 1280, 0); pg.addColorStop(0, '#d8c08c'); pg.addColorStop(1, '#efe0bc'); c.fillStyle = pg; c.fillRect(960, 0, 320, 720); c.fillStyle = '#2a2016'; c.fillRect(960, 0, 4, 720);
+  label('TAMA SOUND', 984, 34, { font: serif, size: 22, col: '#2a2016', stroke: null, align: 'left', spacing: 2.5 }); label('Crown Traders  ·  14 of 28 charted', 984, 58, { font: serif, size: 12, col: '#6a5a40', stroke: null, align: 'left', weight: 400 });
+  label('FOLLOWING', 984, 96, { font: sans, size: 10, col: '#8a6a40', stroke: null, align: 'left', spacing: 2 });
+  rr(980, 108, 284, 58, 4); c.fillStyle = 'rgba(240,180,58,.25)'; c.fill(); c.strokeStyle = '#2a2016'; c.lineWidth = 1.5; c.stroke(); icon('errand', 1002, 137, 9, '#2a2016', '#f0b43a');
+  label('A parcel of fine tea', 1022, 128, { font: serif, size: 15, col: '#2a2016', stroke: null, align: 'left' }); label('to Harbour Velto · west · 260', 1022, 148, { font: serif, size: 12, col: '#6a5a40', stroke: null, align: 'left', weight: 400 });
+  label('ON THE CHART', 984, 192, { font: sans, size: 10, col: '#8a6a40', stroke: null, align: 'left', spacing: 2 });
+  [['harbour', 'Harbours', 3, '#a8341c', true], ['treasure', 'Treasure', 2, '#a8341c', true], ['rumour', 'Rumours', 1, '#a8341c', true], ['errand', 'Errands', 1, '#f0b43a', true], ['pin', 'My notes', 1, '#6a4aa0', true], ['jungle', 'Island names', '', '#4a6a40', true]].forEach(([k, t, n, col, on], i) => {
+    const y = 216 + i * 32; icon(k, 1002, y, 8, k === 'jungle' ? '#2a2016' : '#fff', k === 'jungle' ? null : col); label(t, 1022, y, { font: serif, size: 14, col: '#2a2016', stroke: null, align: 'left', weight: 400 }); if (n) label(String(n), 1218, y, { font: serif, size: 13, col: '#6a5a40', stroke: null, align: 'right', weight: 400 });
+    c.beginPath(); c.rect(1236, y - 7, 14, 14); c.fillStyle = on ? '#2a2016' : 'transparent'; c.fill(); c.strokeStyle = '#2a2016'; c.lineWidth = 1.5; c.stroke(); if (on) { c.strokeStyle = '#efe0bc'; c.lineWidth = 2; c.beginPath(); c.moveTo(1239, y); c.lineTo(1242, y + 3); c.lineTo(1247, y - 3); c.stroke(); } });
+  label('THIS WEEK', 984, 430, { font: sans, size: 10, col: '#8a6a40', stroke: null, align: 'left', spacing: 2 });
+  [['Bell Sunday', 'Tama · in 3 days'], ['Fleet Home', 'Velto · Thursday'], ['The Grand Auction', 'Monar · tomorrow']].forEach(([t, s], i) => { const y = 456 + i * 38; label(t, 984, y, { font: serif, size: 14, col: '#2a2016', stroke: null, align: 'left' }); label(s, 984, y + 16, { font: serif, size: 11, col: '#6a5a40', stroke: null, align: 'left', weight: 400 }); });
+  // legend line for lines
+  label('LINES', 984, 584, { font: sans, size: 10, col: '#8a6a40', stroke: null, align: 'left', spacing: 2 });
+  [['rgba(240,180,58,1)', [7, 6], 'Course to errand'], ['rgba(60,90,110,1)', [3, 4], 'Your wake'], ['rgba(40,110,140,1)', [2, 6], 'Current']].forEach(([col, dash, t], i) => { const y = 606 + i * 20; c.strokeStyle = col; c.setLineDash(dash); c.lineWidth = 2; c.beginPath(); c.moveTo(986, y); c.lineTo(1010, y); c.stroke(); c.setLineDash([]); label(t, 1020, y, { font: serif, size: 12, col: '#2a2016', stroke: null, align: 'left', weight: 400 }); });
+  label('M close  ·  drag  ·  wheel zoom  ·  click to pin', 1120, 700, { font: serif, size: 11, col: '#6a5a40', stroke: null, weight: 400 });
+  // tabs + compass + zoom
+  ['Map', 'Goals', 'Quests', 'Riddles', 'Journal', 'Ship', 'Standing'].forEach((t, i) => { rr(16 + i * 92, 14, 86, 28, 3); c.fillStyle = i ? 'rgba(239,224,188,.75)' : '#efe0bc'; c.fill(); c.strokeStyle = '#2a2016'; c.lineWidth = 1.5; c.stroke(); label(t, 59 + i * 92, 28, { font: serif, size: 14, col: '#2a2016', stroke: null }); });
+  const cx = 70, cy = 650; c.beginPath(); c.arc(cx, cy, 30, 0, 6.28); c.fillStyle = 'rgba(239,224,188,.85)'; c.fill(); c.strokeStyle = '#2a2016'; c.lineWidth = 1.5; c.stroke(); c.fillStyle = '#a8341c'; c.beginPath(); c.moveTo(cx, cy - 24); c.lineTo(cx + 6, cy); c.lineTo(cx - 6, cy); c.fill(); c.fillStyle = '#2a2016'; c.beginPath(); c.moveTo(cx, cy + 24); c.lineTo(cx + 6, cy); c.lineTo(cx - 6, cy); c.fill(); label('N', cx, cy - 38, { font: serif, size: 13, col: '#fff3d8', stroke: 'rgba(20,16,12,.8)', w: 3 });
+  [['+', 600], ['−', 640], ['◎', 680]].forEach(([t, y]) => { rr(912, y - 16, 32, 32, 4); c.fillStyle = 'rgba(239,224,188,.92)'; c.fill(); c.strokeStyle = '#2a2016'; c.lineWidth = 1.5; c.stroke(); label(t, 928, y, { size: 16, col: '#2a2016', stroke: null }); });
+  noise(0.05, 6000, ['#000']);
+}
+({ A, B, C, D })[STYLE]();
+</script></body></html>

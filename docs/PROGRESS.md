@@ -768,3 +768,18 @@ up; the chosen one (D) is built in the game's own style:
 - Side panel: the sea's name and faction, the errand you follow (bearing and distance), toggles with counts for each
   marker kind and for island names, this week's festivals in known harbours, and the line key.
 - The full-dread warp (drifting islands, phantoms, TURN BACK) still works on the new chart.
+
+## Mockups and the 90-second demo video (Nov 2026)
+- **Map directions:** `docs/concept/map/` holds mockups A (admiralty chart), B (explorer's parchment), C (clean game UI)
+  and D (hybrid), drawn from the real islands round Tama (`mock.html`), plus `map-new*.png` of the built chart (D, in the
+  game's style).
+- **Quest following (not built yet):** `docs/concept/quests/` holds four mockups over real game frames:
+  1. a parchment quest card with the story line above, an edge arrow and a gold wind-ring tick;
+  2. on arrival, a marker over the pier and "Dock at the pier";
+  3. a "Delivered!" stamp, with TAB cycling to the next errand;
+  4. the Quests tab with a FOLLOWING ribbon, distances, progress bars and deadline suns.
+  Suggested order to build: 1, 2, then TAB from 3.
+- **Tavern games:** `docs/concept/localgames-3d.png` shows all eight 3D scenes; `localgames-2d-old.png` is the earlier
+  painted version, for comparison.
+- **Video:** `docs/trailer/demo90/Hoist_demo_90s.mp4` is a 90-second gameplay video with no caves, ending at the hut on
+  the stage 4 theme. The shot, music and edit scripts sit beside it.
