@@ -14,6 +14,7 @@ The pause menu has Sound and Music toggles.
 | Before the first quest | nothing (sea, weather, gulls, coast) |
 | Stage 1 (dread < ~0.2, within ~440 units of Tama), open sea, day | the stage-1 band `s1_*`, one instrument more per quest, in changing line-ups, silences and solos |
 | Same, dusk to daybreak | the night version `n1_*` |
+| Free Cays waters, dusk to daybreak | the lone somber guitar `fc_night` instead of the night band and pad, in slow swells with long silences |
 | Stage 2 (dread ~0.25-0.5), open sea | `s2_*` |
 | Dread ~0.5-0.8 | `music_3` ("Dread") |
 | A raider fight (cannons out) | the battle layer `s1_raiders` on top, the whole band |
@@ -249,3 +250,12 @@ silence is the effect.
 The quest-complete and new-quest cards play `discover` at half volume (charting an island keeps it at full); `chapter` is at 0.25
 in `public/audio/volumes.json` (was 0.4).
 - `buy` is at 0.3 in volumes.json; the `coast` bed drops to 30% while you are docked (was 85%).
+
+## The Free Cays at night (`fc_night`, in `src/layers.js`)
+`Somber_guitar.wav` (the composer's, 16 bars at 99 BPM, 38.79 s, the band's length) rendered through HOIST with the other night instruments' calm settings (TIDE 0.20, DREAD 0.05, MIX 0.60; `HoistLayers <stemdir> <outdir> freecays`) and set to -24 LUFS (a lone voice, a little under the night pad). In Free Cays sectors (`freeCaysNow()` in main.js, the faction of the sector the ship is in) the night band and the night pad fade away over about 12 s, and the guitar takes the night, once the first quest has brought music:
+- It does not play all the time: it **rests 30-75 s in silence** (only the sea), **rises over ~16 s**, plays **20-50 s**, **falls over ~20 s**, and rests again. The first time it comes after about 14 s of quiet.
+- Leaving the Free Cays: the guitar falls away over ~20 s while the band and pad return. By day nothing changes (the stage-1 band as always); at dread above 0.2 the stage hand-over works as for the night band.
+- Pan near the middle, wandering gently. F8 mixer: group "Free Cays at night". Simulation (15 min): the guitar rested, rose and fell as above, never together with the band or pad.
+- Masters: the Chaos_Grain repo is read-only from the game sessions, so the HoistLayers change is saved as `docs/audio_patches/HoistLayers_freecays.patch` (apply with `git apply` on the `claude/brave-einstein-f3axt8` branch) and the master `game_audio/freecays/Somber_guitar.wav` should be added there.
+- More factions: each faction's own instrument (being composed) can follow the same pattern: one more cue, one more `faction` check in `SeaLayers.update` (the Free Cays branch is the template).
+

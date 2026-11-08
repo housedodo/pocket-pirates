@@ -2253,6 +2253,8 @@ function seaTick(dt, windNow) {
 // lamp oil (oil.js): burns while the lantern is lit; empty at night = a dark lantern and a short view
 const oilOn = () => state.goals.i >= OIL_FROM || !!params.get('nomate');
 let lampOut = false, oilNight = -1;
+/** 1 while the ship is in Free Cays waters (their sector), else 0: the night music there is a lone guitar with silences */
+function freeCaysNow() { return sectorAt(ship.pos.x, ship.pos.z, state.seed).faction.id === 'free' ? 1 : 0; }
 function oilCtx() { return { night: tod.night, fog: weather.fog, storm: weather.storm, dread, rowing: ship.rowing }; }
 function oilTick(dt) {
   const cap = oilCap(state.upgrades);
@@ -2664,7 +2666,7 @@ function frame() {
   audio.hutUpdate(rawDt, hutMusicTarget());   // the hut's theme, first visit only
   audio.tavernUpdate(rawDt, modal === 'pig' || (modal === 'harbour' && hbTab === 'tavern') ? 1 : ashore ? 0.35 : 0);   // tavern music through the wall
   if (live) {
-    audio.update(dt, { dread, speed: ship.speed / 11, night: tod.night, wind: wind.strength, rain: weather.rain, storm: weather.storm, gulls: gullLevel(tod.night),
+    audio.update(dt, { dread, speed: ship.speed / 11, night: tod.night, freecays: freeCaysNow(), wind: wind.strength, rain: weather.rain, storm: weather.storm, gulls: gullLevel(tod.night),
       quests: state.goals.i, open: openSea(), battle: inBattle() });
     const hour = Math.floor(state.time * 24);
     if (hour !== lastHour) { lastHour = hour; if (world.nearest(ship.pos.x, ship.pos.z, 80, ['harbour'])) audio.play('bell', { vol: 0.6 }); }

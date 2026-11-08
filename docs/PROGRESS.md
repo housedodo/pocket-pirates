@@ -810,3 +810,6 @@ up; the chosen one (D) is built in the game's own style:
 - **Import:** the edited upload is diffed against the file in git by ID; changed lines go into the source file named by the ID's code (OBJ objectives.js, PAS passengers.js, ...). Lines marked `??` are asked about first.
 - The line list (part J) is read from `docs/STORY_AND_DIALOGUE.txt`; if lines in code change, re-pull that file first.
 
+## Free Cays night guitar
+- The somber guitar (`fc_night`) plays in Free Cays waters at night instead of the night band and pad: slow swells in and out with long silences between (see `docs/AUDIO.md`). Rendered through HOIST like the other night instruments. First regional music; the template for each faction's own instrument.
+
