@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { clamp, smoothstep, angleDiff, mulberry32, hash2 } from './util.js';
 import { sampleStage, DARK_THRESHOLD, dreadAtDistance } from './palette.js';
 import { U, initMaterials, mats, PostFX } from './psx.js';
-import { Ocean, WATER, NISL, OCEAN_STYLES } from './ocean.js';
+import { Ocean, WATER, NISL, OCEAN_STYLES, waveHeight } from './ocean.js';
 import { Sky } from './sky.js';
 import { World, villager, VILLAGERS, houseKind, HOUSES, shoreR, lighthouseKind } from './world.js';
 import { Builder } from './builder.js';
@@ -2455,6 +2455,7 @@ function frame() {
   abyss.update(dt, { dread, live, camera, camYaw, ch: camHeading + camYaw });
   stage.wave *= abyss.waveMul;
   const waveT = abyss.waveTime(stepT);
+  if (glimpse.active) glimpse.fig.position.y = waveHeight(glimpse.fig.position.x, glimpse.fig.position.z, waveT, seaWave);   // the diver stands ON the swell
 
   // ---- world
   const first = world.islands.size === 0;

@@ -1,6 +1,6 @@
 // One wrong moment, once. After the first throw at the hut, on the way home, for about nine seconds: the wind drops, the sea
 // goes flat, every sound goes away, the gulls stop and turn to look, a lighthouse in sight swings its beam onto the deck, and
-// a deep-sea diver stands in the water off the bow, broken: a cracked helmet, torn suit, a snapped air hose. Then it is gone and everything is as it was. Nothing explains it;
+// a deep-sea diver stands upright on the water off the bow, broken: a cracked helmet, torn suit, a snapped air hose. Then it is gone and everything is as it was. Nothing explains it;
 // Mara only asks why you went quiet. (main.js applies k to the wind, waves, sound, gulls and lighthouses.)
 import * as THREE from 'three';
 import { smoothstep } from './util.js';
@@ -12,7 +12,7 @@ export const GLIMPSE_LEN = 9;
 
 export class Glimpse {
   constructor(scene) {
-    // a deep-sea diver, broken and rusted through: a tipped, dented copper helmet with a cracked front window and one side pane gone, flaking
+    // a deep-sea diver, broken and rusted through: a dented copper helmet with a cracked front window and one side pane gone, flaking
     // rust and barnacles, rust running down the swollen canvas suit in long streaks, corroded straps, weights and cuffs, one arm bent the wrong
     // way, a snapped lifeline chain and a snapped air hose. It leans, standing in the water to the knee, facing the ship (+z is the front).
     const b = new Builder();
@@ -22,7 +22,7 @@ export class Glimpse {
     const rivet = (x, y, z, c = RU3) => b.box(x, y, z, 0.1, 0.1, 0.1, c, W);
     const barn = (x, y, z, r, sd) => b.blob(x, y, z, r, r * 0.8, r, sd % 2 ? BARN : BARD, W, 0.35, sd);
     const radial = (n, rad, y, fn) => { for (let i = 0; i < n; i++) { const a = (i / n) * Math.PI * 2; fn(Math.cos(a) * rad, y, Math.sin(a) * rad, a, i); } };
-    b.push(0, 0, 0, 0, 1, 1, 1, 0, 0.14);                                                 // the whole body leans, as if held up by the current
+    b.push(0, 1.5, 0, 0, 1, 1, 1, 0, 0);                                                  // upright, the soles of the boots on the surface of the water
     // legs and boots
     b.cyl(-0.55, -1.5, 0, 0.55, 0.45, 2.3, 6, SUITD, W, true);
     b.cyl(0.55, -1.5, 0.1, 0.55, 0.45, 2.3, 6, SUITD, W, true);
@@ -52,8 +52,8 @@ export class Glimpse {
     b.box(0, 3.05, 0.98, 0.7, 0.55, 0.14, COP, W);                                            // a breastplate fitting
     rivet(-0.24, 3.2, 1.07); rivet(0.24, 3.2, 1.07); rivet(-0.24, 2.9, 1.07); rivet(0.24, 2.9, 1.07);
     barn(-0.5, 3.35, 0.9, 0.14, 7); barn(-0.38, 3.28, 0.96, 0.1, 8); barn(0.7, 3.5, 0.75, 0.12, 9);
-    // the helmet pivots at the neck: tipped to one side, nodding
-    b.push(0.12, 4.15, 0, 0, 1, 1, 1, 0.1, -0.34);
+    // the helmet sits straight on the shoulders
+    b.push(0, 4.15, 0, 0, 1, 1, 1, 0, 0);
     b.cyl(0, 0, 0, 0.9, 0.9, 0.3, 8, RU2, W, true);                                           // neck ring
     radial(8, 0.91, 0.15, (x, y, z) => rivet(x, y, z, VER));
     b.blob(0, 1.0, 0, 1.18, 1.1, 1.18, COP, W, 0.09, 2);                                       // the copper dome, pitted
@@ -93,7 +93,7 @@ export class Glimpse {
     for (const [x, z, h] of [[0.2, 1.05, 2.4], [-0.6, 0.9, 1.8], [1.0, -0.3, 2.0]]) { b.push(x, 2.8, z, 0, 1, 1, 1, 0.12, 0.08); b.box(0, -h, 0, 0.12, h, 0.04, KELP, W); b.pop(); }
     b.pop();
     this.fig = new THREE.Mesh(b.geometry(), mats.props);
-    this.fig.visible = false; this.fig.scale.setScalar(1.9);
+    this.fig.visible = false; this.fig.scale.setScalar(1.6);
     scene.add(this.fig);
     this.t = -1; this.k = 0;
   }
