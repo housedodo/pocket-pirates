@@ -32,3 +32,18 @@ export function sectorInfo(sx, sz, seed) {
   return info;
 }
 export const sectorAt = (x, z, seed) => { const [sx, sz] = sectorCoord(x, z); return sectorInfo(sx, sz, seed); };
+
+/** The faction whose look a village at (x, z) wears. Mostly its own sector's; within 90 units of a sector edge some villages
+ *  (up to about 4 in 10 right at the edge) take the neighbour's across it, so regions blend instead of ending on a line. `h` is a hash of the island. */
+export function lookFactionAt(x, z, seed, h) {
+  const [sx, sz] = sectorCoord(x, z), [cx, cz] = sectorCenter(sx, sz);
+  const dx = x - cx, dz = z - cz, ex = SECTOR / 2 - Math.abs(dx), ez = SECTOR / 2 - Math.abs(dz);   // distance to the nearest edge on each axis
+  const u = (((h >>> 0) * 2246822519 >>> 0) / 4294967296);
+  const own = sectorInfo(sx, sz, seed);
+  const e = Math.min(ex, ez), BLEND = 90;
+  if (e < BLEND && u < 0.4 * (1 - e / BLEND)) {
+    const nb = ex < ez ? sectorInfo(sx + Math.sign(dx || 1), sz, seed) : sectorInfo(sx, sz + Math.sign(dz || 1), seed);
+    if (nb.faction.id !== 'drowned' || own.faction.id === 'drowned') return nb.faction.id;
+  }
+  return own.faction.id;
+}

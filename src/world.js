@@ -1,4 +1,4 @@
-import { sectorAt } from './sectors.js';
+import { sectorAt, lookFactionAt } from './sectors.js';
 import { styleOf, shapeOf, STYLE_DEF, SHAPES, stairs, slopeHouses, flagCloth, ruins, landingFlag, laundry } from './villagestyles.js';
 import { pushOut } from './solids.js';
 import * as THREE from 'three';
@@ -109,7 +109,7 @@ export function describeCell(cx, cz, seed) {
     desc.custom = key === '0,-1' ? 'bells' : CUSTOMS[hash2(cx, cz, seed + 909) % CUSTOMS.length];
     desc.festival = key === '0,-1' ? 6 : hash2(cx, cz, seed + 910) % 7;
     desc.flag = sectorAt(x, z, seed).faction.color;   // the colours it flies
-    desc.style = styleOf(hash2(cx, cz, seed + 777), key);
+    desc.style = styleOf(hash2(cx, cz, seed + 777), key, lookFactionAt(x, z, seed, hash2(cx, cz, seed + 778)));   // the region's look (soft borders)
     { const vt = typeof window !== 'undefined' && window.__villageTest; if (vt && key === '-2,-1') desc.style = vt.style; }   // dev: force the look of the second harbour (see docs/PROGRESS.md)   // its own island outline, ground, palette, street plan and landmark (villagestyles.js)
     desc.dockTh = key === '0,-1' ? Math.PI / 2 : (Math.abs(hash2(cx, cz, seed + 123)) % 628) / 100;
     { const sh = shapeOf(desc.style, hash2(cx, cz, seed + 888), (Math.abs(hash2(cx, cz, seed + 889)) % 1000) / 1000), vt = typeof window !== 'undefined' && window.__villageTest;

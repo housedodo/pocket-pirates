@@ -20,14 +20,23 @@ export function shapeOf(style, h, r01) {
 }
 export const STYLE_IDS = ['classic', 'fishing', 'terraced', 'thatch', 'market', 'farm', 'shrine', 'wreckers'];
 const WEIGHTS = [['fishing', 2], ['terraced', 2], ['thatch', 2], ['market', 2], ['farm', 2], ['shrine', 1.5], ['wreckers', 1.5], ['classic', 1]];
+/** Each faction leans on a few looks, so a region is recognisable at a glance. Every style stays possible (small weight) so no region is uniform. */
+const FACTION_WEIGHTS = {
+  crown:   { classic: 3, terraced: 3, market: 3, farm: 1.5, fishing: 0.5, thatch: 0.2, shrine: 0.2, wreckers: 0.1 },   // colonial towns, churches, tidy quays
+  free:    { thatch: 4, fishing: 3, farm: 1.2, market: 0.6, shrine: 0.3, terraced: 0.3, wreckers: 0.3, classic: 0.1 },   // palm-thatch huts, boats, easy living
+  reef:    { wreckers: 4, fishing: 2, thatch: 1, market: 0.4, farm: 0.2, terraced: 0.2, shrine: 0.2, classic: 0.1 },    // coves, rough harbours
+  lantern: { shrine: 4, market: 2, terraced: 2, fishing: 0.6, farm: 0.4, thatch: 0.2, wreckers: 0.1, classic: 0.1 },    // lamplit shrine towns, guild markets
+  drowned: { wreckers: 2, fishing: 2, shrine: 1.2, thatch: 1, farm: 0.3, market: 0.2, terraced: 0.2, classic: 0.1 },    // low, damp, half-abandoned
+};
 const rnd = (rng, a, b) => a + rng() * (b - a);
 const pick = (rng, arr) => arr[Math.floor(rng() * arr.length) % arr.length];
 
-export function styleOf(h, key) {
+export function styleOf(h, key, faction) {
   if (key === '0,-1') return 'classic';
   if (key === '-2,-1') return 'fishing';   // the second harbour, seen early: not like Tama
-  const tot = WEIGHTS.reduce((a, w) => a + w[1], 0); let k = (((h >>> 0) * 2654435761 >>> 0) / 4294967296) * tot;   // mix the bits: a plain modulo of the hash clumps
-  for (const [id, w] of WEIGHTS) { if ((k -= w) < 0) return id; }
+  const fw = FACTION_WEIGHTS[faction], list = fw ? STYLE_IDS.map((id) => [id, fw[id] || 0.1]) : WEIGHTS;
+  const tot = list.reduce((a, w) => a + w[1], 0); let k = (((h >>> 0) * 2654435761 >>> 0) / 4294967296) * tot;   // mix the bits: a plain modulo of the hash clumps
+  for (const [id, w] of list) { if ((k -= w) < 0) return id; }
   return 'classic';
 }
 

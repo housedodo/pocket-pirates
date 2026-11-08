@@ -506,3 +506,8 @@ Built and working in the dev build; switched off when `window.__BUILD === 'demo'
 - **Day and night** (`daynight.js`): the sun-height curve is wider (dusk about 90 s, dawn about 75 s, was 49 s and 38 s), twilight is wider, and the clock pace eases between day and night over two hours either side of 06:00 and 19:00 instead of jumping (the day is still exactly 10 minutes).
 - Not changed: lighthouse lamps still switch on at once at dusk (`world.setLit`).
 
+## Regions look different (first slice)
+- **Village style follows the faction** (`FACTION_WEIGHTS` in `villagestyles.js`, `lookFactionAt` in `sectors.js`): each of the four factions leans on a few looks, every look stays possible so no region is uniform. Crown: colonial classic towns, markets, farms. Free Cays: thatch, fishing. Reef: wreckers' coves, thatch, fishing. Lantern Guild: shrine towns, terraced, markets. The Drowned: wreckers, fishing, shrine. Measured inside the fog limit over 8 seeds: Lantern 57% shrine, Reef 43% wreckers, Crown 46% classic, Free Cays 27% thatch.
+- **Soft borders:** within 90 units of a sector edge a village may wear the neighbour's look (up to about 4 in 10 at the edge; never a Drowned look in a bright sector). Tama and Velto are unchanged.
+- **Next for regions (not built):** vegetation and water tint, ship silhouettes, market goods and fish per region, village greetings per region, a signature instrument per faction (the composer is making these; same key and meter, see AUDIO.md).
+
