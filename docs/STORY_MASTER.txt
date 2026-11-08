@@ -1,0 +1,2319 @@
+HOIST (Pocket Pirates): THE MASTER STORY FILE
+================================================================================================
+This is the main story file for the full game. Edit it, upload it again, and the next session puts every change
+into the game. Built from commit c6785d2 on 2026-11-08. 1227 in-game lines carry an ID.
+
+CONTENTS
+  A   HOW TO USE THIS FILE (IDs, status marks, how to add and remove things)
+  B   PREMISE AND RULES (tone, what is never shown)
+  C   CAST (everyone who speaks or is spoken of, with voice notes)
+  D   STRUCTURE (dread, chapters, acts, the full-game plan)
+  E   MAIN QUEST (every goal, in order)
+  F   THE WORLD ATLAS (regions, hand-made places, harbours, and SLOTS for new places to explore)
+  G   THREADS (the seven dark threads, side-story seeds, small harbour quests)
+  H   ENDINGS
+  I   SYSTEMS THAT CARRY STORY (where the story hides in the mechanics)
+  J   EVERY LINE IN THE GAME (with IDs, by source file)
+  K   WRITER'S LOG (open questions, decisions, what to do next)
+
+
+################################################################################################
+# A  HOW TO USE THIS FILE
+################################################################################################
+
+IDs
+  Every in-game line has an ID: OBJ-0001, PAS-0012 ... (code of the source file + number). The ID never changes.
+  Edit only the text after the "|". Format of a line:     CODE-NNNN | [tag] the text the player sees
+  [tag] says which field the line sits in ([intro], [outro], [hints], [once], [again] ...). Keep it.
+  ${x} or {P} or {H} is a value the game fills in (a number, a harbour name). Keep those exactly as written.
+
+CHANGING THINGS
+  Change a line      edit the text after "|".
+  Add a line         copy the line below it and give it the ID  NEW-<short name>, for example  NEW-mara-fog-1.
+                     Say in a note above it where it belongs (which goal, which place, which dread stage).
+  Remove a line      write DELETE after the ID:   OBJ-0004 | DELETE
+  Move a line        write MOVE: <where> after the text.
+  Not sure           write ?? at the end of the line. Those are the first things the next session asks you about.
+
+HAND-WRITTEN PARTS (B to I) use their own IDs and the same status marks:
+  [BUILT]   it is in the game now.            [PLANNED] decided, not built.
+  [IDEA]    a suggestion, not decided.         [EMPTY]   a slot waiting for you to write it.
+  [CUT]     removed on purpose (kept so it is not suggested again).
+  Change the mark when you decide. A slot you fill in becomes [PLANNED]; I turn it into [BUILT] once it is in.
+
+TEMPLATES (copy these to add new things; the full list of fields is in the slots in part F)
+  PLACE    id, region, where, how it is found, first sight, on arrival, repeat visits, dialogue, reward, dread version, links
+  SCENE    id, where it plays, who is there, what you see, choices (1/2/3), checks (d20 and against what), outcomes
+  PERSON   id, name, where they live, voice, what they want, what they know, lines by dread stage
+  QUEST    id, given by, steps, what each step needs, what is paid, what changes in the world afterwards
+
+HOW I WILL IMPORT IT
+  1. You upload the file. 2. I compare it to docs/STORY_MASTER.txt in git, by ID. 3. I list every change back to you.
+  4. Lines go into the right source file (the CODE says which). New places, scenes and persons become code, with the
+  look (design) and the sound (audio) briefed separately. 5. I rebuild this file with the new IDs and save it.
+  Anything marked ?? is asked, never guessed.
+
+WHERE THINGS ARE BUILT (so you know what is cheap and what is not)
+  Cheap    changing any line, adding lines to existing lists, adding a bottle note, rumour, gossip, harbour line,
+           passenger story, Mara remark, goal hint, cave node, encounter card.
+  Medium   a new hand-made place (a landmark island with a visit text and a reward), a new thread scene, a new resident.
+  Larger   a new mechanic, a new region look, a new full-screen scene with its own picture, a new ending.
+
+
+################################################################################################
+# B  PREMISE AND RULES
+################################################################################################
+
+THE GAME [BUILT]
+  Sail a small ship (the Merry Gull) with your first mate Mara across an endless sea. It starts as a cosy Caribbean
+  exploration game (fish, dig, deliver, trade, chat) and drifts, with distance from home, into cosmic horror.
+  The title is HOIST. The captain (you) never speaks. The demo is the bright game only (no dread).
+
+THE PREMISE [BUILT, never explained]
+  The sea is a closed eyelid. Dread is the Eye stirring in its sleep; the worst effects are its dreams leaking.
+  A Lady in a black hut keeps it asleep by throwing a twenty-sided die. Each low roll is a moment it nearly woke;
+  she writes it in a ledger. The player's throws count too, without them knowing.
+
+THE RULES OF TELLING [BUILT]
+  B1  Horror is implied, never explained. No monsters with names; small wrong details (a table laid for two, a boat
+      that returns with nobody aboard, a dog that sits facing you).
+  B2  The Lady is never seen. The hut text describes only a chair in the dark.
+  B3  Never resolve a storyline casually. Every thread is recorded and can be picked up later.
+  B4  HUD text stays minimal. Writing is short. A line is one idea.
+  B5  No handholding: nothing is marked right or wrong; riddles, rumours and notes are a memory aid.
+  B6  The world remembers: what you do in one harbour is gossiped about in the next.
+  B7  The bright version and the wrong version of a place share a skeleton; dread swaps the details, not the place.
+  B8  Mara is cheerful (her real name is Mara). At full dread she forgets her village and says things she should not.
+  B9  The captain never speaks. Other people may speak AT the captain, and Mara answers for the ship.
+
+TONE BY DREAD STAGE [BUILT]
+  0 Sunny   warm, funny, small talk, food, weather.            1 Off    people repeat themselves; one wrong detail.
+  2 Wrong   odd names, glowing fungus, standing stones.         3 Eerie  fog, dusk, lit empty windows, black flag.
+  4 Cosmic  black sun, an eye in the stars, chromatic split, Mara breaks.
+  Dread follows distance from Tama only (0 at home, 1.0 at about 2200 units). It does not grow with time.
+
+WRITER'S NOTES FOR THIS FILE
+  B-note-1  (empty)   Add rules you want me to keep: words to avoid, running jokes, how long a line may be. ??
+
+
+################################################################################################
+# C  CAST
+################################################################################################
+Status marks as in part A. "Voice" is a short note to keep every line in character; add yours.
+
+C-001 MARA, first mate [BUILT]
+  Role      talks you through the goals, remarks on weather, dusk, tide, ports; answers passengers; unravels at full dread.
+  Voice     warm, quick, a little cheeky; one or two short lines at a time; calls you Captain; "She is small, but she is ours."
+  Secret    what Mara is and whether she remembers any of it when you are home is NOT decided. [OPEN]
+  Her arc   cheerful -> steady -> rattled (mood from hull, rest and dread) -> breaks (glitching portrait, lines she should not say).
+  Lines     OBJ (goals), MAIN (remarks), PAS (banter), THR/TMOD (threads).  Your edits:  (empty)
+
+C-002 OLD PERRIN [BUILT as letters only]
+  Role      the cartographer who never left port. His letters give the first riddles; his chart is drawn as if from below the water.
+  Voice     dry, precise, a little smug. Never met in person.
+  Hooks     he once visited the hut [IDEA]; his riddles describe shores he could not have seen.   Your edits:  (empty)
+
+C-003 THE LADY IN THE HUT [BUILT, never seen, never speaks]
+  Role      throws the d20 to keep the Eye asleep, writes every low roll in a ledger.
+  Shown     a silent old woman, an old bone die, candles (one more for every low throw), a chair in the dark.
+  Never     her face, her voice, an explanation.   Your edits:  (empty)
+
+C-004 THE HARBOURMASTER AT TAMA [BUILT]
+  Role      hands you Perrin's letters; gives hints (watch the sky).   Voice: brisk, kind.   Your edits:  (empty)
+
+C-005 THE EIGHT RESIDENTS [BUILT] (one per harbour, a four-visit story that changes the harbour for good)
+  C-005-bakers   Ada the baker              prop: bunting      voice/notes: (empty)
+  C-005-dog      Tilda and her dog          prop: dog      voice/notes: (empty)
+  C-005-widow    Ines at the lamp           prop: lamp      voice/notes: (empty)
+  C-005-boat     Pim the boatbuilder        prop: boat      voice/notes: (empty)
+  C-005-keeper   Old Sabe                   prop: chair      voice/notes: (empty)
+  C-005-singer   Lune who sings             prop: candles      voice/notes: (empty)
+  C-005-bride    Marisol the bride          prop: arch      voice/notes: (empty)
+  C-005-counter  Corvo who counts ships     prop: wall      voice/notes: (empty)
+  Each has a "prop" that appears by the pier when their story ends. Lines are in section J under HLF (ARCS).
+  Your edits / new residents:  (empty)
+
+C-006 WICK, keeper of Wick's Rock [BUILT]   silent lighthouse keeper; walks you up to the gallery; no speech.
+C-007 THE KESTREL [BUILT as absence]   a ship crossed off the list in the tin box on the Grey Tooth; its white posts (daymarks) still stand.
+C-008 THE PAINED RAVEN [PLANNED, working name]   the Gull's opposite, a ghost ship. Seed: inside the hull, "Not the Gull. I left it." Never explain who sails her.
+C-009 THE FACTIONS [BUILT as names and colours]   Crown Traders, Free Cays, Reef Brotherhood, Lantern Guild, The Drowned (see part F).
+C-010 THE HARBOUR FOLK [BUILT]   fishers and dockers at dawn, the fish-stall woman by day, the fiddler and lamplighter in the evening, the night watchman; dark figures with pale eyes from dread stage 2 (they only stare).
+C-011 CREW FOR HIRE [BUILT]   two hired hands max, silent, with a trait (Lucky, Old salt, Silver tongue, Strong rower, Sharp-eyed, Superstitious) and a wish.
+C-012 PASSENGERS [BUILT]   talk while sailing: stories, gossip, treasure hints, dark lines at high dread; Mara answers.
+
+NEW PEOPLE (copy this block)
+  C-NEW-01  [EMPTY]
+    name:
+    where they live / where met:
+    voice (3 words):
+    what they want:
+    what they know (and what they do not say):
+    lines by dread stage:  0 ...   1 ...   2 ...   3 ...   4 ...
+
+
+################################################################################################
+# D  STRUCTURE
+################################################################################################
+
+D1 THE SIX CHAPTERS OF THE DEMO [BUILT] (about one hour)
+  I    Sea legs             act "Fair winds"   fog radius   430   goals: sail, harbour
+  II   Perrin's riddle      act "Fair winds"   fog radius   430   goals: dig, upgrade
+  III  Working waters       act "Fair winds"   fog radius   820   goals: calm, tack, job, passenger, chart
+  IV   Check my chart       act "Loose talk"   fog radius  1250   goals: tavern, perrin, checkchart, errand, salvage, riddle2, raider
+  V    Strange notes        act "Loose talk"   fog radius  1650   goals: bottles, gossip
+  VI   The table            act "Loose talk"   fog radius  1650   goals: hut
+  The fog wall: each chapter allows a radius from Tama; near it the fog closes in, past it the ship is turned back.
+  The demo ends on the first throw at the hut: at the next harbour someone speaks of your number, then the end card.
+
+D2 THE FULL GAME: FIVE ACTS [PLANNED from the original seeds; fill in]
+  Act 1  Fair winds     (bright, the demo)                    chapters I-III      [BUILT]
+  Act 2  Loose talk     (rumours of The Drowned)              chapters IV-VI      [BUILT]
+  Act 3  The Lady's errands  (bring her a gull feather, a bell clapper, Mara's hat)      [PLANNED]
+  Act 4  The descent    (through Eerie and Cosmic waters)                              [PLANNED]
+  Act 5  The Eye        (the ending)                                                    [PLANNED]
+  D2-note   (empty)  Write what happens in each act, what unlocks, and which region it takes place in.
+
+D3 WHAT UNLOCKS WHEN [BUILT]
+  fishing from II, oars and passengers from III, crew, tavern dice, haggling and encounter cards from IV; cannons in IV.
+  Dolphins, whales, sightings, lighthouse keepers and optional goals wait until the seventh goal.
+
+D4 DREAD BY DISTANCE FROM TAMA [BUILT]
+  0 to about 550   Sunny       Tama Sound (home sector) and its neighbours
+  550 to 1100      Off
+  1100 to 1650     Wrong       (sectors become Drowned water above 72% dread, about 1580)
+  1650 to 2200     Eerie
+  2200 and beyond  Cosmic      full dread effects; after about 140 s the leviathan, about 170 s the Eye opens
+  The demo is capped at 1650 from Tama and has no dread.   Your notes:  (empty)
+
+
+################################################################################################
+# E  MAIN QUEST
+################################################################################################
+Goal texts, Mara's intros, outros and hints are in section J under OBJ (same goal order). Fill the "your edit" lines
+to change what a goal asks, pays or leads to. Rewards are gold.
+
+
+  CHAPTER I: Sea legs
+    Q-sail        "Find your sea legs"   reward 12    [BUILT]
+                  your edit: (empty)
+    Q-harbour     "Make landfall"   reward 12    [BUILT]
+                  your edit: (empty)
+
+  CHAPTER II: Perrin's riddle
+    Q-dig         "Follow the riddle"   reward 36    [BUILT]
+                  your edit: (empty)
+    Q-upgrade     "Spend your loot"   reward 18    [BUILT]
+                  your edit: (empty)
+
+  CHAPTER III: Working waters
+    Q-calm        "Dead calm"   reward 24    [BUILT]
+                  your edit: (empty)
+    Q-tack        "Beat to windward"   reward 24    [BUILT]
+                  your edit: (empty)
+    Q-job         "Earn your keep"   reward 30    [BUILT]
+                  your edit: (empty)
+    Q-passenger   "Passage"   reward 24    [BUILT]
+                  your edit: (empty)
+    Q-chart       "Chart the sea"   reward 24    [BUILT]
+                  your edit: (empty)
+
+  CHAPTER IV: Check my chart
+    Q-tavern      "Meet the locals"   reward 18    [BUILT]
+                  your edit: (empty)
+    Q-perrin      "A note from Perrin"   reward 12    [BUILT]
+                  your edit: (empty)
+    Q-checkchart  "Check his chart"   reward 36    [BUILT]
+                  your edit: (empty)
+    Q-errand      "Odd jobs"   reward 24    [BUILT]
+                  your edit: (empty)
+    Q-salvage     "Salvage rights"   reward 24    [BUILT]
+                  your edit: (empty)
+    Q-riddle2     "Riddle me this"   reward 30    [BUILT]
+                  your edit: (empty)
+    Q-raider      "Teach a raider a lesson"   reward 36    [BUILT]
+                  your edit: (empty)
+
+  CHAPTER V: Strange notes
+    Q-bottles     "What the sea says"   reward 18    [BUILT]
+                  your edit: (empty)
+    Q-gossip      "Ask around"   reward 18    [BUILT]
+                  your edit: (empty)
+
+  CHAPTER VI: The table
+    Q-hut         "Find the hut"   reward 0    [BUILT]
+                  your edit: (empty)
+
+E-optional  SIDE GOALS [BUILT]: fish (Dinner at sea), hail (Say hello), bottle (Message received), paint (A touch of style),
+  fruit (Fresh from the tree), dolphin (Friends of the sea), and others; they complete themselves.
+E-new  NEW MAIN GOALS FOR THE FULL GAME (copy this block for each)
+  Q-NEW-01  [EMPTY]
+    chapter / act:
+    title:                      reward:
+    how it starts (who says what):
+    steps (what the player does, in order):
+    where it happens (name a slot from part F):
+    Mara's intro / outro / hints:
+    what changes afterwards:
+
+
+################################################################################################
+# F  THE WORLD ATLAS
+################################################################################################
+The sea is endless and made of 110-unit cells; every 550 units is a named SECTOR with a faction. Tama is at the
+centre. The idea of this part: the world is connected, but each region has its own look, trade, weather and secrets,
+so a player who goes somewhere learns the place and starts to recognise it. Story pieces are PLACED in regions so you
+have to go there to find them. Everything marked [EMPTY] is a slot for you.
+
+F1 HOW A PLACE CAN BE FOUND (pick one for each slot)
+  rumour        bought at a tavern (40g), may be false (about 1 in 3)       [BUILT]
+  riddle        carved on a treasure arch; some arches hold only half        [BUILT]
+  bottle        message in a bottle that drifts near you                     [BUILT]
+  chart note    a local chart bought on a board (30g)                        [BUILT]
+  letter        Perrin's letters at Tama                                     [BUILT]
+  gossip        a villager, a passenger, a lighthouse keeper's call          [BUILT]
+  sighting      a sign at sea (boat, crate, buoy, raft, silver shoal, glass) [BUILT]
+  seen from far a landmark shape on the horizon, readable with the spyglass  [BUILT]
+  schedule      only at a time: a weekday, a tide, the night, a storm        [BUILT, tides, week, storm fronts]
+  condition     needs a lantern, a stronger hull, a shallow keel             [BUILT, three places]
+  refusal       you did not do something (stopped throwing, never hired)     [PLANNED]
+  just sailing  nothing points at it; only the player who goes there sees it
+
+F2 WHAT A PLACE CAN BE (the building blocks that exist)
+  island kinds   harbour, jungle, sandbar, rocky crag, atoll, volcano (rare, big), mangrove; lighthouse on about a third
+  at sea         wrecks (salvage, more at low tide), whirlpools, barrels, bottles, glowing shoals, ghost ships, drifting derelicts,
+                 floating market (Friday), regatta (Sunday), whale migration (Thursday), storm fronts, tide passages
+  scenes         one-time caves (a node graph with d20 checks), thread scenes (full screen), encounter cards (rare, at sea)
+  persons        residents, harbour folk, passengers, crew, keepers, a ship you can hail
+
+
+F3 REGIONS [BUILT as names, colours, village looks and weather; the stories are yours to place]
+  A region is a faction sector. Its village look is picked from the faction (the villages line of each region). Sound: each faction will get its own instrument
+  (being composed), same key and meter as the main theme.
+
+
+  F3-CROWN  CROWN TRADERS   colour blue (#4a7fd8)
+    where:        home sector Tama Sound and the sectors that roll out of it
+    villages:     colonial towns, churches, tidy quays, markets, farms (the classic and market looks; terracotta roofs, verandas)
+    ships/wildlife: merchant brigs and galleons, order, customs; the fewest raiders
+    weather:      steady weather; fog is average
+    story intent: Where the game starts. It teaches the player what "normal" looks like, so that every other region can be told apart.
+    instrument:   (empty: you are making one)
+    your notes:   (empty)
+    SLOTS (ideas, change or replace them):
+      W-C1  [IDEA]  Customs Pier: a pier where every ship is searched; an official who writes down your cargo and your name; at dread the list has your name already
+         your text: (empty)
+      W-C2  [IDEA]  The Governor's Dinner: a harbour feast you may be invited to; talk and luck checks; a toast to somebody who is not there
+         your text: (empty)
+      W-C3  [IDEA]  The Closed Mint: an old fort-ruin with a rusted cannon and coins that are all stamped with the same ship
+         your text: (empty)
+
+  F3-FREE  FREE CAYS   colour green (#4eb86a)
+    where:        sectors that the random roll gives the faction; shallows, lagoons and sandbars
+    villages:     palm-thatch huts, fishing villages, farms; easy living, music on the quay
+    ships/wildlife: canoes and fishing boats; flying fish and sea turtles; calmer weather
+    weather:      calm, bright; the easiest sailing
+    story intent: The region where the player relaxes. Its secrets should be small, warm and slightly wrong.
+    instrument:   (empty: you are making one)
+    your notes:   (empty)
+    SLOTS (ideas, change or replace them):
+      W-F1  [IDEA]  The Turtle Road: a line of turtles that always swim the same way; follow them and they stop at a place with a table by the water
+         your text: (empty)
+      W-F2  [IDEA]  The Hammock Isle: an island where everyone is asleep in the day; they only talk at night, and at night they ask you the date
+         your text: (empty)
+      W-F3  [IDEA]  The Singing Sandbar: a sandbar that makes one note when the tide turns; a fiddler waits for it
+         your text: (empty)
+
+  F3-REEF  REEF BROTHERHOOD   colour red (#d8484a)
+    where:        sectors with reefs and rocks; the home of raiders
+    villages:     wreckers' coves, rough harbours, thatch, fishing; wrecks everywhere
+    ships/wildlife: schooners; the only raiders (rare, one at a time); more squalls
+    weather:      squalls, rolling water, rough sea
+    story intent: The region that costs the ship something. Story here is about debts, wrecks and what the sea gives back.
+    instrument:   (empty: you are making one)
+    your notes:   (empty)
+    SLOTS (ideas, change or replace them):
+      W-R1  [IDEA]  The Wreckers' Light: a lamp on the rocks that lures ships; a keeper who swears she only keeps it lit for her husband
+         your text: (empty)
+      W-R2  [IDEA]  The Name Wall: a cliff where a name is painted for every ship that sank; the paint is wet; one name is the Merry Gull
+         your text: (empty)
+      W-R3  [IDEA]  The Surrender: a raider captain who gives up without a fight and warns the sea further out is eating sectors (side seed 9)
+         your text: (empty)
+
+  F3-LANTERN  LANTERN GUILD   colour amber (#e8b838)
+    where:        sectors with fog and many lighthouses
+    villages:     shrine towns with lamps, terraced white towns, guild markets; stone lanterns
+    ships/wildlife: merchants and galleons; Lantern oil; more fog
+    weather:      fog, evening light
+    story intent: Where light is a currency. Story here is about what the lamps are for and what the light shows.
+    instrument:   (empty: you are making one)
+    your notes:   (empty)
+    SLOTS (ideas, change or replace them):
+      W-L1  [IDEA]  The Oil Press: a village that presses a deep fish for lamp oil; seen by that oil, a street shows a second set of doors (side seed 8)
+         your text: (empty)
+      W-L2  [IDEA]  The Keepers' Ledger: a lighthouse log that lists ships not yet sailed; one is yours, dated next week (side seed 1)
+         your text: (empty)
+      W-L3  [IDEA]  The Dark Tower: the one lighthouse that never lights; its door is open, and the stairs go down
+         your text: (empty)
+
+  F3-DROWNED  THE DROWNED   colour violet (#a050d0)
+    where:        any sector above 72% dread, roughly 1580 units from Tama and beyond
+    villages:     low, damp, half-abandoned; wreckers, fishing and shrine looks; drowned streets (planned: sunken streets biome)
+    ships/wildlife: derelicts with lamps lit, ghost ships, nobody on deck
+    weather:      fog, glass calm, wrong ocean, lightning that shows a shape
+    story intent: The far sea. The bright game is over; the world is the same, only wrong. Mara cannot be trusted to remember here.
+    instrument:   (empty: you are making one)
+    your notes:   (empty)
+    SLOTS (ideas, change or replace them):
+      W-D1  [IDEA]  The Hollow Harbour: a harbour that is far too friendly (thread, see part G)
+         your text: (empty)
+      W-D2  [IDEA]  The Island That Moves: a different place every time it is charted; it is resting on something (side seed 12)
+         your text: (empty)
+      W-D3  [IDEA]  The Table by the Water: the table from the Lady's story, laid for two; the same table seen in harbours earlier as a fragment
+         your text: (empty)
+
+F4 THE HAND-MADE PLACES [BUILT] (always at the same spot in every voyage; what is ashore is in section J under PLC)
+  P-crag     The Grey Tooth     rocky    at (280, 100), 297 from Tama   seen from far: "a bare grey rock"
+               your edits: (empty)
+  P-bell     The Drowned Bell   rocky    at (60, 320), 325 from Tama   seen from far: "a leaning tower"
+               your edits: (empty)
+  P-grove    Hollowgreen        jungle   at (-300, 180), 349 from Tama   seen from far: "a dark green wood"
+               your edits: (empty)
+  P-keeper   Wick's Rock        rocky    at (430, -320), 536 from Tama   seen from far: "a lighthouse alone"
+               your edits: (empty)
+  P-ribs     The Ribs           sandbar  at (-560, 70), 564 from Tama   seen from far: "masts in the surf"
+               your edits: (empty)
+  P-lagoon   Glass Lagoon       atoll    at (540, 360), 648 from Tama   seen from far: "a reef ring"
+               your edits: (empty)
+  P-broken   The Halved Isle    rocky    at (-380, -500), 628 from Tama   seen from far: "a white fog bank"
+               your edits: (empty)
+  P-hut      The dark hut (one island 4-6 cells from home, out of sight of the start): crooked black hut on stilts, a purple window,
+             bones on poles, a dead tree, a ring of pale stones. Inside: the Lady and the die. One throw per day. Text: HUT, TAB.
+  P-tama     Harbour Tama: the home island; Perrin's letters, the harbourmaster, the shipwright, the bells.
+  P-velto    Harbour Velto: the second harbour (about 265 from Tama), a fishing village.
+  P-caves    three one-time caves on rocky, volcanic or jungle shores (see part I).
+
+F5 HARBOURS [BUILT] (every harbour: a resident, a house dish, a named weekly event, a local game, a fragment of the old story)
+  Tama     the home harbour: classic look, red-and-white lighthouse, bells, festival on Sunday, pier faces the start.
+  Velto    the second harbour, about 265 from Tama (fishing village), the partner of several home stories.
+  Others   the village style (thatch, market, terraced, shrine, wreckers, farm, fishing, classic) comes from the faction (see F3).
+  Village customs (one per harbour, shown, never explained):  whitewash, lamps lit all night, no children, a dusk choir,
+  fishing boats with lanterns, kites, bells, washing day, carved figures, a silent village.
+  Week: Wednesday market day (extra stalls, +25% sell), festival day (one weekday per harbour, +50% fish), Saturday lantern night.
+  Your notes on harbours:  (empty)
+
+F6 NEW PLACES TO EXPLORE: OPEN SLOTS (fill these in; one per slot, any number of slots)
+  A place does not need to be an island. It can be a patch of water, a wreck, a cave mouth, a ship, a person on a pier.
+  Fill what you know, leave the rest empty. Use the regions in F3 (their ideas are only suggestions).
+
+  W-NEW-01  [EMPTY]   copy this block for each new place
+    name:
+    region / sector (or distance from Tama):
+    dread stage it belongs to (0-4):
+    kind (island / wreck / cave / ship / patch of sea / person):
+    how it is found (see F1):
+    what you see from far away (spyglass line):
+    on arrival, first time (the text the player reads):
+    on later visits:
+    people here and what they say (use a PERSON block in part C if more than a line):
+    choices and checks (1/2/3, d20 vs what):
+    reward / what changes in the world:
+    the wrong version (what dread 3-4 changes):
+    links (other places, threads, endings):
+    what the player must NOT be told:
+
+
+################################################################################################
+# G  THREADS
+################################################################################################
+
+G1 THE SEVEN DARK THREADS [BUILT in the full game; three of seven are awake per voyage, picked from the seed]
+  T-bell     The Drowned Bell             [BUILT] listening for a bell under a wreck
+               region it belongs to: (empty)     your notes: (empty)
+  T-coin     The Ferryman's Coin          [BUILT] a passenger who pays with a worn coin
+               region it belongs to: (empty)     your notes: (empty)
+  T-colour   The Colour                   [BUILT] a stain on the water, bright fish, a spring to seal
+               region it belongs to: (empty)     your notes: (empty)
+  T-hollow   The Hollow Harbour           [BUILT] a harbour that is far too friendly
+               region it belongs to: (empty)     your notes: (empty)
+  T-music    The Music out of the Fog     [BUILT] three notes from a house that is not there
+               region it belongs to: (empty)     your notes: (empty)
+  T-house    The Strange High House       [BUILT] a lamp that never goes out, and bargains
+               region it belongs to: (empty)     your notes: (empty)
+  T-captain  The Other Captain            [BUILT] a ship like yours with the wrong colours
+               region it belongs to: (empty)     your notes: (empty)
+  Each is a module with its own site (open water picked from the seed), clues, scenes and ends. Details and how they
+  interact are in the Story Bible. Their lines are in section J under THR, TSC, TMOD.
+  Marks the threads set (shown only on the Standing page, in the world's words):
+    Counted (a natural 1), Called (a natural 20), Salt-marked (sold the bright fish), Owed and Quiet (defined, unused).
+  Your notes / changes to a thread:  (empty)
+
+G2 SIDE-STORY SEEDS [IDEA, to be loosely linked; assign each to a region in part F]
+   1  The Lighthouse Keepers' Ledger: logs list ships that have not sailed yet, one is yours, dated next week.
+   2  Old Perrin, the cartographer who never left port: his maps are drawn as if from below the water; he once visited the hut.
+   3  Mara's village: she cannot remember its name; a chain of rumours leads to an island on no map, above water before the sea rose.
+   4  The drowned bell: bring the clappers from five wrecks to a sunken belfry; ringing it calls something up for one night.
+   5  The fisherman's debt: the fisherman who drags you home after a sinking keeps asking to be paid. He never wants gold.
+   6  Letters from a captain on your route: years old, same stops, the handwriting slowly becomes yours.
+   7  The twin harbour: two harbours with the same name; the people in one do not blink.
+   8  Lantern Guild oil from a deep fish: by its light the world shows what it hides.
+   9  The raider who surrenders and warns that the sea further out is eating sectors; later an informant in different harbours.
+  10  The other dice: wrecks hold d20s each missing a number; the Lady would very much like them back.
+  11  The choir of gulls: a gull follows you for days; at high dread their cries spell out the hut's location; she keeps one old gull.
+  12  The island that moves: in a new place each time it is charted. It is resting on something.
+  Your picks / new seeds:  (empty)
+
+G3 LITTLE HARBOUR QUESTS [IDEA, for the full game]
+  The lost kitten: fetch a child's kitten from a fishing boat off a sandbar. Reward: a shell, standing.
+  The birthday cake: deliver a cake to the next island before sunset; storms squash it. Reward: gold, a speed buff, the innkeeper greets you by name.
+  The other kitten: the same quest, slightly wrong (dry, calm kitten facing your ship; the child repeats the first child's words; the same shell twice).
+    Only from Off water on, once, in another harbour. Never explained.
+  New little quests:  (empty)
+
+G4 THE OLD STORY IN FRAGMENTS [BUILT]
+  Every harbour holds one fragment of an old story ("the table by the water", "the one who keeps the count"), never explained;
+  you see the whole only by visiting them all (12 in all). Lines: section J under HLF (FRAGMENTS).
+  What is the whole story?  (empty)  ??
+
+
+################################################################################################
+# H  ENDINGS
+################################################################################################
+The final throw of the Lady's d20 decides the ending. A hidden ledger (from all your earlier throws and your offerings)
+adds a bonus or penalty, revealed only at the end. [PLANNED, not built]
+
+H-1  THE LONG SLEEP   final throw 20      she sleeps a hundred more years.        Scene:  (empty)
+H-2  GOOD DREAMS      final throw 10-19   the world stays bright, Mara stays Mara. Scene:  (empty)
+H-3  SHE RISES        final throw 1-9     the Eye opens; the Caribbean is remembered as something else.  Scene:  (empty)
+H-4  TAKE HER SEAT    you sit at the table; needs 3 offerings and 3 strange rumours followed; the hut is now on Tama.  Scene:  (empty)
+H-5  THE UNSEEN THROW you leave; only for those who stopped throwing after the first.   Scene:  (empty)
+H-6  THE EYE AWAKENS  [BUILT] after about 170 s at full dread a huge eye opens, the screen whites out, you wake near Tama.
+
+OFFERINGS (what the player brings) [IDEA]   a gull feather, a bell clapper, Mara's hat, a tooth with a tiny ship carved in it,
+  a warm black pearl.   Which of these do you want, and where does each come from (a slot in part F)?   (empty)
+
+THE LADY'S LEDGER [BUILT as a record: state.hut.rolls]   every throw is kept with its day.   What the ledger says at the end:  (empty)
+THE HUT CHANGES ON LATER VISITS [IDEA]   more candles, a second chair, a page of the ledger left open with your ship drawn on it,
+  a natural 1 leaves the hut empty next time.   Your picks:  (empty)
+
+
+################################################################################################
+# I  SYSTEMS THAT CARRY STORY
+################################################################################################
+Where the story hides in the mechanics, and where its text lives (section J).
+
+  The die             one bone d20 for hut, haggling, encounter cards and dig quality; it darkens with days at sea and dread.
+                      The day after a throw: dread and prices shift (20 pulls it down, 1 pushes it up). Text: HUT, TAB, GRT.
+  Rumours             bought at taverns; about 1 in 3 false; some lead somewhere stranger. Text: LORE, MAIN.
+  Riddles and arches  treasure arches with sunrise/sunset/pole star/lone palm; half riddles. Text: LORE, DIG.
+  Letters and bottles Perrin's letters (picked up at the Tama board); bottle notes drift by; the second hut bottle names your first throw.
+  Passengers          pay for passage and talk on the way; text: PAS.
+  Crew                hired hands with wishes; castaways join free; they leave after 3-5 days.
+  Residents           four-visit stories per harbour; text: HLF.
+  Gossip              what you did in one harbour is told in the next; text: HLF.
+  Greetings           villagers speak first (rare); depends on hour, weather, dread; text: GRT.
+  Customs, week, tides  shown, never explained.
+  Caves               three one-time caves (the Hermit's Larder, the Rising Grotto, the Tally Niche); text: CAV.
+  Marks               hidden tags the world reads; text: MRK.
+  Mara's remarks      weather, dusk, tide, red sky, market day, lantern night, regatta, whales, fog wall; text: MAIN.
+  Full dread          ten effects (glass calm, corrupted HUD, mad wind meter, Mara breaks, lighthouses stare, watchers, living map,
+                      time loop, wrong ocean, wrong catches) and the leviathan; text: ABY.
+
+  New system ideas:  (empty)
+
+
+################################################################################################
+# J  EVERY LINE IN THE GAME
+################################################################################################
+Pulled from the code. Edit the text after the "|" (see part A). Sources are grouped by file; the CODE in front of every
+line says which file it goes back into. 1227 lines.
+
+  rumours; greetings = harbour folk; places = hand-made islands; secrets = world hints; threads/threadscenes/
+  thread_mods = sea encounters; tabletop = the hut and dice; caves/abyss = caves and deep-dread events;
+  main/world = Mara's remarks, HUD messages and everything else.
+
+
+####################################################################################################
+## SOURCE OBJ   (objectives.js): chapters, Mara, goal text and hints
+####################################################################################################
+
+### OBJ / MAIN_GOALS
+  OBJ-0001 | [text] Steer with A and D, set the sails with W and S. Sail about 100 units.
+  OBJ-0002 | [intro] Morning, Captain! I am Mara, your first mate, and this is the Merry Gull. She is small, but she is ours.
+  OBJ-0003 | There she goes. A and D steer her, and the wind does the rest.
+  OBJ-0004 | That ring is the wind. Gold means she sails well, red means she crawls. The little triangle is our bow.
+  OBJ-0005 | [hints] Hold W to let the sails out, then A or D to turn.
+  OBJ-0006 | [hints] Turn until the little triangle sits on a gold part of the wind ring: that is where she runs fast.
+  OBJ-0007 | [text] Bring her back to Tama's pier and press E.
+  OBJ-0008 | [intro] Nicely done. Now bring her back to Tama's pier and press E. The harbourmaster was waving at us.
+  OBJ-0009 | [outro] Old Perrin left something for you with the harbourmaster.
+  OBJ-0010 | [hints] Tama is the island with the lighthouse and the long wooden pier.
+  OBJ-0011 | [hints] Sail right up to the end of the pier, then press E.
+  OBJ-0012 | [text] Perrin's riddle is in your log (Journal). Find the right shore of Hollow Cay Galen and dig.
+  OBJ-0013 | [intro] Now to find the shore that riddle means. Stop the ship there and press E to dig.
+  OBJ-0014 | Perrin left you a letter with the harbourmaster: take it at the Board sign in Tama.
+  OBJ-0015 | Then find the shore its riddle means, stop the ship and press E to dig.
+  OBJ-0016 | [outro] Ha! Treasure! A captain with gold in the hold is a captain with options.
+  OBJ-0017 | [hints] Take Perrin's letter at the Tama Board sign first (the little letter icon). The riddle is then in the log (M, Riddles tab). Sunrise is east, sunset is west.
+  OBJ-0018 | [hints] On the right shore, dig squares (click, or arrows and E): darker, wetter sand means the chest is close. The tide comes in with every dig, and two stones break the shovel.
+  OBJ-0019 | [text] Buy something from a shipwright.
+  OBJ-0020 | [intro] That is a good haul. The shipwright in any harbour would love some of it. Better sails, and we could go further.
+  OBJ-0021 | [outro] You can feel the difference already.
+  OBJ-0022 | [hints] Any harbour has a shipwright: press E at the pier and pick the Shipwright tab.
+  OBJ-0023 | [text] The wind has died. Put the oars out (G) and row, then catch a fish (stop, then C).
+  OBJ-0024 | [intro] Not a breath of wind. Press G for the oars, then W to row us a little way.
+  OBJ-0025 | Then stop and press C to fish. The rest you will see on the line.
+  OBJ-0026 | [outro] Dinner AND exercise. A full day's work for a captain.
+  OBJ-0027 | [outro] And listen: there is the wind again. Sails up, Captain.
+  OBJ-0028 | [hints] Press G to put the oars out, then hold W to row. G again puts them away.
+  OBJ-0029 | [text] Make headway into the wind by zig-zagging: keep the little triangle on the gold part of the wind ring, and turn across the wind every so often.
+  OBJ-0030 | [intro] The wind is back, straight in our teeth. A ship can still go upwind if she zig-zags.
+  OBJ-0031 | Keep the little triangle on the gold edge of the wind ring, then swing across to the other side.
+  OBJ-0032 | [outro] There it is. Upwind at last, and not a drop of rowing. Perrin would call that sailing.
+  OBJ-0033 | [hints] Dead into the wind she barely moves. Keep the triangle on the gold part of the ring, about 45 degrees off the wind.
+  OBJ-0034 | [hints] Turn across the wind (A and D) after a little while, and keep going the same way overall.
+  OBJ-0035 | [text] Take a delivery from a harbour board and bring it where it belongs.
+  OBJ-0036 | [intro] Harbours pay well for deliveries. Take one from a Board and bring it where it belongs.
+  OBJ-0037 | [outro] Reputation matters out here. Harbours remember you.
+  OBJ-0038 | [hints] The board in a harbour menu has deliveries. Dock at the other harbour and deliver from the top of its board.
+  OBJ-0039 | [text] Take a passenger from a harbour board and bring them to where they are bound.
+  OBJ-0040 | [intro] Some folk pay for passage, and they talk. Take one from a Board and see them to their stop.
+  OBJ-0041 | [outro] Good company, and paid for it. Do not tell the cargo.
+  OBJ-0042 | [hints] Open the Board sign in a harbour. A passenger is offered there now and then. Drop them off at their harbour.
+  OBJ-0043 | [text] Chart 8 islands by sailing close to them.
+  OBJ-0044 | [intro] Let us fill in the chart. Sail close to islands and they go on the map (M).
+  OBJ-0045 | [outro] A fine start to a map. Perrin would be proud. Probably. Nobody has seen him smile.
+  OBJ-0046 | [hints] Islands are charted when you sail close to them. The empty stretches are worth crossing.
+  OBJ-0047 | [text] In a harbour, open the Tavern sign: hire a hand, or sit down for a game of dice.
+  OBJ-0048 | [intro] Taverns are hiring hands these days, Captain. And somebody always wants to play dice. Either would do us good.
+  OBJ-0049 | [outro] Good. A crew is only as good as the company it keeps.
+  OBJ-0050 | [outro] Good. Even the dice in there are friendly. Mostly.
+  OBJ-0051 | [text] Perrin has sent word to Harbour Tama. A letter waits at the Board.
+  OBJ-0052 | [intro] Word from Tama: the harbourmaster is keeping another letter for us. Perrin again, I bet.
+  OBJ-0053 | [hints] Dock at Harbour Tama. A letter icon on the Board sign means something is waiting for you.
+  OBJ-0054 | [text] Read Perrin's note in your log.
+  OBJ-0055 | [intro] It is far out, Captain. Sail close to the island and slow down to have a good look.
+  OBJ-0056 | [intro] He wants us to check something on his chart. His note is in the Journal. Far out, Captain.
+  OBJ-0057 | [outro] He was right. About everything. Captain... nobody has ever charted that island. Nobody.
+  OBJ-0058 | [hints] Perrin's note says which island, and roughly where. It is far from Tama.
+  OBJ-0059 | [hints] Sail close to the island and slow down to have a good look.
+  OBJ-0060 | [text] Take a commission from a harbour board (fish, fruit, crates...) and hand it in.
+  OBJ-0061 | [intro] The Boards also carry little errands: fish, fruit, lost crates.
+  OBJ-0062 | [outro] A tidy bit of work. The harbour will remember it.
+  OBJ-0063 | [hints] Commissions are on the Board sign too. Fish and fruit you can find at sea and on the isles.
+  OBJ-0064 | [text] Find a half-sunk wreck, stop beside it and salvage it (E).
+  OBJ-0065 | [intro] Wrecks sit half under in open water. Stop beside one and press E.
+  OBJ-0066 | [outro] One ship's bad day is another one's dinner.
+  OBJ-0067 | [hints] Look for broken masts and hulls in open water, away from the islands.
+  OBJ-0068 | [hints] Stop the ship completely, then press E.
+  OBJ-0069 | [text] Find another treasure isle. Study the arch (E), then dig the shore its riddle describes.
+  OBJ-0070 | [intro] Every treasure isle has an arch. Study it with E and it tells you where the chest sleeps.
+  OBJ-0071 | [outro] Two chests! Perrin would be insufferable.
+  OBJ-0072 | [hints] Treasure isles show a stone arch on the chart. Press E at its shore to read it, then read the riddle in the log.
+  OBJ-0073 | [hints] Sunrise is east, sunset is west.
+  OBJ-0074 | [id] Teach a raider a lesson
+  OBJ-0075 | [text] Raiders sail these waters. Sink one: Space fires the cannons at an attacking raider.
+  OBJ-0076 | [intro] Raiders, Captain, and one is looking for us. Space fires the cannons: keep her broadside.
+  OBJ-0077 | [outro] Splendid! They will think twice. For a day or two.
+  OBJ-0078 | [hints] Raiders only fire when they are close. Turn so they are beside you and press Space.
+  OBJ-0079 | [hints] Harbours repair the hull for free, and sell cannonballs.
+  OBJ-0080 | [text] Bottles drift out here. Read what they say.
+  OBJ-0081 | [intro] There are more bottles in the water out here than there used to be. Somebody has a lot to say.
+  OBJ-0082 | [outro] They all mention the same thing. A hut. Who writes about a hut?
+  OBJ-0083 | [hints] Bottles bob on the open sea. Sail into them.
+  OBJ-0084 | [text] Somebody in a harbour must know about the hut.
+  OBJ-0085 | [intro] Harbours hear everything. Somebody at a tavern will know.
+  OBJ-0086 | [hints] Visit any harbour except Tama. Sailors talk.
+  OBJ-0087 | [intro] I would rather not go there. But you are the captain.
+  OBJ-0088 | [hints] Look at the chart. Was it always there?
+
+### OBJ / SIDE_GOALS
+  OBJ-0089 | Reef the sails (S) until you slow down, then press C to cast a line.
+  OBJ-0090 | Hail a passing ship with E. Not every ship will want to talk.
+  OBJ-0091 | Pick up a message in a bottle by sailing into it.
+  OBJ-0092 | Buy something at a shipyard: paint, sails, a pennant, a figurehead.
+  OBJ-0093 | Press E near a jungle or sandbar isle to pick its fruit.
+  OBJ-0094 | Spot a pod of dolphins.
+
+### OBJ / MUSINGS
+  OBJ-0095 | Do you hear that? No? Good. Me neither.
+  OBJ-0096 | Back home we never whistled on deck. I forget why. Probably nothing.
+  OBJ-0097 | I counted the waves once. Got to a very big number and then I lost count. Or it did.
+  OBJ-0098 | Funny how the horizon never gets any closer, isn't it? Not funny ha-ha.
+  OBJ-0099 | The bell back home rang twice every hour. Nobody knew why. Nobody minded.
+  OBJ-0100 | If anyone asks, you have always been the captain. Seems like the sort of thing people ask out here.
+
+### OBJ / REMARKS
+  OBJ-0101 | [dusk] The sun is going. Lighthouses only light at dusk, so keep one in sight if you can.
+  OBJ-0102 | [rain] Rain. Good for the water barrels, bad for the view.
+  OBJ-0103 | [storm] That sky looks angry. Maybe find a harbour, Captain.
+  OBJ-0104 | [fog] Fog. Sail slowly, and keep your eyes open.
+  OBJ-0105 | [thickfog] I cannot trust the compass in this. Keep a lighthouse in sight, and I will ring the bell.
+  OBJ-0106 | [calm] Not a breath of wind. Press G for the oars, Captain. I will steer. You row.
+  OBJ-0107 | [tack] Into the wind she crawls. Zig-zag, Captain: keep the little triangle on the gold part of the wind ring, and turn across every so often.
+  OBJ-0108 | [gate] That fog is like a wall, Captain. Whatever is out there can wait for us.
+  OBJ-0109 | [crew] A new hand! They do not talk much. Neither do you. You will get along.
+  OBJ-0110 | [oars] Oars out! W to pull, S to back water, G to put them away again.
+  OBJ-0111 | [redsky] Red sky tonight... my gran said that means a blow is coming.
+  OBJ-0112 | [broadside] Turn into the waves, Captain! Or take the sail in. She cannot take them side-on.
+  OBJ-0113 | [stormpay] Delivered in a storm? They will pay extra for that. People are nicer when they are wet.
+  OBJ-0114 | [raider] Raiders, off the bow! They are Reef Brotherhood. You can outrun them, pay tribute, or fight with Space.
+  OBJ-0115 | [lowhp] We are taking on water, Captain! Harbours repair us for free.
+  OBJ-0116 | [noammo] We are out of cannonballs. Any harbour sells more.
+  OBJ-0117 | [notarget] No raider in range. Space only fires at raiders that are attacking us.
+  OBJ-0118 | [stage2] Is it just me, or has it gone very quiet out here?
+  OBJ-0119 | [stage3] The gulls are watching us. I mean really watching us. Please tell me I am imagining it.
+  OBJ-0120 | [stage4] I keep hearing something humming under the keel. Do you hear it?
+  OBJ-0121 | [stage5] Captain... how long have we been sailing? I cannot remember the name of my own village.
+  OBJ-0122 | [darkfish] That one looked back at me. Throw it in the sack.
+  OBJ-0123 | [sight_volcano] Smoke on the horizon! Either a volcano or a very big breakfast.
+  OBJ-0124 | [sight_atoll] Look at that water inside the ring. I could swim there all day.
+  OBJ-0125 | [sight_mangrove] Mangroves. Mind the roots, Captain, they grab keels.
+  OBJ-0126 | [sight_harbour] A village! Fresh bread, gossip and somewhere to sleep.
+  OBJ-0127 | [rested] Morning, Captain! Fresh bread, fresh wind. The hull is patched, too.
+  OBJ-0128 | [riddle] Every treasure isle has an arch with an inscription. Study it with E and it will tell you where the chest sleeps.
+
+### OBJ / g
+  OBJ-0129 | That is everything we set out to do, Captain. Sail where you like inside the fog: deliveries, errands, treasure and the side goals in your log (Goals tab) are all still there.
+
+
+####################################################################################################
+## SOURCE PAS   (passengers.js): passenger talk and Mara banter
+####################################################################################################
+
+### PAS / PEOPLE
+  PAS-0001 | I mended nets in Tama for forty years. Never once caught a fish myself. Did not like the look in their eyes.
+  PAS-0002 | My wife said the sea gives back what it takes. She has been gone eleven years. I am still waiting.
+  PAS-0003 | You hold the tiller like my brother did. He was terrible at it too.
+  PAS-0004 | They say a man in a beard lives on one of the empty islands. I knew a man with a beard. Different man, probably.
+  PAS-0005 | Do you hear the bell, captain? No? Good. Me neither.
+  PAS-0006 | a travelling cartographer's apprentice
+  PAS-0007 | Master Perrin sends his maps by bottle now. Nobody has seen him hand one over in years.
+  PAS-0008 | I drew this coast three times. It came out different every time. The coast, I mean. Not my drawing.
+  PAS-0009 | Did you know islands have handwriting? You can tell who drew them by how they curl.
+  PAS-0010 | I have drawn this coast four times. It is different every time. My master says that is my fault.
+  PAS-0011 | If two things line up, one behind the other, you are on a line. That is the first thing they teach you. The second is lunch.
+  PAS-0012 | We keep the lamps lit so the ships can find the harbours. And so the harbours can find the ships.
+  PAS-0013 | Count the lighthouses on your way. Then count them on your way back. Tell me if the numbers match.
+  PAS-0014 | The oil smells of the deep. We do not ask where the guild gets it.
+  PAS-0015 | Every lighthouse has its own rhythm. I could tell you which one by the blinking, if I were awake at night. I never am.
+  PAS-0016 | We pray for sailors. We do not say which way we face while we do it.
+  PAS-0017 | two fish-wives with a lot of luggage
+  PAS-0018 | Tully says I talk too much. Tully, I do NOT talk too much. See, captain? She is not even listening.
+  PAS-0019 | We are visiting our cousin. She owes us a goat. It is a long story. The goat is longer.
+  PAS-0020 | Best fish soup in the islands is at the far harbour. Worst too. Same pot.
+  PAS-0021 | Mags says you are handsome. Tully says you are tired. They are both right.
+  PAS-0022 | We have brought fish to sell. Yes, on a boat. Yes, at sea. Do not look at us like that.
+  PAS-0023 | a captain without a ship
+  PAS-0024 | Lost mine to a whirlpool off the Pearl Banks. Sail round them, never through. Never.
+  PAS-0025 | Raiders fly black flags but sail red hulls. If you see red at dusk, put out your lanterns.
+  PAS-0026 | A good crew is worth more than a good ship. Yours seems... spirited.
+  PAS-0027 | I had a ship once. Bigger than this. Slower. Sank on a calm day, which is the worst kind of day to sink.
+  PAS-0028 | You let the tide do half the work, captain. I approve. I never did, and look at me.
+  PAS-0029 | I'm going home. I'll know it when I see it. I always do. It always moves a little.
+  PAS-0030 | You have kind hands, captain. Rope-burned. Mine used to be like that.
+  PAS-0031 | No, I don't need anything to eat. Thank you. I ate, before.
+  PAS-0032 | I used to know a man who kept a light. He watched the sea from the edge every evening. I never asked what he was looking for.
+  PAS-0033 | My mum said keep it lit till we land. She didn't say which land.
+  PAS-0034 | Do boats dream? I think this one does. It keeps turning left in its sleep.
+  PAS-0035 | I'm not scared of the dark. The dark is scared of the lantern. Mum said.
+  PAS-0036 | Can I hold the tiller? I won't steer. I just want to hold it.
+  PAS-0037 | My lantern is out of oil. It is fine. I am not scared. I am a little scared.
+  PAS-0038 | a notary with a sealed letter
+  PAS-0039 | I have a document for someone on board. It says "the captain". It doesn't say which one.
+  PAS-0040 | Everything must be signed, captain. Births, ships, tides. Somebody signs the tides, you know.
+  PAS-0041 | Your name, for my records? ...Never mind. I seem to have it already.
+  PAS-0042 | The letter is sealed. I do not know what it says. I would very much like to know what it says.
+  PAS-0043 | Contracts, captain, are like tides. They come back around.
+
+### PAS / MARA_BANTER
+  PAS-0044 | Sleep is for people who do not have a captain.
+  PAS-0045 | Why is there a cat on the chart table?
+  PAS-0046 | She is navigating. Do not interrupt her.
+  PAS-0047 | What happens if the lamp goes out?
+  PAS-0048 | We find out how good the captain is at guessing.
+  PAS-0049 | Is she always this cheerful?
+  PAS-0050 | Always! Even in storms. ESPECIALLY in storms.
+  PAS-0051 | Does the captain ever speak?
+  PAS-0052 | Only in emergencies. And knots. Very expressive knots.
+  PAS-0053 | This ship is smaller than it looked from the dock.
+  PAS-0054 | She is cosy! Cosy is a feature.
+  PAS-0055 | Is that fish hanging from the mast for luck?
+  PAS-0056 | For lunch. Luck was yesterday's fish.
+  PAS-0057 | How long have you sailed together?
+  PAS-0058 | Since forever! Well. Since Tuesday. Forever-ish.
+  PAS-0059 | I think a gull just stole my hat.
+  PAS-0060 | He does that. We call him the Quartermaster.
+
+### PAS / SEASICK
+  PAS-0061 | Is this a storm or is the sea just upset with me personally?
+  PAS-0062 | I am going to lie down on the deck. If I roll overboard, it was a good trip.
+  PAS-0063 | Captain, I think my breakfast wants to go home before I do.
+  PAS-0064 | Is the ship supposed to lean like this? Do not answer that.
+  PAS-0065 | I will pay double if you make it stop. I will pay triple. I have no more money but I will pay it.
+
+### PAS / DARK_LINES
+  PAS-0066 | The water is so quiet here. Is it always this quiet?
+  PAS-0067 | I keep hearing my name from under the hull. Probably just the planks. Probably.
+  PAS-0068 | Please do not stop the ship out here.
+
+### PAS / roll
+  PAS-0069 | Lean over the downwind side. The OTHER side!
+
+
+####################################################################################################
+## SOURCE LORE   (lore.js): bottle notes, rumours, names, riddles
+####################################################################################################
+
+### LORE / pre
+  LORE-0001 | ${pre} ${w === 'Mara' ? 'Maren' : w}
+
+### LORE / GOSSIP
+  LORE-0002 | Fresh fish, fresh rum, fresh rumours! Take your pick.
+  LORE-0003 | Folk say there is treasure on the little isles to the north-east. Folk say a lot of things.
+  LORE-0004 | Lovely weather. Been lovely for a while now. Nobody can say how long.
+  LORE-0005 | Try the fish stew. Nobody knows who makes it, but it's always hot.
+  LORE-0006 | Our lighthouse keeper retired. The light still comes on. We think he forgot to tell it.
+  LORE-0007 | The tide brought in a rowboat this morning. Dry inside. Oars neatly stowed.
+  LORE-0008 | Funny. The gulls went quiet this morning. All of them, at once.
+  LORE-0009 | Old Perrin's cat will not look at the sea any more. Won't even blink.
+  LORE-0010 | Same tide as yesterday. Exactly the same. Down to the ripple.
+  LORE-0011 | My neighbour's dog barks at the sea every evening at the same minute. Then stops. Then wags.
+  LORE-0012 | Somebody keeps leaving the harbour bell rope tied in a sailor's knot. Nobody here ties that knot.
+  LORE-0013 | The children have a new song. Nobody taught it to them. It's quite catchy.
+  LORE-0014 | Strange. I could have sworn there were four piers yesterday.
+  LORE-0015 | The lighthouse lit itself last night. Perrin was very calm about it. Too calm.
+  LORE-0016 | We ran out of fish. The nets come up full, but we ran out of fish.
+  LORE-0017 | Have you been here before? I could swear I've served you. Tomorrow.
+  LORE-0018 | We stopped counting the boats that come back. It was always one more than went out.
+  LORE-0019 | The gulls bring us things now. Rings, mostly. Never the same finger size.
+  LORE-0020 | Don't sleep facing the window. No reason. Just don't.
+  LORE-0021 | Don't look at the water after dusk. Not for long. Not at all.
+  LORE-0022 | Everyone left. I stayed to keep the lamps lit. Someone has to. Someone is always watching.
+  LORE-0023 | The stars are wrong. I counted them. There are more every night.
+  LORE-0024 | ...you can hear it too, can you not? Under the keel. Humming.
+  LORE-0025 | It is not angry. That is the worst part. It is only very, very patient.
+  LORE-0026 | Welcome home, captain. We saved your seat. It was always your seat.
+
+### LORE / LOOT_DARK
+  LORE-0027 | A map of somewhere that is not here
+  LORE-0028 | A conch that whispers your name
+  LORE-0029 | A coin with two faces, both yours
+  LORE-0030 | A lantern full of dark
+  LORE-0031 | Seaweed that remembers
+  LORE-0032 | A drawing of the sea, from underneath
+  LORE-0033 | A key to a door you have not found
+
+### LORE / NOTES
+  LORE-0034 | Dear finder: the fishing is wonderful at Port Tama. Come for the rum, stay for the sunsets. -M.
+  LORE-0035 | If you read this, you owe me a drink. I threw it from a very nice boat.
+  LORE-0036 | Day 12. Spirits high. We have named the parrot "Admiral". It disagrees.
+  LORE-0037 | To whoever finds this: the best treasure is the friends we sail with. Also a chest of gold on a small cay, north-east. Mostly the friends.
+  LORE-0038 | Day 4. Calm seas. Cook swears the soup tastes of rain. We have not had rain.
+  LORE-0039 | Please return this bottle. It is my favourite bottle.
+  LORE-0040 | The parrot has learned a new word. None of us said it.
+  LORE-0041 | Day 30. We have eaten all the biscuits. Morale remains excellent, thanks to the parrot.
+  LORE-0042 | Two white posts stand out in the water near the Tooth. Nobody knows who put them there. Very tidy of whoever it was.
+  LORE-0043 | If you find this at low tide, look around. The sea is generous when it is out.
+  LORE-0044 | To my sister in Velto: I am fine. The captain is a fool. The food is good. Burn this.
+  LORE-0045 | Day 20. The gulls have stopped following the boat. Cook says it's the weather. There is no weather.
+  LORE-0046 | Same sunset three nights running. Everyone agrees. Nobody minds. That bothers me.
+  LORE-0047 | We counted the crew this morning. Eleven. We are ten. Please advise.
+  LORE-0048 | Whoever finds this: you have lovely handwriting. I saw it on the letter you have not sent yet.
+  LORE-0049 | We dropped anchor and it did not reach the bottom. We pulled it up and it was warm.
+  LORE-0050 | The birds fly home at dusk and we follow them. Tonight they flew the other way.
+  LORE-0051 | Somebody keeps leaving the lantern on the stern lit. Nobody admits it. It is always lit.
+  LORE-0052 | The man on the empty island waved. When we came back, there was no island.
+  LORE-0053 | The compass points at the water now, not north. Down. We have stopped looking at it.
+  LORE-0054 | Do not trust the harbour lights after midnight. They know your name already.
+  LORE-0055 | The fish have started to look at us. I want to be clear: they are looking at us.
+  LORE-0056 | We sank the anchor and it kept going. We cut the rope. It is still going. I can feel it.
+  LORE-0057 | Every harbour has someone watching the water at dusk. They all watch the same way.
+  LORE-0058 | I have been writing this note for nine days. It is the same note. I think I am the bottle.
+  LORE-0059 | Dont follow the singing. It is not coming from the water. It is coming from underneath the water.
+  LORE-0060 | The stars are doing something. Please tell me you can see it too.
+  LORE-0061 | The note in this bottle was written by me tomorrow. I recognise the handwriting. It shakes more.
+  LORE-0062 | y o u  a r e  n e a r l y  h e r e
+  LORE-0063 | We are not lost. We have always been exactly here. It was the sea that moved.
+  LORE-0064 | Turn back. Or do not. It has already decided and it is not unkind about it.
+  LORE-0065 | d o n ' t  s t o p  r o w i n g
+
+### LORE / BARRELS_BRIGHT
+  LORE-0066 | chest of silver spoons
+
+### LORE / RIDDLES
+  LORE-0067 | Where the sun is born, the chest lies sleeping.
+  LORE-0068 | Greet the morning at the shore it greets first. Dig there.
+  LORE-0069 | Where the sun is born, and bleeds.
+  LORE-0070 | The shore that watches the dawn will not blink. Dig beneath its stare.
+  LORE-0071 | Where the day goes to die, something shiny waits.
+  LORE-0072 | The shore that swallows the sun keeps my treasure.
+  LORE-0073 | Where the light is eaten each evening: dig there, and be quick.
+  LORE-0074 | The setting sun has been feeding on this place for years. Dig where it eats.
+  LORE-0075 | Seek the shore the pole star never leaves.
+  LORE-0076 | Seek the shore that the cold star watches. It watches back.
+  LORE-0077 | North, always north, where the needle leans toward something that leans back.
+  LORE-0078 | Turn your back on the pole star. There.
+  LORE-0079 | The shore opposite the needle is where I buried it.
+  LORE-0080 | The shore that faces away from every star. Dig there, and do not look up.
+  LORE-0081 | South, where the compass turns away from itself.
+  LORE-0082 | One palm bows alone to the sea. Dig at its root.
+  LORE-0083 | Where the lone palm leans out over the water, three paces inland.
+  LORE-0084 | One tree bows to the water as if listening. Dig where it listens.
+
+
+####################################################################################################
+## SOURCE GRT   (greetings.js): what harbour folk say when you dock
+####################################################################################################
+
+### GRT / SPEAKERS
+  GRT-0001 | [market] A woman at the fish stall
+  GRT-0002 | [oldsalt] An old salt on a barrel
+  GRT-0003 | [fiddler] A fiddler outside the tavern
+
+### GRT / BY_TIME
+  GRT-0004 | You are up early, captain. The sea is always politest before breakfast.
+  GRT-0005 | First boat out this morning came back with its nets folded. Nobody folded them.
+  GRT-0006 | Mind the mist on the water. It burns off by eight. Usually by eight.
+  GRT-0007 | Bread is still warm, captain. Bakery opens before the bakers wake.
+  GRT-0008 | Morning! The gulls are late today. They are never late.
+  GRT-0009 | Fresh fish, fresh rum, fresh rumours! Take your pick.
+  GRT-0010 | Lovely weather. Been lovely for a while now. Nobody can say how long.
+  GRT-0011 | Try the fish stew. Nobody knows who makes it, but it is always hot.
+  GRT-0012 | Folk say there is treasure on the little isles. Folk say a lot of things.
+  GRT-0013 | You have got a good ship there. Small. Brave. Like a dog that barks at thunder.
+  GRT-0014 | Captain! Buy a mango. Buy two. They will not keep.
+  GRT-0015 | Hot one today. Even the crabs are sitting in the shade.
+  GRT-0016 | Welcome, welcome! Mind the step. Mind the next one too.
+  GRT-0017 | Tavern is warm and the beds are only a little haunted. Ha! Joking.
+  GRT-0018 | Watch the lighthouse come on. It is the best part of the day.
+  GRT-0019 | Stay for a song? We only know the one, but we know it very well.
+  GRT-0020 | Sun goes down the same way every evening. You would think that would be comforting.
+  GRT-0021 | Supper is fish. Supper is always fish. Nobody here has ever complained.
+  GRT-0022 | Late to be sailing, captain. The sea does not mind. The sea never minds.
+  GRT-0023 | Lanterns stay lit till dawn. It is the rule. Nobody remembers why. It is still the rule.
+  GRT-0024 | Keep your voice down. The water carries sound at night. Both ways.
+  GRT-0025 | Do not count the stars out here. You will only get a different number.
+  GRT-0026 | Who goes there? Oh. A captain. You are allowed. Probably.
+
+### GRT / BY_SPEAKER
+  GRT-0027 | [fisher] Nets were heavy today. Mostly fish.
+  GRT-0028 | [fisher] Wind is from the right place for once. Make use of it.
+  GRT-0029 | [fisher] I have fished here forty years. The sea has never once said thank you.
+  GRT-0030 | [netmender] Every hole I mend, the sea makes two. We get along.
+  GRT-0031 | [netmender] Hold this end, would you? No? Fair enough.
+  GRT-0032 | [netmender] Found a knot in the net this morning I never learned. Lovely knot.
+  GRT-0033 | [market] Mangoes! Limes! Something purple, I forget the name! All fresh!
+  GRT-0034 | [market] You look thin, captain. Have a fish. Have three.
+  GRT-0035 | [market] Do not haggle with me before noon. After noon, you may try.
+  GRT-0036 | [child] Is that your ship? Can I steer? Just a bit?
+  GRT-0037 | [child] I found a shell that whispers. Want to hear? No, wait, it stopped.
+  GRT-0038 | [child] Mum says not to talk to sailors. You are not a sailor, you are a captain.
+  GRT-0039 | [harbourmaster] Berth three is free. Berth four is free. Do not use berth five.
+  GRT-0040 | [harbourmaster] Sign the book, captain. Anywhere is fine. The pages fill up on their own anyway.
+  GRT-0041 | [harbourmaster] Watch the sky, not the water. The sky tells you sooner.
+  GRT-0042 | [docker] Mind your feet. This crate is heavier than it looks. Always is.
+  GRT-0043 | [docker] Crates in, crates out. Some days I do not know which.
+  GRT-0044 | [docker] Lift with your legs, captain. Not with your hopes.
+  GRT-0045 | [oldsalt] When I was your age the sea was flat as a plate. Truly. Ask anyone. Nobody remembers.
+  GRT-0046 | [oldsalt] Sit a while. The barrel does not mind. I asked.
+  GRT-0047 | [oldsalt] Had a ship like yours once. Then I had half a ship. Then I had this barrel.
+  GRT-0048 | [innkeeper] Beds are dry and the soup is wet. That is all I promise.
+  GRT-0049 | [innkeeper] Room at the end of the hall. Leave the window shut. It sticks. That is all.
+  GRT-0050 | [innkeeper] You look like you need a bed, captain. Or a week.
+  GRT-0051 | [fiddler] A coin for a tune? A tune for a coin? I am not fussy about the order.
+  GRT-0052 | [fiddler] I know one song. Every night it is a little longer.
+  GRT-0053 | [fiddler] Shh. Listen. Even the gulls are keeping time.
+  GRT-0054 | [lamplighter] One lamp for every boat out. That is the custom. I light a few extra, to be safe.
+  GRT-0055 | [lamplighter] Evening, captain. You are lit now. Off you go.
+  GRT-0056 | [lamplighter] Some nights the lamps light before I reach them. Saves me the walk.
+  GRT-0057 | [watchman] Halt! Oh. It is you. Carry on.
+  GRT-0058 | [watchman] All quiet. Quiet is good. Mostly.
+  GRT-0059 | [watchman] I walk the pier till dawn. The pier is longer at night. I have measured.
+
+### GRT / BY_CUSTOM
+  GRT-0060 | [whitewash] We paint the houses every spring. White walls, blue roofs. Always have.
+  GRT-0061 | [whitewash] Mind the paint, captain. It is always a little wet.
+  GRT-0062 | [lanterns] The lamps stay lit all night here. The rule is older than the lamps.
+  GRT-0063 | [lanterns] Bring oil if you come back. We go through a lot of oil.
+  GRT-0064 | [nochildren] Children? No, not here. Not for a long time. More tea?
+  GRT-0065 | [nochildren] It is a quiet village. We like it quiet.
+  GRT-0066 | [choir] Stay till dusk, captain. We sing at dusk. Everyone sings.
+  GRT-0067 | [choir] You will hear us from the water tonight. We always know the words.
+  GRT-0068 | [nightboats] We fish at night here. The fish are braver in the dark. So are we.
+  GRT-0069 | [nightboats] Look for our lanterns on the water after sundown. Wave if you like.
+  GRT-0070 | [kites] Kites up every afternoon! The wind likes us here.
+  GRT-0071 | [kites] My kite is the red one. No, the other red one.
+  GRT-0072 | [laundry] Washing day. It is always washing day. The sea is hard on shirts.
+  GRT-0073 | [laundry] Duck under the blue shirt. Over the red one. The yellow one, you can walk through.
+  GRT-0074 | [statues] The carved ones were here before the village. We keep them dusted.
+  GRT-0075 | [statues] Do not mind the carvings. They face the sea in the morning. That is only the wood.
+  GRT-0076 | [bells] You will hear the bells at noon. Twelve, every day. We count.
+  GRT-0077 | [bells] The bell rope is worn smooth. Nobody remembers who rang it first.
+
+### GRT / BY_EVENT
+  GRT-0078 | [market] Market day! Everyone is buying, nobody is listening. Perfect.
+  GRT-0079 | [market] Bring your fish, captain. Market day pays.
+  GRT-0080 | [festival] Festival today! Eat something. Dance something. Do not ask what the songs are about.
+  GRT-0081 | [festival] Flags up, lamps lit, nobody working. Festival day.
+  GRT-0082 | [lantern] Lantern night. We set them on the water and let them go. They come back, mostly.
+  GRT-0083 | [lantern] Light one for someone, captain. Anyone. They do not have to be gone.
+
+### GRT / BY_BOAT
+  GRT-0084 | [stayed] The boat did not go out today. Old Marta says the sea looked at her wrong.
+  GRT-0085 | [stayed] Boat is still tied up. First time in months. Nobody wanted to be the one to untie her.
+  GRT-0086 | [lost] Our boat did not come back last night. It is back now. Nobody was aboard. Nobody has looked in the hold.
+  GRT-0087 | [lost] The boat came home by itself before dawn. The nets were dry. The lamp was lit.
+
+### GRT / SILENT
+  GRT-0088 | A hand raised, then lowered. That seems to be all.
+  GRT-0089 | They smile, point at the pier, then the sky, then their ear. Nothing else.
+  GRT-0090 | Nobody speaks here. A child puts a shell in your hand and goes.
+  GRT-0091 | They look at you for a long time, kindly, and say nothing. It is not unfriendly.
+
+### GRT / BY_WEATHER
+  GRT-0092 | Come in out of the wet! Not that it helps. Everything here is a little damp forever.
+  GRT-0093 | Rain on the harbour is good luck. Rain in the harbour is something else.
+  GRT-0094 | Smell that? Rain and tar. Best smell in the world, ask anyone.
+  GRT-0095 | You sailed in this? You are either very brave or very lost.
+  GRT-0096 | Tie her up double, captain. The last ship that tied up single is still out there. Somewhere.
+  GRT-0097 | Did you come in on the fog or through it? There is a difference.
+  GRT-0098 | In fog like this you hear the bell from the old belfry. We have no belfry.
+  GRT-0099 | Grey all day. Good for the skin, bad for the mood.
+  GRT-0100 | Clouds sitting low today. Like they are listening.
+  GRT-0101 | Not a breath of wind all day. The flags do not even remember how to flap.
+  GRT-0102 | Sea like glass today. You can see right down. I would not.
+
+### GRT / BY_DREAD
+  GRT-0103 | Funny. The gulls went quiet this morning. All of them, at once.
+  GRT-0104 | Somebody keeps leaving wet footprints on the pier. Coming up out of the water. Just the one set.
+  GRT-0105 | The bell rang twelve at noon. Then thirteen. Then it stopped, embarrassed.
+  GRT-0106 | Same tide as yesterday. Exactly the same. Down to the ripple.
+  GRT-0107 | Strange. I could have sworn there were four piers yesterday.
+  GRT-0108 | The children have a new song. Nobody taught it to them. It is quite catchy.
+  GRT-0109 | Old Perrin's cat will not look at the sea any more. Will not even blink.
+  GRT-0110 | Have you been here before? I could swear I served you. Tomorrow.
+  GRT-0111 | We ran out of fish. The nets come up full, but we ran out of fish.
+  GRT-0112 | The gulls bring us things now. Rings, mostly. Never the same finger size.
+  GRT-0113 | Do not sleep facing the window. No reason. Just do not.
+  GRT-0114 | We stopped counting the boats that come back. It was always one more than went out.
+  GRT-0115 | My reflection waved first today. I waved back. It seemed polite.
+  GRT-0116 | The tide came in and forgot to go out. We are waiting to see what it wants.
+  GRT-0117 | Do not look at the water after dusk. Not for long. Not at all.
+  GRT-0118 | Everyone left. I stayed to keep the lamps lit. Someone has to.
+  GRT-0119 | You are welcome here. You are always welcome here. You are always here.
+  GRT-0120 | We remember you. We always remember you.
+  GRT-0121 | The fish have started looking up. All of them. At the same spot.
+  GRT-0122 | Your ship came in last night as well. We waved. Nobody waved back.
+  GRT-0123 | ...you can hear it too, can you not? Under the keel. Humming.
+  GRT-0124 | It is not angry. That is the worst part. It is only very, very patient.
+  GRT-0125 | Welcome home, captain. We saved your seat. It was always your seat.
+
+### GRT / BY_ROLL
+  GRT-0126 | [ten] Ten. Nothing at all. She almost smiled, did she not?
+  GRT-0127 | [ten] A ten, they say. Neither here nor there. Like the rest of us.
+  GRT-0128 | [twenty] Twenty. You could hear the whole sea let its breath out.
+  GRT-0129 | [twenty] Twenty! The old women in the market are crying. Good crying, mostly.
+
+
+####################################################################################################
+## SOURCE PLC   (places.js): the seven hand-made islands: what you find ashore
+####################################################################################################
+
+### PLC / VISITS
+  PLC-0001 | [again] The gannets do not look up. The list in the tin box has not changed.
+  PLC-0002 | [once] The tower leans out over a street you can see under the water: doorsteps, a well, a cart. The bell has no clapper. From the top you can make out a lighthouse to the south-east.
+  PLC-0003 | [once] The Drowned Bell: a street under the water. The bell has no clapper.
+  PLC-0004 | [again] The street is still down there. Someone has left a light on in one of the windows.
+  PLC-0005 | [once] Fresh water, shade and good timber. The crew fill the casks, patch the planks and come back with their arms full of fruit.
+  PLC-0006 | [once] Hollowgreen: a spring, a clearing, a stone table. Good timber for the hull.
+  PLC-0007 | [again] The crew patch the hull with Hollowgreen timber and fill the casks.
+  PLC-0008 | [once] Wick keeps the light. He walks you up to the gallery without a word: from up there you can see half the sea. You copy what you can onto your chart.
+  PLC-0009 | [once] Wick's Rock: Wick keeps the light. From the gallery you can see half the sea.
+  PLC-0010 | [again] Wick waves from the gallery. He does not come down.
+  PLC-0011 | [once] Ships come here to die: ribs in rows, a snapped mast, a figurehead up to her waist in sand. The crew pick through the wreckage.
+  PLC-0012 | [once] The Ribs: a graveyard of ships behind the breakers.
+  PLC-0013 | [again] The sea has brought in more wreckage since you were here.
+  PLC-0014 | [once] The water inside the reef is so clear the boat seems to hang in the air. On the bottom, among the coral, a chest. Somebody's savings, a long time ago.
+  PLC-0015 | [once] Glass Lagoon: water like glass, coral, and a chest on the bottom.
+  PLC-0016 | [again] The water is so clear the boat seems to hang in the air.
+  PLC-0017 | [once] The cliff is clean, as if cut. Half a house stands on the edge: three walls, half a roof, the beds still made. Half a strongbox, with half the coins in it.
+  PLC-0018 | [once] The Halved Isle: half a house on a clean cliff. Half a strongbox.
+  PLC-0019 | [again] Nobody has come back for the other half.
+
+
+####################################################################################################
+## SOURCE SEC   (secrets.js): world hints: the Kestrel, camps, watchers, birds
+####################################################################################################
+
+### SEC / TALES
+  SEC-0001 | [calm] The Kestrel? Went down on a still, bright noon. My grandmother watched from the cliff. The white post stood right on the Grey Tooth, she said, and the sea just opened.
+  SEC-0002 | [calm] A tale at Tama: the Kestrel sank on a calm noon. "The white post stood right on the Grey Tooth."
+  SEC-0003 | [squall] Kestrel went down in a black squall, middle of the night. Nobody saw. Only old Juno, and she swears the white post was dead on the Drowned Bell's tower when the lantern went under.
+  SEC-0004 | [squall] A tale at Velto: the Kestrel sank in a night squall. "The white post was dead on the Drowned Bell's tower."
+  SEC-0005 | [never] The Kestrel? There was never any Kestrel. Ships don't sink in sight of two white posts.
+
+### SEC / K
+  SEC-0006 | Send someone down to the dark shape below
+  SEC-0007 | Salvage what the tide uncovered
+  SEC-0008 | Go ashore by the smoke
+
+
+####################################################################################################
+## SOURCE THR   (threads.js): dark threads: hub lines
+####################################################################################################
+
+### THR / res
+  THR-0001 | Captain, that water is the wrong colour.
+
+
+####################################################################################################
+## SOURCE TSC   (threadscenes.js): dark threads: full-screen scenes
+####################################################################################################
+
+### TSC / door
+  TSC-0001 | [id] The Strange High House
+  TSC-0002 | [door] The lamp at the top of the tower is lit in broad daylight. The door stands open. Someone has laid out a second cup.
+  TSC-0003 | Ask to read the ledger of ships
+  TSC-0004 | [ok] The keeper turns the book around. Ships, in a neat hand, with dates. Some of the dates are next week. Yours is there. You tear nothing out. You only look.
+  TSC-0005 | [fail] He closes the book, kindly. "Not today. There is always another day, you will find."
+  TSC-0006 | It comes away with a sound like a breath. The keeper does not stop you. He watches the pacts go out of the room like moths.
+  TSC-0007 | The stairs are longer going down.
+  TSC-0008 | [offer] The keeper turns the ledger toward you. Three entries, each with a price, each in your handwriting.
+  TSC-0009 | A borrowed wind (a page of your log)
+  TSC-0010 | He opens a window. A fair wind comes in, and sits down, and does not leave for a while.
+  TSC-0011 | A longer day (a morning of yours)
+  TSC-0012 | The sun, outside, thinks better of it and waits. You have the afternoon again.
+  TSC-0013 | A second throw (a harbour's kindness)
+  TSC-0014 | He weighs something you cannot see. "She will let you throw again. She always does." Somewhere, a harbour goes a little cooler.
+  TSC-0015 | [door] Through green water, a belfry roof stands up out of the reef. The tide is low. You hear it as much through the planks as through the air.
+  TSC-0016 | [listen] Slow strokes, one after another, with long gaps. You count them. How many?
+  TSC-0017 | Hang the clappers and ring it
+  TSC-0018 | The first stroke goes out across the reef like a door opening. The sea draws back from a street of roofs.
+  TSC-0019 | Ring it to the tune from the fog
+  TSC-0020 | You strike it in three: low, middle, high. The bell takes the tune the way a mouth takes a name. The street comes up with lamps already lit.
+  TSC-0021 | Lay the worn coin on the bell
+  TSC-0022 | The coin sits on the bronze and does not slide off. The bell does not ring. It is the most complete silence you have ever been in.
+  TSC-0023 | [ok] You bind the bell in sailcloth, and lash it, and it sulks. Overhead, every wreck on this coast stops mumbling.
+  TSC-0024 | [fail] The canvas tears free. For a moment the bell almost rings by itself.
+  TSC-0025 | [ok] It comes up off the reef heavy as a promise. You get it aboard. It is worth a great deal, and it is not quiet.
+  TSC-0026 | [fail] The bell drops back with a long groan. It will be harder next time. It knows you now.
+  TSC-0027 | The tide turns, the reef goes under, and the bell is only a thing in the water again.
+  TSC-0028 | [town] Roofs, stairs, a square with a well and lamps in the windows. Nobody about. There is a stall with a cloth on it, and someone has laid out things from before.
+  TSC-0029 | Buy a keepsake (30 gold)
+  TSC-0030 | You leave the coins on the cloth. You take a shell the size of a fist. It rings, faintly, when you hold it to your ear. It rings your own name, you think. You put it down. You pick it up again.
+  TSC-0031 | The lamps all lean, very slightly, toward the ship. Nobody answers. Behind you the bell strikes once. It was not you.
+  TSC-0032 | You are back aboard with the tide at your knees. The roofs are gone. Your hands are wet to the wrist.
+  TSC-0033 | [door] A mooring that is on no chart. One grey lantern. Your passenger stands up for the first time, and holds out a hand, palm up.
+  TSC-0034 | Pay the fare (30 gold)
+  TSC-0035 | You put thirty gold in the palm. The hand closes. The passenger steps onto the pier, and the pier steps away from the ship. The next harbour you reach will light its lamps very early.
+  TSC-0036 | "Then I will stay," says the passenger, the first thing they have said in days. They sit down on the rope pile. The pier is gone. You do not remember it going.
+  TSC-0037 | Take their place for a night
+  TSC-0038 | The passenger smiles, which is worse. You step onto the pier and they step aboard, and a ship you have never seen takes you across the dark. You wake on a quay. Somebody else sailed yours home.
+  TSC-0039 | [door] The harbourmaster has been waiting at the end of the pier all week. He has not blinked. "You have been good to us, Captain. Stay. The water is lovely this time of year."
+  TSC-0040 | He takes your hand with both of his, and his hands are wet. By morning you have stopped noticing it. The fish bite for you now, and the way home has fog on it.
+  TSC-0041 | [id] The House on Four Legs
+  TSC-0042 | [door] A house on four legs, standing in the sea. A lit window. The three notes come from inside, over and over, patient as a pulse.
+  TSC-0043 | Play it on the ship's bell
+  TSC-0044 | [p1] The first note. Which one?
+  TSC-0045 | It goes into the water and does not come back. The window goes dark for a moment, and then the music starts again from the beginning.
+  TSC-0046 | It goes into the water and does not come back. The window goes dark for a moment, and then the music starts again from the beginning.
+  TSC-0047 | Wrong. The music starts again from the beginning.
+  TSC-0048 | Wrong. The music starts again from the beginning.
+  TSC-0049 | Wrong. The music starts again from the beginning.
+  TSC-0050 | Wrong. The music starts again from the beginning.
+  TSC-0051 | The three of them, in order. Inside the house, somebody stops playing and turns toward the door.
+  TSC-0052 | [answer] The door begins to open on its own. Somebody on the other side of it is very glad.
+  TSC-0053 | A room, and a window onto somewhere that is not the sea, and a lantern on the table. "Take it," says a voice, "for a day. Go and see what is wrong." You take it. When you turn around the house is gone, and so is the tune.
+  TSC-0054 | Refuse: shut the window
+  TSC-0055 | You do not answer. The music stops in the middle of a note. The fog lifts as if it had never been asked to stay. You are quieter, afterward.
+  TSC-0056 | [ok] You strike the last one a little flat. The house flinches. The tune, wherever it is kept, is not quite what it was, and neither is anything that was ever written to it.
+  TSC-0057 | [fail] You strike the wrong note, and it is not the one you meant. The door opens anyway, but not kindly.
+  TSC-0058 | [door] Two ships lie side by side on the swell, the same keel, the same scar on the same plank, and neither one is looking at you. One of them is yours. Somebody on it is waving.
+  TSC-0059 | Come alongside the Merry Gull
+  TSC-0060 | [ok] The planks meet. You step across, and the deck remembers your feet. The other ship drifts off and is not there when you look for it.
+  TSC-0061 | [fail] The swell pushes the two hulls apart. You have until dusk.
+  TSC-0062 | Open the Raven's hold and let her go down
+  TSC-0063 | [ok] She takes the water without a sound. You cross to the Gull as the last of her deck goes under. When you look back there is only a ring of oil on the water, and a name, floating, upside down.
+  TSC-0064 | [fail] The hold is already full. She does not sink. She waits.
+  TSC-0065 | You let the other ship go. It sails off with a stranger at its tiller, and it looks, from a distance, exactly as it should.
+
+
+####################################################################################################
+## SOURCE TMOD   (thread_mods.js): dark threads: modules (bell, coin, colour, hollow, music, house, captain)
+####################################################################################################
+
+### TMOD / d
+  TMOD-0001 | The borrowed wind has gone home. The sea is very still.
+  TMOD-0002 | You sleep through the morning. It was owed.
+
+### TMOD / word
+  TMOD-0003 | A pleasant man, in a chair, with a pot of tea and no shadow to speak of. He knows your name. He knows the date, and several others.
+  TMOD-0004 | The keeper has the look of somebody whose accounts have been spoiled. He pours tea anyway.
+  TMOD-0005 | The keeper has put your ships in order since last time.
+  TMOD-0006 | ${word} The lamp upstairs is humming.
+
+### TMOD / api
+  TMOD-0007 | A page of your log is gone.
+  TMOD-0008 | It is three hours earlier than it was.
+  TMOD-0009 | You may throw again at the hut today.
+  TMOD-0010 | A page from the ledger
+  TMOD-0011 | Ships, in a neat hand. Some of the dates have not happened yet.
+
+### TMOD / c
+  TMOD-0012 | One entry is signed twice. The second hand is yours, and is not.
+
+### TMOD / d
+  TMOD-0013 | E: listen over the side
+  TMOD-0014 | Yes. That many. The long gaps are what the bell is made of.
+  TMOD-0015 | Not that many. You listen again.
+
+### TMOD / api
+  TMOD-0016 | It rings, very faintly, in a tune you know.
+  TMOD-0017 | Something owed, somewhere, is quietly marked paid.
+  TMOD-0018 | It rings, if you hold it up, with a stroke that is not yours.
+  TMOD-0019 | A shell from the cloth
+  TMOD-0020 | It rings your name, very faintly. You are almost sure it was not meant for you.
+
+### TMOD / offerAt
+  TMOD-0021 | A grey passenger asks for passage. They pay in a worn coin, and they do not say where to.
+
+### TMOD / api
+  TMOD-0022 | Both faces have been worn smooth. Warm, as if somebody has only just let go of it.
+  TMOD-0023 | The passenger sits in the bow and does not speak. They point to the 
+
+### TMOD / d
+  TMOD-0024 | You wake and the passenger is gone. The coin on your pillow is cold now.
+
+### TMOD / api
+  TMOD-0025 | grey, always at the rail
+  TMOD-0026 | (Superstitious joins the crew, and stays.)
+  TMOD-0027 | The harbour has lit its lamps very early today. Nobody remembers lighting them.
+  TMOD-0028 | [clue] A grey figure stood on the quay all week, asking each captain for passage. Nobody asked where.
+
+### TMOD / d
+  TMOD-0029 | The harbourmaster is waiting at the end of the pier. He has been all week.
+  TMOD-0030 | You sleep well. The crew sleep better. They are slow to wake, and smile before they open their eyes.
+
+### TMOD / crew
+  TMOD-0031 | Welcome home, Captain.
+  TMOD-0032 | Welcome back! We kept your place.
+  TMOD-0033 | Welcome, Captain! Everyone is so glad.
+
+### TMOD / b
+  TMOD-0034 | You know the tune now. You wish you did not.
+  TMOD-0035 | E: the house on four legs
+
+### TMOD / api
+  TMOD-0036 | Lit all day tomorrow. Things that hide in the water show up in it.
+  TMOD-0037 | [clue] On still nights out past the far reefs, a few say they hear three notes in the fog. Always the same three.
+
+### TMOD / g
+  TMOD-0038 | A ship like yours. The wrong colours. When you look again, it is lower in the water, and still.
+
+### TMOD / gl
+  TMOD-0039 | Nobody came back for the Gull. After a while you stop looking for it.
+  TMOD-0040 | Captain? Whose ship is this?
+  TMOD-0041 | You wake aboard. It is not quite your ship. It is your ship, a little to the left. The Gull is gone from the quay.
+
+### TMOD / api
+  TMOD-0042 | A spyglass with the wrong initials
+  TMOD-0043 | It sees a long way. The initials are yours, and not.
+  TMOD-0044 | Captain... who was that?
+  TMOD-0045 | I will take the Gull home, Captain. Somebody should.
+  TMOD-0046 | [clue] The shipwright says there is a name scratched inside your hull. Not the Gull. Somebody left it.
+
+
+####################################################################################################
+## SOURCE TAB   (tabletop.js): dice, haggling, sea encounter cards, crew
+####################################################################################################
+
+### TAB / TRAITS
+  TAB-0001 | [salt] +2 seamanship, storms wear the hull less
+  TAB-0002 | [tongue] +2 on talk rolls (haggling, bluffing)
+  TAB-0003 | [eyes] fog never blurs the compass, +1 luck
+  TAB-0004 | [omen] +3 on rolls when the sea is wrong
+
+### TAB / LOOKS
+  TAB-0005 | with a parrot that does not talk
+  TAB-0006 | with a tattoo of an eye
+  TAB-0007 | who never blinks first
+
+### TAB / WISHES
+  TAB-0008 | wants to see a fire mountain
+  TAB-0009 | wants to swim in a ring-island lagoon
+  TAB-0010 | wants to see the walking trees
+  TAB-0011 | wants to visit family in 
+
+### TAB / parts
+  TAB-0012 | ${nm} ${n >= 0 ? '+' : ''}${n}
+
+### TAB / CARDS
+  TAB-0013 | A sea chest bobs past, iron-bound, still locked.
+  TAB-0014 | [ok] Heavy, wet, and full of coins. +${g} gold.
+  TAB-0015 | [fail] It swings into the hull on the way up. The chest sinks. The dent stays.
+  TAB-0016 | It turns slowly and drifts off. Someone else's luck.
+  TAB-0017 | A small face peeks out from between the fruit crates.
+  TAB-0018 | [ok] They scrub the deck and find a purse wedged in the planks. +15 gold. They keep the button.
+  TAB-0019 | [fail] At the next wave they are gone. So are ${g} gold.
+  TAB-0020 | They eat like a gull and fall asleep on the rope pile. Word of it will reach the next harbour.
+  TAB-0021 | An old peddler rows alongside, rattling a tray of oddments and folded maps.
+  TAB-0022 | [ok] He sells you a map. It is of a place you have already been. Still, nice drawing.
+  TAB-0023 | [fail] You pay ${g} gold for a map that turns out to be a fish recipe.
+  TAB-0024 | He rows away, singing about money.
+  TAB-0025 | A wall of grey rain stands across your course, and the wind behind it is fast.
+  TAB-0026 | [ok] You come out the other side flying. (Fair wind for a while.)
+  TAB-0027 | [fail] The squall slaps the ship flat for a long second. Planks complain.
+  TAB-0028 | A long way round. Dry, at least.
+  TAB-0029 | Someone on a raft, waving a shirt on a stick.
+  TAB-0030 | You throw a barrel of water and some biscuits. They wave the shirt in thanks.
+  TAB-0031 | The water boils with little fish all around the hull.
+  TAB-0032 | [ok] The nets come up heavy. ${n} fish into the hold.
+  TAB-0033 | [fail] The shoal turns as one and is gone. The nets come up with one boot.
+  TAB-0034 | They flash and turn like thrown coins. It is very beautiful.
+  TAB-0035 | An empty rowboat drifts alongside, oars stowed, a cup of tea still steaming on the seat.
+  TAB-0036 | [ok] It is very good tea. Everyone feels quick and cheerful for a while.
+  TAB-0037 | [fail] You drink it. In the morning the cup is on your table, full again.
+  TAB-0038 | It follows you for an hour. Then it does not.
+  TAB-0039 | A buoy rings with no wind and no waves. It is ringing a tune.
+  TAB-0040 | [ok] Coins are tied to its chain, like offerings. You take a few. (+${g} gold) The tune stops.
+  TAB-0041 | [fail] The buoy swings round and knocks the hull, once, politely. The tune goes on.
+  TAB-0042 | Ring your own bell back
+  TAB-0043 | You ring the ship's bell. The buoy waits, then rings the same tune back, one note wrong.
+  TAB-0044 | A gull lands on the rail. It has a tiny brass ring on its leg, engraved with your ship's name.
+  TAB-0045 | It eats a biscuit, looks at you for a long time, and leaves. Somewhere, someone hears you are generous.
+  TAB-0046 | [ok] a ring on a gull's leg
+  TAB-0047 | [ok] Tiny letters under the name: a date. Next week's.
+  TAB-0048 | [fail] The gull bites you and flies off. The ring said something else on the inside. You did not see what.
+  TAB-0049 | Red hulls, black flags, far off. They have not seen you yet.
+  TAB-0050 | [ok] They dip their flag at your merchant pennant and sail on. Rude, but harmless.
+  TAB-0051 | [fail] They come close enough to shout. A "toll" of ${g} gold goes over in a bucket.
+  TAB-0052 | [ok] You slip behind the swell. When you look again, they are gone.
+  TAB-0053 | [fail] One shot, long range, through the rail. Then they lose interest.
+  TAB-0054 | The sea goes perfectly still in a circle around the ship. Something is singing under it.
+  TAB-0055 | [ok] From the glass sea: a shell that hums your name
+  TAB-0056 | [ok] You hear the words. You do not remember them, but you have a shell in your hand.
+  TAB-0057 | [fail] For a second the sky is the wrong way up.
+  TAB-0058 | Mara rows hard and does not look over the side.
+
+### TAB / box
+  TAB-0059 | ${opponent} slides two coins forward and grins. First to 30.
+  TAB-0060 | A one. Everything this turn is lost.
+  TAB-0061 | ${n}. This turn: ${this.turn}.
+
+### TAB / step
+  TAB-0062 | ${this.opp} rolls ${n}. (${t} this turn)
+  TAB-0063 | ${this.opp} holds at ${t}.
+
+
+####################################################################################################
+## SOURCE MRK   (marks.js): marks (what the world says of you)
+####################################################################################################
+
+### MRK / THREAD_DEFS
+  MRK-0001 | listening for a bell under a wreck
+  MRK-0002 | a passenger who pays with a worn coin
+  MRK-0003 | a stain on the water, bright fish, a spring to seal
+  MRK-0004 | a harbour that is far too friendly
+  MRK-0005 | The Music out of the Fog
+  MRK-0006 | three notes from a house that is not there
+  MRK-0007 | The Strange High House
+  MRK-0008 | a lamp that never goes out, and bargains
+  MRK-0009 | a ship like yours with the wrong colours
+
+### MRK / MARK_DEFS
+  MRK-0010 | [counted] Somebody keeps count of you.
+  MRK-0011 | [called] Something has learned your name, and does not say it.
+  MRK-0012 | [owed] You owe, and they know exactly what.
+  MRK-0013 | [salt] There is salt in your coat that no washing takes out.
+  MRK-0014 | [quiet] You are quieter than you were.
+
+
+####################################################################################################
+## SOURCE CAV   (caves.js): one-time caves
+####################################################################################################
+
+### CAV / CAVES
+  CAV-0001 | [door] A low cave mouth, and a smell of smoke, onions and wet wool. Somebody has hung washing across the passage.
+  CAV-0002 | [washing] Socks, a shirt and something that might once have been a flag. Past the line there is a lantern, a kettle and a hum.
+  CAV-0003 | [ok] "Visitors!" says a voice, delighted. A man with a very long beard waves a ladle at you.
+  CAV-0004 | [fail] "THE TAX MAN!" A boot comes through the washing first. You duck. Your purse is less quick.
+  CAV-0005 | Duck under the washing, quietly
+  CAV-0006 | [ok] You slip through without a sound. The pantry is right there, door open, shelves full.
+  CAV-0007 | [fail] A bucket. A very loud bucket. "WHO'S THERE?" calls the beard behind the kettle.
+  CAV-0008 | You back out into the light. The washing, you notice, now has your hat on it.
+  CAV-0009 | [tea] The hermit pours tea into a shell and hands it over. He has opinions about gulls, tides and your hat.
+  CAV-0010 | He talks for an hour. It is almost useful. He says the biggest fish wait where a rock's shadow touches the sand at noon.
+  CAV-0011 | The cave hermit: the biggest fish wait where a rock's shadow touches the sand at noon.
+  CAV-0012 | Admire his spoon collection
+  CAV-0013 | [ok] He is moved to tears. He gives you the best spoon and a small bag of coins he "found".
+  CAV-0014 | [fail] You call one a fork. The silence is long. He walks you to the door with the ladle.
+  CAV-0015 | [pantry] Barrels, nets, jars with labels in a language that is mostly arrows. One jar glints.
+  CAV-0016 | [ok] Coins, and a very old pickled onion. You take the coins.
+  CAV-0017 | [fail] It was pickles. All of it was pickles. You leave smelling like a salad.
+  CAV-0018 | Leave a coin and a thank you
+  CAV-0019 | On the way out you find a small purse on the doorstep, with your name spelled wrong. The hermit sees everything.
+  CAV-0020 | [door] A cave mouth that breathes: every wave sends cold air out and takes it back. Inside, the water has a green glow.
+  CAV-0021 | [ledge] A round chamber of green water. On a ledge across it sits a sea chest. The sound of the swell says the tide is coming in.
+  CAV-0022 | [ok] Strong strokes, cold water, and you are on the ledge before the next wave.
+  CAV-0023 | [fail] The swell takes you into the rock. You get there, bruised, with the water already at the ledge.
+  CAV-0024 | Throw a line and drag it over
+  CAV-0025 | [ok] The hook catches the first time. The chest comes across the water like a very heavy duck.
+  CAV-0026 | [fail] The hook finds only rock. The tide pulls the line out of your hand. The chest sits there, smug.
+  CAV-0027 | You leave. Behind you the water closes the chamber, as if it had never had a chest.
+  CAV-0028 | [chest] Inside: a damp ledger, a heap of coins and a brass lamp. The water is at your knees and rising.
+  CAV-0029 | [ok] You take the lot and a wave carries you to the mouth like a cork.
+  CAV-0030 | [fail] Too much for two arms. The lamp goes under. You come out with a few coins and a lot of seawater.
+  CAV-0031 | Light, quick and dry enough. You are out before the water is at your waist.
+  CAV-0032 | [door] A narrow cave, dry and quiet. Pale marks cover the walls near the entrance, neat as stitches.
+  CAV-0033 | [marks] Tally marks, thousands of them. At the bottom, in careful letters: "COUNT THEM AGAIN." A stone shelf waits at the far end.
+  CAV-0034 | [ok] Your count matches the writing exactly, and you do not know how. Something clicks in the shelf.
+  CAV-0035 | [fail] You lose count at 411. You start again. And again. When you look up, the lantern has burned low. A few hours are gone.
+  CAV-0036 | Your line is crooked among the neat ones. It stays there. Somehow that feels right.
+  CAV-0037 | You added one crooked tally mark to a wall full of neat ones.
+  CAV-0038 | You back out, politely. The marks are exactly where you left them.
+  CAV-0039 | [shelf] On the shelf: a dented tin box, and an old brass compass lying open. Its needle swings and settles on the cave mouth.
+  CAV-0040 | It is worth something to a collector. The needle keeps pointing back at the cave until you are out of sight.
+  CAV-0041 | A brass compass from a quiet cave. Its needle points back where you found it.
+  CAV-0042 | [ok] Inside, a folded chart of a place nobody has drawn yet. A real one.
+  CAV-0043 | [fail] Biscuits. Centuries old, and hard as the shelf. One of your teeth is not pleased.
+  CAV-0044 | Leave everything as it is
+  CAV-0045 | You step back into the light. The cave feels, somehow, grateful.
+  CAV-0046 | [door] The water here hums. It is a colour you have no word for, and it is warm, and it rises as if somebody were breathing under it.
+  CAV-0047 | [rim] A ring of pale stones, no bigger than a cartwheel, and the colour coming up between them. The fish keep clear of it. The gulls do not fly over it.
+  CAV-0048 | [ok] The anchor bites on the first throw. You hang above the hum with the rope singing in your hands.
+  CAV-0049 | [fail] The current turns the ship against the stones. Something scrapes the hull and the hull does not mind.
+  CAV-0050 | [ok] The net comes up full and glowing. You pour it back before you can think about it.
+  CAV-0051 | [fail] The net comes up violet and empty and you drop it overboard. It does not float.
+  CAV-0052 | You back out of the colour. It follows you, a little, for a day.
+  CAV-0053 | [stones] Under the stones there is a hole in the sea floor the size of a barrel. The colour comes up through it. It does not smell of anything.
+  CAV-0054 | Pack it with ballast and canvas
+  CAV-0055 | [ok] The first sack goes in and stays. The hum drops a note.
+  CAV-0056 | [fail] The sacks swell and come out again, slowly, like bread. You keep the shovels and lose them anyway.
+  CAV-0057 | It does nothing. The water burns violet for a moment, and then is only water that smells of lamps.
+  CAV-0058 | [seal] One last stone, the size of a chest, from the wreck of something older than the island. It must go in all at once.
+  CAV-0059 | [ok] It drops, it sits, it settles. The hum stops. The water in front of you is the plain blue of anywhere. You put a hand in it to be sure.
+  CAV-0060 | [ok] A pale stone from the spring. It has no shadow, and it is not heavy.
+  CAV-0061 | [fail] It lands crooked. The colour finds the gap and comes up thinner, and wider.
+  CAV-0062 | Wait for the tide to turn
+  CAV-0063 | [ok] The tide turns, the stone slides in on the swell, and the hum goes out like a held breath.
+  CAV-0064 | [ok] A pale stone from the spring. It has no shadow, and it is not heavy.
+  CAV-0065 | [fail] The tide does not turn. You wait until you are ashamed of waiting.
+
+
+####################################################################################################
+## SOURCE ABY   (abyss.js): full-dread effects
+####################################################################################################
+
+### ABY / EFFECTS
+  ABY-0001 | The sea goes mirror-flat. Your reflection does not quite match you.
+  ABY-0002 | Place names rewrite themselves, the clock runs backwards, the gold whispers.
+  ABY-0003 | The needle spins and the ring flickers as if the wind came from everywhere.
+  ABY-0004 | Her lines glitch, she says things she should not, then stops answering.
+  ABY-0005 | Every lighthouse swings its beam down onto your ship, holds it there, then goes dark.
+  ABY-0006 | Figures on the shores turn to face you. Four looks, from subtle to scary (Style button).
+  ABY-0007 | The chart draws itself: islands crawl and places you never saw appear.
+  ABY-0008 | Two black suns. Every so often the last twenty seconds happen again.
+  ABY-0009 | Waves run backwards, the horizon tilts, the sails fight the wind.
+  ABY-0010 | Vast arches rise at the horizon. Linger too long and the Eye awakens (ending).
+
+### ABY / MARA_LINES
+  ABY-0011 | Captain, I c-c-can't remember which way is home. Can you?
+  ABY-0012 | We have always been sailing here. Haven't we? Haven't we.
+  ABY-0013 | Who is steering? Who is steering? Who is st
+  ABY-0014 | The crew keeps counting to eleven. We only have nine.
+  ABY-0015 | I see you, Captain. I see you seeing me.
+  ABY-0016 | Mara is not here right now. Please leave a message after the tide.
+  ABY-0017 | Don't look at the water. It looks back. It looks back. It
+  ABY-0018 | What was your name? I wrote it in the log and the ink moved.
+  ABY-0019 | . . . . . . . . . . . .
+  ABY-0020 | turn back turn back turn back turn back turn back
+  ABY-0021 | The stars are not where I left them.
+
+### ABY / MARA_HINTS
+  ABY-0022 | Mara does not answer. Her hat is lying on the deck.
+  ABY-0023 | Mara is staring at the horizon and will not turn around.
+  ABY-0024 | Someone answers in Mara's voice, from below the deck.
+
+### ABY / TRACK_LIES
+  ABY-0025 | There is nothing to deliver
+
+### ABY / MEMORIES
+  ABY-0026 | A letter in your handwriting
+  ABY-0027 | You have not written it yet.
+  ABY-0028 | The fish you caught yesterday
+  ABY-0029 | Still alive. Still looking at you.
+  ABY-0030 | The lock was changed long ago.
+  ABY-0031 | It is the Gull, carved by someone who knew it well.
+  ABY-0032 | Underwater. For years.
+
+### ABY / WATCHER_NAMES
+  ABY-0033 | Distant shapes (subtle)
+
+### ABY / t
+  ABY-0034 | Try it: cast a line (C), dig for treasure or salvage a wreck.
+
+### ABY / back
+  ABY-0035 | You have been here before.
+  ABY-0036 | It is this exact moment again.
+
+### ABY / say
+  ABY-0037 | It has watched you since the first harbour.
+  ABY-0038 | It knows your name now.
+  ABY-0039 | You wake on the deck. Harbour Tama is in sight and the sea is blue.
+  ABY-0040 | Nobody remembers the way back. Nobody asks.
+
+
+####################################################################################################
+## SOURCE DIG   (digging.js): digging for treasure
+####################################################################################################
+
+### DIG / BEACHES
+  DIG-0001 | [shingle] More stones here, but each hole shows how many lie next to it.
+  DIG-0002 | [dune] The wind fills old holes back in. Remember what they told you.
+  DIG-0003 | [mud] No tide here, but the mud swallows the ground beside your holes.
+
+### DIG / c
+  DIG-0004 | Already dug there. Try another square.
+  DIG-0005 | The mud has taken that square. Try another.
+
+
+####################################################################################################
+## SOURCE FSH   (fishing.js): fishing and the fisherman's log
+####################################################################################################
+
+### FSH / FISH
+  FSH-0001 | Glass eel that remembers
+  FSH-0002 | A fish shaped like a key
+
+### FSH / HABITAT
+  FSH-0003 | [sardine] Sardines run in the shallows, near any island and in the harbours, all day.
+  FSH-0004 | [sardine] Sardines? Anywhere close to land. Right off the beach, the harbours. Any hour.
+  FSH-0005 | [snapper] Red snapper keep to rocky edges and reefs, mornings mostly.
+  FSH-0006 | [snapper] Snapper hug the rocky shores and the reefs. Early. Before the sun is high.
+  FSH-0007 | [mahi] Mahi-mahi run in open water, away from land, in the morning.
+  FSH-0008 | [mahi] Mahi-mahi like the open blue, well off the land, and the morning.
+  FSH-0009 | [tuna] Bluefin tuna hold in the deep water, far from any island, in the afternoon.
+  FSH-0010 | [tuna] Tuna are out in the deep stretches, far from land. Afternoons.
+  FSH-0011 | [sword] Swordfish come up in the deep water around dusk.
+  FSH-0012 | [sword] Swordfish, out in the deep, round dusk. Strong back, strong line.
+  FSH-0013 | [grouper] Golden grouper sulk under wrecks, at low tide, mornings.
+  FSH-0014 | [grouper] Golden groupers? Under the wrecks. Low tide. Mornings. Tell nobody.
+  FSH-0015 | [cuttle] Cuttlefish drift in the lagoon of a ring island at dusk.
+  FSH-0016 | [cuttle] Cuttlefish like the still water inside a ring of sand. Dusk.
+  FSH-0017 | [barracuda] Barracuda patrol reef edges at midday.
+  FSH-0018 | [barracuda] Barracuda off the rocky edges, midday, when the light is hard.
+  FSH-0019 | [bream] Sea bream gather by harbour piers in the evening.
+  FSH-0020 | [bream] Bream like the pilings of a pier, evenings, with the cooking smoke on the water.
+  FSH-0021 | [moonfish] Moonfish rise in open water on dark nights.
+  FSH-0022 | [moonfish] Moonfish? Open water, deep night. They come up for the moon.
+
+### FSH / RING_KINDS
+  FSH-0023 | [snag] Strike on green, never on red: red is the wreck.
+  FSH-0024 | [night] The marks only show near the needle. Strike on green.
+  FSH-0025 | [swell] The needle surges with the waves. Strike on green.
+  FSH-0026 | [reef] The marks dart about. Strike on green before they move.
+  FSH-0027 | [calm] Strike (C / Space) when the needle is on a green mark. Gold is better.
+
+### FSH / r
+  FSH-0028 | You reel in the empty line.
+
+### FSH / s
+  FSH-0029 | Too fast to fish: reef the sails (S) and let the ship slow down.
+
+### FSH / snag
+  FSH-0030 | Snagged on the wreck! One strike left.
+
+### FSH / gold
+  FSH-0031 | Gold! It turns, tired.
+
+### FSH / kg
+  FSH-0032 | It sank away while you waited.
+  FSH-0033 | Too slow: it swam off with the bait.
+  FSH-0034 | The line wraps round a rib of the wreck and parts. The fish is gone.
+  FSH-0035 | You held too long off the mark: the line parted.
+  FSH-0036 | Three strikes on nothing. Something below let go, slowly.
+  FSH-0037 | Three strikes on empty water: it slipped the hook.
+  FSH-0038 | The line goes slack. Something below let go on purpose.
+
+### FSH / s
+  FSH-0039 | You pull the line in: the ship is moving too fast.
+
+### FSH / a
+  FSH-0040 | Whatever bit has lost interest.
+  FSH-0041 | The fish spat the hook.
+
+### FSH / rail
+  FSH-0042 | Line in the water... (C pulls it in)
+  FSH-0043 | SOMETHING PULLS BACK! Press C / Space!
+  FSH-0044 | BITE! Press C / Space!
+
+
+####################################################################################################
+## SOURCE UPG   (upgrades.js): shipwright
+####################################################################################################
+
+### UPG / UPGRADES
+  UPG-0001 | Fine canvas: +12% top speed, bites better upwind
+  UPG-0002 | Double-stitched sails: +24% speed
+  UPG-0003 | Storm-silk sails: +36% speed, handles headwinds
+  UPG-0004 | Oiled tiller: turns 22% faster
+  UPG-0005 | Broad rudder: turns 44% faster
+  UPG-0006 | Whale-bone rudder: turns 66% faster
+  UPG-0007 | Brass lantern: see 15% further at night and in fog
+  UPG-0008 | Lens lantern: see 30% further
+  UPG-0009 | Beacon lantern: 45% further, and keeps the dark back
+  UPG-0010 | Brass spyglass: see further, zoom out wider
+  UPG-0011 | Long glass: even further
+  UPG-0012 | Captain's glass: sees almost to the horizon
+  UPG-0013 | Oak reinforcement: +30 hull strength
+  UPG-0014 | Iron-banded hull: +60 hull strength
+  UPG-0015 | Ironwood hull: +90 hull strength
+  UPG-0016 | Better powder: +4 damage, reload a little faster
+  UPG-0017 | Long guns: +8 damage, faster reload
+  UPG-0018 | Master gunners: +12 damage, much faster reload
+  UPG-0019 | Seasoned diggers: dig 20% faster, +20% loot value
+  UPG-0020 | Treasure hounds: 40% faster, +40% value
+  UPG-0021 | Veteran crew: 60% faster, +60% value
+
+### UPG / UP_CARD
+  UPG-0022 | [lantern] Cuts through fog banks
+  UPG-0023 | [hull] Old planks: 100 strength
+
+### UPG / SHIPWRIGHT
+  UPG-0024 | "Best timber this side of the reef, captain."
+  UPG-0025 | "Fair prices, fair winds."
+  UPG-0026 | "Odd. The planks came in already cut. I never ordered them."
+  UPG-0027 | "Your hull has a name scratched inside. Not the Gull. I left it."
+  UPG-0028 | "The hull creaks in a rhythm now. Like breathing. Don't mind it."
+  UPG-0029 | "Funny wood, this. Grows back where I cut it."
+  UPG-0030 | "Take what you need. I'll stay and mind the lamps. Someone has to."
+  UPG-0031 | "Upgrade it all. It will not matter, but it will be a comfort."
+
+
+####################################################################################################
+## SOURCE JOB   (jobs.js): board: deliveries and commissions
+####################################################################################################
+
+### JOB / ITEMS_BRIGHT
+  JOB-0001 | a letter for the harbourmaster
+  JOB-0002 | a sack of ship biscuits
+
+### JOB / ITEMS_DARK
+  JOB-0003 | a sealed jar (do not open)
+  JOB-0004 | a letter in a language nobody speaks
+  JOB-0005 | a crate that is slightly too warm
+  JOB-0006 | a bell with no clapper
+  JOB-0007 | a box that has stopped ticking
+  JOB-0008 | a lantern, unlit, heavy
+
+
+####################################################################################################
+## SOURCE SIG   (sighting.js): signs at sea
+####################################################################################################
+
+### SIG / SIGHTS
+  SIG-0001 | [castaway] A raft, someone waving
+
+
+####################################################################################################
+## SOURCE HUT   (hut.js): the dark hut and the Lady
+####################################################################################################
+
+### HUT / WIN_LINES
+  HUT-0001 | She pushes something across the table without looking at it.
+  HUT-0002 | A dry little laugh. She pays.
+  HUT-0003 | She nods once, as if this was always going to happen.
+
+### HUT / LOSE_LINES
+  HUT-0004 | The lady in the hut does not say anything. She writes something down.
+  HUT-0005 | She does not say anything. Somewhere under the floor, something turns over.
+  HUT-0006 | The lady does not look up. The candle leans toward you.
+  HUT-0007 | She says nothing. You are sure she said your name.
+
+### HUT / TRINKETS
+  HUT-0008 | a tooth with a tiny ship carved into it
+  HUT-0009 | a jar of very old sand
+  HUT-0010 | a black pearl that is warm
+  HUT-0011 | a knot of hair tied in a sailor's hitch
+
+### HUT / used
+  HUT-0012 | A table too big for the hut, one candle, and a chair on the far side, deep in the dark. Something there breathes, slow and patient. A yellowed twenty-sided die waits on the wood.
+  HUT-0013 | The die is gone from the table. She is writing. Come back tomorrow.
+
+### HUT / c
+  HUT-0014 |  There are more candles than you can count. The book is open near the end.
+
+### HUT / n
+  HUT-0015 | The die clatters across the table...
+
+### HUT / gold
+  HUT-0016 | From the dark hut: ${trinket}
+  HUT-0017 | ${n}. ${rnd(WIN_LINES)} (+${gold} gold${trinket ? 
+  HUT-0018 | 10. She almost smiles. Nothing happens. That is somehow worse.
+  HUT-0019 | ${n}. ${rnd(LOSE_LINES)}
+
+
+####################################################################################################
+## SOURCE LOG   (logbook.js): the captain's log
+####################################################################################################
+
+### LOG / font
+  LOG-0001 | "DotGothic16", monospace
+
+### LOG / gap
+  LOG-0002 | ${this.page + 1} / ${count}
+
+### LOG / done
+  LOG-0003 | The rest of the page is blank.
+
+### LOG / dx
+  LOG-0004 | Take one at a harbour job board.
+
+### LOG / pg
+  LOG-0005 | Harbour boards post errands: fish, fruit, crates, raiders…
+
+### LOG / html
+  LOG-0006 | Fisherman's log ${got}/${bright.length}
+
+### LOG / sub
+  LOG-0007 | Nobody has said where these bite. Try other waters and other hours, and ask at the quay.
+  LOG-0008 | Slow down and press C at sea. Ask the fishers at a harbour quay where things bite.
+
+### LOG / html
+  LOG-0009 | ${label} · ${l.length}
+
+### LOG / fruits
+  LOG-0010 | ${n} ${fruitName(f, dread)}
+
+### LOG / html
+  LOG-0011 | Hands can be hired at harbour taverns, for a few days at a time.
+
+### LOG / seen
+  LOG-0012 | pencil: click an island to circle it (again: rub out) · drag · wheel
+  LOG-0013 | drag to pan · wheel to zoom · click to pin (again: unpin) ·
+
+
+####################################################################################################
+## SOURCE MAIN   (main.js): Mara's remarks, HUD messages, everything else
+####################################################################################################
+
+### MAIN / combat
+  MAIN-0001 | A floating market, with bunting on every line. (Friday)
+  MAIN-0002 | A regatta! Five boats, racing.
+  MAIN-0003 | A regatta! Look at them go. I wonder who they are racing, and who is giving the prize.
+
+### MAIN / k
+  MAIN-0004 | Another whale, heading east.
+  MAIN-0005 | A sea turtle, drifting by.
+  MAIN-0006 | A whale surfaces in the distance!
+  MAIN-0007 | They are all going the same way, Captain. East. Every one of them. As if they were called.
+
+### MAIN / have
+  MAIN-0008 | Crate recovered (${have}/${need}).
+
+### MAIN / text
+  MAIN-0009 | Message in a bottle: "${text}"
+  MAIN-0010 | A whirlpool tugs at the keel! Sail out of it.
+
+### MAIN / giveMap
+  MAIN-0011 | ${from} gave you a treasure riddle for ${d.name}. Saved in your log: Riddles tab.
+  MAIN-0012 | ${from} gave you a riddle. Saved in your log: Riddles tab. Where it points is up to you.
+
+### MAIN / el
+  MAIN-0013 | The side goals in your log are always there.
+
+### MAIN / abyss
+  MAIN-0014 | Captain? Captain! You were asleep at the wheel. For how long, I... let us just go home.
+
+### MAIN / ZONE_LABEL
+  MAIN-0015 | in a ring-island lagoon
+
+### MAIN / fishing
+  MAIN-0016 | [onSplash] Line cast. Wait for a bite...
+  MAIN-0017 | [onBite] Something heavy takes the bait!
+
+### MAIN / c0
+  MAIN-0018 | has stopped saying what they want
+
+### MAIN / hut
+  MAIN-0019 | [onWin] A natural twenty. Somewhere far below, something is disappointed.
+
+### MAIN / n
+  MAIN-0020 | Market day, Captain! Every harbour pays a bit more for what we bring in.
+  MAIN-0021 | Lantern night tonight. They set little lights on the water. I always want to follow one.
+
+### MAIN / MARA_THROW
+  MAIN-0022 | [low] Captain... is the water thicker? It looks thicker.
+  MAIN-0023 | [low] Nothing happened. Why does that feel like something happened?
+  MAIN-0024 | [high] Is it me, or is the sea in a good mood all of a sudden?
+  MAIN-0025 | [high] Did you hear that? Like the whole sea sighed. In a nice way. I think.
+
+### MAIN / h
+  MAIN-0026 | I did not like that, Captain. She never blinked. Not once.
+
+### MAIN / last
+  MAIN-0027 | Mara does not say anything for a long time.
+  MAIN-0028 | Three times now. Captain... what is she writing down?
+
+### MAIN / gi
+  MAIN-0029 | Whenever you are ready, Captain, W lets the sails out.
+
+### MAIN / mv
+  MAIN-0030 | Too dark to see the line. The lamp needs oil.
+
+### MAIN / sl
+  MAIN-0031 | dread follows the distance from Tama again (0)
+
+### MAIN / showPauseMain
+  MAIN-0032 | New voyage (erase save)
+
+### MAIN / id
+  MAIN-0033 | Back to automatic dread
+  MAIN-0034 | Go to full dread now (all ON effects)
+
+### MAIN / REST_LINES
+  MAIN-0035 | You sleep like a stone. Gulls wake you at dawn.
+  MAIN-0036 | Somebody snored all night. Possibly you.
+  MAIN-0037 | You dream of warm water and wake up hungry.
+
+### MAIN / REST_DARK
+  MAIN-0038 | You wake at dawn. Your boots are wet, and full of sand you do not recognise.
+  MAIN-0039 | You sleep well. The innkeeper says you talked all night, in a voice that was not yours.
+  MAIN-0040 | Your room had two beds. In the morning, both were slept in.
+
+### MAIN / note
+  MAIN-0041 | ${d.name}'s chart: ${note}
+  MAIN-0042 | A hand-drawn chart of ${d.name}'s waters. ${k} island${k > 1 ? 's' : ''} added to your map.
+
+### MAIN / ids
+  MAIN-0043 | who did not want to get off
+  MAIN-0044 | wants to see a fire mountain
+
+### MAIN / sf
+  MAIN-0045 | Sold ${state.catch.length} fish for ${fishVal} gold.
+
+### MAIN / cb
+  MAIN-0046 | +${v} gold. He does not weigh it. He lifts it once, nods, and is not on the quay when you look again.
+
+### MAIN / sfr
+  MAIN-0047 | Sold fruit for ${fruitVal} gold.
+
+### MAIN / hgb
+  MAIN-0048 | The fishmonger laughs and gives in.
+  MAIN-0049 | The fishmonger spits on the planks. By noon the whole harbour has heard.
+  MAIN-0050 | The fishmonger folds their arms. Prices just got worse.
+
+### MAIN / out
+  MAIN-0051 | A letter from Old Perrin
+  MAIN-0052 | sealed, left with the harbourmaster
+  MAIN-0053 | Another letter from Old Perrin
+  MAIN-0054 | the harbourmaster waves it at you
+
+### MAIN / PETS
+  MAIN-0055 | [cat] A ginger cat on the pier
+  MAIN-0056 | [cat] she has been watching your ship all morning
+  MAIN-0057 | [cat] The cat steps aboard as if she had paid for the ticket.
+  MAIN-0058 | [gull] it eyes your catch and not much else
+  MAIN-0059 | [gull] The gull hops onto the rail. It has opinions about your sailing.
+
+### MAIN / mate
+  MAIN-0060 | A letter? What have you got there, Captain?
+  MAIN-0061 | Open your log with M and look under the Riddles tab.
+  MAIN-0062 | Another letter from Perrin? Open your log with M: it is at the top of the Journal tab.
+
+### MAIN / st
+  MAIN-0063 | Perrin and his riddles! Find the shore it describes, then stop there and press E.
+  MAIN-0064 | He wants us to check his chart. Read the note, then go and look.
+
+### MAIN / LH_LINES
+  MAIN-0065 | [classic] Red and white, so the gulls can find it. And so can I on foggy mornings.
+  MAIN-0066 | [classic] Two hundred and twelve steps. I count them every night, for company.
+  MAIN-0067 | [classic] Built forty years before the village. The village grew up round her, like ivy.
+  MAIN-0068 | [slim] Narrow as a fishing rod. She sways a hand's breadth in a gale. I find it restful.
+  MAIN-0069 | [slim] The lamp is tiny and the lens is huge. Somebody was very proud of that lens.
+  MAIN-0070 | [slim] Only one person fits on the stairs at a time. I have never had to give way.
+  MAIN-0071 | [brick] Every brick came by boat. Every single one. Do not ask me how many.
+  MAIN-0072 | [brick] The bricks are warm in the evening. The cat knows. The cat lives here now.
+  MAIN-0073 | [brick] Mortar from shell and lime. In the right light she looks like a very tall sunset.
+  MAIN-0074 | [iron] Cast in pieces and bolted together on the beach. She hums when the wind is from the east.
+  MAIN-0075 | [iron] Iron rusts, they said. I paint her every spring and she thanks me by rusting.
+  MAIN-0076 | [iron] On a cold night she rings a little when the tide turns. Do not worry. That is just her.
+  MAIN-0077 | [squat] Short, because the rock under her is tall. The lamp sits low, so I can wave at the fishers.
+  MAIN-0078 | [squat] Nobody has ever fallen down my stairs. There are nine.
+  MAIN-0079 | [squat] Small and round and stubborn. Like me.
+  MAIN-0080 | [pagoda] The roofs are for the rain. The bells are for luck. The lamp is for the ships. Do not mix them up.
+  MAIN-0081 | [pagoda] Five roofs, one for every sea I have heard of. I am told there are more.
+  MAIN-0082 | [pagoda] The little bells ring when a boat goes by that is thinking of home.
+
+### MAIN / LH_WEEK
+  MAIN-0083 | Market day is Wednesday. Bring fish, not complaints.
+  MAIN-0084 | The floating market sails by on Fridays. Bring coin, and a bag with no holes.
+  MAIN-0085 | The regatta is on Sunday afternoons. Do not stand in the way of the canoes.
+  MAIN-0086 | The whales pass in numbers on Thursdays. Always the same direction. I do not ask why.
+  MAIN-0087 | Low tide uncovers the wrecks. Go then, with a strong back.
+  MAIN-0088 | A red sky in the evening means a storm in the afternoon after. Ask me how I know.
+  MAIN-0089 | Saturday night the lanterns go up in the villages. Make for any harbour and join in.
+
+### MAIN / hs
+  MAIN-0090 | The lamp-keeper calls across the water: "${line}"
+
+### MAIN / SIGHT_WORDS
+  MAIN-0091 | an old arch on the shore
+
+### MAIN / r
+  MAIN-0092 | Out of cannonballs! Buy more at a harbour.
+
+### MAIN / tg
+  MAIN-0093 | Bring the ship to a full stop first (S to reef the sails).
+  MAIN-0094 | Bring the ship to a full stop first (S to reef the sails).
+  MAIN-0095 | Bring the ship to a full stop first (S to reef the sails).
+  MAIN-0096 | Nobody answers. Inside, a pen scratches, then stops.
+  MAIN-0097 | Bring the ship to a full stop first (S to reef the sails).
+  MAIN-0098 | Bring the ship to a full stop first (S to reef the sails).
+  MAIN-0099 | Someone goes down on a rope...
+  MAIN-0100 | Bring the ship to a stop to patch the sail (S, and wait).
+  MAIN-0101 | Patching the mainsail...
+
+### MAIN / d
+  MAIN-0102 | The harbour crew patches up your hull for free.
+  MAIN-0103 | The sailmaker stitches your mainsail whole again.
+
+### MAIN / g
+  MAIN-0104 | A letter waits for you at the harbourmaster's board.
+
+### MAIN / d
+  MAIN-0105 | Reading the inscription...
+  MAIN-0106 | Half a riddle is not enough to dig by. The other half is written on another arch.
+  MAIN-0107 | The crew is still digging out the collapsed hole.
+
+### MAIN / ang
+  MAIN-0108 | Nothing here but sand. Reread the riddle in your log (Journal) and try another shore.
+  MAIN-0109 | The crew digs and finds only sand and crabs. Wrong shore!
+
+### MAIN / first
+  MAIN-0110 | Perrin's chest: a bag of old doubloons
+
+### MAIN / land
+  MAIN-0111 | The chest: how good a find?
+
+### MAIN / noon
+  MAIN-0112 | The tide comes in and fills every hole. The crew waits for it to go out again.
+  MAIN-0113 | The light goes and the mud is everywhere. The crew scrapes the shovels clean and tries again.
+  MAIN-0114 | The shovel breaks on a second stone. The crew fetches the spare.
+
+### MAIN / n
+  MAIN-0115 | The crew picked ${n} ${plural(fruitName(f, d.dread), n)}.
+
+### MAIN / o
+  MAIN-0116 | Salvaging the wreck...
+
+### MAIN / CAMP_LINES
+  MAIN-0117 | A man with a beard down to his belt. He has been here since before the lighthouse at Tama, he says, and asks for nothing.
+  MAIN-0118 | The fire is warm. Nobody is here. A fish is drying on a stick, half eaten.
+  MAIN-0119 | He is mending a net that will never go in the water. He says the gulls told him you were coming.
+  MAIN-0120 | Nobody. Footprints go down to the water and come back.
+
+### MAIN / S
+  MAIN-0121 | Down in the green dark: a ship on her side, KESTREL on the stern. Her strongbox comes up, and her bell, still ringing. (+180 gold)
+  MAIN-0122 | Where the two white posts sat on the Tooth and the Bell: the Kestrel, on the bottom. Her bell still rings.
+
+### MAIN / loot
+  MAIN-0123 | Some wrecks only show at low water. The tide hides more than it shows.
+
+### MAIN / best
+  MAIN-0124 |  Before you go he scratches an island into your chart with a fish bone.
+
+### MAIN / bits
+  MAIN-0125 | ${n} new ${n === 1 ? 'place' : 'places'} on your chart
+
+### MAIN / REFUSALS
+  MAIN-0126 | The crew glances at you and looks away.
+  MAIN-0127 | A sailor waves you off. They are not in the mood.
+  MAIN-0128 | The captain pretends not to hear you.
+  MAIN-0129 | They hoist a little more sail and leave you behind.
+
+### MAIN / rng
+  MAIN-0130 | They wave without slowing down. It is a race, and they are winning.
+
+### MAIN / loot
+  MAIN-0131 | Your hail comes back as your own voice, from a very long way off.
+
+### MAIN / hint
+  MAIN-0132 |  (Perhaps they would listen if you were better known in these waters.)
+
+### MAIN / FACTION_GREET
+  MAIN-0133 | [crown] Ahoy! The Crown Traders always have time for honest custom.
+  MAIN-0134 | [free] The Free Cays welcome you, friend! Come aboard, metaphorically.
+  MAIN-0135 | [reef] Make it quick. We have somewhere to be, and none of it is here.
+  MAIN-0136 | [lantern] The Lantern Guild keeps the lamps burning. State your business.
+
+### MAIN / shipOffers
+  MAIN-0137 | they take the coin and let you pass in peace
+  MAIN-0138 | they may believe you have a fleet behind you (45%)... or open fire
+  MAIN-0139 | press Space to fire once they are in range
+  MAIN-0140 | Sell your catch aboard
+  MAIN-0141 | fish and fruit fetch a third more than ashore
+  MAIN-0142 | the islands round here, as the traders know them
+  MAIN-0143 | An oddment from the back
+  MAIN-0144 | nobody remembers where it came from
+
+### MAIN / rng
+  MAIN-0145 | marks a treasure isle on your map
+  MAIN-0146 | +15% speed for 3 minutes
+  MAIN-0147 | your crew digs 30% faster for 3 minutes
+  MAIN-0148 | a forecast and a rumour of the sea
+  MAIN-0149 | you jot one down in your journal
+  MAIN-0150 | a delivery job for a nearby harbour
+
+### MAIN / sh
+  MAIN-0151 | A trader leans on the rail among the lanterns: "Everything must go. Everything always goes. Come aboard, captain."
+  MAIN-0152 | The raider captain grins: "Nice ship. Shame if something happened to it. A little tribute, perhaps?"
+
+### MAIN / fish
+  MAIN-0153 | Nothing in the hold to sell. They are very polite about it.
+  MAIN-0154 | Sold your hold aboard the market for ${v} gold.
+
+### MAIN / k
+  MAIN-0155 | A hand-drawn chart: ${k} island${k > 1 ? 's' : ''} added to your map.
+  MAIN-0156 | You know these waters already. It is a lovely drawing.
+
+### MAIN / odd
+  MAIN-0157 | a brass button that is always cold
+  MAIN-0158 | a spoon with a second, smaller bowl
+  MAIN-0159 | a map of a room you have not been in
+  MAIN-0160 | a bell the size of a thumb. It rings when nobody touches it
+
+### MAIN / it
+  MAIN-0161 | From the floating market: ${it}
+  MAIN-0162 | The raiders take your coin, grinning, and sail on.
+  MAIN-0163 | The raiders squint at the horizon, then think better of it.
+  MAIN-0164 | They laugh, and open fire!
+  MAIN-0165 | You hoist your colours. Fire when ready (Space).
+
+### MAIN / r
+  MAIN-0166 | Fresh supplies stowed: the ship feels lighter.
+  MAIN-0167 | Rum rations handed out: the crew is in high spirits.
+
+### MAIN / lines
+  MAIN-0168 | Watch the evening sky. Red means a blow.
+  MAIN-0169 | Rain all week out east.
+  MAIN-0170 | Fair skies for the next day or so.
+  MAIN-0171 | Keep to the lit harbours after dark.
+  MAIN-0172 | Lighthouses burn only after dusk, so mind your hour.
+
+### MAIN / text
+  MAIN-0173 | A tall tale, written in your journal: "${text}"
+  MAIN-0174 | You already have a delivery to make.
+
+### MAIN / j
+  MAIN-0175 | They have nothing to send right now.
+
+### MAIN / CHART_NOTES
+  MAIN-0176 | [whitewash] in the margin, in white paint: "Mind the reef. It is not painted."
+  MAIN-0177 | [whitewash] pencilled by lamplight: "Every island has a light somewhere. Find it before dark."
+  MAIN-0178 | [nochildren] in a very tidy hand: "There is an island near here we do not visit. We are quite sure of that."
+  MAIN-0179 | [nochildren] a few bars of music in the margin. You hum them. They stay.
+  MAIN-0180 | [nightboats] a greasy thumbprint on the best fishing water: "Go at night. They come up for the lamps."
+  MAIN-0181 | [nightboats] small drawn kites mark the windy side of every island.
+  MAIN-0182 | [bells] twelve little bells drawn along the coast, one for each island the bell can be heard from. There are thirteen.
+  MAIN-0183 | [bells] a blue stain in one corner. Somebody washed this chart.
+  MAIN-0184 | [statues] a small carved face drawn over one island. Underneath: "Do not look back."
+  MAIN-0185 | [statues] no words at all. Only careful arrows, and one island circled twice.
+
+### MAIN / FALSE_NOTHING
+  MAIN-0186 | Only sand, and someone else's footprints. They go down to the water and do not come back up.
+  MAIN-0187 | A flat rock, a dead crab and a lot of sky. Somebody was disappointed here before you.
+  MAIN-0188 | Gulls. Nothing but gulls. One of them looks as if it has heard this rumour before.
+  MAIN-0189 | There is no treasure. There is a very nice view, if that helps.
+
+### MAIN / FALSE_STRANGE
+  MAIN-0190 | A table laid for two on the sand. The tea is still warm. One cup has your ship's name scratched into it.
+  MAIN-0191 | A table for two on a bare island, tea still warm. One cup said Merry Gull.
+  MAIN-0192 | A bottle stands upright in the sand. Inside: a drawing of this island from above, and a small cross where you are standing.
+  MAIN-0193 | A bottle with a drawing of the island I was standing on. A cross, where my feet were.
+  MAIN-0194 | A cairn of white shells, freshly built. On the top a note: "Thank you for coming. We were not sure you would."
+  MAIN-0195 | A cairn of white shells. "Thank you for coming. We were not sure you would."
+  MAIN-0196 | a white shell, still warm
+
+### MAIN / st
+  MAIN-0197 | Captain... that was no treasure. Who goes to this much trouble to make a rumour come true?
+
+### MAIN / salt
+  MAIN-0198 | The gale tears at the sails! Reef them (S) or put the oars out (G).
+
+### MAIN / LOCALS
+  MAIN-0199 | the harbourmaster's aunt
+  MAIN-0200 | a fisherman who smells of tar
+
+### MAIN / pig
+  MAIN-0201 | a sore loser at the tavern
+
+### MAIN / cardCtx
+  MAIN-0202 | They are dropped off at the next harbour with a story to tell. Your crew is full.
+
+### MAIN / c
+  MAIN-0203 | still salty from the raft
+  MAIN-0204 | wants to see a fire mountain
+
+### MAIN / text
+  MAIN-0205 | a folded chart in a cave
+
+### MAIN / HUT_NOTES
+  MAIN-0206 | If you find the black hut, do not sit down. I sat down. - R.
+  MAIN-0207 | Third bottle I have thrown. The hut is not where I left it. The hut is exactly where I left it.
+
+### MAIN / CHECKS
+  MAIN-0208 | a red rock on its north shore
+  MAIN-0209 | three palms in a row on its east side
+  MAIN-0210 | a bell on a post by the water
+  MAIN-0211 | a white stone shaped like a tooth
+
+### MAIN / d
+  MAIN-0212 | Perrin: "Be a dear and check my chart. ${d.name}, ${state.story.check.dir} of Tama, should have ${detail}. Nobody has been there to tell me, so I need eyes. Bring back my compass if you find it. It's the one that's wrong."
+  MAIN-0213 | The harbourmaster hands you a folded note from Old Perrin. (Journal)
+
+### MAIN / line
+  MAIN-0214 | Captain... was that hut always on our chart? I did not draw it. Did you draw it?
+  MAIN-0215 | Captain... look at our chart. There is a hut on it now. I did not draw it. Did you?
+
+### MAIN / showDemoEnd
+  MAIN-0216 | Keep sailing: everything inside the fog is still yours to do.
+  MAIN-0217 | The fog thins. The sea is yours.
+
+### MAIN / o
+  MAIN-0218 | ${label} was bound beyond the fog. It is let go, and nothing is lost.
+
+### MAIN / ev
+  MAIN-0219 | Caught a gust! Steer into the dark patches on the water to fill the sails.
+
+### MAIN / night
+  MAIN-0220 | The lamp is getting low, Captain. Oil at any market, or we turn for home.
+  MAIN-0221 | The lamp oil is running low.
+  MAIN-0222 | The lantern gutters out. The dark comes right up to the rail.
+  MAIN-0223 | No light, no line, and I can barely see the bow. Buy oil at a market next time, Captain.
+
+### MAIN / gale
+  MAIN-0224 | The canvas is straining in this wind! Reef the sails (S) before it tears.
+  MAIN-0225 | RRRIP! The mainsail tears. Two thirds speed until it is patched.
+  MAIN-0226 | We have a patch kit, Captain. Bring her to a stop and I will see to it (E).
+  MAIN-0227 | No patch kit aboard, Captain. We need a harbour and a sailmaker.
+
+### MAIN / off
+  MAIN-0228 | No oil to light it. Buy some at a market.
+
+### MAIN / gold
+  MAIN-0229 | Raider sunk! +${gold} gold
+  MAIN-0230 | Unlocked: skull figurehead (see the shipyard).
+
+### MAIN / tgt
+  MAIN-0231 | The Gull went under. A fisherman dragged you to ${tgt.name}. You lost ${lost} gold; the hull is repaired.
+
+### MAIN / newAsk
+  MAIN-0232 | Really? Click again to start over
+
+### MAIN / stepT
+  MAIN-0233 | The tide is out, Captain. Keep off the shallows, and the wrecks give up more at low water.
+
+### MAIN / hd
+  MAIN-0234 | Captain? You went quiet.
+
+### MAIN / R
+  MAIN-0235 | That red in the west... a front is coming in tomorrow afternoon, Captain. I would be in a harbour by then.
+
+### MAIN / tgt
+  MAIN-0236 | The crew came back empty-handed. Hold still!
+  MAIN-0237 | The tide is in. Wait for it to go out...
+  MAIN-0238 | Scraping the shovels clean...
+  MAIN-0239 | Fetching the spare shovel...
+  MAIN-0240 | Stop the ship completely (S)
+  MAIN-0241 | Stop the ship completely (S) to look closer
+  MAIN-0242 | [E] Look into the water
+  MAIN-0243 | Stop the ship completely (S) to look inside
+  MAIN-0244 | [E] Look into the cave
+  MAIN-0245 | Sail to the pier to go ashore
+  MAIN-0246 | [E] Knock on the dark hut
+  MAIN-0247 | [E] Study the ancient arch inscription
+  MAIN-0248 | Stop the ship to patch the torn sail
+  MAIN-0249 | Picked clean for today
+  MAIN-0250 | [E] Hail the pale ship
+  MAIN-0251 | Stop the ship completely (S) to go ashore
+
+### MAIN / pu
+  MAIN-0252 | Controller connected: stick to sail, A to interact, Y for the log, Start to pause.
+
+
+####################################################################################################
+## SOURCE WRL   (world.js): world text
+####################################################################################################
+
+### WRL / vr
+  WRL-0001 |  At noon, the arch points.
+
+
+####################################################################################################
+## SOURCE HLF   (harbourlife.js): residents, dishes, events, fragments, gossip
+####################################################################################################
+
+### HLF / DISHES
+  HLF-0001 | [classic] the ship feels lighter: a little more speed
+  HLF-0002 | [terraced] the crew set and reef the sails faster
+  HLF-0003 | [thatch] a caught gust lasts longer
+  HLF-0004 | [market] the canvas strains less in a gale
+  HLF-0005 | [farm] an extra handful when you pick fruit
+  HLF-0006 | [shrine] the lantern reaches further
+  HLF-0007 | [wreckers] the hull mends at sea, even in a storm
+
+### HLF / DISH_LINES
+  HLF-0008 | [pie] Flaky, hot, far too big. The cook watches you finish it.
+  HLF-0009 | [stew] Fish, onions, something green. It tastes of the morning catch.
+  HLF-0010 | [bread] Still warm. The honey comes from the terraces above the town.
+  HLF-0011 | [curry] Hot enough to make your eyes water. The crew ask for seconds.
+  HLF-0012 | [rum] It warms you right down to the keel.
+  HLF-0013 | [pepper] Beans, peppers, a little pork. Farmers' food: it stays with you.
+  HLF-0014 | [tea] Bitter as bark. Afterwards the lamps all seem a little brighter.
+  HLF-0015 | [pork] Salt enough to cure a sailor. The wreckers eat it standing up.
+
+### HLF / GAMES
+  HLF-0016 | [classic] repeat the peal on the bells (1-4)
+  HLF-0017 | [fishing] stop the shuttle on each hole (Space)
+  HLF-0018 | [terraced] power, then angle (Space)
+  HLF-0019 | [thatch] keep it in the band (A / D)
+  HLF-0020 | [market] bid or pass: guess what the lot is worth
+  HLF-0021 | [farm] throw as the arm swings over a coconut (Space)
+  HLF-0022 | [shrine] let go as the gap comes round (Space)
+  HLF-0023 | [wreckers] push on the beat (Space)
+
+### HLF / ARCS
+  HLF-0024 | You stow the loaf. It smells of aniseed.
+  HLF-0025 | Ode the baker sniffs Ada's loaf, eats half of it, and says nothing for a long time. Then she wraps one of her own for you. "Tell her nothing. Give her that."
+  HLF-0026 | Ode's loaf is still warm. It smells of aniseed too.
+  HLF-0027 | Ada tears into her sister's loaf. Her face does several things. "Hers is better," she says at last. "Do not tell her."
+  HLF-0028 | Ada is quiet all afternoon. She bakes twice as much as usual.
+  HLF-0029 | There are two names over the bakery door now: ADA & ODE. Ode came on the morning boat with her ovens. They argue all day and both seem very happy.
+  HLF-0030 | The bun is free. "For the postman," they say together.
+  HLF-0031 | Two names over the bakery door. They are still arguing.
+  HLF-0032 | A girl called Tilda is crying on the pier. Her dog Biscuit swam after a fishing boat yesterday and did not come back. "He goes where the boats go. Will you look?"
+  HLF-0033 | Tilda draws Biscuit for you: four legs, a lot of ears.
+  HLF-0034 | Biscuit sits in the bow the whole way, barking at the waves.
+  HLF-0035 | Biscuit is over the side and up the pier before you have tied up. Tilda sits down on the planks and holds on to him and does not let go.
+  HLF-0036 | Her mother presses a few coins into your hand.
+  HLF-0037 | Biscuit barks at the Merry Gull from the end of the pier, every time, until you step ashore. Tilda has taught him to sit. He mostly does not.
+  HLF-0038 | Biscuit leans against your leg like a sack of wet flour.
+  HLF-0039 | Biscuit barks from the end of the pier until you are ashore.
+  HLF-0040 | Ines keeps a lamp lit at the end of the pier for her husband Tomas, out on the Little Wren. "Nineteen days late. He is never late. The lamp must not go out." She is nearly out of oil.
+  HLF-0041 | She fills the lamp with careful hands, and thanks you without looking away from the sea.
+  HLF-0042 | The scarf smells of tar and of someone else's house.
+  HLF-0043 | You fold the scarf. You are not sure what you will tell her.
+  HLF-0044 | The lamp at the end of the pier is cold. Ines's door is open and the beds are made. On the table, two cups, both still warm.
+  HLF-0045 | You leave the scarf on the table, next to the cups.
+  HLF-0046 | Ines's lamp is dark. Nobody lights it, and nobody takes it down.
+  HLF-0047 | A boy called Pim is building a boat out of driftwood on the beach. It is mostly holes. "I need nails. The smith takes fruit."
+  HLF-0048 | Pim runs off with the fruit and comes back with a fistful of bent nails.
+  HLF-0049 | The boat has a bottom now. "Gran says the first fish goes in the hull, for luck. I have never caught a fish."
+  HLF-0050 | Pim nails the fish to the inside of the hull, very seriously.
+  HLF-0051 | Pim is painting a name on the bow in big red letters: MERRY GULL II. "So she knows where she is going."
+  HLF-0052 | Pim stands back and looks at it for a long time.
+  HLF-0053 | Launch day. Pim's boat floats. It leaks, and he bails with one hand and waves with the other all the way round the pier and back.
+  HLF-0054 | The whole pier cheers. Pim pretends not to hear.
+  HLF-0055 | Pim's little boat is out again. It leaks. He bails and waves.
+  HLF-0056 | Old Sabe keeps the harbour light, though he can barely see it any more. "Oil, captain, if you have it. The light goes on whether I see it or not."
+  HLF-0057 | He fills the lamp by feel, not spilling a drop.
+  HLF-0058 | "Sail past the light one night," Sabe says. "Close in. I want to hear a ship go by again."
+  HLF-0059 | Sabe is on the steps in the dark when you tie up. "I heard you go by. The gulls told me. They tell me where everyone has been." He gives you a lens from his old glass.
+  HLF-0060 | The lens is scratched, and very clear.
+  HLF-0061 | A girl keeps the light now. Sabe sits on the steps facing the sea with his eyes shut. "I see it better like this," he says, and tells you where you sailed yesterday.
+  HLF-0062 | He is right about every island.
+  HLF-0063 | Sabe sits on the steps with his eyes shut, and knows where you have been.
+  HLF-0064 | Lune hums the tune until you have it.
+  HLF-0065 | You keep the words in your head the whole way back.
+  HLF-0066 | You give Lune the words. She sings the whole song for the first time: a table by the water, someone who keeps the count, and everyone asleep. She stops. "That is not how I remember it ending."
+  HLF-0067 | The quay is very quiet.
+  HLF-0068 | At dusk the whole village sings Lune's song, all the way to the end. Lune does not. She says she never knew the words before, and hums something else.
+  HLF-0069 | You find you know all the words.
+  HLF-0070 | At dusk they sing Lune's song to the end. Lune hums something else.
+  HLF-0071 | The ribbon is blue, with her name sewn on it.
+  HLF-0072 | You keep the box somewhere very safe.
+  HLF-0073 | Marisol opens the box, laughs, cries, and puts it on the wrong finger. "Come to the wedding. It is on our festival day."
+  HLF-0074 | Come back on the festival day.
+  HLF-0075 | A wedding on the festival day: flowers on the pier, a cake on a cart, Teo in a coat that is too big. Marisol throws her bouquet, and the crew catch it.
+  HLF-0076 | You dance badly and are cheered for it.
+  HLF-0077 | Marisol and Teo wave from a blue house above the pier.
+  HLF-0078 | [counter] Corvo who counts ships
+  HLF-0079 | A man called Corvo stands on the pier with a stick of chalk, writing every ship that comes in on the harbour wall. "Name?" He writes MERRY GULL, very neatly.
+  HLF-0080 | Corvo nods and turns back to the sea.
+  HLF-0081 | Corvo has filled most of the wall. "Busy week," he says, and writes MERRY GULL again.
+  HLF-0082 | He looks at the wall, then at you. "Twice. Yes."
+  HLF-0083 | Your ship's name is on the wall three times now. One of them is dated next week. Corvo will not look at you.
+  HLF-0084 | Most of the ships on the wall you have never heard of. Two you have.
+  HLF-0085 | The wall has been washed clean. There is a new man on the pier with a stick of chalk. "Name?" he says.
+  HLF-0086 | He writes MERRY GULL, very neatly.
+  HLF-0087 | A man on the pier writes every ship on the wall in chalk. The wall is washed every week.
+
+### HLF / block
+  HLF-0088 | Come back another day.
+  HLF-0089 | needs a fish from your hold
+
+### HLF / GOSSIP
+  HLF-0090 | [raider] You sent a Brotherhood ship to the bottom, they say. Drinks are on the house. One drink.
+  HLF-0091 | [raider] Heard about the raider. The Reef Brotherhood heard too, captain. Mind yourself.
+
+### HLF / FRAG_BY_STYLE
+  HLF-0092 | [classic] The bell's inscription
+  HLF-0093 | [classic] Cut round the rim of the old bell, worn almost smooth: RUNG FOR THE ONE WHO SLEEPS. RING SOFTLY.
+  HLF-0094 | [fishing] An old fisher's story
+  HLF-0095 | [fishing] An old fisher says his grandfather rowed out one calm night to a little black house on the water, and played a game at a table with a woman who never said a word. He won. The fish came back that year.
+  HLF-0096 | [terraced] A painting on the terrace wall
+  HLF-0097 | [terraced] Painted along the terrace wall, older than the houses: the sea drawn as a closed eye, the horizon its lid, and a tiny house sitting on the lid.
+  HLF-0098 | [thatch] A children's counting rhyme
+  HLF-0099 | [thatch] Children skipping on the beach: "One for the gull and two for the bell, three for the one who keeps the sea well... nineteen, twenty, and all of us sleep." They start again at one.
+  HLF-0100 | [market] An old woman at the market sells dice, all of them twenty-sided, every one missing a different number. "She would like them back," she says, and does not say who.
+  HLF-0101 | [farm] The eggs come wrapped in an old ledger page: two columns, a date and a number from one to twenty, going back two hundred years. The last line is dated next month.
+  HLF-0102 | [shrine] A carving over the shrine door
+  HLF-0103 | [shrine] Carved over the shrine door: a woman at a table, a die with too many faces. Scratched underneath, later and by another hand: SHE COUNTS SO WE DO NOT HAVE TO.
+  HLF-0104 | [wreckers] A figurehead on the beach
+  HLF-0105 | [wreckers] An old figurehead stands in the sand: a woman holding a die. The wreckers touch it for luck before they go out. They touch the die. Never her face.
+
+### HLF / FRAG_SPARE
+  HLF-0106 | A note in the tavern's rafters
+  HLF-0107 | Tucked in the rafters, in a careful hand: "Low numbers tonight. Bar the doors. Do not look at the water until she throws again."
+  HLF-0108 | The innkeeper always sets one more place than there are guests, at the end of the table nearest the sea. "For the one who is up all night," she says, as if that explains it.
+  HLF-0109 | An old sailor shows you a tattoo on his wrist: a single die, showing twenty. "So she knows I am on her side," he says, and pulls his sleeve down.
+  HLF-0110 | A sign on the harbour wall
+  HLF-0111 | A painted sign by the pier, very old: QUIET AFTER DARK. SHE IS COUNTING.
+
+
+####################################################################################################
+## SOURCE LGM   (localgames.js): tavern games
+####################################################################################################
+
+### LGM / g
+  LGM-0001 | Watch the peal, then ring it back on the bells: 1, 2, 3, 4.
+  LGM-0002 | The shuttle runs along the torn line: press Space as it crosses the gold hole.
+  LGM-0003 | Space to set the power, Space again to set the angle. Low and fast skips best. Three throws.
+  LGM-0004 | Gusts push the kite about: hold A and D to keep it in the gold band for 20 seconds.
+  LGM-0005 | The arm swings: press Space as it points at a coconut. Five balls.
+  LGM-0006 | Let a lantern go with Space: the current carries it up to the rocks. It must pass the gap. Six lanterns.
+  LGM-0007 | Push with Space on the beat (when the ring closes). Off the beat you lose your grip.
+  LGM-0008 | Your knuckles meet the table. The wreckers cheer, for him. 
+  LGM-0009 | Neither of you gives in. He shakes your hand, hard.
+  LGM-0010 | His arm goes down! The whole beach shouts.
+
+
+
+################################################################################################
+# K  WRITER'S LOG
+################################################################################################
+K1 OPEN QUESTIONS [fill in; I will ask about every ?? first]
+   - What is Mara?                                                     (empty)  ??
+   - What is the whole old story the fragments tell?                    (empty)  ??
+   - What does the Lady want from the player in Act 3?                  (empty)  ??
+   - Who sails the Pained Raven?                                        (empty)  ??
+   - Which regions get which threads?                                   (empty)  ??
+K2 DECISIONS (add the date)
+   - (empty)
+K3 NEXT TO IMPLEMENT, IN THIS ORDER
+   1. (empty)
+K4 SUGGESTION FROM THE ASSISTANT (delete if unwanted)
+   Fill part F first: three places per region with a different dread stage each (one near, one middle, one far), so each
+   region has a story you can only see by going there. Then link at most one thread to each region.
+

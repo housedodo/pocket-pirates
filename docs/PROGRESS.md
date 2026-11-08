@@ -805,3 +805,8 @@ up; the chosen one (D) is built in the game's own style:
 - **Easier to see:** crests catch the light and troughs sink into shade (in the toon look and the default chop look), and the highest crests get a pale lip. The swell keeps the slower pace from the calmer-water change.
 - The ship rides the taller swell (pitch and roll follow `waveHeight`). If it feels too lively, lower `OPEN_SEA` (1.5 is a good middle).
 
+## The master story file
+- `docs/STORY_MASTER.txt` (built by `python3 scripts/story_export.py`) is the file the writer edits and uploads again. Parts: A how to use (IDs, status marks, how to add, delete, move), B premise and rules, C cast, D structure (dread, chapters, acts), E main quest (every goal), F the world atlas (how places are found, the five regions with story slots, the hand-made places, harbours, open slots), G threads and side seeds, H endings, I systems that carry story, J every in-game line (1227, each with a stable ID such as OBJ-0001), K writer's log.
+- **Import:** the edited upload is diffed against the file in git by ID; changed lines go into the source file named by the ID's code (OBJ objectives.js, PAS passengers.js, ...). Lines marked `??` are asked about first.
+- The line list (part J) is read from `docs/STORY_AND_DIALOGUE.txt`; if lines in code change, re-pull that file first.
+
