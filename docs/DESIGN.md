@@ -28,6 +28,7 @@ If the game outgrows the browser, the design, generators and shaders port over; 
 | `sectors.js` | 550-unit sectors, each with a name and a faction (Crown Traders, Free Cays, Reef Brotherhood, Lantern Guild; The Drowned far out). Ships wear their sector's colours |
 | `logbook.js` | The tabbed captain's log, incl. the hand-inked low-poly parchment map (pan, zoom, sectors, rumours, job flag) |
 | `ship.js` | Procedural ship, wind-based sailing model, upgrade modifiers, wake, lantern glow |
+| `float.js` | How every hull floats on the swell: plane fit under the hull, buoyant heave that follows the water's speed, limited pitch and roll |
 | `wind.js` | Wandering wind: big heading swings over minutes + gusts, announced when it shifts |
 | `daynight.js` | Day/night layered on the dread palette (11.5 min per day: 7.5 min daylight, 4 min night): sun, moon, stars, dusk colours, light level |
 | `upgrades.js` | 5 ship upgrades x 3 levels (sails, rudder, lantern, spyglass, crew), costs and effects |

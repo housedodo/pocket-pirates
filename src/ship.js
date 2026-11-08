@@ -3,6 +3,7 @@ import { Builder } from './builder.js';
 import { TILE } from './textures.js';
 import { mats } from './psx.js';
 import { waveHeight } from './ocean.js';
+import { hullWater, rideWaves } from './float.js';
 import { clamp, lerp, smoothstep, angleDiff } from './util.js';
 import { computeMods } from './upgrades.js';
 import { HULLS, SAILS, FLAGS, byId, DEFAULT_CUSTOM } from './customize.js';
@@ -439,22 +440,20 @@ export class Ship {
     const h = this.heading;
     const fx = Math.sin(h), fz = -Math.cos(h), rx = Math.cos(h), rz = Math.sin(h);
     const p = this.pos;
-    const wh = (ox, oz) => waveHeight(p.x + fx * oz * -1 + rx * ox, p.z + fz * oz * -1 + rz * ox, t, wave);
-    const bow = wh(0, -2.6), stern = wh(0, 2.6), right = wh(1.3, 0), left = wh(-1.3, 0);
-    // the water's shape under the hull, and the forces on it: the bow rides up with speed and nods when the ship speeds up
-    // or slows down; the wind in the sails heels it over; a turn leans it out; at speed it sits a little lower (squat)
+    // the water under the hull: mean height, slope along and across (see float.js); the hull floats on it with a stiff buoyant spring
+    const w = hullWater(p.x, p.z, h, t, wave);
     const sp = clamp(this.speed / MAX_SPEED, 0, 1.3), dtc = Math.min(dt, 0.05);
-    this.slope = (bow - stern) / 5.2;
+    this.slope = w.along;   // + = the bow is uphill: the ship slows going up a face and speeds up going down it (ship.js speed)
     const acc = dtc > 0 ? (this.speed - (this.lastSpeed ?? this.speed)) / dtc : 0; this.lastSpeed = this.speed;
     this.accS = (this.accS || 0) + (acc - (this.accS || 0)) * Math.min(1, dtc * 4);
-    const tPitch = Math.atan2(bow - stern, 5.2) * 0.85 + 0.05 * sp + clamp(this.accS * 0.03, -0.06, 0.06);
-    const tRoll = Math.atan2(right - left, 2.6) * 0.8 - Math.sin(this.rel || 0) * 0.16 * (this.eff ?? 1) * this.trim - this.rudder * 0.18 * sp;
-    const tY = (bow + stern + right + left) / 4 + 0.12 - 0.08 * sp;
-    // a heavy hull: it follows the water through springs, lags behind the waves and settles with a little overshoot
-    const F = this.float || (this.float = { y: tY, vy: 0, p: tPitch, vp: 0, r: tRoll, vr: 0 });
-    const spring = (key, vkey, target, w, z) => { const a = w * w * (target - F[key]) - 2 * z * w * F[vkey]; F[vkey] += a * dtc; F[key] += F[vkey] * dtc; };
-    if (dtc > 0) { spring('y', 'vy', tY, 3.4, 0.5); spring('p', 'vp', tPitch, 2.8, 0.45); spring('r', 'vr', tRoll, 2.3, 0.4); }
-    if (Math.abs(F.y - tY) > 3) { F.y = tY; F.vy = 0; }   // after a teleport
+    // on top of the water's shape: the bow rides up with speed and nods when the ship speeds up or slows down; the wind in the sails
+    // heels it over; a turn leans it out; at speed it sits a little lower (squat)
+    const F = this.float || (this.float = {});
+    rideWaves(F, w, dt, {
+      lift: 0.12 - 0.08 * sp,
+      pitch: 0.05 * sp + clamp(this.accS * 0.03, -0.06, 0.06),
+      roll: -Math.sin(this.rel || 0) * 0.16 * (this.eff ?? 1) * this.trim - this.rudder * 0.18 * sp,
+    });
     this.root.position.set(p.x, F.y, p.z);
     this.root.rotation.set(F.p, -h, F.r);
     // the bow slams into a trough at speed: spray thrown up at the bow

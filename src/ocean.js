@@ -20,6 +20,8 @@ export function shoreAt(x, z) {
 /** wave size by how far land is: low and gentle by islands and harbours (0.35), normal ~120 out, big in the open sea (1.7, 260+ from any land) */
 /** How much taller the open sea rises and falls than before (1 = the old height). Near land it stays as it was, so piers and shores keep their levels. */
 export const OPEN_SEA = 2.0;
+/** the swell is eased above this height (units): a storm in the far sea still rolls but cannot bury a ship in a 30-unit trough */
+export const SWELL_CAP = 9;
 export function seaScale(x, z) {
   let near = 0;
   for (const [ix, iz, r] of WATER.isl) near = Math.max(near, 1 - sstep(15, 260, Math.hypot(x - ix, z - iz) - r * 1.1));
@@ -35,19 +37,27 @@ export const SWELL_SPEED = 0.5;
 export function waveHeight(x, z, t, amp = 1) {
   t *= SWELL_SPEED;
   const r = WATER.rough, k = 1.2 + 1.0 * r;                                           // the warp bends the crests more as the sea gets rough
-  const px = x + k * wsin(0.07 * z + 0.31 * t), pz = z + k * wsin(0.06 * x - 0.27 * t + 2.0);
-  const sw = 0.30 * wsin(0.30 * px + 0.20 * pz + W * t) + 0.18 * wsin(-0.25 * px + 0.38 * pz + 2 * W * t) + 0.07 * wsin(0.8 * px - 0.6 * pz + 3 * W * t) + 0.05 * wsin(1.6 * px + 1.2 * pz + 4 * W * t);
+  // a second, shorter warp makes the crests meander instead of running dead straight
+  const k2 = 1.1 + 0.6 * r;
+  const px = x + k * wsin(0.07 * z + 0.31 * t) + k2 * wsin(0.19 * z + 0.13 * x + 0.41 * t + 1.0), pz = z + k * wsin(0.06 * x - 0.27 * t + 2.0) + k2 * wsin(0.17 * x - 0.11 * z - 0.36 * t + 4.0);
+  // patches: each wave train is taller in some stretches and lower in others (about 30 units across), so neighbouring crests differ and no line of waves is the same all along
+  // (each varies mostly ALONG its own crests: pa along the first train's crest line, pb the second's, pc the third's)
+  const pa = 0.85 + 0.5 * wsin(-0.058 * x + 0.088 * z + 0.11 * t + 0.7) + 0.2 * wsin(0.05 * x + 0.04 * z - 0.09 * t + 2.1);
+  const pb = 0.85 + 0.5 * wsin(0.088 * x + 0.058 * z - 0.13 * t + 3.3) + 0.2 * wsin(0.03 * x - 0.06 * z + 0.08 * t + 5.0);
+  const pc = 0.85 + 0.5 * wsin(0.066 * x + 0.088 * z + 0.10 * t + 1.9) + 0.2 * wsin(-0.05 * x + 0.04 * z - 0.12 * t + 0.2);
+  const sw = 0.30 * pa * wsin(0.30 * px + 0.20 * pz + W * t) + 0.18 * pb * wsin(-0.25 * px + 0.38 * pz + 2 * W * t) + 0.07 * pc * wsin(0.8 * px - 0.6 * pz + 3 * W * t) + 0.05 * wsin(1.6 * px + 1.2 * pz + 4 * W * t);
   const E = 1 - (0.2 + 0.4 * r) * (0.5 - 0.5 * wsin(0.021 * x - 0.017 * z + 0.21 * t + 1) * wsin(0.013 * x + 0.019 * z - 0.17 * t));   // sets of bigger and smaller waves
   let h = 0;
   if (r > 0.001) {
-    h = 0.41 * wsin(0.20 * px + 0.13 * pz + WR * t) + 0.285 * wsin(-0.17 * px + 0.24 * pz + WR * t + 1.3) + 0.15 * wsin(0.45 * px - 0.30 * pz + 2 * WR * t + 0.4) + 0.105 * wsin(0.31 * px + 0.52 * pz + 1.32 * WR * t + 2.1)
-      + 0.075 * wsin(-0.62 * px + 0.18 * pz + 2.7 * WR * t + 4.0) + 0.05 * wsin(0.9 * px + 0.7 * pz + 3.3 * WR * t + 5.2) + 0.2 * wsin(0.083 * px - 0.11 * pz + 0.65 * WR * t + 0.7);
+    h = 0.41 * pa * wsin(0.20 * px + 0.13 * pz + WR * t) + 0.285 * pb * wsin(-0.17 * px + 0.24 * pz + WR * t + 1.3) + 0.15 * pc * wsin(0.45 * px - 0.30 * pz + 2 * WR * t + 0.4) + 0.105 * pb * wsin(0.31 * px + 0.52 * pz + 1.32 * WR * t + 2.1)
+      + 0.075 * pa * wsin(-0.62 * px + 0.18 * pz + 2.7 * WR * t + 4.0) + 0.05 * pc * wsin(0.9 * px + 0.7 * pz + 3.3 * WR * t + 5.2) + 0.2 * wsin(0.083 * px - 0.11 * pz + 0.65 * WR * t + 0.7);
     h *= E; h += 0.28 * h * Math.abs(h);
   }
   // sets: a slow travelling pattern of bigger and smaller waves (about 0.5x to 1.45x), so even a calm sea is never even
   const G = (0.5 + 0.5 * wsin(0.031 * x + 0.017 * z - 0.45 * t)) * (0.6 + 0.4 * wsin(0.013 * x - 0.021 * z + 0.3 * t + 2.0));
   const big = 0.22 * wsin(0.11 * px + 0.07 * pz + 0.6 * W * t) * G;   // a longer swell that rolls through with the big sets
-  return amp * ((sw + big) * (1 - r) * (0.5 + 0.95 * G) + h * r) * seaScale(x, z);
+  const H = amp * ((sw + big) * (1 - r) * (0.5 + 0.95 * G) + h * r) * seaScale(x, z);
+  return H / Math.sqrt(1 + (H / SWELL_CAP) * (H / SWELL_CAP));   // the very biggest swells are eased (never above about 9), calm and middle seas are untouched
 }
 
 const GLSL_SHORE = /* glsl */`
@@ -61,18 +71,23 @@ const float WS = 1.2566371; const float WRL = 0.6283185;
 float waveH(vec2 p){
   float t = uTime * ${SWELL_SPEED.toFixed(2)};
   float k = 1.2 + 1.0 * uRough;
-  vec2 q = p + k * vec2(sin(0.07 * p.y + 0.31 * t), sin(0.06 * p.x - 0.27 * t + 2.0));
-  float sw = 0.30 * sin(0.30 * q.x + 0.20 * q.y + WS * t) + 0.18 * sin(-0.25 * q.x + 0.38 * q.y + 2.0 * WS * t) + 0.07 * sin(0.8 * q.x - 0.6 * q.y + 3.0 * WS * t) + 0.05 * sin(1.6 * q.x + 1.2 * q.y + 4.0 * WS * t);
+  float k2 = 1.1 + 0.6 * uRough;
+  vec2 q = p + k * vec2(sin(0.07 * p.y + 0.31 * t), sin(0.06 * p.x - 0.27 * t + 2.0)) + k2 * vec2(sin(0.19 * p.y + 0.13 * p.x + 0.41 * t + 1.0), sin(0.17 * p.x - 0.11 * p.y - 0.36 * t + 4.0));
+  float pa = 0.85 + 0.5 * sin(-0.058 * p.x + 0.088 * p.y + 0.11 * t + 0.7) + 0.2 * sin(0.05 * p.x + 0.04 * p.y - 0.09 * t + 2.1);
+  float pb = 0.85 + 0.5 * sin(0.088 * p.x + 0.058 * p.y - 0.13 * t + 3.3) + 0.2 * sin(0.03 * p.x - 0.06 * p.y + 0.08 * t + 5.0);
+  float pc = 0.85 + 0.5 * sin(0.066 * p.x + 0.088 * p.y + 0.10 * t + 1.9) + 0.2 * sin(-0.05 * p.x + 0.04 * p.y - 0.12 * t + 0.2);
+  float sw = 0.30 * pa * sin(0.30 * q.x + 0.20 * q.y + WS * t) + 0.18 * pb * sin(-0.25 * q.x + 0.38 * q.y + 2.0 * WS * t) + 0.07 * pc * sin(0.8 * q.x - 0.6 * q.y + 3.0 * WS * t) + 0.05 * sin(1.6 * q.x + 1.2 * q.y + 4.0 * WS * t);
   float E = 1.0 - (0.2 + 0.4 * uRough) * (0.5 - 0.5 * sin(0.021 * p.x - 0.017 * p.y + 0.21 * t + 1.0) * sin(0.013 * p.x + 0.019 * p.y - 0.17 * t));
   float h = 0.0;
   if (uRough > 0.001) {
-    h = 0.41 * sin(0.20 * q.x + 0.13 * q.y + WRL * t) + 0.285 * sin(-0.17 * q.x + 0.24 * q.y + WRL * t + 1.3) + 0.15 * sin(0.45 * q.x - 0.30 * q.y + 2.0 * WRL * t + 0.4) + 0.105 * sin(0.31 * q.x + 0.52 * q.y + 1.32 * WRL * t + 2.1)
-      + 0.075 * sin(-0.62 * q.x + 0.18 * q.y + 2.7 * WRL * t + 4.0) + 0.05 * sin(0.9 * q.x + 0.7 * q.y + 3.3 * WRL * t + 5.2) + 0.2 * sin(0.083 * q.x - 0.11 * q.y + 0.65 * WRL * t + 0.7);
+    h = 0.41 * pa * sin(0.20 * q.x + 0.13 * q.y + WRL * t) + 0.285 * pb * sin(-0.17 * q.x + 0.24 * q.y + WRL * t + 1.3) + 0.15 * pc * sin(0.45 * q.x - 0.30 * q.y + 2.0 * WRL * t + 0.4) + 0.105 * pb * sin(0.31 * q.x + 0.52 * q.y + 1.32 * WRL * t + 2.1)
+      + 0.075 * pa * sin(-0.62 * q.x + 0.18 * q.y + 2.7 * WRL * t + 4.0) + 0.05 * pc * sin(0.9 * q.x + 0.7 * q.y + 3.3 * WRL * t + 5.2) + 0.2 * sin(0.083 * q.x - 0.11 * q.y + 0.65 * WRL * t + 0.7);
     h *= E; h += 0.28 * h * abs(h);
   }
   float G = (0.5 + 0.5 * sin(0.031 * p.x + 0.017 * p.y - 0.45 * t)) * (0.6 + 0.4 * sin(0.013 * p.x - 0.021 * p.y + 0.3 * t + 2.0));   // sets of bigger and smaller waves
   float big = 0.22 * sin(0.11 * q.x + 0.07 * q.y + 0.6 * WS * t) * G;
-  return uWave * (mix((sw + big) * (0.5 + 0.95 * G), h, uRough)) * (0.35 + 1.35 * ${OPEN_SEA.toFixed(2)} * (1.0 - landNear(p)));   // low by land, big in the open sea
+  float Hh = uWave * (mix((sw + big) * (0.5 + 0.95 * G), h, uRough)) * (0.35 + 1.35 * ${OPEN_SEA.toFixed(2)} * (1.0 - landNear(p)));   // low by land, big in the open sea
+  return Hh * inversesqrt(1.0 + (Hh / ${SWELL_CAP.toFixed(1)}) * (Hh / ${SWELL_CAP.toFixed(1)}));   // the very biggest swells are eased (same as the CPU)
 }`;
 const GLSL_WAVE = GLSL_WAVEFN + '\nvarying vec3 vWP;';
 

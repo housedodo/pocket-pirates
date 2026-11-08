@@ -4,6 +4,7 @@ import { Builder } from './builder.js';
 import { TILE } from './textures.js';
 import { mats, psxMaterial, getAtlas } from './psx.js';
 import { waveHeight } from './ocean.js';
+import { hullWater, rideWaves } from './float.js';
 import { Wake } from './wake.js';
 import { angleDiff, lerp, clamp, hash2 } from './util.js';
 import { sectorAt, FACTIONS } from './sectors.js';
@@ -256,15 +257,11 @@ export class Traffic {
       if (dist > 390) { this.scene.remove(s.root); if (s.wake) s.wake.dispose(this.scene); this.ships.splice(i, 1); continue; }
 
       const fx = Math.sin(s.heading), fz = -Math.cos(s.heading), rx = Math.cos(s.heading), rz = Math.sin(s.heading);
-      const wh = (ox, oz) => waveHeight(s.x + rx * ox + fx * -oz, s.z + rz * ox + fz * -oz, t, wave);
-      const bow = wh(0, -2.4), stern = wh(0, 2.4), right = wh(1.2, 0), left = wh(-1.2, 0);
       const rel = angleDiff(s.heading, wind.dir), sgn = rel >= 0 ? 1 : -1;
-      // the same weighted float as the player's ship: it lags the waves on springs, heels with the wind and squats at speed
-      const sp = clamp(s.speed / 10, 0, 1.2), dtc = Math.min(dt, 0.05);
-      const tY = (bow + stern + right + left) / 4 + 0.1 - 0.06 * sp, tP = Math.atan2(bow - stern, 4.8) * 0.85 + 0.04 * sp, tR = Math.atan2(right - left, 2.4) * 0.8 - Math.sin(rel) * 0.12 * (s.mode === 'derelict' ? 0.2 : 1);
-      const F = s.float || (s.float = { y: tY, vy: 0, p: tP, vp: 0, r: tR, vr: 0 });
-      const spring = (k, vk, tg, w, z) => { F[vk] += (w * w * (tg - F[k]) - 2 * z * w * F[vk]) * dtc; F[k] += F[vk] * dtc; };
-      if (dtc > 0) { spring('y', 'vy', tY, 3.0, 0.5); spring('p', 'vp', tP, 2.5, 0.45); spring('r', 'vr', tR, 2.1, 0.4); }
+      // the same floating as the player's ship (float.js): a stiff buoyant spring that follows the water, heels with the wind, squats at speed
+      const sp = clamp(s.speed / 10, 0, 1.2);
+      const F = s.float || (s.float = {});
+      rideWaves(F, hullWater(s.x, s.z, s.heading, t, wave, 4.8 * K.scale, 2.4 * K.scale), dt, { lift: 0.1 - 0.06 * sp, pitch: 0.04 * sp, roll: -Math.sin(rel) * 0.12 * (s.mode === 'derelict' ? 0.2 : 1) });
       s.root.position.set(s.x, F.y, s.z);
       s.root.rotation.set(F.p, -s.heading, F.r);
       // and its own wake (only for ships near enough to see it)
