@@ -16,7 +16,7 @@ const SPEAKERS = {
   fiddler: { name: 'A fiddler outside the tavern', H: '#2a1608', S: '#e8b88a', C: '#4e6a26', A: '#c9a85c', beard: '#2a1608', when: ['evening'] },
   lamplighter: { name: 'The lamplighter', H: '#3a3448', S: '#c98e64', C: '#5a5a62', A: '#ffd060', when: ['evening', 'night'] },
   watchman: { name: 'The night watchman', H: '#2a2a30', S: '#c98e64', C: '#3a3a48', A: '#ffd060', beard: '#4a4048', when: ['night'] },
-  someone: { name: 'Someone on the pier', H: '#0a0810', S: '#14101c', C: '#0a0810', A: '#0a0810', when: [], eyes: '#d8d0e0', mouth: '#14101c' },
+  someone: { name: 'A diver on the pier', H: '#a0602f', S: '#5f8068', C: '#242a24', A: '#b8934a', beard: '#c4723a', when: [], pal: { o: '#1a0f08', E: '#0b0f13', W: '#cfe0e4' } },   // the diver: rusted copper, verdigris, a cracked dark glass
 };
 export const speakerName = (id) => SPEAKERS[id].name;
 export const SPEAKER_IDS = Object.keys(SPEAKERS);

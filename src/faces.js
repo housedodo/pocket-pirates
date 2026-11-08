@@ -1,7 +1,7 @@
 // Villager portraits: 16x16 pixel art, shown at 64px (4 CSS px per pixel, the world's pixel size).
 // Each speaker has a hand-drawn template: an outline, skin with a shaded side and a light side, eyes with whites,
 // brows, a nose shadow, a mouth, and their own hair, hat, beard and clothes. Skin and clothes shading is posterised
-// (no gradients). "Someone on the pier" stays a black shape with pale eyes, one of them a pixel too low.
+// (no gradients). "Someone on the pier" is the diver: a rusted copper helmet with a cracked front glass and a missing side pane.
 //
 // Legend: . clear   o outline   S skin  s skin shade  L skin light  R cheek   W eye white  E pupil   B brow
 //         H hair/hat  h its shade  G its shine    X beard  x beard shade   M mouth  T teeth
@@ -206,23 +206,23 @@ const T = {
     '.oCCCACCCCACCcFA',
     '.oCCCCCCCCCCccoF',
   ],
-  someone: [
-    '................',
+  someone: [   // the diver: a copper helmet, rusted, the front glass cracked, one side pane gone, a breastplate with brass bolts
     '................',
     '.....oooooo.....',
-    '....oooooooo....',
-    '...oooooooooo...',
-    '...oooooooooo...',
-    '...oooooooooo...',
-    '..ooooWoooooooo.',
-    '..oooooooooWooo.',
-    '...oooooooooo...',
-    '...oooooooooo...',
-    '....oooooooo....',
-    '.....oooooo.....',
-    '...oooooooooo...',
-    '..oooooooooooo..',
-    '..oooooooooooo..',
+    '....oHGGHHHo....',
+    '...oHGHHHSHHo...',
+    '..oHHHHHXXHHho..',
+    '..oHAhAhAhAhho..',
+    '..oHAEEEEEEAho..',
+    '..oEAEWEEEEAho..',
+    '..oEAEEWEEEAho..',
+    '..oHAEEEWEEAho..',
+    '..oHAEEEEEEAho..',
+    '..oHAhAhAhAhho..',
+    '...oxXxXXxxo....',
+    '.ooCCCAAAACCCoo.',
+    '.oCCcCXxXxXCcCo.',
+    '.oCcCCXxCCXCcCo.',
   ],
 };
 
@@ -245,6 +245,7 @@ function palette(sp) {
     X: sp.beard || shade(sp.H, 0.95), x: shade(sp.beard || sp.H, 0.72),
     M: sp.mouth || '#7a3a2a', T: '#f4ead0',
     C: sp.C, c: shade(sp.C, 0.72), A: sp.A, P: '#6b4a2e', F: '#ffd060',
+    ...(sp.pal || {}),   // per-speaker colour overrides (the diver's glass and cracks)
   };
 }
 
