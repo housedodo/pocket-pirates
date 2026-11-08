@@ -5,10 +5,13 @@ import { smoothstep, lerp } from './util.js';
 export const DAY_LENGTH = 600; // real seconds per full day (10 minutes)
 // Uneven pacing: daylight (06:00-19:00) takes 7.5 minutes, the night (19:00-06:00) only 2.5.
 export const DAY_START = 6, DAY_END = 19, DAY_SECONDS = 450, NIGHT_SECONDS = DAY_LENGTH - DAY_SECONDS;
-/** in-game hours that pass per real second at time t (0..1) */
+/** in-game hours that pass per real second at time t (0..1). The pace eases between day and night over
+ *  two hours either side of 06:00 and 19:00 (blended in seconds per hour, so a day is still exactly DAY_LENGTH). */
+const SPH_DAY = DAY_SECONDS / (DAY_END - DAY_START), SPH_NIGHT = NIGHT_SECONDS / (24 - DAY_END + DAY_START), PACE_EASE = 2;
 export function hoursPerSecond(t) {
   const h = (((t % 1) + 1) % 1) * 24;
-  return h >= DAY_START && h < DAY_END ? (DAY_END - DAY_START) / DAY_SECONDS : (24 - DAY_END + DAY_START) / NIGHT_SECONDS;
+  const d = smoothstep(DAY_START - PACE_EASE, DAY_START + PACE_EASE, h) - smoothstep(DAY_END - PACE_EASE, DAY_END + PACE_EASE, h);
+  return 1 / (SPH_NIGHT + (SPH_DAY - SPH_NIGHT) * d);
 }
 /** advance the clock by dt real seconds */
 export const advanceTime = (t, dt) => (t + (hoursPerSecond(t) * dt) / 24) % 1;
@@ -31,9 +34,9 @@ export function clockString(t) {
 /** Mutates the (per-frame) dread stage so everything downstream just works. */
 export function applyTimeOfDay(stage, t, dread) {
   const sh = Math.sin((t - 0.25) * Math.PI * 2);
-  const day = smoothstep(-0.2, 0.3, sh);
+  const day = smoothstep(-0.5, 0.55, sh);   // wide on purpose: dusk about 90 s, dawn about 75 s, never a sudden dark
   const night = 1 - day;
-  const twi = Math.max(0, 1 - Math.abs(sh + 0.02) / 0.32);
+  const twi = Math.max(0, 1 - Math.abs(sh + 0.02) / 0.5);
   const nm = night * (1 - 0.5 * dread);
   const tw = twi * (1 - 0.6 * dread);
 

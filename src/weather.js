@@ -49,7 +49,7 @@ export class Weather {
       cloud: smoothstep(0.4, 0.62, n1),
       rain: smoothstep(0.55, 0.68, n1) * rainMul,
       storm: smoothstep(0.64, 0.76, n1) * stormMul,
-      fog: smoothstep(0.6, 0.78, n2) * fogMul,
+      fog: smoothstep(0.5, 0.82, n2) * fogMul,
     };
     if (!this.force && this.front > 0) {   // the front: cloud first, then rain, then the blow
       target.cloud = Math.max(target.cloud, Math.min(1, this.front * 1.4)); target.rain = Math.max(target.rain, this.front * 0.85); target.storm = Math.max(target.storm, this.front * 0.95);
@@ -65,8 +65,15 @@ export class Weather {
     this.stormAhead = Math.max(smoothstep(0.62, 0.74, ahead) * stormMul, this.frontAhead * 0.9);
     const dusk = tod.twilight || 0;
     this.redSky += ((this.stormAhead > 0.3 && this.storm < 0.2 ? dusk : 0) - this.redSky) * Math.min(1, dt * 0.5);
-    const k = Math.min(1, dt * 0.35);
-    for (const key of Object.keys(target)) this[key] += (target[key] - this[key]) * k;
+    // Two-stage easing: the target is chased by a slow follower, and the weather chases that. The start is an
+    // S-curve (a hint first: greying sky, a haze), never a jump. Fog is slowest. A forced weather (title, dev) is fast.
+    if (this.force || !this.mid) { this.mid = {}; for (const key of Object.keys(target)) this.mid[key] = this[key]; }
+    for (const key of Object.keys(target)) {
+      if (this.force) { this[key] += (target[key] - this[key]) * Math.min(1, dt * 0.35); this.mid[key] = this[key]; continue; }
+      const r = key === 'fog' ? 0.045 : key === 'storm' ? 0.06 : 0.08;
+      this.mid[key] += (target[key] - this.mid[key]) * Math.min(1, dt * r);
+      this[key] += (this.mid[key] - this[key]) * Math.min(1, dt * r * 1.4);
+    }
     this.darkness = Math.max(this.storm * 0.9, this.rain * 0.45, this.cloud * 0.25);
 
 

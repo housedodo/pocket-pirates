@@ -500,3 +500,9 @@ Built and working in the dev build; switched off when `window.__BUILD === 'demo'
 - **Wind wisps broken up:** the drifting wind lines (`src/windfx.js`) were thin, straight and parallel. Now each wisp is two to five short chunky dashes of different lengths, gaps, widths and brightness along a lazy curve that wanders with the gusts, fading in and out over 4-10 s and respawning with new random shapes (flat ribbons, additive, no thin GL lines). No demo rebuilt.
 
 - Sound studio (dev, F9): load own music/sounds, trim on a waveform, place by situation + dread + state (loop/once, fades, hush game music), force situations to test, export soundtrack.json + WAVs. See docs/AUDIO.md.
+
+## Smoother weather and dusk (playtest: sudden fog, everything too fast)
+- **Weather easing** (`weather.js`): clouds, rain, storm and fog now chase their target through two stages, an S-curve with a visible lead-in (grey sky, haze) before the weather arrives. Fog is the slowest (90% in about 75 s, was 7 s), rain about 40 s, storm about 55 s. The fog band of the noise is also wider. Forced weather (title scenes, dev) is still fast.
+- **Day and night** (`daynight.js`): the sun-height curve is wider (dusk about 90 s, dawn about 75 s, was 49 s and 38 s), twilight is wider, and the clock pace eases between day and night over two hours either side of 06:00 and 19:00 instead of jumping (the day is still exactly 10 minutes).
+- Not changed: lighthouse lamps still switch on at once at dusk (`world.setLit`).
+
