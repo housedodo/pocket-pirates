@@ -28,6 +28,9 @@
     #sailbar { position: absolute; right: 12px; top: 176px; width: 124px; font-size: 12px; text-align: center; }
     #sailbar .bar { height: 10px; background: #0007; border: 2px solid var(--edge); margin-top: 3px; }
     #sailbar .fill { height: 100%; width: 70%; background: var(--gold); }
+    #sailbar.strain .fill { background: #ff9a3a; animation: blink .6s steps(2) infinite; }   /* too much canvas for this wind */
+    #sailbar.torn .fill { background-color: #e0502e; }   /* torn: two thirds speed */
+    #sailbar.torn .ico.sail { animation: blink 1.2s steps(2) infinite; }
     #prompt { position: absolute; left: 50%; bottom: 84px; transform: translateX(-50%); font-size: 16px; text-align: center; display: none; }
     #prompt .bar { height: 8px; margin-top: 6px; background: #0007; border: 2px solid var(--edge); display: none; }
     #prompt .bar i { display: block; height: 100%; width: 0; background: var(--gold); }
@@ -87,6 +90,39 @@
     /* handwriting / pixel fonts for the logbook (SIL Open Font License, bundled in public/fonts) */
     @font-face { font-family: "Pirata One"; src: url("/fonts/pirataone.woff2") format("woff2"); font-display: block; }
     @font-face { font-family: "DotGothic16"; src: url("/fonts/dotgothic.woff2") format("woff2"); font-weight: 400; font-display: swap; }
+
+    /* ---- the sea chart (chart.js): the map tab takes nearly the whole screen, a chart plus a parchment side panel */
+    #chart.mapmode .book { width: calc(100vw - 120px); height: calc(100vh - 40px); }
+    #chart.mapmode .book .spread { padding: 8px; background: #e6d3a2; }
+    #chart.mapmode .book .spread::after { display: none; }
+    .chartgrid { display: grid; grid-template-columns: 1fr 270px; gap: 8px; height: 100%; }
+    .chartgrid .mapwrap { position: relative; width: auto; max-width: none; margin: 0; min-height: 0; overflow: hidden; box-shadow: 0 0 0 2px #22180f; }
+    .chartgrid #mapCv, .chartgrid #mapTxt { position: absolute; inset: 0; width: 100% !important; height: 100% !important; max-width: none; aspect-ratio: auto; margin: 0; border: none; image-rendering: pixelated; cursor: crosshair; }
+    .chartgrid #mapTxt { pointer-events: none; }
+    .chartgrid .mapctl { position: absolute; right: 8px; bottom: 8px; top: auto; display: flex; flex-direction: column; gap: 4px; }
+    .chartgrid .mapctl button { width: 32px; height: 32px; padding: 0; font: 400 20px "DotGothic16", monospace; color: #22180f; background: #efe0bc; border: 2px solid #22180f; box-shadow: 2px 2px 0 #22180f; cursor: pointer; }
+    #mapCard { position: absolute; display: none; z-index: 3; pointer-events: none; min-width: 190px; max-width: 280px; padding: 8px 10px; background: #efe0bc; border: 2px solid #22180f; box-shadow: 3px 3px 0 #22180f; font-family: "DotGothic16", monospace; color: #22180f; }
+    #mapCard b { display: block; font: 400 22px "Pirata One", Georgia, serif; line-height: 1; }
+    #mapCard small { display: block; color: #6a5a40; font-size: 13px; margin-top: 2px; }
+    #mapCard hr { border: none; border-top: 2px dotted #22180f55; margin: 6px 0; }
+    .mc-row { display: flex; gap: 6px; align-items: center; font-size: 14px; line-height: 1.25; margin: 3px 0; }
+    .mc-ic { flex: none; display: inline-grid; place-items: center; width: 18px; height: 18px; background: var(--c); border: 2px solid #22180f; border-radius: 50%; }
+    .mc-ic svg { width: 11px; height: 11px; }
+    .chartside { overflow-y: auto; padding: 10px 12px; background: #efe0bc; border: 2px solid #22180f; box-shadow: 3px 3px 0 #22180f; font-family: "DotGothic16", monospace; color: #22180f; }
+    .cs-title { margin: 0; font: 400 30px "Pirata One", Georgia, serif; line-height: 1; }
+    .cs-sub, .cs-none { display: block; color: #6a5a40; font-size: 13px; }
+    .cs-h { margin: 12px 0 5px; font-size: 12px; letter-spacing: .15em; color: #8a5a2a; border-bottom: 2px solid #22180f33; }
+    .cs-follow { display: flex; gap: 8px; align-items: center; padding: 6px 8px; background: #f2c96a55; border: 2px solid #22180f; }
+    .cs-follow b { display: block; font-weight: 400; font-size: 15px; } .cs-follow small { color: #6a5a40; font-size: 13px; }
+    .cs-row { display: flex; align-items: center; gap: 8px; margin: 4px 0; font-size: 15px; cursor: pointer; }
+    .cs-row span { flex: 1; } .cs-row em { font-style: normal; color: #6a5a40; font-size: 13px; }
+    .cs-row input { display: none; } .cs-box { width: 14px; height: 14px; border: 2px solid #22180f; background: #fff8e6; }
+    .cs-row input:checked + .cs-box { background: #22180f; box-shadow: inset 0 0 0 2px #fff8e6; }
+    .cs-ev b { display: block; font-weight: 400; font-size: 15px; } .cs-ev small { color: #6a5a40; font-size: 13px; } .cs-ev { margin: 4px 0 6px; }
+    .cs-line { display: flex; align-items: center; gap: 8px; font-size: 13px; margin: 3px 0; }
+    .cs-line i { width: 24px; height: 0; border-top: 3px dashed var(--c); } .cs-line.dot i { border-top: 3px dotted #2a6a8a; }
+    .cs-keys { margin-top: 12px; font-size: 12px; color: #8a7a60; }
+    #chart.mapmode .legend { display: none; }
     /* ---- book designs (#chart[data-book]); leather is the base look above */
     #chart:not([data-book="leather"]) .book { background-size: 100% 100%; image-rendering: pixelated; clip-path: polygon(0 8px, 8px 8px, 8px 0, calc(100% - 8px) 0, calc(100% - 8px) 8px, 100% 8px, 100% calc(100% - 8px), calc(100% - 8px) calc(100% - 8px), calc(100% - 8px) 100%, 8px 100%, 8px calc(100% - 8px), 0 calc(100% - 8px)); }
     #chart:not([data-book="leather"]) .book::before { display: none; }
@@ -153,6 +189,12 @@
     #cardOut:empty { display: none; }
     #cardDone { justify-self: start; margin-top: 10px; grid-column: 2; }
     #pigWide { width: min(420px, 92vw); text-align: center; }
+    #localgame { background: none !important; display: none; } #localgame.open { display: block; }
+    #lgHud { position: fixed; inset: 0; width: 100vw; height: 100vh; }
+    #lgTitle { position: fixed; top: 18px; left: 0; right: 0; text-align: center; margin: 0; font-size: 34px !important; color: #ffd23a; text-shadow: 0 3px 0 #241a22, 0 0 12px rgba(0,0,0,.5); pointer-events: none; z-index: 2; }
+    #lgFoot { position: fixed; left: 50%; top: 66px; transform: translateX(-50%); width: min(720px, 94vw); display: flex; gap: 12px; align-items: center; background: rgba(28,20,30,.82); border: 3px solid #241a22; border-radius: 8px; padding: 8px 12px; z-index: 2; }
+    #lgFoot p { flex: 1; margin: 0; color: #fff6e4; font-size: 16px; line-height: 1.3; } #lgFoot button { width: auto; margin: 0; white-space: nowrap; }
+    body.minigame > :not(#localgame):not(#game):not(script) { visibility: hidden !important; }
     .pigrow > div { flex: 1; } .pigrow { display: flex; align-items: center; justify-content: space-around; font-size: 32px; margin: 8px 0; } .pigrow b { font-size: 16px; font-weight: 400; color: #c8b890; }
     #pigCv { width: 144px; height: 144px; image-rendering: pixelated; filter: drop-shadow(4px 6px 0 rgba(0,0,0,.6)); }
     .pigdie { display: inline-block; width: 64px; height: 64px; line-height: 64px; background: #efe0b8; color: #2a1608; box-shadow: 0 -4px 0 #2a1608, 0 4px 0 #2a1608, -4px 0 0 #2a1608, 4px 0 0 #2a1608, inset -4px -4px 0 #b8a070; }
@@ -232,6 +274,33 @@
     .hbtabs button { margin: 0; padding: 6px 4px; font-size: 14px; }
     .hbtabs button.on { background: #4a38a0; outline: 2px solid var(--gold); }
     #hbPane { min-height: 220px; max-height: 46vh; overflow: auto; }
+    /* shops: a wider panel, cards, a visible scrollbar */
+    #harbour #hbWide.shop { width: min(600px, 94vw); max-height: calc(100vh - 250px); }
+    #hbWide.shop #hbPane { max-height: calc(100vh - 340px); padding-right: 6px; }
+    #hbPane::-webkit-scrollbar { width: 10px; } #hbPane::-webkit-scrollbar-track { background: #120c1c; } #hbPane::-webkit-scrollbar-thumb { background: #6a5a8a; box-shadow: inset 0 0 0 2px #120c1c; }
+    #hbPane { scrollbar-color: #6a5a8a #120c1c; }
+    #hbPane .qrow { background: #1a1230aa; border: 0; box-shadow: 0 0 0 2px #2a2040; margin: 6px 2px; padding: 8px 10px; }
+    #hbPane .qrow button, .upbuy button { min-width: 92px; font-size: 14px; }
+    .upgrid { display: flex; flex-direction: column; gap: 6px; margin-top: 4px; }
+    .upc { display: grid; grid-template-columns: 46px 1fr auto; gap: 10px; align-items: center; padding: 7px 10px; background: #1a1230; box-shadow: 0 0 0 2px #2a2040, inset 0 2px 0 #ffffff10; }
+    .upc .upi { width: 42px; height: 42px; background: #0e0a1a; box-shadow: 0 0 0 2px #3a2a50; display: grid; place-items: center; }
+    .upc .upi .pxi { width: 34px; height: 34px; margin: 0; }
+    .upc .upt { display: flex; align-items: center; gap: 10px; font-size: 15px; }
+    .upc .lvp { display: inline-flex; gap: 4px; } .upc .lvp i { width: 12px; height: 12px; background: #2a2040; box-shadow: 0 0 0 2px #120c1c; display: block; } .upc .lvp i.on { background: #ffd23a; box-shadow: 0 0 0 2px #6a4a10; }
+    .upc .lvp i.pop { animation: pippop .5s steps(4); } @keyframes pippop { 0% { transform: scale(2.2); background: #fff; } 100% { transform: none; } }
+    .upc .upnow { font-size: 12px; opacity: .65; margin-top: 2px; }
+    .upc .upnext { font-size: 13px; color: #f4ead0; margin-top: 2px; } .upc .upnext.done { color: var(--gold); }
+    .upc .upopen { font-size: 12px; color: #4fe0d0; margin-top: 3px; } .upc .upopen .pxi { width: 12px; height: 12px; vertical-align: -1px; }
+    .upc .upbuy { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+    .upc .upbuy .pxi { width: 16px; height: 16px; vertical-align: -3px; }
+    .upc .short { font-size: 11px; color: #ff8a6a; }
+    .upc.poor .upi { opacity: .55; } .upc.poor .upnext { opacity: .7; }
+    .upc.max { background: #241a10; box-shadow: 0 0 0 2px #6a4a10; } .upc .upmax { font-size: 11px; color: var(--gold); letter-spacing: .1em; }
+    .upc.bought { animation: upflash .7s steps(4); } @keyframes upflash { 0% { box-shadow: 0 0 0 4px #ffd23a; background: #4a3a10; } 100% { box-shadow: 0 0 0 2px #2a2040; } }
+    #hbGold.spent { animation: goldspent .6s steps(3); } @keyframes goldspent { 0% { color: #ff8a6a; } 100% { color: inherit; } }
+    .gauge { display: inline-block; width: 80px; height: 8px; margin-left: 10px; background: #120c1c; box-shadow: 0 0 0 2px #2a2040; vertical-align: 1px; } .gauge i { display: block; height: 100%; background: #ffb43a; }
+    .kits { display: inline-flex; gap: 4px; margin-left: 6px; vertical-align: 1px; } .kits i { width: 10px; height: 10px; background: #2a2040; box-shadow: 0 0 0 2px #120c1c; display: block; } .kits i.on { background: #f4ead0; }
+    @media (max-width: 640px) { .upc { grid-template-columns: 40px 1fr; } .upc .upbuy { grid-column: 1 / -1; flex-direction: row; justify-content: flex-end; } .upc .upi { width: 36px; height: 36px; } }
     .sec { font-weight: 700; color: var(--gold); font-size: 13px; margin: 8px 0 2px; letter-spacing: .08em; }
     .qrow { display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; padding: 6px 0; border-bottom: 1px solid #fff7d622; align-items: center; font-size: 13px; }
     .qrow button { margin: 0; width: auto; padding: 5px 10px; font-size: 13px; grid-row: 1 / 3; grid-column: 2; }
@@ -261,6 +330,10 @@
     #combatbox { position: absolute; right: 12px; top: 244px; width: 124px; font-size: 12px; text-align: center; }
     #combatbox .bar, #ebar .bar { height: 9px; background: #0007; border: 2px solid var(--edge); margin: 3px 0; }
     #combatbox .bar.thin { height: 5px; }
+    #oilrow { display: flex; align-items: center; gap: 4px; margin-top: 2px; } #oilrow .bar { flex: 1; } #oilfill { background: #ffb43a !important; } #oilrow.low #oilfill { background: #ff6a4a !important; } #oilrow.low .ico.oil { animation: blink 1s steps(2) infinite; }
+    .ico.oil { width: 10px; height: 14px; background: linear-gradient(#ffe27a, #ff9a2a 60%, #c8502a); clip-path: polygon(50% 0, 85% 45%, 100% 75%, 75% 100%, 25% 100%, 0 75%, 15% 45%); }
+    body.nooil #oilrow { display: none; }
+    #oilrow { cursor: pointer; pointer-events: auto; } #oilrow.off .ico.oil { filter: grayscale(1) brightness(.5); } #oilrow.off #oilfill { opacity: .45; }
     body.nocannons #ammotxt, body.nocannons #combatbox .bar.thin, body.nocannons #tX, body.nocannons .cannonrow { display: none !important; }   /* cannons come later in the story */
     #combatbox .fill { height: 100%; background: #d84a3c; width: 100%; } #reloadfill { background: #8fe6ff !important; }
     #ebar { position: absolute; font-size: 11px; transform: translate(-50%, -100%); padding: 3px 6px; width: 130px; text-align: center; }
@@ -271,11 +344,19 @@
     #matemore { color: #ffd23a; animation: blink .8s steps(2) infinite; align-self: flex-end; }
     #mate .face { font-size: 34px; } #mate b { color: #ffd23a; font-size: 12px; } #mate.dark { border-color: #ff70d0; } #mate.dark b { color: #ff9ae0; }
     #fishui { position: absolute; left: 50%; bottom: 250px; transform: translateX(-50%); width: min(460px, 92vw); text-align: center; pointer-events: auto; touch-action: none; }
+    #digui { position: absolute; left: 50%; bottom: 200px; transform: translateX(-50%); width: min(460px, 92vw); text-align: center; pointer-events: auto; touch-action: none; }
+    #devbar { position: fixed; top: 6px; left: 50%; transform: translateX(-50%); z-index: 60; display: flex; flex-wrap: wrap; justify-content: center; max-width: 96vw; gap: 6px; align-items: center; padding: 6px 10px; background: rgba(11, 7, 22, .88); box-shadow: 0 0 0 3px #3a3070; font: 16px DotGothic16, monospace; color: #f4ead0; }
+    #devbar button, #devbar select { font: 16px DotGothic16, monospace; color: #f4ead0; background: #241c4c; border: 0; padding: 2px 8px; cursor: pointer; }
+    #devbar select { max-width: 260px; } #devbar input[type=range] { width: 120px; accent-color: #ff30c8; } #devbar .dvd { color: #ff70d0; min-width: 120px; } #devbar .dvsep { width: 10px; } #devbar .dvq, #devbar .dvt { color: #ffd23a; min-width: 44px; }
+    #digmsg { font-size: 15px; min-height: 44px; }
+    #diglegend { font-size: 13px; color: #b8a8f0; margin-top: 6px; }
+    #digcv { display: block; width: 100%; max-width: 400px; margin: 6px auto 0; aspect-ratio: 200 / 168; image-rendering: pixelated; cursor: pointer; box-shadow: 0 -3px 0 var(--pxedge), 0 3px 0 var(--pxedge), -3px 0 0 var(--pxedge), 3px 0 0 var(--pxedge); }
     #fishmsg { font-size: 15px; } #fishmsg.blink { animation: blink .5s steps(2) infinite; color: #ffd23a; }
     #fishtrack { position: relative; height: 26px; margin: 8px 0 4px; background: #0a2a4a; border: 2px solid var(--edge); }
     #fishzone { position: absolute; top: 0; bottom: 0; background: rgba(80, 220, 120, .55); border-left: 2px solid #7f7; border-right: 2px solid #7f7; }
     #fishmark { position: absolute; top: 3px; width: 14px; height: 18px; margin-left: -7px; background: #ffd23a; border: 2px solid #000; border-radius: 50% 50% 50% 0; }
     #fishprogwrap { height: 8px; background: #0007; border: 2px solid var(--edge); } #fishprog { height: 100%; background: #ffd23a; width: 0; }
+    #fishring { display: block; width: 240px; max-width: 70vw; aspect-ratio: 1; margin: 8px auto 0; image-rendering: pixelated; }
     #hit { position: fixed; inset: 0; pointer-events: none; box-shadow: inset 0 0 120px 30px rgba(230, 40, 30, .0); transition: box-shadow .5s; z-index: 2; }
     #hit.on { box-shadow: inset 0 0 120px 40px rgba(230, 40, 30, .65); transition: none; }
     #fade { position: fixed; inset: 0; background: #000; opacity: 0; pointer-events: none; transition: opacity 1s; z-index: 6; } #fade.on { opacity: 1; }
@@ -289,6 +370,8 @@
     .yardgrp small { color: var(--ink); opacity: .7; font-weight: 400; }
     /* low-poly icons: faceted shapes from conic gradients + clip-path */
     #placeline { font-size: 13px; border-left-width: 6px; }
+    #farlabels { position: fixed; inset: 0; pointer-events: none; z-index: 4; }
+    .farlabel { position: absolute; transform: translate(-50%, -100%); font: 12px 'Pixelify Sans', monospace; color: #f4ead0; text-shadow: 2px 2px 0 #1a0f08; white-space: nowrap; letter-spacing: 1px; }
     body.fogged #tracker, body.fogged #compass { filter: blur(2px) contrast(0.6); opacity: 0.55; transition: filter 3s, opacity 3s; }
     #tracker { font-size: 13px; max-width: 280px; padding: 5px 9px; display: none; }
     #tracker .trow { padding: 1px 0; } #tracker .trow.main { color: #ffd23a; font-weight: 700; }
@@ -404,6 +487,9 @@
     #hbTabs .post.next::before { content: ""; position: absolute; left: 50%; top: -34px; margin-left: -12px; width: 24px; height: 20px; background: #ffd23a; clip-path: polygon(0 0, 100% 0, 50% 100%); filter: drop-shadow(3px 3px 0 #1a0606); animation: nbob .8s steps(2) infinite; }
     #hbTabs .post.next { box-shadow: inset 0 -5px 0 #3a2210, inset 0 4px 0 #8a5a30, 0 0 0 4px #ffd23a, 6px 6px 0 rgba(0,0,0,.4); }
     @keyframes nbob { 50% { transform: translateY(6px); } }
+    /* parts of the interface the story has not reached yet (src/gates.js): greyed out, not clickable */
+    #hbTabs .post.locked, #hbPane button.locked, #logTabs button.locked { filter: grayscale(1) brightness(0.55); opacity: 0.45; cursor: not-allowed; pointer-events: none; }
+    #hbTabs .post.fresh { animation: hlpulse 1s steps(2) infinite; box-shadow: 0 0 0 4px #9fe8dc !important; }
     #hbPane .hl { box-shadow: 0 0 0 3px #ffd23a !important; animation: hlpulse 1s steps(2) infinite; } @keyframes hlpulse { 50% { box-shadow: 0 0 0 6px #ff9a3a; } }
     #tracker.flash { animation: trflash 1s steps(2) 8; box-shadow: 0 0 0 3px #ffd23a; } @keyframes trflash { 50% { box-shadow: 0 0 0 6px #ff9a3a; } }
     #tracker .tag { display: inline-block; padding: 0 6px; margin-left: 6px; background: #c8402a; color: #fff4d8; }
@@ -485,6 +571,8 @@
     .hp5 { display: inline-flex; gap: 6px; vertical-align: middle; margin-left: 4px; }
     .hp5 i { display: block; width: 16px; height: 16px; background: #d84030; box-shadow: inset -4px -4px 0 #8a1c14, inset 4px 4px 0 #f08060, 0 0 0 3px #1a0614; }
     .hp5 i.off { background: #2a1a30; box-shadow: inset 0 0 0 0 #000, 0 0 0 3px #1a0614; }
+    .hp5 i.part { background: linear-gradient(to top, #d84030 var(--f), #2a1a30 var(--f)); box-shadow: inset -2px -2px 0 #8a1c1488, 0 0 0 3px #1a0614; }   /* a damaged plank, drained */
+    .hp5.hurt { animation: hullhit .45s steps(3); } @keyframes hullhit { 0% { transform: translateX(-3px); filter: brightness(1.8); } 50% { transform: translateX(3px); } 100% { transform: none; filter: none; } }
     /* shipyard turntable: a short panel on the right, the ship turning on its own in the middle */
     #yardWide { width: min(430px, 94vw) !important; margin: 24px 0 !important; align-self: flex-start; }
     .ytabs { display: flex; gap: 6px; margin: 6px 0; flex-wrap: wrap; } .ytabs button { width: auto; margin: 0; padding: 4px 10px; } .ytabs button.on { background: #4a38a0; box-shadow: 0 -3px 0 #ffd23a, 0 3px 0 #ffd23a, -3px 0 0 #ffd23a, 3px 0 0 #ffd23a; }
@@ -526,10 +614,11 @@
     </div>
     <div id="compass" class="windbox"><canvas id="compassCv" width="36" height="36"></canvas></div>
     <div id="sailbar" class="panel txt"><div><i class="ico sail"></i></div><div class="bar"><div class="fill" id="sailfill"></div></div></div>
-    <div id="combatbox" class="panel txt"><div><i class="ico hull"></i><span id="hptxt"></span></div><div class="bar"><div class="fill" id="hpfill"></div></div><div id="ammotxt"></div><div class="bar thin"><div class="fill" id="reloadfill"></div></div></div>
+    <div id="combatbox" class="panel txt"><div><i class="ico hull"></i><span id="hptxt"></span></div><div class="bar"><div class="fill" id="hpfill"></div></div><div id="ammotxt"></div><div class="bar thin"><div class="fill" id="reloadfill"></div></div><div id="oilrow" title="Lamp oil"><i class="ico oil"></i><div class="bar"><div class="fill" id="oilfill"></div></div></div></div>
     <div id="ebar" class="panel txt" style="display:none"><span id="ename"></span><div class="bar"><div class="fill" id="efill"></div></div></div>
     <div id="mate" class="panel txt" style="display:none"><span class="face" id="mateface"></span><div style="flex:1"><b id="mateName">Mara, first mate</b><div id="matetxt"></div></div><span id="matemore"><i class="pxi down"></i></span></div>
-    <div id="fishui" class="panel txt" style="display:none"><div id="fishmsg"></div><div id="fishbar" style="display:none"><div id="fishtrack"><div id="fishzone"></div><div id="fishmark"></div></div><div id="fishprogwrap"><div id="fishprog"></div></div></div></div>
+    <div id="digui" class="panel txt" style="display:none"><div id="digmsg"></div><canvas id="digcv" width="200" height="168"></canvas><div id="diglegend">dark, wet sand = close · pale = far · red squares: shovel cracks · blue bar: tide</div></div>
+    <div id="fishui" class="panel txt" style="display:none"><div id="fishmsg"></div><div id="fishbar" style="display:none"><div id="fishtrack"><div id="fishzone"></div><div id="fishmark"></div></div><div id="fishprogwrap"><div id="fishprog"></div></div></div><canvas id="fishring" width="120" height="120" style="display:none"></canvas></div>
     <div id="prompt" class="panel txt"><div id="prompttxt"></div><div class="bar"><i></i></div></div>
     <div id="toasts"></div>
     <div id="landho" class="txt"><b></b><span></span><small></small></div>
@@ -559,10 +648,10 @@
   <div id="harbour" class="modal"><div class="hbBanner"><div class="hbName" id="hbBannerName"></div><div class="hbDay" id="hbDay"></div><div class="hbSaid" id="hbSaid"></div></div><div class="menu" id="hbWide"><h2 id="hbName" style="display:none"></h2><p class="quote" id="hbLine" style="display:none"></p><div class="goldline"><span id="hbPlace"></span><span>Gold: <b id="hbGold"></b></span></div><div id="hbPane"></div><button id="hbClose" style="display:none">Set sail [E]</button></div><div id="hbTabs"><button class="post" data-t="board">Board<em></em><small>1</small></button><button class="post" data-t="market">Market<em></em><small>2</small></button><button class="post" data-t="tavern">Tavern<em></em><small>3</small></button><button class="post" data-t="wright">Shipwright<em></em><small>4</small></button><button class="post" data-t="sail">Set sail<em></em><small>E</small></button></div></div>
   <div id="pause" class="modal"><div class="menu">
     <div id="pauseMain"><h2>PAUSED</h2>
-      <button id="pbResume">Resume</button><button id="pbHint">Ask Mara for a hint</button><button id="pbControls">Controls</button><button id="pbFull">Fullscreen: off</button><button id="pbLog">Captain's log</button><button id="pbAbyss">Full-dread effects (test)</button><button id="pbMixer">Sound mixer (F8)</button><button id="pbStudio">Sound studio (F9)</button><button id="pbSoundMenu">Sound and music</button><button id="pbNew">New voyage (erase save)</button>
+      <button id="pbResume">Resume</button><button id="pbHint">Ask Mara for a hint</button><button id="pbControls">Controls</button><button id="pbFull">Fullscreen: off</button><button id="pbOcean">Ocean: Toon facets</button><button id="pbNight">Night view: Dark</button><button id="pbLamp">Lamp: Lantern</button><button id="pbLog">Captain's log</button><button id="pbAbyss">Full-dread effects (test)</button><button id="pbMixer">Sound mixer (F8)</button><button id="pbStudio">Sound studio (F9)</button><button id="pbSoundMenu">Sound and music</button><button id="pbNew">New voyage (erase save)</button>
     </div>
     <div id="pauseSound" style="display:none"><h2>SOUND AND MUSIC</h2>
-      <button id="pbSound">Sound: on</button><button id="pbMusic">Music: on</button><div id="pbVols"><div class="pvol"><span>Music</span><input type="range" min="0" max="100" step="5" value="100" data-k="music"><b>100%</b></div><div class="pvol"><span>Sea, wind, gulls</span><input type="range" min="0" max="100" step="5" value="100" data-k="amb"><b>100%</b></div><div class="pvol"><span>Effects</span><input type="range" min="0" max="100" step="5" value="100" data-k="sfx"><b>100%</b></div></div>
+      <button id="pbSound">Sound: on</button><button id="pbMusic">Music: on</button><div id="pbVols"><div class="pvol"><span>Music</span><input type="range" min="0" max="100" step="5" value="100" data-k="music"><b>100%</b></div><div class="pvol"><span>Sea, rain, gulls</span><input type="range" min="0" max="100" step="5" value="100" data-k="amb"><b>100%</b></div><div class="pvol"><span>Effects</span><input type="range" min="0" max="100" step="5" value="100" data-k="sfx"><b>100%</b></div></div>
       <button id="sdBack">Back</button>
     </div>
     <div id="pauseAbyss" style="display:none"><h2>FULL DREAD</h2>
@@ -591,7 +680,7 @@
         <tr><td>H</td><td>Hide the HUD</td></tr>
         <tr><td>Touch</td><td>On-screen buttons</td></tr>
       </table>
-      <p class="tip">Wind: the ring at the top right is gold where she sails well and red into the wind; the arrow is the wind, the triangle your bow. The wind shifts over time.<br>Treasure: read the riddle in the log, stop at the right shore and press E.<span id="devKeys"><br>Dev: 1-5 force a dread stage, 0 auto, [ ] change the hour, ` info line, F8 sound mixer, F9 sound studio.</span></p>
+      <p class="tip">Wind: the ring at the top right is gold where she sails well and red into the wind; the arrow is the wind, the triangle your bow. The wind shifts over time.<br>Treasure: read the riddle in the log, stop at the right shore and press E.<span id="devKeys"><br>Dev: the bar at the top sets the quest, the hour and the dread (auto = by distance again, or 0); 1-4 dawn / noon / dusk / night, [ ] change the hour, , . previous / next quest, F7 finish the quest, F6 weather (clear, light rain, storm, auto), ` info line, F8 sound mixer, F9 sound studio.</span></p>
       <button id="pbBack">Back</button>
     </div>
   </div></div>

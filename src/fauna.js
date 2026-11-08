@@ -140,7 +140,7 @@ export class Fauna {
     const crow = smoothstep(0.3, 0.55, dread);
     this.birdMat.color.setRGB(lerp(1, 0.13, crow), lerp(1, 0.1, crow), lerp(1, 0.17, crow));
     const flap = lerp(9, 3.5, smoothstep(0.3, 0.8, dread));
-    const frozen = 1 - smoothstep(0.3, 0.45, dread) * (1 - smoothstep(0.5, 0.6, dread));      // 1 normal .. 0 frozen
+    const frozen = ctx.freeze != null ? ctx.freeze : 1 - smoothstep(0.3, 0.45, dread) * (1 - smoothstep(0.5, 0.6, dread));      // 1 normal .. 0 frozen (the glimpse freezes them too)
     const dirSign = dread > 0.5 ? -1 : 1;
     let nearBird = 1e9;
     for (let i = 0; i < NB; i++) {

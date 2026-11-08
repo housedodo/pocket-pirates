@@ -9,7 +9,7 @@ const HOME_ISLE = '1,-1'; // Hollow Cay Galen, the starter treasure isle
 export const CHAPTERS = [
   { n: 'I', title: 'Sea legs', act: 'Fair winds' },
   { n: 'II', title: "Perrin's riddle", act: 'Fair winds' },
-  { n: 'III', title: 'Earn your keep', act: 'Fair winds' },
+  { n: 'III', title: 'Working waters', act: 'Fair winds' },
   { n: 'IV', title: 'Check my chart', act: 'Loose talk' },
   { n: 'V', title: 'Strange notes', act: 'Loose talk' },
   { n: 'VI', title: 'The table', act: 'Loose talk' },
@@ -36,7 +36,7 @@ export const MAIN_GOALS = [
     id: 'harbour', ch: 0, title: 'Make landfall', reward: 12,
     text: 'Bring her back to Tama\'s pier and press E.',
     intro: ['Nicely done. Now bring her back to Tama\'s pier and press E. The harbourmaster was waving at us.'],
-    outro: ['Old Perrin left something for you with the harbourmaster.'],
+    outro: (c) => (c.state.story.letterP1 === 'taken' ? [] : ['Old Perrin left something for you with the harbourmaster.']),
     hints: ['Tama is the island with the lighthouse and the long wooden pier.', 'Sail right up to the end of the pier, then press E.'],
     check: (c) => c.state.stats.harbours >= 1,
     onDone: (c) => { c.state.story.letterP1 = c.state.story.letterP1 || 'wait'; },   // Perrin's riddle waits at the Tama board as a letter; the player takes it
@@ -48,7 +48,7 @@ export const MAIN_GOALS = [
     intro: (c) => (c.state.story.letterP1 === 'taken' ? ['Now to find the shore that riddle means. Stop the ship there and press E to dig.']
       : ['Perrin left you a letter with the harbourmaster: take it at the Board sign in Tama.', 'Then find the shore its riddle means, stop the ship and press E to dig.']),
     outro: ['Ha! Treasure! A captain with gold in the hold is a captain with options.'],
-    hints: ['Take Perrin\'s letter at the Tama Board sign first (the little letter icon). The riddle is then in the log (M, Riddles tab). Sunrise is east, sunset is west.', 'Try the shore the riddle describes. A wrong shore only costs a few seconds.'],
+    hints: ['Take Perrin\'s letter at the Tama Board sign first (the little letter icon). The riddle is then in the log (M, Riddles tab). Sunrise is east, sunset is west.', 'On the right shore, dig squares (click, or arrows and E): darker, wetter sand means the chest is close. The tide comes in with every dig, and two stones break the shovel.'],
     check: (c) => c.state.dug.has(HOME_ISLE),
     tab: 'board', mark: ['takeLetter'],
   },
@@ -65,9 +65,9 @@ export const MAIN_GOALS = [
     id: 'calm', ch: 2, title: 'Dead calm', reward: 24,
     text: 'The wind has died. Put the oars out (G) and row, then catch a fish (stop, then C).',
     intro: ['Not a breath of wind. Press G for the oars, then W to row us a little way.',
-      'Then slow right down and press C to fish. When it bites, hold Space to reel, and let go to ease off.'],
+      'Then stop and press C to fish. The rest you will see on the line.'],
     outro: ['Dinner AND exercise. A full day\'s work for a captain.', 'And listen: there is the wind again. Sails up, Captain.'],
-    hints: ['Press G to put the oars out, then hold W to row. G again puts them away.', 'Stop the ship (S), then press C to cast a line. When it bites, press C or Space, then hold Space to reel.'],
+    hints: ['Press G to put the oars out, then hold W to row. G again puts them away.', 'Stop the ship (S), press C, then C again to cast (a short cast is easier). When it bites, press C or Space; then strike (C / Space) each time the needle is on a green mark. Three misses and it is gone.'],
     check: (c) => (c.state.stats.rowed || 0) >= ((c.state.story.cal0 || {}).r || 0) + 50 && c.state.stats.fish >= ((c.state.story.cal0 || {}).f || 0) + 1,
     onStart: (c) => { c.state.story.cal0 = { r: c.state.stats.rowed || 0, f: c.state.stats.fish }; if (c.forceCalm) c.forceCalm(420); },
     onDone: (c) => { if (c.forceCalm) c.forceCalm(0); },   // the wind picks up again
@@ -113,7 +113,7 @@ export const MAIN_GOALS = [
     id: 'tavern', ch: 3, title: 'Meet the locals', reward: 18,
     text: 'In a harbour, open the Tavern sign: hire a hand, or sit down for a game of dice.',
     intro: ['Taverns are hiring hands these days, Captain. And somebody always wants to play dice. Either would do us good.'],
-    outro: ['Good. A crew is only as good as the company it keeps.'],
+    outro: (c) => (c.state.crew && c.state.crew.length ? ['Good. A crew is only as good as the company it keeps.'] : ['Good. Even the dice in there are friendly. Mostly.']),
     hints: ['Dock at any harbour and open the Tavern sign (3). A hired hand costs a few coins; dice cost 10 gold a game.'],
     check: (c) => c.state.crew.length >= 1 || (c.state.stats.pig || 0) >= 1,
     tab: 'tavern', mark: ['hireHand', 'playPig'],
@@ -121,7 +121,7 @@ export const MAIN_GOALS = [
   {
     id: 'perrin', ch: 3, title: 'A note from Perrin', reward: 12,
     text: 'Perrin has sent word to Harbour Tama. A letter waits at the Board.',
-    intro: ['The harbourmaster in Tama waved at us with a letter last time. Perrin again, I bet.'],
+    intro: ['Word from Tama: the harbourmaster is keeping another letter for us. Perrin again, I bet.'],
     outro: [],
     hints: ['Dock at Harbour Tama. A letter icon on the Board sign means something is waiting for you.'],
     check: (c) => !!c.state.story.perrinNote,
@@ -157,14 +157,6 @@ export const MAIN_GOALS = [
     outro: ['Two chests! Perrin would be insufferable.'],
     hints: ['Treasure isles show a stone arch on the chart. Press E at its shore to read it, then read the riddle in the log.', 'Sunrise is east, sunset is west.'],
     check: (c) => (c.state.stats.solved || 0) >= 2,
-  },
-  {
-    id: 'rest', ch: 3, title: 'A bed for the night', reward: 18,
-    text: 'Sleep at a harbour tavern. Rooms are let from 17:00.',
-    intro: ['Rooms are let from five in the afternoon, and the crew mends the hull while you sleep.'],
-    outro: ['Slept like a log. A very small log. Good morning!'],
-    hints: ['Dock at a harbour after 17:00 and open the Tavern sign.'],
-    check: (c) => c.state.story.restDay != null,
   },
   {
     id: 'raider', ch: 3, title: 'Teach a raider a lesson', reward: 36,
@@ -266,6 +258,7 @@ export class Mate {
     this.more = document.getElementById('matemore');
     this.queue = []; this.cur = null; this.shown = 0; this.acc = 0; this.wait = -1; this.pause = 0; this.pin = false;
     this.history = [];
+    this.onBlip = null;   // (dark, guest) a soft voice blip every few letters (main.js plugs in audio.blip)
     this.el.addEventListener('pointerdown', () => this.skip());
   }
   say(text, dark = false, who = null) { this.queue.push({ text, dark, who }); }
@@ -300,6 +293,8 @@ export class Mate {
         const delay = ',;:'.includes(prev) ? 0.16 : '.!?'.includes(prev) ? 0.34 : 0.032;
         if (this.acc < delay || this.shown >= len) break;
         this.acc -= delay; this.shown++;
+        const ch = this.cur.text[this.shown - 1];
+        if (this.onBlip && this.shown % 3 === 1 && /[A-Za-z0-9]/.test(ch)) this.onBlip(this.cur.dark, !!this.cur.who);
       }
       this.render();
       // Undertale-style: the portrait bobs and tilts while she talks, a little jolt on each few letters
@@ -342,7 +337,7 @@ export class Objectives {
     const MECH = ['riddle', 'crew', 'raider', 'noammo', 'notarget', 'lowhp', 'broadside', 'stormpay', 'gate'];
     if (this.d.quiet && this.d.quiet()) return;
     if (this.d.later && !this.d.later() && !MECH.includes(key)) return;
-    if (this.mate.busy) return;   // never pile a remark onto a line she is still saying
+    if (this.mate.busy || this.pending) return;   // never pile a remark onto a line she is still saying, nor in front of the next quest
     const h = this.state.hints;
     if (h[key] || !REMARKS[key]) return;
     h[key] = true;
@@ -372,6 +367,8 @@ export class Objectives {
         this.gap -= dt;
         if (this.gap <= 0) {
           const next = this.pending; this.pending = null;
+          let done = false; try { done = next.check(this.d); } catch (e) { /* not checkable yet */ }
+          if (done) { this.timer = 0; return; }   // already done (bought the sails before she could suggest it): no intro, it completes at once
           const card = this.newCh; if (this.newCh) { this.newCh = false; this.chapterCard(next.ch); }
           if (this.d.questNew) this.d.questNew(next, !card);   // the NEW QUEST card comes with her words
           for (const l of (typeof next.intro === 'function' ? next.intro(this.d) : next.intro)) this.mate.say(l, dread > 0.6);
@@ -389,7 +386,7 @@ export class Objectives {
     if (cur && !(cur.waitMate && this.mate.busy) && cur.check(c)) {
       const following = MAIN_GOALS[g.i + 1] || null;
       this.complete(cur, false, following);
-      for (const l of cur.outro || []) this.mate.say(l, dread > 0.6);
+      for (const l of (typeof cur.outro === 'function' ? cur.outro(c) : cur.outro || [])) this.mate.say(l, dread > 0.6);
       if (cur.onDone) cur.onDone(c);
       g.i++; this.hintI = 0; this.stall = 0;
       const next = this.current;

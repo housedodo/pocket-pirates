@@ -2,22 +2,27 @@
 // synthesised on the fly (src/synth.js), so the game always has sound.
 // See docs/AUDIO.md for the cue list and design notes.
 import { canSynth, synth } from './synth.js';
+import { SeaLayers, LAYERS, Tavern, TAVERN, HutMusic, HUT } from './layers.js';
+import { smoothstep } from './util.js';
 
 // Master switch for all sound (files in public/audio/, else the synthesised fallback).
 export const AUDIO_ENABLED = !(typeof window !== 'undefined' && window.__SILENT);   // the demo ships with sound too (without the dread-stage cues, see DEMO_SKIP); the silent build sets __SILENT
 // cues the demo never plays (no dread there): left out of the demo file and never loaded, to keep it small and spoiler-free
-const DEMO_SKIP = new Set(['music_3', 'music_4', 'music_5', 'amb_3', 'amb_4', 'amb_5', 'whisper', 'stage_up']);
+const DEMO_SKIP = new Set(['music_3']);
 
 const STAGES = 5;
 export const CUES = {
   loops: [
-    'sea', 'surf', 'wind', 'rain', 'amb_night', 'oars', 'gulls', 'coast',
-    ...Array.from({ length: STAGES }, (_, i) => `amb_${i + 1}`),
-    ...Array.from({ length: STAGES }, (_, i) => `music_${i + 1}`),
+    'sea', 'rain', 'rain_2', 'rain_storm', 'gulls', 'coast', 'forest',   // wind, the stage ambience amb_1..5, amb_night and oars were removed
+    'music_3',   // the user's own "Dread" piece for the middle dread band; the placeholder music_1/2/4/5 and surf are gone
+    ...LAYERS,   // stage 1 on open sea: one instrument more with every quest (src/layers.js)
+    ...TAVERN,   // the harbour tavern, muffled through the wall
+    ...HUT,      // the hut's theme, on the first visit
   ],
-  oneShots: ['creak', 'splash', 'bump', 'dig', 'treasure', 'discover', 'harbour', 'ui', 'whisper', 'stage_up', 'buy', 'pause',
-    'thunder', 'horn', 'gull', 'dolphin', 'whale', 'bell', 'bottle',
-    'cannon', 'hit', 'cast', 'bite', 'catch', 'roll_d20', 'roll_d6', 'card', 'success', 'fail', 'chapter', 'knock', 'ending'],
+  // only these effects play. Every other effect the game asks for (splash, treasure, cannon, horn ...) is silent on purpose:
+  // it is not listed, so it is never loaded and never synthesised. Add a name back here (and its file) to bring one back.
+  oneShots: ['ui', 'dig', 'buy', 'pause', 'chapter', 'fail', 'success', 'card', 'roll_d6', 'roll_d20', 'cast', 'bite', 'catch',
+    'thunder'],   // thunder: the recorded distant roll (with rain)
 };
 const tick = () => new Promise((r) => setTimeout(r, 0));
 
@@ -37,14 +42,20 @@ export class AudioBus {
     this.vol = {};           // per-cue volume (1 = as authored): public/audio/volumes.json, then the mixer's local overrides
     this.preview = null;     // mixer: a loop being auditioned on its own
     this.level = {};         // the level each loop is currently asked to play at (for the mixer's meters)
+    this.layerSeed = 0;      // the voyage's seed: the order the stage-1 instruments arrive in
+    this.layerPace = 1;      // test flag (?dev=1&musicpace=4): the stage-1 layers move this many times faster
+    this.rainMix = 0; this.rainMixT = 0; this.rainSwap = 30;   // the two light-rain recordings cross-fade slowly so the rain never repeats
+    this.thunderT = 20; this.lastThunder = -99;                // distant thunder now and then in strong rain
   }
   v(key) { return this.vol[key] != null ? this.vol[key] : 1; }
   setVol(key, x) { this.vol[key] = x; }
 
   setMuted(m) {
     this.muted = m;
-    if (this.master) this.master.gain.value = m ? 0 : 0.8 * this.v('_master');
+    if (this.master) this.master.gain.value = m ? 0 : 0.8 * this.v('_master') * (1 - (this.hushK || 0));
   }
+  /** 0..1: everything goes quiet (the glimpse, glimpse.js) */
+  hush(k) { if (k === (this.hushK || 0)) return; this.hushK = k; if (this.master) this.master.gain.value = this.muted ? 0 : 0.8 * this.v('_master') * (1 - k); }
   setMusic(on) {
     this.musicOn = on;
     if (this.musicBus) this.musicBus.gain.value = on ? 0.6 * this.v('_music') * this.userVol.music : 0;
@@ -71,7 +82,11 @@ export class AudioBus {
     this.musicBus = this.ctx.createGain();
     this.musicBus.gain.value = this.musicOn ? 0.6 : 0;
     this.musicBus.connect(this.master);
-    this.ambBus = this.ctx.createGain(); this.ambBus.gain.value = this.userVol.amb; this.ambBus.connect(this.master);   // sea, wind, gulls, rain, ambience
+    this.seaMusic = this.ctx.createGain(); this.seaMusic.connect(this.musicBus);   // the music of the sea (stage loops and layers): ducks while the tavern plays
+    this.tavern = new Tavern(this.ctx, this.musicBus);
+    this.hut = new HutMusic(this.ctx, this.musicBus); this.tavPresence = 0; this.hutPresence = 0;
+    this.layers = new SeaLayers(this.ctx, this.seaMusic); this.layers.setSeed(this.layerSeed); this.layers.pace = this.layerPace;
+    this.ambBus = this.ctx.createGain(); this.ambBus.gain.value = this.userVol.amb; this.ambBus.connect(this.master);   // sea, gulls, rain, coast, forest
     this.sfxBus = this.ctx.createGain(); this.sfxBus.gain.value = this.userVol.sfx; this.sfxBus.connect(this.master);   // one-shot effects
 
     if (window.__VOLUMES) Object.assign(this.vol, window.__VOLUMES);   // the single-file build carries its own
@@ -79,13 +94,16 @@ export class AudioBus {
     try { Object.assign(this.vol, JSON.parse(localStorage.getItem('pocket-pirates-mixer') || '{}')); } catch (e) { /* storage blocked */ }
     this.setMuted(this.muted); this.setMusic(this.musicOn);
     // one-shots first (cheap), then ambience, then music, yielding between cues so the game stays smooth
-    const order = [...CUES.oneShots, 'sea', 'wind', 'surf', 'rain', 'amb_night', 'oars', 'gulls', 'coast', ...CUES.loops.filter((k) => k.startsWith('amb_') && k !== 'amb_night'), ...CUES.loops.filter((k) => k.startsWith('music_'))];
+    const order = [...CUES.oneShots, 'sea', 'rain', 'rain_2', 'rain_storm', 'gulls', 'coast', 'forest', ...CUES.loops.filter((k) => k.startsWith('music_')), ...LAYERS, ...TAVERN, ...HUT];
     for (const k of order) {
       if (window.__BUILD === 'demo' && DEMO_SKIP.has(k)) continue;
       await this.load(k);
       if (CUES.loops.includes(k)) this.startLoop(k);
       await tick();
     }
+    this.layers.start();   // the stage-1 stems all start on the same sample (they waited silently until every one had loaded)
+    this.tavern.start();
+    this.hut.start();
     this.ready = true;
   }
 
@@ -114,27 +132,61 @@ export class AudioBus {
     src.buffer = buf; src.loop = true;
     const gain = this.ctx.createGain();
     gain.gain.value = 0;
-    if (key === 'wind') {   // the gusts drift: a slow second gain and a stereo pan that wander so the loop never repeats the same way
-      const mod = this.ctx.createGain(), pan = this.ctx.createStereoPanner();
-      mod.gain.value = 1; pan.pan.value = 0;
-      src.connect(gain).connect(mod).connect(pan).connect(this.ambBus);
-      this.windMod = mod; this.windPan = pan; this.windSrc = src; this.windT = 0; this.windGust = 1; this.windSide = 0;
-    } else if (key === 'gulls') {   // far away they are dull and thin; the closer you get, the clearer (low-pass opens with level)
+    if (key === 'gulls') {   // far away they are dull and thin; the closer you get, the clearer (low-pass opens with level)
       const lp = this.ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 900; lp.Q.value = 0.4;
       const env = this.ctx.createGain(); env.gain.value = 0;   // the colony comes and goes (see driftGulls)
       src.connect(lp).connect(gain).connect(env).connect(this.ambBus);
       this.tone = lp; this.gullEnv = env; this.gullOn = false; this.gullSwitch = 3 + Math.random() * 6;
-    } else src.connect(gain).connect(key.startsWith('music_') ? this.musicBus : this.ambBus);
-    src.start();
+    } else if (LAYERS.includes(key)) this.layers.add(key, src, gain);   // its own panner, the shared low-pass; started with the others
+    else if (TAVERN.includes(key)) this.tavern.add(key, src, gain);
+    else if (HUT.includes(key)) this.hut.add(key, src, gain);
+    else src.connect(gain).connect(key.startsWith('music_') ? this.seaMusic : this.ambBus);
+    if (!LAYERS.includes(key) && !TAVERN.includes(key) && !HUT.includes(key)) src.start();
     this.loops.set(key, gain);
     (this.srcs || (this.srcs = new Map())).set(key, src);
-    if (key.startsWith('music_') && this.musicRate !== 1) src.playbackRate.value = this.musicRate;
+    if (this.isMusic(key) && this.musicRate !== 1) src.playbackRate.value = this.musicRate;
   }
 
   has(key) { return this.buffers.has(key); }
 
   /** every music loop at this playback rate (1 = as authored; 0.944 = one semitone flat) */
-  setMusicRate(r) { this.musicRate = r; if (this.srcs) for (const [k, src] of this.srcs) if (k.startsWith('music_')) src.playbackRate.value = r; }
+  setMusicRate(r) { this.musicRate = r; if (this.srcs) for (const [k, src] of this.srcs) if (this.isMusic(k)) src.playbackRate.value = r; }
+  isMusic(k) { return k.startsWith('music_') || LAYERS.includes(k) || TAVERN.includes(k) || HUT.includes(k); }
+
+  /** every frame, sailing or ashore. where: 0 at sea, 0.35 in a harbour, 1 inside its tavern (or at its dice table) */
+  tavernUpdate(dt, where) {
+    if (!this.ctx || !this.tavern.ready) return;
+    const t = this.tavern.update(dt, where);
+    this.tavPresence = t.presence;
+    for (const k of TAVERN) this.setLoop(k, t.levels[k] * (1 - this.hutPresence));
+    this.seaMusic.gain.setTargetAtTime((1 - 0.9 * t.presence) * (1 - this.hutPresence), this.ctx.currentTime, 0.5);   // the sea's music steps aside
+  }
+  /** every frame: target 0..1, how much the hut's theme should play (main.js: hutMusicTarget). While it plays, nothing else does */
+  hutUpdate(dt, target) {
+    if (!this.ctx || !this.hut.ready) return;
+    const h = this.hut.update(dt, target);
+    this.hutPresence = h.presence;
+    for (const k of HUT) this.setLoop(k, h.levels[k]);
+  }
+
+  /**
+   * A very soft voice blip while somebody's words type out (every third letter): a short, rounded, low-passed tone with a
+   * little pitch wobble, soft but clear of the sea's rumble (peaks about -28 dBFS at the output). Mara a little higher; guests lower; dark lines
+   * lower and duller. Follows the Effects slider.
+   */
+  blip(dark = false, guest = false) {
+    if (!this.ctx || this.muted || this.ctx.state !== 'running') return;
+    const t = this.ctx.currentTime;
+    if (t - (this.lastBlip || 0) < 0.06) return;   // never a rattle
+    this.lastBlip = t;
+    const base = (guest ? 360 : 470) * (dark ? 0.75 : 1), f = base * (1 + (Math.random() - 0.5) * 0.12);   // above the sea's rumble, so it is heard without being loud
+    const o = this.ctx.createOscillator(), g = this.ctx.createGain(), lp = this.ctx.createBiquadFilter();
+    o.type = 'triangle'; o.frequency.setValueAtTime(f, t); o.frequency.exponentialRampToValueAtTime(f * 0.94, t + 0.06);
+    lp.type = 'lowpass'; lp.frequency.value = dark ? 1500 : 2600; lp.Q.value = 0.3;
+    const vol = 0.05 * this.v('blip');
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.008); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.07);
+    o.connect(lp).connect(g).connect(this.sfxBus || this.master); o.start(t); o.stop(t + 0.09);
+  }
 
   /** a soft bell-like note (for the tune in the fog); `pan` -1..1, `vol` 0..1 */
   playTone(freq, { dur = 1.8, vol = 0.3, pan = 0 } = {}) {
@@ -150,7 +202,7 @@ export class AudioBus {
   setLoop(key, v) {
     this.level[key] = v;
     const g = this.loops.get(key);
-    v *= 1 - (key.startsWith('music_') ? this.studioDuck : this.studioDuckAmb);
+    v *= 1 - (this.isMusic(key) ? this.studioDuck : this.studioDuckAmb);
     if (this.preview) v = key === this.preview ? 0.8 : 0;   // auditioning one loop: everything else hushes
     if (g) g.gain.setTargetAtTime(v * (this.preview && key === this.preview ? Math.max(0.5, this.v(key)) : this.v(key)), this.ctx.currentTime, this.preview ? 0.15 : 0.7);   // a soloed loop is audible even at 0%
     if (key === 'gulls' && this.tone) this.tone.frequency.setTargetAtTime(700 + 9500 * Math.min(1, v) * Math.min(1, v), this.ctx.currentTime, 0.7);
@@ -182,36 +234,51 @@ export class AudioBus {
     this.gullEnv.gain.setTargetAtTime(this.gullOn ? 1 : 0, this.ctx.currentTime, this.gullOn ? 1.2 : 2.2);
   }
 
-  /** wind loop drift: volume swells and fades (about 45% to 120%) and the sound drifts left and right, never the same twice */
-  driftWind(dt) {
-    if (!this.windMod) return;
-    this.windT += dt;
-    const t = this.windT, T = this.ctx.currentTime;
-    this.windNext = (this.windNext || 0) - dt;
-    if (this.windNext <= 0) { this.windNext = 4 + Math.random() * 9; this.windGust = 0.55 + Math.random() * 0.6; this.windSide = (Math.random() * 2 - 1) * 0.8; }
-    const swell = 0.8 + 0.18 * Math.sin(t * 0.21) + 0.12 * Math.sin(t * 0.083 + 1.7);
-    this.windMod.gain.setTargetAtTime(Math.max(0.35, swell * this.windGust), T, 2.2);
-    const pan = Math.max(-0.9, Math.min(0.9, 0.5 * Math.sin(t * 0.11 + 0.6) + 0.35 * Math.sin(t * 0.047) + this.windSide * 0.4));
-    this.windPan.pan.setTargetAtTime(pan, T, 2.5);
-    this.windSrc.playbackRate.setTargetAtTime(1 + 0.025 * Math.sin(t * 0.09 + 2), T, 3);
+  /**
+   * Rain in two kinds: light rain (two recordings, `rain` and `rain_2`, cross-faded every half minute or so) and a proper
+   * storm (`rain_storm`, heavy rain drumming on the deck), blended by how hard it rains and blows. In strong rain a distant
+   * thunder rolls in now and then.
+   */
+  rainBeds(dt, s) {
+    const sm = (a, b, x) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+    const heavy = this.has('rain_storm') ? Math.max(sm(0.25, 0.6, s.storm), sm(0.75, 1, s.rain)) : 0;
+    const wet = Math.max(s.rain, s.storm * 0.8);
+    this.rainSwap -= dt;
+    if (this.rainSwap <= 0) { this.rainMixT = this.rainMixT > 0.5 ? Math.random() * 0.3 : 0.7 + Math.random() * 0.3; this.rainSwap = 25 + Math.random() * 40; }
+    this.rainMix += (this.rainMixT - this.rainMix) * (1 - Math.exp(-dt / 6));
+    const x = this.has('rain_2') ? this.rainMix : 0, light = wet * 0.85 * (1 - heavy * 0.8);
+    this.setLoop('rain', light * Math.cos(x * Math.PI / 2));
+    this.setLoop('rain_2', light * Math.sin(x * Math.PI / 2));
+    this.setLoop('rain_storm', wet * heavy * 0.9);
+    const strong = Math.max(sm(0.55, 0.8, s.rain), sm(0.3, 0.5, s.storm));
+    if (strong > 0.05) {
+      this.thunderT -= dt * strong;
+      if (this.thunderT <= 0) { this.thunder(0.55 + 0.4 * strong); this.thunderT = 30 + Math.random() * 50; }
+    }
   }
 
-  /** s: { dread, speed (0..1), night (0..1), wind (0..1.3), rain, storm, surf (0..1) } */
+  /** a distant roll of thunder (lightning asks for one too); never two on top of each other */
+  thunder(vol = 0.9) {
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime;
+    if (t - this.lastThunder < 25) return;   // the roll is long (about 18 s): from time to time, not every flash
+    this.lastThunder = t;
+    this.play('thunder', { vol: vol * (0.75 + Math.random() * 0.25), rate: 0.9 + Math.random() * 0.15, pan: (Math.random() * 2 - 1) * 0.7 });
+  }
+
+  /** s: { dread, speed (0..1), night (0..1), wind (0..1.3), rain, storm, quests (main goals done), open (0 by the shore .. 1 open sea) } */
   update(dt, s) {
     if (!this.ctx) return;
     const dread = s.dread;
-    for (let i = 0; i < STAGES; i++) {
-      const w = Math.max(0, 1 - Math.abs(dread * (STAGES - 1) - i)); // triangular cross-fade
-      this.setLoop(`amb_${i + 1}`, w * 0.8);
-      this.setLoop(`music_${i + 1}`, w * 0.75);
+    const layered = this.layers.ready;   // the stage-1 stems are the music of the bright sea
+    this.setLoop('music_3', smoothstep(0.45, 0.58, dread) * (1 - smoothstep(0.75, 0.9, dread)) * 0.75);   // the "Dread" piece: after stage 2, until the deep
+    if (layered) {
+      // the stage-1 band carries the bright half of the sea (dread up to about 0.3, ~660 units from Tama), then hands over to music_3
+      const lv = this.layers.update(dt, { quests: s.quests || 0, open: s.open, wind: s.wind, stage: 1 - smoothstep(0.2, 0.32, dread), stage2: smoothstep(0.2, 0.32, dread) * (1 - smoothstep(0.45, 0.58, dread)), battle: !!s.battle, night: s.night });   // stage 1 band, then stage 2, then music_3
+      for (const k of LAYERS) if (k in lv) this.setLoop(k, lv[k] * 1.5);   // the stems are mastered quiet (about -25 LUFS each): this puts the full band a few dB under the sea
     }
     this.setLoop('sea', 0.3 + s.speed * 0.45);
-    this.driftWind(dt);
-    this.setLoop('surf', s.surf * 0.7);
-    this.setLoop('wind', Math.min(1, s.wind * 0.35 + s.storm * 0.5));
-    this.setLoop('rain', s.rain * 0.85);
-    this.setLoop('amb_night', s.night * 0.7 * (1 - s.rain * 0.7));
-    this.setLoop('oars', s.rowing ? 0.7 : 0);
+    this.rainBeds(dt, s);
     this.setLoop('gulls', (s.gulls || 0) * 0.9);
     this.driftGulls(dt, s.gulls || 0);
     const stage = Math.min(STAGES - 1, Math.floor(dread * STAGES));

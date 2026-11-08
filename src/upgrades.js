@@ -2,13 +2,23 @@
 export const UPGRADES = [
   { id: 'sails', name: 'Sails', cost: [120, 300, 650], text: ['Fine canvas: +12% top speed, bites better upwind', 'Double-stitched sails: +24% speed', 'Storm-silk sails: +36% speed, handles headwinds'] },
   { id: 'rudder', name: 'Rudder', cost: [100, 250, 500], text: ['Oiled tiller: turns 22% faster', 'Broad rudder: turns 44% faster', 'Whale-bone rudder: turns 66% faster'] },
-  { id: 'lantern', name: 'Lantern', cost: [80, 200, 450], text: ['Brass lantern: a small pool of light at night', 'Lens lantern: wider glow', 'Beacon lantern: lights the way, and keeps the dark back'] },
+  { id: 'lantern', name: 'Lantern', cost: [80, 200, 450], text: ['Brass lantern: see 15% further at night and in fog', 'Lens lantern: see 30% further', 'Beacon lantern: 45% further, and keeps the dark back'] },
   { id: 'spyglass', name: 'Spyglass', cost: [100, 250, 500], text: ['Brass spyglass: see further, zoom out wider', 'Long glass: even further', 'Captain\'s glass: sees almost to the horizon'] },
   { id: 'hull', name: 'Hull', cost: [100, 260, 520], text: ['Oak reinforcement: +30 hull strength', 'Iron-banded hull: +60 hull strength', 'Ironwood hull: +90 hull strength'] },
   { id: 'cannons', name: 'Cannons', cost: [140, 320, 640], text: ['Better powder: +4 damage, reload a little faster', 'Long guns: +8 damage, faster reload', 'Master gunners: +12 damage, much faster reload'] },
   { id: 'crew', name: 'Crew', cost: [150, 350, 700], text: ['Seasoned diggers: dig 20% faster, +20% loot value', 'Treasure hounds: 40% faster, +40% value', 'Veteran crew: 60% faster, +60% value'] },
 ];
 export const MAX_LEVEL = 3;
+// the shop card: what you start with, a pixel icon, and what a level opens up (shown as a tag)
+export const UP_CARD = {
+  sails: { icon: 'sail', stock: 'Patched canvas' },
+  rudder: { icon: 'rudder', stock: 'A stiff old tiller', opens: { 2: 'Threads the reef gaps' } },
+  lantern: { icon: 'lamp', stock: 'A candle in a jar', opens: { 1: 'Holds more oil', 2: 'Cuts through fog banks' } },
+  spyglass: { icon: 'spy', stock: 'Your own two eyes' },
+  hull: { icon: 'hull', stock: 'Old planks: 100 strength', opens: { 2: 'Takes the breakers; storms hurt less' } },
+  cannons: { icon: 'ball', stock: 'Two rusty guns' },
+  crew: { icon: 'crew', stock: 'Green hands' },
+};
 
 export function computeMods(lv) {
   return {

@@ -4,6 +4,7 @@ import { Builder } from './builder.js';
 import { TILE } from './textures.js';
 import { mats, psxMaterial, getAtlas } from './psx.js';
 import { waveHeight } from './ocean.js';
+import { Wake } from './wake.js';
 import { angleDiff, lerp, clamp, hash2 } from './util.js';
 import { sectorAt, FACTIONS } from './sectors.js';
 
@@ -233,7 +234,7 @@ export class Traffic {
     for (let i = this.ships.length - 1; i >= 0; i--) {
       const s = this.ships[i], K = KINDS[s.kind];
       s.age += dt;
-      if (s.sinking) { s.sinkT += dt; s.speed *= Math.max(0, 1 - dt); if (s.sinkT > 5) { this.scene.remove(s.root); this.ships.splice(i, 1); continue; } }
+      if (s.sinking) { s.sinkT += dt; s.speed *= Math.max(0, 1 - dt); if (s.sinkT > 5) { this.scene.remove(s.root); if (s.wake) s.wake.dispose(this.scene); this.ships.splice(i, 1); continue; } }
       else if (s.hostile) {
         const dx = ship.pos.x - s.x, dz = ship.pos.z - s.z, dd = Math.hypot(dx, dz);
         s.engaged = dd < 85;
@@ -252,14 +253,25 @@ export class Traffic {
         if (this.world.collide(this.tmp, 3.5 * K.scale)) { s.x = this.tmp.x; s.z = this.tmp.z; s.heading += 0.9 * dt + 0.02; }
       }
       const dist = Math.hypot(s.x - ship.pos.x, s.z - ship.pos.z);
-      if (dist > 390) { this.scene.remove(s.root); this.ships.splice(i, 1); continue; }
+      if (dist > 390) { this.scene.remove(s.root); if (s.wake) s.wake.dispose(this.scene); this.ships.splice(i, 1); continue; }
 
       const fx = Math.sin(s.heading), fz = -Math.cos(s.heading), rx = Math.cos(s.heading), rz = Math.sin(s.heading);
       const wh = (ox, oz) => waveHeight(s.x + rx * ox + fx * -oz, s.z + rz * ox + fz * -oz, t, wave);
       const bow = wh(0, -2.4), stern = wh(0, 2.4), right = wh(1.2, 0), left = wh(-1.2, 0);
-      s.root.position.set(s.x, (bow + stern + right + left) / 4 + 0.1, s.z);
-      s.root.rotation.set(Math.atan2(bow - stern, 4.8), -s.heading, Math.atan2(right - left, 2.4));
       const rel = angleDiff(s.heading, wind.dir), sgn = rel >= 0 ? 1 : -1;
+      // the same weighted float as the player's ship: it lags the waves on springs, heels with the wind and squats at speed
+      const sp = clamp(s.speed / 10, 0, 1.2), dtc = Math.min(dt, 0.05);
+      const tY = (bow + stern + right + left) / 4 + 0.1 - 0.06 * sp, tP = Math.atan2(bow - stern, 4.8) * 0.85 + 0.04 * sp, tR = Math.atan2(right - left, 2.4) * 0.8 - Math.sin(rel) * 0.12 * (s.mode === 'derelict' ? 0.2 : 1);
+      const F = s.float || (s.float = { y: tY, vy: 0, p: tP, vp: 0, r: tR, vr: 0 });
+      const spring = (k, vk, tg, w, z) => { F[vk] += (w * w * (tg - F[k]) - 2 * z * w * F[vk]) * dtc; F[k] += F[vk] * dtc; };
+      if (dtc > 0) { spring('y', 'vy', tY, 3.0, 0.5); spring('p', 'vp', tP, 2.5, 0.45); spring('r', 'vr', tR, 2.1, 0.4); }
+      s.root.position.set(s.x, F.y, s.z);
+      s.root.rotation.set(F.p, -s.heading, F.r);
+      // and its own wake (only for ships near enough to see it)
+      if (dist < 220 && s.mode !== 'ghost' && !s.sinking) {
+        if (!s.wake) s.wake = new Wake(this.scene, { len: 4.8 * K.scale, beam: 1.3 * K.scale });
+        s.wake.update(dt, t, wave, { pos: { x: s.x, z: s.z }, heading: s.heading, speed: s.speed, max: 10 }, ctx.light ?? 1);
+      } else if (s.wake) { s.wake.dispose(this.scene); s.wake = null; }
       const swing = lerp(1.4, 0.1, Math.abs(rel) / Math.PI) * sgn;
       s.sgn += (sgn - s.sgn) * Math.min(1, dt * 2);
       const flat = s.mode === 'derelict' ? 0.45 + Math.sin(t * 1.3 + i) * 0.04 : 1;

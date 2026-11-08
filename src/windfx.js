@@ -4,7 +4,7 @@ import { mulberry32 } from './util.js';
 // Wisps of air drifting downwind past the ship: a soft, in-world hint of the wind instead of a number on a gauge. Strength sets how many, how fast and how visible.
 // Each wisp is a few short broken dashes (chunky, never a thin straight line) laid along a lazy curve that wanders with the gusts; it fades in, drifts and fades out, then reappears elsewhere
 // with new lengths, gaps and curl, so no two look alike and nothing repeats.
-const N = 64, K = 5, BOX = 48;
+const N = 56, K = 8, BOX = 48;   // fewer, longer, smoother wisps (each one a continuous tapered curve)
 
 export class WindFX {
   constructor(scene) {
@@ -28,14 +28,14 @@ export class WindFX {
     if (ship && !anywhere) { q.x = ship.x - wx * BOX * 0.9 + (r() - 0.5) * BOX * 1.8 * sx + (r() - 0.5) * 10 * wx; q.z = ship.z - wz * BOX * 0.9 + (r() - 0.5) * BOX * 1.8 * sz + (r() - 0.5) * 10 * wz; }
     else { q.x = (r() - 0.5) * BOX * 2 + (ship ? ship.x : 0); q.z = (r() - 0.5) * BOX * 2 + (ship ? ship.z : 0); }
     q.y = 1.5 + r() * 9; q.sp = 0.55 + r() * 0.8; q.ph = r() * 6.28; q.life = anywhere ? r() : 0; q.span = 4 + r() * 6;
-    q.n = 2 + Math.floor(r() * (K - 1)); q.w = 0.1 + r() * 0.12; q.curl = (r() - 0.5) * 0.16; q.tw = 0.35 + r() * 0.9;
-    q.dl = Array.from({ length: K }, () => 0.7 + r() * 1.8); q.gap = Array.from({ length: K }, () => 0.5 + r() * 2.0);
+    q.n = 5 + Math.floor(r() * (K - 4)); q.w = 0.08 + r() * 0.07; q.curl = (r() - 0.5) * 0.12; q.tw = 0.35 + r() * 0.9;
+    q.dl = Array.from({ length: K }, () => 0.6 + r() * 0.5); q.gap = Array.from({ length: K }, () => 0.02 + r() * 0.06);
     return q;
   }
   update(dt, t, dir, strength, shipPos, night, rain) {
     const wx = Math.sin(dir), wz = -Math.cos(dir), sx = -wz, sz = wx;
     const speed = 3 + strength * 7;
-    this.mat.opacity = Math.max(0, (0.12 + 0.3 * Math.min(1, strength)) * (1 - 0.6 * night) * (1 - rain));
+    this.mat.opacity = Math.max(0, (0.16 + 0.24 * Math.min(1, strength)) * (1 - 0.6 * night) * (1 - rain));
     this.mesh.visible = this.mat.opacity > 0.01;
     const P = this.pos, C = this.col;
     for (let i = 0; i < N; i++) {
@@ -54,12 +54,13 @@ export class WindFX {
         if (k >= q.n || fade < 0.02) { for (let j = 0; j < 12; j++) { P[o + j] = 0; C[c + j] = 0; } continue; }
         const s0 = s, s1 = s + q.dl[k] * L; s = s1 + q.gap[k];
         const pt = (u) => { const a = q.curl * u; return Math.abs(q.curl) < 1e-3 ? [q.x + ux * u, q.z + uz * u] : [q.x + (Math.cos(a0) - Math.cos(a0 + a)) / q.curl, q.z - (Math.sin(a0 + a) - Math.sin(a0)) / q.curl]; };
-        const [ax, az] = pt(s0), [bx, bz] = pt(s1), ya = q.y + 0.25 * Math.sin(t * 0.8 + q.ph + k), yb = ya + 0.1 * Math.sin(k + q.ph);
+        const [ax, az] = pt(s0), [bx, bz] = pt(s1), ya = q.y + 0.25 * Math.sin(t * 0.8 + q.ph + k * 0.4), yb = q.y + 0.25 * Math.sin(t * 0.8 + q.ph + (k + 1) * 0.4);   // one smooth curve, no steps
         const ex = bx - ax, ez = bz - az, el = Math.hypot(ex, ez) || 1, px = -ez / el * q.w, pz = ex / el * q.w;
-        const br = fade * (0.55 + 0.45 * Math.sin(k * 1.7 + q.ph));                 // each dash its own brightness
-        P[o] = ax + px; P[o + 1] = ya; P[o + 2] = az + pz; P[o + 3] = ax - px; P[o + 4] = ya; P[o + 5] = az - pz;
-        P[o + 6] = bx - px; P[o + 7] = yb; P[o + 8] = bz - pz; P[o + 9] = bx + px; P[o + 10] = yb; P[o + 11] = bz + pz;
-        for (let j = 0; j < 12; j++) C[c + j] = br;
+        const ta = fade * Math.sin(Math.PI * (k / q.n)), tb = fade * Math.sin(Math.PI * Math.min(1, (k + 1) / q.n));   // tapered: thin and faint at both ends
+        const wa = Math.sqrt(ta), wb = Math.sqrt(tb);   // width tapers gently, brightness more
+        P[o] = ax + px * wa; P[o + 1] = ya; P[o + 2] = az + pz * wa; P[o + 3] = ax - px * wa; P[o + 4] = ya; P[o + 5] = az - pz * wa;
+        P[o + 6] = bx - px * wb; P[o + 7] = yb; P[o + 8] = bz - pz * wb; P[o + 9] = bx + px * wb; P[o + 10] = yb; P[o + 11] = bz + pz * wb;
+        for (let j = 0; j < 6; j++) C[c + j] = ta; for (let j = 6; j < 12; j++) C[c + j] = tb;
       }
     }
     this.mesh.geometry.attributes.position.needsUpdate = true; this.mesh.geometry.attributes.color.needsUpdate = true;

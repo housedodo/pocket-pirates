@@ -1,0 +1,319 @@
+// Stage 1 out on open sea: the instrument stems (public/audio/s1_*.ogg) come in one by one as the main quests are done.
+// They are one 16-bar loop at 99 BPM (38.8 s, all the same length, rendered through HOIST at FAIR WEATHER), started at
+// the same instant so they stay locked together. Nothing plays before the first quest; quest 1 brings in bass and
+// shaperbox, every quest after that one more instrument (order shuffled per voyage). Once three or more are in, the band
+// plays in "scenes": the full band, then a line-up of only two or three (bass + pluck, guitar arp + drums + bell ...),
+// always a different combination from the last ones, then the full band again, and so on. Scenes change on a 4-bar
+// phrase. A newcomer gets a full-band scene while it fades in so you hear it arrive. Each layer also swells gently and
+// wanders a little around its place in the stereo field, and all of them sit under a soft low-pass that moves with the swell and closes in strong wind, as if
+// the music reached you over the waves. Right by a shore they ease down to 40%.
+import { mulberry32 } from './util.js';
+
+// the band (one more per quest) and the battle layer (Raiders, up a semitone to F minor, 8 bars twice): it joins the main theme
+// while a fight with raiders is on (cannons out), whatever the quests
+const BAND = ['s1_bass', 's1_shaperbox', 's1_pluck', 's1_drums', 's1_bell', 's1_guitar'], BATTLE = 's1_raiders';
+// the guitar arp has a second take (4 bars, played four times): one of the two plays in the guitar's place, they swap now and
+// then at no set interval, and never sound together (the one leaving is silent before the other comes in)
+const ARP2 = 's1_guitar2';
+// the counter melody: not part of the scenes. Rarely (every two and a half to five minutes, once four or more instruments are
+// in, by day, not in a fight) it fades in slowly on a phrase over the band, plays for three to five phrases and fades out again
+const COUNTER = 's1_counter';
+// the night: a calmer version of the song (pluck, shaperbox, strings, bell; same length, through HOIST with more space).
+// From dusk to daybreak it plays instead of the band, all four together, breathing gently; the band comes back at dawn.
+const NIGHT = ['n1_pluck', 'n1_shaperbox', 'n1_strings', 'n1_bell'];
+// the night pad: one big, slow pad for calm seas, long and peaceful. The night switches between the band (it carries the melody)
+// and the pad, crossfading over ~12 s on a phrase; on a calm sea the pad stays longer and comes back sooner, in wind the band does
+const PAD = 'n1_pad';
+// the pluck (the main melody) has a second take, the composer's own variation: it swaps with the original like the two arps
+const PLUCK2 = 's1_pluck2', PLUCK3 = 's1_pluck3';   // three takes of the main melody: the original, the composer's variation, off the beat
+// dread stage 2 (GREY SKIES): bass, drums, guitar arp and pluck, through HOIST with more swell and a little tape wow. Like the
+// band it plays on open sea (falls back by the shore, steps aside in harbour); all four together, now and then one of the
+// three upper parts rests for a while so it never sits still
+const STAGE2 = ['s2_bass', 's2_drums', 's2_guitar', 's2_pluck'];
+export const LAYERS = [...BAND, ARP2, PLUCK2, PLUCK3, BATTLE, COUNTER, ...NIGHT, PAD, ...STAGE2];
+const FIRST = ['s1_bass', 's1_shaperbox'];   // the first quest brings these two in together
+// [home pan -1..1, how far it wanders, how fast]: bass and drums stay near the middle, the rest spread out
+const PLACE = {
+  s1_bass: [0, 0.1, 0.031], s1_shaperbox: [-0.3, 0.32, 0.023], s1_pluck: [0.42, 0.3, 0.037],
+  s1_drums: [-0.08, 0.14, 0.019], s1_bell: [0.58, 0.28, 0.027], s1_guitar: [-0.52, 0.28, 0.041], s1_guitar2: [-0.52, 0.28, 0.041], s1_raiders: [0.1, 0.18, 0.033], s1_counter: [0.2, 0.32, 0.017], s1_pluck2: [0.42, 0.3, 0.037], s1_pluck3: [0.42, 0.3, 0.037], n1_pad: [0, 0.14, 0.008],
+  s2_bass: [0, 0.1, 0.029], s2_drums: [-0.1, 0.14, 0.02], s2_guitar: [-0.5, 0.3, 0.037], s2_pluck: [0.45, 0.3, 0.031],
+  n1_pluck: [0.4, 0.3, 0.021], n1_shaperbox: [-0.35, 0.3, 0.017], n1_strings: [0, 0.2, 0.013], n1_bell: [0.55, 0.3, 0.025],
+};
+const FADE_IN = 30;      // seconds for a new instrument to come all the way in
+const PHRASE = 4 * 4 * 60 / 99;   // 4 bars at 99 BPM (9.7 s): scenes change on a phrase
+const smooth = (x) => x * x * (3 - 2 * x);
+const keyOf = (set) => [...set].sort().join('+');
+
+export class SeaLayers {
+  constructor(ctx, out) {
+    this.ctx = ctx;
+    this.lp = ctx.createBiquadFilter(); this.lp.type = 'lowpass'; this.lp.frequency.value = 2200; this.lp.Q.value = 0.5;
+    this.bus = ctx.createGain(); this.bus.gain.value = 1;
+    this.lp.connect(this.bus).connect(out);
+    this.pans = new Map(); this.st = new Map(); this.srcs = new Map();
+    this.t = 0; this.bg = 0; this.open = 1;
+    this.pace = 1;           // test flag (?dev=1&musicpace=4): everything moves this many times faster
+    this.rnd = Math.random;
+    this.order = [...BAND]; this.battle = 0; this.night = 0; this.s2rest = null; this.s2next = 30;
+    this.counter = { k: 0, phase: 'rest', t: 150 + Math.random() * 120, len: 0 };   // the counter melody's own slow cycle
+    this.arp = { which: 0, m: [1, 0], hold: (2 + Math.floor(Math.random() * 6)) * PHRASE, armed: -1, min: 2, span: 6 };   // which arp take plays, and how far each is faded in
+    this.pl = { which: 0, m: [1, 0, 0], hold: (3 + Math.floor(Math.random() * 5)) * PHRASE, armed: -1, min: 3, span: 6 };   // the same for the two pluck takes (they hold a little longer)
+    this.nm = { pad: 0, k: 0, hold: (3 + Math.floor(Math.random() * 3)) * PHRASE };   // the night: band (0) or pad (1), and the crossfade
+    this.scene = new Set(); this.sceneFull = true; this.sceneLeft = 0; this.recent = []; this.lastN = 0; this.t0 = 0; this.phrase = -1; this.smalls = 0;
+  }
+  get ready() { return this.srcs.size > 0; }
+
+  /** the order the later instruments arrive in: shuffled once per voyage, bass and shaperbox always first */
+  setSeed(seed) {
+    const r = mulberry32((seed ^ 0x51ea) >>> 0), rest = BAND.filter((k) => !FIRST.includes(k));
+    for (let i = rest.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [rest[i], rest[j]] = [rest[j], rest[i]]; }
+    this.order = [...FIRST, ...rest];
+  }
+
+  /** src -> gain (the mixer's level for this cue) -> its own panner -> the shared low-pass; started later, all at once */
+  add(key, src, gain) {
+    const p = this.ctx.createStereoPanner(); p.pan.value = PLACE[key][0];
+    src.connect(gain).connect(p).connect(this.lp);
+    this.pans.set(key, p); this.srcs.set(key, src);
+    this.st.set(key, { intro: 0, breath: 1, swell: 1, next: 8 + this.rnd() * 10, inScene: 0, ph: this.rnd() * 6.283 });
+  }
+  /** start every loaded stem on the same sample so they stay in time */
+  start() { const when = this.ctx.currentTime + 0.15; this.t0 = when; for (const s of this.srcs.values()) s.start(when); }
+
+  /** the next scene: after a full band a line-up of two or three, never one heard lately and sharing at most one player with the last */
+  nextScene(on) {
+    const full = new Set(on);
+    if (on.length < 3) return { set: full, full: true, len: 4 };
+    // now and then nothing at all for a while (only the sea), or one instrument alone (never the drums on their own); never two
+    // quiet stretches in a row
+    const wasQuiet = !this.sceneFull && this.scene.size <= 1;
+    if (!wasQuiet) {
+      const r = this.rnd();
+      if (r < 0.17) return { set: new Set(), full: false, len: 1 + Math.floor(this.rnd() * 3) };
+      if (r < 0.37) {
+        const solos = on.filter((k) => k !== 's1_drums');
+        return { set: new Set([solos[Math.floor(this.rnd() * solos.length)]]), full: false, len: 2 + Math.floor(this.rnd() * 2) };
+      }
+    }
+    const wantFull = !this.sceneFull && (this.smalls >= 2 || this.rnd() < 0.5);   // after one or two small line-ups, the whole band again
+    if (wantFull) return { set: full, full: true, len: 3 + Math.floor(this.rnd() * 3) };
+    const sizes = on.length === 3 ? [2] : [2, 3];
+    let best = null, bestScore = -1;
+    for (let tries = 0; tries < 40; tries++) {
+      const size = sizes[Math.floor(this.rnd() * sizes.length)], pool = [...on], pick = new Set();
+      while (pick.size < size) pick.add(pool.splice(Math.floor(this.rnd() * pool.length), 1)[0]);
+      const shared = this.sceneFull ? 0 : [...pick].filter((k) => this.scene.has(k)).length;
+      const score = (this.recent.includes(keyOf(pick)) ? 0 : 2) + (shared <= 1 ? 1 : 0) + this.rnd() * 0.5;
+      if (score > bestScore) { best = pick; bestScore = score; }
+    }
+    return { set: best, full: false, len: 2 + Math.floor(this.rnd() * 3) };
+  }
+  setRate(r) { for (const s of this.srcs.values()) s.playbackRate.value = r; }
+
+  /** how many instruments the quests have brought in so far */
+  static count(quests) { return quests >= 1 ? Math.min(BAND.length, quests + 1) : 0; }
+
+  /**
+   * One frame. s: { quests (main goals done), open (0 by the shore .. 1 open sea), wind (0..1.3), stage (how much of
+   * dread stage 1 is left, 0..1), battle (a fight with raiders is on) }. Returns the level (0..1) each stem should play at.
+   */
+  update(dt, s) {
+    const d = dt * this.pace, T = this.ctx.currentTime;
+    this.t += d;
+    const n = SeaLayers.count(s.quests), on = this.order.filter((k) => this.srcs.has(k)).slice(0, n);
+    // the whole band grows a little louder as it fills up, but stays in the background
+    this.bg += ((n ? 0.5 + 0.04 * (n - 2) : 0) - this.bg) * (1 - Math.exp(-d / 20));
+    this.open += ((s.open ?? 1) - this.open) * (1 - Math.exp(-dt / 8));   // eases down slowly by the shore
+    // the swell: two slow waves; the music lifts on the crest and sinks (and darkens) in the trough
+    const wave = 0.5 + 0.3 * Math.sin(this.t * 0.61) + 0.2 * Math.sin(this.t * 0.37 + 1.3);
+    this.bus.gain.setTargetAtTime(0.82 + 0.18 * wave, T, 0.4);
+    const wind = Math.min(1, s.wind || 0);
+    // a fight: the battle layer comes in within a few seconds and lingers after; the filter opens a little (still muffled)
+    this.battle += ((s.battle ? 1 : 0) - this.battle) * (1 - Math.exp(-d / (s.battle ? 2.5 : 7)));
+    // dusk to daybreak: the night version takes over (once the first quest has brought music at all), over about 15 s
+    const nightT = n >= 1 ? Math.max(0, Math.min(1, ((s.night || 0) - 0.35) / 0.4)) : 0;
+    this.night += (nightT - this.night) * (1 - Math.exp(-d / 6));
+    const nk = smooth(this.night);
+    // stage 2: one of the upper parts rests now and then (never two at once, never the bass)
+    this.s2next -= d;
+    if (this.s2next <= 0) { if (this.s2rest) { this.s2rest = null; this.s2next = 25 + this.rnd() * 30; } else { this.s2rest = ['s2_drums', 's2_guitar', 's2_pluck'][Math.floor(this.rnd() * 3)]; this.s2next = 15 + this.rnd() * 20; } }
+    this.lp.frequency.setTargetAtTime(Math.max(800, (1500 + 1500 * wave) * (1 - 0.35 * wind) * (1 + 0.35 * this.battle)), T, 0.5);
+
+    // scenes: a newcomer brings a full-band scene (long enough to hear it arrive); otherwise a new scene when the last has run out,
+    // on the next phrase
+    this.sceneLeft -= d;
+    const phrase = Math.floor((T - this.t0) / PHRASE), onPhrase = phrase !== this.phrase;
+    this.phrase = phrase;
+    if (this.battle > 0.5 && on.length && !this.sceneFull) { this.scene = new Set(on); this.sceneFull = true; this.sceneLeft = 2 * PHRASE; this.smalls = 0; }   // in a fight the whole band plays
+    else if (on.length !== this.lastN) {
+      this.lastN = on.length;
+      this.scene = new Set(on); this.sceneFull = true; this.sceneLeft = on.length ? FADE_IN + 3 * PHRASE : 0; this.smalls = 0;
+    } else if (on.length && this.sceneLeft <= 0 && (onPhrase || this.pace !== 1)) {
+      const sc = this.nextScene(on);
+      this.scene = sc.set; this.sceneFull = sc.full; this.sceneLeft = sc.len * PHRASE;
+      this.smalls = sc.full ? 0 : this.smalls + 1;
+      if (!sc.full) { this.recent.push(keyOf(sc.set)); if (this.recent.length > 4) this.recent.shift(); }
+    }
+    // the two arp takes: after holding for 2-7 phrases (chosen at random each time) the swap starts in the last moment of a phrase,
+    // so the new take comes in on the downbeat. The leaving one fades out in 0.3 s; only then does the other fade in (0.5 s)
+    const A = this.arp;
+    const toNext = PHRASE - (((T - this.t0) % PHRASE) + PHRASE) % PHRASE;
+    const swap = (S, alt) => {   // two takes of one part: hold min..min+span phrases, swap just before a phrase, never both at once
+      S.hold -= d;
+      if (S.hold <= 0 && this.srcs.has(alt) && (toNext < 0.35 || this.pace !== 1) && S.armed !== phrase) { S.armed = phrase; S.which = 1 - S.which; S.hold = (S.min + Math.floor(this.rnd() * S.span)) * PHRASE; }
+      const a = S.which, b = 1 - a;
+      S.m[b] = Math.max(0, S.m[b] - d / 0.3);
+      if (S.m[b] === 0) S.m[a] = Math.min(1, S.m[a] + d / 0.5);
+    };
+    swap(A, ARP2);
+    { // the pluck: three takes, one at a time; after 3-8 phrases it moves to another one at random (never the same twice in a row)
+      const P = this.pl, takes = [0, this.srcs.has(PLUCK2) ? 1 : -1, this.srcs.has(PLUCK3) ? 2 : -1].filter((i) => i >= 0);
+      P.hold -= d;
+      if (P.hold <= 0 && takes.length > 1 && (toNext < 0.35 || this.pace !== 1) && P.armed !== phrase) {
+        const others = takes.filter((i) => i !== P.which);
+        P.armed = phrase; P.which = others[Math.floor(this.rnd() * others.length)]; P.hold = (P.min + Math.floor(this.rnd() * P.span)) * PHRASE;
+      }
+      const leaving = P.m.some((v, i) => i !== P.which && v > 0);
+      for (let i = 0; i < 3; i++) if (i !== P.which) P.m[i] = Math.max(0, P.m[i] - d / 0.3);
+      if (!leaving) P.m[P.which] = Math.min(1, P.m[P.which] + d / 0.5);   // the new take comes in only once the old one is gone
+    }
+    { // the night: band or pad, switched on a phrase; calm seas favour the pad (it holds longer and comes back sooner)
+      const N = this.nm, calm = wind < 0.45;
+      N.hold -= d;
+      if (nk > 0.5 && N.hold <= 0 && this.srcs.has(PAD) && (onPhrase || this.pace !== 1)) {
+        N.pad = 1 - N.pad;
+        const pads = N.pad ? (calm ? 5 + this.rnd() * 5 : 2 + this.rnd() * 3) : (calm ? 2 + this.rnd() * 3 : 4 + this.rnd() * 5);
+        N.hold = Math.floor(pads) * PHRASE;
+      }
+      if (nk < 0.1) { N.pad = 0; N.hold = Math.min(N.hold, (3 + Math.floor(this.rnd() * 3)) * PHRASE); }   // a night always opens with the band
+      N.k += (N.pad - N.k) * (1 - Math.exp(-d / 5));   // ~12 s to cross over
+    }
+    const out = {};
+    for (const k of LAYERS) {
+      const st = this.st.get(k);
+      if (!st || k === ARP2 || k === PLUCK2 || k === PLUCK3) continue;   // the second arp and second pluck follow their part's slot (below)
+      if (on.includes(k)) st.intro = Math.min(1, st.intro + d / FADE_IN);
+      if (STAGE2.includes(k)) {
+        const restT = this.s2rest === k ? 0 : 1;
+        st.inScene += (restT - st.inScene) * (1 - Math.exp(-d / 3));
+        st.next -= d;
+        if (st.next <= 0) { st.swell = 0.75 + 0.25 * this.rnd(); st.next = 10 + this.rnd() * 15; }
+        st.breath += (st.swell - st.breath) * (1 - Math.exp(-d / 5));
+        const [home, wander, sp] = PLACE[k];
+        this.pans.get(k).pan.setTargetAtTime(Math.max(-0.9, Math.min(0.9, home + wander * Math.sin(this.t * sp * 6.283 + st.ph))), T, 1);
+        out[k] = (n >= 1 ? 1 : 0) * (s.stage2 || 0) * st.inScene * st.breath * 0.8 * (0.4 + 0.6 * this.open);
+        continue;
+      }
+      if (k === PAD) {   // the night pad, in place of the night band while it holds
+        const [home, wander, sp] = PLACE[k];
+        this.pans.get(k).pan.setTargetAtTime(home + wander * Math.sin(this.t * sp * 6.283 + st.ph), T, 2);
+        out[k] = nk * smooth(Math.max(0, Math.min(1, this.nm.k))) * 0.95 * (s.stage ?? 1) * (0.4 + 0.6 * this.open);
+        continue;
+      }
+      if (NIGHT.includes(k)) {   // the night version: all four, breathing gently, while the band rests
+        st.next -= d;
+        if (st.next <= 0) { st.swell = 0.7 + 0.3 * this.rnd(); st.next = 12 + this.rnd() * 16; }
+        st.breath += (st.swell - st.breath) * (1 - Math.exp(-d / 6));
+        const [home, wander, sp] = PLACE[k];
+        this.pans.get(k).pan.setTargetAtTime(Math.max(-0.9, Math.min(0.9, home + wander * Math.sin(this.t * sp * 6.283 + st.ph))), T, 1);
+        out[k] = nk * st.breath * 1.0 * (s.stage ?? 1) * (0.4 + 0.6 * this.open) * (1 - smooth(Math.max(0, Math.min(1, this.nm.k))));   // as present as the day band (the stems are mastered quieter); steps aside for the pad
+        continue;
+      }
+      if (k === COUNTER) {   // rare: rest a long while, fade in over ~12 s on a phrase, play 3-5 phrases, fade out over ~14 s
+        const C = this.counter, ok = n >= 4 && nk < 0.3 && this.battle < 0.3 && this.scene.size >= 2;
+        if (C.phase === 'rest') { C.t -= d; if (C.t <= 0 && ok && (onPhrase || this.pace !== 1)) { C.phase = 'in'; C.len = (3 + Math.floor(this.rnd() * 3)) * PHRASE; } }
+        else if (C.phase === 'in') { C.k = Math.min(1, C.k + d / 12); if (!ok) C.phase = 'out'; else if (C.k >= 1) { C.phase = 'hold'; C.t = C.len; } }
+        else if (C.phase === 'hold') { C.t -= d; if (C.t <= 0 || !ok) C.phase = 'out'; }
+        else { C.k = Math.max(0, C.k - d / 14); if (C.k <= 0) { C.phase = 'rest'; C.t = 150 + this.rnd() * 150; } }
+        const [home, wander, sp] = PLACE[k];
+        this.pans.get(k).pan.setTargetAtTime(Math.max(-0.9, Math.min(0.9, home + wander * Math.sin(this.t * sp * 6.283 + st.ph))), T, 1);
+        out[k] = smooth(C.k) * 0.9 * this.bg * (s.stage ?? 1) * (0.4 + 0.6 * this.open) * (1 - nk);
+        continue;
+      }
+      if (k === BATTLE) {   // not part of the scenes: only the fight brings it in, on top of whatever the band plays
+        const [home, wander, sp] = PLACE[k];
+        this.pans.get(k).pan.setTargetAtTime(home + wander * Math.sin(this.t * sp * 6.283 + st.ph), T, 1);
+        out[k] = smooth(this.battle) * 0.7 * Math.max(0.5, s.stage ?? 1) * (0.4 + 0.6 * this.open);
+        continue;
+      }
+      // in or out of the scene: a few seconds to come and go (a small line-up plays a little louder than one voice in the full band)
+      const inT = this.scene.has(k) ? (this.sceneFull ? 1 : this.scene.size === 1 ? 1.35 : 1.25) : 0;
+      st.inScene += (inT - st.inScene) * (1 - Math.exp(-d / (inT > st.inScene ? 2.5 : 3.5)));
+      st.next -= d;
+      if (st.next <= 0) { st.swell = 0.75 + 0.25 * this.rnd(); st.next = 10 + this.rnd() * 15; }   // and a gentle swell up or down
+      st.breath += (st.swell - st.breath) * (1 - Math.exp(-d / 5));
+      const [home, wander, sp] = PLACE[k];
+      const pan = home + wander * (Math.sin(this.t * sp * 6.283 + st.ph) * 0.7 + Math.sin(this.t * sp * 14.4 + st.ph * 1.7) * 0.3);
+      this.pans.get(k).pan.setTargetAtTime(Math.max(-0.9, Math.min(0.9, pan)), T, 1);
+      out[k] = smooth(st.intro) * st.inScene * st.breath * this.bg * (s.stage ?? 1) * (0.4 + 0.6 * this.open) * (1 - nk);   // the band rests at night
+      if (k === 's1_pluck') {   // the pluck's slot, shared by its three takes (only one sounds at a time)
+        for (const [key, i] of [[PLUCK2, 1], [PLUCK3, 2]]) if (this.pans.has(key)) { out[key] = out[k] * this.pl.m[i]; this.pans.get(key).pan.setTargetAtTime(Math.max(-0.9, Math.min(0.9, pan)), T, 1); }
+        out[k] *= this.pl.m[0];
+      }
+      if (k === 's1_guitar' && this.pans.has(ARP2)) {   // the guitar's slot, split between the two takes (never both at once)
+        out[ARP2] = out[k] * A.m[1]; out[k] *= A.m[0];
+        this.pans.get(ARP2).pan.setTargetAtTime(Math.max(-0.9, Math.min(0.9, pan)), T, 1);
+      }
+    }
+    return out;
+  }
+}
+
+// The tavern in every harbour: four stems from the same session (99 BPM, 38.8 s, through HOIST, gently), muffled as if
+// heard through the wall. Inside the tavern (its tab, or the dice game) they play softly with the highs filtered away;
+// elsewhere in the harbour they are fainter and duller still, music from down the street. All four start together.
+export const TAVERN = ['tav_bass', 'tav_shaperbox', 'tav_pluck', 'tav_drums'];
+const TAV_PAN = { tav_bass: 0, tav_shaperbox: -0.25, tav_pluck: 0.3, tav_drums: 0.05 };
+
+export class Tavern {
+  constructor(ctx, out) {
+    this.ctx = ctx;
+    // two low-passes in a row (24 dB/oct): the high notes stay behind the wall
+    this.lp1 = ctx.createBiquadFilter(); this.lp1.type = 'lowpass'; this.lp1.Q.value = 0.6;
+    this.lp2 = ctx.createBiquadFilter(); this.lp2.type = 'lowpass'; this.lp2.Q.value = 0.6;
+    this.lp1.frequency.value = this.lp2.frequency.value = 600;
+    this.lp1.connect(this.lp2).connect(out);
+    this.srcs = new Map();
+    this.k = 0; this.near = 0;
+  }
+  get ready() { return this.srcs.size > 0; }
+  add(key, src, gain) { const p = this.ctx.createStereoPanner(); p.pan.value = TAV_PAN[key] || 0; src.connect(gain).connect(p).connect(this.lp1); this.srcs.set(key, src); }
+  start() { const when = this.ctx.currentTime + 0.15; for (const s of this.srcs.values()) s.start(when); }
+  setRate(r) { for (const s of this.srcs.values()) s.playbackRate.value = r; }
+
+  /** where: 0 away from any harbour, 0.35 in the harbour, 1 inside the tavern. Returns how loud each stem plays and how present the tavern is (0..1) */
+  update(dt, where) {
+    this.k += (where - this.k) * (1 - Math.exp(-dt / (where > this.k ? 1.2 : 0.8)));
+    const inside = Math.max(0, (this.k - 0.35) / 0.65), T = this.ctx.currentTime;
+    const cut = 380 + 820 * inside;   // about 400 Hz from the street, 1.2 kHz inside: still muffled
+    this.lp1.frequency.setTargetAtTime(cut, T, 0.3); this.lp2.frequency.setTargetAtTime(cut * 1.15, T, 0.3);
+    const lv = this.k < 0.01 ? 0 : 0.12 + 0.3 * inside;   // quiet: the room, not a concert
+    const out = {}; for (const k of TAVERN) out[k] = this.k > 0.01 ? lv * Math.min(1, this.k / 0.35) : 0;
+    return { levels: out, presence: Math.min(1, this.k / 0.35) * (0.6 + 0.4 * inside) };
+  }
+}
+
+// The hut's theme (dread stage 4, THE DEEP, through HOIST): pluck, sub drone and drums, and nothing else. It comes in
+// slowly as you sail up to the hut the first time and plays inside; after that first visit, once you have sailed well away, the
+// normal music returns and the theme is never heard there again (main.js: hutMusicTarget). All four start with the rest.
+export const HUT = ['s4_pluck', 's4_drone', 's4_drums'];
+const HUT_PAN = { s4_pluck: 0.35, s4_drone: 0, s4_drums: -0.15 };
+
+export class HutMusic {
+  constructor(ctx, out) {
+    this.ctx = ctx;
+    this.lp = ctx.createBiquadFilter(); this.lp.type = 'lowpass'; this.lp.frequency.value = 2400; this.lp.Q.value = 0.5;
+    this.lp.connect(out);
+    this.srcs = new Map(); this.k = 0;
+  }
+  get ready() { return this.srcs.size > 0; }
+  add(key, src, gain) { const p = this.ctx.createStereoPanner(); p.pan.value = HUT_PAN[key] || 0; src.connect(gain).connect(p).connect(this.lp); this.srcs.set(key, src); }
+  start() { const when = this.ctx.currentTime + 0.15; for (const s of this.srcs.values()) s.start(when); }
+  /** target 0..1 (how close to the hut, 1 inside). Slow: about 15 s to come in, 20 s to go. Returns levels and how present it is */
+  update(dt, target) {
+    this.k += (target - this.k) * (1 - Math.exp(-dt / (target > this.k ? 5 : 7)));
+    const k = smooth(Math.max(0, Math.min(1, this.k))), out = {};
+    for (const key of HUT) out[key] = this.k > 0.002 ? k * 0.9 : 0;
+    return { levels: out, presence: k };
+  }
+}

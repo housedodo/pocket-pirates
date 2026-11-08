@@ -5,8 +5,12 @@ import { CUES } from './audio.js';
 const GROUPS = [
   ['Overall', ['_master', '_music']],
   ['Music (one per dread stage)', CUES.loops.filter((k) => k.startsWith('music_'))],
-  ['Ambience', CUES.loops.filter((k) => k.startsWith('amb_'))],
-  ['Sea and weather loops', CUES.loops.filter((k) => !k.startsWith('music_') && !k.startsWith('amb_'))],
+  ['Stage 1 open sea (one more per quest)', CUES.loops.filter((k) => k.startsWith('s1_'))],
+  ['Tavern (muffled, in harbour)', CUES.loops.filter((k) => k.startsWith('tav_'))],
+  ['Night (stage 1, dusk to dawn)', CUES.loops.filter((k) => k.startsWith('n1_'))],
+  ['Stage 2 (grey skies, open sea)', CUES.loops.filter((k) => k.startsWith('s2_'))],
+  ['The hut (first visit)', CUES.loops.filter((k) => k.startsWith('s4_'))],
+  ['Sea and weather loops', CUES.loops.filter((k) => !k.startsWith('music_') && !k.startsWith('s1_') && !k.startsWith('tav_') && !k.startsWith('n1_') && !k.startsWith('s2_') && !k.startsWith('s4_'))],
   ['Effects', CUES.oneShots],
 ];
 const LABEL = { _master: 'MASTER (everything)', _music: 'MUSIC (all music tracks)' };
@@ -41,7 +45,7 @@ export class Mixer {
       if (CUES.loops.includes(k)) {
         this.a.preview = this.a.preview === k ? null : k;
         this.a.refreshLoops();
-        if (this.a.preview && k.startsWith('music_') && !this.a.musicOn) this.toast('Music is switched off in the pause menu, so this solo is silent.', false, 5000);
+        if (this.a.preview && (k.startsWith('music_') || k.startsWith('s1_') || k.startsWith('tav_')) && !this.a.musicOn) this.toast('Music is switched off in the pause menu, so this solo is silent.', false, 5000);
         if (this.a.muted) this.toast('Sound is switched off in the pause menu.', false, 4000);
         this.list.querySelectorAll('.mxplay').forEach((x) => x.classList.toggle('on', x.closest('.mxrow').dataset.k === this.a.preview));
       } else this.a.play(k, { raw: true });   // the play button is audible even at 0%

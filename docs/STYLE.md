@@ -13,7 +13,7 @@ purple and magenta cosmic horror as dread rises.
 - The 3D world is rendered to a low-res target (about 320x180) and scaled up with nearest-neighbour
   filtering. **One world pixel is about 4 CSS pixels at 1280x720.** UI pixel art should use the same size.
 - Any canvas made for the UI (wind meter, icons, book cover, pages, die) is drawn **small** and shown with
-  `image-rendering: pixelated`. Examples: wind meter 36x36 shown at 144px, Mara's anchor 8x8 shown at 32px,
+  `image-rendering: pixelated`. Examples: wind meter 36x36 shown at 144px, Mara's anchor 8x8 shown at 32px, villager portraits 16x16 shown at 64px,
   HUD icons 7x7 shown at 21px, book cover 150x90, pages 160x90, the die rendered at 72x72 and shown at 216px.
 - No smooth gradients on UI pieces. Shading uses an **ordered 4x4 Bayer dither** between 3-4 palette
   colours (`BAYER = [0,8,2,10,12,4,14,6,3,11,1,9,15,7,13,5]`).
@@ -44,6 +44,42 @@ purple and magenta cosmic horror as dread rises.
   Every harbour gets a tavern first, then a mix.
 - Island kinds: sandbar, jungle, rocky, treasure, harbour, plus rarer volcano (ash cone, glowing crater, smoke),
   atoll (sand ring around a lagoon) and mangrove (mud flats, stilt-rooted trees, herons).
+- **Hand-made places** (`landmarks.js`): each must read from far off as one strong silhouette, and stay in the same
+  chunky low-poly kit (6-sided basalt columns, blob canopies, boxes, gables), never a different art style:
+  the Grey Tooth (grey basalt, no plants, white guano on ledges, a sea arch), Hollowgreen (dark greens in layered blob
+  canopies, a white fall, a blue pool), the Halved Isle (a sheer cut face in pale ochre / sand / rust bands; the sunken
+  half dark and only just under the water; a white fog dome round it that takes the scene's fog colour), the Drowned Bell
+  (a leaning grey tower on a stack, roofs at the waterline), Wick's Rock (brick lighthouse, one cottage), the Ribs (dark
+  rib pairs on pale sand, a ring of white surf streaks and black rocks), Glass Lagoon (pink / orange / teal coral blobs,
+  a broken ring of black reef knuckles with white wash).
+- **Gusts and currents** (`seaplay.js`, `ocean.js` uGust): a gust is a soft ragged patch of darker, finely rippled water
+  drawn by the water shader, never a UI marker; current foam is thin white streaks drifting along the lane. Both fade at night.
+- **Ocean designs** (ocean.js `OCEAN_STYLES`, uOcean): the original toon facets stay the default until one is chosen; every
+  design keeps the palette (uDeep, uShallow), the shallows tint, the murk and the rough-sea blend, and dithers its light.
+- **Waves:** low and gentle by land, bigger in the open sea (`seaScale`).
+- **Wake:** a V of broken foam behind the stern (Kelvin-like spread), a churned strip, bow white water by speed; flat quads on
+  the waves, never particles in the air.
+- **Shores:** foam lines rolling in and breaking in stretches, seabed (sand, rock, weed) dithered through the shallows, fish
+  shadows; rain rings on the surface.
+- **Storm wall:** a cloud bank in the sky with rain curtains under it, never a dark mass sitting on the sea (it read as land).
+- **Daymarks:** a black rock, a tarred pole, a white top with a black band; tall enough to stand clear of the horizon.
+- **Dig beach:** top-down pixel beach (two sand tones dithered, shells, pebbles, weed at the tideline, grass edge), the stone
+  arch with its translucent shadow, holes with thrown-up sand rims, corner-bracket cursor, foam edge lapping.
+- **Shop cards:** dark plum card, 2px edge, pixel icon in a recessed square, gold level pips, teal tag for what an upgrade
+  opens, coin price button; a purchase flashes gold. Keep shop text short: one effect line, one tag.
+- **Glints:** sun and moon sparkle only in a soft path toward the light, single cells twinkling in place; never a pattern that
+  slides with the camera.
+- **Night is dark:** light floor 0.17 of day, near-black navy sky and fog, a short view; what you see by is the lantern's warm
+  pool on the water, lit windows, lighthouses and the moon. With the lamp out the dark comes right up to the hull.
+- **Torn sail:** dark holes you can see through, long thin rips, the clew corner gone, three loose rags flapping; the sail
+  bar blinks orange while the canvas strains, red while torn.
+- **Lamp oil HUD:** a small pixel flame and an amber bar in the hull panel; below a quarter the bar turns red and the
+  flame blinks. With the lamp out the night closes in (short, dark fog), no new effect.
+- **Minigame variants** keep the same pixel ring and grid; only colours change: ring tint per water (wreck brown, night
+  near-black, swell slate, deep navy, reef teal), red snag arcs; beach ground per kind (sand, grey shingle with grey
+  stone dots, pale dunes, brown mud with dark sunk squares).
+- **The glimpse figure:** one tall thin dark shape with a pale featureless head blob, standing in the water. No eyes,
+  no glow, no fade: it is there, then it is not.
 
 ## 4. Colour and mood
 - The sea is low-poly and faceted: a fine wave mesh with small chop, light banded in ~6 steps by facing to the sun,
@@ -64,6 +100,27 @@ purple and magenta cosmic horror as dread rises.
 - UI ink and wood: cream `#f4ead0`, dark ink `#2a1608`, gold `#ffd23a / #c9a85c`, navy panel `#1b1538-#241c4c`.
 - Horror stage: near-black purples `#06030e`, magenta `#ff30c8 / #ff70d0`, sickly greens, a black sun with a
   magenta corona. Horror elements glow magenta; the friendly world glows warm yellow.
+- **Weather reads at a glance** (`src/weather.js`, `heavy` / `drizzle`): *light rain* is a pale grey sky (`#8e9aa6` /
+  `#c3cbd0`), a milky, quieter sea (`#4c7d92` / `#86b8b6`, smaller swell, less colour), a soft mist that swallows the far
+  islands and a thin, slow, nearly upright drizzle. A *storm* is a slate-black sky (`#161c26` / `#3a4450`), dark heaving water
+  (`#132630` / `#2f4c52`, rough sea whipped up within seconds, bigger waves), cold flat light with a heavier vignette, dark
+  clouds scudding past, a dense fast sheet of rain driven sideways by the wind, and lightning.
+- **The dark hut and its island** (`darkHut`, `blightDecor` in `src/world.js`, `desc.blight`): the one place that is unpleasant
+  in broad daylight. The island is the loneliest one 5-7 cells out (the most open water round it), a little smaller (r 20-23), with a ragged outline, black sand (`#3a3437`), grey rock
+  and dead grass and sick moss (`#545238` / `#454530` / `#33402e`): no palms, flowers or fruit. Bare dead trees with clawing roots,
+  pale fungus, black stakes in the shallows, leaning stones, crows that do not fly off. The hut is a witch's hut, not a house: round,
+  black logs on crooked stilts, a ragged thatch brim and a crooked hat that bends over with a bird skull on the tip, a bent stone
+  chimney, a low doorway hung with a hide, small sick-purple windows, charms of bone, herbs and a glowing jar from the eaves, a
+  lantern on a crooked post, skulls on poles along the path, a ring of leaning stones round black ground behind it. The chart
+  draws it the same: a black hut under a bent hat, one purple window.
+  The water round it is dark and murky (`uMurk` in ocean.js): no turquoise shallows, olive-black water with drifting scum that
+  thickens towards the shore and fades back to the open sea over about 90 units; its shallows ring is black-green and its foam a dull grey scum.
+- **Villager portraits** (`src/faces.js`): 16x16, hand-drawn per speaker: a dark outline, skin with a shaded and a lit side,
+  cheeks, eyes with whites, brows, a nose shadow, a mouth, and their own hair, hat, beard and clothes (the fisher's knit cap and
+  pipe, the net-mender's bun and spectacles, the fish-stall woman's headscarf and gold earrings, the harbourmaster's peaked cap and
+  badge, the docker's bandana, the old salt's white beard and eye patch, the lamplighter's hood and lantern, the watchman's hat and
+  lantern). "Someone on the pier" is a black shape with two pale eyes, one a pixel lower than the other.
+- **Locked interface** (gates.js): a sign, button or log tab the story has not reached is grey, dark and half transparent (`.locked`), with no hover; a sign that has just opened pulses teal (`.fresh`) until first opened; the sign/button the current quest needs pulses gold (`.next` / `.hl`).
 - Dread is shown by changing colours, not by adding UI. Five stages: Sunny, Off, Wrong, Eerie, Cosmic
   (`src/palette.js`).
 
@@ -89,7 +146,7 @@ purple and magenta cosmic horror as dread rises.
   the top with the last villager line under it in pale rose. Five wooden signposts along the bottom: Board, Market,
   Tavern, Shipwright, Set sail (keys 1-4, E; arrows step). A red number on a sign = something waits there. The chosen
   place opens as one panel on the right; messages stack on the left under the name, never covered. The sailing HUD
-  fades out ashore. A villager's line (Mara-style box, 8x8 portrait) still comes first when there is one.
+  fades out ashore. A villager's line (Mara-style box, 16x16 portrait) still comes first when there is one.
 
 - Dice: the Lady's d20 is yellowed bone with a dark red 1. The check die starts pale bone and darkens in four steps to
   stained bone with a blood-dark 1; same carved numbers, same pixel texture. Never a new colour, only age.

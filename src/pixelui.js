@@ -55,6 +55,10 @@ const GLYPHS = {
   down: ['.......', '.......', '#######', '.#####.', '..###..', '...#...', '.......'],
   bed: ['.......', 'B......', 'BSS....', 'BSSRRRR', 'BBBBBBB', 'B.....B', '.......'],
   rod: ['......#', '.....#.', '....#.S', '...#..S', '..#...S', '.#....R', '#......'],
+  rudder: ['...#...', '.#.#.#.', '..###..', '###y###', '..###..', '.#.#.#.', '...#...'],
+  spy: ['.......', '##.....', '#yB....', '.#yBB..', '..#yBB.', '...#yy#', '....##.'],
+  crew: ['..RRR..', '.RRRRR.', '..SSS..', '..SSS..', '.bbbbb.', '.bbbbb.', '.b...b.'],
+  lamp: ['..###..', '.#...#.', '#.yYy.#', '#.YYY.#', '#.oyo.#', '.#####.', '..###..'],
 };
 export const pxi = (name) => `<i class="pxi ${name}"></i>`;
 
@@ -76,7 +80,8 @@ export function installPixelUI() {
   root.setProperty('--pxmenu', `url(${tile('#1b1538', '#241c4c', '#0e0a20', 11)})`);
   root.setProperty('--pxbtn', `url(${tile('#2c2160', '#352870', '#1a1240', 13)})`);
   const css = Object.entries(ICONS).map(([k, rows]) => `.ico.${k} { background-image: url(${icon(rows)}); }`).join('\n')
-    + Object.entries(GLYPHS).map(([k, rows]) => `.pxi.${k} { background-image: url(${icon(rows)}); }`).join('\n');
+    + Object.entries(GLYPHS).map(([k, rows]) => `.pxi.${k} { background-image: url(${icon(rows)}); }`).join('\n')
+    + '\n' + Object.entries(ICONS).filter(([k]) => !GLYPHS[k]).map(([k, rows]) => `.pxi.${k} { background-image: url(${icon(rows)}); }`).join('\n');   // the HUD icons (coin, sail, hull...) usable inline too
   for (const [k, rows] of Object.entries(SPRITES)) root.setProperty(`--px-${k}`, `url(${icon(rows)})`);
   const st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
 }

@@ -2,8 +2,8 @@ import * as THREE from 'three';
 import { smoothstep, lerp } from './util.js';
 
 // Day/night layered on top of the dread palette. t: 0 = midnight, 0.25 = sunrise, 0.5 = noon, 0.75 = sunset.
-export const DAY_LENGTH = 600; // real seconds per full day (10 minutes)
-// Uneven pacing: daylight (06:00-19:00) takes 7.5 minutes, the night (19:00-06:00) only 2.5.
+export const DAY_LENGTH = 690; // real seconds per full day (11.5 minutes)
+// Uneven pacing: daylight (06:00-19:00) takes 7.5 minutes, the night (19:00-06:00) 4, long enough for the night music to play out.
 export const DAY_START = 6, DAY_END = 19, DAY_SECONDS = 450, NIGHT_SECONDS = DAY_LENGTH - DAY_SECONDS;
 /** in-game hours that pass per real second at time t (0..1). The pace eases between day and night over
  *  two hours either side of 06:00 and 19:00 (blended in seconds per hour, so a day is still exactly DAY_LENGTH). */
@@ -16,10 +16,17 @@ export function hoursPerSecond(t) {
 /** advance the clock by dt real seconds */
 export const advanceTime = (t, dt) => (t + (hoursPerSecond(t) * dt) / 24) % 1;
 
-const NIGHT_TOP = new THREE.Color('#070b22'), NIGHT_HOR = new THREE.Color('#1a2650'), NIGHT_FOG = new THREE.Color('#111b3c');
+const NIGHT_TOP = new THREE.Color('#04061a'), NIGHT_HOR = new THREE.Color('#111a3a'), NIGHT_FOG = new THREE.Color('#080d22');   // a real dark: only lamps, windows and the moon stand out
 const DUSK_TOP = new THREE.Color('#5a5aa0'), DUSK_HOR = new THREE.Color('#ff9a5a'), DUSK_FOG = new THREE.Color('#d8a080');
 const DUSK_SUN = new THREE.Color('#ff8a4a');
 const NIGHT_TINT = new THREE.Color(0.78, 0.88, 1.18), DUSK_TINT = new THREE.Color(1.1, 0.96, 0.86), WHITE = new THREE.Color(1, 1, 1);
+
+// how far you can see on a clear night, and how strong the lantern is: four settings each, chosen in the pause menu
+// (Night view / Lamp) or ?nightview=0..3&lamp=0..3. far = the share of the day's view distance left at full night.
+export const NIGHT_VIEWS = [{ name: 'Pitch dark', far: 0.2, light: 0.065 }, { name: 'Dark', far: 0.45, light: 0.17 }, { name: 'Moonlit', far: 0.65, light: 0.26 }, { name: 'Bright moon', far: 0.85, light: 0.36 }];   // far: view distance left at full night; light: how much moonlight
+export const LAMPS = [{ name: 'Candle', k: 0.5 }, { name: 'Lantern', k: 1 }, { name: 'Bright', k: 1.6 }, { name: 'Beacon', k: 2.4 }];
+export const NIGHT_SET = { view: 0, lamp: 0, auto: true };   // auto: moon phases, each night either a new moon (Pitch dark) or a full one (Moonlit)
+export const NIGHT_MODES = ['Moon phases', ...NIGHT_VIEWS.map((v) => v.name)];
 
 export const tod = {
   t: 0.33, sunHeight: 0, day: 1, night: 0, twilight: 0,
@@ -40,13 +47,13 @@ export function applyTimeOfDay(stage, t, dread) {
   const nm = night * (1 - 0.5 * dread);
   const tw = twi * (1 - 0.6 * dread);
 
-  stage.skyTop.lerp(NIGHT_TOP, nm * 0.92).lerp(DUSK_TOP, tw * 0.35);
+  stage.skyTop.lerp(NIGHT_TOP, nm * 0.96).lerp(DUSK_TOP, tw * 0.35);
   stage.skyHorizon.lerp(NIGHT_HOR, nm * 0.92).lerp(DUSK_HOR, tw * 0.75);
-  stage.fog.lerp(NIGHT_FOG, nm * 0.92).lerp(DUSK_FOG, tw * 0.5);
+  stage.fog.lerp(NIGHT_FOG, nm * 0.96).lerp(DUSK_FOG, tw * 0.5);
   stage.sun.lerp(DUSK_SUN, tw * 0.8);
-  stage.cloud.multiplyScalar(0.35 + 0.65 * day);
-  stage.light = Math.max(0.3, stage.light * (0.32 + 0.68 * day));
-  stage.fogFar *= 1 - 0.2 * night;
+  stage.cloud.multiplyScalar((0.35 + 0.65 * day) * (1 - night * (1 - Math.min(1, 0.4 + 2.2 * NIGHT_VIEWS[NIGHT_SET.view].light))));   // on a new moon the clouds are dark too
+  { const nl = NIGHT_VIEWS[NIGHT_SET.view].light; stage.light = Math.max(nl, stage.light * (nl + 0.02 + (0.98 - nl) * day)); }
+  { const f = NIGHT_VIEWS[NIGHT_SET.view].far; stage.fogFar *= 1 - (1 - f) * night; stage.fogNear *= 1 - (1 - f * 0.9) * night; }   // the dark closes in: islands are shapes, then nothing
 
   tod.tint.copy(WHITE).lerp(NIGHT_TINT, night * 0.8).lerp(DUSK_TINT, tw * 0.7);
   stage.tint.multiply(tod.tint);

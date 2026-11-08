@@ -2,31 +2,29 @@
 // Who speaks depends on the hour; what they say on the hour, the weather and how wrong the sea has become.
 // Rare on purpose: a line you only hear sometimes is a line you read.
 
-// portraits: 8x8, H hair/hat, S skin, E eyes, M mouth, C clothes, A accent
-const FACE = ['..HHHH..', '.HHHHHH.', '.SSSSSS.', '.SESSES.', '.SSSSSS.', '..SMMS..', '.CCACCC.', 'CCCCCCCC'];
+// portraits: 16x16 pixel art per speaker (src/faces.js), colours from SPEAKERS (H hair/hat, S skin, C clothes, A accent, beard)
+import { drawFace } from './faces.js';
 const SPEAKERS = {
-  fisher: { name: 'An old fisher', H: '#3a4a5a', S: '#c98e64', C: '#2f6a8a', A: '#e8dcc0', when: ['dawn', 'day'] },
+  fisher: { name: 'An old fisher', H: '#3a4a5a', S: '#c98e64', C: '#2f6a8a', A: '#e8dcc0', beard: '#8a8478', when: ['dawn', 'day'] },
   netmender: { name: 'A net-mender', H: '#8a8a8a', S: '#e8b88a', C: '#6a4a2a', A: '#c8b078', when: ['dawn', 'day', 'evening'] },
-  market: { name: 'A woman at the fish stall', H: '#d24a3e', S: '#f2cfa8', C: '#e8c040', A: '#ffffff', when: ['day'] },
+  market: { name: 'A woman at the fish stall', H: '#d24a3e', S: '#f2cfa8', C: '#e8c040', A: '#ffd23a', when: ['day'] },
   child: { name: 'A barefoot child', H: '#5a3a1c', S: '#e8b88a', C: '#5ec45a', A: '#ffd23a', when: ['day', 'evening'] },
-  harbourmaster: { name: 'The harbourmaster', H: '#1b1538', S: '#c98e64', C: '#2a4e72', A: '#ffd23a', when: ['dawn', 'day', 'evening'] },
-  docker: { name: 'A docker with a crate', H: '#c8402a', S: '#8a5a3a', C: '#9a6ad0', A: '#c8b078', when: ['dawn', 'day'] },
+  harbourmaster: { name: 'The harbourmaster', H: '#1b1538', S: '#c98e64', C: '#2a4e72', A: '#ffd23a', beard: '#3a2a1c', when: ['dawn', 'day', 'evening'] },
+  docker: { name: 'A docker with a crate', H: '#c8402a', S: '#8a5a3a', C: '#9a6ad0', A: '#c8b078', beard: '#4a3020', when: ['dawn', 'day'] },
   oldsalt: { name: 'An old salt on a barrel', H: '#e8e0d0', S: '#c98e64', C: '#3c78c8', A: '#e8e0d0', when: ['day', 'evening', 'night'] },
   innkeeper: { name: 'The innkeeper', H: '#5a3a1c', S: '#f2cfa8', C: '#7a2418', A: '#f4ead0', when: ['evening', 'night'] },
-  fiddler: { name: 'A fiddler outside the tavern', H: '#2a1608', S: '#e8b88a', C: '#4e6a26', A: '#c9a85c', when: ['evening'] },
+  fiddler: { name: 'A fiddler outside the tavern', H: '#2a1608', S: '#e8b88a', C: '#4e6a26', A: '#c9a85c', beard: '#2a1608', when: ['evening'] },
   lamplighter: { name: 'The lamplighter', H: '#3a3448', S: '#c98e64', C: '#5a5a62', A: '#ffd060', when: ['evening', 'night'] },
-  watchman: { name: 'The night watchman', H: '#2a2a30', S: '#c98e64', C: '#3a3a48', A: '#ffd060', when: ['night'] },
+  watchman: { name: 'The night watchman', H: '#2a2a30', S: '#c98e64', C: '#3a3a48', A: '#ffd060', beard: '#4a4048', when: ['night'] },
   someone: { name: 'Someone on the pier', H: '#0a0810', S: '#14101c', C: '#0a0810', A: '#0a0810', when: [], eyes: '#d8d0e0', mouth: '#14101c' },
 };
 export const speakerName = (id) => SPEAKERS[id].name;
+export const SPEAKER_IDS = Object.keys(SPEAKERS);
 
 const portraitCache = {};
 export function portrait(id) {
   if (portraitCache[id]) return portraitCache[id];
-  const sp = SPEAKERS[id], cv = document.createElement('canvas'); cv.width = cv.height = 8;
-  const c = cv.getContext('2d'), col = { H: sp.H, S: sp.S, C: sp.C, A: sp.A, E: sp.eyes || '#1a0f08', M: sp.mouth || '#7a3a2a' };
-  FACE.forEach((row, y) => [...row].forEach((ch, x) => { if (col[ch]) { c.fillStyle = col[ch]; c.fillRect(x, y, 1, 1); } }));
-  return (portraitCache[id] = cv.toDataURL());
+  return (portraitCache[id] = drawFace(id, SPEAKERS[id]).toDataURL());
 }
 
 // ---- lines. Short; odd rather than scary; nothing explained.

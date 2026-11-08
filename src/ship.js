@@ -121,6 +121,21 @@ function sailStrip(b, v0, v1, col, tile, push = 0.03) {   // a band across the m
 function sailPatch(b, u, v, du, dv, col) {
   for (const sd of [1, -1]) { const q = (a, c) => { const p = sailPt(a, c); return [p[0] + sd * 0.035, p[1], p[2]]; }; b.quad(q(u, v), q(u + du, v), q(u + du, v + dv), q(u, v + dv), col, TILE.sail); }
 }
+// torn sails (a gale with too much canvas out): holes you can see through, long rips, a corner gone (main.js sailTick)
+function buildTorn() {
+  const b = new Builder(); b.doubleSided = true; b.ambient = 0.8;
+  const hole = '#1a120c', rip = '#3a2818';
+  sailPatch(b, 0.14, 0.34, 0.17, 0.12, hole); sailPatch(b, 0.58, 0.6, 0.13, 0.15, hole); sailPatch(b, 0.42, 0.16, 0.11, 0.08, hole);
+  sailPatch(b, 0.7, 0.3, 0.1, 0.07, hole); sailPatch(b, 0.28, 0.78, 0.09, 0.07, hole);
+  for (const [u, v, du] of [[0.3, 0.46, 0.34], [0.12, 0.66, 0.26], [0.5, 0.86, 0.22], [0.6, 0.12, 0.3]]) sailPatch(b, u, v, du, 0.014, rip);   // long rips
+  sailPatch(b, 0.86, 0.0, 0.14, 0.12, hole);   // the clew torn away
+  return b.geometry();
+}
+function buildRag() {   // a loose strip of canvas that flaps in the wind
+  const b = new Builder(); b.doubleSided = true; b.ambient = 0.8;
+  b.quad([0, 0, 0], [0, 0, 0.32], [0, -1.1, 0.22], [0, -1.2, 0.05], '#e8dcc0', TILE.sail);
+  return b.geometry();
+}
 function buildSailLook(level) {
   const b = new Builder(); b.doubleSided = true; b.ambient = 0.8;
   if (level === 0) {                                     // stock: mended, stained, a patch or three
@@ -257,6 +272,9 @@ export class Ship {
     this.sailPivot.position.set(0, 1.0, -0.3);
     this.sail = new THREE.Mesh(shipGeos().sail, mats.sail);
     this.sailLook = new THREE.Mesh(new THREE.BufferGeometry(), mats.sail); this.sail.add(this.sailLook);
+    this.tornLook = new THREE.Mesh(buildTorn(), mats.sail); this.tornLook.visible = false; this.sail.add(this.tornLook);
+    this.rags = [[0.35, 0.2], [0.62, 0.5], [0.2, 0.62]].map(([u, v]) => { const m = new THREE.Mesh(buildRag(), mats.sail); m.position.set(...sailPt(u, v)); m.visible = false; this.sail.add(m); return m; });
+    this.torn = false;
     this.topsail = new THREE.Mesh(buildTopsail(), mats.sail); this.topsail.visible = false;
     this.sailPivot.add(this.sail);
     this.root.add(this.sailPivot);
@@ -264,6 +282,14 @@ export class Ship {
     this.jib = new THREE.Mesh(shipGeos().jib, mats.sail);
     this.root.add(this.jib);
     this.root.add(this.topsail);
+    // rigging: a forestay to the bowsprit tip, backstays to the stern, shrouds to the rails (thin dark lines, like everything else)
+    { const top = [0, 7.2, -0.3], mid = [0, 5.4, -0.3], R = [];
+      const add = (a, b) => R.push(...a, ...b);
+      add(top, [0, 2.0, -4.5]); add(top, [0.95, 1.3, 2.7]); add(top, [-0.95, 1.3, 2.7]);
+      for (const sd of [-1, 1]) { add(mid, [sd * 1.22, 1.0, -0.75]); add(mid, [sd * 1.22, 1.0, 0.25]); }
+      const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(R, 3));
+      this.rigging = new THREE.LineSegments(g, new THREE.LineBasicMaterial({ color: 0x2a1c14 }));
+      this.root.add(this.rigging); }
 
     // pennant (bright: red, dark: black skull)
     this.flag = new THREE.Group();
@@ -342,6 +368,9 @@ export class Ship {
     this.topsail.visible = sl >= 3;
   }
 
+  /** the mainsail is torn (holes, rips, flapping rags) and the ship sails at two thirds speed until it is patched */
+  setTorn(on) { this.torn = !!on; this.tornLook.visible = this.torn; for (const m of this.rags) m.visible = this.torn; }
+
   setCustom(c) {
     this.custom = { ...DEFAULT_CUSTOM, ...c };
     this.hullMesh.geometry = hullGeo(this.custom.hull);
@@ -355,6 +384,7 @@ export class Ship {
   }
 
   update(dt, input, wind, t) {
+    if (this._px !== undefined && Math.hypot(this.pos.x - this._px, this.pos.z - this._pz) > 20) this.vel = null;   // moved by the game (moor, respawn): no leftover momentum
     this.rudder += (input.steer - this.rudder) * Math.min(1, dt * 4);
     this.oarOut = clamp(this.oarOut + (this.rowing ? 1 : -1) * dt * 0.7, 0, 1);
     if (this.rowing || this.oarOut > 0) {
@@ -371,20 +401,37 @@ export class Ship {
       return;
     }
     this.rowIn = 0;
-    this.trim = clamp(this.trim + input.sail * 0.6 * dt, 0, 1);
+    this.trim = clamp(this.trim + input.sail * 0.6 * (this.trimMul || 1) * dt, 0, 1);
 
     // wind
     const a = Math.abs(angleDiff(this.heading, wind.dir));
     // the slow wedge into the wind; early in the voyage it is narrower and less punishing (floorMin, wedge)
     this.eff = 1 - (1 - Math.max(this.mods.floor, this.floorMin || 0)) * smoothstep(this.wedge || 0.6 * Math.PI, this.wedgeEnd || 0.95 * Math.PI, a);   // close-hauled (45° off the wind) still sails well
     this.rel = angleDiff(this.heading, wind.dir);
-    const target = MAX_SPEED * this.mods.speed * this.buff * this.eff * this.trim * wind.strength;
+    // the water pushes back: climbing a wave face costs speed, running down one gives a little (surfing)
+    const slopeK = 1 - clamp((this.slope || 0) * 2.2, -0.18, 0.28);
+    const target = MAX_SPEED * this.mods.speed * this.buff * (this.gust || 1) * (this.torn ? 0.66 : 1) * this.eff * this.trim * wind.strength * slopeK;   // gust: a caught cat's paw (seaplay.js)
     const rate = target > this.speed ? 0.5 : 0.7;
     this.speed += (target - this.speed) * Math.min(1, rate * dt);
+    this.speed *= 1 - Math.abs(this.rudder) * clamp(this.speed / MAX_SPEED, 0, 1) * 0.22 * dt;   // a hard turn drags the hull
 
-    this.heading += this.rudder * this.mods.turn * (0.28 + 0.8 * clamp(this.speed / 6, 0, 1)) * dt;
-    this.pos.x += Math.sin(this.heading) * this.speed * dt;
-    this.pos.z -= Math.cos(this.heading) * this.speed * dt;
+    // turning: a rudder only works with water flowing past it (almost nothing at a standstill), and the hull has weight,
+    // so the swing builds up and dies away over about a second instead of snapping round
+    const flow = clamp(this.speed / 5, 0, 1);
+    const wantYaw = this.rudder * this.mods.turn * (0.08 + 0.62 * flow) * (1 - 0.25 * clamp((this.speed - 7) / 5, 0, 1));   // very fast: a little stiffer
+    this.yaw = (this.yaw || 0) + (wantYaw - (this.yaw || 0)) * Math.min(1, dt * 2.2);
+    this.heading += this.yaw * dt;
+    // momentum: forward the hull carries on; sideways the keel bites hard, so a turn slides only briefly; the wind on the
+    // sails pushes it a touch sideways (leeway)
+    const v = this.vel || (this.vel = { x: 0, z: 0 });
+    const fx = Math.sin(this.heading), fz = -Math.cos(this.heading);
+    const fwd = v.x * fx + v.z * fz, side = v.x * -fz + v.z * fx;
+    const fwd2 = fwd + (this.speed - fwd) * Math.min(1, dt * 2.2), side2 = side * Math.exp(-dt * 5.5);
+    v.x = fx * fwd2 - fz * side2; v.z = fz * fwd2 + fx * side2;
+    const lee = Math.sin(this.rel) * this.trim * wind.strength * 0.35, rx = Math.cos(this.heading), rz = Math.sin(this.heading);
+    this.pos.x += (v.x - rx * lee) * dt;
+    this.pos.z += (v.z - rz * lee) * dt;
+    this._px = this.pos.x; this._pz = this.pos.z;
   }
 
   // call after collision resolution
@@ -394,10 +441,28 @@ export class Ship {
     const p = this.pos;
     const wh = (ox, oz) => waveHeight(p.x + fx * oz * -1 + rx * ox, p.z + fz * oz * -1 + rz * ox, t, wave);
     const bow = wh(0, -2.6), stern = wh(0, 2.6), right = wh(1.3, 0), left = wh(-1.3, 0);
-    const pitch = Math.atan2(bow - stern, 5.2);
-    const roll = Math.atan2(right - left, 2.6) - Math.sin(this.rel) * 0.1 * this.eff * this.trim - this.rudder * 0.14 * (this.speed / MAX_SPEED);
-    this.root.position.set(p.x, (bow + stern + right + left) / 4 + 0.12, p.z);
-    this.root.rotation.set(pitch, -h, roll);
+    // the water's shape under the hull, and the forces on it: the bow rides up with speed and nods when the ship speeds up
+    // or slows down; the wind in the sails heels it over; a turn leans it out; at speed it sits a little lower (squat)
+    const sp = clamp(this.speed / MAX_SPEED, 0, 1.3), dtc = Math.min(dt, 0.05);
+    this.slope = (bow - stern) / 5.2;
+    const acc = dtc > 0 ? (this.speed - (this.lastSpeed ?? this.speed)) / dtc : 0; this.lastSpeed = this.speed;
+    this.accS = (this.accS || 0) + (acc - (this.accS || 0)) * Math.min(1, dtc * 4);
+    const tPitch = Math.atan2(bow - stern, 5.2) * 0.85 + 0.05 * sp + clamp(this.accS * 0.03, -0.06, 0.06);
+    const tRoll = Math.atan2(right - left, 2.6) * 0.8 - Math.sin(this.rel || 0) * 0.16 * (this.eff ?? 1) * this.trim - this.rudder * 0.18 * sp;
+    const tY = (bow + stern + right + left) / 4 + 0.12 - 0.08 * sp;
+    // a heavy hull: it follows the water through springs, lags behind the waves and settles with a little overshoot
+    const F = this.float || (this.float = { y: tY, vy: 0, p: tPitch, vp: 0, r: tRoll, vr: 0 });
+    const spring = (key, vkey, target, w, z) => { const a = w * w * (target - F[key]) - 2 * z * w * F[vkey]; F[vkey] += a * dtc; F[key] += F[vkey] * dtc; };
+    if (dtc > 0) { spring('y', 'vy', tY, 3.4, 0.5); spring('p', 'vp', tPitch, 2.8, 0.45); spring('r', 'vr', tRoll, 2.3, 0.4); }
+    if (Math.abs(F.y - tY) > 3) { F.y = tY; F.vy = 0; }   // after a teleport
+    this.root.position.set(p.x, F.y, p.z);
+    this.root.rotation.set(F.p, -h, F.r);
+    // the bow slams into a trough at speed: spray thrown up at the bow
+    this.slamT = Math.max(0, (this.slamT || 0) - dt);
+    if (F.vp < -0.09 && sp > 0.35 && this.slamT <= 0) {
+      this.slamT = 0.6;
+      for (let n = 0; n < 3; n++) { const pf = this.puffs.find((q) => q.life <= 0); if (!pf) break; const sd = n - 1, bx = p.x + fx * 2.9 + rx * sd * 0.7, bz = p.z + fz * 2.9 + rz * sd * 0.7; pf.m.position.set(bx, waveHeight(bx, bz, t, wave) + 0.5, bz); pf.life = pf.max = 0.9; pf.size = 0.7 + Math.random() * 0.5 * sp; pf.m.visible = true; }
+    }
 
     // sails follow the wind
     let sgn = this.rel >= 0 ? 1 : -1;
@@ -407,11 +472,19 @@ export class Ship {
     const flat = 0.14 + 0.86 * this.trim;
     const k = this.mods.sailScale;
     this.sailPivot.scale.set(k, flat * k, k);
-    this.sail.scale.x += (sgn - this.sail.scale.x) * Math.min(1, dt * 2.5);
-    this.jib.scale.x += (sgn - this.jib.scale.x) * Math.min(1, dt * 2.5);
+    // the sail's belly: full with the wind behind or across, fuller in a gust; pointed too close to the wind it goes slack and
+    // flutters (luffs), the canvas shaking
+    const luff = clamp((1 - (this.eff ?? 1)) * 1.5, 0, 1) * Math.min(1, this.trim * 3);
+    const fill = (1 - 0.65 * luff) * (1 + 1.4 * ((this.gust || 1) - 1));
+    this.sailBase = (this.sailBase ?? sgn) + (sgn * fill - (this.sailBase ?? sgn)) * Math.min(1, dt * 2.5);
+    const flutter = luff * (Math.sin(t * 19) * 0.22 + Math.sin(t * 31 + 1.3) * 0.12);
+    this.sail.scale.x = this.sailBase + flutter;
+    this.luff = luff;
+    this.jib.scale.x += (sgn * (1 - 0.6 * (this.luff || 0)) - this.jib.scale.x) * Math.min(1, dt * 2.5); this.jib.scale.x += (this.luff || 0) * Math.sin(t * 23) * 0.18;
     this.jib.scale.y = flat;
     this.topsail.scale.set(this.jib.scale.x, flat, 1);
     this.jib.position.y = (1 - flat) * 0;
+    if (this.torn) this.rags.forEach((m, i) => { m.rotation.x = Math.sin(t * (11 + i * 3) + i * 2) * 0.5 * (0.3 + this.trim); m.rotation.z = Math.sin(t * 7 + i) * 0.25; });
     this.flag.rotation.y = Math.PI - this.rel + Math.sin(t * 9) * 0.18 + (this.wrongSails ? Math.PI : 0);
     this.flagBright.visible = !dark;
     this.flagDark.visible = dark;
@@ -421,23 +494,25 @@ export class Ship {
     for (const arm of this.oarArms) {
       arm.visible = o > 0.01;
       const sd = arm.userData.side, st = this.stroke + arm.userData.ph * 0;
-      const sw = this.rowIn ? Math.sin(st) * 0.5 : 0, lift = this.rowIn ? Math.max(0, Math.cos(st)) * 0.25 : 0;
+      const sw = this.rowIn ? Math.sin(st) * 0.5 : 0, lift = this.rowIn ? Math.max(0, Math.cos(st)) * 0.24 : 0;
       arm.rotation.set(0, 0, 0);
       arm.rotation.order = 'YXZ';
       arm.rotation.y = sd * lerp(0, Math.PI / 2, ease) + sd * sw - (1 - ease) * 0;      // stowed pointing aft, out to the side
-      arm.rotation.x = lerp(0, 0.38, ease) - lift;                                       // blades down into the water
+      arm.rotation.x = lerp(0, 0.62, ease) - lift;   // blades well down in the water for the pull (tip ~0.6 under the surface), lifted clear on the way back
     }
 
     // lantern glow
     const L = this.mods.lantern;
     this.glow.position.set(p.x, 0.8, p.z);
-    this.glow.scale.setScalar(5 + 3 * L);
-    mats.glow.opacity = (0.12 + 0.34 * night * (0.6 + 0.2 * L)) * (L === 0 ? 0.6 : 1);
+    const lk = (this.lampK || 1) * (this.lampBoost || 1);   // lamp strength setting (daynight.js LAMPS)
+    night = Math.max(night, 0.7 * (this.stormLight || 0));   // in a storm the lantern is lit and shows like at night
+    this.glow.scale.setScalar((5 + 3 * L + 4 * night) * (0.55 + 0.45 * lk));   // at night the lantern is the light you sail by: a wide warm pool on the water
+    mats.glow.opacity = Math.min(0.95, (0.12 + 0.6 * night * (0.7 + 0.15 * L)) * (L === 0 ? 0.75 : 1) * (0.6 + 0.4 * lk)) * (this.lampOut ? 0.05 : 1);   // no oil: the lantern is out
 
     // wake
     this.puffTimer -= dt;
     if (this.puffTimer <= 0 && this.speed > 1.2) {
-      this.puffTimer = 0.1;
+      this.puffTimer = 0.3;   // a few churned puffs; the V wake (wake.js) carries the rest
       const pf = this.puffs.find((q) => q.life <= 0);
       if (pf) {
         const side = Math.random() < 0.5 ? -1 : 1;

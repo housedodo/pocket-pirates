@@ -14,6 +14,11 @@ export const U = {
   uWave: { value: 1 },
   uRough: { value: 0 },     // how unruly the sea is, 0 calm toon swell .. 1 dark rollers (eased in main.js)
   uIsl: { value: Array.from({ length: 12 }, () => new THREE.Vector3(1e6, 1e6, 0)) },   // the nearest islands (x, z, radius): shallow, lighter water around them
+  uMurk: { value: new THREE.Vector3(1e6, 1e6, 0) },
+  uOcean: { value: 0 },    // the water's look: 0 toon facets (the original) .. 4 (ocean.js OCEAN_STYLES)
+  uWindDir: { value: new THREE.Vector2(0, 1) },
+  uRain: { value: 0 },     // rain on the water (rings), 0..1
+  uGust: { value: Array.from({ length: 4 }, () => new THREE.Vector4(1e6, 1e6, 1, 0)) },   // gust patches on the water (x, z, radius, strength): seaplay.js   // where the wind blows to (foam streaks)   // the hut's island (x, z, radius): the water round it is dark and murky
 };
 
 const VERT_HEAD = /* glsl */`
@@ -95,8 +100,11 @@ export function initMaterials() {
   mats.sail = psxMaterial({ map: a, vertexColors: true, dark: true, grime: true, side: THREE.DoubleSide, key: 'S' });
   mats.shallow = psxMaterial({ vertexColors: true, transparent: true, depthWrite: false, key: 'A' });
   mats.foam = psxMaterial({ color: 0xffffff, transparent: true, opacity: 0.5, depthWrite: false, vertexColors: true, key: 'F' });
+  // the hut's island: its shallows are black-green and its foam a dull grey scum (fixed colours, never retinted by the day)
+  mats.murkShallow = psxMaterial({ color: 0x14201c, vertexColors: true, transparent: true, depthWrite: false, key: 'A' });
+  mats.murkFoam = psxMaterial({ color: 0x4a5046, transparent: true, opacity: 0.35, depthWrite: false, vertexColors: true, key: 'F' });
   mats.beam = psxMaterial({ color: 0xffe080, transparent: true, opacity: 0.16, depthWrite: false, side: THREE.DoubleSide, fog: false, key: 'B', fragmentColor: { head: '', body: 'diffuseColor.rgb /= max(uLight, 0.05);' } });
-  mats.wake = psxMaterial({ color: 0xffffff, transparent: true, opacity: 0.5, depthWrite: false, vertexColors: true, key: 'Wk', fragmentColor: { head: '', body: 'diffuseColor.rgb /= mix(1.0, max(uLight, 0.05), 0.9);' } });
+  mats.wake = psxMaterial({ color: 0xffffff, transparent: true, opacity: 0.5, depthWrite: false, vertexColors: true, key: 'Wk', fragmentColor: { head: '', body: 'diffuseColor.rgb /= mix(1.0, max(uLight, 0.05), 0.45);' } });
   mats.glow = psxMaterial({ color: 0xffc060, vertexColors: true, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, fog: false, key: 'G', fragmentColor: { head: '', body: 'diffuseColor.rgb /= max(uLight, 0.05);' } });
   return mats;
 }

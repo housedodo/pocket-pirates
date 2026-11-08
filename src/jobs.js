@@ -27,9 +27,10 @@ export function nearby(world, x, z, minD, maxD, type) {
   return out;
 }
 
-export function makeJob(world, from, serial) {
+export function makeJob(world, from, serial, maxDist = 750) {
   const rng = mulberry32(hash2(from.seed, serial, 99));
-  const list = nearby(world, from.x, from.z, 120, 750, 'harbour').filter((o) => o.d.id !== from.id);
+  let list = nearby(world, from.x, from.z, 120, maxDist, 'harbour').filter((o) => o.d.id !== from.id);
+  if (!list.length && maxDist < 750) list = nearby(world, from.x, from.z, 120, 750, 'harbour').filter((o) => o.d.id !== from.id);
   if (!list.length) return null;
   const { d: to, dist } = list[Math.floor(rng() * list.length) % list.length];
   const dark = rng() < smoothstep(0.35, 0.8, dreadAtDistance(Math.hypot(from.x, from.z)));

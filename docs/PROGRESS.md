@@ -511,3 +511,286 @@ Built and working in the dev build; switched off when `window.__BUILD === 'demo'
 - **Soft borders:** within 90 units of a sector edge a village may wear the neighbour's look (up to about 4 in 10 at the edge; never a Drowned look in a bright sector). Tama and Velto are unchanged.
 - **Next for regions (not built):** vegetation and water tint, ship silhouettes, market goods and fish per region, village greetings per region, a signature instrument per faction (the composer is making these; same key and meter, see AUDIO.md).
 
+- **Stage 1 music builds with the quests:** six instrument stems (99 BPM, run through HOIST) replace `music_1` on open sea. Silent until the first quest, then bass + shaperbox, then one more instrument per quest; they swell, drop out and come back, wander in the stereo field and sit under a moving low-pass as if heard over the waves. See docs/AUDIO.md and `src/layers.js`.
+- **Recorded ambience in:** light ocean waves as the sea bed; light rain from two recordings that cross-fade slowly, and a separate heavy storm bed (rain drumming on the deck) blended by rain and storm strength; a long distant thunder roll that comes now and then in strong rain (and after lightning, never piling up). A quiet `forest` bed waits for the big forest islands (ROADMAP).
+- **Light rain and storms look different:** drizzle is a pale grey, misty day on a milky, quieter sea with thin upright rain; a storm turns the sky slate-black, the water dark and heaving (whipped up within seconds), the light cold, the clouds scudding, the rain a dense sideways sheet. See STYLE.md.
+- **Tavern music:** four stems through HOIST play in every harbour's tavern, quiet and muffled as if through the wall (fainter and duller elsewhere in the harbour); the sea's music steps aside while it plays.
+- **Sound trimmed to the chosen set:** only ui, dig, buy, pause, chapter, fail, success, card, roll_d6, roll_d20, cast, bite, catch and the recorded thunder remain as effects; all other effects, `surf` and the placeholder music (`music_1/2/4/5`) are gone and no longer synthesised. The stage-1 band now lasts longer: full to dread 0.3, only eases to 40% by a shore, and drops instruments out less often.
+- **More placeholders out:** the stage ambience beds (`amb_1`..`amb_5`), the night bed (`amb_night`) and the rowing loop (`oars`) are removed and no longer synthesised.
+- **Wind loop removed** (it was a synthesised placeholder): storms are now heard through the storm rain and the distant thunder.
+- **Stage-1 music in scenes:** the full band alternates with line-ups of two or three instruments (always a different combination), changing on 4-bar phrases (`SeaLayers.nextScene`).
+- **Always-marked buttons at the board:** a waiting letter (Perrin's "Take it", from the very first visit to Tama) and "Take aboard" for a passenger are marked every time, along with the Board sign: later there is no other help.
+- **Oars in the water:** the blades now dip well under the surface on the pull and lift clear on the return (they used to hover at the waterline).
+- **Compass dot to Tama for Perrin's letters:** while a letter from Perrin waits at Tama (the riddle before you have taken it, and "A note from Perrin"), the compass dot points to Harbour Tama.
+- **The hut on the chart can be seen:** the first time you open the chart after the hut appears, it opens framed on the ship and the hut, and the hut is drawn bigger, on top of the trees (it was a speck under the palms). If Mara notices before you have looked, she sends you to the chart instead of asking about something you have not seen.
+- **Fewer wrecks:** half-sunk wrecks are a rare find now (8% of open sea cells, was 20%).
+- **The dark hut is a witch's hut on a blighted island:** the hut's island is bigger and ragged, with black sand, dead grass, bare dead trees, pale fungus, stakes in the shallows and crows; the hut is round, on crooked stilts, under a bent witch's-hat thatch with charms hanging from the eaves (STYLE.md). The chart icon matches.
+- **Murky water round the hut:** the sea round the hut's island is olive-black with drifting scum instead of turquoise shallows, fading out over about 90 units (`uMurk`, `mats.murkShallow` / `murkFoam`).
+- **Battle music:** the Raiders theme (moved up a semitone to F minor to fit the band, through HOIST) joins the main theme while a fight with raiders is on; the whole band plays and the filter opens a little.
+- **Voice blips:** very soft blips while Mara and villagers talk.
+- **Villager portraits at 16x16:** every speaker has a detailed face of their own (`src/faces.js`).
+- **The interface opens with the story:** at the start only what the current quest needs can be clicked (harbour signs, board buttons, log tabs); the rest is greyed out and opens quest by quest (`src/gates.js`, table in DESIGN.md).
+- **"A bed for the night" is no longer a main goal:** it made you wait for 17:00. Beds at the tavern are still there (open with the tavern sign). Old saves past it move back one goal.
+- **A second guitar arp:** two takes of the arp swap at irregular times in stage 1, never overlapping (`s1_guitar2`).
+- **Feedback round:** fishing has a cast-power meter and line tension (it can snap); digging is a shovel timing game (stones, cave-ins); the band sometimes falls silent or plays one instrument alone; Mara only talks about the quest until the tavern chapter (no tide line, no cat at the start); no "good haul" after you have bought; no repeat of "Perrin left something" once the letter is taken; gulls quieter when docked; the passenger mark only until your first passenger; chapter and dig sounds at 40%, voice blips audible; Perrin's isle a little further from Tama; the hut is not on its island until the story reaches it.
+- **Minigames chosen:** fishing is the bite ring (after Dredge), digging is probing the shore (hot and cold with stones and the tide). The Raiders battle layer is a new take (F minor, no pitch shift needed).
+- **Playtest fixes:** shipwright Hull/Cannons rows (were "undefined"/NaN on a new save); M opens the log from the harbour; Perrin's notes at the top of the Journal ("Letters and bottles"); the bite ring's misses no longer drain the meter (three misses means three); the right prompt after a tide fail; Mara's side remarks never cut in before a new quest; no villager greeting while Mara is talking, and the greeting line sits in the board panel; your delivery is not listed twice; early deliveries stay within ~420 units; clearer damp shades and a legend on the dig grid; shorter dead-calm line; chapter III renamed "Working waters"; no island named Mara or Tama.
+- **Storms hurt:** a gale with the sails out tears at the rigging (6 hull per hit, a warning the first time: reef with S or take the oars), broadsides hurt more (7), and the hull does not mend during a storm.
+- **Night music:** a calmer version of the song plays from dusk to daybreak instead of the stage-1 band; the night is longer (4 minutes, the day 11.5).
+- **"Dread" (music_3) in the band's key:** shifted from B minor down six semitones to F minor (tempo, length and loudness unchanged), so the cross-fade from the stage-1 band stays in key.
+- **Stage 2 music:** four stems through HOIST (grey skies) play on open sea between the stage-1 band and "Dread"; the night version is louder (it was easy to miss under the sea).
+- **The hut's theme:** on the first visit only, a dread-stage-4 theme (pluck, sub drone, drums through HOIST) rises as you near the hut and plays inside, alone; sailing away brings the normal music back. The hut's island is smaller and the loneliest one out there, harder to stumble on.
+- **Dev bar (dev build only):** a bar at the top sets the hour (dawn, noon, dusk, night; keys 1-4) and jumps to any main quest, back and forth (dropdown, < >, keys , and .); going back rewinds the story flags later quests set. The dread keys are gone (dread follows distance).
+- **Dread slider on the dev bar** (`auto` returns to dread by distance); docs brought up to date (README dev tools, AUDIO music map and custom tracks, DESIGN dev tools, checklist).
+
+## Hand-made places, wind play, upgrades that open places, one glimpse, controller, pins (after the critique pass)
+From the critique "what goes stale on a long voyage" (compared with Wind Waker, Dredge, Sunless Sea, Sea of Thieves):
+- **Seven hand-made islands** (`src/landmarks.js` for the look, `src/places.js` for play). Forced cells with open water in
+  the eight cells round them, so each stands alone on the horizon. Each has its own outline, ground colours and props, a
+  silhouette you can pick out from far off, and something to find ashore (stop, E, "Go ashore"):
+  - **The Grey Tooth** (crag, 280, 100): a bare rock of basalt columns, guano, gannets, a sea arch; a cairn on top with a
+    tin box of ship names. Charts the Ribs and the Drowned Bell.
+  - **Hollowgreen** (grove, -300, 180): a small, very lush wood, broadleaf trees in layers, a spring falling into a pool,
+    a clearing with a stone table and a rope swing. Mends the hull and gives fruit once a day; the forest bed plays near it.
+  - **The Halved Isle** (broken, -380, -500): half the island is missing. A clean cliff with the rock layers showing faces
+    Tama, half a house on the edge, the missing half lies tilted under the water with one chunk still sticking out.
+    Inside a fog bank (a white dome visible from far off). Half a strongbox: 60 gold.
+  - Smaller ones: **The Drowned Bell** (60, 320: a sea stack with a leaning bell tower, the roofs of a drowned street at
+    the waterline; charts Wick's Rock), **Wick's Rock** (430, -320: a lone brick lighthouse, the keeper's cottage, his
+    boat and washing; from his gallery you chart all seven places, the isles round you and every current),
+    **The Ribs** (-560, 70: a sandbar of wrecked ships' ribs, a snapped mast, a buried figurehead, behind a ring of
+    breakers; salvage every three days) and **Glass Lagoon** (540, 360: an atoll with coral and a chest on the bottom,
+    behind a broken reef ring; 150 gold once).
+  - Each place is a chain: the Tooth points to the Bell and the Ribs, the Bell to Wick's Rock, Wick charts the rest.
+  - Not a storyline: the strange touches stay small (the bell has no clapper; nobody came back for the other half).
+- **Upgrades open places** (Dredge-style): Rudder 2 threads the reef round Glass Lagoon, Hull 2 takes the breakers round
+  the Ribs (and halves storm damage), Lantern 2 cuts the fog bank round the Halved Isle. Without them the reef stops you,
+  the breakers throw you back (a little damage), the fog turns the bow round; each says which upgrade would do it.
+  Spyglass: far shapes get a label over them (`?` by eye, "a leaning tower" with a spyglass, the name once charted).
+- **Wind play** (`src/seaplay.js`): **gusts** are dark ruffled patches (cat's paws) that come down the wind from upwind
+  every 5-11 s; steer into one with the sails up for ~4 s of +32% speed. **Currents**: six lanes and a ring round Tama
+  ("the Round") marked by foam streaks drifting along them; they carry the ship (~3 units/s). They link home waters to
+  the hand-made places. The first time you meet each, a short toast names it; ridden currents (or all of them, after
+  Wick's gallery) are drawn on the chart as dashed arrows.
+- **The glimpse** (`src/glimpse.js`): once, about 12 s after you sail more than 150 away from your first throw at the
+  hut: for nine seconds the wind drops, the sea goes flat, all sound goes away, the gulls stop and turn to look, any
+  lighthouse in sight swings its beam onto the deck, and a tall dark figure with a pale blank face stands on the water
+  off the bow (there, then not there). Then everything is normal. Mara: "Captain? You went quiet." It is in the demo too
+  (it uses no dread), so the demo ends on one unexplained moment. Never explained, never referred to again.
+- **Controller** (`src/gamepad.js`): standard-mapping pads become key presses (see README), so every menu works.
+- **Pins on the chart:** click the map (not in pencil mode) to drop a pin, click it again to remove it; up to six. The
+  compass dot follows the newest pin until you are within 22 of it, then it is removed ("You reached your pin").
+
+## Lamp oil and minigame varieties (after the critique pass, part 2)
+- **Lamp oil** (`src/oil.js`): the one thing a voyage uses up. The lantern burns oil whenever it is lit (night, thick fog,
+  a storm): about 0.26 a second, so a full lamp (100, +30 per Lantern level) lasts about a night and a half. The dark is
+  hungrier with dread (up to +80%). It counts from main goal 4 ("Dead calm", when the Market opens); before that the lamp
+  stays full. HUD: a flame and an amber bar under the cannonballs (red and blinking below a quarter). Mara warns at a
+  quarter, once per dark spell. **Empty while lit:** the lantern is out, the fog closes in to a third and goes darker, and
+  you cannot fish ("Too dark to see the line"). Never a game over. **Refill:** the Market sells it ("Fill the lantern",
+  0.42 g a unit, with harbour discounts); Wick at Wick's Rock fills it for nothing. Saved as `state.oil`.
+- **Five ways the fishing ring plays** (`RING_KINDS`, `ringKind` in fishing.js), picked by the water when the fish is
+  hooked; the ring's colour and the first line say which:
+  - *Wreck water* (by a wreck): red snag marks among the green; a snag costs two strikes and the snags move after each hit.
+  - *Night water* (after dark): the marks are invisible except near the needle and in a slow pulse.
+  - *Heavy swell* (rain or storm): the needle surges and slows with the waves.
+  - *Deep water* (far from land): two long marks, a slow heavy needle; **hold** C / Space while on green to pull, let go
+    off it; holding off the mark strains the line (a red ring) and costs a strike.
+  - *Reef water* (by rocks, reefs, a lagoon): the marks dart to a new place every 1-1.6 s, flickering just before.
+  - *Calm* anywhere else: the ring as before.
+- **Three new beaches for digging** (`BEACHES` in digging.js; each treasure isle has one, from its seed; Perrin's first
+  chest is always plain sand):
+  - *Shingle*: grey ground, three more stones, the shovel takes three cracks, and every hole shows how many stones lie
+    next to it (grey dots).
+  - *Dunes*: pale sand; every third dig the wind fills your oldest open hole and its colour is lost.
+  - *Mud shore*: brown ground, no tide (the light fades instead) and three more digs, but after each dig the mud swallows
+    a square beside your holes (never the chest).
+
+## Counter melody, torn sails
+- **Counter melody** in stage 1 (`s1_counter`, layers.js `COUNTER`): rare, slow fade in and out over the band (see AUDIO.md).
+- **Torn sails:** too much canvas in a strong wind (wind strength over 1.05 or a storm over 0.45, sails over 55%) builds strain;
+  the sail bar blinks orange and a toast says to reef (S). Keep going (about 8 s at full sail in a full storm, longer in a plain
+  gale, less with better sails) and the mainsail tears: holes, long rips, the clew gone and three rags flapping
+  (`Ship.setTorn`), the sail bar turns red, and the ship sails at **66%** speed until mended. **Patch kit:** one aboard at the
+  start, room for three, 35 g at any Market (SAILCLOTH); stop anywhere at sea and press E ("Patch the torn sail", 4.5 s).
+  **No kit:** any harbour's sailmaker mends it free when you dock. Mara says which. Counts from the Market chapter (like
+  oil). Saved as `state.sailsTorn`, `state.patchKits`. The old gale hull damage with the sails out still applies in storms.
+- **Night pad and second pluck:** the night switches between the night band and a big calm pad (`n1_pad`; calm seas favour the
+  pad), and the main melody swaps between the pluck and the composer's variation (`s1_pluck2`), never together. Quest and chapter
+  sounds are quieter. See AUDIO.md.
+- **Torn sails only in real storms** (playtest: too sensitive): strain builds only when the storm is over 0.6 and the wind over
+  1.0; everyday wind and squalls never tear the sail. In a full storm at full sail: warning after ~4 s, tear after ~12 s.
+- **Darker nights** (playtest: too bright). Found the cause: since 21 Oct the line that passes the light level and wave height
+  to the shaders sat inside a comment, so the world kept daylight brightness at night (and the waves did not follow the
+  weather). Fixed; on top: night light floor 0.17 (was 0.3), darker night sky and fog, the view closes in (fog at 45%), and the
+  lantern throws a wider, warmer pool on the water so it matters; with the lamp out it is darker still. The ship's wake no
+  longer glows cyan at night.
+- **Lantern switch:** L (or click the oil flame, or press the left stick) puts the lantern out or lights it again
+  (`state.story.lampOff`). Out, it burns no oil, but the night is as dark as with an empty lamp (short view, no fishing). It
+  will not light with no oil.
+- **Lost in fog** (playtest: a current carried the ship to the fog bank, which pushed back, and it was stuck): fog no longer
+  pushes. Past the chapter fog wall, or inside the fog bank round the Halved Isle without Lantern 2, you are *lost*: the view
+  closes to a white-out (about 10 units), the helm and sail keys do not answer, and the ship wanders (a slow weave) while it
+  is always drawn back out the way it came (`fogLost` in main.js, `places.lost`, `gateLost`). Control returns as you leave.
+- **Fewer, fainter currents:** three lanes now (the Tooth Run, the Green Drift, the Reef Road), all well inside the fog; the
+  ring round Tama and the lanes that ran toward fog are gone. Foam streaks are fewer (46), thinner and half as bright. Every
+  current fades out near any fog (`fogEdge`), so none can carry the ship into it.
+- **Waves by distance from land:** one shared factor (`seaScale` / GLSL `landNear`) for the water and everything that floats:
+  0.35 by islands and harbours, about 1 some 120 out, up to 1.7 in open sea 260+ from land. Measured swell at the Tama pier
+  0.32, ~120 out 0.78, open sea 1.44.
+- **Four ocean designs** (pause menu "Ocean", remembered, or `?ocean=0..4`; `docs/concept/ocean_designs.jpg`): 0 Toon facets
+  (the original), 1 Soft swell (smooth light in five dithered tones, lace foam on crests), 2 Painted bands (height bands like a
+  sea chart with pale contour lines riding the waves), 3 Wind chop (a small fast chop over the swell, stronger out at sea, sun
+  sparkles and whitecap flecks), 4 Deep sheen (dark clear water, the sky's sheen at a slant, long wind-drawn foam streaks).
+  Styles 1-4 use smooth normals from the wave function itself (no flat triangles) and an ordered dither so they stay pixel art.
+- **Night view and lamp settings** (pause menu "Night view" / "Lamp", or `?nightview=0..3&lamp=0..3`): view distance and
+  moonlight together: Pitch dark (28% of day view, light 0.11), Dark (45%, 0.17, default), Moonlit (65%, 0.26), Bright moon
+  (85%, 0.36); lamp pool: Candle, Lantern (default), Bright, Beacon. Comparison images in docs/concept.
+- **Night = moon phases** (default "Night: Moon phases" in the pause menu; fixed views still selectable): each night (19:00 to
+  06:00) is either a new moon (Pitch dark: 20% of the day's view, light 0.065, no moon, dark clouds) or a full moon (Moonlit:
+  65%, 0.26), chosen per night from the seed. Fixed a weather floor that kept every clear night at 0.28 light.
+- **Lamp default: Candle.** **Ocean default: Chop facets** (new design 5: 70% wind chop over 30% toon facets); the dark rollers
+  of a rough sea get the same chop, so storms match. New settings keys (v2) so the new defaults apply.
+- **No text over islands while sailing:** the far labels are gone (the spyglass is just view distance and zoom again).
+- **Storms easier to read:** less darkening (light x0.82 and x0.7 instead of x0.65 and x0.58), the sea keeps more of its colour,
+  the horizon stays lighter, the view shrinks less, the lantern shows in a storm like at night, and lighthouses already burn.
+- **Gusts drawn by the water itself** (playtest: the dark scratch lines looked odd): a gust is now a soft, ragged patch of
+  darker, finely rippled water in the ocean shader (`uGust`, four patches from seaplay.js), dithered like the rest of the sea.
+- **Smoother wind streaks:** wisps are continuous, gently curving lines that taper at both ends (thin and faint, no dashes),
+  56 of them, thinner and fainter than before.
+- **Every hit shows on the hull:** planks drain partly (a damaged plank fills from the bottom to what is left of it) and the
+  row shakes on a hit; before, a storm's 6-7 point hits only removed a plank every third hit, so the red flash looked like
+  nothing happened.
+- **Wave sets in any weather:** a slow travelling pattern makes the swell bigger and smaller (about 0.5x to 1.45x) with a longer
+  roller in the big sets, on the GPU and the CPU alike. Measured in calm water ~60 from Tama: 6-second ranges 0.41 to 0.98.
+- **The ship floats with weight and meets resistance** (ship.js): height, pitch and roll follow the water through damped springs
+  (a heavy hull that lags the waves and settles with a little overshoot) instead of copying the surface; the bow rides up with
+  speed, nods when the ship speeds up or slows down, it heels with the wind in the sails and leans out in a turn, and squats a
+  little at speed. Climbing a wave face costs up to 28% speed, running down one gives up to 18%; a hard turn drags; the hull
+  keeps its momentum and only slowly follows the bow (turns slide), with a touch of leeway from the wind. When the bow drops
+  into a trough at speed it throws spray. `docs/concept/boat_motion.mp4`.
+- **Handling like a boat** (playtest: turns too floaty and too easy): the rudder needs water flowing past it (at a standstill
+  it barely turns: ~11 deg in 3 s), the swing builds up and dies away (yaw inertia), and very fast it is a little stiffer.
+  Sideways the keel bites hard (lateral speed decays at 5.5/s), so a turn slides only briefly. Measured: half sail 95 deg in 3 s
+  (+24 after letting go), full sail 71 deg (+19); sideways slide 0.06-0.11. Rowing keeps its own easy turning for docking.
+
+## Look pass: wake, shores, sails, islands, sky, rain, other ships
+- **Wake and bow wave** (`src/wake.js`): a trail of points behind the stern opens into a V of broken foam (the arms spread with
+  age, thin and fade over ~4 s), a churned strip right behind the stern, and white water peeling off both sides of the bow,
+  longer and brighter with speed. The round wake puffs are fewer. Traffic ships within 220 have their own.
+- **Shores, seabed, fish, rain** (ocean shader): broken lines of foam roll in and break near every shore (uneven spacing, only
+  stretches of each line), a wash at the edge; in the shallows the seabed shows through (sand ripples, darker rock and weed,
+  dithered), small fish shadows drift in loops over it by day; rain leaves rings spreading on the surface near the camera.
+- **Sails and rigging:** pointed too close to the wind the mainsail and jib go slack and flutter (luff); a gust fills the sail
+  fuller; a forestay, two backstays and four shrouds as thin dark lines.
+- **Islands vary** (rolled separately, so the world stays put): a slight colour shift per island, a cliff face on one side of
+  ~40% of jungle isles, two to four sea stacks off ~70% of rocky ones.
+- **Sky:** clouds take the sunrise and sunset colour; a high layer of thin cirrus streaks; a storm wall (a dark cloud bank with
+  grey rain curtains under it) rises over the horizon upwind as a storm or a front comes near (`fx.stormWall`).
+- **Other ships** float like yours (springs, heel with the wind, squat at speed) and leave wakes.
+
+## World hints: what the sea tells you without words (src/secrets.js, rare and irregular on purpose)
+- **The Kestrel (transits).** Two pilot's daymarks (a tarred pole on a black rock, white top with a black band) stand at sea
+  south-east of Hollowgreen's waters. From one spot only, the near post sits exactly in front of the Grey Tooth and the far
+  post in front of the Drowned Bell's tower; that is where the Kestrel lies. The lines come from the world: the Tooth's cairn
+  lid has a scratched drawing of a white post in front of the rock (and KESTREL crossed off the ship list); two pier tales
+  (Tama, Velto; rare, once each, after the tavern chapter) disagree about everything (calm noon / night squall) except the
+  line each one saw; a third harbour may say there never was a Kestrel. Stopped over the spot a dark shape shows under the
+  water and bubbles rise: send someone down (+180 gold, a note). Tama's dusk watcher looks toward it.
+- **Low-tide wrecks:** off ~7% of islands far from Tama a wreck's ribs and mast come up only at low tide; salvage once.
+- **Smoke:** ~5% of lonely jungle/rocky isles have a man living there; a thin smoke column rises about one day in three. The
+  first visit he scratches a treasure isle into your chart; later visits vary (sometimes only a warm fire).
+- **The dusk watcher:** Tama and ~40% of harbours have one figure who stands at the water's edge at dusk, on the side that
+  faces the nearest secret (smoke isle or low-tide wreck; Tama's faces the Kestrel). Gone once the sea goes wrong.
+- **Birds:** at dusk in open water a small V of gulls flies home toward the nearest land; at dawn they fly out from it. With
+  dread over 0.55 they fly the wrong way.
+- **Cross-swell: cut** after the playtest (the sea here is so full of islands that every point was inside the band: it could not
+  hint at anything, and it doubled the water's cost).
+- **Dig beach redesign + noon shadow:** the dig is now a little beach seen from above (dithered sand, shells, pebbles, weed,
+  waves lapping, the island's edge), with the treasure arch at the top throwing its real sun shadow (long and slanting in the
+  morning, short at noon, none at night). On "noon-shadow" isles (riddle ends "At noon, the arch points.") the chest lies
+  under the noon tip of the shadow of the arch's top.
+- **Playtest fixes (gameplay agent's strict review):** noon-shadow riddles had no eligible isle (the dread limit excluded all
+  but Perrin's): the limit is gone, so they are a later-game riddle (12 isles within 25 cells), and the arch is made shorter on
+  beaches where a low sun would throw the tip off the sand or sideways off the beach (chest under the noon tip in 100% of 1200
+  test starts, sun 0.45-1.0). The dig view was mirrored (fixed). The cross-swell was cut (see above). Smoke is unfogged, darker
+  and lies in a low wind-laid trail where the default camera looks. Camp visits: one per day, and the note only says he drew
+  an island when he did. No "Stop the ship" prompt gives the Kestrel away while you sail over it; its shape reads from 45 and
+  stronger. Birds fly lower (8) and cross the view ahead of the bow. Low-tide salvage goes through the normal wreck path
+  (wrong loot, threads, stats). Unloaded secret meshes are disposed. The watcher stands at the water's edge, never above 1.5,
+  with a lit lantern. The dig shadow fades under cloud and rain.
+
+## Shop polish and the lantern's sight
+- **The lantern lets you see further** while it is lit at night, in fog and in storms: +15% view per level (45% at Beacon).
+- **Shipwright redesigned:** a wider panel with one card per upgrade: a pixel icon (new rudder, spyglass and crew icons), level
+  pips, "Now:" what you have, the next level's effect, a teal tag for what it opens (reef gaps, breakers, fog banks, more oil),
+  a coin price button, "N short" when you cannot afford it, MASTERWORK when maxed. Buying flashes the card gold, pops the new
+  pip and flashes the gold counter. Fixed: coin, sail and hull icons did not render inline (only as HUD icons).
+- **Market and other harbour tabs:** rows are small cards, buttons wider; lamp oil shows a fill gauge, patch kits three pips;
+  the panel scrolls with a visible pixel scrollbar; shops get a wider panel.
+- **Glints fixed** (playtest: the sun/moon reflection raced the other way while sailing): the reflection is a soft path toward
+  the light, and inside it single cells twinkle in place on their own clock (style 0 and the chop styles), instead of a
+  view-dependent threshold that swept across the water as the camera moved.
+- **More voices:** two new lines for each of the eight passengers (some quietly point at the world's hints: lines that line up,
+  the man on the empty island, the watcher at dusk), three more Mara/passenger exchanges, two more seasick lines; 11 new bottle
+  notes across the five dread stages (one mentions the two white posts near the Tooth, one the low tide).
+
+
+## Harbour life: every harbour its own place (src/harbourlife.js, src/localgames.js)
+From playtest feedback: a tester did every errand on every island, ferrying passengers and goods back and forth, and it
+went stale. Each harbour now has things only it has. All of it opens with the tavern (chapter III).
+- **A resident with a story** (board, top): one named person per harbour, four steps, one step a day. Steps can need a
+  fish, fruit, 10 lamp oil, a night visit or the festival day, and some send you to a partner harbour (the nearest one
+  the fog allows) and back. Tama has Ada the baker (partner Velto), Velto has Tilda and her dog (partner Tama); other
+  harbours get one of: Ines at the lamp, Pim the boatbuilder, Old Sabe, Lune who sings, Marisol the bride, Corvo who
+  counts ships. Some end bright, some end quietly wrong (Ines, Sabe, Lune, Corvo). Nothing is explained.
+- **The harbour changes for good** when a story ends: a prop by the pier (bunting and a two-name sign, the dog, a cold
+  lamp, Pim's little boat with a red sail, Sabe's chair, a ring of candles, a flower arch, a washed wall) and a line on
+  the board.
+- **The house dish** (tavern): one per village style, lasts until the dawn after next, one at a time. Fish pie (speed),
+  fisher's stew (bites), honey bread (sail handling), coconut curry (gusts last longer), spiced rum (less sail strain),
+  pepper pot (more fruit), bitter tea (see further at night and in fog, bigger lamp glow), salt pork (mend at sea, even in storms).
+- **The week's event:** each harbour's festival day has a name by style (Bell Sunday, Fleet Home, Stone Day, Kite Day,
+  The Grand Auction, Harvest Fair, Lantern Vigil, Strongarm Night). The board shows when. The local game pays double that
+  day, and a great score on the day gives a keepsake (state.life.keep).
+- **Local games** (real low-poly 3D scenes built like the world: Builder meshes, PS1 materials, the real ocean, villagers, drawn by the game renderer and post; a thin 2D layer for meters and pop-up words; tavern, once a day per harbour, stake 5g), one per style: Ring the peal (Simon on four bells),
+  Mend the net (stop the shuttle), Skip a stone (power + angle), Fly the kite (hold A/D in the band), The auction (bid or
+  pass on lots), Coconut shy (timing), Float the lanterns (through a moving gap), Arm-wrestle (push on the beat).
+- **Gossip travels:** finished stories, treasure, a sunk raider and a festival win are talked about in other harbours
+  (greetings, once per harbour per piece of news).
+- **Fragments of an old story** (tavern, "AN OLD STORY"): one per harbour, once it knows you (two of: a resident step,
+  its game, its dish) and from chapter IV on. The source fits the village (the bell's inscription, a fisher's story, a
+  terrace painting, a counting rhyme, a dice seller, a ledger page wrapping eggs, a shrine carving, a figurehead) plus
+  four spares for a second harbour of the same style. They go into the journal. They point at the table by the water
+  and the one who keeps the count, and never name her. 12 in all.
+- Test: `__game.life`, `__game.openHarbour(id, tab)`, `__game.localGames.open(id, title, cb)`.
+
+## The sea chart, redesigned (src/chart.js)
+Playtest note: the old chart was hard to read (beige land on beige paper, faint labels, clutter). Four directions were mocked
+up; the chosen one (D) is built in the game's own style:
+- The Map tab now takes nearly the whole screen: the chart plus a parchment side panel.
+- Chart: drawn at half resolution and shown pixelated. Dithered teal sea, pale shallows and a foam line round every shore,
+  flat sand islands with green or rock interiors and a dark ink coast. Harbours, treasure, rumours, errands and pins are
+  9x9 pixel icons on coloured badges (red = places and finds, gold = errands, purple = your pins). Harbour names in Pirata
+  One, other names in DotGothic16, cream with a dark rim. The fog wall is a grey dither. A dashed gold line runs to the
+  errand you follow; currents you know are dotted lanes. Pixel compass bottom left.
+- Hover an island: a parchment card with its kind, faction, your errands there, the resident's story step, its festival,
+  a buried chest or rumour.
+- Side panel: the sea's name and faction, the errand you follow (bearing and distance), toggles with counts for each
+  marker kind and for island names, this week's festivals in known harbours, and the line key.
+- The full-dread warp (drifting islands, phantoms, TURN BACK) still works on the new chart.
+
+## Mockups and the 90-second demo video (Nov 2026)
+- **Map directions:** `docs/concept/map/` holds mockups A (admiralty chart), B (explorer's parchment), C (clean game UI)
+  and D (hybrid), drawn from the real islands round Tama (`mock.html`), plus `map-new*.png` of the built chart (D, in the
+  game's style).
+- **Quest following (not built yet):** `docs/concept/quests/` holds four mockups over real game frames:
+  1. a parchment quest card with the story line above, an edge arrow and a gold wind-ring tick;
+  2. on arrival, a marker over the pier and "Dock at the pier";
+  3. a "Delivered!" stamp, with TAB cycling to the next errand;
+  4. the Quests tab with a FOLLOWING ribbon, distances, progress bars and deadline suns.
+  Suggested order to build: 1, 2, then TAB from 3.
+- **Tavern games:** `docs/concept/localgames-3d.png` shows all eight 3D scenes; `localgames-2d-old.png` is the earlier
+  painted version, for comparison.
+- **Video:** `docs/trailer/demo90/Hoist_demo_90s.mp4` is a 90-second gameplay video with no caves, ending at the hut on
+  the stage 4 theme. The shot, music and edit scripts sit beside it.

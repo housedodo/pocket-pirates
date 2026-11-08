@@ -9,6 +9,8 @@ import { markLines } from './marks.js';
 import { GROUPS, byId } from './customize.js';
 import { TRAITS } from './tabletop.js';
 import { pxi } from './pixelui.js';
+import { LANES, ROUND } from './seaplay.js';
+import { renderChart, drawChart } from './chart.js';
 
 // The captain's log: an old low-poly book. Tabs are cloth bookmarks sticking out of the right side, content flows over two pages
 // (turn with the arrows below / Up and Down), and the Map is a hand-inked low-poly chart.
@@ -174,15 +176,28 @@ export class Logbook {
   }
 
   open(tab = this.tab) {
+    const locked = (t) => !!(this.d.locked && this.d.locked(t));
+    if (locked(tab)) tab = locked(this.tab) ? 'map' : this.tab;   // a tab the story has not opened yet stays shut
     this.tab = tab; this.page = 0;
     if (this.d.tabOpened) this.d.tabOpened(tab);
     if (tab !== 'map' || !this._fromBoard) this.pencil = null;
-    this.tabsEl.querySelectorAll('button').forEach((b) => b.classList.toggle('on', b.dataset.tab === tab));
+    this.tabsEl.querySelectorAll('button').forEach((b) => { b.classList.toggle('on', b.dataset.tab === tab); b.classList.toggle('locked', locked(b.dataset.tab)); });
     this.tabsEl.querySelectorAll('button').forEach((b) => b.classList.toggle('hl', b.dataset.tab === (this.d.state.story || {}).tabMark));   // the tab Mara sent you to
-    if (tab === 'map' && this.view.follow) { this.view.cx = this.d.ship.pos.x; this.view.cz = this.d.ship.pos.z; }
+    if (tab === 'map' && this.view.once) this.view.once = false;   // framed for this open (see frame)
+    else if (tab === 'map' && this.view.follow) { this.view.cx = this.d.ship.pos.x; this.view.cz = this.d.ship.pos.z; }
     this.render();
   }
-  step(dir) { const i = TABS.findIndex((t) => t[0] === this.tab); this.open(TABS[(i + dir + TABS.length) % TABS.length][0]); }
+  /** open the chart framed so both the ship and a spot (x, z) are in view (the next open follows the ship again) */
+  frame(x, z) {
+    const sx = this.d.ship.pos.x, sz = this.d.ship.pos.z, v = this.view;
+    v.cx = (sx + x) / 2; v.cz = (sz + z) / 2;
+    v.sc = Math.max(0.15, Math.min(0.8, Math.min((W - 160) / (Math.abs(x - sx) + 1), (H - 140) / (Math.abs(z - sz) + 1))));
+    v.follow = false; this.view.once = true;
+  }
+  step(dir) {   // skips the tabs that are still shut
+    const open = TABS.filter((t) => !(this.d.locked && this.d.locked(t[0]))), i = open.findIndex((t) => t[0] === this.tab);
+    this.open(open[(i + dir + open.length) % open.length][0]);
+  }
   tabByIndex(i) { if (TABS[i]) this.open(TABS[i][0]); }
 
   turn(dir) {
@@ -193,6 +208,7 @@ export class Logbook {
   }
 
   render() {
+    this.root.classList.toggle('mapmode', this.tab === 'map');
     this.body.className = this.tab === 'map' ? 'full' : 'cols';
     this.body.scrollLeft = 0;
     ({ map: this.renderMap, goals: this.renderGoals, quests: this.renderQuests, riddles: this.renderRiddles, journal: this.renderJournal, ship: this.renderShip, standing: this.renderStanding })[this.tab].call(this);
@@ -297,7 +313,10 @@ export class Logbook {
     const { state } = this.d, dread = this.d.dread();
     const isl = Object.values(state.discovered);
     const types = { harbour: 'Harbours', treasure: 'Treasure isles', jungle: 'Jungles', rocky: 'Rocks', sandbar: 'Sandbars', volcano: 'Volcanoes', atoll: 'Atolls', mangrove: 'Mangroves' };
-    let html = h3(`Charted (${isl.length})`);
+    // letters and bottles first: Perrin's notes are what Mara sends you here for
+    let html = h3(`Letters and bottles (${state.notes.length})`);
+    html += state.notes.length ? state.notes.slice(-4).reverse().map((n) => `<div class="ent ${n.dark ? 'dk' : ''}"><small>“${n.text}”</small></div>`).join('') : ent('None yet', '', '', 'dim');
+    html += h3(`Charted (${isl.length})`);
     for (const [t, label] of Object.entries(types)) { const l = isl.filter((i) => i.type === t); if (l.length) html += ent(`${label} · ${l.length}`, l.slice(0, 6).map((i) => i.name).join(', ') + (l.length > 6 ? '…' : '')); }
     if (!isl.length) html += ent('Nothing yet', '', '', 'dim');
     html += this.fishLogHtml(state);
@@ -307,8 +326,6 @@ export class Logbook {
     html += state.loot.length ? state.loot.slice(-6).reverse().map((l) => ent(l.name, '', `${l.value}g`, l.dark ? 'dk' : '')).join('') + more(state.loot, 6) : ent('None yet', '', '', 'dim');
     const solved = Object.keys(state.riddles).filter((id) => state.dug.has(id));
     if (solved.length) { html += h3(`Solved riddles (${solved.length})`); for (const id of solved) { const [cx, cz] = id.split(',').map(Number), d = this.d.world.desc(cx, cz); html += ent(d ? d.name : 'A treasure isle', `\u201c${state.riddles[id]}\u201d`, pxi('check'), 'done'); } }
-    html += h3(`Bottles (${state.notes.length})`);
-    html += state.notes.length ? state.notes.slice(-4).reverse().map((n) => `<div class="ent ${n.dark ? 'dk' : ''}"><small>“${n.text}”</small></div>`).join('') : ent('None yet', '', '', 'dim');
     this.body.innerHTML = html;
   }
 
@@ -345,39 +362,7 @@ export class Logbook {
   }
 
   // ------------------------------------------------------------ map
-  renderMap() {
-    this.body.innerHTML = `<div class="mapwrap"><canvas id="mapCv" width="${W / 2}" height="${H / 2}"></canvas><canvas id="mapTxt" width="${W}" height="${H}"></canvas>
-      <div class="mapctl"><button id="mz+">+</button><button id="mz-">&minus;</button><button id="mc" title="Centre on ship">${pxi('target')}</button></div></div>
-      <div class="legend">${this.pencil ? 'pencil: click an island to circle it (again: rub out) · drag · wheel' : 'drag to pan · wheel to zoom ·'} ${this.pencil ? '' : '<b style="color:#b02818">?</b> rumour · <b style="color:#d07010">flag</b> delivery · <b style="color:#8a5a30">box</b> lost crates'}</div>`;
-    const cv = document.getElementById('mapCv');
-    this.cv = cv; this.c = cv.getContext('2d');
-    const v = this.view;
-    const zoom = (k) => { v.sc = Math.max(0.15, Math.min(2.4, v.sc * k)); this.drawMap(); };
-    document.getElementById('mz+').onclick = () => zoom(1.25);
-    document.getElementById('mz-').onclick = () => zoom(0.8);
-    document.getElementById('mc').onclick = () => { v.follow = true; v.cx = this.d.ship.pos.x; v.cz = this.d.ship.pos.z; this.drawMap(); };
-    cv.addEventListener('wheel', (e) => { e.preventDefault(); zoom(e.deltaY < 0 ? 1.15 : 0.87); }, { passive: false });
-    let drag = null;
-    cv.addEventListener('pointerdown', (e) => { drag = { x: e.clientX, y: e.clientY, cx: v.cx, cz: v.cz }; cv.setPointerCapture(e.pointerId); });
-    cv.addEventListener('pointermove', (e) => {
-      if (!drag) return;
-      const k = W / cv.getBoundingClientRect().width;
-      v.cx = drag.cx - (e.clientX - drag.x) * k / v.sc; v.cz = drag.cz - (e.clientY - drag.y) * k / v.sc; v.follow = false;
-      this.drawMap();
-    });
-    cv.addEventListener('pointerup', (e) => {
-      const moved = drag && Math.hypot(e.clientX - drag.x, e.clientY - drag.y) > 4; drag = null;
-      if (moved || !this.pencil) return;
-      // the pencil: a free memory aid. It circles an island for the selected card and never sets a course.
-      const r = cv.getBoundingClientRect(), wx = v.cx + ((e.clientX - r.left) / r.width * W - W / 2) / v.sc, wz = v.cz + ((e.clientY - r.top) / r.height * H - H / 2) / v.sc;
-      const near = this.d.world.nearest(wx, wz, 40 / v.sc + 12), B = this.d.state.board || (this.d.state.board = { pos: {}, ties: [], note: '', guess: [] });
-      const gx = near ? near.desc.x : wx, gz = near ? near.desc.z : wz;
-      const i = B.guess.findIndex((g) => g.card === this.pencil && Math.hypot(g.x - gx, g.z - gz) < 30);
-      if (i >= 0) B.guess.splice(i, 1); else B.guess.push({ x: gx, z: gz, card: this.pencil });
-      this.drawMap();
-    });
-    this.drawMap();
-  }
+  renderMap() { renderChart(this); }   // the sea chart lives in chart.js
 
   parchment() {
     if (this.parch) return this.parch;
@@ -435,7 +420,8 @@ export class Logbook {
     return cv;
   }
 
-  drawMap() {
+  drawMap() { drawChart(this); }
+  drawMapOld() {
     const { state, world, ship, seed } = this.d, c = this.c, v = this.view, sc = v.sc;
     if (!c) return;
     TEXTQ = [];
@@ -535,6 +521,22 @@ export class Logbook {
       sk.wash(rectP(px - 7, pz - 6, 14, 12), '#8a5a30', 0.8, 0.8); sk.line(rectP(px - 7, pz - 6, 14, 12), { w: 1.2, amp: 1.1 });
       sk.line([[px - 7, pz - 6], [px + 7, pz + 6]], { closed: false, w: 0.9, passes: 1 });
     }
+    { // currents you have ridden (or seen from Wick's gallery): dashed arrows along the lane
+      const all = state.story && state.story.lm && state.story.lm.keeper !== undefined, rode = (state.story && state.story.lanes) || {};
+      const arrow = (pts, seedN) => {
+        const sk = sketcher(c, seedN); c.setLineDash([10, 8]); sk.line(pts, { closed: false, col: '#2a6a8a', w: 1.6, passes: 1, amp: 1.2, alpha: 0.75 }); c.setLineDash([]);
+        const [a, b] = [pts[pts.length - 2], pts[pts.length - 1]], ang = Math.atan2(b[1] - a[1], b[0] - a[0]);
+        sk.line([[b[0] - Math.cos(ang - 0.5) * 12, b[1] - Math.sin(ang - 0.5) * 12], b, [b[0] - Math.cos(ang + 0.5) * 12, b[1] - Math.sin(ang + 0.5) * 12]], { closed: false, col: '#2a6a8a', w: 1.6, passes: 1, amp: 0.6 });
+      };
+      for (const L of LANES) if (all || rode[L.name]) arrow([[X(L.a[0]), Z(L.a[1])], [X((L.a[0] + L.b[0]) / 2), Z((L.a[1] + L.b[1]) / 2)], [X(L.b[0]), Z(L.b[1])]], L.a[0] | 0);
+      if (ROUND && (all || rode[ROUND.name])) for (let q = 0; q < 4; q++) { const pts = []; for (let k = 0; k <= 6; k++) { const a = (q / 4 + k / 6 * 0.2) * Math.PI * 2; pts.push([X(ROUND.x + Math.cos(a) * ROUND.R), Z(ROUND.z + Math.sin(a) * ROUND.R)]); } arrow(pts, 90 + q); }
+    }
+    for (const [i, q] of ((state.story && state.story.pins) || []).entries()) {   // your pins
+      const px = X(q.x), pz = Z(q.z), sk = sketcher(c, 300 + i);
+      sk.line(circ(px, pz, 5, 8), { w: 1.2, amp: 0.5 });
+      sk.line([[px, pz], [px + 6, pz - 26]], { closed: false, w: 2, passes: 1 });
+      sk.wash(circ(px + 6, pz - 31, 9, 10), q.on ? '#c02818' : '#7a5a8a', 0.95, 0.5); sk.line(circ(px + 6, pz - 31, 9, 10), { w: 1.4, amp: 0.6 });
+    }
     if (state.job) {
       const px = X(state.job.x), pz = Z(state.job.z), sk = sketcher(c, 77);
       sk.line([[px, pz], [px, pz - 24]], { closed: false, w: 1.6 });
@@ -622,11 +624,6 @@ export class Logbook {
       sk.wash(circ(hx + 1.2 * s, hz - 4.5 * s, 3.5 * s, 7), '#4a9a40', 0.55, 1.2);
       for (const a of [-2.8, -2.1, -1.4, -0.7, 0]) sk.line([[hx + 1.2 * s, hz - 4 * s], [hx + 1.2 * s + Math.cos(a) * 6 * s, hz - 4 * s + Math.sin(a) * 4 * s + 2 * s]], { closed: false, col: '#2e5a24', w: 1, passes: 1, amp: 0.8 });
     };
-    if (d.hut && state.story && state.story.hutKnown) { // the dark hut: a black crooked shape with one purple window
-      const hx = px + 8 * s, hz = pz - 2 * s, body = [[hx - 5 * s, hz + 4 * s], [hx - 4 * s, hz - 3 * s], [hx + 4 * s, hz - 2 * s], [hx + 5 * s, hz + 4 * s]];
-      sk.wash(body, '#1e1619', 1, 0.6); sk.wash([[hx - 6 * s, hz - 2 * s], [hx - 1 * s, hz - 8 * s], [hx + 5.5 * s, hz - 1.5 * s]], '#120c0e', 1, 0.6);
-      c.fillStyle = '#c030a0'; c.fillRect(hx + 1 * s, hz - 1 * s, 2.5 * s, 2.5 * s);
-    }
     if (d.type === 'harbour') {
       for (const [ox, oz, col] of [[-9, 0, '#c0483c'], [3, -4, '#3c78c8'], [10, 5, '#d09a30']]) house(px + ox * s, pz + oz * s, col);
       if (hasLighthouse(d)) tower(px - 14 * s, pz - 6 * s, s);
@@ -647,6 +644,14 @@ export class Logbook {
         for (const ox of [-6, 3]) { const leg = rectP(px + ox * s, pz - 8 * s, 3 * s, 12 * s); sk.wash(leg, '#a8a294', 0.8, 0.6); sk.line(leg, { w: 1.1, amp: 1 }); }
         const top = rectP(px - 7 * s, pz - 10.5 * s, 14 * s, 3 * s); sk.wash(top, '#a8a294', 0.8, 0.6); sk.line(top, { w: 1.1, amp: 1 });
       }
+    }
+    // the hut last, on top of the trees
+    if (d.hut && state.story && state.story.hutKnown) { // the dark hut: a black crooked shape with one purple window, big enough to see at any zoom
+      const hs = Math.max(2, s * 1.4), hx = px + 4 * s, hz = pz - 3 * s, body = [[hx - 5 * hs, hz + 4 * hs], [hx - 4 * hs, hz - 3 * hs], [hx + 4 * hs, hz - 2 * hs], [hx + 5 * hs, hz + 4 * hs]];
+      const hat = [[hx - 7 * hs, hz - 1.5 * hs], [hx - 2.5 * hs, hz - 5 * hs], [hx - 0.5 * hs, hz - 9 * hs], [hx + 3.5 * hs, hz - 11.5 * hs], [hx + 1.5 * hs, hz - 7.5 * hs], [hx + 2.5 * hs, hz - 5 * hs], [hx + 7 * hs, hz - 1.5 * hs]];   // the bent witch's-hat thatch
+      sk.wash(body, '#1e1619', 1, 0.6); sk.wash(hat, '#120c0e', 1, 0.6);
+      sk.line(hat, { col: '#120c0e', w: 1.4, passes: 2, amp: 0.8 });
+      c.fillStyle = '#c030a0'; c.fillRect(hx + 1 * hs, hz - 1 * hs, 2.5 * hs, 2.5 * hs);
     }
   }
 }

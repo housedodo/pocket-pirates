@@ -108,6 +108,35 @@ export class Sky {
     }
     this.sunDir = new THREE.Vector3();
 
+    // a high layer: thin streaks of cirrus far above the puffs, drifting slowly
+    this.highMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.55, fog: false, depthWrite: false });
+    this.high = [];
+    for (let i = 0; i < 9; i++) {
+      const m = new THREE.Mesh(ico, this.highMat);
+      const a = rng() * Math.PI * 2, d = 150 + rng() * 380;
+      m.position.set(Math.cos(a) * d, 150 + rng() * 40, Math.sin(a) * d);
+      m.scale.set(40 + rng() * 50, 0.6, 4 + rng() * 5); m.rotation.y = rng() * 0.6;
+      this.high.push(m); scene.add(m);
+    }
+    // the storm wall: a dark, towering bank on the horizon, upwind. It rises over the horizon as a storm or a front comes near
+    this.wallMat = new THREE.MeshBasicMaterial({ color: 0x2a3038, fog: false });
+    const rnd = new THREE.IcosahedronGeometry(1, 1);
+    this.wall = new THREE.Group();
+    for (let row = 0; row < 2; row++) for (let i = 0; i < 16; i++) {
+      const m = new THREE.Mesh(rnd, this.wallMat);
+      m.position.set((i - 8) * 30 + rng() * 14, row ? 92 + rng() * 20 : 62 + rng() * 10, row * 18 + rng() * 12);   // a bank of cloud in the sky, not land
+      m.scale.set(30 + rng() * 22, row ? 22 + rng() * 14 : 16 + rng() * 8, 22 + rng() * 10);
+      this.wall.add(m);
+    }
+    // grey curtains of rain hanging from it down to the sea
+    this.curtainMat = new THREE.MeshBasicMaterial({ color: 0x5a626c, transparent: true, opacity: 0.4, fog: false, depthWrite: false, side: THREE.DoubleSide });
+    for (let i = 0; i < 7; i++) {
+      const c = new THREE.Mesh(new THREE.PlaneGeometry(30 + rng() * 30, 70), this.curtainMat);
+      c.position.set((i - 3) * 62 + rng() * 20, 28, 6 + rng() * 10); c.rotation.z = (rng() - 0.5) * 0.25;
+      this.wall.add(c);
+    }
+    this.wall.visible = false; scene.add(this.wall);
+
     // shooting star
     const mg = new THREE.BufferGeometry();
     mg.setAttribute('position', new THREE.Float32BufferAttribute(new Float32Array(6), 3));
@@ -187,15 +216,24 @@ export class Sky {
       this.meteorMat.opacity = Math.max(0, this.meteorLife / 0.9);
     } else this.meteorMat.opacity = 0;
 
-    this.cloudMat.color.copy(stage.cloud);
-    const wx = Math.sin(windDir), wz = -Math.cos(windDir);
-    for (const c of this.clouds) {
-      c.position.x += wx * 2.5 * dt;
-      c.position.z += wz * 2.5 * dt;
-      const dx = c.position.x - cam.position.x, dz = c.position.z - cam.position.z;
-      if (dx * dx + dz * dz > 460 * 460) { // wrap to the opposite side
-        c.position.x = cam.position.x - dx * 0.92;
-        c.position.z = cam.position.z - dz * 0.92;
+    // sunrise and sunset colour the clouds; at night they go dark with the sky
+    this.cloudMat.color.copy(stage.cloud).lerp(stage.sun, Math.min(0.6, tod.twilight * 0.6));
+    this.highMat.color.copy(stage.cloud).lerp(stage.sun, Math.min(0.7, tod.twilight * 0.8));
+    this.highMat.opacity = 0.5 * (1 - 0.7 * tod.night) * (1 - 0.6 * (fx.storm || 0));
+    for (const m of this.high) {
+      m.position.x += Math.sin(windDir) * 0.8 * dt; m.position.z += -Math.cos(windDir) * 0.8 * dt;
+      const dx = m.position.x - cam.position.x, dz = m.position.z - cam.position.z;
+      if (dx * dx + dz * dz > 560 * 560) { m.position.x = cam.position.x - dx * 0.92; m.position.z = cam.position.z - dz * 0.92; }
+    }
+    { // the storm wall stands on the horizon where the wind comes from
+      const k = Math.max(0, Math.min(1, fx.stormWall || 0));
+      this.wall.visible = k > 0.02;
+      if (this.wall.visible) {
+        const up = windDir + Math.PI, D = 430;
+        this.wall.position.set(cam.position.x + Math.sin(up) * D, -110 + 110 * k, cam.position.z - Math.cos(up) * D);   // rises as the weather comes
+        this.wall.rotation.y = -up;
+        this.wallMat.color.set('#363c46').lerp(stage.skyHorizon, 0.35).multiplyScalar(0.55 + 0.45 * (1 - tod.night));
+        this.curtainMat.color.copy(this.wallMat.color).lerp(stage.skyHorizon, 0.4); this.curtainMat.opacity = 0.45 * k;
       }
     }
   }
