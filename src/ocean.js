@@ -18,10 +18,12 @@ export function shoreAt(x, z) {
   return s;
 }
 /** wave size by how far land is: low and gentle by islands and harbours (0.35), normal ~120 out, big in the open sea (1.7, 260+ from any land) */
+/** How much taller the open sea rises and falls than before (1 = the old height). Near land it stays as it was, so piers and shores keep their levels. */
+export const OPEN_SEA = 2.0;
 export function seaScale(x, z) {
   let near = 0;
   for (const [ix, iz, r] of WATER.isl) near = Math.max(near, 1 - sstep(15, 260, Math.hypot(x - ix, z - iz) - r * 1.1));
-  return 0.35 + 1.35 * (1 - near);
+  return 0.35 + 1.35 * OPEN_SEA * (1 - near);
 }
 // the looks the water can take (uOcean); 0 is the original toon facets. Chosen in the pause menu (Ocean) or ?ocean=1..4
 export const OCEAN_STYLES = ['Toon facets', 'Soft swell', 'Painted bands', 'Wind chop', 'Deep sheen', 'Chop facets'];   // 5: mostly wind chop over a little of the toon facets (the default)
@@ -70,7 +72,7 @@ float waveH(vec2 p){
   }
   float G = (0.5 + 0.5 * sin(0.031 * p.x + 0.017 * p.y - 0.45 * t)) * (0.6 + 0.4 * sin(0.013 * p.x - 0.021 * p.y + 0.3 * t + 2.0));   // sets of bigger and smaller waves
   float big = 0.22 * sin(0.11 * q.x + 0.07 * q.y + 0.6 * WS * t) * G;
-  return uWave * (mix((sw + big) * (0.5 + 0.95 * G), h, uRough)) * (0.35 + 1.35 * (1.0 - landNear(p)));   // low by land, big in the open sea
+  return uWave * (mix((sw + big) * (0.5 + 0.95 * G), h, uRough)) * (0.35 + 1.35 * ${OPEN_SEA.toFixed(2)} * (1.0 - landNear(p)));   // low by land, big in the open sea
 }`;
 const GLSL_WAVE = GLSL_WAVEFN + '\nvarying vec3 vWP;';
 
@@ -99,13 +101,13 @@ export class Ocean {
         body: `
           vec3 fn = normalize(cross(dFdx(vWP), dFdy(vWP)));
           if (fn.y < 0.0) fn = -fn;
-          float crest = clamp(vWP.y / (0.9 * max(uWave, 0.5)) + 0.5, 0.0, 1.0);
+          float crest = clamp(vWP.y / (0.9 * max(uWave, 0.5) * ${OPEN_SEA.toFixed(2)}) + 0.5, 0.0, 1.0);
           float lit = dot(fn, uSunDir);
           float shore = shoreF(vWP.xz);
           // calm: toon facets, three flat tones by how a facet faces the sun, small foam caps, glints
           float tone = lit > 0.88 ? 1.0 : lit > 0.78 ? 0.62 : 0.28;
           tone = mix(tone, max(tone, 0.55), shore * 0.7);                                  // the shallows lose their dark facets
-          vec3 calm = mix(uDeep * 0.62, uShallow * 0.92, tone) * (0.85 + 0.15 * crest);
+          vec3 calm = mix(uDeep * 0.62, uShallow * 0.92, tone) * (0.68 + 0.4 * crest);
           vec2 blk = floor(vWP.xz * 1.7);
           float cap = step(0.88 - 0.12 * (vn(vWP.xz * 0.35 + vec2(uTime * 0.09, uTime * 0.05)) - 0.5) * 2.0, crest) * step(0.4, rnd(blk));
           // the sun's (moon's) path on the water: a soft band toward the light; inside it single cells twinkle in place on their own clock,
@@ -130,7 +132,7 @@ export class Ocean {
             vec3 sn = normalize(vec3(-(waveH(vWP.xz + vec2(e, 0.0)) - waveH(vWP.xz - vec2(e, 0.0))) / (2.0 * e), 1.0, -(waveH(vWP.xz + vec2(0.0, e)) - waveH(vWP.xz - vec2(0.0, e))) / (2.0 * e)));
             vec3 V = normalize(cameraPosition - vWP);
             float open = 1.0 - landNear(vWP.xz), d = bay4(gl_FragCoord.xy);
-            float cr = clamp(vWP.y / (1.1 * max(uWave, 0.5)) + 0.5, 0.0, 1.0);
+            float cr = clamp(vWP.y / (1.1 * max(uWave, 0.5) * ${OPEN_SEA.toFixed(2)}) + 0.5, 0.0, 1.0);
             vec3 S; vec3 cn = sn;
             bool chop = (uOcean > 2.5 && uOcean < 3.5) || uOcean > 4.5;
             if (uOcean < 1.5) {
@@ -154,10 +156,11 @@ export class Ocean {
               vec2 cp = vWP.xz * 1.1 + uWindDir * uTime * 0.45;
               float n0 = vn(cp), nx = vn(cp + vec2(0.35, 0.0)), nz = vn(cp + vec2(0.0, 0.35));
               cn = normalize(sn + vec3(n0 - nx, 0.0, n0 - nz) * (0.4 + 0.8 * open));
-              float l = clamp(dot(cn, uSunDir) * 0.65 - 0.02, 0.0, 1.0);
+              float l = clamp(dot(cn, uSunDir) * 0.65 - 0.02 + (cr - 0.5) * 0.9 * open, 0.0, 1.0);   // crests catch the light, troughs sink into shade
               S = mix(uDeep * 0.6, uShallow * 0.88, floor(l * 3.0 + d) / 3.0 * 0.8);
               float spec = pow(max(dot(reflect(-uSunDir, cn), V), 0.0), 40.0);
               S += uSunColor * step(0.82, spec) * step(0.9, rnd(floor(vWP.xz * 1.7) + floor(uTime * 0.7))) * 0.8 + glint * uSunColor * 0.4;   // twinkles in place
+              S = mix(S, vec3(0.78, 0.95, 0.95), smoothstep(0.6, 0.92, cr) * 0.3 * open);   // a pale lip on the crests, so each swell reads against the trough
               float fleck = step(0.93 - 0.06 * open, vn(vWP.xz * 0.9 + uWindDir * uTime * 0.25)) * step(0.55, cr) * open;
               S = mix(S, vec3(0.95), fleck * 0.85);
               if (uOcean > 4.5) S = mix(mix(calm, vec3(0.95, 0.98, 0.95), cap * 0.85), S, 0.7);

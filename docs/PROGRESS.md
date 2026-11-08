@@ -800,3 +800,8 @@ up; the chosen one (D) is built in the game's own style:
 - **Chop and sparkles slowed:** the wind chop drifts at a third of its old speed, flecks and gust ripples slower, sparkles re-roll every 1.4 s instead of 0.5 s, and the chop's shading contrast is lower.
 - Not measured in play yet. If it still tires the eyes: the next step is making the swell travel in one direction (some crests run against each other, `waveH`), or a pause-menu "Calm water" setting.
 
+## Taller, clearer swell
+- **Open sea rises and falls twice as high** (`OPEN_SEA = 2.0` in `ocean.js`, shader and CPU twin together; near land the water keeps its old low height, so piers and shores are unchanged). Foam and crest tones are scaled against it so the foam amount stays the same.
+- **Easier to see:** crests catch the light and troughs sink into shade (in the toon look and the default chop look), and the highest crests get a pale lip. The swell keeps the slower pace from the calmer-water change.
+- The ship rides the taller swell (pitch and roll follow `waveHeight`). If it feels too lively, lower `OPEN_SEA` (1.5 is a good middle).
+
