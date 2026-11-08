@@ -794,3 +794,9 @@ up; the chosen one (D) is built in the game's own style:
   painted version, for comparison.
 - **Video:** `docs/trailer/demo90/Hoist_demo_90s.mp4` is a 90-second gameplay video with no caves, ending at the hut on
   the stage 4 theme. The shot, music and edit scripts sit beside it.
+
+## Calmer water (playtest: water moved back and forth, felt like sailing sideways)
+- **Swell at half pace** (`SWELL_SPEED = 0.5` in `ocean.js`, used by the shader and by `waveHeight`, so the ship still rides what you see). Before, crests of different directions ran at 4-6 units/s and slid back and forth.
+- **Chop and sparkles slowed:** the wind chop drifts at a third of its old speed, flecks and gust ripples slower, sparkles re-roll every 1.4 s instead of 0.5 s, and the chop's shading contrast is lower.
+- Not measured in play yet. If it still tires the eyes: the next step is making the swell travel in one direction (some crests run against each other, `waveH`), or a pause-menu "Calm water" setting.
+

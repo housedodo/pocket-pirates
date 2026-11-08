@@ -27,7 +27,11 @@ export function seaScale(x, z) {
 export const OCEAN_STYLES = ['Toon facets', 'Soft swell', 'Painted bands', 'Wind chop', 'Deep sheen', 'Chop facets'];   // 5: mostly wind chop over a little of the toon facets (the default)
 // Real water is never regular: waves of many directions and unrelated speeds, travelling in groups (the envelope), their crests bent a little by a slow warp of the surface.
 const wsin = Math.sin;
+/** How fast the swell runs: the old pace (1.0) made crests of different directions slide back and forth, which tired the eyes
+ *  and felt like sailing sideways. The same factor is used by the GPU and the CPU twin so the ship still rides what you see. */
+export const SWELL_SPEED = 0.5;
 export function waveHeight(x, z, t, amp = 1) {
+  t *= SWELL_SPEED;
   const r = WATER.rough, k = 1.2 + 1.0 * r;                                           // the warp bends the crests more as the sea gets rough
   const px = x + k * wsin(0.07 * z + 0.31 * t), pz = z + k * wsin(0.06 * x - 0.27 * t + 2.0);
   const sw = 0.30 * wsin(0.30 * px + 0.20 * pz + W * t) + 0.18 * wsin(-0.25 * px + 0.38 * pz + 2 * W * t) + 0.07 * wsin(0.8 * px - 0.6 * pz + 3 * W * t) + 0.05 * wsin(1.6 * px + 1.2 * pz + 4 * W * t);
@@ -53,7 +57,7 @@ uniform float uTime; uniform float uWave;
 ${GLSL_SHORE}
 const float WS = 1.2566371; const float WRL = 0.6283185;
 float waveH(vec2 p){
-  float t = uTime;
+  float t = uTime * ${SWELL_SPEED.toFixed(2)};
   float k = 1.2 + 1.0 * uRough;
   vec2 q = p + k * vec2(sin(0.07 * p.y + 0.31 * t), sin(0.06 * p.x - 0.27 * t + 2.0));
   float sw = 0.30 * sin(0.30 * q.x + 0.20 * q.y + WS * t) + 0.18 * sin(-0.25 * q.x + 0.38 * q.y + 2.0 * WS * t) + 0.07 * sin(0.8 * q.x - 0.6 * q.y + 3.0 * WS * t) + 0.05 * sin(1.6 * q.x + 1.2 * q.y + 4.0 * WS * t);
@@ -107,7 +111,7 @@ export class Ocean {
           // the sun's (moon's) path on the water: a soft band toward the light; inside it single cells twinkle in place on their own clock,
           // so the sparkle does not race across the sea when the ship (and camera) moves
           float path = smoothstep(0.93, 0.99, dot(reflect(-uSunDir, vec3(0.0, 1.0, 0.0)), normalize(cameraPosition - vWP)));
-          float glint = path * step(0.94, rnd(blk + floor(uTime * 2.0 + rnd(blk) * 4.0)));
+          float glint = path * step(0.94, rnd(blk + floor(uTime * 0.8 + rnd(blk) * 4.0)));
           vec3 outA = mix(calm, vec3(0.95, 0.98, 0.95), cap * 0.85) * uLight + glint * uSunColor;
           // unruly: dark rollers, steep faces, foam streaks blown along the crests
           float dfR = floor((0.45 + 0.35 * max(lit, 0.0)) * 5.0 + 0.5) / 5.0;
@@ -147,14 +151,14 @@ export class Ocean {
             } else if (chop) {
               // 3 WIND CHOP: a smooth base swell with a small, fast chop on top (stronger out at sea), sparkles and whitecap flecks
               // 5 CHOP FACETS: the same, laid 70/30 over the original toon facets so the sea keeps a little of its faceted shape
-              vec2 cp = vWP.xz * 1.1 + uWindDir * uTime * 1.4;
+              vec2 cp = vWP.xz * 1.1 + uWindDir * uTime * 0.45;
               float n0 = vn(cp), nx = vn(cp + vec2(0.35, 0.0)), nz = vn(cp + vec2(0.0, 0.35));
-              cn = normalize(sn + vec3(n0 - nx, 0.0, n0 - nz) * (0.6 + 1.2 * open));
+              cn = normalize(sn + vec3(n0 - nx, 0.0, n0 - nz) * (0.4 + 0.8 * open));
               float l = clamp(dot(cn, uSunDir) * 0.65 - 0.02, 0.0, 1.0);
               S = mix(uDeep * 0.6, uShallow * 0.88, floor(l * 3.0 + d) / 3.0 * 0.8);
               float spec = pow(max(dot(reflect(-uSunDir, cn), V), 0.0), 40.0);
-              S += uSunColor * step(0.82, spec) * step(0.9, rnd(floor(vWP.xz * 1.7) + floor(uTime * 2.0))) * 0.8 + glint * uSunColor * 0.4;   // twinkles in place
-              float fleck = step(0.93 - 0.06 * open, vn(vWP.xz * 0.9 + uWindDir * uTime * 0.7)) * step(0.55, cr) * open;
+              S += uSunColor * step(0.82, spec) * step(0.9, rnd(floor(vWP.xz * 1.7) + floor(uTime * 0.7))) * 0.8 + glint * uSunColor * 0.4;   // twinkles in place
+              float fleck = step(0.93 - 0.06 * open, vn(vWP.xz * 0.9 + uWindDir * uTime * 0.25)) * step(0.55, cr) * open;
               S = mix(S, vec3(0.95), fleck * 0.85);
               if (uOcean > 4.5) S = mix(mix(calm, vec3(0.95, 0.98, 0.95), cap * 0.85), S, 0.7);
             } else {
@@ -238,7 +242,7 @@ export class Ocean {
           }
           if (gk > 0.0) {
             float gq = floor(gk * 3.0 + bay4(gl_FragCoord.xy)) / 3.0;                  // dithered, like the rest of the water
-            float rip = step(0.62, vn(vWP.xz * 1.7 + uWindDir * uTime * 2.2));          // small fast ripples inside the patch
+            float rip = step(0.62, vn(vWP.xz * 1.7 + uWindDir * uTime * 0.8));          // small fast ripples inside the patch
             outc = mix(outc, outc * vec3(0.66, 0.72, 0.8) + rip * 0.05 * uLight, gq * 0.75);
           }
           // round the hut's island: no turquoise. Dark, still, murky water, olive-black with drifting scum, the light dying in it;
