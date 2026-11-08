@@ -1,0 +1,647 @@
+HOIST: THE EXPLORATION STORY (a companion to STORY_MASTER.txt)
+================================================================================================
+The main story told by going places. Nothing is carried to the hut; the player learns, and what they learn
+changes what they can do at the end. This file replaces "Act 3: the Lady's errands" in STORY_MASTER.txt (part D2)
+and fills the world atlas (part F) with places that each hold one piece of the mystery.
+
+CONTENTS
+  X1   PRINCIPLES (what exploring-as-story means here, and what is cut)
+  X2   THE SEVEN QUESTIONS (what the world answers, and where)
+  X3   UNDERSTANDING (how the game tracks what the player has learned, with no counters shown)
+  X4   THE REGIONS AS CHAPTERS (15 new places, three per region, near / middle / far)
+  X5   THE EXISTING PLACES AS CHAPTERS (the hand-made islands, the hut, Tama, Velto: what each one now answers)
+  X6   THE KESTREL CHAIN (one full mystery from first tale to last wreck)
+  X7   THE TWELVE FRAGMENTS AS THE SPINE
+  X8   THE SECOND LOOK (the same place shows more when you come back in a different way)
+  X9   THE LOG THAT REMEMBERS (annotations that appear when you learn something)
+  X10  THE WORLD MARKS YOUR CHART (things that appear by themselves)
+  X11  CONTRADICTIONS (sources that disagree on purpose)
+  X12  THE THREE PHASES (replaces Act 3) with Mara's part in each
+  X13  ENDINGS FROM KNOWING (what understanding unlocks at the table)
+  X14  WHAT CHANGES IN THE OLD PLAN
+  X15  YOUR SLOTS (blank blocks to copy)
+  X16  OPEN QUESTIONS
+
+HOW TO USE (same rules as STORY_MASTER.txt part A)
+  IDs   every place, clue and line here has an ID (X-C1, CL-C1-a, LN-C1-1 ...). Never change an ID; write NEW-<name> to add one,
+        DELETE after an ID to remove it, ?? at the end of a line when you are not sure.
+  Marks [DRAFT] a first version of the text for you to rewrite   [IDEA] a suggestion   [PLANNED] decided   [BUILT] exists in the game
+        [CUT] removed on purpose.
+  Text  everything in "quotes" or after LN- is what the player reads. Lines are short on purpose: one idea each, no explaining.
+  Build  cheap = text only; medium = a new hand-made place with a visit text; larger = a new scene, mechanic or ending.
+         Each place below says which.
+
+
+################################################################################################
+# X1  PRINCIPLES
+################################################################################################
+
+X1-1  The player learns; nothing is delivered.  The Lady is never brought a feather, a clapper or a hat. [CUT: Act 3 errands, see X14]
+X1-2  Each region answers one question, from its own angle, and only there. To know it, go there.
+X1-3  Attention is the key, not an item: the right hour, tide, weather, season of the week, crew trait, or simply coming back.
+X1-4  Nothing is told twice and nothing is explained. The truth is the pattern across places, never one sentence.
+X1-5  Sources disagree on purpose (see X11). Two people tell a thing differently; a third thing proves neither right.
+X1-6  The world is already marking what matters: bells, ledgers, tunes, lamps. The player is late to a story that was going on.
+X1-7  Understanding unlocks OPTIONS at the end, not a better number. The die is still the die. (See X13.)
+X1-8  The bright game stays bright. Every clue is first a cosy thing: a baker, a tune, a lamp, a market. The second look is the horror.
+X1-9  The HUD never says "clue found". The log gets a new line in someone else's handwriting, and that is all.
+X1-10 Every place has a dread version (what dread 3-4 changes), so the same place can be revisited far from home.
+Your principles:  (empty)
+
+
+################################################################################################
+# X2  THE SEVEN QUESTIONS
+################################################################################################
+The mystery is seven questions. A player who has answered few of them still gets an ending; one who has answered most gets more
+to do at the table. Each is answered by several places, none of which says it plainly.
+
+  Q1  WHO COUNTS?            Someone keeps a count of everything (names, days, numbers).   Where: Crown, the Keepers, the hut.
+  Q2  WHAT IS THE EYE?       The sea is a closed eyelid; something under it is asleep.    Where: Lantern Guild, the far sea.
+  Q3  WHO SAT BEFORE YOU?    Others have sat at the table; some did not leave.            Where: Reef wrecks, the Kestrel, the Other Captain.
+  Q4  WHAT DOES A THROW COST? Low numbers are bad days; the world pays.                  Where: Crown archive, harbour bells, the Hammock Isle.
+  Q5  WHY IS TAMA HOME?      Tama is where the sleeper is kept gentle (bells, a pillow).  Where: Tama itself, on a second look.
+  Q6  WHAT IS MARA?          A person from a village that is no longer above water.      Where: the Drowned, the sunken street.
+  Q7  CAN IT END?            Sleeping, waking, or something else.                        Where: the Free Cays tune, the table by the water.
+
+For each question, what the player believes before and after (fill in):
+  Q1  before: "a quirk of the harbours".     after: "someone has been writing me down since before I arrived".   Your version: (empty)
+  Q2  before: "a spooky sea".                after: "something is under it, and it dreams".                      Your version: (empty)
+  Q3  before: "I am the first".              after: "I am the latest".                                          Your version: (empty)
+  Q4  before: "luck".                        after: "my numbers land on other people".                          Your version: (empty)
+  Q5  before: "home is safe".                after: "home is where she is kept soft".                           Your version: (empty)
+  Q6  before: "my cheerful first mate".      after: "someone who survived something".                           Your version: (empty)
+  Q7  before: "win the game".                after: "choose what to do with the last throw".                    Your version: (empty)
+
+
+################################################################################################
+# X3  UNDERSTANDING
+################################################################################################
+Hidden: state.story.know = { q1: 0..3, ... q7: 0..3 }. Never shown as a number or bar. [PLANNED]
+
+  0  nothing        the player has not met the question.
+  1  a hint         one source says something odd (a rhyme, a painted sign).
+  2  a glimpse      a second source, in a different region, agrees on one detail but not the rest.
+  3  a pattern      the player has seen it across places, and the game lets the log say so (X9). Only now do options unlock (X13).
+
+  A clue gives +1 once (never twice from the same place). Only clues from DIFFERENT regions raise a level past 1.
+  A place can carry clues for two questions (see the place blocks).
+  Where the player sees it: only in the log, as annotations (X9) and in what villagers say (their lines change at level 2 and 3).
+  Cheap: a flag per clue. Medium: log annotations and line variants. Larger: the options at the table (X13).
+Your changes:  (empty)
+
+
+################################################################################################
+# X4  THE REGIONS AS CHAPTERS
+################################################################################################
+Fifteen new places, three per region: NEAR (dread 0-1), MIDDLE (dread 1-2), FAR (dread 3-4). They are IDEAS written as complete
+drafts; replace or reorder freely. Every block has the same fields so a place can be built from it directly.
+
+------------------------------------------------------------------------------------------------
+CROWN TRADERS: the region of records.  Question: Q1 (who counts), Q4 (what a throw costs), Q5 (why Tama).
+Mood: tidy, official, proud. The clues are paperwork.
+------------------------------------------------------------------------------------------------
+
+X-C1  THE CUSTOMS PIER   [IDEA, medium]
+  where: a Crown harbour in the first ring around Tama (about 500-700 units); dread stage 0-1.
+  how it is found: just sailing; the Board there mentions "customs hours".
+  from far: a long grey pier with a flag and a small hut at its end.
+  arrival: [DRAFT] "An official in a blue coat waves you to the end of the pier and opens a ledger. He writes: THE MERRY GULL. He writes the date. He leaves the line for the master blank. 'It is always blank,' he says. 'It has always been blank.'"
+  later visits: [DRAFT] "The ledger is on the same page. Your ship is in it. So are the ships on the lines above you, back to a ship called the Orchard. Nobody has crossed anything out."
+  people: the official (C-NEW-01: "Mr. Hale"; voice: dry, kind, tired).
+  LN-C1-1 [DRAFT] "We record every ship that comes in."
+  LN-C1-2 [DRAFT] "We record the ones that do not come in as well. They are on the next page."
+  LN-C1-3 [DRAFT, only after dread 2 or know q1>=2] "Your entry is already on the next page, Captain. I have only to cross it out."
+  choices: 1 "Read the page before yours"  2 "Ask to see the next page" (Talk check)  3 "Leave"
+  clue: CL-C1-a  Q1 +1: "The harbour writes down ships that have not arrived."
+  second look: at night, the pier lamp lights only when you are alone on it; someone has left a second cup on the ledger desk.
+  dread version: the ledger is wet. The name above yours is the one you saw in the Name Wall (X-R1).
+  links: X-R1 (names), X-L2 (Keepers' ledger), fragment "A page wrapping eggs" (farm).
+  must NOT be told: who writes the ledgers.
+
+X-C2  THE ARCHIVE AT THE GOVERNOR'S FORT   [IDEA, medium]
+  where: a Crown town with a church and a tidy quay, about 900-1100 units; dread stage 1-2.
+  how it is found: a rumour ("the Crown keeps weather back to the first ship") or a letter of introduction from a Customs official.
+  from far: a pale stone fort with one lit window at noon.
+  arrival: [DRAFT] "A clerk lets you into a long room of shelves. 'Every bad day of the sea, as far back as we have it,' she says. 'Storms, wrecks, sinkings, bad harvests. We never worked out why we keep it.'"
+  the clue (needs a Seamanship or Sharp-eyed check, or a crew member with a wish for a harbour): the dates of the worst days all fall on days when the Lady's die would have come up low, in the way the player's own throws have: [DRAFT] "Next to every black page, in a tiny hand, a number. Never above nine."
+  LN-C2-1 [DRAFT] "We only record what happens. We have never asked why it happens on the same days."
+  LN-C2-2 [DRAFT] "A boy came last year and asked what the numbers were. He did not come back for the answer."
+  choices: 1 "Read the black pages"  2 "Look for the page with today's date"  3 "Leave it alone"
+    (2 shows: [DRAFT] "Today's page is already half full. The number is blank. Someone is waiting to write it.")
+  clue: CL-C2-a  Q4 +1 ("bad days have numbers"); CL-C2-b  Q1 +1.
+  second look: the clerk is at a different shelf each visit; once you have thrown at the hut, a page with your first throw's day is tabbed.
+  dread version: the numbers on the black pages are written in different hands, and the last few are yours.
+  links: X-C1, X-F2 (the Hammock Isle), the hut's ledger.
+
+X-C3  THE BELLS OF TAMA   [IDEA, cheap: the bells already ring at noon; this adds meaning]
+  where: Tama itself. Tama keeps the bells (custom).  Always available.
+  how it is found: nobody points at it. The player only notices if they listen.
+  the clue: the bells ring at noon. On the day after a throw at the hut, they ring exactly as many times as the throw (a 1 is a single small stroke; a 20 is twenty, the last softly).
+  [DRAFT] Mara, the first time: "Funny. I counted fourteen. Did we throw a fourteen yesterday?"
+  LN-C3-1 [DRAFT, harbourmaster] "The bells ring the day's number. Always have. Nobody remembers who told us to."
+  LN-C3-2 [DRAFT, old woman on the pier] "I stopped counting at nine, dear. I start again at ten."
+  inscription (existing, [BUILT]): RUNG FOR THE ONE WHO SLEEPS. RING SOFTLY.
+  clue: CL-C3-a  Q4 +1 ("the world hears my number"), Q5 +1 ("Tama is where it is kept soft").
+  second look: at dread 3+ the bells ring on their own in the night, with no number, and nobody mentions it.
+  dread version: the bell has no clapper (as at the Drowned Bell, X5-bell) and rings anyway.
+  links: X5-bell, the Drowned (X-D1).
+
+------------------------------------------------------------------------------------------------
+FREE CAYS: the region of sleep.  Question: Q2 (what the Eye is, as something kind), Q4, Q7 (can it end).
+Mood: warm, slow, music at night. The clues are comfort that is slightly too comfortable.
+(The night music here is the somber guitar and violin: the two players below are where it comes from.)
+------------------------------------------------------------------------------------------------
+
+X-F1  THE TWO PLAYERS   [IDEA, medium; the game's first story use of the night guitar and violin]
+  where: two small islands about 350-450 units apart, both in Free Cays sectors, dread stage 0-1. One has a sandbar with a fire (the guitarist); the other a thatch hut on a rock (the violinist).
+  how it is found: you hear them. At night, in calm water, each island's tune is audible from about 300 units. They never play together; one plays eight bars, stops, and the other answers.
+  from far: a thin line of firelight, and later, a second light across the water.
+  arrival (the guitarist, Teo) [DRAFT]: "A man with a guitar on his knee, looking out at the dark. 'She answers,' he says. 'Listen.' Across the water, a violin takes the tune where he left it."
+  arrival (the violinist, Ilse) [DRAFT]: "A woman on a rock, bow resting. 'He starts it. I finish it. That is how my grandmother taught me. If one of us goes quiet, the other waits.'"
+  LN-F1-1 [DRAFT, Teo] "We have never met. Forty years. We just keep the line going."
+  LN-F1-2 [DRAFT, Ilse] "What happens if it breaks? Nothing. That is the odd thing. Nothing, every time we have tried. And then the water talks."
+  LN-F1-3 [DRAFT, asked why] "It is manners. We play for the one who sleeps."
+  choices (at either island, at night): 1 "Sit and listen" (stay one full night: ship moored, no sleep)  2 "Row across and bring one a message"  3 "Play" (only if a crew member has the Lucky trait or a harmonica ... [IDEA])  4 "Leave"
+  the clue: CL-F1-a  Q2 +1 ("it sleeps, and the sea is kept quiet by a tune")  and  CL-F1-b  Q7 +1 ("there is a tune that does something").
+  second look: if you sit through the night the two tunes, for the first time, play together for a single bar at dawn; both players look up. [DRAFT] "They did not know that could happen."
+  dread version: at dread 3 the tune is the same, but the answer comes from the wrong direction. Neither player is surprised.
+  links: X13 (playing the tune at the table, requires CL-F1-b), X-F3.
+  build: medium. The game already has the two night voices; this gives them a place and a reason.
+
+X-F2  THE HAMMOCK ISLE   [IDEA, medium]
+  where: a thatch island, Free Cays, about 700-900 units, dread stage 1-2.
+  how it is found: a rumour about "an island that sleeps all day".
+  from far: hammocks strung between the palms, nobody standing.
+  arrival (day): [DRAFT] "Everyone is asleep. Fishers in boats pulled up on the sand, a woman with a basket on her knees, a child in a hammock with one foot hanging down. The tide is out. Nobody has been woken."
+  arrival (night): [DRAFT] "They are all awake. 'What is today?' the woman asks, kindly. She asks it again before you have answered."
+  LN-F2-1 [DRAFT, night] "We sleep when the sea is quiet. When it is not quiet we stay up and count."
+  LN-F2-2 [DRAFT, a sleeper murmuring, only if you are quiet beside a hammock] "...eleven. Eleven. A good one. Eleven."
+  choices: 1 "Stay beside a sleeper (stop the ship, one night, quiet)"  2 "Wake someone" (Talk check; fails mean they wake looking at you)  3 "Leave"
+  the clue: CL-F2-a  Q4 +1 ("the sleepers hear the numbers; a low one wakes them").
+  second look: the day after a low throw, three hammocks are empty.
+  dread version: all are awake at all hours, standing in the water, facing the same way.
+  links: X-C2 (the archive's bad days), the throws.
+
+X-F3  THE CUP   [IDEA, cheap-medium; uses the existing false rumour "a table laid for two with your ship's name on a cup"]
+  where: a quiet cove at the end of the Turtle Road (turtles drift the same way, toward it), Free Cays, dread stage 1.
+  how it is found: the turtles; or the false rumour (the one that leads somewhere strange).
+  from far: a lone table on a beach, white cloth.
+  arrival: [DRAFT] "A table laid for two on the sand, a lamp, a cup with MERRY GULL painted on it in a hand you do not know. The tea is still warm. The other cup has a name on it. The name has been rubbed out."
+  LN-F3-1 [DRAFT, Mara] "Captain... whose table is this? It was not here when we passed."
+  choices: 1 "Sit and drink"  2 "Read the rubbed-out name" (Seamanship, Sharp-eyed helps)  3 "Leave it"
+    (2 on a success: [DRAFT] "The first letter was a K.")
+  the clue: CL-F3-a  Q3 +1 ("someone sat here before and was expected").  Links to the Kestrel chain (X6): the K.
+  second look: the cup is cold the next time. The other cup is gone.
+  dread version: the cup has your name on it, and the tea is warm again.
+  links: X6 (Kestrel), X-D3 (the table by the water).
+
+------------------------------------------------------------------------------------------------
+REEF BROTHERHOOD: the region of the dead sitters.  Question: Q3 (who sat before you), Q2 (a hint of the Eye's appetite).
+Mood: rough, salty, wrecks. The clues are ships.
+------------------------------------------------------------------------------------------------
+
+X-R1  THE NAME WALL   [IDEA, medium]
+  where: a cliff on a Reef island, about 800-1000 units, dread stage 1.
+  how it is found: a rumour, or a raider's boast ("we write them all up").
+  from far: a white cliff covered in tiny black marks.
+  arrival: [DRAFT] "The whole cliff is names. Every ship that went down on this coast, painted by someone who climbed to do it. The paint at the bottom is dry. The paint at the top is wet."
+  LN-R1-1 [DRAFT, a wrecker painting] "I only do the new ones. The old ones paint themselves."
+  choices: 1 "Read the top names"  2 "Look for the Kestrel" (Sharp-eyed)  3 "Look for your own" (shows nothing in the day; at night, a name is half-painted)
+  the clue: CL-R1-a  Q3 +1 ("many ships, and the paint keeps being added").  A name, "K E S T R E L", is found crossed out (links X6).
+  second look: after nightfall one of the top names is the Orchard (see X-C1), and the paint is wet.
+  dread version: the names are in the order the player met them.
+  links: X6, X-C1.
+
+X-R2  THE THROWERS' WRECK   [IDEA, medium; a wreck with a log, one of a family of three]
+  where: a wreck on a Reef shoal (low-tide only; wrecks pay more at low tide), about 1000-1300 units, dread stage 2.
+  how it is found: a tide wreck (as built), a rumour, or the Name Wall.
+  from far: a broken hull and a mast with a rag.
+  arrival (low tide): [DRAFT] "A schooner, the Marigold, hull split. In the cabin, a table, a captain's chair, a die with a missing number: there is no 7."
+  the log (read it in three parts): [DRAFT]
+    LN-R2-1 "Day 31. A 1 at the hut. Nothing happened. I was relieved and ashamed."
+    LN-R2-2 "Day 44. A 1 again. The tide was a day early. We told ourselves it was a coincidence."
+    LN-R2-3 "Day 58. Another 1. The sea did not mind. That is what frightened me."
+  choices: 1 "Take the die"  2 "Read the log"  3 "Leave it"
+    (1: the Lady would very much like the other dice back. Taking it has a cost: the next bad throw is heavier. IDEA: see X14)
+  the clue: CL-R2-a  Q3 +1 ("other captains threw at the hut and kept sailing").  CL-R2-b  Q4 +1 ("the sea did not mind" means the cost lands elsewhere).
+  second look: at high tide the cabin is underwater and the chair is turned toward the door.
+  dread version: the log has an entry in your handwriting.
+  links: the seed "the other dice" (STORY_MASTER G2 #10), X-R1, the Other Captain thread.
+  note: two more wrecks of the same family (X-R2b "the Sparrow", X-R2c "the Lantern Maid") can carry different numbers missing and different last entries. Your names:  (empty)
+
+X-R3  THE SURRENDER   [IDEA, medium; the side seed "the raider who surrenders"]
+  where: at sea, in Reef waters, a raider schooner that does not attack, about 1100-1400 units, dread stage 2.
+  how it is found: a ship you meet; no rumour. Appears once, on a night with low visibility.
+  arrival: [DRAFT] "A raider rides low, guns run in. A woman on the bow holds up both hands. 'I give up. Take whatever you like. I only want to tell you what I saw.'"
+  LN-R3-1 [DRAFT] "The sea further out is eating sectors. Not the water. The names. I sailed past a harbour last week that was not on my chart, and the people said it had always been there."
+  LN-R3-2 [DRAFT] "If it asks you something, answer. If it asks you again, do not."
+  choices: 1 "Let her go"  2 "Take her aboard" (she becomes a crew member with trait Sharp-eyed and a wish: see a harbour that still has its name)  3 "Take her gold" (nothing; she smiles)
+  the clue: CL-R3-a  Q2 +1 ("the Eye eats names, then places").
+  second look: she turns up in different harbours, always one step further out, always the same hat.
+  dread version: she is not in the same ship.
+  links: the Drowned (X-D1), Mara (Q6).
+
+------------------------------------------------------------------------------------------------
+LANTERN GUILD: the region of light.  Question: Q2 (what the Eye is), Q1 (who counts), Q3.
+Mood: amber, fog, lamps, orderly. The clues are lights.
+------------------------------------------------------------------------------------------------
+
+X-L1  THE OIL PRESS   [IDEA, medium; the side seed "Lantern Guild oil"]
+  where: a Lantern Guild shrine town, about 900-1200 units, dread stage 1-2.
+  how it is found: a board commission to deliver "oil" there, or a rumour.
+  from far: a fat brick chimney and a steady glow.
+  arrival: [DRAFT] "The oil comes from a fish nobody names. 'From the deep,' a presser says. 'We do not go down for it. It comes up.' Every lamp in the town burns a little bluer than it should."
+  LN-L1-1 [DRAFT] "By its light you see the other doors."
+  choices: 1 "Light a lamp of the new oil" (a second set of doors shows along the street for one night)  2 "Ask where the fish comes up"  3 "Buy a flask" (an item: lantern oil; a dev hook exists)
+    (1 at night: [DRAFT] "Every house has a second door facing the water. All of them are shut. One is open a hand's width.")
+  the clue: CL-L1-a  Q2 +1 ("what is seen by that light is part of the sleeper's dream").
+  second look: the second doors stay visible on your chart as faint marks (X10).
+  dread version: the oil does not burn; it only shows.
+  links: X-L3, the lamp at Ines (resident, which goes dark).
+
+X-L2  THE KEEPERS' LEDGER   [IDEA, medium; the side seed #1]
+  where: a Lantern lighthouse, tall, on a rock; about 1200-1500 units; dread stage 2.
+  how it is found: a lighthouse keeper's call as you pass ("come up, if you want to see your own name"), or the Customs Pier ledger.
+  from far: a lighthouse that is lit even at noon.
+  arrival: [DRAFT] "The keeper offers you tea and a ledger. Ships that passed, by night, in a tidy hand. 'Mostly dates in the past,' he says. 'Mostly.'"
+  LN-L2-1 [DRAFT] "This one is the Merry Gull. Passed on the fourteenth, heading east. It is not the fourteenth yet."
+  choices: 1 "Read the Merry Gull's entry"  2 "Ask when your ship passed"  3 "Look at the other ledgers" (a shelf of them; a Seamanship check)
+    (1: the entry gives a day and a heading, and what the ship's lantern was doing. [DRAFT] "Lantern out. Two aboard." A player who has hired nobody sees "Two aboard".)
+  the clue: CL-L2-a  Q1 +2 (if you already hold one) ("someone writes down what has not happened yet").  CL-L2-b  Q3 +1 ("there are other ships in this ledger that are not in any harbour's").
+  second look: on the day written, the lighthouse beam swings to follow you for a moment, then goes back.
+  dread version: the ledger has your next three days, and the last is blank.
+  links: X-C1, X-R1, Mara.
+
+X-L3  THE DARK TOWER   [IDEA, larger; a full-screen scene]
+  where: a lighthouse that has never lit, far in Lantern waters, about 1500-1800 units, dread stage 3.
+  how it is found: seen from far in fog, the only tower with no light; keepers do not mention it.
+  from far: a tall black tower in the fog.
+  arrival: [DRAFT] "The door is open. The stairs go down."
+  the scene (own picture; the Rising Grotto "passage" look is the model): three rooms. 1 A stair, wet. 2 A room with a round window, level with the sea; through it, water. 3 The bottom: a window that looks up through the sea at the underside of the waves.
+  LN-L3-1 [DRAFT, at the window] "The sea has a lid. You can see it from here. It is closed. You are standing where the eyelashes would be."
+  choices: 1 "Put a hand on the glass"  2 "Light the lamp" (the tower's lamp lights: the beam goes down, not out)  3 "Go back up"
+    (2 on a Luck check: the sea beyond the glass moves, once, slowly: the lid flutters. [DRAFT] "It does not wake. It dreams that it has been seen.")
+  the clue: CL-L3-a  Q2 +2 ("the Eye is under the sea and it is asleep").
+  second look: none. Once only. Coming back, the door is closed.
+  dread version: this is the dread version. There is no bright one.
+  links: the Eye ending (H-6), X13 (the last choice).
+  build: larger.
+
+------------------------------------------------------------------------------------------------
+THE DROWNED: the region of the answers that are no longer reliable.  Question: Q6 (Mara), Q7 (can it end), Q2.
+Mood: wrong, quiet. The clues come in the places that should not have anyone, and they have someone.
+------------------------------------------------------------------------------------------------
+
+X-D1  THE SUNKEN STREET   [IDEA, medium-larger; the side seed "Mara's village"]
+  where: a sandbar over a drowned street, about 1700-2000 units, dread stage 3. Seen only at the lowest tide.
+  how it is found: Mara goes quiet near it; Mara's own lines (see X12). Or a chain of rumours (the side seed).
+  from far: a ring of roof peaks, a bell tower, lamp posts in the shallows.
+  arrival (low tide): [DRAFT] "The street is dry for an hour. A well, a cart, doorsteps with the doors still hung. A bell tower with no clapper. Mara has stopped talking."
+  LN-D1-1 [DRAFT, Mara, only here] "I know this street. I know the third house. I do not know why I know it."
+  LN-D1-2 [DRAFT, Mara] "My name was on the door. Not Mara. The other one."
+  choices: 1 "Go to the third house"  2 "Ring the bell" (no clapper: it rings anyway; the Drowned Bell thread overlaps)  3 "Ask Mara"  4 "Leave the street"
+  the clue: CL-D1-a  Q6 +2 ("Mara is from here; this was above water before the sea rose").
+  second look: at high tide the street is under and the lamp posts are lit. Mara does not look at it.
+  dread version: the house has a table laid for one.
+  links: X5-bell, Q6, X12 (Mara's phase).
+
+X-D2  THE ISLAND THAT MOVES   [IDEA, larger; the side seed #12]
+  where: a different place each time it is charted, far, about 1900-2200, dread stage 3-4.
+  how it is found: the chart; each time you chart it, it is somewhere else, and the old position is gone.
+  from far: a low island that seems closer than it is.
+  arrival: [DRAFT] "It is resting on something. The sand rises and falls very slowly, like a chest."
+  LN-D2-1 [DRAFT] "It was where we are standing when you were a child."
+  choices: 1 "Walk the shore"  2 "Dig" (a Luck check; finds the die of another sitter)  3 "Listen" (a Sharp-eyed check; a slow sound from below, once a minute)
+  the clue: CL-D2-a  Q2 +1  and  Q7 +1 ("it is breathing, and something beside it breathes with it").
+  second look: after listening, the sound follows the ship at night; the player can hear it at the helm for one minute.
+  dread version: this is it.
+  links: X-L3 (the lid), the Eye.
+
+X-D3  THE TABLE BY THE WATER   [IDEA, larger; the last place; an alternative table to the hut]
+  where: the farthest quiet water, about 2200+ units, dread stage 4. It appears only to a player who holds q1, q3, q4, q6 at level 2 or more (see X3).
+  how it is found: the sum of the other clues. Every fragment (X7) pointed at a table by the water.
+  from far: a table on the sea, laid for two.
+  arrival: [DRAFT] "A table on the water. Two chairs. A die in the middle, many-sided, old as bone. One chair is turned toward you. The other is the shape of someone who has just stood up."
+  choices: see X13 (the final scene).
+  the clue: CL-D3-a  Q7 +3 (all of them, in the end).
+  second look: none. Once.
+  dread version: this is the dread version.
+  links: X13, the hut (the hut is where she sits by day; this is where she sat before).
+
+
+################################################################################################
+# X5  THE EXISTING PLACES AS CHAPTERS
+################################################################################################
+Each hand-made place already in the game gets ONE question to answer, added as a second visit ("the second look"). The text that is
+there now stays (section PLC in STORY_MASTER.txt).
+
+X5-crag   THE GREY TOOTH  (a bare rock; a tin box with a ship list, KESTREL crossed out; a drawing of a white post)
+          answers: Q3.  second look: you have found the Kestrel's second post (X6). At the Tooth you now see the post's base on the rock,
+          and the list has a new line in a different ink: [DRAFT] "MERRY GULL" (you wrote it) and below it, fainter: "next".
+          clue: CL-crag-a  Q3 +1.   [IDEA, cheap]
+X5-bell   THE DROWNED BELL  (a leaning tower over a drowned street; the bell has no clapper; a light in a window later)
+          answers: Q6 (a hint) and Q5.  second look: at night, in a calm, the bell rings without a clapper once for each ring Tama's bells gave the day before.
+          clue: CL-bell-a  Q4 +1, Q6 +1.   [IDEA, medium]
+X5-grove  HOLLOWGREEN  (a forest; water, timber, fruit)
+          answers: Q4 (the world pays for low throws; the grove is a place that gets better after good ones).
+          second look: after a 17-20 throw the grove has one more fruit tree; after a 1-4 one fewer. Nobody mentions it. The log: [DRAFT] "Hollowgreen has a new tree." / "Hollowgreen has a gap."
+          clue: CL-grove-a  Q4 +1.   [IDEA, cheap]
+X5-keeper WICK'S ROCK  (a silent keeper; from the gallery you see half the sea)
+          answers: Q1 and the chart. From the gallery, on a second look, the chart marks extra things in a hand that is not yours (X10).
+          clue: CL-keeper-a  Q1 +1.   [IDEA, medium]
+X5-ribs   THE RIBS  (a graveyard of ships behind breakers)
+          answers: Q3, and where the Throwers' Wreck family (X-R2) sit. Salvage every few days; on a second look one wreck is a ship you have met alive (a trader or fishing boat from your voyage).
+          clue: CL-ribs-a  Q3 +1.   [IDEA, medium]
+X5-lagoon GLASS LAGOON  (water like glass; a chest on the bottom)
+          answers: Q2 (the glass calm effect at dread 4 is this lagoon's cousin). On a second look the chest is open and what was in it is on the sand in a neat line: a compass, a hat, a tooth.
+          clue: CL-lagoon-a  Q2 +1.   [IDEA, cheap]
+X5-broken THE HALVED ISLE  (half a house on a clean cliff; half a strongbox)
+          answers: Q7: "something was cut"; the other half of the house is at the Table by the Water (X-D3); the other half of the strongbox is in the Dark Tower's cellar (X-L3). A set. [IDEA, cheap; links]
+X5-hut    THE DARK HUT  (the Lady, the die, the candles)
+          answers: Q1 and Q4 in one place. Second look: after the player has understood Q3, the hut's second chair is occupied by a coat. After Q4, the ledger is open to your page. After Q7, the Lady is gone from the hut and the chair is turned to the sea. [IDEA, medium-larger]
+X5-tama   TAMA  (bells, lighthouse, the first letters)
+          answers: Q5 (X-C3). Another second look: after Q5 is known, Tama's lighthouse beam passes over the hut at the same minute every night; nobody has ever noticed.
+X5-velto  VELTO  (the second harbour)
+          answers: nothing. It is where a player goes to rest. Keep it ordinary. [CUT: deliberately]
+Your changes:  (empty)
+
+
+################################################################################################
+# X6  THE KESTREL CHAIN
+################################################################################################
+One mystery from the first tale to the last wreck. It uses text already in the game (the three tales and the tin box) and adds the rest.
+
+  STEP 1  [BUILT] The Grey Tooth tin box: a list of ships in many hands, the last one crossed out: KESTREL. A drawing of a white post.
+  STEP 2  [BUILT] Harbour tales (secrets.js TALES), one per harbour, all contradicting each other:
+              calm noon: "The white post stood right on the Grey Tooth, and the sea just opened."
+              night squall: "The white post was dead on the Drowned Bell's tower when the lantern went under."
+              never: "There was never any Kestrel. Ships do not sink in sight of two white posts."
+  STEP 3  [BUILT as a hint, IDEA to finish] The world already has daymarks (white posts) at several places. A transit is the line where two align.
+              From the Grey Tooth's post and the Drowned Bell's tower, a line: the Kestrel went down on that line.
+  STEP 4  [IDEA, medium] The line is the clue. The player sails to the intersection of the two posts' transit (the game never marks it): at low water, in a calm, the line shows as a faint dark streak on the sea. There, a wreck: the Kestrel.
+              arrival: [DRAFT] "Just below the water, a ship on her side. Her name is on the transom, clear as a day she went down in: KESTREL."
+  STEP 5  [IDEA] In the cabin: the log. [DRAFT]
+              LN-K-1 "We threw a 1 at the hut on the eleventh. We did nothing about it. We sailed on."
+              LN-K-2 "On the thirteenth every compass on the ship turned to face the hut. On the fourteenth, no compass worked."
+              LN-K-3 "On the fifteenth I went back and asked her what she wanted. She wrote something down. I could not read it."
+              LN-K-4 "She has put our ship in the book. I think we are all in the book."
+  STEP 6  [IDEA] The Kestrel's last page is a list of five ships, a column of numbers beside each, and a sixth line left blank. The first five are in the Name Wall (X-R1), the Keepers' ledger (X-L2), and the Customs ledger (X-C1). The blank line is where the Merry Gull will go.
+  STEP 7  [IDEA] The Cup (X-F3) with a K scratched. The Other Captain thread's ship has the Kestrel's lamp.
+  clue: CL-K-a  Q3 +2 (one of the ways to reach level 3 on Q3).
+  what the player now knows: someone sat, threw low, tried to leave, and the world took them anyway, in a way the player can now see.
+  what the player does NOT know: why the Lady wrote.
+Your changes:  (empty)
+
+
+################################################################################################
+# X7  THE TWELVE FRAGMENTS AS THE SPINE
+################################################################################################
+Every harbour holds one fragment of an old story, never explained (HLF in STORY_MASTER.txt, part J; built). Each now also points at a
+question, so a player who has visited all of them has answered something:
+
+  Fragment (source, village style)                                              Question   What it says
+  The bell's inscription (classic)                                             Q5         "RUNG FOR THE ONE WHO SLEEPS. RING SOFTLY."
+  An old fisher's story (fishing)                                              Q1/Q3      "a black house on the water ... He won. The fish came back."
+  A painting on the terrace wall (terraced)                                    Q2         "the sea drawn as a closed eye ... a tiny house on the lid"
+  A children's counting rhyme (thatch)                                         Q4         "nineteen, twenty, and all of us sleep. They start again at one."
+  A dice seller (market)                                                       Q3         "twenty-sided, every one missing a different number. She would like them back."
+  A page wrapping eggs (farm)                                                  Q1/Q4      "a date and a number from one to twenty, two hundred years. The last line is dated next month."
+  A carving over the shrine door (shrine)                                      Q1         "SHE COUNTS SO WE DO NOT HAVE TO."
+  A figurehead on the beach (wreckers)                                         Q1         "a woman holding a die ... They touch the die. Never her face."
+  A note in the tavern's rafters (spare)                                       Q4         "Low numbers tonight. Bar the doors."
+  An innkeeper's habit (spare)                                                 Q3         "one more place laid, at the end nearest the sea."
+  A sailor's tattoo (spare)                                                    Q7         "a die showing twenty. So she knows I am on her side."
+  A sign on the harbour wall (spare)                                           Q4         "QUIET AFTER DARK. SHE IS COUNTING."
+
+  Mechanic [IDEA]: taking a fragment gives +1 on its question (once per fragment; see X3). Fragments are the easiest way to level 1
+  everywhere; the places in X4 and X5 are the way to levels 2 and 3. Nobody gets level 3 from fragments alone.
+  What is the whole story the fragments tell? Your answer:  (empty)  ??
+  Suggestion: the whole is a short fairy tale, told to children: "The sea is a sleeper. A woman keeps it asleep with a game. Win and the fish come back. Lose and it stirs.
+  Everyone, in turn, is asked to sit." And the game's last move: you are asked to sit. [IDEA]
+
+
+################################################################################################
+# X8  THE SECOND LOOK
+################################################################################################
+The same place shows more when you come back in a different way. The game remembers what you came in with. All of these are conditions that
+already exist in the game; none needs a new mechanic (cheap to medium).
+
+  condition                   examples (each is a clue variant on a place above)
+  night                       the Customs Pier lamp (X-C1), the Hammock Isle awake (X-F2), the Name Wall's half-painted name (X-R1), the Oil Press doors (X-L1)
+  low tide                    the Throwers' Wreck cabin (X-R2), the Sunken Street (X-D1), the Kestrel line streak (X6)
+  high tide                   the Sunken Street under water with lit lamp posts (X-D1)
+  storm                       the Dark Tower door (X-L3) closed; open only on a calm night
+  fog                         the Keepers' Ledger lighthouse is lit by day (X-L2)
+  a weekday                   Market day at the Archive (the clerk is more talkative); Lantern night (the Oil Press shows its doors)
+  the day after a throw       the bells (X-C3), Hollowgreen (X5-grove), the Hammock Isle's empty hammocks (X-F2)
+  a crew trait                Sharp-eyed (rubbed-out names, X-F3), Superstitious (refuses to enter the Dark Tower: a free cutscene line), Lucky (wins the Luck check at the lagoon)
+  a crew wish                 a crew member who wants "to visit family in a harbour" recognises a face on a wall
+  a passenger                 a passenger's story overlaps a place (a passenger from the Cays knows Teo)
+  what you carry              a lantern (the Halved Isle's fog), a stronger hull (the Ribs), a shallow keel (the Glass Lagoon): [BUILT as barriers]
+  what you have learned       a place's lines change at q>=2 (the clerk, the keeper, Mara): the first time the player hears it differently, they feel they were late
+  how many visits            some places say more on the third visit than on the first
+Your list:  (empty)
+
+
+################################################################################################
+# X9  THE LOG THAT REMEMBERS
+################################################################################################
+When a clue lands, the captain's log gets one line in someone else's handwriting; nothing pops up. The line is in the Board (the deduction board),
+in the Journal as a note, or on the chart as a pencil mark. Lines never say what the clue means.
+
+  CL-C1-a  [DRAFT] "Customs, Crown: the ledger had the Gull in it before we arrived. The master's line is blank."
+  CL-C2-a  [DRAFT] "Fort archive: a number beside every black day. Never above nine."
+  CL-C3-a  [DRAFT] "Tama's bells rang fourteen. We threw fourteen."
+  CL-F1-a  [DRAFT] "Two players, forty years, never met. They keep a line going."
+  CL-F2-a  [DRAFT] "Hammock Isle: they sleep when the sea is quiet. They count when it is not."
+  CL-F3-a  [DRAFT] "A cup with our name. Another with a name rubbed out. The first letter was a K."
+  CL-R1-a  [DRAFT] "The Name Wall. The paint at the top is wet."
+  CL-R2-a  [DRAFT] "The Marigold: three 1s and the sea did not mind."
+  CL-R3-a  [DRAFT] "A raider says the far sea is eating the names of harbours."
+  CL-L1-a  [DRAFT] "Oil Press: by that light every house has a second door."
+  CL-L2-a  [DRAFT] "Keepers' ledger: the Gull passes on the fourteenth. It is not the fourteenth."
+  CL-L3-a  [DRAFT] "The Dark Tower: a window up through the sea. It is closed. It is a lid."
+  CL-D1-a  [DRAFT] "The sunken street. Mara knows the third house."
+  CL-D2-a  [DRAFT] "The island that moves is breathing. So is something next to it."
+  CL-D3-a  [DRAFT] "The table by the water. Two chairs."
+  CL-K-a   [DRAFT] "The Kestrel: they went back and asked her what she wanted."
+
+  At level 3 on a question the log joins what the player has seen with ONE line, in the log's own plain hand and no more: [IDEA]
+  Q1  "Someone is writing us down."                 Q2  "The sea is asleep. Something is under it."
+  Q3  "We are not the first."                       Q4  "The numbers land on other people."
+  Q5  "Tama is where she is kept soft."             Q6  "Mara is from the street that is under water."
+  Q7  "There is a tune that does something."
+Your changes:  (empty)
+
+
+################################################################################################
+# X10  THE WORLD MARKS YOUR CHART
+################################################################################################
+Like the hut appearing by itself (built), a few places and lines appear on the chart in a hand that is not the player's, before the player
+knows why. Mara asks about it ("who drew that, Captain?") and never gets an answer. Each is a pencil mark, never a label.
+
+  After the first throw at the hut        the hut is already on the chart [BUILT]
+  After the Customs Pier                  a faint circle round a Crown harbour you have not visited: the Archive (X-C2).
+  After Wick's Rock                       three small crosses on the chart in a line: the Kestrel transit (X6) [IDEA].
+  After the Name Wall                     one island has a pencilled K. (The Cup's cove.)
+  After the Keepers' Ledger               a date, in the margin, next to the ship on the chart: the day written in the ledger.
+  After the Oil Press                     the second doors: little marks on every harbour on the chart that has a shrine.
+  After the Sunken Street                 a ring round a stretch of open water in the far sea. When you reach it, it is the Island That Moves (X-D2), wherever it is now.
+  After the Dark Tower                    the chart's lid: a thin curved line along the top edge of the world.
+  At Q7 level 2                           a table. Just a table, on the water, drawn very small.
+  The Eye ending                          the whole chart is a closed eyelid. (existing "living map" effect, full dread)
+Your changes:  (empty)
+
+
+################################################################################################
+# X11  CONTRADICTIONS
+################################################################################################
+Sets of sources that disagree. The player sees each source separately; the truth is what is common. Each set below is a puzzle with no solution
+screen: the log's board lets the player tie them.
+
+  SET-1  HOW THE KESTREL SANK
+         calm noon (Tama tale) | night squall (Velto tale) | never was (a Crown clerk) | a captain's log (X6)
+         common: they all place a white post. The posts are the clue (X6).
+  SET-2  WHO IS THE LADY
+         an old woman (fishers) | a child (the Cays' children, "the girl at the table") | a man in a chair (the Name Wall, only one name has a chair) | nobody (the Hammock sleepers)
+         common: all agree on the table and the die. Nobody agrees on her. [Rule B2: she is never seen.]
+  SET-3  WHAT THE ORCHARD WAS
+         a Crown ship (Customs ledger) | a Reef schooner (Name Wall) | a ship that never had a harbour (the Keepers' ledger)
+         common: it was the ship before the Kestrel; it is not on the Grey Tooth's list.
+  SET-4  WHERE HER TABLE IS
+         the hut on its island (everyone) | the table by the water (the fragments and the Free Cays tune) | on Tama (one shrine carving)
+         common: it is wherever she is not watched.
+  SET-5  WHAT THE BELL RINGS FOR
+         the sleeper (Tama's inscription) | a lost ship (the Drowned Bell) | the day's number (the harbourmaster) | nothing (a child)
+         common: it rings. You can count it.
+  SET-6  MARA'S VILLAGE
+         she says it had a green door | the sunken street's third house is blue | a rhyme says a green door means a bell | the sailors say Mara is not a village name
+         common: she remembers it as it was; the street remembers it as it will be. [IDEA, dark]
+Your sets:  (empty)
+
+
+################################################################################################
+# X12  THE THREE PHASES (REPLACES ACT 3 OF STORY_MASTER D2)
+################################################################################################
+The demo is Act 1-2. The full game's middle is three phases, each a different way of exploring. A region is never "finished".
+
+PHASE A: GATHER (chapters I-IV of the demo, then the first rings of the full map; dread 0-1)
+  what the player does: sails, trades, learns that harbours write things down.
+  what the player learns: levels Q1 1, Q4 1, Q5 1 (the bells, the customs, the egg page).
+  Mara: cheerful. She notices the bells and says "How odd." Once.
+  regions in play: Crown, Free Cays, the start of Reef.
+  unlock: nothing new to buy; the chart shows the next ring when you have visited three places in the ring.
+
+PHASE B: COMPARE (dread 1-3; fog gate opens past 1650)
+  what the player does: goes further, finds other people's traces (wrecks, ledgers, lights) and sees that the sources do not agree (X11).
+  what the player learns: Q2, Q3, Q4 up to 2; the Kestrel chain is solved; the Name Wall, the Archive and the Keepers' ledger tie together.
+  Mara: steadier, then rattled. She stops saying "How odd." She starts counting under her breath.
+  regions in play: Reef, Lantern, the Free Cays' further islands, the first Drowned water.
+  unlock: the far sea (dread 3-4): the fog gate opens when three clues from three regions are in hand (not a number: the ship simply turns back until you have them). [IDEA, larger]
+
+PHASE C: DECIDE (dread 3-4)
+  what the player does: reaches the Drowned and the table by the water; sees Mara's street; chooses what to do at the table.
+  what the player learns: Q6, Q7; the rest is the pattern.
+  Mara: at the sunken street she knows the third house. She does not forget it afterwards (change from the plan where she "forgets her village": she REMEMBERS, and this is worse).
+  regions in play: the Drowned and the whole map, in any order.
+  end: X13.
+
+MARA'S LINES BY PHASE (to expand; every line short):
+  A-1 [DRAFT] "Funny, they ring the number. Do you suppose someone counts?"
+  A-2 [DRAFT] "A ledger with our name in it. I would like to know who wrote it down before we sailed in."
+  B-1 [DRAFT] "That wreck had two cups on the table. Both used."
+  B-2 [DRAFT] "Captain, I have been counting the bells. I do not like that I can."
+  C-1 [DRAFT, at the sunken street] "The third house. The door was blue."
+  C-2 [DRAFT, at the table] "I do not think we are here to throw."
+  C-3 [DRAFT] "Whatever you choose, I am glad it was you."
+Your lines for Mara:  (empty)
+
+
+################################################################################################
+# X13  ENDINGS FROM KNOWING
+################################################################################################
+The final scene (at the hut, or at the Table by the Water if the player has reached it) is one table with a die and a set of options.
+The options a player has depend on what they have understood. The die is still the die. [PLANNED: structure; IDEA: all options below]
+
+  OPTION                          needs understanding                  what it does
+  Throw                           (always)                             the last throw; the three outcomes (below)
+  Ask                             Q1 level 2                           she writes your question in the ledger instead of a number. [DRAFT] "She writes: WHO COUNTS? Then, under it, one word. The player reads it. It is the harbourmaster's name." (a quiet, personal answer; no explanation)
+  Read the ledger aloud           Q4 level 3                           the hidden ledger bonus is revealed now and cancelled, once: the first low throw is rolled again. [IDEA]
+  Play the tune                   Q7 level 2 (the Free Cays tune, CL-F1-b)   the player plays the two-voice tune (guitar and violin) at the table; the room goes quiet; the die is not thrown. Ending: THE LONG SLEEP without a throw: the tune is kept, the Lady rests, the player becomes one of the two players in the Free Cays. [IDEA, the Free Cays ending]
+  Sit                             Q3 level 3 and Q6 level 2            take her seat (the old "Take Her Seat", now earned by understanding, not by offerings). [PLANNED]
+  Leave                           Q5 level 2 and no throws after the first   the Unseen Throw (leave). [PLANNED]
+  Bring someone                   Q6 level 3                           Mara sits in your place for the throw. [IDEA, dark: see below]
+  Turn the table                  Q2 level 3 and Q7 level 3            the table faces the sea; the Eye is looked at, not slept beside. [IDEA, the cosmic ending]
+
+  THE THREE OUTCOMES OF THROW, as before [PLANNED]
+    20: The Long Sleep (she sleeps a hundred more years; the world stays bright).
+    10-19: Good Dreams (the Cays' guitar and violin play on).
+    1-9: She Rises (the Eye opens; the Caribbean is remembered as something else).
+    + hidden ledger bonus/penalty from the throws and from what the player took (the Throwers' Wreck die, X-R2).
+
+  WHAT A PLAYER WHO LEARNED NOTHING SEES: a table, a die, one option: Throw. They get an ending. [IDEA: this is fine and is the demo]
+  WHAT A PLAYER WHO LEARNED EVERYTHING SEES: five or six options and Mara looking at the table. [IDEA]
+Your changes:  (empty)
+
+
+################################################################################################
+# X14  WHAT CHANGES IN THE OLD PLAN
+################################################################################################
+  Act 3 "The Lady's errands" (a gull feather, a bell clapper, Mara's hat)     [CUT] too close to a fetch-quest game. Replaced by X12.
+  Offerings for "Take Her Seat" (3 offerings, 3 strange rumours)                [CHANGED] it is now earned by understanding (Q3 3 and Q6 2).
+  The other dice (side seed 10: wrecks hold d20s the Lady would like back)      [CHANGED] optional, not required: taking one (X-R2) costs something in the hidden ledger, so taking things is a choice with a price.
+  Mara forgets her village at full dread                                         [CHANGED] she remembers it (X-D1), which is worse. The glitching at full dread stays as a separate effect. ??
+  The seven dark threads (all built)                                             [KEPT] each is a single episode that answers a question: Bell -> Q4/Q6; Coin -> Q3; Colour -> Q2; Hollow -> Q1; Music -> Q7 (the tune, same as the Free Cays); House -> Q1/Q3; Captain -> Q3. [IDEA to assign]
+  The twelve side seeds (STORY_MASTER G2)                                        [KEPT] but each now answers a question; assigned in X4 where used.
+  The fog wall                                                                    [KEPT] it can open by clues (X12 phase B), not by time. [IDEA]
+Your changes:  (empty)
+
+
+################################################################################################
+# X15  YOUR SLOTS
+################################################################################################
+Copy a block for each new thing. Leave a field empty if you do not know it.
+
+X-NEW-01  [EMPTY]  A NEW PLACE
+  name:                       region:                    dread stage (0-4):
+  question it answers (Q1-Q7):                            level it gives (1-3):
+  where (distance from Tama / island type):
+  how it is found:
+  from far (the spyglass line):
+  arrival text:
+  later visits:
+  people and their lines (LN-NEW-1, LN-NEW-2 ...):
+  choices (1/2/3) and checks:
+  the clue it carries (CL-NEW-a) and the log line (X9):
+  second look (X8 condition, and what changes):
+  dread version:
+  links:
+  must NOT be told:
+  build size (cheap / medium / larger):
+
+X-NEW-02  [EMPTY]  A NEW CONTRADICTION SET (X11)
+  name:
+  sources (3-5, each from a different place):
+  what they have in common:
+
+X-NEW-03  [EMPTY]  A NEW OPTION AT THE TABLE (X13)
+  name:
+  needs understanding:
+  what it does:
+  the scene (three beats):
+
+X-NEW-04  [EMPTY]  A NEW LOG LINE (X9)   id:   clue:   text:
+
+
+################################################################################################
+# X16  OPEN QUESTIONS
+################################################################################################
+  Q-1  Is "Understanding" a hidden number as in X3, or do you want the player to see something? (the Board and pencil marks are the only shown thing) ??
+  Q-2  How many places should each region have? (this file has three; the Crown and Lantern may want more, the Drowned fewer) ??
+  Q-3  Should Mara remember her village (X-D1) or forget it as in the old plan? ??
+  Q-4  Do the Free Cays end the game in a gentle way (the tune, X13)? If so, are the two players the same two who play at night? ??
+  Q-5  Is taking things (the Throwers' die, X-R2) a good choice with a price, or should the game never ask the player to take? ??
+  Q-6  What does the Lady write when you ask who counts (X13)? ??
+  Q-7  The Dark Tower (X-L3) is the only place with no bright version. Is that right for the middle of the game, or should the first Lid be at the Glass Lagoon? ??
+  Q-8  Which of the three phases should the demo end on? (the first throw at the hut is the end of phase A, as built) ??
+  Your questions:  (empty)

@@ -813,3 +813,6 @@ up; the chosen one (D) is built in the game's own style:
 ## Free Cays night: guitar and violin
 - The somber guitar (`fc_night`) and violin (`fc_violin`) play in Free Cays waters at night instead of the night band and pad, in episodes (each alone, both together, or one joining the other) with long silences between (see `docs/AUDIO.md`). Rendered through HOIST like the other night instruments. First regional music; the template for each faction's own instrument.
 
+## The exploration story (draft, for the writer)
+- `docs/STORY_EXPLORATION.txt`: the main story carried by exploring instead of fetching (the Act 3 errands are cut). Seven questions answered in different regions, a hidden "understanding" per question, 15 new places (three per region), the existing islands as chapters, the Kestrel chain, the fragments as the spine, second looks, a log that remembers, the world marking the chart, contradictions on purpose, three phases (gather, compare, decide), and endings with options that depend on what was understood (including the Free Cays tune). Everything is a draft for the writer; nothing is built.
+
