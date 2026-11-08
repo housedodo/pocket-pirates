@@ -1,29 +1,30 @@
 diff --git a/Tests/HoistLayers.cpp b/Tests/HoistLayers.cpp
-index 5ec7a52..494866e 100644
+index 5ec7a52..4a7ed7a 100644
 --- a/Tests/HoistLayers.cpp
 +++ b/Tests/HoistLayers.cpp
 @@ -10,8 +10,9 @@
  //     stage2  game_audio/stage2/*.wav   -> s2_*   GREY SKIES (more swell, tape wow)
  //     stage4  game_audio/stage4/*.wav   -> s4_*   THE DEEP (sub octave, ghost tails, whispers: the hut's theme)
  //     tavern  game_audio/tavern/*.wav   -> tav_*  gentle; the game muffles it (heard through the tavern wall)
-+//     freecays game_audio/freecays/*.wav -> fc_*  the Free Cays at night: one somber guitar, calm, lots of space (plays alone, with long silences)
++//     freecays game_audio/freecays/*.wav -> fc_*  the Free Cays at night: a somber guitar and a somber violin, calm, lots of space (together, alone or apart, with long silences)
  // Usage:
 -//   HoistLayers <stemdir> <outdir> [stage1|stage2|stage4|tavern|night]   -> <outdir>/<cue>.wav (24-bit, 44.1 kHz, stereo)
 +//   HoistLayers <stemdir> <outdir> [stage1|stage2|stage4|tavern|night|freecays]   -> <outdir>/<cue>.wav (24-bit, 44.1 kHz, stereo)
  #include <juce_audio_processors/juce_audio_processors.h>
  #include <juce_audio_formats/juce_audio_formats.h>
  #include "../Source/Hoist/HoistProcessor.h"
-@@ -46,6 +47,9 @@ namespace
+@@ -46,6 +47,10 @@ namespace
          { "Bell.wav",         "n1_bell",      0.28f, 0.06f, 0.65f },
          { "Night_pad.wav",    "n1_pad",       0.26f, 0.05f, 0.62f },   // the big night pad: calm seas, long and peaceful; the game swaps it with the night band
      };
 +    const Layer freecays[] = {   // the Free Cays at night: a lone guitar, calm and wide; the game plays it in slow swells with silence between
 +        { "Somber_guitar.wav", "fc_night", 0.20f, 0.05f, 0.60f },
++        { "Somber_violin.wav", "fc_violin", 0.22f, 0.05f, 0.62f },   // its partner: a lone violin, a little more space (they play together, alone or apart)
 +    };
      const Layer stage2[] = {   // dread stage 2, GREY SKIES: more swell, a little tape wow
          { "Bass.wav",       "s2_bass",   0.20f, 0.25f, 0.35f },
          { "drums.wav",      "s2_drums",  0.15f, 0.22f, 0.30f },
-@@ -103,11 +107,11 @@ namespace
+@@ -103,11 +108,11 @@ namespace
  int main (int argc, char** argv)
  {
      juce::ScopedJuceInitialiser_GUI init;
