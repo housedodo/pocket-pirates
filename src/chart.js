@@ -8,6 +8,8 @@ import { sectorInfo, sectorCoord } from './sectors.js';
 import { hash2 } from './util.js';
 import { bearingName } from './jobs.js';
 import { LANES } from './seaplay.js';
+import { LM } from './landmarks.js';
+import { isKnown } from './clues.js';
 import * as life from './harbourlife.js';
 
 // ---- palette (the game's colours, a little muted for paper)
@@ -217,6 +219,10 @@ export function drawChart(lb) {
   // pencil guesses (the riddle board)
   for (const g of (state.board && state.board.guess) || []) { c.strokeStyle = '#3a3a7a'; c.setLineDash([2, 2]); c.beginPath(); c.arc(X(g.x), Z(g.z), 13, 0, 6.28); c.stroke(); c.setLineDash([]); }
 
+  // pencil marks the world has taught (clues.js capabilities): wreck ticks at the Ribs and the Throwers' Wreck, the first letter of a rubbed-out name by the Cup
+  if (isKnown(state, 'wreckticks')) for (const k of ['ribs', 'wreck']) { const l = LM[k], x = Math.round(X(l.x)), z = Math.round(Z(l.z)); c.fillStyle = '#3a3a7a'; for (let i = -2; i <= 2; i++) { c.fillRect(x + i, z + i - 7, 1, 1); c.fillRect(x + i, z - i - 7, 1, 1); } }
+  if (isKnown(state, 'cupmark')) { const l = LM.cup, x = Math.round(X(l.x)) + 6, z = Math.round(Z(l.z)) - 8; c.fillStyle = '#3a3a7a'; ['#.#', '#.#', '##.', '#.#', '#.#'].forEach((row, j) => { for (let i = 0; i < 3; i++) if (row[i] === '#') c.fillRect(x + i, z + j, 1, 1); }); }
+
   // ---- icons: small type glyphs on islands (when zoomed in), badges for what matters
   const labels = [];
   for (const o of isl) {
@@ -248,6 +254,7 @@ export function drawChart(lb) {
   // ---- a thin ink frame
   c.strokeStyle = P.ink; c.lineWidth = 2; c.strokeRect(1, 1, w2 - 2, h2 - 2);
 
+  if (isKnown(state, 'date')) labels.push({ t: `Day ${Math.round((state.dayN || 0) + 30)}`, x: W - 70, y: H - 24, big: false });   // a date in the margin, in a hand that is not yours
   // ---- labels on the full-res layer: Pirata One for harbours, the pixel font for the rest, cream with a dark rim
   const tc = document.getElementById('mapTxt'), t = tc && tc.getContext('2d');
   if (t) {

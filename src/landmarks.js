@@ -189,6 +189,7 @@ export function lmDecor(d, rng, A, B, D, extra, h) {
       h.person(A, hp[0] + 1.6, hp[1], hp[2] - 1.2, rng, '#3a4a6a');
       const bp = P(2.2, 1.05); h.beachedBoat(A, bp[0], 0.1, bp[2], 2.2);
       const wp = P(4.6, 0.6); h.washing(A, wp[0], wp[1], wp[2], 1.0, rng);
+      A.box(wp[0] + 1.7, wp[1] + 1.3, wp[2], 0.5, 0.7, 0.04, '#e8e0d0', TILE.sail);   // one more cloth on the line than there are people to wear them
       for (let i = 0; i < 4; i++) { const p = P(5.2 + i * 0.15, 0.55); h.crateBox(A, p[0], p[1], p[2], i, 0.7); }
       for (let i = 0; i < 9; i++) { const th = rng() * 6.28, R = d.r * (0.95 + rng() * 0.25); A.blob(Math.cos(th) * R, 0, Math.sin(th) * R, 0.9 + rng(), 0.6, 0.9 + rng(), '#5a5a5c', TILE.stone, 0.3, i); }
       break;

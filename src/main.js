@@ -2231,8 +2231,9 @@ function fogLost(dt) {
   lostK += ((out ? 1 : 0) - lostK) * Math.min(1, dt * (out ? 1.5 : 0.6));
   if (!out) return;
   lostWob += dt;
-  const want = Math.atan2(out.x, -out.z) + Math.sin(lostWob * 0.7) * 0.6 + Math.sin(lostWob * 1.9) * 0.25;   // aimless, but always bending outward
-  ship.heading += angleDiff(ship.heading, want) * Math.min(1, dt * 0.5);
+  const hum = isKnown(state, 'hum');   // the two players' tune carries through fog: the helm half answers, and the way home is plain
+  const want = Math.atan2(out.x, -out.z) + (Math.sin(lostWob * 0.7) * 0.6 + Math.sin(lostWob * 1.9) * 0.25) * (hum ? 0.25 : 1);   // aimless, but always bending outward
+  ship.heading += angleDiff(ship.heading, want) * Math.min(1, dt * (hum ? 1.3 : 0.5));
   ship.trim += (0.45 - ship.trim) * Math.min(1, dt * 0.8);
   ship.speed += (3.2 - ship.speed) * Math.min(1, dt * 0.6);
   ship.pos.x += out.x * 1.8 * dt; ship.pos.z += out.z * 1.8 * dt;   // and the fog itself lets go of you
@@ -2261,6 +2262,8 @@ function clueTick(dt) {
   const at = (lm, R) => Math.hypot(ship.pos.x - LM[lm].x, ship.pos.z - LM[lm].z) < R;
   const dwell = (k, on, T) => { clueDwell[k] = on ? (clueDwell[k] || 0) + dt : 0; return clueDwell[k] >= T; };
   if (dwell('bells', slow && Math.hypot(ship.pos.x, ship.pos.z) < 150 && hour > 11.8 && hour < 12.4 && state.hut && state.hut.rolls.length > 0, 6)) seeClue('CL-C3-a');
+  if (state.story.streetSeen && !state.story.streetLine && dread > 0.5 && !objectives.mate.busy) { state.story.streetLine = true; objectives.mate.say('I like blue doors, Captain. I do not know why I like them.'); }   // CL-D1-a: Mara, once, at dread
+  if (isKnown(state, 'rest') && slow && tod.night > 0.4 && state.story.peakDread > 0) state.story.peakDread = Math.max(0, state.story.peakDread - 0.004 * dt);   // the crew rest on deck (CL-F2-a): the worst you have sailed into fades a little while you lie still at night
   if (dwell('players', slow && tod.night > 0.45 && weather.calm > 0.5 && (at('teo', 300) || at('ilse', 300)), 10)) seeClue('CL-F1-a');
 }
 function seaGate(dt) {

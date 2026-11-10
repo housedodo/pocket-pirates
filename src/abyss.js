@@ -1,3 +1,4 @@
+import { isKnown } from './clues.js';
 import * as THREE from 'three';
 import { Builder } from './builder.js';
 import { TILE } from './textures.js';
@@ -197,7 +198,7 @@ export class Abyss {
     const live = c.live;
     // the Eye does not wait for its turn: after long enough in the worst water, the leviathan comes
     this.fullTime = this.k > 0.9 && live ? this.fullTime + dt : 0;
-    if (this.fullTime > 140 && this.cyc.id !== 'leviathan' && !this.solo && !this.ending) { this.cyc.id = 'leviathan'; this.cyc.phase = 'hold'; this.cyc.t = 9999; this.cyc.w = 1; this.begin('leviathan'); }
+    if (this.fullTime > (isKnown(this.d.state, 'lookup') ? 200 : 140) && this.cyc.id !== 'leviathan' && !this.solo && !this.ending) { this.cyc.id = 'leviathan'; this.cyc.phase = 'hold'; this.cyc.t = 9999; this.cyc.w = 1; this.begin('leviathan'); }
     this.stepCycle(dt);
 
     // ship history (for the time loop)

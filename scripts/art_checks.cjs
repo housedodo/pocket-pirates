@@ -92,6 +92,30 @@ function staticChecks() {
   }
   rec('V5', 'every place reads >= 4x5 px at 170 units (day, spyglass 0)', small.length === 0, small.length ? 'too small: ' + small.join(' ') : '');
 
+  // V4 contrast at 60% of the stratum's fog distance, day: island pixels (what changes when the island is hidden) vs what was behind them
+  const lum = (r, g, bl) => { const f = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }; return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(bl); };
+  const gapOf = (a, b2) => p.evaluate(async ([a, b2]) => {
+    const load = async (s) => { const im = new Image(); im.src = 'data:image/png;base64,' + s; await im.decode(); const c = document.createElement('canvas'); c.width = im.width; c.height = im.height; const x = c.getContext('2d'); x.drawImage(im, 0, 0); return x.getImageData(0, 0, c.width, c.height); };
+    const A = await load(a), B = await load(b2), H = Math.floor(A.height * 0.58), f = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }, L = (d, i) => 0.2126 * f(d[i]) + 0.7152 * f(d[i + 1]) + 0.0722 * f(d[i + 2]);
+    const gaps = []; for (let y = 0; y < H; y++) for (let x = 0; x < A.width; x++) { const i = (y * A.width + x) * 4, d = Math.abs(A.data[i] - B.data[i]) + Math.abs(A.data[i + 1] - B.data[i + 1]) + Math.abs(A.data[i + 2] - B.data[i + 2]); if (d > 90) gaps.push(Math.abs(L(A.data, i) - L(B.data, i))); }
+    gaps.sort((m, n) => m - n); return gaps.length ? gaps[Math.floor(gaps.length / 2)] : 0;
+  }, [a, b2]);
+  const lowC = [];
+  for (const lm of places) {
+    const info = await p.evaluate(async (lm) => { const L = await import('/src/landmarks.js'), P = await import('/src/palette.js'); const l = L.LM[lm], dr = l.dread != null ? l.dread : P.dreadAtDistance(Math.hypot(l.x, l.z)); return { dr, fogFar: P.sampleStage(dr).fogFar }; }, lm);
+    await goto(lm, Math.round(info.fogFar * 0.6), { dread: info.dr, calm: 0, day: 0, time: 0.5 }); await settle(1800);
+    const withI = await shot();
+    await p.evaluate((lm) => { const g = window.__game, i = [...g.world.islands.values()].find((x) => x.desc.lm === lm); window.__hidden = []; if (i) i.group.children.forEach((m) => { const c = m.geometry && m.geometry.attributes.color; if (!(c && c.itemSize === 4) && m.visible) { m.visible = false; window.__hidden.push(m); } }); }, lm); await p.waitForTimeout(250);
+    const without = await shot(); await p.evaluate(() => { (window.__hidden || []).forEach((m) => { m.visible = true; }); });
+    const gap = await gapOf(withI, without), need = info.dr < 0.45 ? 0.08 : info.dr < 0.82 ? 0.04 : 0.02;
+    if (gap < need) lowC.push(`${lm}(${gap.toFixed(3)}<${need})`);
+  }
+  rec('V4', 'island vs background luminance gap at 60% of fog distance', lowC.length === 0, lowC.length ? 'low: ' + lowC.join(' ') : '');
+
+  // V16 chart: the pencil marks the clues teach draw without error, and the map tab renders
+  const chartOk = await p.evaluate(async () => { try { const g = window.__game, C = await import('/src/clues.js'); ['CL-R1-a', 'CL-F3-a', 'CL-L2-a'].forEach((id) => C.markSeen(g.state, id)); g.logbook.tab = 'map'; g.logbook.renderMap(); return true; } catch (e) { return String(e); } });
+  rec('V16', 'chart renders with wreck ticks, cup mark and margin date', chartOk === true, chartOk === true ? '' : chartOk);
+
   // V15 budgets: triangles and draw calls per place
   const bud = await p.evaluate(async () => { const g = window.__game, L = await import('/src/landmarks.js'), out = []; for (const l of L.LANDMARKS) { g.ship.pos.x = l.x; g.ship.pos.z = l.z + 120; await new Promise((r) => setTimeout(r, 350)); const i = [...g.world.islands.values()].find((x) => x.desc.lm === l.lm); if (!i) { out.push([l.lm, -1, -1]); continue; } let t = 0, c = 0; i.group.children.forEach((m) => { if (m.geometry) { t += m.geometry.attributes.position.count / 3; c++; } }); out.push([l.lm, Math.round(t), c]); } return out; });
   const OLD = ['grove', 'ribs', 'lagoon', 'broken', 'crag', 'bell', 'keeper'];   // hand-made before this pass: reported, not failed
@@ -109,7 +133,7 @@ function staticChecks() {
 
   rec('--', 'console errors during the run', errs.length === 0, errs.slice(0, 2).join(' | '));
   const failed = results.filter((r) => !r.pass);
-  console.log(`\n${results.length - failed.length}/${results.length} passed. Not automated: V4, V6-V8, V16, V17.`);
+  console.log(`\n${results.length - failed.length}/${results.length} passed. Not automated: V6-V8, V17.`);
   fs.writeFileSync(path.join(__dirname, '..', 'docs', 'art_checks_last.txt'), results.map((r) => `${r.pass ? 'PASS' : 'FAIL'} ${r.id} ${r.name} ${r.note || ''}`).join('\n') + '\n');
   await b.close(); process.exit(failed.length ? 1 : 0);
 })();

@@ -12,7 +12,9 @@ PASS V14 cup greyed: geometry changes, no new DOM dom 30->30
 PASS V14 name wall wet rows: geometry changes, no new DOM dom 30->30
 PASS V14 fort second window: geometry changes, no new DOM dom 30->30
 PASS V5 every place reads >= 4x5 px at 170 units (day, spyglass 0) 
-PASS V15 new places: <= 3500 triangles, <= 9 draw calls (terrain, A, B, D, shallow, foam, mist + state groups) older places (info): crag:2950/5 bell:1697/4 grove:4704/5 keeper:1939/7 ribs:3726/5 lagoon:5364/8 broken:4271/8
+PASS V4 island vs background luminance gap at 60% of fog distance 
+PASS V16 chart renders with wreck ticks, cup mark and margin date 
+PASS V15 new places: <= 3500 triangles, <= 9 draw calls (terrain, A, B, D, shallow, foam, mist + state groups) older places (info): crag:2950/5 bell:1697/4 grove:4704/5 keeper:1949/7 ribs:3726/5 lagoon:5364/8 broken:4271/8
 PASS V9 table has no label before d3Open; <= 2 labels []
-PASS V10 seam: fog takes the helm (lostK >= 0.9 within 2.5 s), then west side lostK 0.96 x -1488
+PASS V10 seam: fog takes the helm (lostK >= 0.9 within 2.5 s), then west side lostK 0.97 x -1476
 PASS -- console errors during the run 

@@ -250,9 +250,12 @@ Built and tested headless (2026-11-10):
 - Capabilities that work: `tally` (Journal "Counted" tick marks), `setdown` (hut: "Set the die down", once), `lamp` (the Kestrel pays a lamp that halves a bad throw's shade, no gold).
 - Tone: `lore.js`, `greetings.js` and the fisher line in `main.js` no longer explain (see 6.1).
 
+Also built since (second round):
+- Capabilities with real effects: `hum` (fog: the helm half answers and the way home is plain), `rest` (lying still at night lets the worst-sailed dread fade slowly), `lookup` (a minute more before the Eye, `abyss.js`), `cupmark` / `wreckticks` / `date` (pencil marks and a margin date on the chart, `chart.js`), `streetline` (Mara's one line at dread).
+- `scripts/world_checks.cjs`: a scripted sail at every stratum wall (12/12): the tutorial wall, S1-S5 shut and open by upgrade / clues, and the way home 1.68x longer than the way out.
+
 Not built yet (recorded as flags in `clues.js`, no effect):
-- Capabilities `arrivals`, `wreckticks`, `forecast`, `rest`, `hum`, `cupmark`, `bluelamp`, `date`, `lookup`, `streetline`.
-- The Surrender (R3), the Island That Moves (D2), D1 hidden except at the lowest tide (it is visible; only the visit is tide-gated).
-- Chart: compressed radii and pencilled marks (`chart.js`, design area). Stratum music loops (audio area).
+- Capabilities `arrivals`, `forecast`, `bluelamp`.
+- The Surrender (R3), the Island That Moves (D2), D1 hidden except at the lowest tide (it is visible; only the visit is tide-gated), the chart's compressed radii.
 - `scripts/story_export.py` rendering the docs from `clues.js`; the X9 level-3 log lines in `STORY_EXPLORATION.txt` are not yet cut.
-- Validation V7, V9, V10 (human readers, telemetry).
+- Validation V7, V9, V10 (human readers, telemetry) and the canon decisions (Mara forgets or remembers, the Two Players, where the demo ends): owner's call.

@@ -176,5 +176,9 @@ purple and magenta cosmic horror as dread rises.
 4. Does it look used (stains, wear, crooked)?
 5. Pixel font, as little text as possible.
 
-## Biomechanical zones (proposed)
-The island look per zone (Surface S0-S2, Sub-Stratum S3-S4, Abyssal Core S5), the formation vocabulary, light classes and readability rules are specified in `docs/ART_SPEC.md`. Not built yet; when it is, move the rules here in the same commit.
+## 9. Biomechanical zones (built; full spec in `docs/ART_SPEC.md`)
+- **Zones:** Surface S0-S2 (bright lie: colour fatigue only, no magenta), Sub-Stratum S3-S4 (bone-pale limestone, wet-black lower thirds, sallow to bruised teal, sea mist round the foot of places, fixed pale shafts), Abyssal Core S5 (bone on violet-black, everything leans at Tama, magenta only in sockets and one pool, steady light only).
+- **Wrongness is repetition and absence**, never a new monster: evenly spaced forms, one more cloth than people, no birds, one chair wet-black. No text, numerals, eyes, lids or figures on models; no clue by colour alone.
+- **Kit:** Builder primitives and the existing 16 atlas tiles only (zero new tiles); the dark set (`colorB`, `KIND_DARK`, `LM_DARK`) tires S0-S2 islands, the D builder holds S3+ forms (ribs, vertebra spines, throats, arches, sockets: `abyssForms` in `world.js`).
+- **State props:** things that depend on tide, night, calm, an upgrade or a clue seen are separate meshes shown by `extra.states` (`world.js`), never rebuilt.
+- **Readability:** every place needs a vertical feature >= 3.5 units or a lit source; light classes (steady yellow, flicker orange, steady blue, magenta) are distinct; at most 3 glowing sources on screen in S0-S2 and 2 in S3+. Check with `scripts/art_checks.cjs`.

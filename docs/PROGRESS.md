@@ -849,3 +849,4 @@ up; the chosen one (D) is built in the game's own style:
 - Art spec built in part: state props (tide/night/calm/upgrade/clue), `KIND_DARK`/`LM_DARK`, sea mist, fog ramp, 13 places reworked; see ART_SPEC.md section 11.
 - Deep forms built: S4/S5 wild islands grow bone (ribs, spines, throats, arches, sockets, glow pool), Halved Isle spines; see ART_SPEC.md section 11.
 - Art checks: `scripts/art_checks.cjs` (18/18). Far labels now live. Halved Isle shaft, Tooth gannets.
+- Round two: clue abilities hum/rest/lookup/cupmark/wreckticks/date/streetline built; `scripts/world_checks.cjs` 12/12; art checks 20/20; audio brief in AUDIO.md; STYLE.md section 9.

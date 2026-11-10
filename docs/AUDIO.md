@@ -259,3 +259,14 @@ in `public/audio/volumes.json` (was 0.4).
 - Leaving the Free Cays: both fade away while the band and pad return. By day nothing changes. F8 mixer: group "Free Cays at night".
 - Masters: the Chaos_Grain repo is read-only from the game sessions, so the HoistLayers change is saved as `docs/audio_patches/HoistLayers_freecays.patch` (apply with `git apply` on the `claude/brave-einstein-f3axt8` branch) and `game_audio/freecays/Somber_guitar.wav` and `Somber_violin.wav` should be added there.
 - More factions: each faction's own instrument (being composed) can follow the same pattern: cues, a faction check in `SeaLayers.update`, an episode pattern (the Free Cays branch is the template).
+
+
+## Brief: sound for the redesigned world (not built; from docs/WORLD_REDESIGN.md and docs/ART_SPEC.md)
+- **Strata, not just dread stages:** the six strata (S0-S5) change at radii 450/800/1150/1550/1950. Keep five loops (same tempo, meter, key) but cross-fade on stratum edges, and let the Slack (S3, windless) thin the mix to almost nothing before the Dim.
+- **The Slack's current:** a low, steady outward drift tone while the ship is in S3-S4, stronger when sailing home (the way back is 1.6x longer).
+- **The seam:** a 4 s swallowed-fog swell as the helm is lost, then silence, then the west-side bed.
+- **Two Players:** the guitar (Teo) and violin (Ilse) answer each other across 350-450 units on calm nights; the bar they play together at dawn after a night's listening. Near Teo the guitar is louder and stops while he talks.
+- **Light classes have voices:** the steady blue lamp (Oil Press) a faint hum; the fire pair a crackle at each end; the Ledger's lamp lit at noon with no beam sweep.
+- **Tower:** at the open door on a calm night, a low note from far below, once.
+- **Sleepers (Hammock Isle):** murmured numbers by day, never above nine; none at night.
+- **Capabilities that should sound:** "Set the die down" (no dice sound, a held breath), the tally in the Journal (soft tick per mark), Look up (the sea's hush).
