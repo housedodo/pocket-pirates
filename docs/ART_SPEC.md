@@ -234,4 +234,6 @@ Built and checked in headless screenshots (no console errors):
 - `places.js` `labelsTick`: Table label hidden until `d3Open`, labels fade with the fog (the function is not called by `main.js` yet).
 - Fix found on the way: the Keepers' Ledger moved to r1350 / 198 deg because it stood inside the Halved Isle's fog dome.
 
-Not built: the magenta/spine vocabulary for S4-S5 places (D-builder ribs, vertebrae, sockets), god-ray cones beyond the Tower's shaft, per-stratum tints, wrongness details for crag/bell/grove/keeper/broken/ribs/lagoon beyond their colours, Halved Isle night edge, the checks V1-V17 as scripts (only ad-hoc screenshots so far), a `STYLE.md` rewrite.
+Also built (second pass): `abyssForms` in `world.js`, the deep bone vocabulary for wild islands in S4 and S5 (dark mood only, own rng so no island moves): rib pairs, a vertebra spine, a throat chimney; in the Lid everything leans at Tama, plus a ribbed arch, one magenta socket and one pale glow pool. Budget about 200 triangles in S4, 420 in S5. The Halved Isle gets three bone spines on its sunken slabs pointing at the half-house table.
+
+Not built: god-ray cones beyond the Tower's shaft, per-stratum tints, wrongness details for crag/bell/grove/keeper/broken/ribs/lagoon beyond their colours, Halved Isle night edge, the checks V1-V17 as scripts (only ad-hoc screenshots so far), a `STYLE.md` rewrite.

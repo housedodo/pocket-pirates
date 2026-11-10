@@ -685,6 +685,50 @@ export function hasLighthouse(d) {
 export const LH_KINDS = ['classic', 'slim', 'brick', 'iron', 'squat', 'pagoda'];
 const STRIPES = [['#d8403a', '#f4f0e6'], ['#2a2a30', '#f4f0e6'], ['#3c78c8', '#f4f0e6'], ['#e8a838', '#f4f0e6']];
 export const lighthouseKind = (d) => d.id === '0,-1' ? 'classic' : LH_KINDS[hash2(d.seed, 23, 7) % LH_KINDS.length];
+// ---------------------------------------------------------------------------
+// The deep forms (docs/ART_SPEC.md 5.2-5.4): in the Dim (S4) and the Lid (S5) the wild islands grow bone. Ribs, a spine of vertebrae, a throat
+// chimney; in the Lid they all lean towards Tama (the centre), arches stand in rows, and sockets glow magenta. Dark-mood props only (D), so
+// the bright game never sees them; their own rng, so no island moves. Budget: <= 200 triangles in S4, <= 420 in S5; <= 4 glow quads.
+// ---------------------------------------------------------------------------
+const BONE = '#8a7e78', SCAR = '#6a3a40', WETB = '#241014', DUCT = '#4a2f66';
+function abyssForms(d, D, extra) {
+  if (d.blight || d.type === 'harbour' || d.lm || d.dread < 0.62) return;
+  const r = mulberry32(hash2(d.seed, 77, 4)), deep = d.dread >= 0.82;
+  const cx = -d.x, cz = -d.z, cl = Math.hypot(cx, cz) || 1, dx = cx / cl, dz = cz / cl;     // the way to the centre, in island-local axes
+  const lean = deep ? 0.34 : 0.12;
+  const at = (p) => ({ x: p[0], y: p[1], z: p[2] });
+  const spine = (p, n, s) => {   // a spine: stacked flattened blobs, bone and scar in turn, leaning at the centre
+    D.push(p[0], p[1], p[2], 0, 1, 1, 1, dz * lean, -dx * lean);
+    for (let k = 0; k < n; k++) D.blob(0, k * 0.62 * s, 0, 0.62 * s * (1 - k * 0.06), 0.24 * s, 0.62 * s * (1 - k * 0.06), k % 2 ? SCAR : BONE, TILE.bone, 0.12, k + 1);
+    D.pop();
+  };
+  const rib = (p, h, flip) => {   // a rib: a thin 4-sided cylinder, tilted hard, one of a mirrored pair
+    D.push(p[0], p[1], p[2], 0, 1, 1, 1, dz * lean + (flip ? 0.6 : -0.6) * (1 - dx * dx), -dx * lean + (flip ? 0.4 : -0.4) * dx);
+    D.cyl(0, -0.2, 0, 0.2, 0.08, h, 4, BONE, TILE.bone, false); D.pop();
+  };
+  const throat = (p, h) => {   // a throat: a fat 6-sided pipe with a dark open lip
+    D.cyl(p[0], p[1] - 0.3, p[2], 0.9, 0.7, h, 6, deep ? DUCT : BONE, TILE.stone, false);
+    D.cyl(p[0], p[1] + h - 0.35, p[2], 0.95, 0.95, 0.25, 6, WETB, TILE.stone, true);
+  };
+  const N = deep ? 2 : 1;
+  for (let i = 0; i < N; i++) { const p = spot(d, r, 0.25, 0.8, 0.5); if (p) { rib(p, 2.6 + r() * 2, false); rib([p[0] + 0.7, p[1], p[2] + 0.4], 2.4 + r() * 2, true); } }
+  { const p = spot(d, r, 0.1, 0.7, 0.5); if (p) spine(p, deep ? 8 : 5, 1.0); }
+  { const p = spot(d, r, 0.3, 0.85, 0.5); if (p) throat(p, deep ? 5.5 : 3.2); }
+  if (deep) {
+    // a ribbed arch: two leaning columns and a lintel, and a socket (a dark slab with a magenta glow in it), never more than two
+    const p = spot(d, r, 0.2, 0.7, 0.5);
+    if (p) {
+      for (const sx of [-1.4, 1.4]) { D.push(p[0] + sx * dz, p[1], p[2] - sx * dx, 0, 1, 1, 1, dz * lean, -dx * lean); D.cyl(0, -0.3, 0, 0.5, 0.35, 5.5, 5, BONE, TILE.bone, false); D.pop(); }
+      D.box(p[0], p[1] + 5.0, p[2], 0.9 + Math.abs(dz) * 2.4, 0.5, 0.9 + Math.abs(dx) * 2.4, SCAR, TILE.bone);
+      const q = spot(d, r, 0.2, 0.7, 0.5) || p;
+      D.box(q[0], q[1] + 0.9, q[2], 0.8, 1.1, 0.14, '#ffffff', TILE.void); D.box(q[0], q[1] + 0.9, q[2] + 0.1, 0.3, 0.5, 0.06, '#ffffff', TILE.spore);
+    }
+    // one pale pool of light on the water, only in the dark
+    const Gp = new Builder(); Gp.cyl(0, 0.35, 0, d.r * 1.5, d.r * 1.5, 0.02, 10, '#3a1030', TILE.white, false);
+    (extra.states = extra.states || []).push({ b: Gp, mat: mats.glow, when: (i) => !!i.isDark });
+  }
+}
+
 export function lighthouse(A, extra, lx, ly, lz, tall = 1, d = null, forceKind = null) {
   const kind = forceKind || (d ? lighthouseKind(d) : 'classic');
   const lamp = (h) => { extra.lamp = { x: lx, y: ly + h, z: lz }; extra.beam = { x: lx, y: ly + h + 0.65, z: lz }; };
@@ -1262,6 +1306,7 @@ export class Island {
     const extra = {};
     const terrain = buildTerrain(d, rng);
     decorate(d, rng, A, B, D, extra);
+    abyssForms(d, D, extra);
 
     const add = (builder, mat, order = 0) => {
       const m = meshOf(builder, mat);

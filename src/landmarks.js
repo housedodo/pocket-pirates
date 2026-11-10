@@ -271,6 +271,13 @@ export function lmDecor(d, rng, A, B, D, extra, h) {
       const chx = nx * (c + 12) + tx * -5, chz = nz * (c + 12) + tz * -5;
       A.push(chx, -1.5, chz, d.cutTh, 1, 1, 1, 0.5, 0.3); A.box(0, 1.6, 0, 6, 5, 5, '#9a6a48', TILE.stone, TILE.stone, '#6a9a48'); A.pop();
       h.palm(A, B, D, chx + 0.5, 3.4, chz, rng, 1.0);
+      // three bone spines on the sunken slabs, all pointing at the table in the half house (dark mood only)
+      for (let k = 0; k < 3; k++) {
+        const sx = nx * (c + 7 + k * 3.2) + tx * (-4 + k * 4), sz = nz * (c + 7 + k * 3.2) + tz * (-4 + k * 4), ax = d.halfHouse.x - sx, az = d.halfHouse.z - sz, al = Math.hypot(ax, az);
+        D.push(sx, -1.0, sz, 0, 1, 1, 1, (az / al) * 0.5, -(ax / al) * 0.5);
+        for (let j = 0; j < 5; j++) D.blob(0, j * 0.6, 0, 0.55 - j * 0.05, 0.22, 0.55 - j * 0.05, j % 2 ? '#6a3a40' : '#8a7e78', TILE.bone, 0.12, j + k);
+        D.pop();
+      }
       break;
     }
     // ---- the places of the exploration story (docs/WORLD_REDESIGN.md 5.6) in their art (docs/ART_SPEC.md 6).
