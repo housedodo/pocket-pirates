@@ -175,3 +175,6 @@ purple and magenta cosmic horror as dread rises.
 3. Does it use the palette above, and does it have a dread version (darker, purple/magenta, quieter)?
 4. Does it look used (stains, wear, crooked)?
 5. Pixel font, as little text as possible.
+
+## Biomechanical zones (proposed)
+The island look per zone (Surface S0-S2, Sub-Stratum S3-S4, Abyssal Core S5), the formation vocabulary, light classes and readability rules are specified in `docs/ART_SPEC.md`. Not built yet; when it is, move the rules here in the same commit.

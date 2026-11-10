@@ -843,3 +843,6 @@ up; the chosen one (D) is built in the game's own style:
 
 ## World redesign proposal (2026-11-10)
 - `docs/WORLD_REDESIGN.md`: structure-gated strata, tide/night/loop topology, `seen` clue ledger and capabilities. Built in part (strata gates and dread, clue ledger, 13 new places, Slack current, loop seam, tally, set-the-die-down, Kestrel lamp, tone fixes); see section 9 of that file for what is not built. Open: Mara canon (forgets vs remembers), Two Players, demo end.
+
+## Island art specification (2026-11-10)
+- `docs/ART_SPEC.md`: zone themes and palettes, 20 per-place specs, formation vocabulary, budgets, readability rules and a 17-check validation list. Specification only; no `src/` change. Gameplay hooks needed: far-label fog fade, Table hidden until `d3Open`, progression cues from `state.story.seen`.

@@ -4,7 +4,7 @@ Work is split in three areas so a change in one does not need the others' contex
 area only when the task says so or when the change crosses over (then say which areas are touched).
 
 ## Design (look and feel)
-- **Docs:** `docs/STYLE.md` (the style bible), `docs/concept/` (water, villages, references).
+- **Docs:** `docs/STYLE.md` (the style bible), `docs/concept/` (water, villages, references), `docs/ART_SPEC.md` (island zones: Surface / Sub-Stratum / Abyssal Core, per-place art, readability rules).
 - **Code:** `src/psx.js`, `textures.js`, `palette.js`, `pixelui.js`, `ocean.js`, `sky.js`, `daynight.js`, `weather.js`, `windfx.js`, `world.js`, `villagestyles.js`, `ship.js`, `customize.js`, `title.js`, `solids.js`, `faces.js` (villager portraits), `cavescene.js` (painters), `landmarks.js` (the hand-made islands' look), `wake.js` (wakes and bow waves), `index.html` (CSS/HUD look, shop cards).
 - **Rule:** anything new must match STYLE.md; if the look changes on purpose, update STYLE.md in the same commit.
 
