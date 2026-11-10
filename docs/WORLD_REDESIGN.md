@@ -114,7 +114,7 @@ Fixed angular layout in `sectors.js` (blend via existing `lookFactionAt`): Crown
 | R2 Throwers' Wreck | 1150 (80) | S2/S3, low tide | Q3, Q4 |
 | Halved Isle ("broken") | moved 610 -> 1250 | S3, Lantern 2 | Q7 |
 | R3 The Surrender | 1300 (128) | S3, night, low visibility | Q2 |
-| L2 Keepers' Ledger | 1350 (192) | S3 | Q1, Q3 |
+| L2 Keepers' Ledger | 1350 (198) | S3 | Q1, Q3 |
 | L3 Dark Tower | 1560 (208) | S3/S4, calm night | Q2 |
 | D1 Sunken Street | true 900, labelled S4 | tide lie | Q6 |
 | D2 Island That Moves | 2050 | S5, loop seam | Q2, Q7 |

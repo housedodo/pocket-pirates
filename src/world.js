@@ -11,7 +11,7 @@ import { makeName, makePuzzle } from './lore.js';
 import { FRUITS, fruitOf } from './fruit.js';
 import { arcIdOf, ARCS } from './harbourlife.js';
 
-import { forcedCells, shapeLandmark, cutShore, lmHeight, lmColor, lmDecor } from './landmarks.js';
+import { forcedCells, shapeLandmark, cutShore, lmHeight, lmColor, lmDecor, LM_DARK } from './landmarks.js';
 export const CELL = 110;
 const LOAD_R = 4, UNLOAD_R = 6;
 
@@ -185,6 +185,10 @@ export function terrainHeight(d, lx, lz) {
 // Terrain mesh: polar grid, one flat colour per cell
 // ---------------------------------------------------------------------------
 const BLIGHT = { wet: C('#2a2629'), sand: C('#3a3437'), rock1: C('#3e383c'), rock2: C('#4c4549'), grass1: C('#545238'), grass2: C('#454530'), moss: C('#33402e') };
+/** the dark-mood ground colour per island kind (docs/ART_SPEC.md 7): the terrain's colorB drifts toward it, so S0-S2 islands tire (greens go yellow-grey,
+ *  sand goes dirty) without a single new triangle */
+const LM_DARKC = {};
+const KIND_DARK = { sandbar: C('#b0a890'), jungle: C('#4a5a40'), rocky: C('#5a5262'), treasure: C('#4a5a40'), harbour: C('#8a8478'), atoll: C('#b8b0a0'), mangrove: C('#2a3028'), volcano: C('#2a1034') };
 function faceColor(d, hc, slope, noise) {
   let c;
   if (d.blight) {   // the hut's island: black sand, grey rock, dead grass and sick moss
@@ -233,6 +237,7 @@ function buildTerrain(d, rng) {
       tmp.copy(base).multiplyScalar(k);
       if (tv) tmp.offsetHSL(d.hue, d.satK, d.lumK);
       darken(tmp, dk);
+      { const kd = d.lm ? (LM_DARK[d.lm] && (LM_DARKC[d.lm] || (LM_DARKC[d.lm] = C(LM_DARK[d.lm])))) : KIND_DARK[d.type]; if (kd && !d.blight) dk.lerp(kd, d.lm ? 0.55 : 0.35); }
       if (hc > 0.5 && rng() < 0.12) dk.lerp(COL.violet, 0.8);
       b.tri(a, bb, c, tmp, TILE.white, undefined, dk);
       b.tri(a, c, e, tmp, TILE.white, undefined, dk);
@@ -1240,6 +1245,8 @@ const LAYER_RULES = {
   resident: (i) => !!i.lifeDone,
   grow1: (i) => (i.growth || 0) >= 1, grow2: (i) => (i.growth || 0) >= 2, grow3: (i) => (i.growth || 0) >= 3,
 };
+/** the sea mist's colour: main.js sets it to the fog colour each frame */
+export const mistMat = new THREE.MeshBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.22, depthWrite: false, side: THREE.DoubleSide });
 export class Island {
   constructor(d, dug) {
     this.desc = d;
@@ -1264,6 +1271,7 @@ export class Island {
     add(terrain, mats.terrain);
     add(A, mats.props);
     if (extra.hutB) { const hm = add(extra.hutB, mats.props); if (hm) { hm.visible = HUT_SHOWN; this.anim.push(() => { hm.visible = HUT_SHOWN; }); } }
+    this.alwaysLit = !!extra.alwaysLit;
     this.bright = add(B, mats.props);
     this.darkMesh = add(D, mats.props);
 
@@ -1280,6 +1288,18 @@ export class Island {
       chest(G, m.x, m.y, m.z, 0.5, true);
       this.dugMesh = add(G, mats.props);
       this.setDug(dug);
+    }
+
+    // props that exist only while the sea or the story says so: tide, night, calm, an upgrade, a clue seen (docs/ART_SPEC.md 8).
+    // extra.states = [{ b: Builder, mat?, when(isl) }]; isl.tide, isl.tod, isl.gctx are set by World.tick. Geometry is built once.
+    for (const st of extra.states || []) {
+      const m = add(st.b, st.mat || mats.props, st.order || 0);
+      if (m) { m.visible = false; this.anim.push((t, isl) => { m.visible = !!st.when(isl); }); }
+    }
+    // sea mist round the foot of the deep places: two flat rings in the fog colour (S3+; about 24 triangles each)
+    if (d.dread >= 0.45 && (d.lm || d.type === 'rocky' || d.type === 'sandbar' || d.type === 'jungle')) {
+      const mist = new THREE.Mesh(buildRing(d, 0.85, 1.9, 0.5, 0.55, 0, 16, 1), mistMat);
+      mist.renderOrder = 2; this.group.add(mist); this.geos.push(mist.geometry);
     }
 
     this.crowd = {};
@@ -1353,11 +1373,12 @@ export class Island {
           beam.rotation.z += (-Math.atan2(drop, dist) - beam.rotation.z) * 0.08;           // tipped down onto the deck
           beam.scale.x = Math.min(7, Math.max(1, Math.hypot(dist, drop) / 44));          // long enough to reach you
           beam.scale.y = beam.scale.z = 0.6;
-        } else { beam.rotation.y = t * 0.9 + ph; beam.rotation.z *= 0.9; beam.scale.set(1, 1, 1); }
+        } else { beam.rotation.y = extra.beamFixed ? ph : t * 0.9 + ph; beam.rotation.z *= 0.9; beam.scale.set(1, 1, 1); }
       });
     }
   }
   setLit(on) {
+    if (this.alwaysLit) on = true;   // the Keepers' Ledger lamp is lit at noon
     this.lit = on;
     if (this.lampOn) this.lampOn.visible = on;
     if (this.lampOff) this.lampOff.visible = !on;
@@ -1452,7 +1473,7 @@ export class World {
       } else if (isl.mood !== dark) { isl.mood = dark; isl.setMood(dark); }
     }
   }
-  tick(t, tod) { for (const isl of this.islands.values()) { isl.tod = tod; isl.stare = this.stare; isl.week = this.week; isl.growth = this.growthOf ? this.growthOf(isl.desc.id) : 0; isl.lifeDone = this.lifeDoneOf ? this.lifeDoneOf(isl.desc.id) : false; isl.group.position.y = -this.tide * 0.32; for (const f of isl.anim) f(t, isl); } }   // the sea rises over the beach and falls back
+  tick(t, tod) { for (const isl of this.islands.values()) { isl.tod = tod; isl.stare = this.stare; isl.week = this.week; isl.growth = this.growthOf ? this.growthOf(isl.desc.id) : 0; isl.lifeDone = this.lifeDoneOf ? this.lifeDoneOf(isl.desc.id) : false; isl.tide = this.tide; isl.gctx = this.gctx || {}; isl.group.position.y = -this.tide * 0.32; for (const f of isl.anim) f(t, isl); } }   // the sea rises over the beach and falls back
 
   collide(pos, radius) {
     let hit = false;

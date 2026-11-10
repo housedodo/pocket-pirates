@@ -47,6 +47,13 @@ export function sampleStage(dread) {
   const a = KEYS[i], b = KEYS[i + 1];
   for (const c of COLS) stage[c].copy(a[c]).lerp(b[c], t);
   for (const n of NUMS) stage[n] = lerp(a[n], b[n], t);
+  // the ceiling comes down (docs/ART_SPEC.md 5.2): across 0.58-0.66 the fog closes on an eased curve instead of the straight line.
+  // Both ends keep the straight-line values, so no readability budget moves; only the shape between them.
+  if (dread > 0.58 && dread < 0.66) {
+    const at = (dd, n) => { const ff = dd * (KEYS.length - 1), ii = Math.min(KEYS.length - 2, Math.floor(ff)), tt = ff - ii; return lerp(KEYS[ii][n], KEYS[ii + 1][n], tt); };
+    const e = (dread - 0.58) / 0.08, k = e * e * (3 - 2 * e);
+    for (const n of ['fogNear', 'fogFar']) stage[n] = lerp(at(0.58, n), at(0.66, n), k);
+  }
   stage.dread = dread;
   stage.index = Math.min(4, Math.floor(dread * 5));
   return stage;

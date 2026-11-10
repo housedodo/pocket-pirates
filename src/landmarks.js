@@ -9,6 +9,7 @@
 import * as THREE from 'three';
 import { TILE } from './textures.js';
 import { smoothstep } from './util.js';
+import { mats } from './psx.js';
 
 export const LANDMARKS = [
   { lm: 'crag',    key: '3,1',   name: 'The Grey Tooth',   type: 'rocky',   x: 280,  z: 100,  r: 15, H: 15, sight: 'a bare grey rock' },
@@ -27,7 +28,7 @@ export const LANDMARKS = [
   { lm: 'archive', key: '-1,-9', name: "The Governor's Fort", type: 'rocky', x: -139, z: -990, r: 16, H: 10, sight: 'a pale fort with one lit window' },
   { lm: 'press', key: '-9,2', name: 'The Oil Press', type: 'rocky', x: -1014, z: 272, r: 14, H: 6, sight: 'a fat chimney and a steady glow' },
   { lm: 'wreck', key: '2,10', name: "The Throwers' Wreck", type: 'sandbar', x: 200, z: 1133, r: 10, H: 0.5, sight: 'a broken hull and a mast with a rag' },
-  { lm: 'ledger', key: '-12,-3', name: "The Keepers' Ledger", type: 'rocky', x: -1320, z: -281, r: 10, H: 4, sight: 'a lighthouse lit at noon' },
+  { lm: 'ledger', key: '-12,-4', name: "The Keepers' Ledger", type: 'rocky', x: -1284, z: -417, r: 10, H: 4, sight: 'a lighthouse lit at noon' },
   { lm: 'tower', key: '-13,-7', name: 'The Dark Tower', type: 'rocky', x: -1377, z: -732, r: 8, H: 12, sight: 'a black tower' },
   { lm: 'street', key: '5,7', name: 'The Sunken Street', type: 'sandbar', x: 516, z: 737, r: 14, H: 0.4, sight: 'roof peaks', dread: 0.74 },
   { lm: 'table', key: '13,-18', name: 'The Table by the Water', type: 'sandbar', x: 1377, z: -1966, r: 12, H: 0.8, sight: 'a table at the water\'s edge', dread: 1 },
@@ -108,7 +109,10 @@ export function lmColor(d, hc, slope, noise) {
 
 const GREENS = ['#2f6a2c', '#3c7a32', '#286028', '#4a8a3a', '#1f5a2a'];
 /** props of a landmark. A = always, B = bright mood, D = dark mood (only used sparingly), h = world.js helpers */
+/** the dark-mood ground colour of each hand-made place (docs/ART_SPEC.md 6): stone goes violet-grey, greens go yellow-grey, bone and bleach */
+export const LM_DARK = { crag: '#5a5262', bell: '#4a4a52', grove: '#4a5a40', keeper: '#8a8478', ribs: '#d8d0c0', lagoon: '#a89aa8', broken: '#8a7e78', namewall: '#e4dcc4', archive: '#c8c2b4', tower: '#0e0c12' };
 export function lmDecor(d, rng, A, B, D, extra, h) {
+  const mk = () => new A.constructor(), st = (b, when, mat) => (extra.states = extra.states || []).push({ b, when, mat });   // state props (world.js Island)
   const at = (x, z) => h.terrainHeight(d, x, z);
   const P = (th, t) => { const R = h.shoreR(d, th) * t, x = Math.cos(th) * R, z = Math.sin(th) * R; return [x, at(x, z), z]; };
   switch (d.lm) {
@@ -269,70 +273,112 @@ export function lmDecor(d, rng, A, B, D, extra, h) {
       h.palm(A, B, D, chx + 0.5, 3.4, chz, rng, 1.0);
       break;
     }
-    // ---- the places of the exploration story (docs/WORLD_REDESIGN.md 5.6): small, quiet, each with one thing to read
-    case 'customs': {   // a long grey pier with a flag and a hut at its end, a ledger desk with two cups
+    // ---- the places of the exploration story (docs/WORLD_REDESIGN.md 5.6) in their art (docs/ART_SPEC.md 6).
+    // Props that depend on the sea or the story are `states` (built once, shown when `when(isl)` says so).
+    case 'customs': {   // a long grey pier, a white-grey hut roof, a flag on a 5-high pole, a ledger desk; one steady lamp at the pier end by night
       for (let i = 0; i < 12; i++) A.box(-8 + i * 1.6, 0.5, 0, 1.5, 0.18, 1.8, '#7a7a78', TILE.planks);
-      A.box(9, 0.6, 0, 2.2, 1.8, 2.0, '#9a9a96', TILE.wall); A.box(9, 2.4, 0, 2.6, 0.2, 2.4, '#4a4a50', TILE.roof);
-      A.cyl(-8.5, 0.4, 0.9, 0.08, 0.08, 4, 6, '#6a4a30', TILE.bark); A.box(-8.1, 4, 0.9, 1.2, 0.7, 0.05, '#4a6ac0', TILE.flag);
-      A.box(6, 0.7, 1.1, 1.2, 0.5, 0.7, '#8a6a48', TILE.planks);
+      A.box(9, 0.6, 0, 2.2, 1.8, 2.0, '#9a9a96', TILE.wall); A.box(9, 2.4, 0, 2.6, 0.25, 2.4, '#d8d8d4', TILE.roof);
+      A.cyl(-8.5, 0.4, 0.9, 0.09, 0.09, 5, 6, '#6a4a30', TILE.bark); A.box(-8.1, 4.8, 0.9, 1.4, 0.8, 0.05, '#4a6ac0', TILE.flag, TILE.flag, '#3a3a48');
+      A.box(6, 0.7, 1.1, 1.2, 0.5, 0.7, '#8a6a48', TILE.planks); A.cyl(5.8, 1.2, 1.1, 0.14, 0.12, 0.14, 6, '#f0ece4', TILE.white); A.cyl(6.3, 1.2, 1.1, 0.14, 0.12, 0.14, 6, '#f0ece4', TILE.white);
+      A.cyl(-9.4, 0.4, 0, 0.07, 0.07, 2.6, 4, '#4a4a50', TILE.stone);
+      const L = mk(); L.cyl(-9.4, 3.0, 0, 0.35, 0.35, 0.5, 6, '#ffd060', TILE.glow, false); st(L, (i) => i.tod && i.tod.night > 0.45);
       break;
     }
-    case 'teo': case 'ilse': {   // a sandbar and a rock with one person and one fire each
-      const p = P(1.0, 0.3); h.person(A, p[0], p[1], p[2], rng, lmName(d) === 'teo' ? '#8a4a2a' : '#3a4a6a');
-      A.blob(p[0] + 1.4, p[1], p[2], 0.5, 0.25, 0.5, '#e87a2a', TILE.glow, 0.2, 3);
+    case 'teo': case 'ilse': {   // a person and a fire each; the fire (1.6 high, flickering) burns only on a calm night, and the two mirror each other
+      const teo = d.lm === 'teo', p = P(1.0, 0.3);
+      h.person(A, p[0], p[1], p[2], rng, teo ? '#8a4a2a' : '#3a4a6a');
+      A.blob(p[0] + 1.4, p[1], p[2], 0.5, 0.18, 0.5, '#3a3430', TILE.stone, 0.2, 3);   // cold logs by day
+      if (!teo) { A.cyl(p[0] - 1.6, p[1], p[2], 0.07, 0.07, 3.5, 4, '#5a4636', TILE.bark); A.box(p[0] - 1.6, p[1] + 0.5, p[2] + 0.5, 0.7, 0.08, 0.5, '#6a4a30', TILE.planks); }   // her lamp pole and stool
+      const F = mk();
+      for (let k = 0; k < 3; k++) F.blob(p[0] + 1.4, p[1] + 0.35 + k * 0.5, p[2], 0.55 - k * 0.12, 0.4, 0.55 - k * 0.12, k ? '#ffd060' : '#ff9a30', TILE.glow, 0.15, k + 1);
+      if (!teo) F.cyl(p[0] - 1.6, p[1] + 3.5, p[2], 0.3, 0.3, 0.4, 6, '#ffd060', TILE.glow, false);
+      st(F, (i) => i.tod && i.tod.night > 0.45 && i.gctx.calm);
       break;
     }
-    case 'cup': {   // a table laid for two on the sand, a lamp, two cups
+    case 'cup': {   // a table laid for two, a cloth on a 3.5 pole to find it by; at high water a pale bar leads in, at low water black reef lies between
       const p = P(0.4, 0.2);
       A.box(p[0], p[1] + 0.8, p[2], 1.6, 0.08, 1.0, '#f4efe4', TILE.white); A.box(p[0], p[1], p[2], 0.12, 0.8, 0.12, '#6a4a30');
       A.cyl(p[0] - 0.4, p[1] + 0.88, p[2], 0.14, 0.12, 0.14, 6, '#f0ece4', TILE.white); A.cyl(p[0] + 0.4, p[1] + 0.88, p[2], 0.14, 0.12, 0.14, 6, '#f0ece4', TILE.white);
-      A.cyl(p[0], p[1] + 0.88, p[2] + 0.3, 0.07, 0.09, 0.3, 6, '#e8d070', TILE.glow);
+      A.cyl(p[0] + 1.3, p[1], p[2], 0.07, 0.07, 3.5, 4, '#6a4a30', TILE.bark); A.box(p[0] + 1.3, p[1] + 3.2, p[2], 1.1, 0.6, 0.05, '#f4efe4', TILE.sail);
+      const hi = mk(); hi.box(-8, 0.1, 0, 10, 0.25, 3.2, '#f0e4c0', TILE.sand); st(hi, (i) => i.tide > 0.25);
+      const lo = mk(); for (let k = 0; k < 6; k++) lo.blob(-6 - k * 1.6, 0.0, (k % 2 ? 1 : -1) * 1.8, 1.0, 0.45, 0.8, '#3a3236', TILE.stone, 0.3, k); st(lo, (i) => i.tide <= 0.25);
+      const lamp = mk(); lamp.cyl(p[0], p[1] + 0.88, p[2] + 0.3, 0.07, 0.09, 0.3, 6, '#ffd060', TILE.glow); st(lamp, (i) => i.tod && i.tod.night > 0.45);
+      const grey = mk(); grey.cyl(p[0] + 0.4, p[1] + 0.9, p[2], 0.17, 0.14, 0.16, 6, '#c8b890', TILE.sand); st(grey, (i) => i.gctx.seen && i.gctx.seen['CL-F3-a'] !== undefined);   // the second cup goes the colour of the sand
       break;
     }
-    case 'hammock': {   // palms with hammocks strung between them, a sleeper in each
+    case 'hammock': {   // palms with hammocks strung between them, every one at the same height and tilt: only the cloth differs
       for (let i = 0; i < 6; i++) { const q = h.spot(d, rng, 0.2, 0.8, 0.9); if (!q) continue; h.palm(A, B, D, q[0], q[1], q[2], rng, 1.0);
-        A.box(q[0] + 1.6, q[1] + 1.4, q[2], 3, 0.1, 0.7, ['#c85a4a', '#d8b050', '#5a8ac0'][i % 3], TILE.sail); }
+        A.push(q[0] + 1.6, q[1] + 1.4, q[2], 0, 1, 1, 1, 0, 0.12); A.box(0, 0, 0, 3, 0.1, 0.7, ['#c85a4a', '#d8b050', '#5a8ac0'][i % 3], TILE.sail); A.pop(); }
       break;
     }
-    case 'namewall': {   // a white cliff covered in tiny black marks
-      A.box(0, 0, 0, 14, d.H, 3, '#e8e4dc', TILE.white);
-      for (let i = 0; i < 60; i++) A.box(-6.5 + (i % 15) * 0.9, 1 + Math.floor(i / 15) * 3, 1.55, 0.5, 0.18, 0.04, '#1a1a1e', TILE.stone);
+    case 'namewall': {   // a white cliff, its top edge stepped in three ledges, the marks too small to read; the top row is a glossier black
+      A.box(0, 0, 0, 14, d.H - 2, 3, '#e8e4dc', TILE.white);
+      A.box(0, d.H - 2, 0, 12, 0.7, 2.6, '#e8e4dc', TILE.white); A.box(0.5, d.H - 1.3, 0, 9, 0.7, 2.2, '#e8e4dc', TILE.white); A.box(1, d.H - 0.6, 0, 6, 0.6, 1.8, '#e8e4dc', TILE.white);
+      for (let i = 0; i < 60; i++) { const row = Math.floor(i / 15); A.box(-6.5 + (i % 15) * 0.9, 1 + row * 2.6, 1.55, 0.45, 0.18, 0.04, row === 3 ? '#050508' : '#26262c', TILE.stone); }
+      for (let n = 1; n <= 3; n++) { const W = mk(); for (let k = 0; k < 15; k += 2) W.box(-6.5 + k * 0.9, 1 + (3 - n) * 2.6 - 1.3, 1.56, 0.5, 0.2, 0.04, '#0a0a0e', TILE.stone); st(W, (i) => i.gctx.lvl && i.gctx.lvl[2] >= n); }   // the wet rows creep as the question rises
       break;
     }
-    case 'archive': {   // a pale stone fort with one lit window
+    case 'archive': {   // a pale fort with a flag pole, one lit window (1.6 x 1.8) among dark slits; a second window lights as the question rises
       A.box(0, 0, 0, 9, 7, 7, '#d8d2c4', TILE.wall); A.box(0, 7, 0, 10, 0.5, 8, '#8a8680', TILE.stone);
-      A.box(0, 3.5, 3.55, 1.0, 1.4, 0.1, '#f0d070', TILE.glow);
+      A.box(-2.2, 3.4, 3.55, 1.6, 1.8, 0.1, '#f0d070', TILE.glow);
+      for (let k = 0; k < 3; k++) A.box(0.4 + k * 1.9, 3.4, 3.55, 0.7, 1.4, 0.1, '#2a2630', TILE.stone);
+      A.cyl(3.2, 7.5, 0, 0.1, 0.1, 5, 6, '#6a4a30', TILE.bark); A.box(3.9, 11.6, 0, 1.4, 0.8, 0.05, '#4a6ac0', TILE.flag);
+      const W2 = mk(); W2.box(2.3, 3.4, 3.56, 1.6, 1.8, 0.1, '#f0d070', TILE.glow); st(W2, (i) => i.gctx.lvl && i.gctx.lvl[3] >= 2);
       break;
     }
-    case 'press': {   // a fat brick chimney with a steady blue glow
-      h.lighthouse(A, extra, 0, 0, 0, 0.9, d, 'brick');
-      A.cyl(2.5, 0.2, 1, 0.5, 0.5, 0.3, 6, '#4a7ad8', TILE.glow);
+    case 'press': {   // a fat, short brick chimney (not a lighthouse), one steady plume, a steady blue lamp 1.6 high, two seaward doors once the clue is seen
+      A.cyl(0, 0, 0, 2.6, 1.9, 7, 8, '#a0583c', TILE.wall, false); A.cyl(0, 7, 0, 2.2, 2.2, 0.5, 8, '#3a2a26', TILE.stone);
+      for (let k = 0; k < 3; k++) A.blob(0.3 * k, 8.4 + k * 1.3, 0, 1.0 + k * 0.3, 0.7, 1.0 + k * 0.3, '#b8b4b0', TILE.white, 0.2, k);
+      A.box(3.6, 0, 1, 3.4, 2.2, 3.0, '#d8c8a8', TILE.wall); A.gable(3.6, 2.2, 1, 3.8, 1.2, 3.4, '#a8382c', TILE.roof, '#d8c8a8');
+      A.box(0, 0.2, 2.3, 0.9, 1.4, 0.15, '#241c20', TILE.stone);
+      const Lm = mk(); Lm.box(-3.4, 0.3, 0.5, 0.9, 1.6, 0.9, '#2a5a9a', TILE.white); st(Lm, () => true, mats.glow);   // additive, so the night does not dim it
+      const Dr = mk(); Dr.box(-1.2, 0, 2.5, 0.9, 1.5, 0.12, '#241c20', TILE.stone); Dr.box(1.4, 0, 2.5, 0.9, 1.5, 0.12, '#241c20', TILE.stone); st(Dr, (i) => i.gctx.seen && i.gctx.seen['CL-L1-a'] !== undefined);
       break;
     }
-    case 'wreck': {   // a broken hull, a mast with a rag
-      A.push(0, -0.2, 0, 0.5, 1, 1, 1, 0.3, 0.1); A.box(0, 0.8, 0, 7, 1.6, 2.4, '#5a4636', TILE.planks); A.pop();
-      A.cyl(1.5, 0, 0, 0.12, 0.16, 6, 6, '#4a3626', TILE.bark); A.box(2.1, 5, 0, 1.2, 0.8, 0.05, '#b04a4a', TILE.sail);
+    case 'wreck': {   // a broken hull: at low water the deck stands bare, at high water it is awash; a mast with a rag to 7
+      A.cyl(1.5, 0, 0, 0.12, 0.16, 7, 6, '#4a3626', TILE.bark); A.box(2.2, 6, 0, 1.3, 0.8, 0.05, '#b04a4a', TILE.sail);
+      const lo = mk(); lo.push(0, -0.2, 0, 0.5, 1, 1, 1, 0.3, 0.1); lo.box(0, 0.9, 0, 7, 1.7, 2.4, '#5a4636', TILE.planks); lo.pop(); st(lo, (i) => i.tide < -0.3);
+      const hi = mk(); hi.push(0, -0.9, 0, 0.5, 1, 1, 1, 0.3, 0.1); hi.box(0, 0.9, 0, 7, 1.7, 2.4, '#2a2e2c', TILE.planks); hi.pop(); st(hi, (i) => i.tide >= -0.3);
       break;
     }
-    case 'ledger': {   // a lighthouse lit at noon, a window with a ledger
-      h.lighthouse(A, extra, 0, 0, 0, 1.0, d, 'brick');
+    case 'ledger': {   // a white and black banded lighthouse, lit by day as well as night, its beam fixed: it never turns
+      h.lighthouse(A, extra, 0, 0, 0, 1.0, d, 'slim'); extra.alwaysLit = true; extra.beamFixed = true;
       break;
     }
-    case 'tower': {   // a black tower
-      A.cyl(0, 0, 0, 2.2, 3.0, d.H, 8, '#18161c', TILE.stone, true, '#2a2830');
-      A.box(0, d.H * 0.6, 2.35, 0.7, 1.0, 0.1, '#0a0a0e', TILE.void);
+    case 'tower': {   // a black tapered tower, a slit that glows only when the door is open (calm night), a second slit above it in the dark, one pale shaft
+      A.cyl(0, 0, 0, 3.0, 1.5, d.H, 8, '#18161c', TILE.stone, true, '#2a2830');
+      A.box(0, d.H * 0.55, 1.9, 0.5, 1.2, 0.1, '#0a0a0e', TILE.void); A.box(0, 0.2, 3.1, 1.0, 1.6, 0.2, '#0a0a0e', TILE.void);
+      D.box(0, d.H * 0.8, 1.6, 0.4, 1.0, 0.1, '#0a0a0e', TILE.void);
+      const G = mk(); G.box(0, d.H * 0.55, 1.95, 0.5, 1.2, 0.1, '#e8f060', TILE.glow); st(G, (i) => i.tod && i.tod.night > 0.45 && i.gctx.calm);
+      const R = mk(); R.push(0, d.H * 0.55, 2.2, 0, 1, 1, 1, -1.25, 0); R.cyl(0, 0, 0, 0.15, 1.7, 14, 6, '#1c2810', TILE.white, false); R.pop(); st(R, (i) => i.tod && i.tod.night > 0.45 && i.gctx.calm, mats.glow);   // a pale shaft down into the sea
+      const Dl = mk(); Dl.box(0, 0.2, 3.15, 1.0, 1.6, 0.2, '#3a3a42', TILE.stone); st(Dl, (i) => i.gctx.seen && i.gctx.seen['CL-L3-a'] !== undefined && i.tod && i.tod.night > 0.45);
       break;
     }
-    case 'street': {   // roof peaks just under and just over the water
-      for (let i = 0; i < 9; i++) { const th = i * 0.7, R = 4 + (i % 3) * 3.5; A.push(Math.cos(th) * R, -0.5 + (i % 2) * 0.7, Math.sin(th) * R, th, 1, 1, 1, 0.1, 0); A.box(0, 0, 0, 3, 0.2, 2, '#7a3a2a', TILE.roof); A.pop(); }
+    case 'street': {   // gabled roofs aligned radially at and just under the water; at high water most are gone, a blue door shows only at the lowest water
+      for (let i = 0; i < 9; i++) {
+        const th = i * 0.7, R = 4 + (i % 3) * 3.5, x = Math.cos(th) * R, z = Math.sin(th) * R, hold = i % 5 < 2;
+        const B2 = hold ? A : mk();
+        B2.push(x, -0.3 + (i % 2) * 0.5, z, -th + 1.57); B2.gable(0, 0, 0, 3, 1.1, 2, '#7a3a2a', TILE.roof, '#5a2a20');
+        if (i % 3 === 0) B2.box(0.8, 0.8, 0.3, 0.4, 0.8, 0.4, '#6a5a50', TILE.stone);
+        if (i === 1 || i === 5) B2.box(0, 0.2, 1.05, 0.5, 0.5, 0.06, '#ffd060', TILE.glow);
+        B2.pop();
+        if (!hold) st(B2, (isl) => isl.tide < 0.0);
+      }
+      const Dr = mk(); Dr.box(5.2, 0.2, 0.1, 0.5, 0.9, 0.08, '#2a4a9a', TILE.planks);
+      st(Dr, (i) => i.gctx.seen && i.gctx.seen['CL-D1-a'] !== undefined && i.tide < -0.55 && Math.hypot(i.gctx.ship.x - d.x, i.gctx.ship.z - d.z) < 40);
       break;
     }
-    case 'table': {   // a table at the water's edge: one chair on this side, one on the other
-      const p = P(0.0, 0.7);
-      A.box(p[0], p[1] + 0.9, p[2], 2.2, 0.1, 1.4, '#e8e2d4', TILE.white); A.box(p[0], p[1], p[2], 0.14, 0.9, 0.14, '#4a3a2a');
-      A.box(p[0] - 1.6, p[1] + 0.5, p[2], 0.7, 0.08, 0.7, '#4a3a2a'); A.box(p[0] + 1.6, p[1] + 0.5, p[2], 0.7, 0.08, 0.7, '#4a3a2a');
+    case 'table': {   // the table at the water's edge: it exists only once three questions have reached a second look. Chairs lean towards each other; the far seat is wet-black
+      const p = P(0.0, 0.7), T = mk();
+      T.box(p[0], p[1] + 0.9, p[2], 3.5, 0.1, 1.6, '#e8e2d4', TILE.white); T.box(p[0], p[1], p[2], 0.14, 0.9, 0.14, '#4a3a2a');
+      T.push(p[0] - 2.1, p[1], p[2], 0, 1, 1, 1, 0, -0.1); T.box(0, 0.5, 0, 0.7, 0.08, 0.7, '#e0d8c8', TILE.white); T.box(-0.3, 0.5, 0, 0.08, 0.9, 0.7, '#e0d8c8', TILE.white); T.pop();
+      T.push(p[0] + 2.1, p[1], p[2], 0, 1, 1, 1, 0, 0.1); T.box(0, 0.5, 0, 0.7, 0.08, 0.7, '#1c1214', TILE.stone); T.box(0.3, 0.5, 0, 0.08, 0.9, 0.7, '#e0d8c8', TILE.white); T.pop();
+      st(T, (i) => !!i.gctx.d3);
+      const Gp = mk(); Gp.cyl(p[0], p[1] + 0.05, p[2], 4.5, 4.5, 0.02, 10, '#3a1030', TILE.white, false); st(Gp, (i) => !!i.gctx.d3, mats.glow);   // a pale pool of light on the water
       break;
     }
+    // ---- the gates read as blockers before they block, and differently once open (R1, R2)
   }
+  if (d.lm === 'ribs') { const S = mk(); for (let k = 0; k < 16; k++) { const th = (k / 16) * 6.28, R = 19 + (k % 3); S.box(Math.cos(th) * R, 0.15, Math.sin(th) * R, 2.4, 0.12, 0.5, '#f4f8fa', TILE.white); } st(S, (i) => ((i.gctx.up && i.gctx.up.hull) || 0) < 2); }   // more surf while the hull cannot take it
+  if (d.lm === 'lagoon') { const S = mk(); for (const k of [0, 1, 18, 19, 36, 37, 54, 55, 72, 73]) { const th = (k / 90) * 6.28, R = 40 + Math.sin(k * 0.9) * 2.5; S.blob(Math.cos(th) * R, -0.1, Math.sin(th) * R, 1.3, 0.55, 1.1, '#3a3236', TILE.stone, 0.3, k); } st(S, (i) => ((i.gctx.up && i.gctx.up.rudder) || 0) < 2); }   // the gaps close while the rudder cannot thread them
 }
-const lmName = (d) => d.lm;

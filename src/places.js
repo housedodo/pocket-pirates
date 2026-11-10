@@ -186,9 +186,10 @@ export class Places {
   }
 
   /** labels over far landmarks: '?' by eye, what it looks like through a spyglass, its name once you have been */
-  labelsTick(camera, ship, spy, discovered, W, H, show) {
+  labelsTick(camera, ship, spy, discovered, W, H, show, ctx = {}) {   // ctx: { fogFar, d3 } (docs/ART_SPEC.md R14, 8.2)
     const range = 170 + 110 * spy, v = new THREE.Vector3();
     for (const l of LANDMARKS) {
+      if (l.lm === 'table' && !ctx.d3) { const e = this.labels.get(l.lm); if (e) e.style.display = 'none'; continue; }   // the table has no label until it exists
       let el = this.labels.get(l.lm);
       const d = Math.hypot(l.x - ship.pos.x, l.z - ship.pos.z);
       const known = discovered[l.key];
@@ -200,7 +201,7 @@ export class Places {
       el.textContent = known ? known.name : spy > 0 ? l.sight : '?';
       el.style.display = 'block';
       el.style.left = `${((v.x + 1) / 2) * W}px`; el.style.top = `${((1 - v.y) / 2) * H}px`;
-      el.style.opacity = String(clamp((range - d) / 60, 0, 1) * 0.85);
+      el.style.opacity = String(clamp((range - d) / 60, 0, 1) * 0.85 * (ctx.fogFar ? 1 - smoothstep(ctx.fogFar * 0.6, ctx.fogFar * 0.85, d) : 1));   // labels fade with the fog
     }
   }
 }

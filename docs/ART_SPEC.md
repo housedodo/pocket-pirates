@@ -1,6 +1,6 @@
 # Environmental art and visual specification: the islands
 
-Status: specification (no `src/` change yet). Area: design. Builds on `docs/STYLE.md` (the look), `docs/WORLD_REDESIGN.md` (strata, gates, clue ledger, tide/night rules: **nothing here may change them**). Authors: an aesthetics pass and an independent readability/rules audit, reconciled in section 8.
+Status: specification, **partly built** (section 11). Area: design. Builds on `docs/STYLE.md` (the look), `docs/WORLD_REDESIGN.md` (strata, gates, clue ledger, tide/night rules: **nothing here may change them**). Authors: an aesthetics pass and an independent readability/rules audit, reconciled in section 8.
 
 Medium (fixed): everything procedural, the same chunky kit (Builder primitives, 4x4 atlas, vertex colours with a dark set `colorB`, glow texels, Bayer dither, vertex snap). "Biomechanical, Beksinski, Giger" is translated into that kit: silhouette, repetition, bone/rib/pipe forms, erosion, wet black lower thirds. It is never a different art style.
 
@@ -224,3 +224,14 @@ Setup: Chromium `/opt/pw-browsers/chromium`, swiftshader, URL `autostart=1&fresh
 4. Progression cues (hooked by gameplay to `state.story.seen`), Table visible only after `d3Open`, far-label fog fade.
 5. Mist rings and god-ray cones for S3+, S5 pool discs.
 6. Run V1-V17; then add a short "Biomechanical zones" pointer in `docs/STYLE.md` (done now) and move the section into STYLE.md proper when built.
+
+## 11. Build status (2026-11-10)
+
+Built and checked in headless screenshots (no console errors):
+- `world.js`: per-island **state props** (`extra.states`, shown by `when(isl)` from tide, night, calm, upgrades, clues seen, `d3Open`; `World.gctx` set each frame by `main.js`), `KIND_DARK` and `LM_DARK` ground colours (the dark set tires S0-S2 islands with no new triangles), sea-mist ring round S3+ places (`mistMat`, fog-coloured), lit-by-day lamp (`alwaysLit`) and fixed beam (`beamFixed`).
+- `palette.js`: the S3/S4 fog ramp on an eased curve across dread 0.58-0.66 (end values unchanged, no new key).
+- `landmarks.js`: Customs Pier (flag pole 5, white roof, pier-end night lamp), Teo and Ilse (taller fires that burn only on a calm night, her lamp pole), the Cup (pole and cloth; pale bar at high water, reef at low; second cup greys once seen), Hammock Isle (same height and tilt), Name Wall (stepped top, glossier top row, wet rows creep by question level), Governor's Fort (bigger window, flag pole, second window at Q4 level 2), Oil Press (fat chimney, no lighthouse, steady additive blue lamp, doors once seen), Throwers' Wreck (awash at high water, bare at low), Keepers' Ledger (white/black banded, lit by day, fixed beam), Dark Tower (tapered, slit and shaft only on calm night, second slit in the dark set), Sunken Street (gables, 60% hidden at high water, blue door at lowest water within 40 units once seen), the Table (appears only after `d3Open`, leaning chairs, glow pool), gate states for Ribs (more surf while Hull<2) and Glass Lagoon (gaps closed while Rudder<2).
+- `places.js` `labelsTick`: Table label hidden until `d3Open`, labels fade with the fog (the function is not called by `main.js` yet).
+- Fix found on the way: the Keepers' Ledger moved to r1350 / 198 deg because it stood inside the Halved Isle's fog dome.
+
+Not built: the magenta/spine vocabulary for S4-S5 places (D-builder ribs, vertebrae, sockets), god-ray cones beyond the Tower's shaft, per-stratum tints, wrongness details for crag/bell/grove/keeper/broken/ribs/lagoon beyond their colours, Halved Isle night edge, the checks V1-V17 as scripts (only ad-hoc screenshots so far), a `STYLE.md` rewrite.

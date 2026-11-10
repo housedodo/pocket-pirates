@@ -846,3 +846,4 @@ up; the chosen one (D) is built in the game's own style:
 
 ## Island art specification (2026-11-10)
 - `docs/ART_SPEC.md`: zone themes and palettes, 20 per-place specs, formation vocabulary, budgets, readability rules and a 17-check validation list. Specification only; no `src/` change. Gameplay hooks needed: far-label fog fade, Table hidden until `d3Open`, progression cues from `state.story.seen`.
+- Art spec built in part: state props (tide/night/calm/upgrade/clue), `KIND_DARK`/`LM_DARK`, sea mist, fog ramp, 13 places reworked; see ART_SPEC.md section 11.

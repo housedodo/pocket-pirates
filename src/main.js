@@ -4,7 +4,7 @@ import { sampleStage, DARK_THRESHOLD, dreadAtDistance, dreadWithPeak, strataInde
 import { U, initMaterials, mats, PostFX } from './psx.js';
 import { Ocean, WATER, NISL, OCEAN_STYLES, waveHeight } from './ocean.js';
 import { Sky } from './sky.js';
-import { World, villager, VILLAGERS, houseKind, HOUSES, shoreR, lighthouseKind } from './world.js';
+import { World, mistMat, villager, VILLAGERS, houseKind, HOUSES, shoreR, lighthouseKind } from './world.js';
 import { Builder } from './builder.js';
 import { TILE } from './textures.js';
 import { Ship } from './ship.js';
@@ -35,7 +35,7 @@ import { KINDS, boatStatus } from './traffic.js';
 import { Fishing, fishById } from './fishing.js';
 import { Combat } from './combat.js';
 import { bumpSectors } from './sectors.js';
-import { markSeen, isKnown, level as clueLevel } from './clues.js';
+import { markSeen, isKnown, level as clueLevel, levels as clueLevels, d3Open } from './clues.js';
 import { Objectives, MUSINGS, MAIN_GOALS, CHAPTERS, unlocked, gateRadius, chapterOf, goalText, goalCount } from './objectives.js';
 import { GROUPS, DEFAULT_CUSTOM, byId } from './customize.js';
 import { Wind } from './wind.js';
@@ -2238,6 +2238,7 @@ function fogLost(dt) {
   ship.pos.x += out.x * 1.8 * dt; ship.pos.z += out.z * 1.8 * dt;   // and the fog itself lets go of you
 }
 /** clues that are noticed by being somewhere, stopped, at the right time (docs/WORLD_REDESIGN.md 6.2): Tama's noon bells, the Two Players across the water */
+const WHITE_MIST = new THREE.Color('#ffffff');
 let clueDwell = {};
 // the loop seam (docs/WORLD_REDESIGN.md 5.5): the far south-east edge of the Dim meets the far west of the Lid. Sail east far enough and you
 // arrive west, in fog, with the helm gone for a few seconds. And the deep sectors are named again each time you come home from them.
@@ -2528,6 +2529,7 @@ function frame() {
     for (let i = 0; i < NISL; i++) { const n = near[i]; U.uIsl.value[i].set(n ? n[0] : 1e6, n ? n[1] : 1e6, n ? n[2] : 0); }
   }
   world.hutShown = hutReached();   // no hut on its island before the story gets there
+  world.gctx = { calm: weather.calm > 0.5, up: state.upgrades, seen: state.story.seen || {}, lvl: clueLevels(state), d3: d3Open(state), ship: { x: ship.pos.x, z: ship.pos.z } };   // what the places' state props read (ART_SPEC 8)
   world.tick(animT, tod);
   ship.place(vdt, waveT, stage.wave, dark, tod.night);
   secrets.update(vdt, waveT, { ship, time: state.time, dayN: state.dayN, tide: tideAt(), wave: stage.wave, light: Math.min(1, 0.25 + stage.light * 0.9), dread, collected: state.collected, windX: Math.sin(wind.dir), windZ: -Math.cos(wind.dir), heading: ship.heading, fogFar: scene.fog.far });
@@ -2569,6 +2571,7 @@ function frame() {
 
   // ---- global shader state
   scene.fog.color.copy(stage.fog); scene.fog.near = stage.fogNear; scene.fog.far = stage.fogFar;
+  mistMat.color.copy(stage.fog).lerp(WHITE_MIST, 0.25);   // the sea mist round the foot of deep places
   U.uDread.value = dread; U.uTime.value = waveT;
   if (window.__waterLock) { const wl = window.__waterLock; if (wl.t != null) U.uTime.value = Math.floor(wl.t * 12) / 12; if (wl.rough != null) { waterRough = wl.rough; U.uRough.value = WATER.rough = wl.rough; } }   // dev: water previews (docs/concept/water)
   U.uLight.value = stage.light; U.uWave.value = stage.wave; U.uWindDir.value.set(Math.sin(wind.dir), -Math.cos(wind.dir)); U.uRain.value = weather.rain || 0;   // (this sat inside the comment above since 21 Oct: night light and wave height never reached the shaders)
