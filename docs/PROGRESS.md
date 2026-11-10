@@ -840,3 +840,6 @@ up; the chosen one (D) is built in the game's own style:
 - **Standing on the water, upright** (`src/glimpse.js`, `main.js`): the diver no longer leans or stands to the knee. He is completely straight, helmet level, with the soles of his boots on the surface; his height follows the swell (`waveHeight`) while he is there, so he never sinks or hovers. Scale 1.6 (about 13 units tall). The dent, cracked glass, missing pane, bent arm and snapped hose stay.
 - **The diver's face** (`src/faces.js` `someone`, `src/greetings.js`): when he speaks he has a 16x16 portrait like the villagers: a rusted copper helmet, a brass frame with rivets round a cracked dark glass, the left side pane missing, verdigris and orange rust, and the top of a breastplate with bolts. The old black shape with pale eyes is gone. The speaker keeps the id `someone` (so the staring "..." at stage 2 and above and the "One." after a throw of 1 use him) and is now named "A diver on the pier". Per-speaker colour overrides (`pal`) were added to the face painter for his glass and cracks.
 
+
+## World redesign proposal (2026-11-10)
+- `docs/WORLD_REDESIGN.md`: structure-gated strata, tide/night/loop topology, `seen` clue ledger and capabilities. Proposal only, nothing in `src/` changed. Open: Mara canon (forgets vs remembers), Two Players, demo end.
