@@ -133,6 +133,7 @@ export function lmDecor(d, rng, A, B, D, extra, h) {
       A.cyl(-3, -3, 0, 1.6, 1.2, 10.5, 6, '#5e5e64', TILE.stone); A.cyl(3, -3, 0, 1.6, 1.2, 10.5, 6, '#6a6a70', TILE.stone);
       A.box(0, 7.4, 0, 8.6, 2.0, 2.6, '#626268', TILE.stone); A.box(0, 8.5, 0, 6, 0.1, 1.6, '#f2efe6');
       A.pop();
+      B.push(ax, 0, az, ath); for (let k = 0; k < 7; k++) B.blob(-3 + k, 8.75, 0.3, 0.22, 0.26, 0.4, '#f8f6f0', TILE.white, 0.02, k); B.pop();   // gannets in a perfect row on the lintel, all facing the water: in the bright mood only, at dread there are none
       for (let i = 0; i < 8; i++) { const th = rng() * 6.28, R = d.r * (1.05 + rng() * 0.3); A.cyl(Math.cos(th) * R, -1.5, Math.sin(th) * R, 0.8 + rng() * 0.6, 0.6, 2.2 + rng() * 2, 6, '#55555c', TILE.stone); }
       break;
     }
@@ -278,6 +279,7 @@ export function lmDecor(d, rng, A, B, D, extra, h) {
         for (let j = 0; j < 5; j++) D.blob(0, j * 0.6, 0, 0.55 - j * 0.05, 0.22, 0.55 - j * 0.05, j % 2 ? '#6a3a40' : '#8a7e78', TILE.bone, 0.12, j + k);
         D.pop();
       }
+      { const G = mk(); G.cyl(d.halfHouse.x, 0, d.halfHouse.z, 1.6, 0.15, 9, 6, '#1c2810', TILE.white, false); st(G, () => true, mats.glow); }   // one pale green shaft down from the half house's window
       break;
     }
     // ---- the places of the exploration story (docs/WORLD_REDESIGN.md 5.6) in their art (docs/ART_SPEC.md 6).
@@ -362,15 +364,15 @@ export function lmDecor(d, rng, A, B, D, extra, h) {
       break;
     }
     case 'street': {   // gabled roofs aligned radially at and just under the water; at high water most are gone, a blue door shows only at the lowest water
+      const hid = mk();
       for (let i = 0; i < 9; i++) {
-        const th = i * 0.7, R = 4 + (i % 3) * 3.5, x = Math.cos(th) * R, z = Math.sin(th) * R, hold = i % 5 < 2;
-        const B2 = hold ? A : mk();
+        const th = i * 0.7, R = 4 + (i % 3) * 3.5, x = Math.cos(th) * R, z = Math.sin(th) * R, B2 = i % 5 < 2 ? A : hid;
         B2.push(x, -0.3 + (i % 2) * 0.5, z, -th + 1.57); B2.gable(0, 0, 0, 3, 1.1, 2, '#7a3a2a', TILE.roof, '#5a2a20');
         if (i % 3 === 0) B2.box(0.8, 0.8, 0.3, 0.4, 0.8, 0.4, '#6a5a50', TILE.stone);
         if (i === 1 || i === 5) B2.box(0, 0.2, 1.05, 0.5, 0.5, 0.06, '#ffd060', TILE.glow);
         B2.pop();
-        if (!hold) st(B2, (isl) => isl.tide < 0.0);
       }
+      st(hid, (isl) => isl.tide < 0.0);
       const Dr = mk(); Dr.box(5.2, 0.2, 0.1, 0.5, 0.9, 0.08, '#2a4a9a', TILE.planks);
       st(Dr, (i) => i.gctx.seen && i.gctx.seen['CL-D1-a'] !== undefined && i.tide < -0.55 && Math.hypot(i.gctx.ship.x - d.x, i.gctx.ship.z - d.z) < 40);
       break;

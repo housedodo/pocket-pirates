@@ -848,3 +848,4 @@ up; the chosen one (D) is built in the game's own style:
 - `docs/ART_SPEC.md`: zone themes and palettes, 20 per-place specs, formation vocabulary, budgets, readability rules and a 17-check validation list. Specification only; no `src/` change. Gameplay hooks needed: far-label fog fade, Table hidden until `d3Open`, progression cues from `state.story.seen`.
 - Art spec built in part: state props (tide/night/calm/upgrade/clue), `KIND_DARK`/`LM_DARK`, sea mist, fog ramp, 13 places reworked; see ART_SPEC.md section 11.
 - Deep forms built: S4/S5 wild islands grow bone (ribs, spines, throats, arches, sockets, glow pool), Halved Isle spines; see ART_SPEC.md section 11.
+- Art checks: `scripts/art_checks.cjs` (18/18). Far labels now live. Halved Isle shaft, Tooth gannets.

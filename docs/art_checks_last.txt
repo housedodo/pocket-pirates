@@ -1,0 +1,18 @@
+PASS V12 tone lint over visit and clue text 84 strings
+PASS V13 no magenta on hand-made places outside S5 
+PASS V3 teo fire only on a calm night 
+PASS V3 tower slit only on a calm night 
+PASS V3 cup low vs high water 
+PASS V3 wreck awash vs bare 
+PASS V3 street high vs low water 
+PASS V2 lagoon shut vs open 
+PASS V2 ribs shut vs open 
+PASS V14 press doors: geometry changes, no new DOM dom 30->30
+PASS V14 cup greyed: geometry changes, no new DOM dom 30->30
+PASS V14 name wall wet rows: geometry changes, no new DOM dom 30->30
+PASS V14 fort second window: geometry changes, no new DOM dom 30->30
+PASS V5 every place reads >= 4x5 px at 170 units (day, spyglass 0) 
+PASS V15 new places: <= 3500 triangles, <= 9 draw calls (terrain, A, B, D, shallow, foam, mist + state groups) older places (info): crag:2950/5 bell:1697/4 grove:4704/5 keeper:1939/7 ribs:3726/5 lagoon:5364/8 broken:4271/8
+PASS V9 table has no label before d3Open; <= 2 labels []
+PASS V10 seam: fog takes the helm (lostK >= 0.9 within 2.5 s), then west side lostK 0.96 x -1488
+PASS -- console errors during the run 
