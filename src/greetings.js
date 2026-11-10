@@ -151,8 +151,8 @@ const BY_DREAD = [
   ],
   [ // cosmic
     '...you can hear it too, can you not? Under the keel. Humming.',
-    'It is not angry. That is the worst part. It is only very, very patient.',
-    'Welcome home, captain. We saved your seat. It was always your seat.',
+    'Nobody here is angry. Nobody here is in any hurry.',
+    'Welcome back, captain. Your chair is where you left it.',
   ],
 ];
 

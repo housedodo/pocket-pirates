@@ -60,8 +60,8 @@ const GOSSIP = [
   ],
   [ // cosmic
     '...you can hear it too, can you not? Under the keel. Humming.',
-    'It is not angry. That is the worst part. It is only very, very patient.',
-    'Welcome home, captain. We saved your seat. It was always your seat.',
+    'Nobody here is angry. Nobody here is in any hurry.',
+    'Welcome back, captain. Your chair is where you left it.',
   ],
 ];
 export const gossip = (rng, idx, name) => pick(rng, GOSSIP[Math.min(4, idx)]).replace('{name}', name);
@@ -92,7 +92,7 @@ const NOTES = [
     'Please return this bottle. It is my favourite bottle.',
     'The parrot has learned a new word. None of us said it.',
     'Day 30. We have eaten all the biscuits. Morale remains excellent, thanks to the parrot.',
-    'Two white posts stand out in the water near the Tooth. Nobody knows who put them there. Very tidy of whoever it was.',
+    'The Grey Tooth keeps a tin box on its top. Bring a pencil.',
     'If you find this at low tide, look around. The sea is generous when it is out.',
     'To my sister in Velto: I am fine. The captain is a fool. The food is good. Burn this.',
   ],
@@ -111,7 +111,7 @@ const NOTES = [
     'Do not trust the harbour lights after midnight. They know your name already.',
     'The fish have started to look at us. I want to be clear: they are looking at us.',
     'We sank the anchor and it kept going. We cut the rope. It is still going. I can feel it.',
-    'Every harbour has someone watching the water at dusk. They all watch the same way.',
+    'Someone was standing at the end of the pier at dusk again. I did not see them leave.',
   ],
   [ // eerie
     'I have been writing this note for nine days. It is the same note. I think I am the bottle.',
@@ -122,7 +122,7 @@ const NOTES = [
   [ // cosmic
     'y o u  a r e  n e a r l y  h e r e',
     'We are not lost. We have always been exactly here. It was the sea that moved.',
-    'Turn back. Or do not. It has already decided and it is not unkind about it.',
+    'Turn back. Or do not. The water does not mind either way.',
     "d o n ' t  s t o p  r o w i n g",
   ],
 ];

@@ -91,7 +91,7 @@ export function describeCell(cx, cz, seed) {
   if (!forced && type === 'harbour' && !harbourWins(cx, cz, seed)) type = 'jungle';
   const x = forced ? forced.x : cx * CELL + (rng() - 0.5) * 50;
   const z = forced ? forced.z : cz * CELL + (rng() - 0.5) * 50;
-  const dread = dreadAtDistance(Math.hypot(x, z));
+  const dread = forced && forced.dread != null ? forced.dread : dreadAtDistance(Math.hypot(x, z));   // a place can be given its stratum on purpose (a distance lie)
   let r = { sandbar: 6 + rng() * 5, jungle: 15 + rng() * 8, rocky: 11 + rng() * 6, treasure: 15 + rng() * 5, harbour: 22 + rng() * 5 }[type];
   if (forced && forced.r) r = forced.r;
   const H = { sandbar: 0.9, jungle: 4 + rng() * 3, rocky: 6 + rng() * 4, treasure: 3 + rng(), harbour: 1.15 }[type];

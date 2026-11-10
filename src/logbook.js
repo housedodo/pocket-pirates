@@ -6,6 +6,7 @@ import { mulberry32, hash2 } from './util.js';
 import { MAIN_GOALS, SIDE_GOALS, CHAPTERS, goalText, goalCount } from './objectives.js';
 import { FISH, HABITAT } from './fishing.js';
 import { markLines } from './marks.js';
+import { isOpen } from './gates.js';
 import { GROUPS, byId } from './customize.js';
 import { TRAITS } from './tabletop.js';
 import { pxi } from './pixelui.js';
@@ -316,6 +317,9 @@ export class Logbook {
     // letters and bottles first: Perrin's notes are what Mara sends you here for
     let html = h3(`Letters and bottles (${state.notes.length})`);
     html += state.notes.length ? state.notes.slice(-4).reverse().map((n) => `<div class="ent ${n.dark ? 'dk' : ''}"><small>“${n.text}”</small></div>`).join('') : ent('None yet', '', '', 'dim');
+    if (isOpen(state, 'know', 'tally') && state.hut && state.hut.rolls.length) {   // the bells have been counted: the throws, as tick marks
+      html += h3('Counted') + state.hut.rolls.slice(-8).map((r) => ent(`Day ${r.day}`, `${'|||| '.repeat(Math.floor(r.n / 5))}${'|'.repeat(r.n % 5)}`)).join('');
+    }
     html += h3(`Charted (${isl.length})`);
     for (const [t, label] of Object.entries(types)) { const l = isl.filter((i) => i.type === t); if (l.length) html += ent(`${label} · ${l.length}`, l.slice(0, 6).map((i) => i.name).join(', ') + (l.length > 6 ? '…' : '')); }
     if (!isl.length) html += ent('Nothing yet', '', '', 'dim');

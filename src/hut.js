@@ -1,3 +1,4 @@
+import { isKnown } from './clues.js';
 import * as THREE from 'three';
 import { mulberry32 } from './util.js';
 import { sfx } from './sfx.js';
@@ -72,6 +73,10 @@ export class Hut {
     this.txt = document.getElementById('hutTxt');
     this.btn = document.getElementById('hutRoll');
     this.btn.addEventListener('click', () => this.roll());
+    // "Set the die down": once the Throwers' Wreck has been read, one throw can be declined (it costs the day, and the book gets no line)
+    this.setBtn = document.createElement('button'); this.setBtn.id = 'hutSet'; this.setBtn.textContent = 'Set the die down'; this.setBtn.style.display = 'none';
+    this.btn.after(this.setBtn);
+    this.setBtn.addEventListener('click', () => this.setDown());
     document.getElementById('hutLeave').addEventListener('click', () => d.onClose());
     this.renderer = null;
     this.t = 0; this.anim = null;
@@ -107,7 +112,16 @@ export class Hut {
       ? 'A table too big for the hut, one candle, and a chair on the far side, deep in the dark. Something there breathes, slow and patient. A yellowed twenty-sided die waits on the wood.'
       : used ? 'The die is gone from the table. She is writing. Come back tomorrow.' : `The die is already on the table, waiting for you.${this.candles()}`;
     this.btn.disabled = used;
+    const st = this.d.state.story;
+    this.setBtn.style.display = isKnown(this.d.state, 'setdown') && h.rolls.length > 0 && !st.setdownUsed && !used ? '' : 'none';
     this.result = null;
+  }
+  setDown() {
+    const h = this.state, st = this.d.state.story;
+    if (this.anim || h.lastDay === this.d.state.dayN || st.setdownUsed) return;
+    h.lastDay = this.d.state.dayN; st.setdownUsed = true; st.kept = true;   // a day goes by; nothing is written
+    this.btn.disabled = true; this.setBtn.style.display = 'none';
+    this.txt.textContent = 'You set the die down, and leave your hand on it a while. The chair does not move. Nothing is written.';
   }
 
   /** one more candle for every entry in her book; never more than that is said */

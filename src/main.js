@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { clamp, smoothstep, angleDiff, mulberry32, hash2 } from './util.js';
-import { sampleStage, DARK_THRESHOLD, dreadAtDistance } from './palette.js';
+import { sampleStage, DARK_THRESHOLD, dreadAtDistance, dreadWithPeak, strataIndex } from './palette.js';
 import { U, initMaterials, mats, PostFX } from './psx.js';
 import { Ocean, WATER, NISL, OCEAN_STYLES, waveHeight } from './ocean.js';
 import { Sky } from './sky.js';
@@ -34,6 +34,8 @@ import { sectorAt, sectorInfo, sectorCoord, FACTIONS } from './sectors.js';
 import { KINDS, boatStatus } from './traffic.js';
 import { Fishing, fishById } from './fishing.js';
 import { Combat } from './combat.js';
+import { bumpSectors } from './sectors.js';
+import { markSeen, isKnown, level as clueLevel } from './clues.js';
 import { Objectives, MUSINGS, MAIN_GOALS, CHAPTERS, unlocked, gateRadius, chapterOf, goalText, goalCount } from './objectives.js';
 import { GROUPS, DEFAULT_CUSTOM, byId } from './customize.js';
 import { Wind } from './wind.js';
@@ -386,6 +388,8 @@ const isFestival = (d) => d && d.festival === weekday();
 const lifeOn = () => isOpen(state, 'tab', 'tavern');   // harbour life opens with the tavern (chapter III)
 // two tides a day, drifting a little later each day; low tide (below -0.45) uncovers more at wrecks and widens the shallows
 const tideAt = (time = state.time, day = state.dayN) => Math.sin(Math.PI * 2 * (time * 2 + day * 0.07));
+/** is the tide going out right now (the Dim can only be entered on a falling tide) */
+const tideFalls = () => tideAt(state.time + 0.002) < tideAt(state.time);
 const tideWord = () => { const a = tideAt(), b = tideAt(state.time + 0.02); return a < -0.45 ? 'low tide' : a > 0.45 ? 'high tide' : b > a ? 'tide coming in' : 'tide going out'; };
 function dayLine(d) { const ev = isFestival(d) ? 'festival day' : isMarketDay() ? 'market day' : isLanternNight() ? 'lantern night' : ''; return WEEK[weekday()] + (ev ? ` · ${ev}` : '') + ` · ${tideWord()}`; }
 // a harbour grows with your trade there: more boats, then a busier quay, then flags over the pier
@@ -400,7 +404,7 @@ function weekMorning() {   // Mara mentions the day the first couple of times, t
 function growthOf(id) { const r = state.rep[id]; if (!r) return 0; const sc = (r.deliveries || 0) * 2 + (r.visits || 0); return sc >= 20 ? 3 : sc >= 10 ? 2 : sc >= 4 ? 1 : 0; }
 // her last throw colours that day and the next: a kinder sea after a good one, a thicker one after a bad one
 function lastThrow() { const h = state.hut, r = h && h.rolls[h.rolls.length - 1]; return r && state.dayN - r.day <= 1 ? r.n : 0; }
-function dreamShift() { const n = lastThrow(); return !n || n === 10 ? 0 : n === 20 ? -0.3 : n > 10 ? -0.18 : n === 1 ? 0.15 : 0.1; }   // bad throws only shade home a little; the real dark comes late
+function dreamShift() { const n = lastThrow(); const v = !n || n === 10 ? 0 : n === 20 ? -0.3 : n > 10 ? -0.18 : n === 1 ? 0.15 : 0.1; return v > 0 && isKnown(state, 'lamp') ? v * 0.5 : v; }   // the Kestrel's lamp keeps half the dark back   // bad throws only shade home a little; the real dark comes late
 function dreamCost() { const n = lastThrow(); return n && n < 10 ? 1.15 : n >= 17 ? 0.9 : 1; }   // harbours feel it in their prices
 function costMul() {   // today's prices here: the dream, plus a harbour you insulted with a natural 1
   const id = harbourIsl && harbourIsl.desc.id, hg = state.haggle;
@@ -1366,6 +1370,14 @@ function updateTracker() {
 }
 
 // ---------------------------------------------------------------- game state
+/** the dread the captain feels: by distance, but never reset by turning back (peak hysteresis), and a little more at night from the Trade Belt on */
+function felt() {
+  const dist = dreadAtDistance(Math.hypot(ship.pos.x, ship.pos.z));
+  if (window.__BUILD === 'demo') return dist;
+  const st = state.story; if (dist > (st.peakDread || 0)) st.peakDread = dist;
+  const nightK = strataIndex(Math.hypot(ship.pos.x, ship.pos.z)) >= 2 ? 0.05 * clamp(tod.night, 0, 1) : 0;
+  return dreadWithPeak(dist, st.peakDread) + nightK;
+}
 let dread = forced !== null ? forced : dreadAtDistance(Math.hypot(ship.pos.x, ship.pos.z));
 let dark = dread > DARK_THRESHOLD;
 let dig = null;     // { isl, t }
@@ -1588,7 +1600,7 @@ function tryInteract() {
     { const cur = objectives.current;
       if (cur && cur.id === 'harbour' && d.id === '0,-1' && !state.story.letterP1) state.story.letterP1 = 'wait';   // landfall done: the letter is already waiting, before the goal catches up
       if (cur && cur.id === 'perrin' && d.id === '0,-1' && !state.story.perrinNote && !state.story.letterP2) state.story.letterP2 = 'wait';   // the note waits as a letter; the player takes it
-      if (cur && cur.id === 'gossip' && d.id !== '0,-1' && !state.story.hutKnown) { state.story.hutKnown = true; say = { speaker: 'fisher', text: `The black hut? Out past the ${bearingName(world.hutDesc.x - d.x, world.hutDesc.z - d.z)} water. Do not sit down. Whatever she offers, do not sit.`, dark: true, story: true }; } }
+      if (cur && cur.id === 'gossip' && d.id !== '0,-1' && !state.story.hutKnown) { state.story.hutKnown = true; say = { speaker: 'fisher', text: `The black hut? Out past the ${bearingName(world.hutDesc.x - d.x, world.hutDesc.z - d.z)} water. There is a table, they say.`, dark: true, story: true }; } }
     const g = state.greet, h = state.hut, told = state.story.rollSeen || 0, ending = state.story.demoEnd === 'pending', free = g.lastDay !== state.dayN || ending;   // one voice a day, wherever you dock
     if (!say && free && h && h.rolls.length > told) {   // someone already knows the number: always after the first throw, then about half the time
       state.story.rollSeen = h.rolls.length;
@@ -1683,13 +1695,19 @@ function tryInteract() {
   }
 }
 
+/** a clue is seen: one flag, one added line in the log in another hand, and whatever it grants (clues.js). Never a popup. */
+function seeClue(id) {
+  const c = markSeen(state, id); if (!c) return;
+  state.notes.push({ text: c.line, dark: false });
+  if (c.cap === 'streetline') state.story.streetSeen = true;
+}
 // the world's quiet secrets (secrets.js): what is found
 const CAMP_LINES = ['A man with a beard down to his belt. He has been here since before the lighthouse at Tama, he says, and asks for nothing.', 'The fire is warm. Nobody is here. A fish is drying on a stick, half eaten.', 'He is mending a net that will never go in the water. He says the gulls told him you were coming.', 'Nobody. Footprints go down to the water and come back.'];
 function secretFound(sc) {
   const S = state.story.secrets || (state.story.secrets = {});
   if (sc.kind === 'kestrel') {
-    state.collected.add('kestrel'); state.gold += 180; state.loot.push({ name: "The Kestrel's bell", value: 180 }); audio.play('treasure');
-    toast('Down in the green dark: a ship on her side, KESTREL on the stern. Her strongbox comes up, and her bell, still ringing. (+180 gold)', false, 9000);
+    state.collected.add('kestrel'); state.loot.push({ name: "The Kestrel's bell", value: 40 }); audio.play('treasure'); seeClue('CL-K-a');
+    toast("Down in the green dark: a ship on her side, KESTREL on the stern. Her lamp comes up, and her bell, still ringing.", false, 9000);   // a lamp, not gold: it cuts the dark (dreamShift)
     state.notes.push({ text: 'Where the two white posts sat on the Tooth and the Bell: the Kestrel, on the bottom. Her bell still rings.', dark: false });
   } else if (sc.kind === 'tidewreck') {
     state.collected.add(sc.key);
@@ -1702,7 +1720,7 @@ function secretFound(sc) {
     const id = sc.key, n = S[id] = (S[id] || 0) + 1;
     if (n === 1) {   // the first time he draws an island on your chart
       let best = null, bd = 900;
-      for (let dz = -7; dz <= 7; dz++) for (let dx = -7; dx <= 7; dx++) { const o = world.desc(Math.round(sc.m.x / 110) + dx, Math.round(sc.m.z / 110) + dz); if (o && o.puzzle && !state.dug.has(o.id) && !state.riddles[o.id]) { const dd = Math.hypot(o.x - sc.m.x, o.z - sc.m.z); if (dd < bd && dd < gateRadius(state) - 40) { bd = dd; best = o; } } }
+      for (let dz = -7; dz <= 7; dz++) for (let dx = -7; dx <= 7; dx++) { const o = world.desc(Math.round(sc.m.x / 110) + dx, Math.round(sc.m.z / 110) + dz); if (o && o.puzzle && !state.dug.has(o.id) && !state.riddles[o.id]) { const dd = Math.hypot(o.x - sc.m.x, o.z - sc.m.z); if (dd < bd && dd < gateRadius(state, tideFalls()) - 40) { bd = dd; best = o; } } }
       toast(CAMP_LINES[0] + (best ? ' Before you go he scratches an island into your chart with a fish bone.' : ''), false, 9000);
       if (best) { state.discovered[best.id] = state.discovered[best.id] || { name: best.name, type: best.type, x: Math.round(best.x), z: Math.round(best.z) }; giveMap(best.id, 'The man by the fire', true, true); }
       state.notes.push({ text: `Smoke on an empty island: a man who has been there longer than the lighthouse.${best ? ' He drew an island on my chart.' : ''}`, dark: false });
@@ -1725,7 +1743,8 @@ function taleAt(d) {
 function goAshore(tg) {
   const d = tg.isl.desc;
   dig = { key: tg.key, t: 0, label: 'Going ashore...', need: 2.6, done: () => {
-    const r = places.visit(d.lm, state); if (!r) return;
+    const r = places.visit(d.lm, state, { night: tod.night > 0.45, calm: weather.calm > 0.5, tide: tideAt(), mara: true }); if (!r) return;
+    if (r.clue) seeClue(r.clue);   // the ledger takes it; no popup (docs/WORLD_REDESIGN.md 6.7)
     const demo = window.__BUILD === 'demo';
     let text = r.dark && demo ? r.text.split('. ')[0] + '.' : r.text;
     const bits = [];
@@ -1736,6 +1755,7 @@ function goAshore(tg) {
     if (r.chart) { let n = 0; for (const id of r.chart) { const l = LM[id], [cx, cz] = l.key.split(',').map(Number), o = world.desc(cx, cz); if (o && !state.discovered[o.id]) { state.discovered[o.id] = { name: o.name, type: o.type, x: Math.round(o.x), z: Math.round(o.z) }; n++; } } if (n) bits.push(`${n} new ${n === 1 ? 'place' : 'places'} on your chart`); }
     if (r.around) { const n = revealAround(d.x, d.z); if (n) bits.push(`${n} isles charted`); }
     if (d.lm === 'keeper' && oilOn() && state.oil < oilCap(state.upgrades) - 1) { state.oil = oilCap(state.upgrades); bits.push('Wick fills your lamp'); }
+    if (r.oil && oilOn() && state.oil < oilCap(state.upgrades) - 1) { state.oil = oilCap(state.upgrades); bits.push('the lamp is filled'); }
     if (r.note) state.notes.push({ text: r.note, dark: false });
     toast(text + (bits.length ? ` (${bits.join(', ')})` : ''), !!r.dark && !demo, 9000);
     if (r.first) state.stats.places = (state.stats.places || 0) + 1;
@@ -2200,14 +2220,14 @@ $('demoGo').addEventListener('click', () => {
 let gateFog = 0, gateToastT = 0, musingT = 120, gateLost = null, lostK = 0, lostWob = 0;
 /** where the fog leaves no current: 0 in or near any fog (the chapter wall, the fog bank), 1 in clear water */
 function fogEdge(x, z) {
-  const R = gateRadius(state), d = Math.hypot(x, z);
+  const R = gateRadius(state, tideFalls()), d = Math.hypot(x, z);
   let k = R === Infinity ? 1 : 1 - smoothstep(R - 220, R - 120, d);
   const b = LM.broken; if (!places.open('broken', state.upgrades)) k = Math.min(k, smoothstep(110 + 40, 110 + 100, Math.hypot(x - b.x, z - b.z)));
   return k;
 }
 /** lost in fog: you see nothing, the helm does not answer, and the ship wanders but is always drawn back out */
 function fogLost(dt) {
-  const out = gateLost || places.lost;
+  const out = gateLost || places.lost || (seamT > 0 ? { x: 0, z: 0 } : null);
   lostK += ((out ? 1 : 0) - lostK) * Math.min(1, dt * (out ? 1.5 : 0.6));
   if (!out) return;
   lostWob += dt;
@@ -2217,8 +2237,34 @@ function fogLost(dt) {
   ship.speed += (3.2 - ship.speed) * Math.min(1, dt * 0.6);
   ship.pos.x += out.x * 1.8 * dt; ship.pos.z += out.z * 1.8 * dt;   // and the fog itself lets go of you
 }
+/** clues that are noticed by being somewhere, stopped, at the right time (docs/WORLD_REDESIGN.md 6.2): Tama's noon bells, the Two Players across the water */
+let clueDwell = {};
+// the loop seam (docs/WORLD_REDESIGN.md 5.5): the far south-east edge of the Dim meets the far west of the Lid. Sail east far enough and you
+// arrive west, in fog, with the helm gone for a few seconds. And the deep sectors are named again each time you come home from them.
+let seamT = 0, seamDone = true, wasDeep = false;
+function seamTick(dt) {
+  if (window.__BUILD === 'demo') return;
+  const d = Math.hypot(ship.pos.x, ship.pos.z), ang = Math.atan2(ship.pos.z, ship.pos.x) * 180 / Math.PI;
+  if (seamT <= 0 && d > 1925 && d < 2000 && ang > 28 && ang < 52 && (state.story.reach || 0) > 1500) { seamT = 4; seamDone = false; }
+  if (seamT > 0) {
+    seamT -= dt;
+    if (!seamDone && seamT < 2.6) { const a = 220 * Math.PI / 180; ship.pos.x = Math.cos(a) * 1930; ship.pos.z = Math.sin(a) * 1930; seamDone = true; }
+  }
+  if (d > 1250) wasDeep = true;
+  else if (d < 1000 && wasDeep) { wasDeep = false; state.story.epoch = (state.story.epoch || 0) + 1; bumpSectors(state.story.epoch); }
+}
+bumpSectors((state.story && state.story.epoch) || 0);
+function clueTick(dt) {
+  if (!state.story || onbQuiet()) return;
+  const slow = ship.speed < 1.2, hour = state.time * 24;
+  const at = (lm, R) => Math.hypot(ship.pos.x - LM[lm].x, ship.pos.z - LM[lm].z) < R;
+  const dwell = (k, on, T) => { clueDwell[k] = on ? (clueDwell[k] || 0) + dt : 0; return clueDwell[k] >= T; };
+  if (dwell('bells', slow && Math.hypot(ship.pos.x, ship.pos.z) < 150 && hour > 11.8 && hour < 12.4 && state.hut && state.hut.rolls.length > 0, 6)) seeClue('CL-C3-a');
+  if (dwell('players', slow && tod.night > 0.45 && weather.calm > 0.5 && (at('teo', 300) || at('ilse', 300)), 10)) seeClue('CL-F1-a');
+}
 function seaGate(dt) {
-  const R = gateRadius(state), d = Math.hypot(ship.pos.x, ship.pos.z);
+  const R = gateRadius(state, tideFalls()), d = Math.hypot(ship.pos.x, ship.pos.z);
+  if (d < R && d > (state.story.reach || 0)) state.story.reach = d;   // how far you have really sailed: a stratum, once entered, stays open
   setReach(R);
   // an errand or passenger that points beyond the fog (taken before the fog was understood, or from an old save) is released
   for (const [key, label] of [['job', 'The delivery'], ['passenger', 'Your passenger']]) {
@@ -2237,7 +2283,7 @@ function seaGate(dt) {
 // gusts, currents and the barriers round the hand-made places (seaplay.js, places.js)
 let laneShown = null;
 function seaTick(dt, windNow) {
-  const ev = seaplay.update(dt, { ship, wind: windNow, t: abyss.waveTime(Math.floor(animT * 12) / 12), wave: seaWave, night: tod.night, calm: weather.calm > 0.5, on: !onbQuiet() && !ship.rowing && lostK < 0.1, fogEdge, gustLong: life.meal(state) === 'curry' });
+  const ev = seaplay.update(dt, { ship, wind: windNow, t: abyss.waveTime(Math.floor(animT * 12) / 12), wave: seaWave, night: tod.night, calm: weather.calm > 0.5, on: !onbQuiet() && !ship.rowing && lostK < 0.1, slack: window.__BUILD !== 'demo', fogEdge, gustLong: life.meal(state) === 'curry' });
   if (ev.gust && !state.hints.gust) { state.hints.gust = true; toast('Caught a gust! Steer into the dark patches on the water to fill the sails.', false, 5500); }
   if (ev.lane !== laneShown) {
     laneShown = ev.lane;
@@ -2345,7 +2391,7 @@ $('pbHint').addEventListener('click', () => { closeModal(); if (!abyss.maraHint(
 // ---------------------------------------------------------------- captain's log
 const logbook = new Logbook({ abyss, state, world, ship, seed: state.seed, locked: (tab) => !isOpen(state, 'log', tab), toast: (t) => toast(t), close: () => closeModal(), mate: objectives.mate, dread: () => dread, mood: () => maraMood(), tabOpened: (t) => tabOpened(t),
   retrack: () => sea.syncQuests(state.quests.filter((q) => q.id === state.tracked)),
-  gate: () => gateRadius(state), track: () => trackTarget(),
+  gate: () => gateRadius(state, tideFalls()), track: () => trackTarget(),
   skipGoal: () => { const g = objectives.current; if (!g) return; if (g.onDone) g.onDone({ state, world, ship, giveMap, forceCalm: setCalm });
     if (g.id === 'perrin') perrinNote(); if (g.id === 'gossip') { state.story.hutKnown = true; revealHut(); }
     state.goals.i++; const n = objectives.current; if (n && n.onStart) n.onStart({ state }); toast('Goal skipped.'); } });
@@ -2420,7 +2466,7 @@ function frame() {
   if (live && keys.has('KeyR')) pitchT = clamp(pitchT - dt * 0.8, PITCH_MIN, 1.35);
   if (live && keys.has('KeyF')) pitchT = clamp(pitchT + dt * 0.8, 0.3, 1.35);
   if (live || params.get('autostart')) ship.update(dt, shipInput, windNow, tNow);
-  if (live && dt > 0) { stormAndCalm(dt); tabletopTick(dt); seaGate(dt); tackTick(dt); seaTick(dt, windNow); oilTick(dt); sailTick(dt, windNow); fogLost(dt); }
+  if (live && dt > 0) { stormAndCalm(dt); tabletopTick(dt); seaGate(dt); clueTick(dt); seamTick(dt); tackTick(dt); seaTick(dt, windNow); oilTick(dt); sailTick(dt, windNow); fogLost(dt); }
   const solid = [];
   traffic.solids(solid); fauna.solids(solid); sea.solids(solid); sighting.solids(solid); secrets.solids(solid);
   if (world.collide(ship.pos, 2.2) | pushOut(ship.pos, 2.2, solid)) {
@@ -2429,7 +2475,7 @@ function frame() {
   }
 
   // ---- dread + stage palette + time of day
-  const target = forced !== null ? forced : clamp(dreadAtDistance(Math.hypot(ship.pos.x, ship.pos.z)) + (window.__BUILD === 'demo' ? 0 : dreamShift()), 0, 1);
+  const target = forced !== null ? forced : clamp(felt() + (window.__BUILD === 'demo' ? 0 : dreamShift()), 0, 1);
   dread += (target - dread) * Math.min(1, rawDt * (forced !== null ? 1.2 : 0.4));
   if (params.get('shot')) dread = target;
   if (glitchT > 0) { glitchT -= rawDt; dread = 1; if (glitchT <= 0) { dread = preGlitch; hutEl.classList.remove('glitching'); } } // the hut's bad throw
@@ -2695,7 +2741,7 @@ window.__game = { secrets, tideAt: () => tideAt(), lostState: () => ({ lostK, ga
   readArch, partnerOf, maraMood, windfx, logbook,
   life, localGames, openHarbour(id, tab = 'board') { const isl = [...world.islands.values()].find((i) => i.desc.id === id); if (!isl) return false; closeModal(true); harbourIsl = isl; hbTab = tab; frameVillage(isl.desc); openModal('harbour'); return true; }, renderHarbour: () => renderHarbour(),
   audio,
-  objectives, perrinNote, gateRadius: () => gateRadius(state), trackTarget: () => trackTarget(), digGame,
+  objectives, perrinNote, gateRadius: () => gateRadius(state, tideFalls()), trackTarget: () => trackTarget(), digGame,
   openCard, sighting, spawnSight: (id) => { const c = (SIGHTS[id] && drawCard(0, [], { [id]: 1 })); return c && sighting.spawn(c, ship, world); },
   weather,
   setDread(v) { forced = v; dread = v; },

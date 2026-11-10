@@ -842,4 +842,4 @@ up; the chosen one (D) is built in the game's own style:
 
 
 ## World redesign proposal (2026-11-10)
-- `docs/WORLD_REDESIGN.md`: structure-gated strata, tide/night/loop topology, `seen` clue ledger and capabilities. Proposal only, nothing in `src/` changed. Open: Mara canon (forgets vs remembers), Two Players, demo end.
+- `docs/WORLD_REDESIGN.md`: structure-gated strata, tide/night/loop topology, `seen` clue ledger and capabilities. Built in part (strata gates and dread, clue ledger, 13 new places, Slack current, loop seam, tally, set-the-die-down, Kestrel lamp, tone fixes); see section 9 of that file for what is not built. Open: Mara canon (forgets vs remembers), Two Players, demo end.

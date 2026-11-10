@@ -14,11 +14,29 @@ export const FACTIONS = {
   drowned: { id: 'drowned', name: 'The Drowned',      color: '#a050d0', tint: [0.8, 0.7, 1.0],   mood: 0.0,  weights: { fisher: 0.3, merchant: 0.2, schooner: 0.2, galleon: 0.2, canoe: 0.1 } },
 };
 const ORDER = ['crown', 'free', 'reef', 'lantern'];
+// The regions are real wedges round Tama (docs/WORLD_REDESIGN.md 5.4), angle = atan2(z, x) in degrees (north is -90):
+// Crown north, Free Cays east, Reef south-west, Lantern west. Between two wedges the water is mixed: a seeded pick of the two nearest.
+export const WEDGES = [
+  { id: 'crown',   a: -80, half: 20 },
+  { id: 'free',    a: 12,  half: 33 },
+  { id: 'reef',    a: 120, half: 20 },
+  { id: 'lantern', a: 188, half: 28 },
+];
+const angDiff = (a, b) => { let d = (a - b) % 360; if (d > 180) d -= 360; if (d < -180) d += 360; return Math.abs(d); };
+export function wedgeFaction(cx, cz, rng) {
+  const ang = Math.atan2(cz, cx) * 180 / Math.PI;
+  const ranked = WEDGES.map((w) => ({ id: w.id, d: angDiff(ang, w.a) - w.half })).sort((p, q) => p.d - q.d);
+  if (ranked[0].d <= 0) return ranked[0].id;                                                  // inside a wedge
+  return rng() < 0.5 ? ranked[0].id : ranked[1].id;                                           // mixed water between two
+}
 
 export const sectorCoord = (x, z) => [Math.floor((x + SECTOR / 2) / SECTOR), Math.floor((z + SECTOR / 2) / SECTOR)];
 export const sectorCenter = (sx, sz) => [sx * SECTOR, sz * SECTOR];
 
 const cache = new Map();
+/** each time the captain comes home from the deep sea, the deep sectors are named again (", again"): the sea does not keep its names */
+let epoch = 0;
+export function bumpSectors(n) { if (n === epoch) return; epoch = n; cache.clear(); }
 export function sectorInfo(sx, sz, seed) {
   const key = `${sx},${sz},${seed}`;
   if (cache.has(key)) return cache.get(key);
@@ -26,8 +44,8 @@ export function sectorInfo(sx, sz, seed) {
   const [cx, cz] = sectorCenter(sx, sz);
   const dread = dreadAtDistance(Math.hypot(cx, cz));
   const home = sx === 0 && sz === 0;
-  const faction = home ? FACTIONS.crown : dread > 0.72 ? FACTIONS.drowned : FACTIONS[ORDER[Math.floor(rng() * ORDER.length)]];
-  const info = { sx, sz, id: `${sx},${sz}`, name: home ? 'Tama Sound' : makeSectorName(rng, dread), faction, dread, cx, cz };
+  const faction = home ? FACTIONS.crown : dread > 0.72 ? FACTIONS.drowned : FACTIONS[wedgeFaction(cx, cz, rng)];
+  const info = { sx, sz, id: `${sx},${sz}`, name: home ? 'Tama Sound' : makeSectorName(rng, dread) + (epoch > 0 && dread >= 0.45 ? ', again' : ''), faction, dread, cx, cz };
   cache.set(key, info);
   return info;
 }

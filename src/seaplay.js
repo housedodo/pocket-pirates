@@ -18,6 +18,15 @@ export const LANES = [
 ];
 export const ROUND = null;
 
+/** The Slack and the Dim (r 1150-1950) carry everything outward: the way out is quick, the way home fights it, about 1.6x as long
+ *  (docs/WORLD_REDESIGN.md 5.5). A radial current: it fades in over 100 units and out into the Lid. */
+export const SLACK_V = 2.0;
+export function slackAt(x, z) {
+  const d = Math.hypot(x, z); if (d < 1150 || d > 2050) return { x: 0, z: 0 };
+  const k = smoothstep(1150, 1250, d) * (1 - smoothstep(1950, 2050, d));
+  return { x: (x / d) * SLACK_V * k, z: (z / d) * SLACK_V * k };
+}
+
 /** the current at a point: { x, z } velocity in world units/s, plus the lane it belongs to */
 export function currentAt(x, z) {
   let vx = 0, vz = 0, lane = null, best = 0;
@@ -109,6 +118,7 @@ export class SeaPlay {
     // ---- currents: drift the ship, show the foam
     const cur = currentAt(ship.pos.x, ship.pos.z), cutK = ctx.fogEdge ? ctx.fogEdge(ship.pos.x, ship.pos.z) : 1;   // no current near fog
     ship.pos.x += cur.x * dt * cutK; ship.pos.z += cur.z * dt * cutK;
+    if (ctx.slack) { const sl = slackAt(ship.pos.x, ship.pos.z); ship.pos.x += sl.x * dt; ship.pos.z += sl.z * dt; }   // the Slack's outward drift
     if (cutK < 0.5) cur.k = 0;
     ev.lane = cur.k > 0.5 ? cur.lane : null;
     for (let i = 0; i < NC; i++) {

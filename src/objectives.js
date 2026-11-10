@@ -1,4 +1,6 @@
 import { smoothstep } from './util.js';
+import { STRATA } from './palette.js';
+import { regionsSeen } from './clues.js';
 
 // The first mate (Mara) and the starter goals. A short main chain teaches the game one verb at a time;
 // side goals are optional and complete themselves whenever you happen to do them.
@@ -198,7 +200,33 @@ export const goalCount = (g, c) => { if (!g.count) return ''; const [have, need]
 export const goalText = (g, c) => (typeof g.text === 'function' ? g.text(c) : g.text);
 export const chapterOf = (state) => { const g = MAIN_GOALS[state.goals.i]; return g ? g.ch : CHAPTERS.length; };
 export const unlocked = (state, key) => chapterOf(state) >= UNLOCK[key];
-export const gateRadius = (state) => (state.story.free ? Infinity : GATES[Math.min(GATES.length - 1, chapterOf(state))]);
+/** The strata gates (docs/WORLD_REDESIGN.md 5.3): what stops you is the ship and the sea, never the script. Each stratum edge is
+ *  a fog wall until the ship is fitted for what lies beyond it. `tideFalling` lets the Dim be entered; once past it stays open. */
+export function strataGate(state, tideFalling) {
+  const up = state.upgrades || {}, reach = (state.story && state.story.reach) || 0;
+  const S = STRATA;
+  const gates = [
+    () => true,                                                                                    // S0 Home Sound: open
+    () => (up.rudder || 0) >= 2 || Object.keys(state.charts || {}).length > 0 || reach >= S[1].r1,   // S1: a broad rudder or a bought local chart
+    () => (up.lantern || 0) >= 1 && (up.hull || 0) >= 2 || reach >= S[2].r1,                       // S2: lamp holds 130+, iron-banded hull
+    () => (up.lantern || 0) >= 2,                                                                  // S3: the lens lantern cuts the fog belt
+    () => ((up.hull || 0) >= 3 || (up.sails || 0) >= 3) && (tideFalling || reach > S[4].r0 + 2), // S4: outrun the swell, enter on a falling tide
+    () => regionsSeen(state) >= 3,                                                                 // S5: three regions read, or the compass will not hold
+  ];
+  // gates[i] opens stratum i+1's far edge...: the wall for stratum i sits at its outer edge unless gates[i+1] is met
+  for (let i = 1; i < S.length; i++) if (!gates[i]()) return S[i - 1].r1;
+  return Infinity;
+}
+export const gateRadius = (state, tideFalling) => {
+  if (state.story.free) return Infinity;
+  if (typeof window !== 'undefined' && window.__BUILD === 'demo') return GATES[Math.min(GATES.length - 1, chapterOf(state))];   // the demo keeps its chapter fog
+  // the first chapters are the tutorial: the wall stays at the edge of Home Sound until the main goals reach the open sea
+  const r = strataGate(state, tideFalling);
+  const ch = chapterOf(state);
+  if (ch < 2) return Math.min(r, GATES[ch]);   // the tutorial: Home Sound only
+  if (ch === 2) return Math.max(r, GATES[2]);  // "Working waters" still needs its islands: the strata rule takes over from chapter IV
+  return r;
+};
 
 export const SIDE_GOALS = [
   { id: 'fish', title: 'Dinner at sea', reward: 15, text: 'Reef the sails (S) until you slow down, then press C to cast a line.', check: (c) => c.state.stats.fish >= 1 },

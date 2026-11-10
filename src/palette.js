@@ -54,7 +54,26 @@ export function sampleStage(dread) {
 
 export const DARK_THRESHOLD = 0.5; // above this, islands swap to their "wrong" decor
 
-// The further from home you sail, the higher the dread (0..1). Tunable.
-export const DREAD_RANGE = 2200;
+// The sea is six strata (docs/WORLD_REDESIGN.md 5.3). Dread is piecewise-linear across them, so every stratum has its own
+// feel and a place can be given a stratum on purpose (a "distance lie"). r0..r1 is the radius band, d0..d1 the dread band.
+export const STRATA = [
+  { id: 'S0', name: 'Home Sound', r0: 0,    r1: 450,  d0: 0,    d1: 0.12 },
+  { id: 'S1', name: 'The Shoals', r0: 450,  r1: 800,  d0: 0.12, d1: 0.28 },
+  { id: 'S2', name: 'Trade Belt', r0: 800,  r1: 1150, d0: 0.28, d1: 0.45 },
+  { id: 'S3', name: 'The Slack',  r0: 1150, r1: 1550, d0: 0.45, d1: 0.62 },
+  { id: 'S4', name: 'The Dim',    r0: 1550, r1: 1950, d0: 0.62, d1: 0.82 },
+  { id: 'S5', name: 'The Lid',    r0: 1950, r1: 2400, d0: 0.82, d1: 1.0 },
+];
+/** full dread at the end of the last stratum (D3, the table by the water, sits here) */
+export const DREAD_RANGE = STRATA[STRATA.length - 1].r1;
+/** the stratum index (0..5) a radius lies in */
+export const strataIndex = (d) => { for (let i = 0; i < STRATA.length; i++) if (d < STRATA[i].r1) return i; return STRATA.length - 1; };
+/** dread by radius, from the strata table */
+export function strataDread(d) {
+  const S = STRATA[strataIndex(d)];
+  return clamp(S.d0 + (S.d1 - S.d0) * clamp((d - S.r0) / (S.r1 - S.r0), 0, 1), 0, 1);
+}
 /** the demo build is the bright game: no dread by distance at all (the dev build keeps it for testing) */
-export const dreadAtDistance = (d) => (window.__BUILD === 'demo' ? 0 : clamp(d / DREAD_RANGE, 0, 1));
+export const dreadAtDistance = (d) => (window.__BUILD === 'demo' ? 0 : strataDread(d));
+/** turning back is not a reset: dread never falls below 85% of the worst you have sailed into (peak is 0..1) */
+export const dreadWithPeak = (dist, peak) => Math.max(dist, 0.85 * (peak || 0));

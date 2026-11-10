@@ -3,6 +3,7 @@
 // is the index of that main goal in MAIN_GOALS, i.e. how many main goals are done). Once every main goal is done, all is open.
 // Story moments (a letter, a line on the pier, a pet, the grey buyer) are never locked: they only appear when they matter.
 import { MAIN_GOALS } from './objectives.js';
+import { isKnown } from './clues.js';
 
 const GATE = {
   // harbour signs
@@ -24,8 +25,10 @@ const GATE = {
   log: { map: 0, goals: 0, journal: 2, riddles: 2, ship: 3, quests: 6, standing: 6 },
 };
 
-/** is this part of the interface open yet? kind: 'tab' | 'btn' | 'data' | 'log' */
+/** is this part of the interface open yet? kind: 'tab' | 'btn' | 'data' | 'log', or 'know': a capability the captain has SEEN the
+ *  clue for (clues.js), the second gate kind: what the world has shown you opens controls, not a quest index */
 export function isOpen(state, kind, key) {
+  if (kind === 'know') return isKnown(state, key);
   const n = GATE[kind] && GATE[kind][key];
   if (n == null) return true;
   const i = (state.goals && state.goals.i) || 0;
