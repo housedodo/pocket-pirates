@@ -661,7 +661,7 @@ window.addEventListener('keydown', (e) => {
   if (!started) { if (titleScene) titleKey(e); else begin(); return; }
   if (e.code === 'Escape' || e.code === 'KeyP') {
     e.preventDefault();
-    if (modal === 'pause') { if ($('pauseControls').style.display !== 'none' || $('pauseAbyss').style.display !== 'none' || $('pauseSound').style.display !== 'none') showPauseMain(); else closeModal(); }
+    if (modal === 'pause') { if ($('pauseControls').style.display !== 'none' || $('pauseDisplay').style.display !== 'none' || $('pauseAbyss').style.display !== 'none' || $('pauseSound').style.display !== 'none') showPauseMain(); else closeModal(); }
     else if (modal) closeModal(); else openModal('pause');
     return;
   }
@@ -848,7 +848,7 @@ for (const r of $('pbVols').querySelectorAll('.pvol')) {   // the player's own v
 }
 function showPauseMain() {
   $('pbNew').textContent = 'New voyage (erase save)';
-  $('pauseMain').style.display = 'block'; $('pauseControls').style.display = 'none'; $('pauseAbyss').style.display = 'none'; $('pauseSound').style.display = 'none';
+  $('pauseMain').style.display = 'block'; $('pauseControls').style.display = 'none'; $('pauseAbyss').style.display = 'none'; $('pauseSound').style.display = 'none'; $('pauseDisplay').style.display = 'none';
   $('pbSound').textContent = `Sound: ${audio.muted ? 'off' : 'on'}`;
   $('pbMusic').textContent = `Music: ${audio.musicOn ? 'on' : 'off'}`;
   $('pbResume').focus();
@@ -856,6 +856,8 @@ function showPauseMain() {
 $('pbResume').addEventListener('click', () => closeModal());
 $('pbControls').addEventListener('click', () => { $('pauseMain').style.display = 'none'; $('pauseControls').style.display = 'block'; $('pbBack').focus(); });
 $('pbBack').addEventListener('click', showPauseMain);
+$('pbDisplay').addEventListener('click', () => { $('pauseMain').style.display = 'none'; $('pauseDisplay').style.display = 'block'; $('dpBack').focus(); });
+$('dpBack').addEventListener('click', () => { showPauseMain(); $('pbDisplay').focus(); });
 // full-dread effects: switch each one on/off, or try one on its own
 function renderAbyssMenu() {
   const on = (id) => settings.abyss[id] !== false;
