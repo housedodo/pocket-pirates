@@ -36,6 +36,7 @@ import { Fishing, fishById } from './fishing.js';
 import { Combat } from './combat.js';
 import { bumpSectors } from './sectors.js';
 import { markSeen, isKnown, level as clueLevel, levels as clueLevels, d3Open } from './clues.js';
+import { tableOptions, finalThrow, ENDINGS, maraRemembers } from './table.js';
 import { Objectives, MUSINGS, MAIN_GOALS, CHAPTERS, unlocked, gateRadius, chapterOf, goalText, goalCount } from './objectives.js';
 import { GROUPS, DEFAULT_CUSTOM, byId } from './customize.js';
 import { Wind } from './wind.js';
@@ -145,7 +146,8 @@ const ocean = new Ocean();
 ocean.material.transparent = true; ocean.mesh.renderOrder = -1; // can turn see-through (glass calm)
 scene.add(ocean.mesh);
 const sky = new Sky(scene);
-if (!state.goals.v) { if (state.goals.i > 15) state.goals.i--; state.goals.v = 2; }   // saves from before "A bed for the night" (goal 15) was dropped: it made you wait for 17:00
+if (!state.goals.v) { if (state.goals.i > 15) state.goals.i--; state.goals.v = 2; }
+if (state.goals.v < 3) { const i = state.goals.i; state.goals.i = i - (i > 12 ? 1 : 0) - (i > 13 ? 1 : 0) - (i > 15 ? 1 : 0); state.goals.v = 3; }   // saves from before Odd jobs (12), Salvage rights (13) and the raider (15) became optional side goals   // saves from before "A bed for the night" (goal 15) was dropped: it made you wait for 17:00
 const world = new World(scene, state.seed, state.dug);
 const ship = new Ship(scene);
 { const hd = world.hutDesc; if (hd) U.uMurk.value.set(hd.x, hd.z, hd.r); }   // the dark water round the hut's island (ocean.js)
@@ -1805,6 +1807,7 @@ function taleAt(d) {
 function goAshore(tg) {
   const d = tg.isl.desc;
   dig = { key: tg.key, t: 0, label: 'Going ashore...', need: 2.6, done: () => {
+    if (d.lm === 'table' && d3Open(state) && !state.story.ending && window.__BUILD !== 'demo') { places.visit(d.lm, state, {}); openTable(); return; }
     const r = places.visit(d.lm, state, { night: tod.night > 0.45, calm: weather.calm > 0.5, tide: tideAt(), mara: true }); if (!r) return;
     if (r.clue) seeClue(r.clue);   // the ledger takes it; no popup (docs/WORLD_REDESIGN.md 6.7)
     const demo = window.__BUILD === 'demo';
@@ -1824,6 +1827,39 @@ function goAshore(tg) {
   } };
 }
 
+// ---------------------------------------------------------------- the Table by the Water: the end of a voyage (table.js)
+function openTable() {
+  const opts = tableOptions(state), memory = (state.story.maraMem || 0) >= 4;
+  cardBusy = false; cardNext = null; openModal('card'); audio.play('card');
+  const done = $('cardDone'), out = (t, next) => { $('cardOut').textContent = t; done.style.display = ''; done.textContent = 'Go on [E]'; cardEl.querySelectorAll('#cardChoices button').forEach((b) => { b.disabled = true; }); cardBusy = 'done'; cardNext = next; };
+  renderCard({ icon: 'pip', title: 'THE TABLE BY THE WATER', dark: true, text: `A table at the water's edge. One chair on this side, one on the other. A die, waiting.${memory ? ' Mara, quietly: "I do not think we are here to throw."' : ''}`,
+    choices: opts.map((o) => ({ label: o.label, id: o.id })) }, (ch) => {
+    if (cardBusy) return; cardBusy = true;
+    if (ch.id === 'throw') {
+      const r = finalThrow(state, 1 + Math.floor(Math.random() * 20)); audio.play('roll_d20', { rate: 0.8 });
+      state.hut = state.hut || { rolls: [], wins: 0, fails: 0, lastDay: -1, visits: 0 }; state.hut.rolls.push({ n: r.n, day: state.dayN, last: true });
+      const words = ['', 'one', 'two', 'three'];
+      out(`The die clatters across the table. ${r.n}.${r.w ? ` She turns the book round. It ${r.w > 0 ? 'gives' : 'takes'} ${words[Math.abs(r.w)]}.` : ''}`, () => { closeModal(); showEnding(r.end, r); });
+    } else { closeModal(); showEnding(ch.id); }
+  });
+}
+function showEnding(id, roll = null) {
+  const e = ENDINGS[id]; if (!e) return;
+  state.story.ending = { id, day: state.dayN, n: roll ? roll.total : null };
+  const el = $('ending'); el.classList.toggle('dark', !!e.dark);
+  el.querySelector('h1').textContent = e.title;
+  el.querySelector('div').innerHTML = e.lines.map((l) => `<p>${l}</p>`).join('');
+  el.classList.add('show'); audio.play('ending'); autosave();
+}
+$('endGo').addEventListener('click', () => {
+  const e = state.story.ending; $('ending').classList.remove('show'); if (!e) return;
+  if (e.id === 'rises') { abyss.solo = 'leviathan'; forced = 1; abyss.startEnding(); return; }   // the Eye opens; you wake off Tama
+  if (e.id === 'sleep' || e.id === 'dreams' || e.id === 'tune') {   // the sea is quiet again: morning, off Tama, as if you had only been out for the night
+    state.story.peakDread = 0; forced = null; dread = 0.02; abyss.k = 0; state.time = 0.3;
+    ship.pos.set(0, 0, -25); ship.heading = 0; ship.speed = 0; ship.vel = null; camHeading = 0; yawT = 0; objectives.mate.queue.length = 0;
+  }
+  if (ENDINGS[e.id].mara) objectives.mate.say(ENDINGS[e.id].mara);
+});
 // ---------------------------------------------------------------- hailing other ships
 function localStanding(x, z) {
   let max = 0, sum = 0;
@@ -2187,17 +2223,7 @@ function openCave(site) {
   done.onclick = () => { if (cardNext) { const f = cardNext; cardNext = null; f(); return; } closeModal(); };
   show('door');
 }
-let raiderT = 8;
 function tabletopTick(dt) {
-  // the raider goal: make sure there is one to find (Reef Brotherhood, not far, coming our way)
-  { const g = objectives.current;
-    if (g && g.id === 'raider' && !traffic.ships.some((s) => s.hostile && !s.sinking)) {
-      if ((raiderT -= dt) <= 0) {
-        const a = Math.random() * 6.28, x = ship.pos.x + Math.cos(a) * 140, z = ship.pos.z + Math.sin(a) * 140;
-        if (world.nearest(x, z, 30)) raiderT = 1;   // that spot is land: try another bearing
-        else { raiderT = 30; traffic.spawnAt('schooner', 'reef', x, z, Math.atan2(ship.pos.x - x, -(ship.pos.z - z)), 'live', 6, true); }
-      }
-    } else raiderT = 8; }
   // encounter signs: rare, out on open water, never in weather, never part of any story
   sighting.update(dt, tNow, ship);
   caves.update(dt, ship, window.__BUILD !== 'demo' && laterOK() && dread < 0.5);   // caves are a full-game feature: not in the demo build
@@ -2324,7 +2350,7 @@ function clueTick(dt) {
   const at = (lm, R) => Math.hypot(ship.pos.x - LM[lm].x, ship.pos.z - LM[lm].z) < R;
   const dwell = (k, on, T) => { clueDwell[k] = on ? (clueDwell[k] || 0) + dt : 0; return clueDwell[k] >= T; };
   if (dwell('bells', slow && Math.hypot(ship.pos.x, ship.pos.z) < 150 && hour > 11.8 && hour < 12.4 && state.hut && state.hut.rolls.length > 0, 6)) seeClue('CL-C3-a');
-  if (state.story.streetSeen && !state.story.streetLine && dread > 0.5 && !objectives.mate.busy) { state.story.streetLine = true; objectives.mate.say('I like blue doors, Captain. I do not know why I like them.'); }   // CL-D1-a: Mara, once, at dread
+  { const l = maraRemembers(state, dt, laterOK() && !objectives.mate.busy && !objectives.pending && !modal && !world.nearest(ship.pos.x, ship.pos.z, 60)); if (l) objectives.mate.say(l); }   // her village comes back to her a piece at a time (table.js); the third piece is the blue door, some time after the Sunken Street
   if (isKnown(state, 'rest') && slow && tod.night > 0.4 && state.story.peakDread > 0) state.story.peakDread = Math.max(0, state.story.peakDread - 0.004 * dt);   // the crew rest on deck (CL-F2-a): the worst you have sailed into fades a little while you lie still at night
   if (dwell('players', slow && tod.night > 0.45 && weather.calm > 0.5 && (at('teo', 300) || at('ilse', 300)), 10)) seeClue('CL-F1-a');
 }
@@ -2625,7 +2651,7 @@ function frame() {
   if (live) {
     if (tod.night > 0.35 || tod.twilight > 0.6) objectives.remark('dusk');
     if (weather.storm > 0.4) objectives.remark('storm'); else if (weather.rain > 0.4) objectives.remark('rain'); else if (weather.fog > 0.5) objectives.remark('fog');
-    for (const [k, v] of [['stage2', 0.25], ['stage3', 0.5], ['stage4', 0.75], ['stage5', 0.95]]) if (dread >= v) objectives.remark(k, dread);
+    for (const [k, v] of [['stage2', 0.25], ['stage3', 0.5], ['stage4', 0.75], ['stage5', 0.95]]) if (dread >= v) objectives.remark(k === 'stage5' && (state.story.maraMem || 0) >= 3 ? 'stage5b' : k, dread);
     if (traffic.ships.some((x) => x.hostile && x.engaged)) objectives.remark('raider');
   }
   fauna.quiet = !laterOK();

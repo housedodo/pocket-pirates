@@ -121,3 +121,7 @@ Build it with `python3 scripts/single.py`, ship `pocket-pirates-demo.html` (with
 - [ ] A night catch with a hook already in it; the fishmonger's line when it is sold
 - [ ] Second treasure beach: one hole there already, over the chest; Mara's "Lucky us"
 
+## 13. Shorter chain (check once)
+- [ ] Chapter IV has four goals (tavern, Perrin's note, check his chart, the second riddle); Odd jobs, Salvage rights and the raider are in the log under Optional and complete themselves
+- [ ] A save from before the change loads on a sensible goal
+

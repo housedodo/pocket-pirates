@@ -868,3 +868,15 @@ Each happens once, is never explained, and has an ordinary reading. They are in 
 - **The hole that was already there** (`predug`; `digging.js` `predug`): on the second treasure beach one hole is there already, wet, exactly over the chest. The chest is untouched. Mara: "Somebody dug here first, and stopped a spade short. Lucky us."
 - Open thread for the writer: who is the other berth, whose hook, who dug. None is answered anywhere. They point at the same thing as the hut's pen (the outcome is written before you arrive) and at the diver (someone below).
 
+## The Table, the endings, Mara's memory, a shorter chain (2026-11-11)
+Decided by the owner: Mara remembers her village, slowly; humming the Two Players' tune is the only gentle, happy ending and needs no throw; the demo ends on the first throw and the diver; "Turn the table to the sea" is cut.
+- **The Table by the Water ends the voyage** (`src/table.js`, `main.js` `openTable` / `showEnding`; never in the demo build). Going ashore there opens one card with up to four choices:
+  - *Throw the die* (always): 20 The Long Sleep, 10-19 Good Dreams, 1-9 She Rises. The book weighs it: each earlier high throw lifts, each low one weighs, at most 3 either way; the Kestrel's lamp halves a bad weight; a natural 1 or 20 stands. She Rises runs the built Eye sequence afterwards.
+  - *Hum the tune* (once the Two Players have been heard): The Tune Is Kept.
+  - *Sit in the other chair* ("who sat before you" at level 3): Your Seat.
+  - *Go back to the boat* (set the die down once, or never threw after the first): The Unseen Throw.
+  After Long Sleep, Good Dreams or the tune you wake off Tama in the morning with the sea quiet. `state.story.ending` keeps which one; the Table then only says the chair has not moved. The ending texts are drafts for the writer.
+- **Mara's village comes back in four pieces** (`MARA_MEMORY`, `state.story.maraMem`): the bell at home; the street that ran down to the water; "The third house. The door was blue."; and the name, which she will not say aloud. Each comes at least 90 seconds of sailing after what stirred it. This replaces "I like blue doors, I do not know why". At full dread, once the street is back, she says she can see it and wishes she could not.
+- **Chapter IV is shorter:** Odd jobs, Salvage rights and Teach a raider a lesson are side goals (same rewards). The chain is 16 goals. Commissions open with the tavern chapter. Old saves are moved to the matching goal (`goals.v` 3). No raider is sent after you any more; they are met in Reef waters.
+- Open threads: what the Lady writes if asked who counts; whether Mara may throw for you; whether the Two Players are the same two who play at night; the four small wrong things (oar, berths, hook, hole) are still not tied to a question. The village's name is never shown.
+

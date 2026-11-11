@@ -20,7 +20,7 @@ const GATE = {
     openYard: 7,                                   // paint and figureheads a little after the first upgrade
   },
   // harbour buttons, by data attribute (commissions)
-  data: { accept: 12, hand: 12, dismiss: 12 },
+  data: { accept: 9, hand: 9, dismiss: 9 },   // commissions open with the tavern chapter (Odd jobs is an optional goal now)
   // captain's log tabs
   log: { map: 0, goals: 0, journal: 2, riddles: 2, ship: 3, quests: 6, standing: 6 },
 };

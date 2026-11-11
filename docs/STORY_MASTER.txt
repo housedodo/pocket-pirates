@@ -1,7 +1,7 @@
 HOIST (Pocket Pirates): THE MASTER STORY FILE
 ================================================================================================
 This is the main story file for the full game. Edit it, upload it again, and the next session puts every change
-into the game. Built from commit c6785d2 on 2026-11-08. 1227 in-game lines carry an ID.
+into the game. Built from commit 706140e on 2026-11-11. 1227 in-game lines carry an ID.
 
 CONTENTS
   A   HOW TO USE THIS FILE (IDs, status marks, how to add and remove things)
@@ -159,16 +159,17 @@ D1 THE SIX CHAPTERS OF THE DEMO [BUILT] (about one hour)
   I    Sea legs             act "Fair winds"   fog radius   430   goals: sail, harbour
   II   Perrin's riddle      act "Fair winds"   fog radius   430   goals: dig, upgrade
   III  Working waters       act "Fair winds"   fog radius   820   goals: calm, tack, job, passenger, chart
-  IV   Check my chart       act "Loose talk"   fog radius  1250   goals: tavern, perrin, checkchart, errand, salvage, riddle2, raider
+  IV   Check my chart       act "Loose talk"   fog radius  1250   goals: tavern, perrin, checkchart, riddle2
   V    Strange notes        act "Loose talk"   fog radius  1650   goals: bottles, gossip
   VI   The table            act "Loose talk"   fog radius  1650   goals: hut
   The fog wall: each chapter allows a radius from Tama; near it the fog closes in, past it the ship is turned back.
-  The demo ends on the first throw at the hut: at the next harbour someone speaks of your number, then the end card.
+  The demo ends on the first throw at the hut and the diver on the water: at the next harbour someone speaks of your number,
+  then the end card. [DECIDED 2026-11-11] Odd jobs, Salvage rights and the raider are optional side goals, not part of the chain.
 
 D2 THE FULL GAME: FIVE ACTS [PLANNED from the original seeds; fill in]
   Act 1  Fair winds     (bright, the demo)                    chapters I-III      [BUILT]
   Act 2  Loose talk     (rumours of The Drowned)              chapters IV-VI      [BUILT]
-  Act 3  The Lady's errands  (bring her a gull feather, a bell clapper, Mara's hat)      [PLANNED]
+  Act 3  The Lady's errands  [CUT: replaced by exploring, see STORY_EXPLORATION.txt X12]
   Act 4  The descent    (through Eerie and Cosmic waters)                              [PLANNED]
   Act 5  The Eye        (the ending)                                                    [PLANNED]
   D2-note   (empty)  Write what happens in each act, what unlocks, and which region it takes place in.
@@ -224,13 +225,7 @@ to change what a goal asks, pays or leads to. Rewards are gold.
                   your edit: (empty)
     Q-checkchart  "Check his chart"   reward 36    [BUILT]
                   your edit: (empty)
-    Q-errand      "Odd jobs"   reward 24    [BUILT]
-                  your edit: (empty)
-    Q-salvage     "Salvage rights"   reward 24    [BUILT]
-                  your edit: (empty)
     Q-riddle2     "Riddle me this"   reward 30    [BUILT]
-                  your edit: (empty)
-    Q-raider      "Teach a raider a lesson"   reward 36    [BUILT]
                   your edit: (empty)
 
   CHAPTER V: Strange notes
@@ -384,7 +379,33 @@ F4 THE HAND-MADE PLACES [BUILT] (always at the same spot in every voyage; what i
                your edits: (empty)
   P-lagoon   Glass Lagoon       atoll    at (540, 360), 648 from Tama   seen from far: "a reef ring"
                your edits: (empty)
-  P-broken   The Halved Isle    rocky    at (-380, -500), 628 from Tama   seen from far: "a white fog bank"
+  P-broken   The Halved Isle    rocky    at (-1231, -217), 1249 from Tama   seen from far: "a white fog bank"
+               your edits: (empty)
+  P-customs  Customs Pier       sandbar  at (155, -580), 600 from Tama   seen from far: "a long grey pier"
+               your edits: (empty)
+  P-teo      Teo's Sandbar      sandbar  at (495, 70), 499 from Tama   seen from far: "a thin line of firelight"
+               your edits: (empty)
+  P-ilse     Ilse's Rock        rocky    at (880, 190), 900 from Tama   seen from far: "a second light across the water"
+               your edits: (empty)
+  P-cup      The Cup            sandbar  at (611, 222), 650 from Tama   seen from far: "a lone table on a beach"
+               your edits: (empty)
+  P-hammock  The Hammock Isle   jungle   at (808, -263), 849 from Tama   seen from far: "hammocks between the palms"
+               your edits: (empty)
+  P-namewall The Name Wall      rocky    at (-233, 869), 899 from Tama   seen from far: "a white cliff of tiny marks"
+               your edits: (empty)
+  P-archive  The Governor's Fort rocky    at (-139, -990), 999 from Tama   seen from far: "a pale fort with one lit window"
+               your edits: (empty)
+  P-press    The Oil Press      rocky    at (-1014, 272), 1049 from Tama   seen from far: "a fat chimney and a steady glow"
+               your edits: (empty)
+  P-wreck    The Throwers' Wreck sandbar  at (200, 1133), 1150 from Tama   seen from far: "a broken hull and a mast with a rag"
+               your edits: (empty)
+  P-ledger   The Keepers' Ledger rocky    at (-1284, -417), 1350 from Tama   seen from far: "a lighthouse lit at noon"
+               your edits: (empty)
+  P-tower    The Dark Tower     rocky    at (-1377, -732), 1559 from Tama   seen from far: "a black tower"
+               your edits: (empty)
+  P-street   The Sunken Street  sandbar  at (516, 737), 899 from Tama   seen from far: "roof peaks"
+               your edits: (empty)
+  P-table    The Table by the Water sandbar  at (1377, -1966), 2400 from Tama   seen from far: "a table at the water\"
                your edits: (empty)
   P-hut      The dark hut (one island 4-6 cells from home, out of sight of the start): crooked black hut on stilts, a purple window,
              bones on poles, a dead tree, a ring of pale stones. Inside: the Lady and the die. One throw per day. Text: HUT, TAB.
@@ -478,17 +499,19 @@ G4 THE OLD STORY IN FRAGMENTS [BUILT]
 ################################################################################################
 # H  ENDINGS
 ################################################################################################
-The final throw of the Lady's d20 decides the ending. A hidden ledger (from all your earlier throws and your offerings)
-adds a bonus or penalty, revealed only at the end. [PLANNED, not built]
 
-H-1  THE LONG SLEEP   final throw 20      she sleeps a hundred more years.        Scene:  (empty)
-H-2  GOOD DREAMS      final throw 10-19   the world stays bright, Mara stays Mara. Scene:  (empty)
-H-3  SHE RISES        final throw 1-9     the Eye opens; the Caribbean is remembered as something else.  Scene:  (empty)
-H-4  TAKE HER SEAT    you sit at the table; needs 3 offerings and 3 strange rumours followed; the hut is now on Tama.  Scene:  (empty)
-H-5  THE UNSEEN THROW you leave; only for those who stopped throwing after the first.   Scene:  (empty)
+[DECIDED 2026-11-11, BUILT in src/table.js] The voyage ends at the Table by the Water. Four things can be done there; what a captain
+may do depends on what the voyage showed them. "Turn the table to the sea" is CUT.
+H-1  THE LONG SLEEP   Throw, 20            she sleeps a hundred more years.                 [BUILT, text DRAFT]
+H-2  GOOD DREAMS      Throw, 10-19         the world stays bright, Mara stays Mara.          [BUILT, text DRAFT]
+H-3  SHE RISES        Throw, 1-9           the Eye opens (the built Eye sequence follows).   [BUILT, text DRAFT]
+     The book weighs the last throw: every earlier throw counts a little, never more than 3 either way; the Kestrel's lamp halves a bad weight.
+H-4  YOUR SEAT        Sit                  needs "who sat before you" at level 3 (no offerings any more).   [BUILT, text DRAFT]
+H-5  THE UNSEEN THROW Leave                for a captain who set the die down once, or never threw after the first.   [BUILT, text DRAFT]
+H-7  THE TUNE IS KEPT Hum the tune         needs the Two Players heard. The ONLY gentle, happy ending, and the only one without a throw.   [BUILT, text DRAFT]
 H-6  THE EYE AWAKENS  [BUILT] after about 170 s at full dread a huge eye opens, the screen whites out, you wake near Tama.
 
-OFFERINGS (what the player brings) [IDEA]   a gull feather, a bell clapper, Mara's hat, a tooth with a tiny ship carved in it,
+OFFERINGS (what the player brings) [CUT with the errands]   a gull feather, a bell clapper, Mara's hat, a tooth with a tiny ship carved in it,
   a warm black pearl.   Which of these do you want, and where does each come from (a slot in part F)?   (empty)
 
 THE LADY'S LEDGER [BUILT as a record: state.hut.rolls]   every throw is kept with its day.   What the ledger says at the end:  (empty)

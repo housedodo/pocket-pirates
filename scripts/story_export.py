@@ -37,6 +37,7 @@ CODES = {  # source file -> (ID code, what it holds)
     'sighting.js': ('SIG', 'signs at sea'),
     'hut.js': ('HUT', 'the dark hut and the Lady'),
     'logbook.js': ('LOG', 'the captain\'s log'),
+    'table.js': ('TBL', 'the Table by the Water: the endings, and Mara\'s village coming back to her'),
     'main.js': ('MAIN', 'Mara\'s remarks, HUD messages, everything else'),
     'world.js': ('WRL', 'world text'),
     'harbourlife.js': ('HLF', 'residents, dishes, events, fragments, gossip'),
@@ -273,12 +274,13 @@ PART_D = r'''
 D1 THE SIX CHAPTERS OF THE DEMO [BUILT] (about one hour)
 {chapters}
   The fog wall: each chapter allows a radius from Tama; near it the fog closes in, past it the ship is turned back.
-  The demo ends on the first throw at the hut: at the next harbour someone speaks of your number, then the end card.
+  The demo ends on the first throw at the hut and the diver on the water: at the next harbour someone speaks of your number,
+  then the end card. [DECIDED 2026-11-11] Odd jobs, Salvage rights and the raider are optional side goals, not part of the chain.
 
 D2 THE FULL GAME: FIVE ACTS [PLANNED from the original seeds; fill in]
   Act 1  Fair winds     (bright, the demo)                    chapters I-III      [BUILT]
   Act 2  Loose talk     (rumours of The Drowned)              chapters IV-VI      [BUILT]
-  Act 3  The Lady's errands  (bring her a gull feather, a bell clapper, Mara's hat)      [PLANNED]
+  Act 3  The Lady's errands  [CUT: replaced by exploring, see STORY_EXPLORATION.txt X12]
   Act 4  The descent    (through Eerie and Cosmic waters)                              [PLANNED]
   Act 5  The Eye        (the ending)                                                    [PLANNED]
   D2-note   (empty)  Write what happens in each act, what unlocks, and which region it takes place in.
@@ -468,17 +470,19 @@ PART_H = r'''
 ################################################################################################
 # H  ENDINGS
 ################################################################################################
-The final throw of the Lady's d20 decides the ending. A hidden ledger (from all your earlier throws and your offerings)
-adds a bonus or penalty, revealed only at the end. [PLANNED, not built]
 
-H-1  THE LONG SLEEP   final throw 20      she sleeps a hundred more years.        Scene:  (empty)
-H-2  GOOD DREAMS      final throw 10-19   the world stays bright, Mara stays Mara. Scene:  (empty)
-H-3  SHE RISES        final throw 1-9     the Eye opens; the Caribbean is remembered as something else.  Scene:  (empty)
-H-4  TAKE HER SEAT    you sit at the table; needs 3 offerings and 3 strange rumours followed; the hut is now on Tama.  Scene:  (empty)
-H-5  THE UNSEEN THROW you leave; only for those who stopped throwing after the first.   Scene:  (empty)
+[DECIDED 2026-11-11, BUILT in src/table.js] The voyage ends at the Table by the Water. Four things can be done there; what a captain
+may do depends on what the voyage showed them. "Turn the table to the sea" is CUT.
+H-1  THE LONG SLEEP   Throw, 20            she sleeps a hundred more years.                 [BUILT, text DRAFT]
+H-2  GOOD DREAMS      Throw, 10-19         the world stays bright, Mara stays Mara.          [BUILT, text DRAFT]
+H-3  SHE RISES        Throw, 1-9           the Eye opens (the built Eye sequence follows).   [BUILT, text DRAFT]
+     The book weighs the last throw: every earlier throw counts a little, never more than 3 either way; the Kestrel's lamp halves a bad weight.
+H-4  YOUR SEAT        Sit                  needs "who sat before you" at level 3 (no offerings any more).   [BUILT, text DRAFT]
+H-5  THE UNSEEN THROW Leave                for a captain who set the die down once, or never threw after the first.   [BUILT, text DRAFT]
+H-7  THE TUNE IS KEPT Hum the tune         needs the Two Players heard. The ONLY gentle, happy ending, and the only one without a throw.   [BUILT, text DRAFT]
 H-6  THE EYE AWAKENS  [BUILT] after about 170 s at full dread a huge eye opens, the screen whites out, you wake near Tama.
 
-OFFERINGS (what the player brings) [IDEA]   a gull feather, a bell clapper, Mara's hat, a tooth with a tiny ship carved in it,
+OFFERINGS (what the player brings) [CUT with the errands]   a gull feather, a bell clapper, Mara's hat, a tooth with a tiny ship carved in it,
   a warm black pearl.   Which of these do you want, and where does each come from (a slot in part F)?   (empty)
 
 THE LADY'S LEDGER [BUILT as a record: state.hut.rolls]   every throw is kept with its day.   What the ledger says at the end:  (empty)

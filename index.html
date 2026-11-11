@@ -458,6 +458,10 @@
     #touch .pxi { width: 28px; height: 28px; margin: 0; vertical-align: middle; }
     /* land ho: a short title card when a new island comes into view */
     #demoend { position: fixed; inset: 0; z-index: 30; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 12px; background: #06040e; color: #fff4d8; text-align: center; padding: 16px; }
+    /* an ending of the voyage (table.js): the same black card as the demo's end, the lines one under the other */
+    #ending { position: fixed; inset: 0; z-index: 30; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 12px; background: #06040e; color: #fff4d8; text-align: center; padding: 16px; }
+    #ending.show { display: flex; animation: dfade 3s steps(8) both; } #ending h1 { font-size: 48px; font-weight: 400; color: #ffd23a; margin: 0 0 8px; } #ending.dark h1 { color: #ff70d0; }
+    #ending p { font-size: 16px; max-width: 520px; margin: 4px auto; } #ending button { font: 16px "DotGothic16", monospace; padding: 8px 24px; margin-top: 16px; color: #fff4d8; background: #2a2060; border: 0; box-shadow: 0 0 0 4px #120c1c; cursor: pointer; }
     #demoend.show { display: flex; animation: dfade 3s steps(8) both; } #demoend h1 { font-size: 48px; font-weight: 400; color: #d8b0e8; margin: 0; } #demoend p { font-size: 16px; max-width: 520px; } #demoend small { font-size: 16px; color: #8a7e9a; } #demoend button { font: 16px "DotGothic16", monospace; padding: 8px 24px; margin-top: 16px; color: #fff4d8; background: var(--pxbtn) 0 0 / 32px 32px; image-rendering: pixelated; border: none; box-shadow: 0 -4px 0 #d8b0e8, 0 4px 0 #d8b0e8, -4px 0 0 #d8b0e8, 4px 0 0 #d8b0e8; cursor: pointer; }
     @keyframes dfade { from { opacity: 0; } to { opacity: 1; } }
     /* quest cues (design A): a big QUEST COMPLETE banner, then the NEW QUEST card, a tracker flash and a pulse on the wind ring */
@@ -656,6 +660,7 @@
   <div id="card" class="modal"><div class="menu" id="cardWide"><div id="cardIcon"></div><h2 id="cardTitle"></h2><p class="quote" id="cardText"></p><div id="cardChoices"></div><p class="quote" id="cardOut"></p><button id="cardDone">Sail on [E]</button></div></div>
   <div id="cave" class="modal"><canvas id="caveCv" width="320" height="180"></canvas><div id="caveTitle"><b></b><small></small></div><div id="caveTide"><i></i></div><div id="caveBox"><div id="caveFace"></div><div id="caveBody"><div id="caveWho"></div><div id="caveSay"></div><div id="caveChoices"></div><p id="caveOut"></p><button id="caveDone">Sail on [E]</button></div></div></div>
   <div id="pig" class="modal"><div class="menu" id="pigWide"><h2>DICE AT THE TAVERN</h2><div class="pigrow"><div><b>You</b><br><span id="pigMe">0</span></div><canvas id="pigCv"></canvas><div><b id="pigOpp"></b><br><span id="pigThem">0</span></div></div><p class="quote" id="pigLog"></p><button id="pigRoll">Roll [Space]</button><button id="pigHold">Hold [H]</button><button id="pigLeave">Leave [E]</button></div></div>
+<div id="ending"><h1></h1><div></div><button id="endGo">Go on</button></div>
 <div id="demoend"><h1>TO BE CONTINUED</h1><p>The die is back on the table. Somewhere, a pen is still writing.</p><small>End of the HOIST demo. Thank you for sailing.</small><button id="demoGo">Keep sailing</button></div>
   <div id="mixer"><div class="mxhead"><b>SOUND MIXER</b><small>100% = as the file is. Play / solo to hear a sound; green rows are playing in the game right now.</small>
     <div class="mxbtns"><button id="mixSave">Save volumes.json</button><button id="mixZero" title="Every sound to 0%, then raise them one by one">All to 0%</button><button id="mixReset">Reset all</button><button id="mixClose">Close (F8)</button></div></div><div id="mixList"></div></div>

@@ -137,36 +137,12 @@ export const MAIN_GOALS = [
     check: (c) => { const k = c.state.story.check; return !!k && Math.hypot(c.ship.pos.x - k.x, c.ship.pos.z - k.z) < k.r + 40 && c.ship.speed < 3; },
   },
   {
-    id: 'errand', ch: 3, title: 'Odd jobs', reward: 24,
-    text: 'Take a commission from a harbour board (fish, fruit, crates...) and hand it in.',
-    intro: ['The Boards also carry little errands: fish, fruit, lost crates.'],
-    outro: ['A tidy bit of work. The harbour will remember it.'],
-    hints: ['Commissions are on the Board sign too. Fish and fruit you can find at sea and on the isles.'],
-    check: (c) => (c.state.stats.commissions || 0) >= 1,
-  },
-  {
-    id: 'salvage', ch: 3, title: 'Salvage rights', reward: 24,
-    text: 'Find a half-sunk wreck, stop beside it and salvage it (E).',
-    intro: ['Wrecks sit half under in open water. Stop beside one and press E.'],
-    outro: ['One ship\'s bad day is another one\'s dinner.'],
-    hints: ['Look for broken masts and hulls in open water, away from the islands.', 'Stop the ship completely, then press E.'],
-    check: (c) => (c.state.stats.wrecks || 0) >= 1,
-  },
-  {
     id: 'riddle2', ch: 3, title: 'Riddle me this', reward: 30,
     text: 'Find another treasure isle. Study the arch (E), then dig the shore its riddle describes.',
     intro: ['Every treasure isle has an arch. Study it with E and it tells you where the chest sleeps.'],
     outro: ['Two chests! Perrin would be insufferable.'],
     hints: ['Treasure isles show a stone arch on the chart. Press E at its shore to read it, then read the riddle in the log.', 'Sunrise is east, sunset is west.'],
     check: (c) => (c.state.stats.solved || 0) >= 2,
-  },
-  {
-    id: 'raider', ch: 3, title: 'Teach a raider a lesson', reward: 36,
-    text: 'Raiders sail these waters. Sink one: Space fires the cannons at an attacking raider.',
-    intro: ['Raiders, Captain, and one is looking for us. Space fires the cannons: keep her broadside.'],
-    outro: ['Splendid! They will think twice. For a day or two.'],
-    hints: ['Raiders only fire when they are close. Turn so they are beside you and press Space.', 'Harbours repair the hull for free, and sell cannonballs.'],
-    check: (c) => (c.state.stats.sunk || 0) >= 1,
   },
   {
     id: 'bottles', ch: 4, title: 'What the sea says', reward: 18,
@@ -235,6 +211,10 @@ export const SIDE_GOALS = [
   { id: 'paint', title: 'A touch of style', reward: 12, text: 'Buy something at a shipyard: paint, sails, a pennant, a figurehead.', check: (c) => c.state.stats.cosmetics >= 1 },
   { id: 'fruit', title: 'Fresh from the tree', reward: 12, text: 'Press E near a jungle or sandbar isle to pick its fruit.', check: (c) => c.state.stats.fruitPicked >= 1 },
   { id: 'dolphin', title: 'Friends of the sea', reward: 12, text: 'Spot a pod of dolphins.', check: (c) => c.state.stats.dolphins >= 1 },
+  // optional since the hut was moved forward: they were main goals of chapter IV
+  { id: 'errand', title: 'Odd jobs', reward: 24, text: 'Take a commission from a harbour board (fish, fruit, crates...) and hand it in.', check: (c) => (c.state.stats.commissions || 0) >= 1 },
+  { id: 'salvage', title: 'Salvage rights', reward: 24, text: 'Find a half-sunk wreck in open water and salvage it (E).', check: (c) => (c.state.stats.wrecks || 0) >= 1 },
+  { id: 'raider', title: 'Teach a raider a lesson', reward: 36, text: 'Raiders sail the Reef waters. Sink one: Space fires the cannons at an attacking raider.', check: (c) => (c.state.stats.sunk || 0) >= 1 },
 ];
 
 // one-off remarks the mate makes when things happen
@@ -269,6 +249,7 @@ export const REMARKS = {
   stage3: ['The gulls are watching us. I mean really watching us. Please tell me I am imagining it.'],
   stage4: ['I keep hearing something humming under the keel. Do you hear it?'],
   stage5: ['Captain... how long have we been sailing? I cannot remember the name of my own village.'],
+  stage5b: ['Captain... how long have we been sailing? I can see my own street. I wish I could not, out here.'],   // once her village has come back to her (table.js)
   darkfish: ['That one looked back at me. Throw it in the sack.'],
   sight_volcano: ['Smoke on the horizon! Either a volcano or a very big breakfast.'],
   sight_atoll: ['Look at that water inside the ring. I could swim there all day.'],

@@ -259,3 +259,9 @@ Not built yet (recorded as flags in `clues.js`, no effect):
 - The Surrender (R3), the Island That Moves (D2), D1 hidden except at the lowest tide (it is visible; only the visit is tide-gated), the chart's compressed radii.
 - `scripts/story_export.py` rendering the docs from `clues.js`; the X9 level-3 log lines in `STORY_EXPLORATION.txt` are not yet cut.
 - Validation V7, V9, V10 (human readers, telemetry) and the canon decisions (Mara forgets or remembers, the Two Players, where the demo ends): owner's call.
+
+Built 2026-11-11 (the owner's canon decisions):
+- `src/table.js`: the Table by the Water ends a voyage. Throw (Long Sleep 20, Good Dreams 10-19, She Rises 1-9, weighed by the book: earlier throws count up to 3 either way, the Kestrel's lamp halves a bad weight), Hum the tune (needs `hum`; the only gentle ending, no throw), Sit (question 3 at level 3), Leave (set the die down once, or never threw after the first). "Turn the table" is cut. Not in the demo build.
+- Mara remembers her village in four pieces during the story (`MARA_MEMORY`); at full dread she no longer says she has forgotten it once the street has come back.
+- The demo ends on the first throw and the diver; Odd jobs, Salvage rights and the raider are side goals.
+

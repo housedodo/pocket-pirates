@@ -119,9 +119,8 @@ inside once (`state.story.uiSeen`). Opening points (index in `MAIN_GOALS` = main
 | 6 Odd jobs | deliveries (Accept, Deliver, Drop off); log: Quests, Standing |
 | 7 Passengers | Take aboard; Shipyard (paint, figureheads) |
 | 8 Chart 8 islands | buy charts, ask the fishers |
-| 9 The tavern | Tavern sign (hire a hand, dice, a bed for the night), haggling, cannonballs |
+| 9 The tavern | Tavern sign (hire a hand, dice, a bed for the night), haggling, cannonballs, commissions (Accept, Finish, Let go) |
 | 10 Perrin's note | rumours |
-| 12 Errands | commissions (Accept, Finish, Let go) |
 
 Story moments (a letter, a line on the pier, a pet, the grey buyer) are never locked. Once every main goal is done, everything is open.
 Change an opening point in `GATE` in gates.js.
