@@ -11,6 +11,7 @@ import { LANES } from './seaplay.js';
 import { LM } from './landmarks.js';
 import { isKnown } from './clues.js';
 import * as life from './harbourlife.js';
+import { CHART_STYLE, drawVariant } from './chartstyles.js';   // ?chartstyle=a|b|c: proposals to compare; no flag = the chart below
 
 // ---- palette (the game's colours, a little muted for paper)
 const P = {
@@ -54,6 +55,7 @@ const vnoise = (x, z) => { const xi = Math.floor(x), zi = Math.floor(z), fx = x 
 export function renderChart(lb) {
   const v = lb.view; v.show = v.show || { harbour: true, treasure: true, rumour: true, errand: true, note: true, names: true };
   lb.root.classList.add('mapmode');
+  if (CHART_STYLE) lb.root.dataset.chartstyle = CHART_STYLE;
   lb.body.innerHTML = `<div class="chartgrid"><div class="mapwrap"><canvas id="mapCv"></canvas><canvas id="mapTxt"></canvas><div id="mapCard"></div>
       <div class="mapctl"><button id="mz+">+</button><button id="mz-">&minus;</button><button id="mc" title="Centre on ship">&#9678;</button></div></div>
       <aside class="chartside" id="chartSide"></aside></div>`;
@@ -153,6 +155,7 @@ function side(lb) {
 }
 
 export function drawChart(lb) {
+  if (CHART_STYLE) return drawVariant(lb, CHART_STYLE);
   const { state, world, ship } = lb.d, c = lb.c, v = lb.view, sc = v.sc;
   if (!c || !lb.MW) return;
   const W = lb.MW, H = lb.MH, w2 = c.canvas.width, h2 = c.canvas.height, show = v.show;

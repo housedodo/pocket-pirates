@@ -886,3 +886,12 @@ Decided by the owner: Mara remembers her village, slowly; humming the Two Player
 - **Sailing time instead of fathoms** on Orders, riddles and rumours (8 units a second times the sail upgrade; 2.6 under oars).
 - Mara now says "in your orders" and "the Ship's book". The chart's own side panel still shows a distance in units: `chart.js` is being redrawn separately and gets the slip when that lands.
 
+
+## Chart and typeface trials, behind URL flags (2026-11-11)
+Trials for the owner to compare; nothing changes without a flag and STYLE.md is not changed yet. Built by the design agent, which stopped before writing its report, so only what is listed here was checked (the build passes; style A with font A opens with the new log and no console errors).
+- `?chartstyle=a` inked portolan on vellum: a sea-green wash where you have sailed, bare vellum and rhumb lines elsewhere, a cartouche with a scale bar.
+- `?chartstyle=b` engraved pilot chart: black ink on laid paper, water lines round the shores, soundings.
+- `?chartstyle=c` indigo and gold: a night chart in the game's navy, gold rhumb lines, the known sea in teal.
+- `?uifont=a` Jacquard 12 titles with DotGothic16 text; `?uifont=b` Pirata One titles with Jersey 10 text; `?uifont=c` IM Fell English SC titles with IM Fell DW Pica text. Font files are in `public/fonts/` (from the @fontsource packages; licences still to be confirmed before shipping).
+- Code: `src/chartstyles.js`, three lines in `src/chart.js`, and the `CHART-VARIANTS` block at the end of the styles in `index.html`.
+- Still open: pick one, then update STYLE.md, put the slip on the chart, and remove the other two.
