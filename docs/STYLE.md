@@ -160,6 +160,8 @@ purple and magenta cosmic horror as dread rises.
 
 - Things worth finding at sea (bottles) flash a small gold glint, never white (white reads as foam).
 
+- **The Friday paper** (`src/newspaper.js`, `.paper` in index.html): newsprint cream with a faint 4 px grain, ink rules, a Pirata One masthead and headlines (24 / 34 / 48 px, headline case), the pixel text font for the body, a lead story with a drop cap, boxed weather and a dashed box for notices. It yellows, stains and the ink runs with dread (stages 2 to 4); it never shows anything but the paper.
+
 ## 6. The captain's log (book)
 - A battered **pixel tome**: dithered, scratched and stained leather cover with missing stitches and dented
   brass corners; dithered pages with foxing, ink blots in the margins, a coffee ring, a crease and a

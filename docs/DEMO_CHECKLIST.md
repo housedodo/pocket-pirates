@@ -31,6 +31,7 @@ Build it with `python3 scripts/single.py`, ship `pocket-pirates-demo.html` (with
 - [ ] Chart pins: click to pin, the compass follows it, it clears when you arrive
 - [ ] Lamp oil: full until the Market opens, then burns at night / fog / storm; Mara warns at a quarter; empty = dark, no fishing; Market refill and Wick refill work
 - [ ] Fishing rings: wreck (snags), night (fading), swell (surging), deep (hold), reef (darting) each show their name and play right
+- [ ] The Friday paper (Market, Friday): always the cosy one in the demo (no stains, no "for those still awake"), even near the fog wall
 - [ ] Torn sails: full sail in a gale warns, then tears (66% speed, visible holes); patch kit at sea (stop, E), or dock for the sailmaker; kits at the Market
 - [ ] Counter melody fades in now and then over the stage-1 band (rare), never at night or in a fight
 - [ ] Beaches: shingle (stone dots, three cracks), dunes (holes refill), mud (no tide, squares sink) on different treasure isles

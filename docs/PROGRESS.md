@@ -927,3 +927,13 @@ Trials for the owner to compare; nothing changes without a flag and STYLE.md is 
 - **Code clean-up:** the old chart drawing and its helpers are gone from `chart.js`; the unused trial branches are folded in `chartstyles.js` (a few `key === 'b'` blocks remain, unreachable); the unused goals page is gone from `logbook.js`. Mara's memory is gated out of the demo build. A single-file build no longer tries to fetch a sound it does not carry (it synthesises it).
 - **Docs brought up to date:** CLAUDE.md, AREAS.md (every source file now has an owner), the three agent briefs, README, ROADMAP (state table and next steps), DESIGN (file table; the slip, the anchor, the Table, the four wrong things), STYLE.
 - **Single-file games rebuilt** from this commit: `pocket-pirates-demo.html`, `pocket-pirates-demo-silent.html`, `pocket-pirates-dev.html`. The demo file was opened once from a fresh save: it starts, both typefaces are inside it, the log shows Chart and Orders, the console is clean.
+
+
+## The Harbour Tidings looks like a newspaper (2026-11-11)
+- **Merged into main** (it had only lived on its own branch): the weekly Friday paper, `src/newspaper.js`, its market row and its CSS. One conflict in `docs/AREAS.md`, resolved by keeping the `newspaper.js` entry and main's Scripts line.
+- **Front page, not a card:** a blackletter masthead in Pirata One (headline case; the words are unchanged), a motto line, a folio line with the date and the price, a lead story with a drop cap, the other news and the harbour face in one column, the weather and the notices boxed in the other. Headlines use Pirata One at the three sizes of the type pairing; the text stays in the pixel font. On a narrow screen it stacks into one column.
+- **Dread still shows in the paper itself:** it yellows (stage 2), stains and goes out of register (stage 3), and at stage 4 the masthead ink runs. No new story text: the only new words are the labels *Notices* and *Price 3g*.
+- **Demo fix:** the demo build now always prints the cosy paper (stage 0), whatever the dread near the fog wall (RULES 29). Before, a stage 2 to 4 paper could in principle have been bought there.
+- **Verified:** the real `printPaper` and `paperHTML` rendered through the game's own CSS and fonts for every stage, at the market pane's width (480 px) and at a phone width (368 px); the demo gate by calling `printPaper` with `__BUILD = 'demo'` at dread 0.95. **Not verified:** the paper opened inside the running game (no headless playthrough), and how it feels on a real screen.
+- **Not done:** the single-file games are not rebuilt (RULES 38: only when asked), so they do not have the paper until the next rebuild.
+
