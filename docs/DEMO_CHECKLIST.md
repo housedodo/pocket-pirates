@@ -64,7 +64,7 @@ Build it with `python3 scripts/single.py`, ship `pocket-pirates-demo.html` (with
 - [ ] Music: silent until the first quest, then the band builds up one instrument per quest, plays in changing line-ups, the two guitar arps never overlap; muffled tune in taverns; battle layer during a raider fight
 - [ ] Weather: light rain and a storm look and sound clearly different; distant thunder now and then in strong rain
 - [ ] Voice blips are soft enough not to notice after a minute
-- [ ] Sound and Music toggles and the three volume sliders (Music, Sea/rain/gulls, Effects) in the pause menu work, and are remembered; first click starts audio in the itch embed
+- [ ] Sound and Music toggles and the three volume sliders (Music, Sea/rain/gulls, Effects) in Pause > Settings > Sound and music work, and are remembered; first click starts audio in the itch embed
 - [ ] Say "sound on" on the page
 
 ## 6. Naming and branding
@@ -95,7 +95,7 @@ Build it with `python3 scripts/single.py`, ship `pocket-pirates-demo.html` (with
 - [ ] Handling: the rudder barely turns at a standstill, turns slide briefly, the hull carries a little after letting go; oars still turn easily
 - [ ] The ship floats with weight (lags waves, heels, bow lifts, spray in troughs); wake V and bow wave; other ships float and leave wakes
 - [ ] Waves low by islands, bigger in open sea; sets of bigger and smaller waves in calm weather
-- [ ] Ocean design Chop facets by default; Ocean / Night / Lamp buttons in the pause menu's Display panel work and are remembered
+- [ ] Ocean design Chop facets by default; Ocean / Night / Lamp buttons in Pause > Settings > Display work and are remembered
 - [ ] Night: moon phases (new moon pitch dark with no moon, full moon moonlit); candle lamp by default; L puts the lantern out
 - [ ] Lantern upgrades let you see further at night and in fog while lit
 - [ ] Storms: readable sea and horizon, storm wall rising upwind before and during a storm, sail strain only in real storms

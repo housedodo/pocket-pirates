@@ -24,7 +24,7 @@ The pause menu has Sound and Music toggles.
 The dev build's dev bar (top) sets the quest, the hour and the dread, so every row can be heard on purpose.
 
 ## Player volume sliders (pause menu)
-The pause menu stays short (Resume, Ask Mara, Controls, Fullscreen, Display, Captain's log, Sound and music, New voyage). **Sound and music** opens its own panel with the Sound and Music on/off toggles and three sliders: **Music**, **Sea, rain, gulls** (every loop that is not music: sea, rain, gulls, coast, forest) and **Effects** (one-shot sounds). They are 0-100%, saved in the player's settings, and multiply the mix made in the dev mixer (`AudioBus.userVol`, `ambBus`, `sfxBus`, `musicBus`). The sound plays for a moment while a slider is dragged so the level can be heard even though the game is paused.
+The pause menu stays short (Resume, Captain's log, Ask Mara, Settings, Controls, New voyage; **Settings > Sound and music** is the panel below). **Sound and music** opens its own panel with the Sound and Music on/off toggles and three sliders: **Music**, **Sea, rain, gulls** (every loop that is not music: sea, rain, gulls, coast, forest) and **Effects** (one-shot sounds). They are 0-100%, saved in the player's settings, and multiply the mix made in the dev mixer (`AudioBus.userVol`, `ambBus`, `sfxBus`, `musicBus`). The sound plays for a moment while a slider is dragged so the level can be heard even though the game is paused.
 
 ## The sound mixer (testing volumes in the game)
 Open the game with `?dev=1` (e.g. `http://localhost:5173/?dev=1`), then press **F8** (or Pause > Sound mixer).
