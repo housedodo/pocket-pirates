@@ -86,7 +86,7 @@ purple and magenta cosmic horror as dread rises.
   deeper troughs and chunky foam flecks on the crests. It should never read as a flat plane.
 - **Title screen** (the one exception to the single UI font): the game is called **HOIST**. The logo is "Hoist" in
   Pirata One, bone white (`#f4ead0` to `#b8a47c`, dithered) with a dried-blood block shadow (`#5a1612` / `#1a0606`),
-  drawn at low resolution and worn. The menu is the game font (DotGothic16, 32px) with a red pennant pointer. Behind it the Merry Gull bobs alone on open
+  drawn at low resolution and worn. The menu is the game's text face with a red pennant pointer. Behind it the Merry Gull bobs alone on open
   sea at a random hour: morning, day, dawn, dusk, night or rain (`src/title.js`).
 - **Ship upgrades show on the ship**: sails: stock = mended patches, 1 = clean canvas, 2 = stitched seams,
   3 = gold-bound storm silk plus a flying jib to the bowsprit. Hull: 1 = dark oak rubbing strake, 2 = iron bands,
@@ -125,8 +125,7 @@ purple and magenta cosmic horror as dread rises.
   (`src/palette.js`).
 
 ## 5. Interface (HUD and menus)
-- **One typeface everywhere: DotGothic16** (bundled in `public/fonts`, OFL). It is drawn on a 16px pixel grid, so it is only used at 16px (body, small text, labels) and 32/48px (titles); never in between, never bold or italic, no blur filters on text. This keeps C/O, S/5 and B/8 distinct. Map labels go on a separate full-resolution layer above the pixelated chart.
-  2px offset, never a blur. Text without a background behind it gets `filter: url(#crisp)`.
+- **Two typefaces** (chosen 2026-11-11): **Pirata One** for titles, headings in the log and place names on the chart (24, 34 and 48 px); **Jersey 10** for all text, HUD included. Jersey 10 is drawn on a 10 px grid and loaded with `size-adjust: 125%`, so 16 px text lands on 20 screen pixels, two per font pixel. DotGothic16 stays bundled as the fallback. Never bold or italic, no blur filters on text; text without a background behind it gets `filter: url(#crisp)`. Both faces are bundled in `public/fonts` (SIL Open Font License).
 - Panels (`.panel`): an 8x8 dithered navy tile (`--pxpanel`, shown at 32px), **no CSS border**. The frame is
   four hard box-shadows of 4px in `--pxedge` (gives notched pixel corners), a 4px pixel drop shadow,
   and 4px inset highlight/shade. Danger/horror panels set `--pxedge: #ff70d0`.
@@ -136,8 +135,16 @@ purple and magenta cosmic horror as dread rises.
 - **No emoji or symbol glyphs anywhere.** Icons in text use `pxi('name')` (7x7 pixel glyphs in `src/pixelui.js`: fish, fruits, crate, skull, letter, stars, checks, arrows...). Icons are pixel sprites written as character grids in `src/pixelui.js` (coin, sun, moon, flag, heart, sail,
   Mara's anchor and her "eye" when she breaks). New icons go there in the same format.
 - The HUD shows as little text as possible: gold, time, place. Everything else is in the log or the Q tracker.
+- **Mara's box sits bottom left while sailing** (above the key hint), never across the ship or the water ahead of the bow. In the log it sits under the book, in the middle, clear of the page arrows and the chart's compass rose.
+- **A gauge names itself once:** the first time the sail bar, the wind ring, the hull panel, the cannonball count or the lamp-oil bar appears, a small gold tag with its name (one or two words) points at it for 7 seconds. After that the HUD is wordless again.
+- **The sea chart is an inked portolan on vellum** (`src/chartstyles.js`). Painted means sailed: water within sight of a charted isle or of the ship is a sea-green wash, everything else is bare vellum with the rhumb lines a chartmaker rules from the compass rose, so the fog wall is simply where the paint stops. Coasts are ink, markers are small ink sprites (anchor, cross, question mark, flag, pin), harbours are lettered in red Pirata One, and a cartouche top left names the waters over a scale bar. Set pixel by pixel at half resolution, no anti-aliased strokes. The bare vellum is kept quiet on purpose: it is where a drawing in another hand can appear later.
+- **The log has three bookmarks:** Chart (where things are), Orders (what to do), Ship's book (what you have). A section the story has not reached is simply not printed; a bookmark with nothing behind it is not there. No locked tabs.
+- **The slip:** what, where, which way and how long, always those three lines in that order. It is the HUD tracker at sea and the first thing on Orders (cream-gold paper, a red edge, a "Show on chart" button). Distances are sailing time ("4 min"), never fathoms.
+- **The log's bookmarks never move:** the book hangs from the same top edge on every tab and the wide chart page shifts the row in, so a tab is always where it was. A click beside the book does not close it (Close, M or Esc do).
+- **A letter is shown where it is taken:** a cream paper card on the board with the words and who wrote it; the same text is kept in the log.
+- **Locked controls are grey but readable** (never invisible) and answer a click with one line.
 - Autosave cue: a 20x11 pixel ship sailing over a dashed wave strip with "Voyage saved", bottom right, on the pixel grid like the other icons.
-- The captain's log: paper-slip tabs along the top edge (DotGothic16 labels on cream), the Board is a cork field with pixel paper cards, a red pixel pin each and 4 px strings (red sure, dashed navy doubt). Encounters use the same navy box as villagers, at the bottom.
+- The captain's log: three paper-slip bookmarks along the top edge (labels on cream), the Board is a cork field with pixel paper cards, a red pixel pin each and 4 px strings (red sure, dashed navy doubt). Encounters use the same navy box as villagers, at the bottom.
 - Wind meter: one pixel-art tick ring with an N at north, a bright double arc where the bow sails well,
   a solid arrow for the wind, a bow tick outside the ring, an orange mission dot.
 
@@ -152,6 +159,8 @@ purple and magenta cosmic horror as dread rises.
   stained bone with a blood-dark 1; same carved numbers, same pixel texture. Never a new colour, only age.
 
 - Things worth finding at sea (bottles) flash a small gold glint, never white (white reads as foam).
+
+- **The Friday paper** (`src/newspaper.js`, `.paper` in index.html): newsprint cream with a faint 4 px grain, ink rules, a Pirata One masthead and headlines (24 / 34 / 48 px, headline case), the pixel text font for the body, a lead story with a drop cap, boxed weather and a dashed box for notices. It yellows, stains and the ink runs with dread (stages 2 to 4); it never shows anything but the paper.
 
 ## 6. The captain's log (book)
 - A battered **pixel tome**: dithered, scratched and stained leather cover with missing stitches and dented

@@ -123,7 +123,7 @@ const NOTICE = [
 
 /** print this week's paper for harbour d. ctx: { dread, faction, factionName, frontOn, harbourName } */
 export function printPaper(state, d, ctx) {
-  const stage = stageOf(ctx.dread), week = weekOf(state);
+  const stage = window.__BUILD === 'demo' ? 0 : stageOf(ctx.dread), week = weekOf(state);   // the demo is a different game: no dread, so only the cosy paper (RULES 29)
   const rng = mulberry32(hash2((d.seed | 0) + 101, week, state.seed | 0));
   const name = pick(rng, NAMES), H = d.name;
   const fill = (t) => t.replace(/\{N\}/g, name).replace(/\{H\}/g, H);
@@ -151,16 +151,28 @@ export function printPaper(state, d, ctx) {
 }
 
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-/** the open paper, as HTML for the market pane */
+// headlines and the masthead are stored in capitals; the blackletter title face reads far better in headline case (the words are unchanged)
+const SMALL = new Set(['a', 'an', 'and', 'at', 'by', 'for', 'in', 'of', 'off', 'on', 'or', 'the', 'to']);
+const headline = (s) => String(s).toLowerCase().split(' ').map((w, i) => (i && SMALL.has(w) ? w : w.charAt(0).toUpperCase() + w.slice(1))).join(' ');
+/** the open paper, as HTML for the market pane. Layout: masthead, motto, folio line, the lead story (drop cap), then the
+ *  other news and the face in one column and the weather and the notices (boxed) in the other. The look is in index.html (.paper). */
 export function paperHTML(p) {
-  const w = p.weather.map((r) => `<div class="pwx"><u>${esc(r.day)}</u>${r.wind === 'none' ? ' · no wind' : r.wind ? ` · wind ${esc(r.wind)}` : ''}<br>${esc(r.sky)}.</div>`).join('');
-  const n = p.news.map((x) => `<div class="pnews"><b>${esc(x.h)}</b><br>${esc(x.t)}</div>`).join('');
+  const w = p.weather.map((r) => `<div class="pwx"><span class="pday">${esc(r.day)}</span>${r.wind === 'none' ? ' <span class="pwind">no wind</span>' : r.wind ? ` <span class="pwind">wind ${esc(r.wind)}</span>` : ''}<div>${esc(r.sky)}.</div></div>`).join('');
+  const [lead, ...rest] = p.news;
+  const leadHTML = lead ? `<div class="plead"><div class="pH1">${esc(headline(lead.h))}</div><p class="pdrop">${esc(lead.t)}</p></div>` : '';
+  const n = rest.map((x) => `<div class="pnews"><div class="pH2">${esc(headline(x.h))}</div><p>${esc(x.t)}</p></div>`).join('');
   return `<div class="paper d${p.stage}">
-    <div class="pmast">${esc(p.mast)}</div>
-    <div class="pdate">${esc(p.tag)} · ${esc(p.date)}</div>
+    <div class="pmast">${esc(headline(p.mast))}</div>
+    <div class="ptag"><span>${esc(p.tag)}</span></div>
+    <div class="pfolio"><span>${esc(p.date)}</span><span class="pprice">Price ${PAPER_COST}g</span></div>
+    ${leadHTML}
     <div class="pcols">
-      <div class="pcol"><div class="phead">THE WEATHER</div>${w}
-        <div class="phead">${esc(p.faceHead)}</div><p class="pface">${esc(p.face)}</p></div>
-      <div class="pcol"><div class="phead">THE NEWS</div>${n}${p.notice ? `<div class="pnote">${esc(p.notice)}</div>` : ''}</div>
+      <div class="pcol">${n}
+        <div class="pbox"><div class="plabel">${esc(p.faceHead)}</div><p class="pface">${esc(p.face)}</p></div>
+      </div>
+      <div class="pcol">
+        <div class="pbox"><div class="plabel">The weather</div>${w}</div>
+        ${p.notice ? `<div class="pnote"><div class="plabel">Notices</div>${esc(p.notice)}</div>` : ''}
+      </div>
     </div></div>`;
 }

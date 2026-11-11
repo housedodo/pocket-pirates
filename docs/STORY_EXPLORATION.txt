@@ -561,7 +561,9 @@ Your lines for Mara:  (empty)
 # X13  ENDINGS FROM KNOWING
 ################################################################################################
 The final scene (at the hut, or at the Table by the Water if the player has reached it) is one table with a die and a set of options.
-The options a player has depend on what they have understood. The die is still the die. [PLANNED: structure; IDEA: all options below]
+The options a player has depend on what they have understood. The die is still the die.
+[DECIDED 2026-11-11 and BUILT in src/table.js: Throw, Hum the tune, Sit, Leave. "Turn the table" is CUT. Ask, Read the ledger aloud and
+ Bring someone are not built and not decided. The ending texts in the game are DRAFTS for the writer.]
 
   OPTION                          needs understanding                  what it does
   Throw                           (always)                             the last throw; the three outcomes (below)
@@ -571,7 +573,7 @@ The options a player has depend on what they have understood. The die is still t
   Sit                             Q3 level 3 and Q6 level 2            take her seat (the old "Take Her Seat", now earned by understanding, not by offerings). [PLANNED]
   Leave                           Q5 level 2 and no throws after the first   the Unseen Throw (leave). [PLANNED]
   Bring someone                   Q6 level 3                           Mara sits in your place for the throw. [IDEA, dark: see below]
-  Turn the table                  Q2 level 3 and Q7 level 3            the table faces the sea; the Eye is looked at, not slept beside. [IDEA, the cosmic ending]
+  Turn the table                  [CUT 2026-11-11]
 
   THE THREE OUTCOMES OF THROW, as before [PLANNED]
     20: The Long Sleep (she sleeps a hundred more years; the world stays bright).
@@ -638,10 +640,16 @@ X-NEW-04  [EMPTY]  A NEW LOG LINE (X9)   id:   clue:   text:
 ################################################################################################
   Q-1  Is "Understanding" a hidden number as in X3, or do you want the player to see something? (the Board and pencil marks are the only shown thing) ??
   Q-2  How many places should each region have? (this file has three; the Crown and Lantern may want more, the Drowned fewer) ??
-  Q-3  Should Mara remember her village (X-D1) or forget it as in the old plan? ??
-  Q-4  Do the Free Cays end the game in a gentle way (the tune, X13)? If so, are the two players the same two who play at night? ??
+  Q-3  Should Mara remember her village (X-D1) or forget it as in the old plan?
+       DECIDED 2026-11-11: she remembers, but not at once: it comes back to her during the story. [BUILT: four pieces, src/table.js MARA_MEMORY:
+       the bell at home (after Tama's bells or the Drowned Bell), the street that ran down to the water (two regions seen), the blue door
+       (some time after the Sunken Street), the name, which she will not say aloud (when the Table shows). Each at least 90 s of sailing after its cause.]
+  Q-4  Do the Free Cays end the game in a gentle way (the tune, X13)?
+       DECIDED 2026-11-11: yes. Playing the Two Players' tune is the ONLY gentle, happy ending, and it needs no throw. [BUILT]
+       Still open: are the two players the same two who play at night? ??
   Q-5  Is taking things (the Throwers' die, X-R2) a good choice with a price, or should the game never ask the player to take? ??
   Q-6  What does the Lady write when you ask who counts (X13)? ??
   Q-7  The Dark Tower (X-L3) is the only place with no bright version. Is that right for the middle of the game, or should the first Lid be at the Glass Lagoon? ??
-  Q-8  Which of the three phases should the demo end on? (the first throw at the hut is the end of phase A, as built) ??
+  Q-8  Where does the demo end?
+       DECIDED 2026-11-11: on the first throw and the meeting with the deep-sea diver, as built. Raiding, odd jobs and salvage are optional side quests. [BUILT]
   Your questions:  (empty)

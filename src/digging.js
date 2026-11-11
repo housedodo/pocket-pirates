@@ -63,8 +63,10 @@ export class DigGame {
     this.bed = this.bakeSand(BEACHES[this.beach]);
     this.cells = Array.from({ length: this.cols * this.rows }, () => ({ dug: false, stone: false, sunk: false, lie: Math.random() < (o.lie || 0), t: 0 }));
     for (let s = 0; s < o.stones;) { const i = Math.floor(Math.random() * this.cells.length); if (i !== this.chest[1] * this.cols + this.chest[0] && !this.cells[i].stone) { this.cells[i].stone = true; s++; } }
+    this.pre = o.predug ? this.chest[1] * this.cols + this.chest[0] : -1; this.preFound = false;   // a hole somebody left, over the chest
     const B = BEACHES[this.beach];
     this.say(B.name ? `${B.name}. ${B.say} ${this.beach === 'mud' ? `${o.digs} digs before dark.` : `The tide comes in after ${o.digs} digs.`}` : `Dig a square (click, or arrows and E). The darker the sand, the closer. The tide comes in after ${o.digs} digs.`);
+    if (this.pre >= 0) this.say(`${this.msg.textContent} One hole is here already.`);
     this.ui.style.display = 'block'; this.draw();
   }
   cancel() { this.active = false; this.ui.style.display = 'none'; }
@@ -97,7 +99,7 @@ export class DigGame {
     if (c.dug) { this.say('Already dug there. Try another square.'); return; }
     if (c.sunk) { this.say('The mud has taken that square. Try another.'); return; }
     c.dug = true; c.t = 0.25; this.digs++; this.order.push(this.cy * this.cols + this.cx);
-    if (this.cx === this.chest[0] && this.cy === this.chest[1]) { this.cb.sound('found'); this.found = true; this.draw(); this.cancel(); this.o.onDone(); return; }
+    if (this.cx === this.chest[0] && this.cy === this.chest[1]) { this.preFound = this.pre >= 0; this.cb.sound('found'); this.found = true; this.draw(); this.cancel(); this.o.onDone(); return; }
     if (c.stone) {
       this.cracks++; this.cb.sound('rock');
       if (this.cracks >= this.maxCracks) { this.cancel(); this.o.onFail('stone'); return; }
@@ -154,6 +156,9 @@ export class DigGame {
     for (let y = 0; y < this.rows; y++) for (let x = 0; x < this.cols; x++) {
       const c = this.cells[y * this.cols + x], X = OX + x * CW, Y = OY + y * CH;
       if (c.sunk) { px(X + 1, Y + 1, CW - 4, CH - 4, '#3a2a1c'); px(X + 4, Y + 8, 12, 2, '#5a4a34'); px(X + 7, Y + 5, 5, 2, '#5a4a34'); continue; }
+      if (!c.dug && y * this.cols + x === this.pre) {   // somebody's hole: fresh, wet, the heap still dark
+        px(X + 1, Y + 2, CW - 4, CH - 4, shade(B.ground[0], 0.78)); px(X + 3, Y + 4, CW - 8, CH - 8, DAMP[0]); px(X + 3, Y + 4, CW - 8, 2, shade(DAMP[0], 0.6)); px(X + 5, Y + 10, 8, 2, '#3f7f9a'); continue;
+      }
       if (!c.dug) continue;
       if (c.stone) { px(X + 3, Y + 4, CW - 8, CH - 8, '#6a5a44'); px(X + 5, Y + 6, 10, 6, '#8a8a92'); px(X + 6, Y + 6, 5, 2, '#b4b4bc'); continue; }
       let d = this.dist(x, y); if (c.lie) d = Math.max(0, 6 - d);

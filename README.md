@@ -1,4 +1,4 @@
-# Pocket Pirates
+# Pocket Pirates (HOIST)
 
 A wholesome little PS1-style pirate sailing game that slowly turns into cosmic horror.
 Browser game: Three.js + Vite, no art assets (everything is generated in code).
@@ -21,9 +21,9 @@ npm run build      # static build in dist/
 | Space / Enter | continue / close Mara's text |
 | Space | fire cannons (later in the story) at an attacking raider (auto-aimed) |
 | Y | ask Mara (first mate) for a hint |
-| E | interact: harbour (moor at the end of its pier: shipwright, job board, rumours), dig for treasure, salvage wrecks, hail passing ships |
+| E | interact: harbour (at the end of its pier), dig for treasure, salvage wrecks, go ashore, hail passing ships. Under way, E drops the anchor first and the action starts by itself |
 | Esc or P | pause menu (resume, controls, log, sound) |
-| M | captain's log, tabs run along the top: Map, Goals, Quests, Riddles, Journal, Ship, Standing (keys 1-7 or arrows; Up/Down turn pages; J opens Quests) |
+| M | captain's log, three bookmarks along the top: Chart, Orders, Ship's book (keys 1-3 or arrows; Up/Down turn pages; J opens Orders) |
 | mouse drag | tilt (up/down) and orbit around the boat (sideways); Z / X also orbit, V resets, R / F tilt |
 | wheel | zoom |
 | H | hide HUD |
@@ -50,19 +50,22 @@ The worst water (far from home) has ten extra effects. For testing, open the gam
 
 Glass calm · Corrupted HUD · Mad wind meter · Mara breaks · Lighthouses stare · Watchers (4 styles: distant shapes, pale villagers, tall thin ones, waders) · Living map · Time loop · Wrong ocean · Wrong catches · Leviathan & the Eye
 
-Dread only depends on distance from home; it does not build up over time (only the leviathan ending is time-based).
+Dread depends on where you are (by stratum, and the worst you have sailed into lingers); it does not build up over time (only the Eye opening at full dread is time-based).
 
 ## Debug / preview
 - With `?dev=1` (or in `pocket-pirates-dev.html`) only: a dev bar at the top sets the quest (dropdown, `<` `>`, keys `,` `.`), the hour (Dawn / Noon / Dusk / Night, keys `1`-`4`, `[` `]` step) and the dread (slider; `auto` or `0` returns to dread by distance from home); `F6` weather, `F7` finish the quest, `F8` sound mixer, `F9` sound studio, `` ` `` debug line.
 - URL params: `?seed=42`, `?dread=0.8`, `?fresh=1` (ignore save), `?hud=0`, `?zoom=24&pitch=0.7`, `?x=0&z=-50&h=0`, `?time=0.8` (0 = midnight, 0.5 = noon).
 
 ## Docs
-- [docs/DESIGN.md](docs/DESIGN.md): design, how it works, tunables, **backlog**
-- [docs/AUDIO.md](docs/AUDIO.md): sound ideas, guidelines and the cue list (drop files in `public/audio/`)
-- [docs/concept/](docs/concept/): in-engine concept frames (`concept-sheet.png`)
+- [docs/CANON.md](docs/CANON.md): what is true in the story, the decisions, what is open (one page)
+- [docs/RULES.md](docs/RULES.md): standing rules for every change
+- [docs/DESIGN.md](docs/DESIGN.md): how the systems work, tunables, backlog
+- [docs/STYLE.md](docs/STYLE.md): the look; [docs/AUDIO.md](docs/AUDIO.md): the sound and the cue list
+- [docs/STORY_MASTER.txt](docs/STORY_MASTER.txt): every line in the game with an ID (generated: `python3 scripts/story_export.py`)
+- [docs/PROGRESS.md](docs/PROGRESS.md): what was built; [docs/ROADMAP.md](docs/ROADMAP.md): what comes next
 
 ## Fonts
-The interface uses DotGothic16 (SIL Open Font License), bundled in `public/fonts/` so the game works offline.
+Pirata One (titles and place names) and Jersey 10 (text), with DotGothic16 as the fallback: SIL Open Font License, bundled in `public/fonts/` so the game works offline.
 
 ## Demo and dev builds
-`python3 scripts/single.py` writes two single-file games: `pocket-pirates-demo.html` (with sound, no dread, no mixer or test tools, for sharing) and `pocket-pirates-dev.html` (all sounds, mixer on F8, test tools). A new voyage opens with a short camera intro and a quiet, step-by-step tutorial led by Mara; see `docs/DESIGN.md`.
+`npx vite build && python3 scripts/single.py` writes the single-file games (also `pocket-pirates-demo-silent.html`, the demo with no sound): `pocket-pirates-demo.html` (with sound, no dread, no mixer or test tools, for sharing) and `pocket-pirates-dev.html` (all sounds, mixer on F8, test tools). A new voyage opens with a short camera intro and a quiet, step-by-step tutorial led by Mara; see `docs/DESIGN.md`.

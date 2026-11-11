@@ -19,7 +19,7 @@ Build it with `python3 scripts/single.py`, ship `pocket-pirates-demo.html` (with
 - [ ] Sea encounter card appears at least once and can be skipped
 - [ ] Companions: cat at Tama, gull at Velto (optional, ignorable)
 - [ ] Dark hut: found via goal chain; on the chart it opens framed and is easy to see; the island is dark, the water round it murky; first throw works, someone comments at the next harbour
-- [ ] Interface: at each step only what the quest needs can be clicked; the rest is grey and opens quest by quest (new signs glow teal)
+- [ ] Interface: at each step only what the quest needs can be clicked; the rest is grey, answers a click with one line, and opens quest by quest (new signs glow teal)
 - [ ] Passengers: "Take aboard" is always marked
 - [ ] End card appears ("To be continued"), "Keep sailing" opens nothing new, deliveries etc. still work
 - [ ] Nothing about dread, the Eye or later story is visible anywhere
@@ -31,6 +31,7 @@ Build it with `python3 scripts/single.py`, ship `pocket-pirates-demo.html` (with
 - [ ] Chart pins: click to pin, the compass follows it, it clears when you arrive
 - [ ] Lamp oil: full until the Market opens, then burns at night / fog / storm; Mara warns at a quarter; empty = dark, no fishing; Market refill and Wick refill work
 - [ ] Fishing rings: wreck (snags), night (fading), swell (surging), deep (hold), reef (darting) each show their name and play right
+- [ ] The Friday paper (Market, Friday): always the cosy one in the demo (no stains, no "for those still awake"), even near the fog wall
 - [ ] Torn sails: full sail in a gale warns, then tears (66% speed, visible holes); patch kit at sea (stop, E), or dock for the sailmaker; kits at the Market
 - [ ] Counter melody fades in now and then over the stage-1 band (rare), never at night or in a fight
 - [ ] Beaches: shingle (stone dots, three cracks), dunes (holes refill), mud (no tide, squares sink) on different treasure isles
@@ -105,4 +106,28 @@ Build it with `python3 scripts/single.py`, ship `pocket-pirates-demo.html` (with
 - [ ] Dig beach: the arch's shadow follows the sun; on a noon-riddle isle the chest is under the noon tip
 - [ ] Shops: shipwright cards (now/next, opens tags, short-by, buy flash), market gauge and kit pips, scroll
 - [ ] Passengers and bottles: new lines appear; nothing explains the horror
+
+
+## 11. Interface fixes after the UI critique (check each once)
+- [ ] Log: the tab row is in the same place on the Map page and the book pages; clicking beside the book does not close it
+- [ ] E at a shore, wreck or landmark while still moving: "Dropping anchor...", the ship stops in a few lengths, then the action starts by itself
+- [ ] Dig, fishing, salvage, patching: the ship does not drift; the dig is never cancelled by drift
+- [ ] Perrin's letter: "Take it" lays the letter open on the board; M then opens the log on the Riddles tab
+- [ ] Greyed signs, buttons and log tabs can be read, and a click gives one line
+- [ ] Mara's box is bottom left while sailing; Sails, Wind, Hull, Cannonballs and Lamp oil each show their name once
+
+## 12. Four small wrong things (each once per voyage)
+- [ ] Dead calm: stop rowing with the oars out; one more stroke, Mara shrugs it off
+- [ ] First passenger: fare doubled as "two berths", the harbourmaster asks for the other one
+- [ ] A night catch with a hook already in it; the fishmonger's line when it is sold
+- [ ] Second treasure beach: one hole there already, over the chest; Mara's "Lucky us"
+
+## 13. Shorter chain (check once)
+- [ ] Chapter IV has four goals (tavern, Perrin's note, check his chart, the second riddle); Odd jobs, Salvage rights and the raider are in the log under Optional and complete themselves
+- [ ] A save from before the change loads on a sensible goal
+
+## 14. Three bookmarks and the slip (check once)
+- [ ] Log: Chart, Orders, Ship's book; at the very start only Chart and Orders; nothing greyed
+- [ ] The tracker and the first entry on Orders say the same three lines: what, where, which way and how long
+- [ ] After taking Perrin's letter, M opens Orders with the riddle on the right page and Mara answers
 
