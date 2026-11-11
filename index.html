@@ -281,6 +281,22 @@
     #hbPane { scrollbar-color: #6a5a8a #120c1c; }
     #hbPane .qrow { background: #1a1230aa; border: 0; box-shadow: 0 0 0 2px #2a2040; margin: 6px 2px; padding: 8px 10px; }
     #hbPane .qrow button, .upbuy button { min-width: 92px; font-size: 14px; }
+    /* the Friday paper (newspaper.js): cream newsprint, ink rules; it yellows, stains and smudges as the dread rises */
+    #hbPane .paper { --pp: #efe0bc; --pi: #22180f; background: var(--pp); color: var(--pi); margin: 4px 2px 10px; padding: 12px 14px; box-shadow: 0 0 0 2px var(--pi), 4px 4px 0 #0008; font-size: 16px; line-height: 1.35; }
+    #hbPane .paper .pmast { font-size: 32px; text-align: center; letter-spacing: 2px; border-bottom: 4px double var(--pi); padding-bottom: 4px; }
+    #hbPane .paper .pdate { font-size: 16px; text-align: center; border-bottom: 2px solid var(--pi); padding: 4px 0; margin-bottom: 8px; }
+    #hbPane .paper .pcols { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    #hbPane .paper .pcol + .pcol { border-left: 2px solid var(--pi); padding-left: 14px; }
+    #hbPane .paper .phead { border-bottom: 2px solid var(--pi); margin: 6px 0 6px; }
+    #hbPane .paper .pwx { padding: 2px 0 6px; margin-bottom: 4px; border-bottom: 2px dotted #22180f55; } #hbPane .paper u { text-decoration: none; border-bottom: 2px solid var(--pi); }
+    #hbPane .paper .pface { margin: 0; } #hbPane .paper .pnews { margin-bottom: 10px; } #hbPane .paper .pnews b { font-weight: normal; text-decoration: underline; }
+    #hbPane .paper .pnote { border: 2px solid var(--pi); padding: 4px 6px; margin-top: 6px; }
+    #hbPane .paper.d2 { --pp: #e2d6b4; }
+    #hbPane .paper.d3 { --pp: #cfcaa8; --pi: #1c2420; background: radial-gradient(circle at 78% 30%, #8a907044 0 14%, transparent 15%), radial-gradient(circle at 18% 82%, #6a705844 0 9%, transparent 10%), var(--pp); }
+    #hbPane .paper.d3 .pmast { letter-spacing: 3px; }
+    #hbPane .paper.d4 { --pp: #a9a68c; --pi: #10140f; background: radial-gradient(circle at 70% 60%, #10140f55 0 22%, transparent 23%), radial-gradient(circle at 25% 20%, #3a2a3a55 0 12%, transparent 13%), var(--pp); }
+    #hbPane .paper.d4 .pmast { letter-spacing: 8px; }
+    @media (max-width: 560px) { #hbPane .paper .pcols { grid-template-columns: 1fr; } #hbPane .paper .pcol + .pcol { border-left: 0; padding-left: 0; } }
     .upgrid { display: flex; flex-direction: column; gap: 6px; margin-top: 4px; }
     .upc { display: grid; grid-template-columns: 46px 1fr auto; gap: 10px; align-items: center; padding: 7px 10px; background: #1a1230; box-shadow: 0 0 0 2px #2a2040, inset 0 2px 0 #ffffff10; }
     .upc .upi { width: 42px; height: 42px; background: #0e0a1a; box-shadow: 0 0 0 2px #3a2a50; display: grid; place-items: center; }
