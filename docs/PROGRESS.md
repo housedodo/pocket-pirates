@@ -850,3 +850,12 @@ up; the chosen one (D) is built in the game's own style:
 - Deep forms built: S4/S5 wild islands grow bone (ribs, spines, throats, arches, sockets, glow pool), Halved Isle spines; see ART_SPEC.md section 11.
 - Art checks: `scripts/art_checks.cjs` (18/18). Far labels now live. Halved Isle shaft, Tooth gannets.
 - Round two: clue abilities hum/rest/lookup/cupmark/wreckticks/date/streetline built; `scripts/world_checks.cjs` 12/12; art checks 20/20; audio brief in AUDIO.md; STYLE.md section 9.
+
+## Interface fixes after the UI critique (2026-11-11)
+- **The log's tabs hold still** (`index.html`): the book hangs from one top edge on every tab and the chart page shifts the row in, so the bookmarks are in the same place on Map and on the book pages. A click beside the book no longer closes the log.
+- **The anchor** (`ship.js` `anchored`, `main.js` `anchorTick`): E at a treasure shore, fruit isle, wreck, landmark, cave, thread or for a patch works while still under way: the prompt reads "Dropping anchor...", the hull stops in a few lengths and the action starts by itself. While digging, salvaging, patching or fishing the ship lies at anchor and cannot drift, so a dig is no longer lost to drift. Secrets still only show when you have stopped by yourself.
+- **Perrin's letters open where you take them** (`main.js` `openLetter`): the riddle (or the note) lies open on the board as a paper card until you leave the harbour. M opens the log on the tab Mara marked, so her answer comes when the riddle is in front of you.
+- **Locked controls answer** (`gates.js`, `main.js`): greyed signs, board buttons and log tabs are readable and give one line on a click instead of nothing.
+- **Mara's box** is bottom left while sailing and under the book in the log. Her "W lets the sails out" nudge is dropped once the sails are out.
+- **Gauges name themselves once** (`main.js` `nameMeter`): Sails, Wind, Hull, Cannonballs, Lamp oil.
+- Not done (a design decision, not a fix): shortening the main chain so the hut comes sooner.

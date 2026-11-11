@@ -448,7 +448,16 @@ function onbShow(k) {
   const el = $(ONB_KEYS[k]); if (!el) return;
   el.classList.remove('onb-off'); el.classList.remove('onb-pop'); void el.offsetWidth; el.classList.add('onb-pop');
   setTimeout(() => el.classList.remove('onb-pop'), 3000);
+  if (METER_NAMES[k]) nameMeter(el, METER_NAMES[k]);
 }
+// each gauge says its name once, beside itself, the first time it appears (and on hover afterwards: the title)
+const METER_NAMES = { sail: 'Sails', wind: 'Wind', hull: 'Hull' };
+function nameMeter(el, text) {
+  if (!el) return;
+  const tag = document.createElement('div'); tag.className = 'metername'; tag.textContent = text; el.appendChild(tag);
+  setTimeout(() => tag.remove(), 7000);
+}
+function nameOnce(key, el, text) { const s = state.story.named || (state.story.named = {}); if (s[key]) return; s[key] = 1; nameMeter(el, text); }
 const laterOK = () => !!params.get('nomate') || state.goals.i >= 9;   // Mara's chatter, dolphins, sightings, pets and the optional goals wait until the tavern chapter: before that she only talks about the quest in hand
 let onbGold0 = null, onbT0 = null, onbStepT = 0, onbNudged = false;
 function onbTick() {
@@ -461,7 +470,8 @@ function onbTick() {
   // step 0: Mara has introduced herself; if the sails stay furled a while she says so once, kindly
   if (step === 0 && !onbNudged && tNow - onbT0 > 14 && ship.trim < 0.12 && !objectives.mate.busy) { onbNudged = true; objectives.say('Whenever you are ready, Captain, W lets the sails out.'); }
   // step 0 -> 1: the first time the sails go out (after she has had time to speak), she says what A and D do and the gauge appears
-  if (step === 0 && ship.trim > 0.12 && tNow - onbT0 > 6) { state.story.onbStep = 1; onbStepT = tNow; onbShow('sail'); objectives.say(intro[1]); setHelp('A / D   steer'); }
+  if (step === 0 && ship.trim > 0.12 && tNow - onbT0 > 6) { { const m = objectives.mate, nudge = (q) => q && q.text.startsWith('Whenever you are ready'); m.queue = m.queue.filter((q) => !nudge(q)); if (nudge(m.cur)) { m.skip(); m.skip(); } }   // the sails are out: she does not ask for them any more
+    state.story.onbStep = 1; onbStepT = tNow; onbShow('sail'); objectives.say(intro[1]); setHelp('A / D   steer'); }
   // step 1 -> 2: once she has really turned or sailed a little, and a good while later, the wind ring is explained
   else if (step === 1 && (Math.abs(ship.rudder) > 0.3 || state.stats.dist > 25) && tNow - onbStepT > 10) { state.story.onbStep = 2; onbShow('wind'); objectives.say(intro[2]); setHelp(''); }
   // every other piece arrives with the thing it belongs to
@@ -483,6 +493,7 @@ function openModal(name) {
   if (digGame.active) { digGame.cancel(); dig = null; }
   ({ pause: pauseEl, chart: chartEl, harbour: harbourEl, ship: shipEl, yard: yardEl, hut: hutEl, card: cardEl, pig: pigEl, greet: greetEl, cave: caveEl, local: localGames.el })[name].classList.add('open');
   if (name === 'pause') { showPauseMain(); }
+  if (name === 'harbour') openLetter = null;
   if (name === 'chart') { abyss.onMapOpen(ship);
     // the first look at the chart after the hut has appeared on it: the chart opens on the hut, so Mara's question has something to point at
     const hd = world.hutDesc;
@@ -722,7 +733,7 @@ window.addEventListener('keydown', (e) => {
     if (e.code === 'ArrowRight' || e.code === 'ArrowLeft') go(open[(open.indexOf(hbTab) + (e.code === 'ArrowRight' ? 1 : open.length - 1)) % open.length]);
     return;
   }
-  if (e.code === 'KeyM') { logTab = 'map'; openModal('chart'); return; }
+  if (e.code === 'KeyM') { logTab = state.story.tabMark || 'map'; openModal('chart'); return; }   // the tab Mara sent you to, if she did
   if (e.code === 'KeyL') { toggleLamp(); return; }
   if (e.code === 'KeyJ') { logTab = 'quests'; openModal('chart'); return; }
   if (modal) return;
@@ -907,7 +918,7 @@ $('pbSound').addEventListener('click', () => {
   showPauseMain(); $('pbSound').focus();
 });
 pauseEl.addEventListener('pointerdown', (e) => { if (e.target === pauseEl) closeModal(); });
-chartEl.addEventListener('pointerdown', (e) => { if (e.target === chartEl) closeModal(); });
+// (a click beside the book no longer closes the log: Close, M or Esc do)
 shipEl.addEventListener('pointerdown', (e) => { if (e.target === shipEl) closeModal(); });
 $('shClose').addEventListener('click', () => closeModal());
 $('hbClose').addEventListener('click', () => closeModal());
@@ -979,6 +990,7 @@ function renderHarbour() {
     if (state.job && state.job.toId === d.id) due.push(`<div class="qrow"><div><b>${pxi('letter')} Deliver ${state.job.item}</b><br><small>+${state.job.reward}g</small></div><button id="doDeliver">Deliver</button></div>`);
     if (state.passenger && state.passenger.toId === d.id) due.push(`<div class="qrow"><div><b>${pxi('talk')} ${state.passenger.name} goes ashore</b><br><small>+${state.passenger.reward}g fare</small></div><button id="doDropoff">Drop off</button></div>`);
     for (const q of state.quests.filter((x) => x.giverId === d.id && questProgress(x, state) >= questNeed(x))) due.push(`<div class="qrow"><div><b>${questIcon(q)} ${questTitle(q, dread)}</b><br><small>done · +${q.reward}g</small></div><button data-hand="${q.id}">Finish</button></div>`);
+    if (openLetter) html += `<div class="sec">A LETTER</div><div class="letterOpen"><p>${openLetter.text}</p><small>${openLetter.from} · kept in your log</small></div>`;
     for (const lt of lettersAt(d)) html += `<div class="sec">A LETTER</div><div class="qrow letter"><div><b>${pxi('letter')} ${lt.title}</b><br><small>${lt.sub}</small></div><button id="takeLetter" data-letter="${lt.key}">Take it</button></div>`;
     if (due.length) html += `<div class="sec">FINISH HERE</div>${due.join('')}`;
     if (lifeOn()) {   // the harbour's own person and their story (harbourlife.js), and this harbour's day in the week
@@ -1192,13 +1204,21 @@ function tutorialMarks() {
     b.classList.toggle('next', open && ((!!g && t === g.tab) || (always.length > 0 && t === 'board')));
   });
   $('hbPane').querySelectorAll('.hl').forEach((e) => e.classList.remove('hl'));
-  if (hbTab === 'board') for (const id of always) { const el = $(id); if (el && !el.disabled) el.classList.add('hl'); }
+  if (hbTab === 'board') for (const id of always) { const el = $(id); if (el && !el.disabled && !el.classList.contains('locked')) el.classList.add('hl'); }
   if (!g || hbTab !== g.tab) return;
   for (const id of g.mark || []) {
-    const el = id === 'buy' ? $('hbPane').querySelector('button[data-id]:not([disabled])') : $(id);
-    if (el && !el.disabled) el.classList.add('hl');
+    const el = id === 'buy' ? $('hbPane').querySelector('button[data-id]:not([disabled]):not(.locked)') : $(id);
+    if (el && !el.disabled && !el.classList.contains('locked')) el.classList.add('hl');
   }
 }
+// a control the story has not opened yet (gates.js) still answers a click: one short line, and nothing else happens
+document.addEventListener('click', (e) => {
+  const el = e.target.closest && e.target.closest('.locked'); if (!el) return;
+  e.preventDefault(); e.stopImmediatePropagation();
+  const sign = el.closest('#hbTabs'), tab = el.closest('#logTabs');
+  toast(tab ? 'Those pages are still blank.' : sign ? `The ${(el.firstChild ? el.firstChild.textContent : 'door').trim().toLowerCase()} is shut to us for now. It opens later in the voyage.` : 'Not yet. This opens later in the voyage.', false, 2600);
+  audio.play('ui', { vol: 0.25 });
+}, true);
 // pressing a marked button clears every mark at once (the goal catches up a moment later)
 $('hbPane').addEventListener('click', (e) => { if (e.target.closest('.hl')) { $('hbPane').querySelectorAll('.hl').forEach((x) => x.classList.remove('hl')); $('hbTabs').querySelectorAll('.next').forEach((x) => x.classList.remove('next')); } }, true);
 // ---- letters: Perrin's riddle and his notes wait at the Tama board as a letter. Nothing is handed over until the player takes it.
@@ -1229,15 +1249,18 @@ function takePet(kind) {
   addCompanion(kind); audio.play('discover'); toast(PETS[kind].toast, false, 6000); autosave();
 }
 for (const k of Object.keys(state.story.pets || {})) if (PETS[k]) addCompanion(k);   // companions from an earlier session
+let openLetter = null;   // the letter just taken lies open on the board until the captain leaves the harbour
 function takeLetter(key) {
   state.story[key] = 'taken'; audio.play('ui');
   const mate = objectives.mate;
   if (key === 'letterP1') {
     giveMap('1,-1', 'Old Perrin', true, true);   // no pile of text: Mara asks what you have, then sends you to the log
-    mate.say('A letter? What have you got there, Captain?'); mate.say('Open your log with M and look under the Riddles tab.'); logTab = 'riddles';
+    openLetter = { from: 'Old Perrin', text: `“${state.riddles['1,-1'] || ''}”` };
+    mate.say('A letter? What have you got there, Captain?'); mate.say('It is in your log now: M, under Riddles.'); logTab = 'riddles';
     state.story.tabMark = 'riddles'; state.story.riddleLine = 'wait';
   } else if (key === 'letterP2') {
     perrinNote(true);
+    { const n = state.notes[state.notes.length - 1]; if (n) openLetter = { from: 'Old Perrin', text: n.text.replace(/^Perrin: /, '') }; }
     mate.say('Another letter from Perrin? Open your log with M: it is at the top of the Journal tab.'); logTab = 'journal';
     state.story.tabMark = 'journal'; state.story.noteLine = 'wait';
   }
@@ -1563,11 +1586,27 @@ function readArch(d) {
     if (ad) { state.riddles[aid] = ad.puzzle.text; toast(`The two halves fit: "${ad.puzzle.text}" (${ad.name})`, false, 11000); }
   }
 }
+const HEAVE_KINDS = new Set(['thread', 'spring', 'cave', 'treasure', 'fruit', 'wreck', 'landmark', 'patch']);
+let heave = null, anchorAt = null;   // heave: E was pressed under way, the anchor is going down; anchorAt: where she lies while it is down
+/** the anchor: down while going ashore, digging, salvaging, patching or fishing, so the ship cannot drift off the spot */
+function anchorTick() {
+  if (heave) {
+    const tg = getInteract();
+    if (!tg || tg.key !== heave.key || tNow - heave.t > 8 || modal) heave = null;
+    else if (ship.speed <= 0.3) { heave = null; tryInteract(); }
+  }
+  ship.anchored = !!heave || !!dig || fishing.active;
+  if (!ship.anchored) { anchorAt = null; return; }
+  if (!anchorAt && ship.speed < 0.3) anchorAt = { x: ship.pos.x, z: ship.pos.z };
+  if (anchorAt) { ship.pos.x = anchorAt.x; ship.pos.z = anchorAt.z; }   // currents and leeway do not move an anchored ship
+}
 function tryInteract() {
   if (!started || modal) return;
   const tg = getInteract();
   if (!tg) return;
   if (tg.kind === 'sighting') { openCard(tg.s.card); return; }
+  // E under way: the anchor goes down first, and the crew goes ashore as soon as she lies still (no need to stop her by hand)
+  if (HEAVE_KINDS.has(tg.kind) && ship.speed > 0.3 && !dig && !(tg.kind === 'treasure' && tg.isl.dug)) { if (!heave) audio.play('ui'); heave = { key: tg.key, t: tNow }; return; }
   if (tg.kind === 'thread') { if (ship.speed > 0.35) { toast('Bring the ship to a full stop first (S to reef the sails).', false, 3000); return; } tg.th.run(); return; }
   if (tg.kind === 'spring') { if (ship.speed > 0.35) { toast('Bring the ship to a full stop first (S to reef the sails).', false, 3000); return; } openCave({ id: `spring:${threads.c.src.id}`, kind: 'colourspring' }); return; }
   if (tg.kind === 'cave') { if (ship.speed > 0.35) { toast('Bring the ship to a full stop first (S to reef the sails).', false, 3000); return; } openCave(tg.site); return; }
@@ -2471,6 +2510,7 @@ function frame() {
   if (live && keys.has('KeyF')) pitchT = clamp(pitchT + dt * 0.8, 0.3, 1.35);
   if (live || params.get('autostart')) ship.update(dt, shipInput, windNow, tNow);
   if (live && dt > 0) { stormAndCalm(dt); tabletopTick(dt); seaGate(dt); clueTick(dt); seamTick(dt); tackTick(dt); seaTick(dt, windNow); oilTick(dt); sailTick(dt, windNow); fogLost(dt); }
+  if (live) anchorTick();
   const solid = [];
   traffic.solids(solid); fauna.solids(solid); sea.solids(solid); sighting.solids(solid); secrets.solids(solid);
   if (world.collide(ship.pos, 2.2) | pushOut(ship.pos, 2.2, solid)) {
@@ -2652,7 +2692,7 @@ function frame() {
 
   const tgt = getInteract();
   if (dig && live) {
-    if (!tgt || tgt.key !== dig.key || ship.speed > 0.6) { dig = null; digGame.cancel(); toast('The crew came back empty-handed. Hold still!'); }
+    if (!tgt || tgt.key !== dig.key) { dig = null; digGame.cancel(); toast('The crew came back empty-handed.'); }
     else if (dig.mini) digGame.update(dt);
     else {
       dig.t += dt;
@@ -2666,16 +2706,16 @@ function frame() {
     else if (digFix > tNow && tgt.kind === 'treasure') { promptBar.style.display = 'none'; promptTxt.textContent = digFixWhy === 'tide' ? 'The tide is in. Wait for it to go out...' : digFixWhy === 'mud' ? 'Scraping the shovels clean...' : 'Fetching the spare shovel...'; }
     else {
       promptBar.style.display = 'none';
-      promptTxt.textContent = tgt.kind === 'thread' ? (ship.speed > 0.35 ? 'Stop the ship completely (S)' : tgt.th.prompt) : tgt.kind === 'spring' ? (ship.speed > 0.35 ? 'Stop the ship completely (S) to look closer' : '[E] Look into the water') : tgt.kind === 'cave' ? (ship.speed > 0.35 ? 'Stop the ship completely (S) to look inside' : '[E] Look into the cave') : tgt.kind === 'sighting' ? `[E] ${tgt.s.label}` : tgt.kind === 'harbourfar' ? 'Sail to the pier to go ashore' : tgt.kind === 'hut' ? '[E] Knock on the dark hut' : tgt.kind === 'harbour' ? `[E] Visit ${tgt.isl.desc.name}`
+      promptTxt.textContent = tgt.kind === 'thread' ? tgt.th.prompt : tgt.kind === 'spring' ? '[E] Look into the water' : tgt.kind === 'cave' ? '[E] Look into the cave' : tgt.kind === 'sighting' ? `[E] ${tgt.s.label}` : tgt.kind === 'harbourfar' ? 'Sail to the pier to go ashore' : tgt.kind === 'hut' ? '[E] Knock on the dark hut' : tgt.kind === 'harbour' ? `[E] Visit ${tgt.isl.desc.name}`
         : tgt.kind === 'treasure' ? (tgt.isl.dug ? 'Already plundered' : !state.riddles[tgt.isl.desc.id] ? '[E] Study the ancient arch inscription' : '[E] Dig on this shore')
         : tgt.kind === 'landmark' ? `[E] Go ashore on ${tgt.isl.desc.name}`
         : tgt.kind === 'secret' ? (ship.speed > 0.6 ? '' : `[E] ${tgt.sc.label}`)
-        : tgt.kind === 'patch' ? (ship.speed > 0.6 ? 'Stop the ship to patch the torn sail' : `[E] Patch the torn sail (${state.patchKits} ${state.patchKits === 1 ? 'kit' : 'kits'})`)
+        : tgt.kind === 'patch' ? `[E] Patch the torn sail (${state.patchKits} ${state.patchKits === 1 ? 'kit' : 'kits'})`
         : tgt.kind === 'fruit' ? (state.harvest[tgt.isl.desc.id] != null && state.harvest[tgt.isl.desc.id] >= state.dayN ? 'Picked clean for today' : `[E] Pick ${plural(fruitName(fruitOf(tgt.isl.desc), tgt.isl.desc.dread), 2)}`)
         : tgt.kind === 'ship' ? (tgt.s.mode === 'derelict' ? `[E] Board the drifting ${KINDS[tgt.s.kind].label}` : tgt.s.mode === 'ghost' ? '[E] Hail the pale ship' : `[E] Hail the ${tgt.s.name}`)
         : '[E] Salvage the wreck';
       if (tgt.kind === 'secret' && ship.speed > 0.6) promptEl.style.display = 'none';
-      if ((tgt.kind === 'treasure' || tgt.kind === 'fruit' || tgt.kind === 'wreck' || tgt.kind === 'landmark') && ship.speed > 0.35) promptTxt.textContent = 'Stop the ship completely (S) to go ashore';
+      if (heave) promptTxt.textContent = 'Dropping anchor...';
     }
   } else promptEl.style.display = 'none';
 
@@ -2708,8 +2748,9 @@ function frame() {
   }
   $('ammotxt').textContent = `\u25cf ${state.ammo}`;
   document.body.classList.toggle('nooil', !oilOn());
+  if (oilOn() && started && !modal) nameOnce('oil', $('oilrow'), 'Lamp oil');
   { const f = state.oil / oilCap(state.upgrades); $('oilfill').style.width = `${Math.round(f * 100)}%`; $('oilrow').classList.toggle('low', f < 0.25); }
-  { const can = unlocked(state, 'cannons'); traffic.noRaiders = !can; document.body.classList.toggle('nocannons', !can); }
+  { const can = unlocked(state, 'cannons'); traffic.noRaiders = !can; document.body.classList.toggle('nocannons', !can); if (can && started && !modal) nameOnce('ammo', $('ammotxt'), 'Cannonballs'); }
   $('reloadfill').style.width = `${100 - Math.min(100, (combat.reload / ship.mods.reload) * 100)}%`;
   const tgtE = combat.target(ship, traffic, 110);
   const eb = $('ebar');

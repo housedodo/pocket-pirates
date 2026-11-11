@@ -488,9 +488,18 @@
     #hbTabs .post.next { box-shadow: inset 0 -5px 0 #3a2210, inset 0 4px 0 #8a5a30, 0 0 0 4px #ffd23a, 6px 6px 0 rgba(0,0,0,.4); }
     @keyframes nbob { 50% { transform: translateY(6px); } }
     /* parts of the interface the story has not reached yet (src/gates.js): greyed out, not clickable */
-    #hbTabs .post.locked, #hbPane button.locked, #logTabs button.locked { filter: grayscale(1) brightness(0.55); opacity: 0.45; cursor: not-allowed; pointer-events: none; }
+    #hbTabs .post.locked, #hbPane button.locked, #logTabs button.locked { filter: grayscale(1) brightness(0.72); opacity: 0.7; cursor: not-allowed; }   /* still readable, and a click answers with one line (main.js) */
+    #hbTabs .post.locked:hover, #hbPane button.locked:hover, #logTabs button.locked:hover { transform: none !important; filter: grayscale(1) brightness(0.85); }
     #hbTabs .post.fresh { animation: hlpulse 1s steps(2) infinite; box-shadow: 0 0 0 4px #9fe8dc !important; }
     #hbPane .hl { box-shadow: 0 0 0 3px #ffd23a !important; animation: hlpulse 1s steps(2) infinite; } @keyframes hlpulse { 50% { box-shadow: 0 0 0 6px #ff9a3a; } }
+    /* the letter just taken, lying open on the board */
+    #hbPane .letterOpen { margin: 6px 2px; padding: 12px 14px; background: #efe2ba; color: #2a1608; box-shadow: 0 0 0 2px #6a4a26, 4px 4px 0 rgba(0,0,0,.4); }
+    #hbPane .letterOpen p { margin: 0 0 6px; font-size: 17px; line-height: 1.35; } #hbPane .letterOpen small { color: #5a3a1a !important; opacity: 1 !important; text-shadow: none; }
+    /* a gauge names itself once when it first appears (main.js nameMeter) */
+    .metername { position: absolute; right: calc(100% + 10px); top: 50%; transform: translateY(-50%); padding: 3px 8px; white-space: nowrap; font-size: 15px; color: #1a1020; background: #ffd23a; box-shadow: 4px 4px 0 rgba(0,0,0,.4); pointer-events: none; animation: mname 7s steps(14) 1 forwards; z-index: 2; }
+    .metername::after { content: ""; position: absolute; left: 100%; top: 50%; margin-top: -5px; border: 5px solid transparent; border-left-color: #ffd23a; }
+    @keyframes mname { 0%, 85% { opacity: 1; } 100% { opacity: 0; } }
+    #oilrow, #ammotxt { position: relative; }
     #tracker.flash { animation: trflash 1s steps(2) 8; box-shadow: 0 0 0 3px #ffd23a; } @keyframes trflash { 50% { box-shadow: 0 0 0 6px #ff9a3a; } }
     #tracker .tag { display: inline-block; padding: 0 6px; margin-left: 6px; background: #c8402a; color: #fff4d8; }
     #compass.ping { animation: cping 1.2s steps(4) 6; } @keyframes cping { 0% { box-shadow: 0 0 0 0 rgba(255,154,58,.9); } 100% { box-shadow: 0 0 0 26px rgba(255,154,58,0); } }
@@ -545,6 +554,12 @@
     .bookwrap { margin-right: 0; margin-top: 38px; }
     .ribbons { right: auto; left: 40px; top: -32px; bottom: auto; flex-direction: row; gap: 6px; z-index: -1; }
     #chart .ribbons button, #chart[data-book="pixel"] .ribbons button { width: 104px; height: 40px; margin: 0 !important; padding: 0 !important; justify-content: center; transform: none !important; clip-path: polygon(0 6px, 6px 6px, 6px 0, calc(100% - 6px) 0, calc(100% - 6px) 6px, 100% 6px, 100% 100%, 0 100%) !important; box-shadow: inset 0 -4px 0 rgba(58,34,16,.35) !important; }
+    /* the bookmarks never move: the book hangs from the same top edge on every tab, and on the wide chart page the row is
+       shifted in by half the extra width, so a tab is under the pointer where it was a moment ago */
+    #chart { align-items: flex-start; --booktop: max(39px, calc((100vh - 600px) / 4)); }
+    #chart .bookwrap { margin-top: var(--booktop); }
+    #chart.mapmode .book { height: calc(100vh - var(--booktop) - 1px); }
+    #chart.mapmode .ribbons { left: calc(40px + (100vw - 120px - min(1000px, 97vw - 110px)) / 2); }
     #chart .ribbons button::after { display: none !important; }
     #chart .ribbons button em { font: 400 16px "DotGothic16", monospace !important; padding-bottom: 6px; }
     #chart .ribbons button:hover { transform: translateY(-4px) !important; }
@@ -588,6 +603,8 @@
     body.onb-mate #hud > :not(#mate) { visibility: hidden !important; }
     body.onb-mate #mate { visibility: visible !important; left: 12px; bottom: 12px; top: auto; transform: none; width: min(360px, 30vw); pointer-events: auto; }
     body.onb-mate.ashore #mate { bottom: auto; top: 300px; }
+    @media (min-width: 900px) { #mate { left: 12px; bottom: 64px; transform: none; width: min(430px, 34vw); } }   /* beside the ship, not across her bow */
+    body.onb-mate:has(#chart.open) #mate { left: 50%; right: auto; bottom: 4px; transform: translateX(-50%); width: min(420px, 40vw); }
     .ribbons button.hl { animation: hlpulse 1s steps(2) infinite; box-shadow: 0 0 0 4px #ffd23a !important; }
     /* the opening shot */
     #introbars i { position: fixed; left: 0; right: 0; height: 0; background: #000; z-index: 7; pointer-events: none; transition: height 1.4s ease; } #introbars i:first-child { top: 0; } #introbars i:last-child { bottom: 0; }
@@ -612,9 +629,9 @@
       <div class="panel" id="placeline"></div>
       <div class="panel" id="tracker"></div>
     </div>
-    <div id="compass" class="windbox"><canvas id="compassCv" width="36" height="36"></canvas></div>
-    <div id="sailbar" class="panel txt"><div><i class="ico sail"></i></div><div class="bar"><div class="fill" id="sailfill"></div></div></div>
-    <div id="combatbox" class="panel txt"><div><i class="ico hull"></i><span id="hptxt"></span></div><div class="bar"><div class="fill" id="hpfill"></div></div><div id="ammotxt"></div><div class="bar thin"><div class="fill" id="reloadfill"></div></div><div id="oilrow" title="Lamp oil"><i class="ico oil"></i><div class="bar"><div class="fill" id="oilfill"></div></div></div></div>
+    <div id="compass" class="windbox" title="Wind"><canvas id="compassCv" width="36" height="36"></canvas></div>
+    <div id="sailbar" class="panel txt" title="Sails"><div><i class="ico sail"></i></div><div class="bar"><div class="fill" id="sailfill"></div></div></div>
+    <div id="combatbox" class="panel txt" title="Hull"><div><i class="ico hull"></i><span id="hptxt"></span></div><div class="bar"><div class="fill" id="hpfill"></div></div><div id="ammotxt"></div><div class="bar thin"><div class="fill" id="reloadfill"></div></div><div id="oilrow" title="Lamp oil"><i class="ico oil"></i><div class="bar"><div class="fill" id="oilfill"></div></div></div></div>
     <div id="ebar" class="panel txt" style="display:none"><span id="ename"></span><div class="bar"><div class="fill" id="efill"></div></div></div>
     <div id="mate" class="panel txt" style="display:none"><span class="face" id="mateface"></span><div style="flex:1"><b id="mateName">Mara, first mate</b><div id="matetxt"></div></div><span id="matemore"><i class="pxi down"></i></span></div>
     <div id="digui" class="panel txt" style="display:none"><div id="digmsg"></div><canvas id="digcv" width="200" height="168"></canvas><div id="diglegend">dark, wet sand = close · pale = far · red squares: shovel cracks · blue bar: tide</div></div>

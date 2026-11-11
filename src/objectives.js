@@ -47,8 +47,8 @@ export const MAIN_GOALS = [
     id: 'dig', ch: 1, title: 'Follow the riddle', reward: 36,
     text: 'Perrin\'s riddle is in your log (Journal). Find the right shore of Hollow Cay Galen and dig.',
     // if the letter is already taken and read, she does not tell the player to fetch it
-    intro: (c) => (c.state.story.letterP1 === 'taken' ? ['Now to find the shore that riddle means. Stop the ship there and press E to dig.']
-      : ['Perrin left you a letter with the harbourmaster: take it at the Board sign in Tama.', 'Then find the shore its riddle means, stop the ship and press E to dig.']),
+    intro: (c) => (c.state.story.letterP1 === 'taken' ? ['Now to find the shore that riddle means. Press E there: we drop anchor and dig.']
+      : ['Perrin left you a letter with the harbourmaster: take it at the Board sign in Tama.', 'Then find the shore its riddle means and press E there: we drop anchor and dig.']),
     outro: ['Ha! Treasure! A captain with gold in the hold is a captain with options.'],
     hints: ['Take Perrin\'s letter at the Tama Board sign first (the little letter icon). The riddle is then in the log (M, Riddles tab). Sunrise is east, sunset is west.', 'On the right shore, dig squares (click, or arrows and E): darker, wetter sand means the chest is close. The tide comes in with every dig, and two stones break the shovel.'],
     check: (c) => c.state.dug.has(HOME_ISLE),

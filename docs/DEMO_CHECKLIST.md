@@ -19,7 +19,7 @@ Build it with `python3 scripts/single.py`, ship `pocket-pirates-demo.html` (with
 - [ ] Sea encounter card appears at least once and can be skipped
 - [ ] Companions: cat at Tama, gull at Velto (optional, ignorable)
 - [ ] Dark hut: found via goal chain; on the chart it opens framed and is easy to see; the island is dark, the water round it murky; first throw works, someone comments at the next harbour
-- [ ] Interface: at each step only what the quest needs can be clicked; the rest is grey and opens quest by quest (new signs glow teal)
+- [ ] Interface: at each step only what the quest needs can be clicked; the rest is grey, answers a click with one line, and opens quest by quest (new signs glow teal)
 - [ ] Passengers: "Take aboard" is always marked
 - [ ] End card appears ("To be continued"), "Keep sailing" opens nothing new, deliveries etc. still work
 - [ ] Nothing about dread, the Eye or later story is visible anywhere
@@ -106,3 +106,11 @@ Build it with `python3 scripts/single.py`, ship `pocket-pirates-demo.html` (with
 - [ ] Shops: shipwright cards (now/next, opens tags, short-by, buy flash), market gauge and kit pips, scroll
 - [ ] Passengers and bottles: new lines appear; nothing explains the horror
 
+
+## 11. Interface fixes after the UI critique (check each once)
+- [ ] Log: the tab row is in the same place on the Map page and the book pages; clicking beside the book does not close it
+- [ ] E at a shore, wreck or landmark while still moving: "Dropping anchor...", the ship stops in a few lengths, then the action starts by itself
+- [ ] Dig, fishing, salvage, patching: the ship does not drift; the dig is never cancelled by drift
+- [ ] Perrin's letter: "Take it" lays the letter open on the board; M then opens the log on the Riddles tab
+- [ ] Greyed signs, buttons and log tabs can be read, and a click gives one line
+- [ ] Mara's box is bottom left while sailing; Sails, Wind, Hull, Cannonballs and Lamp oil each show their name once

@@ -388,6 +388,16 @@ export class Ship {
     if (this._px !== undefined && Math.hypot(this.pos.x - this._px, this.pos.z - this._pz) > 20) this.vel = null;   // moved by the game (moor, respawn): no leftover momentum
     this.rudder += (input.steer - this.rudder) * Math.min(1, dt * 4);
     this.oarOut = clamp(this.oarOut + (this.rowing ? 1 : -1) * dt * 0.7, 0, 1);
+    if (this.anchored) {
+      // the anchor is down (going ashore, digging, a line in the water): the sail comes in and the hull stops within a couple of lengths
+      this.trim = Math.max(0, this.trim - dt * 1.6); this.rowIn = 0;
+      const k = Math.exp(-dt * 2.6); this.speed *= k; this.yaw = (this.yaw || 0) * k;
+      if (this.vel) { this.vel.x *= k; this.vel.z *= k; }
+      this.heading += (this.yaw || 0) * dt;
+      this.pos.x += Math.sin(this.heading) * this.speed * dt; this.pos.z -= Math.cos(this.heading) * this.speed * dt;
+      this._px = this.pos.x; this._pz = this.pos.z;
+      return;
+    }
     if (this.rowing || this.oarOut > 0) {
       // rowing: sail furled, W pulls forward, S backs water; slow but independent of the wind
       this.trim = Math.max(0, this.trim - dt * 0.8);

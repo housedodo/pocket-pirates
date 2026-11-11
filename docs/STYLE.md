@@ -136,6 +136,11 @@ purple and magenta cosmic horror as dread rises.
 - **No emoji or symbol glyphs anywhere.** Icons in text use `pxi('name')` (7x7 pixel glyphs in `src/pixelui.js`: fish, fruits, crate, skull, letter, stars, checks, arrows...). Icons are pixel sprites written as character grids in `src/pixelui.js` (coin, sun, moon, flag, heart, sail,
   Mara's anchor and her "eye" when she breaks). New icons go there in the same format.
 - The HUD shows as little text as possible: gold, time, place. Everything else is in the log or the Q tracker.
+- **Mara's box sits bottom left while sailing** (above the key hint), never across the ship or the water ahead of the bow. In the log it sits under the book, in the middle, clear of the page arrows and the chart's compass rose.
+- **A gauge names itself once:** the first time the sail bar, the wind ring, the hull panel, the cannonball count or the lamp-oil bar appears, a small gold tag with its name (one or two words) points at it for 7 seconds. After that the HUD is wordless again.
+- **The log's bookmarks never move:** the book hangs from the same top edge on every tab and the wide chart page shifts the row in, so a tab is always where it was. A click beside the book does not close it (Close, M or Esc do).
+- **A letter is shown where it is taken:** a cream paper card on the board with the words and who wrote it; the same text is kept in the log.
+- **Locked controls are grey but readable** (never invisible) and answer a click with one line.
 - Autosave cue: a 20x11 pixel ship sailing over a dashed wave strip with "Voyage saved", bottom right, on the pixel grid like the other icons.
 - The captain's log: paper-slip tabs along the top edge (DotGothic16 labels on cream), the Board is a cork field with pixel paper cards, a red pixel pin each and 4 px strings (red sure, dashed navy doubt). Encounters use the same navy box as villagers, at the bottom.
 - Wind meter: one pixel-art tick ring with an N at north, a bright double arc where the bow sails well,

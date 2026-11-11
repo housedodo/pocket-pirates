@@ -106,8 +106,8 @@ Other systems: **jobs** (delivery contracts from harbour boards, tracked on the 
 - **Docs for the rest:** `docs/PROGRESS.md` has a dated entry per feature; `docs/concept/` holds the design concepts.
 
 ## The interface opens with the story (`src/gates.js`)
-Only what the current quest needs can be clicked. Every other harbour sign, board button and log tab is greyed out and does nothing
-(keys skip it too), and opens when the main goal that first needs it comes up; a sign that has just opened glows teal until you look
+Only what the current quest needs can be clicked. Every other harbour sign, board button and log tab is greyed out (still readable) and only answers a click with one short line
+("The tavern is shut to us for now", "Those pages are still blank"; keys skip it), and opens when the main goal that first needs it comes up; a sign that has just opened glows teal until you look
 inside once (`state.story.uiSeen`). Opening points (index in `MAIN_GOALS` = main goals done):
 
 | Opens at | What |
