@@ -370,7 +370,10 @@ const fishing = new Fishing(scene, ship, {
       const c0 = state.crew.find((m) => m.wish && !m.wish.done && !m.wish.faded); if (c0) { c0.wish.faded = true; c0.wish.text = 'has stopped saying what they want'; }
       toast(`Caught: something bright and enormous, ${f.kg}kg (worth ${f.value}g). It smells of nothing.`, false, 7000); return;
     }
-    toast(`Caught: ${f.name}, ${f.kg}kg (worth ${f.value}g)${l.count === 1 ? ' - new species!' : ''}`, f.dark, 6000);
+    // once: a catch that somebody else hooked first (at night, from the second fish on; by the sixth fish at the latest)
+    const hooked = !state.story.hook && !f.dark && ((tod.night > 0.5 && state.stats.fish >= 2) || state.stats.fish >= 6);
+    if (hooked) { state.story.hook = 'aboard'; f.hooked = true; }
+    toast(`Caught: ${f.name}, ${f.kg}kg (worth ${f.value}g)${l.count === 1 ? ' - new species!' : ''}${hooked ? `${l.count === 1 ? '' : '.'} There is a hook in its mouth already: old bronze, the line cut clean.` : ''}`, f.dark, hooked ? 9000 : 6000);
     if (f.dark) objectives.remark('darkfish', dread);
   },
 });
@@ -1046,9 +1049,12 @@ function renderHarbour() {
     const tl = $('takeLetter'); if (tl) tl.addEventListener('click', () => { takeLetter(tl.dataset.letter); renderHarbour(); });
     const dv = $('doDeliver'); if (dv) dv.addEventListener('click', () => { completeJobIfHere(d); renderHarbour(); });
     const dp = $('doDropoff'); if (dp) dp.addEventListener('click', () => {
-      const p = state.passenger; state.gold += p.reward; state.passenger = null; state.stats.passengers = (state.stats.passengers || 0) + 1;
-      repOf(state, d.id).deliveries++; toast(`${p.name} waves goodbye from the pier. (+${p.reward}g)`, false, 6000); audio.play('treasure');
-      if (state.crew.length < 2 && Math.random() < 0.3 && !state.crew.some((c) => c.name === p.name)) {   // now and then a passenger asks to sail along for a few days
+      const p = state.passenger, two = !state.story.berths && !(state.stats.passengers || 0);   // the first fare is paid for two berths; the harbourmaster looks for the other one (once, never explained)
+      if (two) { state.story.berths = 1; p.reward *= 2; }
+      state.gold += p.reward; state.passenger = null; state.stats.passengers = (state.stats.passengers || 0) + 1;
+      repOf(state, d.id).deliveries++; toast(`${p.name} waves goodbye from the pier. (+${p.reward}g${two ? ', two berths' : ''})`, false, 6000); audio.play('treasure');
+      if (two) setTimeout(() => toast('"And the other one?" The harbourmaster looks along your deck, then shrugs and stamps the book.', false, 7000), 2200);
+      if (!two && state.crew.length < 2 && Math.random() < 0.3 && !state.crew.some((c) => c.name === p.name)) {   // now and then a passenger asks to sail along for a few days
         const ids = Object.keys(TRAITS); signOn({ name: p.name, look: 'who did not want to get off', trait: ids[Math.floor(Math.random() * ids.length)], wish: { kind: 'volcano', text: 'wants to see a fire mountain', done: false }, cost: 0 }, 3);
         setTimeout(() => toast(`${p.name} asks to sail along for a few days. (${TRAITS[state.crew[state.crew.length - 1].trait].name} joins the crew.)`, false, 7000), 1800);
       }
@@ -1091,7 +1097,8 @@ function renderHarbour() {
     pane.innerHTML = html;
     { const bk = $('buyKit'); if (bk) bk.addEventListener('click', () => { const kc = Math.ceil(35 * discount(rep) * costMul()); if (state.gold < kc || state.patchKits >= 3) return; state.gold -= kc; state.patchKits++; audio.play('buy'); renderHarbour(); }); }
     { const bo = $('buyOil'); if (bo) bo.addEventListener('click', () => { const { cost } = buyOil(discount(rep) * costMul()); if (state.gold < cost) return; state.gold -= cost; state.oil = oilCap(state.upgrades); audio.play('buy'); toast('The lantern is full.', false, 2500); renderHarbour(); }); }
-    const sf = $('sellFish'); if (sf) sf.addEventListener('click', () => { state.gold += fishVal; toast(`Sold ${state.catch.length} fish for ${fishVal} gold.`); state.catch = []; audio.play('buy'); renderHarbour(); });
+    const sf = $('sellFish'); if (sf) sf.addEventListener('click', () => { state.gold += fishVal; toast(`Sold ${state.catch.length} fish for ${fishVal} gold.`);
+      if (state.story.hook === 'aboard' && state.catch.some((c) => c.hooked)) { state.story.hook = 'sold'; setTimeout(() => toast('"Second one this week," says the fishmonger, and drops the hook in a jar.', false, 7000), 1600); } state.catch = []; audio.play('buy'); renderHarbour(); });
     const sb = $('sellBright'); if (sb) sb.addEventListener('click', () => {
       const cb = threads.c, hold = state.catch.filter((f) => f.bright), v = Math.round(hold.reduce((a, f) => a + f.value, 0) * 2.2);
       state.gold += v; state.catch = state.catch.filter((f) => !f.bright); if (cb) cb.end = 'sold'; addMark('salt');
@@ -1586,6 +1593,20 @@ function readArch(d) {
     if (ad) { state.riddles[aid] = ad.puzzle.text; toast(`The two halves fit: "${ad.puzzle.text}" (${ad.name})`, false, 11000); }
   }
 }
+// ---- oars: a soft stroke sound while rowing, and (once, in the dead calm of chapter III) one stroke more after the rowing has stopped.
+// Nothing explains it; Mara puts it down to the flat water.
+let oarPhase = 0, oarStill = 0, oarRowed = 0;
+function oarTick(dt) {
+  const rowing = ship.rowing && ship.rowIn !== 0;
+  if (rowing) { oarStill = 0; oarRowed += dt; const ph = Math.floor(ship.stroke / (Math.PI * 2)); if (ph !== oarPhase) { oarPhase = ph; audio.play('oar', { vol: 0.5 }); } return; }
+  if (!ship.rowing || ship.oarOut < 1) { oarStill = 0; return; }
+  oarStill += dt;
+  const g = objectives.current;
+  if (!state.story.oar3 && g && g.id === 'calm' && weather.calm > 0.5 && oarRowed > 5 && oarStill > 2.4 && !(ship.ghostStroke > 0)) {
+    state.story.oar3 = 1; ship.ghostStroke = Math.PI * 2; audio.play('oar', { vol: 0.9 });
+    setTimeout(() => objectives.say('Hm? ... Nothing. Flat water plays tricks.'), 2600);
+  }
+}
 const HEAVE_KINDS = new Set(['thread', 'spring', 'cave', 'treasure', 'fruit', 'wreck', 'landmark', 'patch']);
 let heave = null, anchorAt = null;   // heave: E was pressed under way, the anchor is going down; anchorAt: where she lies while it is down
 /** the anchor: down while going ashore, digging, salvaging, patching or fishing, so the ship cannot drift off the spot */
@@ -1699,8 +1720,10 @@ function tryInteract() {
           const pa = d.puzzle.angle, ox = Math.cos(pa), oz = Math.sin(pa), rx = Math.sin(pa), rz = -Math.cos(pa);   // the beach: o out to sea, r along it
           const sun = () => { const sx = -Math.sin(tod.sunAz), sz = Math.cos(tod.sunAz); return { elev: tod.sunElev, gx: sx * rx + sz * rz, gy: sx * ox + sz * oz, dim: 1 - 0.75 * Math.max(weather.cloud || 0, weather.rain || 0) }; };   // the arch's shadow on the sand, from where the sun is now
           const noon = d.puzzle.shadow ? { elev: Math.max(0.3, sunScale), gx: rz, gy: oz } : null;
-          digGame.start({ cols: 8, rows: 5, beach, sun, noon, digs: Math.round((first ? 13 : 10) + tools - (d.dread > 0.5 ? 1 : 0)), stones: first ? 2 : 3 + (d.dread > 0.4 ? 1 : 0), lie: d.dread > 0.5 ? 0.3 : 0,
-            onDone: () => { const done = dig && dig.done; dig = null; if (done) done(); },
+          const predug = !first && !state.story.predug && state.stats.treasures >= 1;   // the second chest: one hole is there already, over the chest (once)
+          if (predug) state.story.predug = 1;
+          digGame.start({ cols: 8, rows: 5, beach, sun, noon, predug, digs: Math.round((first ? 13 : 10) + tools - (d.dread > 0.5 ? 1 : 0)), stones: first ? 2 : 3 + (d.dread > 0.4 ? 1 : 0), lie: d.dread > 0.5 ? 0.3 : 0,
+            onDone: () => { const done = dig && dig.done; dig = null; if (done) done(); if (predug && digGame.preFound) setTimeout(() => objectives.say('Somebody dug here first, and stopped a spade short. Lucky us.'), 3000); },
             onFail: (why) => { dig = null; digFix = tNow + 6; digFixWhy = why; state.attempts[d.id] = (state.attempts[d.id] || 0) + 1;
               toast(why === 'tide' ? 'The tide comes in and fills every hole. The crew waits for it to go out again.' : why === 'mud' ? 'The light goes and the mud is everywhere. The crew scrapes the shovels clean and tries again.' : 'The shovel breaks on a second stone. The crew fetches the spare.', false, 5500); } });
         }
@@ -2510,7 +2533,7 @@ function frame() {
   if (live && keys.has('KeyF')) pitchT = clamp(pitchT + dt * 0.8, 0.3, 1.35);
   if (live || params.get('autostart')) ship.update(dt, shipInput, windNow, tNow);
   if (live && dt > 0) { stormAndCalm(dt); tabletopTick(dt); seaGate(dt); clueTick(dt); seamTick(dt); tackTick(dt); seaTick(dt, windNow); oilTick(dt); sailTick(dt, windNow); fogLost(dt); }
-  if (live) anchorTick();
+  if (live) { anchorTick(); oarTick(dt); }
   const solid = [];
   traffic.solids(solid); fauna.solids(solid); sea.solids(solid); sighting.solids(solid); secrets.solids(solid);
   if (world.collide(ship.pos, 2.2) | pushOut(ship.pos, 2.2, solid)) {

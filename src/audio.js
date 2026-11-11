@@ -22,7 +22,7 @@ export const CUES = {
   // only these effects play. Every other effect the game asks for (splash, treasure, cannon, horn ...) is silent on purpose:
   // it is not listed, so it is never loaded and never synthesised. Add a name back here (and its file) to bring one back.
   oneShots: ['ui', 'dig', 'buy', 'pause', 'chapter', 'fail', 'success', 'card', 'roll_d6', 'roll_d20', 'cast', 'bite', 'catch',
-    'thunder'],   // thunder: the recorded distant roll (with rain)
+    'thunder', 'oar'],   // oar: one soft stroke while rowing (synthesised)   // thunder: the recorded distant roll (with rain)
 };
 const tick = () => new Promise((r) => setTimeout(r, 0));
 

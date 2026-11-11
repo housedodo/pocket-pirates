@@ -218,6 +218,13 @@ const SHOTS = {
     }
     return norm(lp(x, 0.3), 0.5);
   },
+  oar() { // one stroke: the dip, the pull, a drip off the blade
+    const x = mk(1.6), nz = lp(noise(x.length, 41), 0.25);
+    tone(x, 0, 0.5, (t) => nz[Math.floor(t * SR) % x.length] * Math.exp(-t * 7) * Math.min(1, t / 0.02) * 1.3);
+    tone(x, 0.05, 0.25, (t) => Math.sin(TAU * (140 - 60 * t) * t) * Math.exp(-t * 12) * 0.4);
+    tone(x, 1.1, 0.4, (t) => Math.sin(TAU * 1200 * t) * Math.exp(-t * 30) * 0.15);
+    return norm(x, 0.5);
+  },
   splash() { const x = noise(Math.floor(0.7 * SR), 32); for (let i = 0; i < x.length; i++) { const t = i / SR; x[i] *= Math.exp(-t * 6) * Math.min(1, t / 0.01); } lp(x, 0.4); return norm(x, 0.6); },
   bump() { const x = mk(0.5), nz = lp(noise(x.length, 33), 0.2); for (let i = 0; i < x.length; i++) { const t = i / SR; x[i] = Math.sin(TAU * (70 - 70 * t) * t) * Math.exp(-t * 9) + nz[i] * Math.exp(-t * 20) * 0.6; } return norm(x, 0.8); },
   dig() { const x = mk(1.4); const nz = bp(noise(x.length, 34), 1500, 0.8); for (let k = 0; k < 3; k++) tone(x, k * 0.45, 0.3, (t) => nz[Math.floor((k * 0.45 + t) * SR)] * Math.sin(Math.PI * t / 0.3) * 1.2 + Math.sin(TAU * 90 * t) * Math.exp(-t * 20) * 0.5); return norm(x, 0.6); },

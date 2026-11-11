@@ -859,3 +859,12 @@ up; the chosen one (D) is built in the game's own style:
 - **Mara's box** is bottom left while sailing and under the book in the log. Her "W lets the sails out" nudge is dropped once the sails are out.
 - **Gauges name themselves once** (`main.js` `nameMeter`): Sails, Wind, Hull, Cannonballs, Lamp oil.
 - Not done (a design decision, not a fix): shortening the main chain so the hut comes sooner.
+
+## Four small wrong things before the hut (2026-11-11)
+Each happens once, is never explained, and has an ordinary reading. They are in the demo build too. Flags in `state.story`.
+- **The third oar** (`oar3`; `main.js` `oarTick`, `ship.js` `ghostStroke`): in the dead calm of chapter III, about two and a half seconds after you stop rowing with the oars still out, they pull one more stroke by themselves. Mara: "Hm? ... Nothing. Flat water plays tricks." Rowing now has a soft stroke sound (`oar`, synthesised) so the extra one reads as an oar.
+- **Two berths** (`berths`): the first passenger's fare is paid double, marked "two berths", and the harbourmaster asks "And the other one?" No crew offer follows that fare.
+- **The hook already in it** (`hook`): one catch (at night from the second fish on, or the sixth fish at the latest) has an old bronze hook in its mouth, the line cut clean. Sold at a market, the fishmonger says "Second one this week."
+- **The hole that was already there** (`predug`; `digging.js` `predug`): on the second treasure beach one hole is there already, wet, exactly over the chest. The chest is untouched. Mara: "Somebody dug here first, and stopped a spade short. Lucky us."
+- Open thread for the writer: who is the other berth, whose hook, who dug. None is answered anywhere. They point at the same thing as the hut's pen (the outcome is written before you arrive) and at the diver (someone below).
+

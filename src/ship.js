@@ -388,6 +388,7 @@ export class Ship {
     if (this._px !== undefined && Math.hypot(this.pos.x - this._px, this.pos.z - this._pz) > 20) this.vel = null;   // moved by the game (moor, respawn): no leftover momentum
     this.rudder += (input.steer - this.rudder) * Math.min(1, dt * 4);
     this.oarOut = clamp(this.oarOut + (this.rowing ? 1 : -1) * dt * 0.7, 0, 1);
+    if (this.ghostStroke > 0) { const d = Math.min(this.ghostStroke, dt * 3.4); this.stroke += d; this.ghostStroke -= d; }   // the oars pull once with nobody pulling (main.js oarTick)
     if (this.anchored) {
       // the anchor is down (going ashore, digging, a line in the water): the sail comes in and the hull stops within a couple of lengths
       this.trim = Math.max(0, this.trim - dt * 1.6); this.rowIn = 0;
@@ -503,7 +504,7 @@ export class Ship {
     for (const arm of this.oarArms) {
       arm.visible = o > 0.01;
       const sd = arm.userData.side, st = this.stroke + arm.userData.ph * 0;
-      const sw = this.rowIn ? Math.sin(st) * 0.5 : 0, lift = this.rowIn ? Math.max(0, Math.cos(st)) * 0.24 : 0;
+      const mv = this.rowIn || this.ghostStroke > 0, sw = mv ? Math.sin(st) * 0.5 : 0, lift = mv ? Math.max(0, Math.cos(st)) * 0.24 : 0;
       arm.rotation.set(0, 0, 0);
       arm.rotation.order = 'YXZ';
       arm.rotation.y = sd * lerp(0, Math.PI / 2, ease) + sd * sw - (1 - ease) * 0;      // stowed pointing aft, out to the side
