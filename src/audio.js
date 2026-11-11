@@ -22,7 +22,7 @@ export const CUES = {
   // only these effects play. Every other effect the game asks for (splash, treasure, cannon, horn ...) is silent on purpose:
   // it is not listed, so it is never loaded and never synthesised. Add a name back here (and its file) to bring one back.
   oneShots: ['ui', 'dig', 'buy', 'pause', 'chapter', 'fail', 'success', 'card', 'roll_d6', 'roll_d20', 'cast', 'bite', 'catch',
-    'thunder'],   // thunder: the recorded distant roll (with rain)
+    'thunder', 'oar'],   // oar: one soft stroke while rowing (synthesised)   // thunder: the recorded distant roll (with rain)
 };
 const tick = () => new Promise((r) => setTimeout(r, 0));
 
@@ -110,7 +110,7 @@ export class AudioBus {
   async load(key) {
     const inl = window.__AUDIO && window.__AUDIO[key];   // single-file build: sounds are inlined
     if (inl) { try { this.buffers.set(key, await this.ctx.decodeAudioData(await (await fetch(inl)).arrayBuffer())); return; } catch (e) { /* fall through */ } }
-    for (const ext of ['ogg', 'mp3', 'wav']) {
+    for (const ext of window.__AUDIO ? [] : ['ogg', 'mp3', 'wav']) {   // a single-file build carries every file it has: a cue that is not inlined is synthesised, never fetched
       try {
         const res = await fetch(`audio/${key}.${ext}`);
         if (!res.ok) continue;

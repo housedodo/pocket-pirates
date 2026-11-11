@@ -14,7 +14,6 @@ import re, sys, pathlib, datetime, subprocess
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 SRC = ROOT / 'src'
 OUT = ROOT / 'docs' / 'STORY_MASTER.txt'
-OLD = ROOT / 'docs' / 'STORY_AND_DIALOGUE.txt'      # its Part 2 is the line-by-line pull from the code
 
 CODES = {  # source file -> (ID code, what it holds)
     'objectives.js': ('OBJ', 'chapters, Mara, goal text and hints'),
@@ -37,6 +36,7 @@ CODES = {  # source file -> (ID code, what it holds)
     'sighting.js': ('SIG', 'signs at sea'),
     'hut.js': ('HUT', 'the dark hut and the Lady'),
     'logbook.js': ('LOG', 'the captain\'s log'),
+    'table.js': ('TBL', 'the Table by the Water: the endings, and Mara\'s village coming back to her'),
     'main.js': ('MAIN', 'Mara\'s remarks, HUD messages, everything else'),
     'world.js': ('WRL', 'world text'),
     'harbourlife.js': ('HLF', 'residents, dishes, events, fragments, gossip'),
@@ -86,33 +86,121 @@ def arcs():
     return re.findall(r"^  (\w+): \{ who: '([^']+)', prop: '(\w+)'", s, re.M)
 
 
+def js_strings(src):
+    """Every string literal in a JS source (comments and regex literals skipped), unescaped. Templates keep their ${...}."""
+    out, i, n = [], 0, len(src)
+    esc = {'n': ' ', 't': ' ', "'": "'", '"': '"', '`': '`', '\\': '\\'}
+    def unesc(t):
+        t = re.sub(r'\\u([0-9a-fA-F]{4})', lambda m: chr(int(m.group(1), 16)), t)
+        return re.sub(r'\\(.)', lambda m: esc.get(m.group(1), m.group(1)), t)
+    prev = ''
+    while i < n:
+        c = src[i]
+        if c == '/' and src[i + 1:i + 2] == '/':
+            i = src.find('\n', i); i = n if i < 0 else i; continue
+        if c == '/' and src[i + 1:i + 2] == '*':
+            i = src.find('*/', i + 2); i = n if i < 0 else i + 2; continue
+        if c == '/' and prev in '(,=:[!&|?{};\n' :      # a regex literal: skip it
+            k, cls = i + 1, False
+            while k < n and (src[k] != '/' or cls):
+                if src[k] == '\\': k += 1
+                elif src[k] == '[': cls = True
+                elif src[k] == ']': cls = False
+                elif src[k] == '\n': break
+                k += 1
+            i = k + 1; prev = '/'; continue
+        if c in '\'"':
+            k = i + 1
+            while k < n and src[k] != c:
+                if src[k] == '\\': k += 1
+                if src[k] == '\n': break
+                k += 1
+            out.append(unesc(src[i + 1:k])); i = k + 1; prev = c; continue
+        if c == '`':
+            k, depth = i + 1, 0
+            while k < n and (src[k] != '`' or depth):
+                if src[k] == '\\': k += 1
+                elif src[k] == '$' and src[k + 1:k + 2] == '{': depth += 1; k += 1
+                elif src[k] == '}' and depth: depth -= 1
+                k += 1
+            out.append(unesc(src[i + 1:k])); i = k + 1; prev = c; continue
+        if not c.isspace(): prev = c
+        i += 1
+    return out
+
+
+def norm(t):
+    t = t.replace('“', '"').replace('”', '"').replace('’', "'").replace('‘', "'")
+    return re.sub(r'\s+', ' ', t).strip()
+
+
+def is_prose(t):
+    """Does this string read as something the player sees (a sentence), not markup, CSS, a selector or a key?"""
+    t = t.strip()
+    if len(t) < 14 or len(t.split()) < 3: return False
+    if re.search(r'<[a-zA-Z/!]|class=|style=|=>|===|rgba?\(|\.js\b|\bpx\b|\d+px|querySelector|function\b|[a-z-]+:\s*[^ ;]+;|^[#.\[/]|^\$\{|&[a-z]+;', t): return False
+    if not re.match(r'[A-Za-z"\'(“…\d]', t): return False
+    plain = re.sub(r'\$\{[^}]*\}', '', t)
+    letters = sum(ch.isalpha() or ch == ' ' for ch in plain)
+    if not plain or letters / len(plain) < 0.8: return False
+    if not re.search(r'[.!?…:"\')]$', plain.strip()): return False     # ends like a sentence
+    return len(re.findall(r'\b[a-z]{3,}\b', plain)) >= 2
+
+
 def coded_lines():
-    """Part 2 of the old export, with an ID on every line. Returns text."""
-    txt = OLD.read_text(encoding='utf-8')
-    body = txt.split('PART 2: EVERY LINE IN THE GAME')[1]
-    body = body.split('\n', 3)[3]
-    out, code, n, sub = [], None, 0, None
+    """Section J: every line of text in the game, each with a stable ID.
+    IDs come from the STORY_MASTER.txt already in the repo (a line keeps its ID as long as its text is still in the code);
+    a line whose text has left the code moves to RETIRED and its ID is never used again; text that is new in the code gets the
+    next free number under ADDED. (The very first export took its lines from docs/STORY_AND_DIALOGUE.txt, now removed.)"""
+    prev = OUT.read_text(encoding='utf-8') if OUT.exists() else ''
+    body = prev.split('# J  EVERY LINE IN THE GAME', 1)[1] if '# J  EVERY LINE IN THE GAME' in prev else ''
+    body = body.split('\n# K  WRITER', 1)[0]
+    by_code = {v[0]: k for k, v in CODES.items()}
+    secs, cur = {}, None                      # code -> list of ('h', text) | ('l', id, text) | ('n', text)
+    order = []
     for raw in body.splitlines():
-        m = re.match(r'^========== (\S+) ==========$', raw)
-        if m:
-            f = m.group(1)
-            code, what = CODES.get(f, (f.split('.')[0].upper()[:5], ''))
-            n = 0
-            out += ['', '', '#' * 100, f'## SOURCE {code}   ({f}): {what}', '#' * 100]
-            continue
-        m = re.match(r'^--- (.+) ---$', raw)
-        if m:
-            sub = m.group(1)
-            out += ['', f'### {code} / {sub}']
-            continue
-        m = re.match(r'^  - (.*)$', raw)
-        if m and code:
-            n += 1
-            out.append(f'  {code}-{n:04d} | {m.group(1)}')
-            continue
-        if raw.strip():
-            out.append('  ' + raw.strip())     # a line that is not a bullet (kept as a note)
-    return '\n'.join(out), sum(1 for l in out if re.match(r'^  [A-Z]+-\d{4} \|', l))
+        m = re.match(r'^## SOURCE (\S+)\s+\((\S+?)\)', raw)
+        if m: cur = m.group(1); secs[cur] = []; order.append(cur); continue
+        if cur is None: continue
+        m = re.match(r'^### \S+ / (.+)$', raw)
+        if m: secs[cur].append(('h', m.group(1))); continue
+        m = re.match(r'^  ([A-Z]+)-(\d{4}) \| (.*)$', raw)
+        if m: secs[cur].append(('l', int(m.group(2)), m.group(3))); continue
+        m = re.match(r'^    was ([A-Z]+)-(\d{4}) \| (.*)$', raw)
+        if m: secs[cur].append(('g', int(m.group(2)), m.group(3))); continue
+        if raw.strip() and not raw.startswith('#'): secs[cur].append(('n', raw.strip()))
+    today = datetime.date.today().isoformat()
+    out, total, gone_n, new_n = [], 0, 0, 0
+    for code in order + [c for c, _ in CODES.values() if c not in order]:
+        f = by_code.get(code)
+        if not f or not (SRC / f).exists(): continue
+        src = read(f)
+        strings = [norm(x) for x in js_strings(src)]
+        sset, flat = set(strings), norm(re.sub(r'\\u([0-9a-fA-F]{4})', lambda m: chr(int(m.group(1), 16)), src).replace("\\'", "'").replace('\\"', '"'))
+        out += ['', '', '#' * 100, f'## SOURCE {code}   ({f}): {CODES[f][1]}', '#' * 100]
+        kept, gone, top, pend = [], [], 0, None
+        for it in secs.get(code, []):
+            if it[0] == 'h':
+                pend = None if it[1].startswith('GONE') or it[1].startswith('RETIRED') else it[1]; continue
+            if it[0] == 'g': gone.append((it[1], it[2])); top = max(top, it[1]); continue   # retired earlier: kept on the list so the number is never used again
+            if it[0] == 'n': out.append('  ' + it[1]); continue
+            _, num, text = it; top = max(top, num)
+            bare = norm(re.sub(r'^\[[A-Za-z0-9_ ]+\]\s*', '', text))
+            if bare in sset or bare in flat:
+                if pend: out += ['', f'### {code} / {pend}']; pend = None
+                out.append(f'  {code}-{num:04d} | {text}'); kept.append(bare); total += 1
+            else: gone.append((num, text))
+        keptset = set(kept); seen = set()
+        fresh = [t for t in strings if is_prose(t) and t not in keptset and not (t in seen or seen.add(t))
+                 and not any(len(k) >= 20 and (k in t or t in k) for k in kept)]
+        if fresh:
+            out += ['', f'### {code} / ADDED {today}']
+            for t in fresh: top += 1; out.append(f'  {code}-{top:04d} | {t}'); total += 1; new_n += 1
+        if gone:
+            out += ['', f'### {code} / RETIRED (the text is no longer in the game; these IDs are never used again)']
+            for num, text in sorted(gone): out.append(f'    was {code}-{num:04d} | {text}'); gone_n += 1
+    print(f'section J: {total} lines with an ID ({new_n} added, {gone_n} retired in all)')
+    return '\n'.join(out), total
 
 
 # ----------------------------------------------------------------------------------------- hand-written
@@ -171,6 +259,8 @@ HOW I WILL IMPORT IT
   4. Lines go into the right source file (the CODE says which). New places, scenes and persons become code, with the
   look (design) and the sound (audio) briefed separately. 5. I rebuild this file with the new IDs and save it.
   Anything marked ?? is asked, never guessed.
+  Section J is pulled from the code on every rebuild: text new in the game appears under "ADDED <date>" with fresh IDs, and
+  text that has left the game stays listed under "RETIRED" (its ID is never used again).
 
 WHERE THINGS ARE BUILT (so you know what is cheap and what is not)
   Cheap    changing any line, adding lines to existing lists, adding a bottle note, rumour, gossip, harbour line,
@@ -203,14 +293,16 @@ THE RULES OF TELLING [BUILT]
   B5  No handholding: nothing is marked right or wrong; riddles, rumours and notes are a memory aid.
   B6  The world remembers: what you do in one harbour is gossiped about in the next.
   B7  The bright version and the wrong version of a place share a skeleton; dread swaps the details, not the place.
-  B8  Mara is cheerful (her real name is Mara). At full dread she forgets her village and says things she should not.
+  B8  Mara is cheerful (her real name is Mara). Her village comes back to her a piece at a time during the voyage; she never
+      says its name aloud. [DECIDED 2026-11-11] At full dread she still says things she should not.
   B9  The captain never speaks. Other people may speak AT the captain, and Mara answers for the ship.
 
 TONE BY DREAD STAGE [BUILT]
   0 Sunny   warm, funny, small talk, food, weather.            1 Off    people repeat themselves; one wrong detail.
   2 Wrong   odd names, glowing fungus, standing stones.         3 Eerie  fog, dusk, lit empty windows, black flag.
   4 Cosmic  black sun, an eye in the stars, chromatic split, Mara breaks.
-  Dread follows distance from Tama only (0 at home, 1.0 at about 2200 units). It does not grow with time.
+  Dread follows how far out you are, by stratum (Home Sound, the Shoals, the Trade Belt, the Slack, the Dim, the Lid at 1950-2400),
+  and the worst you have sailed into lingers. It does not grow with time. The demo has no dread at all.
 
 WRITER'S NOTES FOR THIS FILE
   B-note-1  (empty)   Add rules you want me to keep: words to avoid, running jokes, how long a line may be. ??
@@ -225,8 +317,11 @@ Status marks as in part A. "Voice" is a short note to keep every line in charact
 C-001 MARA, first mate [BUILT]
   Role      talks you through the goals, remarks on weather, dusk, tide, ports; answers passengers; unravels at full dread.
   Voice     warm, quick, a little cheeky; one or two short lines at a time; calls you Captain; "She is small, but she is ours."
-  Secret    what Mara is and whether she remembers any of it when you are home is NOT decided. [OPEN]
-  Her arc   cheerful -> steady -> rattled (mood from hull, rest and dread) -> breaks (glitching portrait, lines she should not say).
+  Secret    she is from a village that is no longer above water (the Sunken Street). She remembers it slowly: the bell, the street
+            that ran down to the water, the blue door, and the name, which she will not say aloud. [DECIDED 2026-11-11, BUILT]
+            What that makes her is still not said anywhere. [OPEN]
+  Her arc   cheerful -> steady -> rattled (mood from hull, rest and dread) -> breaks (glitching portrait, lines she should not say);
+            alongside it, the memory of her village returning in four pieces.
   Lines     OBJ (goals), MAIN (remarks), PAS (banter), THR/TMOD (threads).  Your edits:  (empty)
 
 C-002 OLD PERRIN [BUILT as letters only]
@@ -273,27 +368,32 @@ PART_D = r'''
 D1 THE SIX CHAPTERS OF THE DEMO [BUILT] (about one hour)
 {chapters}
   The fog wall: each chapter allows a radius from Tama; near it the fog closes in, past it the ship is turned back.
-  The demo ends on the first throw at the hut: at the next harbour someone speaks of your number, then the end card.
+  The demo ends on the first throw at the hut and the diver on the water: at the next harbour someone speaks of your number,
+  then the end card. [DECIDED 2026-11-11] Odd jobs, Salvage rights and the raider are optional side goals, not part of the chain.
 
-D2 THE FULL GAME: FIVE ACTS [PLANNED from the original seeds; fill in]
+D2 THE FULL GAME [the shape is BUILT; the texts are open]
   Act 1  Fair winds     (bright, the demo)                    chapters I-III      [BUILT]
-  Act 2  Loose talk     (rumours of The Drowned)              chapters IV-VI      [BUILT]
-  Act 3  The Lady's errands  (bring her a gull feather, a bell clapper, Mara's hat)      [PLANNED]
-  Act 4  The descent    (through Eerie and Cosmic waters)                              [PLANNED]
-  Act 5  The Eye        (the ending)                                                    [PLANNED]
-  D2-note   (empty)  Write what happens in each act, what unlocks, and which region it takes place in.
+  Act 2  Loose talk     (rumours of a hut)                    chapters IV-VI      [BUILT]   The demo ends here, on the first throw.
+  After the demo there are no more chapters. The sea is open and the story is told by going places (STORY_EXPLORATION.txt):
+  Gather   the Shoals and the Trade Belt: harbours write things down (bells, ledgers).                    [BUILT as places and clues]
+  Compare  the Slack and the Dim: other people's traces, sources that do not agree.                        [BUILT as places and clues]
+  Decide   the Lid: the Sunken Street, the Table by the Water, one of six endings (part H).                [BUILT, ending texts DRAFT]
+  Act 3 "The Lady's errands" is CUT.
+  D2-note   (empty)
 
 D3 WHAT UNLOCKS WHEN [BUILT]
   fishing from II, oars and passengers from III, crew, tavern dice, haggling and encounter cards from IV; cannons in IV.
   Dolphins, whales, sightings, lighthouse keepers and optional goals wait until the seventh goal.
 
-D4 DREAD BY DISTANCE FROM TAMA [BUILT]
-  0 to about 550   Sunny       Tama Sound (home sector) and its neighbours
-  550 to 1100      Off
-  1100 to 1650     Wrong       (sectors become Drowned water above 72% dread, about 1580)
-  1650 to 2200     Eerie
-  2200 and beyond  Cosmic      full dread effects; after about 140 s the leviathan, about 170 s the Eye opens
-  The demo is capped at 1650 from Tama and has no dread.   Your notes:  (empty)
+D4 THE STRATA: DREAD AND WHAT LETS YOU IN [BUILT] (distance from Tama; the list in code is STRATA in src/palette.js)
+  0 to 450      Home Sound    dread 0 to 0.12     nothing needed
+  450 to 800    The Shoals    0.12 to 0.28        Rudder 2, or any bought chart
+  800 to 1150   Trade Belt    0.28 to 0.45        Lantern 1 and Hull 2
+  1150 to 1550  The Slack     0.45 to 0.62        Lantern 2 (a current here makes the way home longer)
+  1550 to 1950  The Dim       0.62 to 0.82        Hull or Sails 3, on a falling tide
+  1950 to 2400  The Lid       0.82 to 1.0         three clues seen in three different regions
+  At full dread: about 140 s to the leviathan, about 170 s until the Eye opens and you wake off Tama.
+  The demo keeps the chapter fog wall (430 / 820 / 1250 / 1650) and has no dread.   Your notes:  (empty)
 '''
 
 PART_E = r'''
@@ -468,17 +568,19 @@ PART_H = r'''
 ################################################################################################
 # H  ENDINGS
 ################################################################################################
-The final throw of the Lady's d20 decides the ending. A hidden ledger (from all your earlier throws and your offerings)
-adds a bonus or penalty, revealed only at the end. [PLANNED, not built]
 
-H-1  THE LONG SLEEP   final throw 20      she sleeps a hundred more years.        Scene:  (empty)
-H-2  GOOD DREAMS      final throw 10-19   the world stays bright, Mara stays Mara. Scene:  (empty)
-H-3  SHE RISES        final throw 1-9     the Eye opens; the Caribbean is remembered as something else.  Scene:  (empty)
-H-4  TAKE HER SEAT    you sit at the table; needs 3 offerings and 3 strange rumours followed; the hut is now on Tama.  Scene:  (empty)
-H-5  THE UNSEEN THROW you leave; only for those who stopped throwing after the first.   Scene:  (empty)
+[DECIDED 2026-11-11, BUILT in src/table.js] The voyage ends at the Table by the Water. Four things can be done there; what a captain
+may do depends on what the voyage showed them. "Turn the table to the sea" is CUT.
+H-1  THE LONG SLEEP   Throw, 20            she sleeps a hundred more years.                 [BUILT, text DRAFT]
+H-2  GOOD DREAMS      Throw, 10-19         the world stays bright, Mara stays Mara.          [BUILT, text DRAFT]
+H-3  SHE RISES        Throw, 1-9           the Eye opens (the built Eye sequence follows).   [BUILT, text DRAFT]
+     The book weighs the last throw: every earlier throw counts a little, never more than 3 either way; the Kestrel's lamp halves a bad weight.
+H-4  YOUR SEAT        Sit                  needs "who sat before you" at level 3 (no offerings any more).   [BUILT, text DRAFT]
+H-5  THE UNSEEN THROW Leave                for a captain who set the die down once, or never threw after the first.   [BUILT, text DRAFT]
+H-7  THE TUNE IS KEPT Hum the tune         needs the Two Players heard. The ONLY gentle, happy ending, and the only one without a throw.   [BUILT, text DRAFT]
 H-6  THE EYE AWAKENS  [BUILT] after about 170 s at full dread a huge eye opens, the screen whites out, you wake near Tama.
 
-OFFERINGS (what the player brings) [IDEA]   a gull feather, a bell clapper, Mara's hat, a tooth with a tiny ship carved in it,
+OFFERINGS (what the player brings) [CUT with the errands]   a gull feather, a bell clapper, Mara's hat, a tooth with a tiny ship carved in it,
   a warm black pearl.   Which of these do you want, and where does each come from (a slot in part F)?   (empty)
 
 THE LADY'S LEDGER [BUILT as a record: state.hut.rolls]   every throw is kept with its day.   What the ledger says at the end:  (empty)
@@ -527,15 +629,25 @@ PART_K = r'''
 # K  WRITER'S LOG
 ################################################################################################
 K1 OPEN QUESTIONS [fill in; I will ask about every ?? first]
-   - What is Mara?                                                     (empty)  ??
+   - What is Mara (beyond where she is from)?                           (empty)  ??
    - What is the whole old story the fragments tell?                    (empty)  ??
-   - What does the Lady want from the player in Act 3?                  (empty)  ??
+   - What does the Lady write if she is asked who counts?               (empty)  ??
+   - May Mara throw in your place at the Table?                         (empty)  ??
+   - Are the Two Players the same two who play at night?                (empty)  ??
+   - Who is the other berth, whose hook, who dug first, who rowed?      (empty)  ??   (the four small wrong things of the demo)
    - Who sails the Pained Raven?                                        (empty)  ??
    - Which regions get which threads?                                   (empty)  ??
-K2 DECISIONS (add the date)
-   - (empty)
+K2 DECISIONS (with the date; the short list is docs/CANON.md)
+   - 2026-11-11  Mara remembers her village, slowly; she never says its name.
+   - 2026-11-11  Humming the Two Players' tune is the only gentle, happy ending, and it needs no throw.
+   - 2026-11-11  The demo ends on the first throw at the hut and the diver on the water. Odd jobs, salvage and the raider are optional.
+   - 2026-11-11  At the Table: Throw, Hum the tune, Sit, Leave. "Turn the table to the sea" is cut. The Lady's errands (Act 3) are cut.
+   - 2026-11-11  Four small wrong things happen before the hut (the third oar, two berths, the hook, the hole); none is explained.
 K3 NEXT TO IMPLEMENT, IN THIS ORDER
-   1. (empty)
+   1. The writer rewrites the six ending texts (section J, TBL): they are drafts.
+   2. A rumour or a line from Mara that points at the music at night, so the gentle ending can be found.
+   3. Something small at the Table for "who counts", "what a throw costs" and "why Tama is home", or the decision that they only colour the story.
+   4. The four small wrong things join the clue list as home-water hints.
 K4 SUGGESTION FROM THE ASSISTANT (delete if unwanted)
    Fill part F first: three places per region with a different dread stage each (one near, one middle, one far), so each
    region has a story you can only see by going there. Then link at most one thread to each region.

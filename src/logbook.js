@@ -15,7 +15,10 @@ import { renderChart, drawChart } from './chart.js';
 
 // The captain's log: an old low-poly book. Tabs are cloth bookmarks sticking out of the right side, content flows over two pages
 // (turn with the arrows below / Up and Down), and the Map is a hand-inked low-poly chart.
-const TABS = [['map', 'Map', ''], ['goals', 'Goals', ''], ['quests', 'Quests', ''], ['riddles', 'Riddles', ''], ['journal', 'Journal', ''], ['ship', 'Ship', ''], ['standing', 'Standing', '']];
+// Three bookmarks: the Chart is where things are, Orders is what to do, the Ship's book is what you have.
+// (Until 2026-11 there were seven; the old names still open the bookmark their page moved to.)
+const TABS = [['map', 'Chart', ''], ['orders', 'Orders', ''], ['book', "Ship's book", '']];
+const ALIAS = { goals: 'orders', quests: 'orders', riddles: 'orders', journal: 'book', ship: 'book', standing: 'book' };
 const W = 880, H = 470;
 const INK = '#3a2210';
 
@@ -177,13 +180,14 @@ export class Logbook {
   }
 
   open(tab = this.tab) {
-    const locked = (t) => !!(this.d.locked && this.d.locked(t));
-    if (locked(tab)) tab = locked(this.tab) ? 'map' : this.tab;   // a tab the story has not opened yet stays shut
+    tab = ALIAS[tab] || tab;
+    const locked = (t) => this.shut(t);
+    if (locked(tab)) tab = locked(this.tab) ? 'map' : this.tab;   // a bookmark with nothing written behind it yet is not there
     this.tab = tab; this.page = 0;
-    if (this.d.tabOpened) this.d.tabOpened(tab);
+    if (this.d.tabOpened) { this.d.tabOpened(tab); for (const [old, now] of Object.entries(ALIAS)) if (now === tab && !this.sec(old)) this.d.tabOpened(old); }   // the pages that live behind this bookmark were opened too
     if (tab !== 'map' || !this._fromBoard) this.pencil = null;
-    this.tabsEl.querySelectorAll('button').forEach((b) => { b.classList.toggle('on', b.dataset.tab === tab); b.classList.toggle('locked', locked(b.dataset.tab)); });
-    this.tabsEl.querySelectorAll('button').forEach((b) => b.classList.toggle('hl', b.dataset.tab === (this.d.state.story || {}).tabMark));   // the tab Mara sent you to
+    this.tabsEl.querySelectorAll('button').forEach((b) => { b.classList.toggle('on', b.dataset.tab === tab); b.hidden = locked(b.dataset.tab); });
+    this.tabsEl.querySelectorAll('button').forEach((b) => b.classList.toggle('hl', b.dataset.tab === (ALIAS[(this.d.state.story || {}).tabMark] || (this.d.state.story || {}).tabMark)));   // the tab Mara sent you to
     if (tab === 'map' && this.view.once) this.view.once = false;   // framed for this open (see frame)
     else if (tab === 'map' && this.view.follow) { this.view.cx = this.d.ship.pos.x; this.view.cz = this.d.ship.pos.z; }
     this.render();
@@ -196,10 +200,14 @@ export class Logbook {
     v.follow = false; this.view.once = true;
   }
   step(dir) {   // skips the tabs that are still shut
-    const open = TABS.filter((t) => !(this.d.locked && this.d.locked(t[0]))), i = open.findIndex((t) => t[0] === this.tab);
+    const open = TABS.filter((t) => !this.shut(t[0])), i = open.findIndex((t) => t[0] === this.tab);
     this.open(open[(i + dir + open.length) % open.length][0]);
   }
   tabByIndex(i) { if (TABS[i]) this.open(TABS[i][0]); }
+  /** is a section still unwritten (the story has not reached it)? */
+  sec(name) { return !!(this.d.locked && this.d.locked(name)); }
+  /** a bookmark is only there once something is written behind it: the Ship's book appears with its first page */
+  shut(tab) { return tab === 'book' && this.sec('journal') && this.sec('ship') && this.sec('standing'); }
 
   turn(dir) {
     const gap = 56, w = this.body.clientWidth, count = Math.max(1, Math.round((this.body.scrollWidth + gap) / (w + gap)));
@@ -212,38 +220,63 @@ export class Logbook {
     this.root.classList.toggle('mapmode', this.tab === 'map');
     this.body.className = this.tab === 'map' ? 'full' : 'cols';
     this.body.scrollLeft = 0;
-    ({ map: this.renderMap, goals: this.renderGoals, quests: this.renderQuests, riddles: this.renderRiddles, journal: this.renderJournal, ship: this.renderShip, standing: this.renderStanding })[this.tab].call(this);
+    ({ map: this.renderMap, orders: this.renderOrders, book: this.renderBook })[this.tab].call(this);
     requestAnimationFrame(() => this.turn(0));
   }
 
   // ------------------------------------------------------------ pages
-  renderGoals() {
-    const { state } = this.d, g = state.goals, st = state.stats;
-    let html = '';
-    const curCh = MAIN_GOALS[g.i] ? MAIN_GOALS[g.i].ch : CHAPTERS.length;
-    CHAPTERS.forEach((ch, ci) => {
-      if (ci > curCh) return;                       // later chapters stay unwritten
-      html += h3(`${ch.n}. ${ch.title}`);
-      MAIN_GOALS.forEach((m, i) => {
-        if (m.ch !== ci) return;
-        const done = i < g.i, cur = i === g.i;
-        if (!done && !cur) return;
-        html += ent(`${done ? pxi('check') : pxi('next')} ${m.title}${cur ? goalCount(m, { state, ship: this.d.ship }) : ''}`, cur ? goalText(m, { state, ship: this.d.ship }) : '', m.reward ? `${m.reward}g` : '', done ? 'done' : 'cur');
-      });
-    });
-    if (curCh < CHAPTERS.length) html += ent('...', 'The rest of the page is blank.', '', 'dim');
-    if (MAIN_GOALS[g.i]) html += `<button id="skipGoal" class="mini">Skip this goal</button>`;
-    html += '<h3 class="brk">Optional</h3>';
-    for (const s of SIDE_GOALS) html += ent(`${g.side[s.id] ? pxi('check') : pxi('open')} ${s.title}`, g.side[s.id] ? '' : s.text, `${s.reward}g`, g.side[s.id] ? 'done' : '');
-    const notes = (this.d.mate && this.d.mate.history.slice(-3)) || [];
-    if (notes.length) html += h3('Mara said') + notes.map((n) => `<div class="ent"><small>“${n}”</small></div>`).join('');
-    html += h3('Voyage') + ent(`${Math.round(st.dist)} sailed`, `${st.fish} fish · ${st.treasures} treasures · ${st.wrecks} wrecks · ${st.sunk} raiders · ${st.deliveries} deliveries`);
-    this.body.innerHTML = html;
-    const b = document.getElementById('skipGoal');
-    if (b) b.addEventListener('click', () => { this.d.skipGoal(); this.render(); });
+  /** put several parts on the page, one after the other, and bind their buttons */
+  compose(parts) { this.body.innerHTML = parts.map((p) => p[0]).join(''); for (const p of parts) p[1](); }
+
+  /** Orders: what to do. The slip first (what, where, which way and how long), then what else is in hand, the riddles, and what is done */
+  renderOrders() {
+    const { state, ship } = this.d, g = state.goals, cur = MAIN_GOALS[g.i], s = this.d.slip ? this.d.slip() : null, dread = this.d.dread();
+    let html = h3('Now');
+    if (s) html += `<div class="slip"><b>${s.what}</b>${s.where ? `<small>${s.where}</small>` : ''}${s.way ? `<small>${s.way}</small>` : ''}${s.note ? `<small class="note">${s.note}</small>` : ''}${s.place ? '<button class="mini" id="slipChart">Show on chart</button>' : ''}</div>`;
+    if (cur && s && s.goal) html += `<div class="ent"><small>${goalText(cur, { state, ship })}</small></div><button id="skipGoal" class="mini">Skip this goal</button>`;
+    const notes = (this.d.mate && this.d.mate.history.slice(-2)) || [];
+    if (notes.length) html += notes.map((n) => `<div class="ent dim"><small>Mara: “${n}”</small></div>`).join('');
+    const quests = this.sec('quests') ? ['', () => {}] : this.partQuests();
+    if (!this.sec('quests')) {   // deliveries, passengers and commissions: one list
+      html += h3('Also in hand');
+      const j = state.job, pg = state.passenger, far = (x, z) => { const dx = x - ship.pos.x, dz = z - ship.pos.z; return `${bearingName(dx, dz)} · ${this.d.eta ? this.d.eta(Math.hypot(dx, dz)) : Math.round(Math.hypot(dx, dz))}`; };
+      if (j) html += ent(`${pxi('letter')} ${j.item}`, `to ${j.toName} · ${far(j.x, j.z)}`, `${j.reward}g`) + trackBtn(state, 'job') + '<button class="mini" data-drop="job">Give it up</button>';
+      if (pg) html += ent(`${pxi('talk')} ${pg.name}`, `to ${pg.toName} · ${far(pg.x, pg.z)}`, `${pg.reward}g`) + trackBtn(state, 'passenger') + '<button class="mini" data-drop="passenger">Give it up</button>';
+      for (const q of state.quests) {
+        const need = questNeed(q), have = questProgress(q, state), done = have >= need;
+        let where = `for ${q.giverName}`;
+        if (q.type === 'crates' && !done) where = `search ${far(q.center.x, q.center.z)}`;
+        html += `<div class="ent ${done ? 'cur' : ''}"><b>${questIcon(q)} ${questTitle(q, dread)}</b><span class="r">${q.reward}g</span><small>${where}${done ? ' · ready to hand in' : ''} · ${have}/${need}</small>${trackBtn(state, q.id)}</div>`;
+      }
+      if (!j && !pg && !state.quests.length) html += ent('Nothing else', 'Harbour boards post deliveries, passages and errands.', '', 'dim');
+    }
+    const riddles = this.sec('riddles') ? ['', () => {}] : this.partRiddles();
+    if (riddles[0]) html += riddles[0].replace('<h3>', '<h3 class="brk">');
+    const open = SIDE_GOALS.filter((x) => !g.side[x.id]);
+    if (open.length && !this.sec('quests')) html += h3('If you like') + open.map((x) => ent(`${pxi('open')} ${x.title}`, x.text, `${x.reward}g`)).join('');
+    html += h3('Done');
+    const doneMain = MAIN_GOALS.slice(0, g.i), doneSide = SIDE_GOALS.filter((x) => g.side[x.id]), hist = state.jobHistory || [];
+    html += [...doneMain].reverse().slice(0, 6).map((m) => ent(`${pxi('check')} ${m.title}`, '', m.reward ? `${m.reward}g` : '', 'done')).join('') + more(doneMain, 6);
+    html += doneSide.map((x) => ent(`${pxi('check')} ${x.title}`, '', `${x.reward}g`, 'done')).join('');
+    html += hist.slice(-3).reverse().map((h) => ent(`${pxi('check')} ${h.item}`, `to ${h.to}`, `+${h.reward}g`, 'done')).join('');
+    if (!doneMain.length && !doneSide.length && !hist.length) html += ent('Nothing yet', '', '', 'dim');
+    this.compose([[html, () => {
+      const b = document.getElementById('skipGoal'); if (b) b.addEventListener('click', () => { this.d.skipGoal(); this.render(); });
+      const c = document.getElementById('slipChart'); if (c) c.addEventListener('click', () => this.open('map'));
+    }], ['', quests[1]], ['', riddles[1]]]);
   }
 
-  renderQuests() {
+  /** the Ship's book: what you have. Journal, ship and standing, each printed once the story has reached it */
+  renderBook() {
+    const parts = [];
+    if (!this.sec('journal')) parts.push(this.partJournal());
+    if (!this.sec('ship')) { const p = this.partShip(); parts.push([p[0].replace('<h3>', '<h3 class="brk">'), p[1]]); }
+    if (!this.sec('standing')) { const p = this.partStanding(); parts.push([p[0].replace('<h3>', '<h3 class="brk">'), p[1]]); }
+    { const st = this.d.state.stats; parts.push([h3('Voyage') + ent(`${Math.round(st.dist)} sailed`, `${st.fish} fish · ${st.treasures} treasures · ${st.wrecks} wrecks · ${st.sunk} raiders · ${st.deliveries} deliveries`), () => {}]); }
+    this.compose(parts);
+  }
+
+  partQuests() {
     const { state, ship } = this.d, dread = this.d.dread();
     let html = h3('Delivery');
     const j = state.job;
@@ -263,20 +296,21 @@ export class Logbook {
     }
     const hist = state.jobHistory || [];
     html += '<h3 class="brk">Done</h3>' + (hist.length ? hist.slice(-4).reverse().map((h) => ent(h.item, `to ${h.to}`, `+${h.reward}g`)).join('') : ent('Nothing yet', '', '', 'dim'));
-    this.body.innerHTML = html;
+    return [html, () => {
     this.body.querySelectorAll('[data-drop]').forEach((x) => x.addEventListener('click', () => { state[x.dataset.drop] = null; if (state.tracked === x.dataset.drop) state.tracked = null; this.d.retrack(); this.render(); }));
     this.body.querySelectorAll('[data-track]').forEach((x) => x.addEventListener('click', () => { state.tracked = x.dataset.track; this.d.retrack(); this.render(); }));
+    }];
   }
 
   // ------------------------------------------------------------ riddles: only the open ones. A solved riddle moves to the Journal.
-  renderRiddles() {
+  partRiddles() {
     const { state, world, ship } = this.d;
     const open = Object.keys(state.riddles).filter((id) => !state.dug.has(id));
-    let html = h3('Treasure riddles');
+    let html = h3('Riddles');
     if (!open.length) html += '<div class="riddle dim"><i>None open.</i><small>Sail up to a treasure isle and press E to study the arch: it names the shore where the chest is buried.</small></div>';
     for (const id of open) {
       const [cx, cz] = id.split(',').map(Number), d = world.desc(cx, cz);
-      const known = !!(d && (state.rumoured[id] || state.discovered[id])), where = known ? (() => { const dx = d.x - ship.pos.x, dz = d.z - ship.pos.z; return `${bearingName(dx, dz)}, ~${Math.round(Math.hypot(dx, dz))} fathoms`; })() : '';
+      const known = !!(d && (state.rumoured[id] || state.discovered[id])), where = known ? (() => { const dx = d.x - ship.pos.x, dz = d.z - ship.pos.z; return `${bearingName(dx, dz)} · ${this.d.eta ? this.d.eta(Math.hypot(dx, dz)) : Math.round(Math.hypot(dx, dz))}`; })() : '';
       let half = '';
       const pid = state.halves && state.halves[id];
       if (pid) { const [px, pz] = pid.split(',').map(Number), pd = world.desc(px, pz); half = `<small class="half">Only half a riddle. The other half is written on another arch${pd ? `, ${bearingName(pd.x - ship.pos.x, pd.z - ship.pos.z)} of here, about ${Math.round(Math.hypot(pd.x - ship.pos.x, pd.z - ship.pos.z))} fathoms` : ''}.</small>`; }
@@ -284,9 +318,10 @@ export class Logbook {
       html += `<div class="riddle"><b>${known ? d.name : 'A riddle with no address'}</b>${pid ? ' <span class="halfmark" title="only half a riddle">1/2</span>' : ''}${state.frags && state.frags[id] ? ' <span class="halfmark" title="carries the end of another riddle">+</span>' : ''}<p>\u201c${state.riddles[id]}\u201d</p>${half}${frag}${where ? `<small>${where}</small>` : ''}<button class="mini" data-pencil="${id}">Pencil on the map</button></div>`;
     }
     const rums = Object.values(state.rumoured).filter((r) => !r.found);
-    if (rums.length) { html += h3('Rumours'); for (const r of rums) { const dx = r.x - ship.pos.x, dz = r.z - ship.pos.z; html += ent(r.name, `${bearingName(dx, dz)}, ~${Math.round(Math.hypot(dx, dz))} fathoms \u00b7 ${r.source || ''}`, '?'); } }
-    this.body.innerHTML = html;
+    if (rums.length) { html += h3('Rumours'); for (const r of rums) { const dx = r.x - ship.pos.x, dz = r.z - ship.pos.z; html += ent(r.name, `${bearingName(dx, dz)} \u00b7 ${this.d.eta ? this.d.eta(Math.hypot(dx, dz)) : Math.round(Math.hypot(dx, dz))} \u00b7 ${r.source || ''}`, '?'); } }
+    return [html, () => {
     this.body.querySelectorAll('[data-pencil]').forEach((x) => x.addEventListener('click', () => { this._fromBoard = true; this.pencil = 'r:' + x.dataset.pencil; this.open('map'); this._fromBoard = false; }));
+    }];
   }
 
   /** the fisherman's log: only what the player has learned (by catching, or by being told). Unheard-of species stay blank. */
@@ -310,7 +345,7 @@ export class Logbook {
     return html;
   }
 
-  renderJournal() {
+  partJournal() {
     const { state } = this.d, dread = this.d.dread();
     const isl = Object.values(state.discovered);
     const types = { harbour: 'Harbours', treasure: 'Treasure isles', jungle: 'Jungles', rocky: 'Rocks', sandbar: 'Sandbars', volcano: 'Volcanoes', atoll: 'Atolls', mangrove: 'Mangroves' };
@@ -330,10 +365,11 @@ export class Logbook {
     html += state.loot.length ? state.loot.slice(-6).reverse().map((l) => ent(l.name, '', `${l.value}g`, l.dark ? 'dk' : '')).join('') + more(state.loot, 6) : ent('None yet', '', '', 'dim');
     const solved = Object.keys(state.riddles).filter((id) => state.dug.has(id));
     if (solved.length) { html += h3(`Solved riddles (${solved.length})`); for (const id of solved) { const [cx, cz] = id.split(',').map(Number), d = this.d.world.desc(cx, cz); html += ent(d ? d.name : 'A treasure isle', `\u201c${state.riddles[id]}\u201d`, pxi('check'), 'done'); } }
-    this.body.innerHTML = html;
+    return [html, () => {
+    }];
   }
 
-  renderShip() {
+  partShip() {
     const { state, ship } = this.d;
     let html = h3('The Merry Gull') + ent(`${state.gold} gold`, `hull ${Math.max(0, Math.ceil(state.hp / ship.mods.maxHp * 5 - 0.001))} of 5 planks · ${state.ammo} cannonballs`);
     html += h3('Fittings') + UPGRADES.map((u) => { const lv = state.upgrades[u.id]; return ent(u.name, lv ? u.text[lv - 1].split(':')[0] : 'stock', `<span class="pips">${pxi('pip').repeat(lv)}${pxi('nopip').repeat(MAX_LEVEL - lv)}</span>`); }).join('');
@@ -343,10 +379,11 @@ export class Logbook {
     if (b.speed > 0) act.push(['Fresh supplies', `${Math.ceil(b.speed)}s`]);
     if (b.dig > 0) act.push(['Rum rations', `${Math.ceil(b.dig)}s`]);
     html += h3('Active') + (act.length ? act.map(([a, t]) => ent(a, '', t)).join('') : ent('Nothing', '', '', 'dim'));
-    this.body.innerHTML = html;
+    return [html, () => {
+    }];
   }
 
-  renderStanding() {
+  partStanding() {
     const { state, world, seed } = this.d;
     const secs = {};
     const harbours = Object.entries(state.rep).map(([id, r]) => {
@@ -362,7 +399,8 @@ export class Logbook {
     html += h3('Harbours') + (harbours.length ? harbours.map((h) => ent(h.name, '', stars(h.lvl))).join('') : ent('Nobody knows you yet', 'Visit and deliver.', '', 'dim'));
     { const lines = markLines(state.story && state.story.marks); if (lines.length) html += h3('What is said of you') + lines.map((t) => ent(t, '', '', 'dk')).join(''); }
     { const ks = (state.story && state.story.keeps) || []; if (ks.length) html += h3('Keepsakes') + ks.map((k) => ent(k.name, k.text, '', 'dk')).join(''); }
-    this.body.innerHTML = html;
+    return [html, () => {
+    }];
   }
 
   // ------------------------------------------------------------ map

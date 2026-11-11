@@ -458,6 +458,10 @@
     #touch .pxi { width: 28px; height: 28px; margin: 0; vertical-align: middle; }
     /* land ho: a short title card when a new island comes into view */
     #demoend { position: fixed; inset: 0; z-index: 30; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 12px; background: #06040e; color: #fff4d8; text-align: center; padding: 16px; }
+    /* an ending of the voyage (table.js): the same black card as the demo's end, the lines one under the other */
+    #ending { position: fixed; inset: 0; z-index: 30; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 12px; background: #06040e; color: #fff4d8; text-align: center; padding: 16px; }
+    #ending.show { display: flex; animation: dfade 3s steps(8) both; } #ending h1 { font-size: 48px; font-weight: 400; color: #ffd23a; margin: 0 0 8px; } #ending.dark h1 { color: #ff70d0; }
+    #ending p { font-size: 16px; max-width: 520px; margin: 4px auto; } #ending button { font: 16px "DotGothic16", monospace; padding: 8px 24px; margin-top: 16px; color: #fff4d8; background: #2a2060; border: 0; box-shadow: 0 0 0 4px #120c1c; cursor: pointer; }
     #demoend.show { display: flex; animation: dfade 3s steps(8) both; } #demoend h1 { font-size: 48px; font-weight: 400; color: #d8b0e8; margin: 0; } #demoend p { font-size: 16px; max-width: 520px; } #demoend small { font-size: 16px; color: #8a7e9a; } #demoend button { font: 16px "DotGothic16", monospace; padding: 8px 24px; margin-top: 16px; color: #fff4d8; background: var(--pxbtn) 0 0 / 32px 32px; image-rendering: pixelated; border: none; box-shadow: 0 -4px 0 #d8b0e8, 0 4px 0 #d8b0e8, -4px 0 0 #d8b0e8, 4px 0 0 #d8b0e8; cursor: pointer; }
     @keyframes dfade { from { opacity: 0; } to { opacity: 1; } }
     /* quest cues (design A): a big QUEST COMPLETE banner, then the NEW QUEST card, a tracker flash and a pulse on the wind ring */
@@ -488,9 +492,25 @@
     #hbTabs .post.next { box-shadow: inset 0 -5px 0 #3a2210, inset 0 4px 0 #8a5a30, 0 0 0 4px #ffd23a, 6px 6px 0 rgba(0,0,0,.4); }
     @keyframes nbob { 50% { transform: translateY(6px); } }
     /* parts of the interface the story has not reached yet (src/gates.js): greyed out, not clickable */
-    #hbTabs .post.locked, #hbPane button.locked, #logTabs button.locked { filter: grayscale(1) brightness(0.55); opacity: 0.45; cursor: not-allowed; pointer-events: none; }
+    #hbTabs .post.locked, #hbPane button.locked, #logTabs button.locked { filter: grayscale(1) brightness(0.72); opacity: 0.7; cursor: not-allowed; }   /* still readable, and a click answers with one line (main.js) */
+    #hbTabs .post.locked:hover, #hbPane button.locked:hover, #logTabs button.locked:hover { transform: none !important; filter: grayscale(1) brightness(0.85); }
     #hbTabs .post.fresh { animation: hlpulse 1s steps(2) infinite; box-shadow: 0 0 0 4px #9fe8dc !important; }
     #hbPane .hl { box-shadow: 0 0 0 3px #ffd23a !important; animation: hlpulse 1s steps(2) infinite; } @keyframes hlpulse { 50% { box-shadow: 0 0 0 6px #ff9a3a; } }
+    /* the letter just taken, lying open on the board */
+    #hbPane .letterOpen { margin: 6px 2px; padding: 12px 14px; background: #efe2ba; color: #2a1608; box-shadow: 0 0 0 2px #6a4a26, 4px 4px 0 rgba(0,0,0,.4); }
+    #hbPane .letterOpen p { margin: 0 0 6px; font-size: 17px; line-height: 1.35; } #hbPane .letterOpen small { color: #5a3a1a !important; opacity: 1 !important; text-shadow: none; }
+    /* a gauge names itself once when it first appears (main.js nameMeter) */
+    .metername { position: absolute; right: calc(100% + 10px); top: 50%; transform: translateY(-50%); padding: 3px 8px; white-space: nowrap; font-size: 15px; color: #1a1020; background: #ffd23a; box-shadow: 4px 4px 0 rgba(0,0,0,.4); pointer-events: none; animation: mname 7s steps(14) 1 forwards; z-index: 2; }
+    .metername::after { content: ""; position: absolute; left: 100%; top: 50%; margin-top: -5px; border: 5px solid transparent; border-left-color: #ffd23a; }
+    @keyframes mname { 0%, 85% { opacity: 1; } 100% { opacity: 0; } }
+    #oilrow, #ammotxt { position: relative; }
+    /* three bookmarks; a bookmark with nothing behind it yet is not there (logbook.js shut) */
+    #logTabs button[hidden] { display: none !important; }
+    #chart #logTabs button { width: 136px !important; }
+    /* the slip: what, where, which way and how long. On the HUD it is the tracker; in the log it is the first thing on Orders */
+    #tracker .trow.where { color: #f4ead0; } #tracker .trow.way { color: #b9b6e0; }
+    #logBody .slip { position: relative; padding: 10px 12px; margin: 6px 0 8px; background: #ffe9a0; color: #2a1608; border-left: 6px solid #a8301c; box-shadow: 4px 4px 0 rgba(58,34,16,.25); break-inside: avoid; }
+    #logBody .slip b { display: block; font-size: 18px; font-weight: 600; } #logBody .slip small { display: block; color: #3a2210 !important; opacity: 1 !important; } #logBody .slip small.note { color: #a8301c !important; }
     #tracker.flash { animation: trflash 1s steps(2) 8; box-shadow: 0 0 0 3px #ffd23a; } @keyframes trflash { 50% { box-shadow: 0 0 0 6px #ff9a3a; } }
     #tracker .tag { display: inline-block; padding: 0 6px; margin-left: 6px; background: #c8402a; color: #fff4d8; }
     #compass.ping { animation: cping 1.2s steps(4) 6; } @keyframes cping { 0% { box-shadow: 0 0 0 0 rgba(255,154,58,.9); } 100% { box-shadow: 0 0 0 26px rgba(255,154,58,0); } }
@@ -545,6 +565,12 @@
     .bookwrap { margin-right: 0; margin-top: 38px; }
     .ribbons { right: auto; left: 40px; top: -32px; bottom: auto; flex-direction: row; gap: 6px; z-index: -1; }
     #chart .ribbons button, #chart[data-book="pixel"] .ribbons button { width: 104px; height: 40px; margin: 0 !important; padding: 0 !important; justify-content: center; transform: none !important; clip-path: polygon(0 6px, 6px 6px, 6px 0, calc(100% - 6px) 0, calc(100% - 6px) 6px, 100% 6px, 100% 100%, 0 100%) !important; box-shadow: inset 0 -4px 0 rgba(58,34,16,.35) !important; }
+    /* the bookmarks never move: the book hangs from the same top edge on every tab, and on the wide chart page the row is
+       shifted in by half the extra width, so a tab is under the pointer where it was a moment ago */
+    #chart { align-items: flex-start; --booktop: max(39px, calc((100vh - 600px) / 4)); }
+    #chart .bookwrap { margin-top: var(--booktop); }
+    #chart.mapmode .book { height: calc(100vh - var(--booktop) - 1px); }
+    #chart.mapmode .ribbons { left: calc(40px + (100vw - 120px - min(1000px, 97vw - 110px)) / 2); }
     #chart .ribbons button::after { display: none !important; }
     #chart .ribbons button em { font: 400 16px "DotGothic16", monospace !important; padding-bottom: 6px; }
     #chart .ribbons button:hover { transform: translateY(-4px) !important; }
@@ -588,6 +614,8 @@
     body.onb-mate #hud > :not(#mate) { visibility: hidden !important; }
     body.onb-mate #mate { visibility: visible !important; left: 12px; bottom: 12px; top: auto; transform: none; width: min(360px, 30vw); pointer-events: auto; }
     body.onb-mate.ashore #mate { bottom: auto; top: 300px; }
+    @media (min-width: 900px) { #mate { left: 12px; bottom: 96px; transform: none; width: min(430px, 34vw); } }   /* beside the ship, not across her bow */
+    body.onb-mate:has(#chart.open) #mate { left: 50%; right: auto; bottom: 4px; transform: translateX(-50%); width: min(420px, 40vw); }
     .ribbons button.hl { animation: hlpulse 1s steps(2) infinite; box-shadow: 0 0 0 4px #ffd23a !important; }
     /* the opening shot */
     #introbars i { position: fixed; left: 0; right: 0; height: 0; background: #000; z-index: 7; pointer-events: none; transition: height 1.4s ease; } #introbars i:first-child { top: 0; } #introbars i:last-child { bottom: 0; }
@@ -595,6 +623,36 @@
     body.intro #hud { opacity: 0 !important; }
     #introskip { position: fixed; right: 20px; bottom: calc(13vh + 12px); z-index: 8; color: #f4ead0; font-size: 16px; opacity: 0; pointer-events: none; text-shadow: 2px 2px 0 #000; }
     body.intro #introskip { opacity: .8; transition: opacity 1s 2.5s; }
+    /* CHART-LOOK START */
+    /* The chart's look and the type pairing (src/chartstyles.js sets data-chartstyle="a" and data-uifont="b" on <html>).
+       Fonts: SIL Open Font License 1.1, bundled in public/fonts (from the @fontsource packages). */
+    @font-face { font-family: "Jersey 10"; src: url("/fonts/jersey10.woff2") format("woff2"); font-display: swap; size-adjust: 125%; }   /* drawn on a 10px grid: with this, 16px text lands on 20 (two screen pixels per font pixel), 32px on 40 */
+    /* the title face (Pirata One) for every heading and place name, and Jersey 10 as a chunkier text face, HUD included */
+    :root[data-uifont="b"] { --pxdisp: "Pirata One", Georgia, serif; --dS: 24px; --dM: 34px; --dL: 48px; --pxtext: "Jersey 10", "DotGothic16", monospace; --pxfont: "Jersey 10", "DotGothic16", monospace; }
+    :root[data-uifont="b"] #chart .ribbons button em { font-family: "Jersey 10", "DotGothic16", monospace !important; }
+    :root[data-uifont] #logBody h3, :root[data-uifont] .cs-title, :root[data-uifont] #mapCard b, :root[data-uifont] .menu h2, :root[data-uifont] .hbName,
+    :root[data-uifont] #landho span, :root[data-uifont] #caveTitle b { font-family: var(--pxdisp) !important; letter-spacing: 0 !important; }
+    :root[data-uifont] #logBody h3, :root[data-uifont] .cs-title, :root[data-uifont] .menu h2 { font-size: var(--dM) !important; line-height: 1 !important; }
+    :root[data-uifont] #mapCard b { font-size: var(--dS) !important; } :root[data-uifont] .hbName, :root[data-uifont] #landho span { font-size: var(--dL) !important; }
+    /* the chart's side panel and hover card, restyled to go with each chart (same DOM): no round badges, ink glyphs, ruled headings */
+    #chart[data-chartstyle] .book .spread { background: var(--cvPaper); }
+    #chart[data-chartstyle] .mapwrap { box-shadow: none; }
+    #chart[data-chartstyle] .chartside, #chart[data-chartstyle] #mapCard { background: var(--cvPaper); color: var(--cvInk); border: none; box-shadow: 0 0 0 2px var(--cvInk), inset 0 0 0 4px var(--cvPaper), inset 0 0 0 6px var(--cvRule); }
+    #chart[data-chartstyle] .chartside { padding: 12px 14px 8px; margin: 2px; }
+    #chart[data-chartstyle] #mapCard { padding: 12px 14px; box-shadow: 0 0 0 2px var(--cvInk), 4px 4px 0 2px var(--cvShade); }
+    #chart[data-chartstyle] .mc-ic { width: 18px; height: 18px; background: none; border: none; border-radius: 0; }
+    #chart[data-chartstyle] .mc-ic svg { width: 18px; height: 18px; } #chart[data-chartstyle] .mc-ic svg path { fill: var(--cvMark); }
+    #chart[data-chartstyle] .cs-title { color: var(--cvInk); }
+    #chart[data-chartstyle] .cs-sub, #chart[data-chartstyle] .cs-none, #chart[data-chartstyle] .cs-row em, #chart[data-chartstyle] .cs-follow small, #chart[data-chartstyle] .cs-ev small, #chart[data-chartstyle] #mapCard small, #chart[data-chartstyle] .cs-keys { color: var(--cvSoft); opacity: 1 !important; }
+    #chart[data-chartstyle] .cs-h { margin: 10px 0 4px; padding-bottom: 2px; color: var(--cvHead); letter-spacing: .15em !important; border-bottom: 2px solid var(--cvRule); }
+    #chart[data-chartstyle] .cs-follow { padding: 4px 0 4px 8px; background: none; border: none; border-left: 4px solid var(--cvHead); }
+    #chart[data-chartstyle] .cs-box { width: 12px; height: 12px; border: 2px solid var(--cvInk); background: none; }
+    #chart[data-chartstyle] .cs-row input:checked + .cs-box { background: var(--cvInk); box-shadow: inset 0 0 0 2px var(--cvPaper); }
+    #chart[data-chartstyle] .cs-line i { border-top-color: var(--cvHead); } #chart[data-chartstyle] .cs-line.dot i { border-top-color: var(--cvSoft); }
+    #chart[data-chartstyle] #mapCard hr { border-top-color: var(--cvRule); }
+    #chart[data-chartstyle] .mapctl button, #chart[data-book="pixel"][data-chartstyle] .mapctl button { background: var(--cvPaper); color: var(--cvInk); box-shadow: 0 -2px 0 var(--cvInk), 0 2px 0 var(--cvInk), -2px 0 0 var(--cvInk), 2px 0 0 var(--cvInk); }
+    #chart[data-chartstyle="a"] { --cvPaper: #e7d5a8; --cvInk: #34200f; --cvSoft: #6e5236; --cvRule: #b79a68; --cvHead: #9a2c1a; --cvMark: #34200f; --cvShade: #34200f; }
+    /* CHART-LOOK END */
   </style>
 </head>
 <body>
@@ -612,9 +670,9 @@
       <div class="panel" id="placeline"></div>
       <div class="panel" id="tracker"></div>
     </div>
-    <div id="compass" class="windbox"><canvas id="compassCv" width="36" height="36"></canvas></div>
-    <div id="sailbar" class="panel txt"><div><i class="ico sail"></i></div><div class="bar"><div class="fill" id="sailfill"></div></div></div>
-    <div id="combatbox" class="panel txt"><div><i class="ico hull"></i><span id="hptxt"></span></div><div class="bar"><div class="fill" id="hpfill"></div></div><div id="ammotxt"></div><div class="bar thin"><div class="fill" id="reloadfill"></div></div><div id="oilrow" title="Lamp oil"><i class="ico oil"></i><div class="bar"><div class="fill" id="oilfill"></div></div></div></div>
+    <div id="compass" class="windbox" title="Wind"><canvas id="compassCv" width="36" height="36"></canvas></div>
+    <div id="sailbar" class="panel txt" title="Sails"><div><i class="ico sail"></i></div><div class="bar"><div class="fill" id="sailfill"></div></div></div>
+    <div id="combatbox" class="panel txt" title="Hull"><div><i class="ico hull"></i><span id="hptxt"></span></div><div class="bar"><div class="fill" id="hpfill"></div></div><div id="ammotxt"></div><div class="bar thin"><div class="fill" id="reloadfill"></div></div><div id="oilrow" title="Lamp oil"><i class="ico oil"></i><div class="bar"><div class="fill" id="oilfill"></div></div></div></div>
     <div id="ebar" class="panel txt" style="display:none"><span id="ename"></span><div class="bar"><div class="fill" id="efill"></div></div></div>
     <div id="mate" class="panel txt" style="display:none"><span class="face" id="mateface"></span><div style="flex:1"><b id="mateName">Mara, first mate</b><div id="matetxt"></div></div><span id="matemore"><i class="pxi down"></i></span></div>
     <div id="digui" class="panel txt" style="display:none"><div id="digmsg"></div><canvas id="digcv" width="200" height="168"></canvas><div id="diglegend">dark, wet sand = close · pale = far · red squares: shovel cracks · blue bar: tide</div></div>
@@ -633,12 +691,13 @@
     <div id="yardTurn"><button id="yTurnL">&#9668;</button><span id="yAngle">side</span><button id="yTurnR">&#9658;</button><small>drag to turn &middot; wheel to zoom</small></div></div>
   <div id="chart" class="modal" data-book="pixel"><div class="bookwrap"><div class="ribbons" id="logTabs"></div><div class="book">
     <div class="spread"><div id="logBody" class="cols"></div></div>
-    <div class="bookbar"><button id="pgPrev"><i class="pxi left"></i></button><span id="pgNum" style="min-width:48px;text-align:center"></span><button id="pgNext"><i class="pxi right"></i></button><span class="keys">left/right: tabs &middot; up/down: pages &middot; 1-7</span><button id="logClose">Close [M]</button></div>
+    <div class="bookbar"><button id="pgPrev"><i class="pxi left"></i></button><span id="pgNum" style="min-width:48px;text-align:center"></span><button id="pgNext"><i class="pxi right"></i></button><span class="keys">left/right: tabs &middot; up/down: pages &middot; 1-3</span><button id="logClose">Close [M]</button></div>
   </div></div></div>
   <div id="hutmodal" class="modal"><div class="menu" id="hutWide"><h2>THE DARK HUT</h2><canvas id="dieCv" width="72" height="72"></canvas><p class="quote" id="hutTxt"></p><button id="hutRoll">Throw the die [Space]</button><button id="hutLeave">Leave [E]</button></div></div>
   <div id="card" class="modal"><div class="menu" id="cardWide"><div id="cardIcon"></div><h2 id="cardTitle"></h2><p class="quote" id="cardText"></p><div id="cardChoices"></div><p class="quote" id="cardOut"></p><button id="cardDone">Sail on [E]</button></div></div>
   <div id="cave" class="modal"><canvas id="caveCv" width="320" height="180"></canvas><div id="caveTitle"><b></b><small></small></div><div id="caveTide"><i></i></div><div id="caveBox"><div id="caveFace"></div><div id="caveBody"><div id="caveWho"></div><div id="caveSay"></div><div id="caveChoices"></div><p id="caveOut"></p><button id="caveDone">Sail on [E]</button></div></div></div>
   <div id="pig" class="modal"><div class="menu" id="pigWide"><h2>DICE AT THE TAVERN</h2><div class="pigrow"><div><b>You</b><br><span id="pigMe">0</span></div><canvas id="pigCv"></canvas><div><b id="pigOpp"></b><br><span id="pigThem">0</span></div></div><p class="quote" id="pigLog"></p><button id="pigRoll">Roll [Space]</button><button id="pigHold">Hold [H]</button><button id="pigLeave">Leave [E]</button></div></div>
+<div id="ending"><h1></h1><div></div><button id="endGo">Go on</button></div>
 <div id="demoend"><h1>TO BE CONTINUED</h1><p>The die is back on the table. Somewhere, a pen is still writing.</p><small>End of the HOIST demo. Thank you for sailing.</small><button id="demoGo">Keep sailing</button></div>
   <div id="mixer"><div class="mxhead"><b>SOUND MIXER</b><small>100% = as the file is. Play / solo to hear a sound; green rows are playing in the game right now.</small>
     <div class="mxbtns"><button id="mixSave">Save volumes.json</button><button id="mixZero" title="Every sound to 0%, then raise them one by one">All to 0%</button><button id="mixReset">Reset all</button><button id="mixClose">Close (F8)</button></div></div><div id="mixList"></div></div>

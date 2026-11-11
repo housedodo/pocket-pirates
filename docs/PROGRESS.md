@@ -1,4 +1,16 @@
-# Pocket Pirates: progress and open story threads
+# Progress
+
+**Read `docs/CANON.md` for what is true and `docs/RULES.md` for what every change must keep.** This file is the record of what
+was built, oldest first; the newest entries are at the bottom. A short state of the game:
+
+## State of the game (2026-11-11)
+- **Playable from Tama to an ending.** The demo (chapters I to VI, 16 goals) ends on the first throw at the hut and the diver. After it the sea is open: six strata, 13 hand-made places, 17 clues feeding seven questions, and the Table by the Water with four actions and six endings.
+- **Decided this round:** Mara remembers her village slowly; the tune is the only gentle ending; "Turn the table" and the Lady's errands are cut; odd jobs, salvage and the raider are optional.
+- **Interface:** three bookmarks (Chart, Orders, Ship's book), one slip (what, where, how long), sailing time for distances, the anchor on E, letters shown where taken, greyed controls that answer, gauges that name themselves once.
+- **Look:** an inked portolan chart; Pirata One with Jersey 10.
+- **Story file:** `docs/STORY_MASTER.txt` is generated from the code with stable IDs (1415 lines).
+- **Not done:** the six ending texts are drafts; three questions (1, 4, 5) open nothing at the Table; the four small wrong things are not yet clues; the gentle ending hangs on one clue; no fresh playtest since these changes; the new typeface has not been checked on every screen.
+
 
 A living document. It records what is built, which storylines are started but not resolved yet,
 and ideas waiting to be connected. Update it whenever a feature or story beat lands.
@@ -808,7 +820,7 @@ up; the chosen one (D) is built in the game's own style:
 ## The master story file
 - `docs/STORY_MASTER.txt` (built by `python3 scripts/story_export.py`) is the file the writer edits and uploads again. Parts: A how to use (IDs, status marks, how to add, delete, move), B premise and rules, C cast, D structure (dread, chapters, acts), E main quest (every goal), F the world atlas (how places are found, the five regions with story slots, the hand-made places, harbours, open slots), G threads and side seeds, H endings, I systems that carry story, J every in-game line (1227, each with a stable ID such as OBJ-0001), K writer's log.
 - **Import:** the edited upload is diffed against the file in git by ID; changed lines go into the source file named by the ID's code (OBJ objectives.js, PAS passengers.js, ...). Lines marked `??` are asked about first.
-- The line list (part J) is read from `docs/STORY_AND_DIALOGUE.txt`; if lines in code change, re-pull that file first.
+- (Superseded 2026-11-11: part J is now pulled from the code on every export; `docs/STORY_AND_DIALOGUE.txt` is removed.)
 
 ## Free Cays night: guitar and violin
 - The somber guitar (`fc_night`) and violin (`fc_violin`) play in Free Cays waters at night instead of the night band and pad, in episodes (each alone, both together, or one joining the other) with long silences between (see `docs/AUDIO.md`). Rendered through HOIST like the other night instruments. First regional music; the template for each faction's own instrument.
@@ -850,3 +862,63 @@ up; the chosen one (D) is built in the game's own style:
 - Deep forms built: S4/S5 wild islands grow bone (ribs, spines, throats, arches, sockets, glow pool), Halved Isle spines; see ART_SPEC.md section 11.
 - Art checks: `scripts/art_checks.cjs` (18/18). Far labels now live. Halved Isle shaft, Tooth gannets.
 - Round two: clue abilities hum/rest/lookup/cupmark/wreckticks/date/streetline built; `scripts/world_checks.cjs` 12/12; art checks 20/20; audio brief in AUDIO.md; STYLE.md section 9.
+
+## Interface fixes after the UI critique (2026-11-11)
+- **The log's tabs hold still** (`index.html`): the book hangs from one top edge on every tab and the chart page shifts the row in, so the bookmarks are in the same place on Map and on the book pages. A click beside the book no longer closes the log.
+- **The anchor** (`ship.js` `anchored`, `main.js` `anchorTick`): E at a treasure shore, fruit isle, wreck, landmark, cave, thread or for a patch works while still under way: the prompt reads "Dropping anchor...", the hull stops in a few lengths and the action starts by itself. While digging, salvaging, patching or fishing the ship lies at anchor and cannot drift, so a dig is no longer lost to drift. Secrets still only show when you have stopped by yourself.
+- **Perrin's letters open where you take them** (`main.js` `openLetter`): the riddle (or the note) lies open on the board as a paper card until you leave the harbour. M opens the log on the tab Mara marked, so her answer comes when the riddle is in front of you.
+- **Locked controls answer** (`gates.js`, `main.js`): greyed signs, board buttons and log tabs are readable and give one line on a click instead of nothing.
+- **Mara's box** is bottom left while sailing and under the book in the log. Her "W lets the sails out" nudge is dropped once the sails are out.
+- **Gauges name themselves once** (`main.js` `nameMeter`): Sails, Wind, Hull, Cannonballs, Lamp oil.
+- Not done (a design decision, not a fix): shortening the main chain so the hut comes sooner.
+
+## Four small wrong things before the hut (2026-11-11)
+Each happens once, is never explained, and has an ordinary reading. They are in the demo build too. Flags in `state.story`.
+- **The third oar** (`oar3`; `main.js` `oarTick`, `ship.js` `ghostStroke`): in the dead calm of chapter III, about two and a half seconds after you stop rowing with the oars still out, they pull one more stroke by themselves. Mara: "Hm? ... Nothing. Flat water plays tricks." Rowing now has a soft stroke sound (`oar`, synthesised) so the extra one reads as an oar.
+- **Two berths** (`berths`): the first passenger's fare is paid double, marked "two berths", and the harbourmaster asks "And the other one?" No crew offer follows that fare.
+- **The hook already in it** (`hook`): one catch (at night from the second fish on, or the sixth fish at the latest) has an old bronze hook in its mouth, the line cut clean. Sold at a market, the fishmonger says "Second one this week."
+- **The hole that was already there** (`predug`; `digging.js` `predug`): on the second treasure beach one hole is there already, wet, exactly over the chest. The chest is untouched. Mara: "Somebody dug here first, and stopped a spade short. Lucky us."
+- Open thread for the writer: who is the other berth, whose hook, who dug. None is answered anywhere. They point at the same thing as the hut's pen (the outcome is written before you arrive) and at the diver (someone below).
+
+## The Table, the endings, Mara's memory, a shorter chain (2026-11-11)
+Decided by the owner: Mara remembers her village, slowly; humming the Two Players' tune is the only gentle, happy ending and needs no throw; the demo ends on the first throw and the diver; "Turn the table to the sea" is cut.
+- **The Table by the Water ends the voyage** (`src/table.js`, `main.js` `openTable` / `showEnding`; never in the demo build). Going ashore there opens one card with up to four choices:
+  - *Throw the die* (always): 20 The Long Sleep, 10-19 Good Dreams, 1-9 She Rises. The book weighs it: each earlier high throw lifts, each low one weighs, at most 3 either way; the Kestrel's lamp halves a bad weight; a natural 1 or 20 stands. She Rises runs the built Eye sequence afterwards.
+  - *Hum the tune* (once the Two Players have been heard): The Tune Is Kept.
+  - *Sit in the other chair* ("who sat before you" at level 3): Your Seat.
+  - *Go back to the boat* (set the die down once, or never threw after the first): The Unseen Throw.
+  After Long Sleep, Good Dreams or the tune you wake off Tama in the morning with the sea quiet. `state.story.ending` keeps which one; the Table then only says the chair has not moved. The ending texts are drafts for the writer.
+- **Mara's village comes back in four pieces** (`MARA_MEMORY`, `state.story.maraMem`): the bell at home; the street that ran down to the water; "The third house. The door was blue."; and the name, which she will not say aloud. Each comes at least 90 seconds of sailing after what stirred it. This replaces "I like blue doors, I do not know why". At full dread, once the street is back, she says she can see it and wishes she could not.
+- **Chapter IV is shorter:** Odd jobs, Salvage rights and Teach a raider a lesson are side goals (same rewards). The chain is 16 goals. Commissions open with the tavern chapter. Old saves are moved to the matching goal (`goals.v` 3). No raider is sent after you any more; they are met in Reef waters.
+- Open threads: what the Lady writes if asked who counts; whether Mara may throw for you; whether the Two Players are the same two who play at night; the four small wrong things (oar, berths, hook, hole) are still not tied to a question. The village's name is never shown.
+
+## The log: three bookmarks and the slip (2026-11-11)
+- **Three bookmarks instead of seven** (`logbook.js`): Chart, Orders, Ship's book. Orders holds the main goal, deliveries, passengers, commissions, riddles, rumours, optional goals and what is done, on one spread. The Ship's book holds the journal, the ship and standing. A section the story has not reached is not printed, and the Ship's book bookmark only appears with its first page (goal 2). The old tab names still work in code (`ALIAS`), so Mara's marks and `tabOpened` lines fire as before. Keys: 1-3, J opens Orders.
+- **The slip** (`main.js` `slipInfo`, `etaText`): what, where, which way and how long. It is the HUD tracker and the first entry on Orders. A goal with one place gives the place, a bearing and sailing time; a goal without one gives a short "where to look" (`where` in `MAIN_GOALS`). One extra line only when the wind is against the course. Only the early goals (landfall, the first riddle, Perrin's letters, a delivery or passenger in hand) have a place: later goals are still found, never marked.
+- **Sailing time instead of fathoms** on Orders, riddles and rumours (8 units a second times the sail upgrade; 2.6 under oars).
+- Mara now says "in your orders" and "the Ship's book". The chart's own side panel still shows a distance in units: `chart.js` is being redrawn separately and gets the slip when that lands.
+
+
+## Chart and typeface trials, behind URL flags (2026-11-11)
+Trials for the owner to compare; nothing changes without a flag and STYLE.md is not changed yet. Built by the design agent, which stopped before writing its report, so only what is listed here was checked (the build passes; style A with font A opens with the new log and no console errors).
+- `?chartstyle=a` inked portolan on vellum: a sea-green wash where you have sailed, bare vellum and rhumb lines elsewhere, a cartouche with a scale bar.
+- `?chartstyle=b` engraved pilot chart: black ink on laid paper, water lines round the shores, soundings.
+- `?chartstyle=c` indigo and gold: a night chart in the game's navy, gold rhumb lines, the known sea in teal.
+- `?uifont=a` Jacquard 12 titles with DotGothic16 text; `?uifont=b` Pirata One titles with Jersey 10 text; `?uifont=c` IM Fell English SC titles with IM Fell DW Pica text. Font files are in `public/fonts/` (from the @fontsource packages; licences still to be confirmed before shipping).
+- Code: `src/chartstyles.js`, three lines in `src/chart.js`, and the `CHART-VARIANTS` block at the end of the styles in `index.html`.
+- Still open: pick one, then update STYLE.md, put the slip on the chart, and remove the other two.
+
+## The chart and the typefaces are chosen (2026-11-11)
+- Owner's choice from the trials: **chart style A** (inked portolan on vellum) and **font pairing B** (Pirata One titles, Jersey 10 text, HUD included). Both are now the default; the URL flags, the other two chart looks, the other two pairings and their font files are gone.
+- `src/chartstyles.js` draws the chart. The older drawing in `src/chart.js` is no longer reached and can be deleted in a clean-up; a few `key === 'b'` / `'c'` branches in `chartstyles.js` are dead too.
+- The chart's FOLLOWING entry shows sailing time, like the slip.
+- Known: the ship marker can sit on top of a harbour's name when you are moored there.
+
+
+## Housekeeping: one canon, standing rules, a generated story file, a rebuilt demo (2026-11-11)
+- **`docs/CANON.md`** (new): what is true in the story on one page, every dated decision, the seven questions, the endings, what is still open. It wins over any other document.
+- **`docs/RULES.md`** (new): 41 standing rules for future changes (story, interface, look, sound, code, working), each learned or decided in this round.
+- **`docs/STORY_MASTER.txt` is now pulled from the code** (`scripts/story_export.py`): 1415 lines with IDs. A line keeps its ID while its text is in the code; new text gets the next number under "ADDED <date>"; text that left the game stays listed under "RETIRED" so its ID is never reused (46 so far). `docs/STORY_AND_DIALOGUE.txt`, the frozen list it used to read, is removed. The hand-written parts (premise, cast, structure, strata, endings, the writer's log) match the canon.
+- **Code clean-up:** the old chart drawing and its helpers are gone from `chart.js`; the unused trial branches are folded in `chartstyles.js` (a few `key === 'b'` blocks remain, unreachable); the unused goals page is gone from `logbook.js`. Mara's memory is gated out of the demo build. A single-file build no longer tries to fetch a sound it does not carry (it synthesises it).
+- **Docs brought up to date:** CLAUDE.md, AREAS.md (every source file now has an owner), the three agent briefs, README, ROADMAP (state table and next steps), DESIGN (file table; the slip, the anchor, the Table, the four wrong things), STYLE.
+- **Single-file games rebuilt** from this commit: `pocket-pirates-demo.html`, `pocket-pirates-demo-silent.html`, `pocket-pirates-dev.html`. The demo file was opened once from a fresh save: it starts, both typefaces are inside it, the log shows Chart and Orders, the console is clean.
