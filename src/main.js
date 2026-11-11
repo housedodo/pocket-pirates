@@ -677,7 +677,7 @@ window.addEventListener('keydown', (e) => {
   if (!started) { if (titleScene) titleKey(e); else begin(); return; }
   if (e.code === 'Escape' || e.code === 'KeyP') {
     e.preventDefault();
-    if (modal === 'pause') { if ($('pauseControls').style.display !== 'none' || $('pauseAbyss').style.display !== 'none' || $('pauseSound').style.display !== 'none') showPauseMain(); else closeModal(); }
+    if (modal === 'pause') { if (pausePanel !== 'main') pauseBack(); else closeModal(); }
     else if (modal) closeModal(); else openModal('pause');
     return;
   }
@@ -852,8 +852,6 @@ $('tP').addEventListener('pointerdown', (e) => { begin(); if (modal) closeModal(
 
 // ---------------------------------------------------------------- pause menu
 if (!AUDIO_ENABLED) $('pbSoundMenu').style.display = 'none';
-$('pbSoundMenu').addEventListener('click', () => { $('pauseMain').style.display = 'none'; $('pauseSound').style.display = 'block'; $('sdBack').focus(); });
-$('sdBack').addEventListener('click', () => { showPauseMain(); $('pbSoundMenu').focus(); });
 let volT = 0;
 for (const r of $('pbVols').querySelectorAll('.pvol')) {   // the player's own volume sliders
   const inp = r.querySelector('input'), k = inp.dataset.k;
@@ -862,16 +860,25 @@ for (const r of $('pbVols').querySelectorAll('.pvol')) {   // the player's own v
     settings.vol = { ...audio.userVol }; store.set(SETTINGS_KEY, settings); });
   inp.addEventListener('keydown', (e) => { if (e.code.startsWith('Arrow')) e.stopPropagation(); });   // arrows move the slider, not the pause menu focus (Esc still closes)
 }
-function showPauseMain() {
+// pause menu panels: main > settings > (sound, display), main > controls, main > dev tools > full dread. Back / Esc go up one level.
+const PAUSE_PANELS = { main: 'pauseMain', settings: 'pauseSettings', sound: 'pauseSound', display: 'pauseDisplay', controls: 'pauseControls', dev: 'pauseDev', abyss: 'pauseAbyss' };
+const PAUSE_PARENT = { settings: 'main', controls: 'main', dev: 'main', sound: 'settings', display: 'settings', abyss: 'dev' };
+const PAUSE_OPENER = { settings: 'pbSettings', controls: 'pbControls', dev: 'pbDevTools', sound: 'pbSoundMenu', display: 'pbDisplay', abyss: 'pbAbyss' };
+let pausePanel = 'main';
+function showPause(name, focus) {
+  pausePanel = name;
+  for (const [k, id] of Object.entries(PAUSE_PANELS)) $(id).style.display = k === name ? 'block' : 'none';
   $('pbNew').textContent = 'New voyage (erase save)';
-  $('pauseMain').style.display = 'block'; $('pauseControls').style.display = 'none'; $('pauseAbyss').style.display = 'none'; $('pauseSound').style.display = 'none';
   $('pbSound').textContent = `Sound: ${audio.muted ? 'off' : 'on'}`;
   $('pbMusic').textContent = `Music: ${audio.musicOn ? 'on' : 'off'}`;
-  $('pbResume').focus();
+  if (name === 'abyss') renderAbyssMenu();
+  const f = focus && $(focus); (f && f.offsetParent ? f : $(PAUSE_PANELS[name]).querySelector('button')).focus();
 }
+const showPauseMain = () => showPause('main');
+function pauseBack() { const from = pausePanel; showPause(PAUSE_PARENT[from] || 'main', PAUSE_OPENER[from]); }
+for (const [name, btn] of Object.entries({ settings: 'pbSettings', controls: 'pbControls', dev: 'pbDevTools', sound: 'pbSoundMenu', display: 'pbDisplay', abyss: 'pbAbyss' })) $(btn).addEventListener('click', () => showPause(name));
+document.querySelectorAll('#pause .pback').forEach((b) => b.addEventListener('click', pauseBack));
 $('pbResume').addEventListener('click', () => closeModal());
-$('pbControls').addEventListener('click', () => { $('pauseMain').style.display = 'none'; $('pauseControls').style.display = 'block'; $('pbBack').focus(); });
-$('pbBack').addEventListener('click', showPauseMain);
 // full-dread effects: switch each one on/off, or try one on its own
 function renderAbyssMenu() {
   const on = (id) => settings.abyss[id] !== false;
@@ -888,7 +895,7 @@ function renderAbyssMenu() {
   }));
   $('abForce').textContent = forced === 1 ? 'Back to automatic dread' : 'Go to full dread now (all ON effects)';
 }
-if (!DEV) { $('pbAbyss').style.display = 'none'; $('pbMixer').style.display = 'none'; $('pbStudio').style.display = 'none'; $('devKeys').style.display = 'none'; settings.abyss = {}; }   // players get every effect, no test menu
+if (!DEV) { $('pbDevTools').style.display = 'none'; $('pbAbyss').style.display = 'none'; $('pbMixer').style.display = 'none'; $('pbStudio').style.display = 'none'; $('devKeys').style.display = 'none'; settings.abyss = {}; }   // players get every effect, no test menu
 const mixer = new Mixer(audio, (t, d, ms) => toast(t, d, ms));
 $('pbMixer').addEventListener('click', () => { closeModal(); mixer.toggle(true); });
 const studio = DEV ? new SoundStudio(audio, (t, d, ms) => toast(t, d, ms)) : null;   // dev only: load, cut and place your own music
@@ -909,20 +916,18 @@ function soundSituation() {
   return { flags: f, dread };
 }
 //   // players get every effect, no test menu
-$('pbAbyss').addEventListener('click', () => { $('pauseMain').style.display = 'none'; $('pauseAbyss').style.display = 'block'; renderAbyssMenu(); $('abBack').focus(); });
-$('abBack').addEventListener('click', showPauseMain);
 $('abAll').addEventListener('click', () => { const any = EFFECTS.some((f) => settings.abyss[f.id] === false); for (const f of EFFECTS) settings.abyss[f.id] = any; store.set(SETTINGS_KEY, settings); renderAbyssMenu(); });
 $('abForce').addEventListener('click', () => { abyss.stopTest(); if (forced === 1) forced = null; else { forced = 1; dread = 1; } renderAbyssMenu(); });
 $('pbLog').addEventListener('click', () => { logTab = 'map'; openModal('chart'); });
 $('pbMusic').addEventListener('click', () => {
   audio.setMusic(!audio.musicOn);
   settings.musicOff = !audio.musicOn; store.set(SETTINGS_KEY, settings);
-  showPauseMain(); $('pbMusic').focus();
+  showPause('sound', 'pbMusic');
 });
 $('pbSound').addEventListener('click', () => {
   audio.setMuted(!audio.muted);
   settings.muted = audio.muted; store.set(SETTINGS_KEY, settings);
-  showPauseMain(); $('pbSound').focus();
+  showPause('sound', 'pbSound');
 });
 pauseEl.addEventListener('pointerdown', (e) => { if (e.target === pauseEl) closeModal(); });
 // (a click beside the book no longer closes the log: Close, M or Esc do)
