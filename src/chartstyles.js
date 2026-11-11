@@ -170,7 +170,7 @@ export function drawVariant(lb, key) {
     if (edge || (key === 'b' && (shore[i + w2 + 1] >= 0 || shore[Math.min(N - 1, i + 2 * w2 + 2)] >= 0))) put(i, T.ink);
   }
   // rhumb lines from the wind rose and its ring: principal winds, half winds and quarter winds in their own inks
-  { const nodes = [[RHUMB_C[0], RHUMB_C[1], key === 'b' ? 16 : 8]];
+  { const nodes = [[RHUMB_C[0], RHUMB_C[1], 8]];
     if (key !== 'b') for (let k = 0; k < 8; k++) nodes.push([RHUMB_C[0] + Math.sin(k * Math.PI / 4) * RHUMB_R, RHUMB_C[1] - Math.cos(k * Math.PI / 4) * RHUMB_R, 8]);
     for (const [nx, nz, cnt] of nodes) for (let k = 0; k < cnt; k++) {
       const a = (k / cnt) * Math.PI, ux = Math.sin(a), uy = -Math.cos(a), ox = X(nx), oy = Z(nz), cls = cnt === 16 ? (k % 4 === 0 ? 0 : k % 2 === 0 ? 1 : 2) : (k % 2 === 0 ? 0 : k % 4 === 1 ? 1 : 2);
@@ -216,12 +216,12 @@ export function drawVariant(lb, key) {
   // ---- what stands on the land, drawn in profile as the old charts do: trees, hills, a town
   for (const o of isl) {
     const d = o.d, rp = o.rm; if (o.ghost || rp < 7 || sc < 0.45 || d.hut) continue;
-    const landCol = key === 'c' ? css(T.ink) : INK, at = (k, rr) => { const a = (hash2(d.x | 0, d.z | 0, 20 + k) % 628) / 100; return [o.px + Math.cos(a) * rp * rr, o.pz + Math.sin(a) * rp * rr * 0.8]; };
+    const landCol = INK, at = (k, rr) => { const a = (hash2(d.x | 0, d.z | 0, 20 + k) % 628) / 100; return [o.px + Math.cos(a) * rp * rr, o.pz + Math.sin(a) * rp * rr * 0.8]; };
     const many = rp > 14 ? 4 : rp > 10 ? 3 : 2;
-    if (d.type === 'harbour') { spr('spire', o.px + 1, o.pz - 3, landCol); spr('house', o.px - 4, o.pz, key === 'b' ? landCol : RED); if (rp > 9) spr('house', o.px + 6, o.pz + 1, key === 'b' ? landCol : RED); if (rp > 13) spr('tree', o.px - 1, o.pz + 6, landCol); }
+    if (d.type === 'harbour') { spr('spire', o.px + 1, o.pz - 3, landCol); spr('house', o.px - 4, o.pz, RED); if (rp > 9) spr('house', o.px + 6, o.pz + 1, RED); if (rp > 13) spr('tree', o.px - 1, o.pz + 6, landCol); }
     else if (d.type === 'jungle' || d.type === 'treasure') { for (let k = 0; k < many; k++) { const [x, y] = at(k, 0.42); spr(k % 2 ? 'palm' : 'tree', x, y, landCol); } if (d.type === 'treasure' && rp > 9) spr('hill', o.px, o.pz - 1, landCol); }
     else if (d.type === 'rocky' && key !== 'b') { spr('hill', o.px - 1, o.pz, landCol); if (rp > 11) spr('hill', o.px + 5, o.pz + 4, landCol); }
-    else if (d.type === 'volcano') spr('peak', o.px, o.pz - 1, key === 'c' ? css(T.red) : landCol);
+    else if (d.type === 'volcano') spr('peak', o.px, o.pz - 1, landCol);
     else if (d.type === 'mangrove') for (let k = 0; k < many; k++) { const [x, y] = at(k, 0.45); spr('root', x, y, landCol); }
     else if (d.type === 'sandbar' && rp > 9) spr('palm', o.px, o.pz - 1, landCol);
   }
@@ -235,9 +235,9 @@ export function drawVariant(lb, key) {
     } }
   // ---- the course to the errand you follow: a dashed line in the errand's ink
   const tr = lb.d.track ? lb.d.track() : null;
-  if (tr && show.errand) line(X(ship.pos.x), Z(ship.pos.z), X(tr.x), Z(tr.z), key === 'b' ? RED : GOLD, 4, 3);
+  if (tr && show.errand) line(X(ship.pos.x), Z(ship.pos.z), X(tr.x), Z(tr.z), GOLD, 4, 3);
   // lost crates: a dashed ring
-  for (const qq of state.quests) if (qq.type === 'crates' && show.errand) { ring(X(qq.center.x), Z(qq.center.z), 35 * sc, key === 'b' ? RED : GOLD, 3, 3); spr('crate', X(qq.center.x), Z(qq.center.z), INK, groundAt(X(qq.center.x), Z(qq.center.z))); }
+  for (const qq of state.quests) if (qq.type === 'crates' && show.errand) { ring(X(qq.center.x), Z(qq.center.z), 35 * sc, GOLD, 3, 3); spr('crate', X(qq.center.x), Z(qq.center.z), INK, groundAt(X(qq.center.x), Z(qq.center.z))); }
   // pencil guesses (the riddle board)
   for (const g of (state.board && state.board.guess) || []) ring(X(g.x), Z(g.z), 13, PENCIL, 2, 2);
   // pencil marks the world has taught (clues.js capabilities)
@@ -248,7 +248,7 @@ export function drawVariant(lb, key) {
   const labels = [];
   for (const o of isl) {
     const d = o.d, ix = o.px, iz = o.pz, rpx = Math.max(5, shoreR(d, Math.PI / 2) * k2), rl = Math.max(5, shoreR(d, Math.PI) * k2);
-    if (d.type === 'harbour' && show.harbour) spr('anchor', ix - rl - 8, iz + 2, key === 'c' ? GOLD : INK, groundAt(ix - rl - 8, iz + 2));
+    if (d.type === 'harbour' && show.harbour) spr('anchor', ix - rl - 8, iz + 2, INK, groundAt(ix - rl - 8, iz + 2));
     if (d.type === 'treasure' && !state.dug.has(d.id) && show.treasure && state.goals && state.goals.i >= 2) spr('cross', ix + rpx + 5, iz - rpx - 3, RED, groundAt(ix + rpx + 5, iz - rpx - 3));
     if (d.type === 'harbour' && hasLighthouse(d) && sc >= 0.55) { const lx = ix + Math.max(5, shoreR(d, 0) * k2) + 4; spr('light', lx, iz - 4, INK, groundAt(lx, iz - 4)); dot(lx - 0.5, iz - 7, GOLD === INK ? RED : GOLD); }
     if (d.hut && state.story && state.story.hutKnown) { const hx = Math.round(ix + 3), hz = Math.round(iz - 3); c.fillStyle = '#120c0e'; c.fillRect(hx - 4, hz - 2, 8, 6); for (let k = 0; k < 7; k++) c.fillRect(hx - 6 + k, hz - 3 - k, 13 - Math.round(k * 1.9), 1); c.fillRect(hx + 2, hz - 10, 3, 1); c.fillStyle = '#c030a0'; c.fillRect(hx + 1, hz, 2, 2); }
@@ -256,48 +256,48 @@ export function drawVariant(lb, key) {
     if (big || (show.names && sc >= 0.5)) labels.push({ t: o.name, x: ix * 2, y: (iz + rpx) * 2 + (big ? 20 : 14), big, gx: ix, gy: iz + rpx + 8 });
   }
   for (const r of Object.values(state.rumoured)) if (!r.found && show.rumour) spr('query', X(r.x) - 9, Z(r.z) - 9, RED, groundAt(X(r.x) - 9, Z(r.z) - 9));
-  const flag = (x, y) => { const g = groundAt(x, y); spr('flag', x, y, INK, g); c.fillStyle = key === 'b' ? RED : GOLD; c.fillRect(Math.round(x - 3) + 1, Math.round(y - 4) + 1, 4, 3); };
+  const flag = (x, y) => { const g = groundAt(x, y); spr('flag', x, y, INK, g); c.fillStyle = GOLD; c.fillRect(Math.round(x - 3) + 1, Math.round(y - 4) + 1, 4, 3); };
   if (state.job && show.errand) flag(X(state.job.x) + 10, Z(state.job.z) - 10);
   if (state.passenger && show.errand) flag(X(state.passenger.x) + 10, Z(state.passenger.z) - 10);
   for (const qq of ((state.story && state.story.pins) || [])) if (show.note) spr('pin', X(qq.x), Z(qq.z), qq.on ? PENCIL : SOFT, groundAt(X(qq.x), Z(qq.z)));
 
   // ---- your ship: a red arrow on her heading inside a ring, with clear ground round it (drawn last, above the lettering)
-  const drawShip = (cx, m) => { const sx = Math.round(X(ship.pos.x)), sz = Math.round(Z(ship.pos.z)), h = ship.heading, fx = Math.sin(h), fy = -Math.cos(h), g = groundAt(sx, sz), edge = key === 'c' ? '#f4ead0' : INK;
+  const drawShip = (cx, m) => { const sx = Math.round(X(ship.pos.x)), sz = Math.round(Z(ship.pos.z)), h = ship.heading, fx = Math.sin(h), fy = -Math.cos(h), g = groundAt(sx, sz), edge = INK;
     const R = (x, y, w, hh, col) => { cx.fillStyle = col; cx.fillRect(x * m, y * m, w * m, hh * m); };
     for (const [r, col] of [[12, g], [10, g], [11, edge]]) { const steps = Math.round(r * 6.3); for (let s2 = 0; s2 < steps; s2++) { const a = (s2 / steps) * Math.PI * 2; R(Math.round(sx + Math.cos(a) * r), Math.round(sz + Math.sin(a) * r), 1, 1, col); } }
     const cells = []; for (let t = -5; t <= 8; t += 0.5) { const wd = (8 - t) * 0.34; for (let u = -wd; u <= wd; u += 0.5) if (!(t < -2.5 && Math.abs(u) < (-2.5 - t) * 1.1)) cells.push([Math.round(sx + fx * t - fy * u), Math.round(sz + fy * t + fx * u), t]); }
-    for (const [x, y] of cells) R(x - 1, y - 1, 3, 3, key === 'c' ? css(T.ink) : INK);
+    for (const [x, y] of cells) R(x - 1, y - 1, 3, 3, INK);
     for (const [x, y, t] of cells) R(x, y, 1, 1, key === 'c' ? (t > 3 ? RED : '#f4ead0') : RED); };
 
   // ---- the wind rose, bottom left: an eight-point star, dark and light halves, a fleur-de-lis for north
-  { const cx = 27, cz = h2 - 30, R = 15, ground = css(T.paper[0]), lite = key === 'c' ? css(T.gold) : css(T.paper[0]), dark = key === 'c' ? css([120, 96, 48]) : INK, edge = key === 'c' ? css(T.soft) : INK;
+  { const cx = 27, cz = h2 - 30, R = 15, ground = css(T.paper[0]), lite = css(T.paper[0]), dark = INK, edge = INK;
     for (let y = -R - 3; y <= R + 3; y++) for (let x = -R - 3; x <= R + 3; x++) { const d2 = x * x + y * y; if (d2 <= (R + 3) * (R + 3)) { c.fillStyle = ground; c.fillRect(cx + x, cz + y, 1, 1); } }
     ring(cx, cz, R + 3, edge); ring(cx, cz, R + 1, edge, 1, 2);
     const ray = (a, len, wid, red) => { const ux = Math.sin(a), uy = -Math.cos(a); for (let t = 0; t <= len; t += 0.5) { const wd = wid * (1 - t / len); for (let u = -wd; u <= wd; u += 0.5) { const x = Math.round(cx + ux * t - uy * u), y = Math.round(cz + uy * t + ux * u), onEdge = Math.abs(u) > wd - 0.6 || t > len - 1; c.fillStyle = onEdge ? edge : u < 0 ? (red ? RED : dark) : lite; c.fillRect(x, y, 1, 1); } } };
     for (let k = 0; k < 4; k++) ray(Math.PI / 4 + k * Math.PI / 2, R * 0.62, 2.2, false);
     for (let k = 0; k < 4; k++) ray(k * Math.PI / 2, R, 3, key !== 'b' && k === 0);
-    spr('fleur', cx + 0.5, cz - R - 7, key === 'c' ? GOLD : key === 'b' ? INK : RED, ground); }
+    spr('fleur', cx + 0.5, cz - R - 7, RED, ground); }
   if (warp && warp.since > 2.5 && BAY[0] / 16 < 1) { const a = Math.min(0.75, (warp.since - 2.5) / 3); c.fillStyle = '#7a1a3a'; for (let s = 0; s < 140; s++) { if ((s % 4) / 4 >= a) continue; const th = (s / 140) * Math.PI * 2, x = Math.round(X(ship.pos.x) + Math.cos(th) * 22), y = Math.round(Z(ship.pos.z) + Math.sin(th) * 10); c.fillRect(x, y, 2, 2); } }
 
   // ---- the cartouche, top left: the name of these waters and a scale of fathoms
   const [sx0, sz0] = sectorCoord(ship.pos.x, ship.pos.z), waters = sectorInfo(sx0, sz0, seed).name;
   const unit = [20, 50, 100, 200, 500, 1000, 2000].find((u) => u * k2 >= 34) || 2000, barW = Math.round(unit * k2);
   const CW = Math.max(118, barW + 26), CH = 44, CX = 7, CY = 7;
-  { const ground = css(T.paper[0]), edge = key === 'c' ? css(T.soft) : INK;
-    c.fillStyle = key === 'c' ? css(T.ink) : css(T.soft); c.fillRect(CX + 2, CY + 2, CW, CH);                // a hard shadow
+  { const ground = css(T.paper[0]), edge = INK;
+    c.fillStyle = css(T.soft); c.fillRect(CX + 2, CY + 2, CW, CH);                // a hard shadow
     c.fillStyle = ground; c.fillRect(CX, CY, CW, CH);
     c.fillStyle = edge; c.fillRect(CX, CY, CW, 1); c.fillRect(CX, CY + CH - 1, CW, 1); c.fillRect(CX, CY, 1, CH); c.fillRect(CX + CW - 1, CY, 1, CH);
     c.fillRect(CX + 2, CY + 2, CW - 4, 1); c.fillRect(CX + 2, CY + CH - 3, CW - 4, 1); c.fillRect(CX + 2, CY + 2, 1, CH - 4); c.fillRect(CX + CW - 3, CY + 2, 1, CH - 4);
-    for (const [qx, qy] of [[CX, CY], [CX + CW - 3, CY], [CX, CY + CH - 3], [CX + CW - 3, CY + CH - 3]]) { c.fillStyle = key === 'b' ? INK : key === 'c' ? GOLD : RED; c.fillRect(qx, qy, 3, 3); }   // corner studs
+    for (const [qx, qy] of [[CX, CY], [CX + CW - 3, CY], [CX, CY + CH - 3], [CX + CW - 3, CY + CH - 3]]) { c.fillStyle = RED; c.fillRect(qx, qy, 3, 3); }   // corner studs
     if (key === 'b') for (let x = CX + 6; x < CX + CW - 6; x += 2) dot(x, CY + 21, INK);                         // a dotted rule under the name
-    else line(CX + 10, CY + 21, CX + CW - 11, CY + 21, key === 'c' ? css(T.soft) : RED);
+    else line(CX + 10, CY + 21, CX + CW - 11, CY + 21, RED);
     // scale bar: four parts, dark and light in turn, feet at the ends
     const bx = CX + Math.round((CW - barW) / 2), by = CY + 26;
     c.fillStyle = edge; c.fillRect(bx, by, barW + 1, 4);
     for (let k = 0; k < 4; k++) if (k % 2) { c.fillStyle = ground; c.fillRect(bx + 1 + Math.round(barW * k / 4), by + 1, Math.round(barW / 4) - 1, 2); }
     c.fillStyle = edge; c.fillRect(bx, by - 2, 1, 7); c.fillRect(bx + barW, by - 2, 1, 7); }
   // ---- the neatline: a double rule; the engraved chart has a graduated border, dark and light in turn
-  { const edge = key === 'c' ? css(T.soft) : INK; c.fillStyle = edge;
+  { const edge = INK; c.fillStyle = edge;
     c.fillRect(0, 0, w2, 2); c.fillRect(0, h2 - 2, w2, 2); c.fillRect(0, 0, 2, h2); c.fillRect(w2 - 2, 0, 2, h2);
     if (key === 'b') { c.fillStyle = css(T.paper[0]); c.fillRect(2, 2, w2 - 4, 2); c.fillRect(2, h2 - 4, w2 - 4, 2); c.fillRect(2, 2, 2, h2 - 4); c.fillRect(w2 - 4, 2, 2, h2 - 4);
       c.fillStyle = INK; const st = Math.max(6, Math.round(50 * k2)), offx = Math.round(X(0)) % (st * 2), offy = Math.round(Z(0)) % (st * 2);

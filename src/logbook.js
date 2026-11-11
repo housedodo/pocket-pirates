@@ -276,33 +276,6 @@ export class Logbook {
     this.compose(parts);
   }
 
-  partGoals() {
-    const { state } = this.d, g = state.goals, st = state.stats;
-    let html = '';
-    const curCh = MAIN_GOALS[g.i] ? MAIN_GOALS[g.i].ch : CHAPTERS.length;
-    CHAPTERS.forEach((ch, ci) => {
-      if (ci > curCh) return;                       // later chapters stay unwritten
-      html += h3(`${ch.n}. ${ch.title}`);
-      MAIN_GOALS.forEach((m, i) => {
-        if (m.ch !== ci) return;
-        const done = i < g.i, cur = i === g.i;
-        if (!done && !cur) return;
-        html += ent(`${done ? pxi('check') : pxi('next')} ${m.title}${cur ? goalCount(m, { state, ship: this.d.ship }) : ''}`, cur ? goalText(m, { state, ship: this.d.ship }) : '', m.reward ? `${m.reward}g` : '', done ? 'done' : 'cur');
-      });
-    });
-    if (curCh < CHAPTERS.length) html += ent('...', 'The rest of the page is blank.', '', 'dim');
-    if (MAIN_GOALS[g.i]) html += `<button id="skipGoal" class="mini">Skip this goal</button>`;
-    html += '<h3 class="brk">Optional</h3>';
-    for (const s of SIDE_GOALS) html += ent(`${g.side[s.id] ? pxi('check') : pxi('open')} ${s.title}`, g.side[s.id] ? '' : s.text, `${s.reward}g`, g.side[s.id] ? 'done' : '');
-    const notes = (this.d.mate && this.d.mate.history.slice(-3)) || [];
-    if (notes.length) html += h3('Mara said') + notes.map((n) => `<div class="ent"><small>“${n}”</small></div>`).join('');
-    html += h3('Voyage') + ent(`${Math.round(st.dist)} sailed`, `${st.fish} fish · ${st.treasures} treasures · ${st.wrecks} wrecks · ${st.sunk} raiders · ${st.deliveries} deliveries`);
-    return [html, () => {
-    const b = document.getElementById('skipGoal');
-    if (b) b.addEventListener('click', () => { this.d.skipGoal(); this.render(); });
-    }];
-  }
-
   partQuests() {
     const { state, ship } = this.d, dread = this.d.dread();
     let html = h3('Delivery');

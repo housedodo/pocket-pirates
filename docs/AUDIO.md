@@ -179,6 +179,8 @@ through HOIST gently (`HoistLayers game_audio/tavern <outdir> tavern` in Chaos_G
 **One-shots**
 Only these effects play. Everything else the game asks for (splash, treasure, discover, harbour, cannon, hit, horn, gull, dolphin, whale, bell, bottle, creak, bump, whisper, stage_up, knock, ending) is **silent on purpose**: not in `CUES.oneShots`, so never loaded and never synthesised. To bring one back, add its name to `CUES.oneShots` in `src/audio.js` and put its file in `public/audio/`.
 
+A single-file build (`window.__AUDIO` set) never fetches a sound it does not carry: a listed cue with no inlined file is synthesised.
+
 `oar` (synthesised, no file yet): one soft stroke per pull while rowing, at half volume; and once, in the dead calm of chapter III, one stroke more at 90% after the rowing has stopped (PROGRESS: four small wrong things). A recorded `oar.ogg` in `public/audio/` replaces it.
 
 | File | When |

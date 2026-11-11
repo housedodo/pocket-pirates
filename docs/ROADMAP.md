@@ -1,19 +1,29 @@
 # HOIST roadmap: from demo to complete game
 
-The demo (Tama, Velto, the first hut throw, no dread) is done and in playtest. This is the plan for the full game. Tick items off as they land. The story itself lives in the Story Bible; what exists lives in `docs/PROGRESS.md`.
+The demo (Tama, Velto, the first hut throw, no dread) is done and in playtest. This is the plan for the full game. Tick items off as they land. The story's truth is `docs/CANON.md`; what exists lives in `docs/PROGRESS.md`.
 
-## Where we are
+## Where we are (2026-11-11)
 | Area | State |
 |---|---|
-| Sailing, wind, tides, weather, day/night | Built, polished |
-| Tutorial, quiet start, intro cinematic, Mara | Built, being playtested |
+| Sailing, wind, tides, weather, day/night, the anchor | Built, polished |
+| Tutorial, quiet start, intro cinematic, Mara | Built; interface fixes after a UI critique are in; needs a fresh playtest |
 | Harbours, jobs, passengers, crew, shipyard, fishing, dice, encounters | Built |
-| Dread arc and full-dread effects | Built, hidden in the demo |
-| Story: Perrin's riddles, the hut, the first throw | Built to the demo end |
-| Story: Acts 2 to 5, the ending | Designed (Story Bible), not built |
-| Audio | Synthesised stand-ins plus mixer; no final audio |
+| The captain's log (Chart, Orders, Ship's book), the slip, the portolan chart | Built 2026-11-11 |
+| Demo story: Perrin's riddles, four small wrong things, the hut, the first throw, the diver | Built; 16 goals |
+| World after the demo: strata, 13 places, 17 clues, capabilities | Built (docs/WORLD_REDESIGN.md) |
+| Dread arc and full-dread effects, the seven threads | Built, hidden in the demo |
+| The ending: the Table by the Water, four actions, six endings | Built 2026-11-11; ending texts are drafts |
+| Mara's memory of her village | Built 2026-11-11 (four pieces) |
+| Audio | Stage-1 band, tavern, hut and night stems in; later stages and many effects are stand-ins or silent on purpose |
 | Biomes, walkable islands, harbour mini-quests | Concepts only |
-| Save slots, settings, gamepad, accessibility | Basic only |
+| Save slots, settings, accessibility | Basic only (gamepad works) |
+
+## Next, in order
+1. The owner plays one fresh voyage to the hut and notes: minutes to the hut (target under 45), which of the four wrong things were noticed, whether the second riddle trip is a chore.
+2. The writer rewrites the six ending texts (`src/table.js`).
+3. Make the gentle ending findable: a rumour or a Mara line that points at the music at night.
+4. Decide the open points in `docs/CANON.md` section 8.
+5. Check every screen in the new typeface (harbour, pause, tavern games, the Table) for text that no longer fits.
 
 ## Phase 0: finish the demo (now)
 - [ ] Collect survey answers and friends' feedback (survey artifact, `responses` is still empty)
@@ -30,7 +40,7 @@ The demo (Tama, Velto, the first hut throw, no dread) is done and in playtest. T
 - [ ] Hull, cargo and cannon upgrades (backlog)
 **Onboarding and UX**
 - [ ] Full controls rebinding and a proper settings menu
-- [ ] Gamepad support
+- [x] Gamepad support (`src/gamepad.js`)
 - [ ] Accessibility: reduce flicker and wobble, text size, colour-safe wind ring, subtitles for sounds
 - [ ] Mobile/touch pass (buttons exist, not tested on real devices)
 **Technical**
@@ -57,12 +67,12 @@ The demo (Tama, Velto, the first hut throw, no dread) is done and in playtest. T
 
 ## Phase 3: Acts 3 and 4, the descent
 **Story**
-- [ ] The lady's errands (gull feather, bell clapper, Mara's hat)
-- [ ] Mara fading: forgets her village, says wrong things, stops answering hints
+- [x] ~~The lady's errands~~ cut 2026-11-11: the story after the demo is told by going places
+- [x] Mara remembers her village in four pieces (decided 2026-11-11, `src/table.js`); still open: she says wrong things, stops answering hints
 - [ ] Hut changes on later visits (candles, second chair, darker die, ledger with your ship)
-- [ ] The Eye and the leviathan tied to the ledger
+- [x] The book weighs the last throw; She Rises runs the Eye sequence
 **Horror systems**
-- [ ] Tune the dread arc to the real playtime (DREAD_RANGE and gates are demo values)
+- [x] Strata replace the single dread range (`STRATA` in `palette.js`); still to tune against real playtime
 - [ ] Choice-driven dread, not only distance
 - [ ] Ten full-dread effects one by one: check each is scary, readable and skippable
 - [ ] Rule: horror stays implied, never explained; review every new line for that
@@ -70,8 +80,8 @@ The demo (Tama, Velto, the first hut throw, no dread) is done and in playtest. T
 - [ ] The Drowned sectors, wrong harbours (twin harbour), the island that moves
 
 ## Phase 4: the ending
-- [ ] Ending logic from the final Lady's d20 and ledger: sleep 100 years (20), good dreams (10 to 19), she rises (1 to 9) plus ledger bonus or punishment
-- [ ] Three endings: keep it asleep, wake it, take her seat
+- [x] Ending logic from the last throw and the book: Long Sleep (20), Good Dreams (10 to 19), She Rises (1 to 9), weighed by earlier throws
+- [x] Six endings at the Table (throw x3, the tune, sit, leave); texts are drafts
 - [ ] Epilogue and the new-game-plus hint (what stays, what resets)
 - [ ] Credits and a clean return to the title
 
@@ -93,7 +103,7 @@ The demo (Tama, Velto, the first hut throw, no dread) is done and in playtest. T
 - [ ] Bug triage list, softlock hunt through every goal order (players do things out of order)
 - [ ] Cross-browser and device checks (Chrome, Firefox, Safari, mobile)
 - [ ] Decide platform: itch.io page / own site / Steam via wrapper
-- [ ] Name and branding: the game is called HOIST; repo, files and title still say Pocket Pirates
+- [ ] Name and branding: the game is called HOIST and the title screen says so; repo and file names still say Pocket Pirates
 - [ ] Store page: trailer, screenshots (the intro cinematic helps), short description
 - [ ] Press kit and a launch plan
 

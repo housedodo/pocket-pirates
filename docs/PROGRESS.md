@@ -1,4 +1,16 @@
-# Pocket Pirates: progress and open story threads
+# Progress
+
+**Read `docs/CANON.md` for what is true and `docs/RULES.md` for what every change must keep.** This file is the record of what
+was built, oldest first; the newest entries are at the bottom. A short state of the game:
+
+## State of the game (2026-11-11)
+- **Playable from Tama to an ending.** The demo (chapters I to VI, 16 goals) ends on the first throw at the hut and the diver. After it the sea is open: six strata, 13 hand-made places, 17 clues feeding seven questions, and the Table by the Water with four actions and six endings.
+- **Decided this round:** Mara remembers her village slowly; the tune is the only gentle ending; "Turn the table" and the Lady's errands are cut; odd jobs, salvage and the raider are optional.
+- **Interface:** three bookmarks (Chart, Orders, Ship's book), one slip (what, where, how long), sailing time for distances, the anchor on E, letters shown where taken, greyed controls that answer, gauges that name themselves once.
+- **Look:** an inked portolan chart; Pirata One with Jersey 10.
+- **Story file:** `docs/STORY_MASTER.txt` is generated from the code with stable IDs (1415 lines).
+- **Not done:** the six ending texts are drafts; three questions (1, 4, 5) open nothing at the Table; the four small wrong things are not yet clues; the gentle ending hangs on one clue; no fresh playtest since these changes; the new typeface has not been checked on every screen.
+
 
 A living document. It records what is built, which storylines are started but not resolved yet,
 and ideas waiting to be connected. Update it whenever a feature or story beat lands.
@@ -808,7 +820,7 @@ up; the chosen one (D) is built in the game's own style:
 ## The master story file
 - `docs/STORY_MASTER.txt` (built by `python3 scripts/story_export.py`) is the file the writer edits and uploads again. Parts: A how to use (IDs, status marks, how to add, delete, move), B premise and rules, C cast, D structure (dread, chapters, acts), E main quest (every goal), F the world atlas (how places are found, the five regions with story slots, the hand-made places, harbours, open slots), G threads and side seeds, H endings, I systems that carry story, J every in-game line (1227, each with a stable ID such as OBJ-0001), K writer's log.
 - **Import:** the edited upload is diffed against the file in git by ID; changed lines go into the source file named by the ID's code (OBJ objectives.js, PAS passengers.js, ...). Lines marked `??` are asked about first.
-- The line list (part J) is read from `docs/STORY_AND_DIALOGUE.txt`; if lines in code change, re-pull that file first.
+- (Superseded 2026-11-11: part J is now pulled from the code on every export; `docs/STORY_AND_DIALOGUE.txt` is removed.)
 
 ## Free Cays night: guitar and violin
 - The somber guitar (`fc_night`) and violin (`fc_violin`) play in Free Cays waters at night instead of the night band and pad, in episodes (each alone, both together, or one joining the other) with long silences between (see `docs/AUDIO.md`). Rendered through HOIST like the other night instruments. First regional music; the template for each faction's own instrument.
@@ -902,3 +914,11 @@ Trials for the owner to compare; nothing changes without a flag and STYLE.md is 
 - The chart's FOLLOWING entry shows sailing time, like the slip.
 - Known: the ship marker can sit on top of a harbour's name when you are moored there.
 
+
+## Housekeeping: one canon, standing rules, a generated story file, a rebuilt demo (2026-11-11)
+- **`docs/CANON.md`** (new): what is true in the story on one page, every dated decision, the seven questions, the endings, what is still open. It wins over any other document.
+- **`docs/RULES.md`** (new): 41 standing rules for future changes (story, interface, look, sound, code, working), each learned or decided in this round.
+- **`docs/STORY_MASTER.txt` is now pulled from the code** (`scripts/story_export.py`): 1415 lines with IDs. A line keeps its ID while its text is in the code; new text gets the next number under "ADDED <date>"; text that left the game stays listed under "RETIRED" so its ID is never reused (46 so far). `docs/STORY_AND_DIALOGUE.txt`, the frozen list it used to read, is removed. The hand-written parts (premise, cast, structure, strata, endings, the writer's log) match the canon.
+- **Code clean-up:** the old chart drawing and its helpers are gone from `chart.js`; the unused trial branches are folded in `chartstyles.js` (a few `key === 'b'` blocks remain, unreachable); the unused goals page is gone from `logbook.js`. Mara's memory is gated out of the demo build. A single-file build no longer tries to fetch a sound it does not carry (it synthesises it).
+- **Docs brought up to date:** CLAUDE.md, AREAS.md (every source file now has an owner), the three agent briefs, README, ROADMAP (state table and next steps), DESIGN (file table; the slip, the anchor, the Table, the four wrong things), STYLE.
+- **Single-file games rebuilt** from this commit: `pocket-pirates-demo.html`, `pocket-pirates-demo-silent.html`, `pocket-pirates-dev.html`. The demo file was opened once from a fresh save: it starts, both typefaces are inside it, the log shows Chart and Orders, the console is clean.

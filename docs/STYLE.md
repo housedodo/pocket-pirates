@@ -86,7 +86,7 @@ purple and magenta cosmic horror as dread rises.
   deeper troughs and chunky foam flecks on the crests. It should never read as a flat plane.
 - **Title screen** (the one exception to the single UI font): the game is called **HOIST**. The logo is "Hoist" in
   Pirata One, bone white (`#f4ead0` to `#b8a47c`, dithered) with a dried-blood block shadow (`#5a1612` / `#1a0606`),
-  drawn at low resolution and worn. The menu is the game font (DotGothic16, 32px) with a red pennant pointer. Behind it the Merry Gull bobs alone on open
+  drawn at low resolution and worn. The menu is the game's text face with a red pennant pointer. Behind it the Merry Gull bobs alone on open
   sea at a random hour: morning, day, dawn, dusk, night or rain (`src/title.js`).
 - **Ship upgrades show on the ship**: sails: stock = mended patches, 1 = clean canvas, 2 = stitched seams,
   3 = gold-bound storm silk plus a flying jib to the bowsprit. Hull: 1 = dark oak rubbing strake, 2 = iron bands,
@@ -144,7 +144,7 @@ purple and magenta cosmic horror as dread rises.
 - **A letter is shown where it is taken:** a cream paper card on the board with the words and who wrote it; the same text is kept in the log.
 - **Locked controls are grey but readable** (never invisible) and answer a click with one line.
 - Autosave cue: a 20x11 pixel ship sailing over a dashed wave strip with "Voyage saved", bottom right, on the pixel grid like the other icons.
-- The captain's log: paper-slip tabs along the top edge (DotGothic16 labels on cream), the Board is a cork field with pixel paper cards, a red pixel pin each and 4 px strings (red sure, dashed navy doubt). Encounters use the same navy box as villagers, at the bottom.
+- The captain's log: three paper-slip bookmarks along the top edge (labels on cream), the Board is a cork field with pixel paper cards, a red pixel pin each and 4 px strings (red sure, dashed navy doubt). Encounters use the same navy box as villagers, at the bottom.
 - Wind meter: one pixel-art tick ring with an N at north, a bright double arc where the bow sails well,
   a solid arrow for the wind, a bow tick outside the ring, an orange mission dot.
 

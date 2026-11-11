@@ -1,5 +1,8 @@
 # Pocket Pirates: design notes
 
+> What is true in the story: `docs/CANON.md`. What every change must keep: `docs/RULES.md`. This file says how the systems work.
+> Sections are in the order they were built; where a later section changes an earlier one, the later one is right.
+
 ## Pitch
 Sail a tiny ship across an endless, procedurally generated Caribbean. Chart islands, dig up treasure,
 visit harbour towns. The further from home you go, the more the world goes wrong: bright and cosy first,
@@ -26,7 +29,12 @@ If the game outgrows the browser, the design, generators and shaders port over; 
 | `builder.js` | Flat-shaded triangle builder (lighting baked into vertex colours) |
 | `ocean.js` / `sky.js` | Wave-displaced ocean (same function on CPU for bobbing), sky, black sun, star "eye", clouds |
 | `sectors.js` | 550-unit sectors, each with a name and a faction (Crown Traders, Free Cays, Reef Brotherhood, Lantern Guild; The Drowned far out). Ships wear their sector's colours |
-| `logbook.js` | The tabbed captain's log, incl. the hand-inked low-poly parchment map (pan, zoom, sectors, rumours, job flag) |
+| `logbook.js` | The captain's log: three bookmarks (Chart, Orders, Ship's book); sections the story has not reached are not printed |
+| `chart.js` / `chartstyles.js` | The sea chart: frame, pan/zoom, side panel and hover card / the drawing itself (an inked portolan: painted means sailed) and the type pairing |
+| `table.js` | The Table by the Water: what can be done there, the last throw and the book's weight, the six endings; Mara's village returning in four pieces |
+| `clues.js` | The clue ledger: 17 clues, `state.story.seen`, derived question levels, capabilities (`isKnown`), `d3Open` |
+| `gates.js` | What the interface lets you use, by main goal index and by clue |
+| `places.js` / `landmarks.js` | The hand-made places: where they are, how they look, what a visit gives |
 | `ship.js` | Procedural ship, wind-based sailing model, upgrade modifiers, wake, lantern glow |
 | `float.js` | How every hull floats on the swell: plane fit under the hull, buoyant heave that follows the water's speed, limited pitch and roll |
 | `wind.js` | Wandering wind: big heading swings over minutes + gusts, announced when it shifts |
@@ -73,7 +81,7 @@ Other systems: **jobs** (delivery contracts from harbour boards, tracked on the 
 **Sound** is synthesised in `synth.js` (every cue, music included); real files override it per cue.
 
 ## Starter adventure (first mate, fishing, riddles, looks, combat)
-- **First mate and goals** (`objectives.js`): Mara talks you through a short main chain (sail, make landfall, follow the riddle, spend your loot, deliver a job, chart 6 isles, cross into a new sector) and reacts to events (dusk, storms, raiders, rising dread; she gets more unsettled as it goes on). Seven optional side goals complete themselves. Y or the pause menu asks for a hint; goals can be skipped in the Goals tab.
+- **First mate and goals** (`objectives.js`): Mara talks you through the main chain of 16 goals in six chapters (sea legs, landfall; the riddle, the first upgrade; dead calm, tacking, a delivery, a passenger, charting; the tavern, Perrin's note, his chart, the second riddle; bottles, gossip; the hut) and reacts to events (dusk, storms, raiders, rising dread; she gets more unsettled as it goes on). Seven optional side goals complete themselves. Y or the pause menu asks for a hint; goals can be skipped in the Goals tab.
 - **Fishing** (`fishing.js`): C casts (slow down first), wait for a bite, hook it, then hold Space to keep the marker in the green zone. 11 species, harder ones later; dark species appear with dread and at night. Sell at harbours (reputation adds a bonus); fish log in the Journal.
 - **Treasure riddles** (`lore.makePuzzle`, `world.js`): the chest is no longer marked. Each treasure isle's arch carries a riddle (sunrise/sunset/pole star/lone palm) naming the shore where the chest is buried. Study the arch (E), sail to the right shore, dig. Wrong shores cost a few seconds. Riddles also come from Perrin (the starter map) and are kept in the Journal.
 - **Ship looks** (`customize.js`): hull paint, sail colour, pennant and figurehead (parrot, dolphin, mermaid, lion, skull) at harbour shipyards. Some figureheads are earned (catch fish, salvage a wreck, earn 3 stars, sink a raider).
@@ -82,7 +90,7 @@ Other systems: **jobs** (delivery contracts from harbour boards, tracked on the 
 ## Commissions, fruit and the log (second pass)
 - **Commissions** (`jobs.commissionsFor`): each harbour board posts a delivery plus two errands, up to 3 held at once: catch specific fish, bring a fruit, recover floating crates from a marked search area, sink raiders, spot dolphins/whales. Hand in at the board (Board tab); rewards also build reputation.
 - **Fruit** (`fruit.js`): jungle and sandbar islands grow one kind each (fruit is visible on the island). E picks 2-4 (once per in-game day per island). Sell at the Market or use for commissions.
-- **Captain's log** is now an open book: tabs for Map, Goals, Quests, Riddles, Rumours, Journal, Ship, Standing; short entries over two pages, page turn with the arrows. **Riddles** have their own tab.
+- **Captain's log** is an open book with three bookmarks: Chart, Orders (the slip, errands in hand, riddles, rumours, optional goals, what is done) and Ship's book (journal, fisherman's log, ship, standing); short entries over two pages, page turn with the arrows.
 - **Wind** is shown as a wooden dial with a cloth streamer (gusts make it snap), a word like "Fresh breeze" instead of numbers, and faint wisps drifting across the sea. Gusts add a few degrees of wobble within the prevailing direction.
 - **Camera** orbits the boat (drag sideways, Z/X) and eases back behind it after a few seconds.
 - **Mara** types her lines out letter by letter with a bobbing portrait; click or Enter skips; the next goal is announced a few seconds after she finishes.
@@ -276,3 +284,23 @@ Errands alone make every harbour the same. Each harbour adds: a resident whose f
 village style, and one fragment of the old story. Gossip carries what you did to the next harbour. Pacing: one resident
 step a day per harbour, one game a day per harbour, one dish at a time, so a round of several harbours always has
 something to do in each. See PROGRESS.md "Harbour life" for the list.
+
+## The slip, the anchor and sailing time (2026-11-11)
+- **The slip** (`slipInfo` in `main.js`): what, where, which way and how long. Shown as the HUD tracker, as the first entry on Orders and in the chart's side panel. A goal with one place (`goalTarget`: landfall, the first riddle, Perrin's letters, an errand in hand) gives the place, a bearing and a time; any other goal gives its `where` line from `MAIN_GOALS`. One extra line when the course is into the wind.
+- **Sailing time** (`etaText`): distance / (8 x the sail upgrade's speed), or / 2.6 under oars; "under a minute" below 45 seconds. It is an estimate at cruising speed, not the speed at that moment.
+- **The anchor** (`ship.anchored`, `anchorTick`): E at a shore, wreck, landmark, cave, thread or for a patch (`HEAVE_KINDS`) works under way: the hull stops in a few lengths (speed decays at 2.6 per second, sail comes in) and the action then starts by itself. While a dig, salvage, patch or fishing line is on, the ship is pinned to where it stopped. Secrets (`secrets.js`) are the exception: they only show when you have stopped by yourself.
+
+## The end of a voyage (2026-11-11, `src/table.js`)
+- The Table by the Water (a landmark at the Lid) shows once three questions have a second source (`d3Open`). Going ashore opens one card with up to four choices (`tableOptions`): throw; hum the tune (`hum` known); sit (question 3 at level 3); leave (`state.story.kept`, or at most one hut throw).
+- `finalThrow`: the face, plus `bookWeight` (earlier throws: +1 for 11 and over, -1 for 9 and under, halved and capped at 3; the `lamp` capability halves a negative weight; a natural 1 or 20 stands). 20 is the Long Sleep, 10 to 19 Good Dreams, 1 to 9 She Rises.
+- `showEnding` puts the ending on a black card and stores `state.story.ending`. After the Long Sleep, Good Dreams or the tune the ship is set off Tama in the morning with dread cleared; She Rises runs `abyss.startEnding()`.
+- `maraRemembers`: four lines, each at least 90 seconds of sailing after its condition (a bell clue; two regions seen; the Sunken Street; the Table showing). Not in the demo build.
+
+## Four small wrong things before the hut (2026-11-11)
+| Flag in `state.story` | When | What |
+|---|---|---|
+| `oar3` | chapter III dead calm, 2.4 s after rowing stops with the oars out | one more stroke by itself (`ship.ghostStroke`), the `oar` cue, Mara shrugs |
+| `berths` | the first passenger dropped off | the fare doubles, "two berths", the harbourmaster asks for the other one |
+| `hook` | a night catch from the second fish on, or the sixth fish | a hook already in its mouth; the fishmonger's line when sold |
+| `predug` | the second treasure beach | one hole there already, over the chest (`digging.js` `predug`) |
+
