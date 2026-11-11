@@ -1,9 +1,6 @@
-// Chart variants (proposals, picked by URL flag; no flag = the chart in chart.js, untouched).
-//   ?chartstyle=a  inked portolan on vellum: a sea-green wash where you have sailed, bare vellum and rhumb lines elsewhere
-//   ?chartstyle=b  engraved pilot chart: black ink on laid paper, water lines round the shores, stipple shoals, soundings
-//   ?chartstyle=c  indigo and gold: a dyed night chart in the game's navy, gold rhumbs, the known sea lit in teal
-//   ?uifont=a|b|c  a typeface pairing (see FONTS); the CSS for the pages is the CHART-VARIANTS block in index.html
-// Rule for all three: painted means sailed. Water within sight of an isle you have charted (or of the ship) is drawn as sea;
+// The sea chart's look: an inked portolan on vellum (chosen 2026-11-11 from three trials), and the game's type pairing:
+// Pirata One for titles and place names, Jersey 10 for text. The page CSS is the CHART-LOOK block in index.html.
+// The rule: painted means sailed. Water within sight of an isle you have charted (or of the ship) is drawn as sea;
 // everything else is the bare sheet with the chartmaker's rhumb lines. The fog wall is just where the paint stops.
 // Everything is set pixel by pixel at half resolution (no anti-aliased strokes); labels go on the full-resolution layer and
 // are cut hard (alpha threshold), like the #crisp filter.
@@ -14,25 +11,15 @@ import { LANES } from './seaplay.js';
 import { LM } from './landmarks.js';
 import { isKnown } from './clues.js';
 
-const q = new URLSearchParams(typeof location !== 'undefined' ? location.search : '');
-const pick = (k) => (['a', 'b', 'c'].includes((q.get(k) || '').toLowerCase()) ? q.get(k).toLowerCase() : null);
-export const CHART_STYLE = pick('chartstyle');
-export const UI_FONT = pick('uifont');
-if (typeof document !== 'undefined') {
-  if (UI_FONT) document.documentElement.dataset.uifont = UI_FONT;
-  if (CHART_STYLE) document.documentElement.dataset.chartstyle = CHART_STYLE;
-}
+export const CHART_STYLE = 'a';   // the key the drawing code branches on; 'b' and 'c' were the trials not taken
+export const UI_FONT = 'b';
+if (typeof document !== 'undefined') { document.documentElement.dataset.uifont = UI_FONT; document.documentElement.dataset.chartstyle = CHART_STYLE; }
 
 /** display face (harbours, the name of the waters) and text face (isles, notes), with the sizes that sit on each font's own grid */
-export const FONTS = {
-  0: { disp: '"Pirata One", Georgia, serif', dpx: 22, dbig: 26, body: '"DotGothic16", monospace', bpx: 16 },
-  a: { disp: '"Jacquard 12", "Pirata One", serif', dpx: 24, dbig: 24, body: '"DotGothic16", monospace', bpx: 16 },
-  b: { disp: '"Pirata One", Georgia, serif', dpx: 24, dbig: 26, body: '"Jersey 10", "DotGothic16", monospace', bpx: 16 },   // Jersey 10 carries size-adjust 125%: 16px draws at 20, two screen pixels per font pixel
-  c: { disp: '"IM Fell English SC", Georgia, serif', dpx: 20, dbig: 24, body: '"IM Fell DW Pica", Georgia, serif', bpx: 16 },
-}[UI_FONT || 0];
+export const FONTS = { disp: '"Pirata One", Georgia, serif', dpx: 24, dbig: 26, body: '"Jersey 10", "DotGothic16", monospace', bpx: 16 };   // Jersey 10 carries size-adjust 125%: 16px draws at 20, two screen pixels per font pixel
 let fontsAsked = false;
 
-// ---- the three looks
+// ---- the look
 const TH = {
   a: {
     paper: [[231, 213, 168], [221, 201, 152]], fox: [201, 174, 122], edge: [196, 170, 120],
@@ -41,22 +28,6 @@ const TH = {
     rh: [[176, 148, 104], [150, 164, 112], [194, 130, 100]], rhSea: [[98, 132, 122], [92, 140, 110], [150, 122, 104]],
     land: { sand: [240, 224, 176], green: [176, 184, 124], rock: [198, 184, 158], dark: [150, 128, 116], shade: [150, 122, 84] },
     lagoon: [190, 216, 190], current: [244, 236, 208], txt: '#34200f', txtRed: '#9a2c1a', txtSoft: '#6e5236', halo: null,
-  },
-  b: {
-    paper: [[236, 230, 210], [229, 222, 199]], fox: [214, 204, 176], edge: [206, 196, 168],
-    sea: [[208, 220, 210], [208, 220, 210]], rim: [150, 168, 164], shoal: [222, 230, 216],
-    ink: [34, 28, 28], soft: [112, 108, 104], red: [156, 40, 30], gold: [34, 28, 28], pencil: [58, 58, 122],
-    rh: [[196, 188, 166], [196, 188, 166], [196, 188, 166]], rhSea: [[168, 184, 178], [168, 184, 178], [168, 184, 178]],
-    land: { sand: [244, 240, 224], green: [244, 240, 224], rock: [244, 240, 224], dark: [200, 194, 182], shade: [34, 28, 28] },
-    lagoon: [208, 220, 210], current: [34, 28, 28], txt: '#221c1c', txtRed: '#9c281e', txtSoft: '#5c5854', halo: null,
-  },
-  c: {
-    paper: [[27, 21, 56], [34, 27, 72]], fox: [42, 34, 86], edge: [18, 13, 40],
-    sea: [[30, 78, 112], [36, 96, 128]], rim: [24, 58, 92], shoal: [72, 176, 178],
-    ink: [12, 9, 28], soft: [201, 168, 92], red: [226, 86, 56], gold: [255, 210, 58], pencil: [176, 160, 240],
-    rh: [[98, 80, 84], [70, 60, 104], [84, 68, 84]], rhSea: [[54, 110, 136], [48, 104, 136], [54, 110, 136]],
-    land: { sand: [236, 214, 156], green: [112, 166, 92], rock: [168, 160, 150], dark: [110, 98, 108], shade: [150, 122, 84] },
-    lagoon: [79, 224, 208], current: [223, 240, 240], txt: '#f4ead0', txtRed: '#ffd23a', txtSoft: '#c9a85c', halo: '#0c091c',
   },
 };
 

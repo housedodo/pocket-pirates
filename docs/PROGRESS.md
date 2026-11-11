@@ -895,3 +895,10 @@ Trials for the owner to compare; nothing changes without a flag and STYLE.md is 
 - `?uifont=a` Jacquard 12 titles with DotGothic16 text; `?uifont=b` Pirata One titles with Jersey 10 text; `?uifont=c` IM Fell English SC titles with IM Fell DW Pica text. Font files are in `public/fonts/` (from the @fontsource packages; licences still to be confirmed before shipping).
 - Code: `src/chartstyles.js`, three lines in `src/chart.js`, and the `CHART-VARIANTS` block at the end of the styles in `index.html`.
 - Still open: pick one, then update STYLE.md, put the slip on the chart, and remove the other two.
+
+## The chart and the typefaces are chosen (2026-11-11)
+- Owner's choice from the trials: **chart style A** (inked portolan on vellum) and **font pairing B** (Pirata One titles, Jersey 10 text, HUD included). Both are now the default; the URL flags, the other two chart looks, the other two pairings and their font files are gone.
+- `src/chartstyles.js` draws the chart. The older drawing in `src/chart.js` is no longer reached and can be deleted in a clean-up; a few `key === 'b'` / `'c'` branches in `chartstyles.js` are dead too.
+- The chart's FOLLOWING entry shows sailing time, like the slip.
+- Known: the ship marker can sit on top of a harbour's name when you are moored there.
+

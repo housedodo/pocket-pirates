@@ -11,7 +11,7 @@ import { LANES } from './seaplay.js';
 import { LM } from './landmarks.js';
 import { isKnown } from './clues.js';
 import * as life from './harbourlife.js';
-import { CHART_STYLE, drawVariant } from './chartstyles.js';   // ?chartstyle=a|b|c: proposals to compare; no flag = the chart below
+import { CHART_STYLE, drawVariant } from './chartstyles.js';   // the chart is drawn in chartstyles.js (the inked portolan); the older drawing below is no longer reached
 
 // ---- palette (the game's colours, a little muted for paper)
 const P = {
@@ -146,7 +146,7 @@ function side(lb) {
   const week = harb.map((d) => ({ d, n: (d.festival - (state.dayN % 7) + 7) % 7 })).sort((a, b) => a.n - b.n).slice(0, 3)
     .map(({ d, n }) => `<div class="cs-ev"><b>${life.gameOf(d).event}</b><small>${d.name.replace(/^(Harbour|Haven|Port) /, '')} · ${n === 0 ? 'today' : n === 1 ? 'tomorrow' : life.WEEKDAYS[d.festival]}</small></div>`).join('');
   el.innerHTML = `<h4 class="cs-title">${info.name}</h4><small class="cs-sub">${info.faction.name} · ${disc.length} isles charted</small>
-    <div class="cs-h">FOLLOWING</div>${tr ? `<div class="cs-follow"><i class="mc-ic" style="--c:${P.gold}">${iconHtml('errand')}</i><div><b>${tr.label}</b><small>${bearingName(tr.x - ship.pos.x, tr.z - ship.pos.z)} · ${Math.round(Math.hypot(tr.x - ship.pos.x, tr.z - ship.pos.z))}</small></div></div>` : '<small class="cs-none">nothing: pick one in Quests</small>'}
+    <div class="cs-h">FOLLOWING</div>${tr ? `<div class="cs-follow"><i class="mc-ic" style="--c:${P.gold}">${iconHtml('errand')}</i><div><b>${tr.label}</b><small>${bearingName(tr.x - ship.pos.x, tr.z - ship.pos.z)} · ${lb.d.eta ? lb.d.eta(Math.hypot(tr.x - ship.pos.x, tr.z - ship.pos.z)) : Math.round(Math.hypot(tr.x - ship.pos.x, tr.z - ship.pos.z))}</small></div></div>` : '<small class="cs-none">nothing: pick one in Orders</small>'}
     <div class="cs-h">ON THE CHART</div>${chip('harbour', 'Harbours', counts.harbour)}${chip('treasure', 'Treasure', counts.treasure)}${chip('rumour', 'Rumours', counts.rumour)}${chip('errand', 'Errands', counts.errand)}${chip('note', 'My pins', counts.note)}${chip('names', 'Island names')}
     ${week ? `<div class="cs-h">THIS WEEK</div>${week}` : ''}
     <div class="cs-h">LINES</div><div class="cs-line"><i style="--c:${P.gold}"></i>course to errand</div><div class="cs-line dot"><i style="--c:#dff0f0"></i>current</div>

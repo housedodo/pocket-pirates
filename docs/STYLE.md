@@ -125,8 +125,7 @@ purple and magenta cosmic horror as dread rises.
   (`src/palette.js`).
 
 ## 5. Interface (HUD and menus)
-- **One typeface everywhere: DotGothic16** (bundled in `public/fonts`, OFL). It is drawn on a 16px pixel grid, so it is only used at 16px (body, small text, labels) and 32/48px (titles); never in between, never bold or italic, no blur filters on text. This keeps C/O, S/5 and B/8 distinct. Map labels go on a separate full-resolution layer above the pixelated chart.
-  2px offset, never a blur. Text without a background behind it gets `filter: url(#crisp)`.
+- **Two typefaces** (chosen 2026-11-11): **Pirata One** for titles, headings in the log and place names on the chart (24, 34 and 48 px); **Jersey 10** for all text, HUD included. Jersey 10 is drawn on a 10 px grid and loaded with `size-adjust: 125%`, so 16 px text lands on 20 screen pixels, two per font pixel. DotGothic16 stays bundled as the fallback. Never bold or italic, no blur filters on text; text without a background behind it gets `filter: url(#crisp)`. Both faces are bundled in `public/fonts` (SIL Open Font License).
 - Panels (`.panel`): an 8x8 dithered navy tile (`--pxpanel`, shown at 32px), **no CSS border**. The frame is
   four hard box-shadows of 4px in `--pxedge` (gives notched pixel corners), a 4px pixel drop shadow,
   and 4px inset highlight/shade. Danger/horror panels set `--pxedge: #ff70d0`.
@@ -138,6 +137,7 @@ purple and magenta cosmic horror as dread rises.
 - The HUD shows as little text as possible: gold, time, place. Everything else is in the log or the Q tracker.
 - **Mara's box sits bottom left while sailing** (above the key hint), never across the ship or the water ahead of the bow. In the log it sits under the book, in the middle, clear of the page arrows and the chart's compass rose.
 - **A gauge names itself once:** the first time the sail bar, the wind ring, the hull panel, the cannonball count or the lamp-oil bar appears, a small gold tag with its name (one or two words) points at it for 7 seconds. After that the HUD is wordless again.
+- **The sea chart is an inked portolan on vellum** (`src/chartstyles.js`). Painted means sailed: water within sight of a charted isle or of the ship is a sea-green wash, everything else is bare vellum with the rhumb lines a chartmaker rules from the compass rose, so the fog wall is simply where the paint stops. Coasts are ink, markers are small ink sprites (anchor, cross, question mark, flag, pin), harbours are lettered in red Pirata One, and a cartouche top left names the waters over a scale bar. Set pixel by pixel at half resolution, no anti-aliased strokes. The bare vellum is kept quiet on purpose: it is where a drawing in another hand can appear later.
 - **The log has three bookmarks:** Chart (where things are), Orders (what to do), Ship's book (what you have). A section the story has not reached is simply not printed; a bookmark with nothing behind it is not there. No locked tabs.
 - **The slip:** what, where, which way and how long, always those three lines in that order. It is the HUD tracker at sea and the first thing on Orders (cream-gold paper, a red edge, a "Show on chart" button). Distances are sailing time ("4 min"), never fathoms.
 - **The log's bookmarks never move:** the book hangs from the same top edge on every tab and the wide chart page shifts the row in, so a tab is always where it was. A click beside the book does not close it (Close, M or Esc do).

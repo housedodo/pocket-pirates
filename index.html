@@ -623,22 +623,13 @@
     body.intro #hud { opacity: 0 !important; }
     #introskip { position: fixed; right: 20px; bottom: calc(13vh + 12px); z-index: 8; color: #f4ead0; font-size: 16px; opacity: 0; pointer-events: none; text-shadow: 2px 2px 0 #000; }
     body.intro #introskip { opacity: .8; transition: opacity 1s 2.5s; }
-    /* CHART-VARIANTS START */
-    /* Proposals to compare, switched by URL flag (src/chartstyles.js sets data-chartstyle / data-uifont on <html>). No flag = nothing here applies.
+    /* CHART-LOOK START */
+    /* The chart's look and the type pairing (src/chartstyles.js sets data-chartstyle="a" and data-uifont="b" on <html>).
        Fonts: SIL Open Font License 1.1, bundled in public/fonts (from the @fontsource packages). */
-    @font-face { font-family: "Jacquard 12"; src: url("/fonts/jacquard12.woff2") format("woff2"); font-display: block; }
     @font-face { font-family: "Jersey 10"; src: url("/fonts/jersey10.woff2") format("woff2"); font-display: swap; size-adjust: 125%; }   /* drawn on a 10px grid: with this, 16px text lands on 20 (two screen pixels per font pixel), 32px on 40 */
-    @font-face { font-family: "IM Fell English SC"; src: url("/fonts/imfellenglishsc.woff2") format("woff2"); font-display: block; }
-    @font-face { font-family: "IM Fell DW Pica"; src: url("/fonts/imfelldwpica.woff2") format("woff2"); font-display: swap; size-adjust: 112%; }
-    /* ?uifont=a  pixel blackletter titles (Jacquard 12, on its 12px grid: 24/36/48), the text stays DotGothic16 */
-    :root[data-uifont="a"] { --pxdisp: "Jacquard 12", "Pirata One", serif; --dS: 24px; --dM: 36px; --dL: 48px; }
-    /* ?uifont=b  the title face (Pirata One) for every heading and place name, and Jersey 10 as a chunkier text face, HUD included */
+    /* the title face (Pirata One) for every heading and place name, and Jersey 10 as a chunkier text face, HUD included */
     :root[data-uifont="b"] { --pxdisp: "Pirata One", Georgia, serif; --dS: 24px; --dM: 34px; --dL: 48px; --pxtext: "Jersey 10", "DotGothic16", monospace; --pxfont: "Jersey 10", "DotGothic16", monospace; }
-    /* ?uifont=c  the printed pilot book: Fell types (small caps for titles, DW Pica for text), in the log only; the HUD keeps the pixel font */
-    :root[data-uifont="c"] { --pxdisp: "IM Fell English SC", Georgia, serif; --dS: 22px; --dM: 30px; --dL: 44px; }
     :root[data-uifont="b"] #chart .ribbons button em { font-family: "Jersey 10", "DotGothic16", monospace !important; }
-    :root[data-uifont="c"] #chart { --pxtext: "IM Fell DW Pica", Georgia, serif; }
-    :root[data-uifont="c"] #chart .ribbons button em { font-family: "IM Fell English SC", Georgia, serif !important; }
     :root[data-uifont] #logBody h3, :root[data-uifont] .cs-title, :root[data-uifont] #mapCard b, :root[data-uifont] .menu h2, :root[data-uifont] .hbName,
     :root[data-uifont] #landho span, :root[data-uifont] #caveTitle b { font-family: var(--pxdisp) !important; letter-spacing: 0 !important; }
     :root[data-uifont] #logBody h3, :root[data-uifont] .cs-title, :root[data-uifont] .menu h2 { font-size: var(--dM) !important; line-height: 1 !important; }
@@ -661,13 +652,7 @@
     #chart[data-chartstyle] #mapCard hr { border-top-color: var(--cvRule); }
     #chart[data-chartstyle] .mapctl button, #chart[data-book="pixel"][data-chartstyle] .mapctl button { background: var(--cvPaper); color: var(--cvInk); box-shadow: 0 -2px 0 var(--cvInk), 0 2px 0 var(--cvInk), -2px 0 0 var(--cvInk), 2px 0 0 var(--cvInk); }
     #chart[data-chartstyle="a"] { --cvPaper: #e7d5a8; --cvInk: #34200f; --cvSoft: #6e5236; --cvRule: #b79a68; --cvHead: #9a2c1a; --cvMark: #34200f; --cvShade: #34200f; }
-    #chart[data-chartstyle="b"] { --cvPaper: #ece6d2; --cvInk: #221c1c; --cvSoft: #5c5854; --cvRule: #221c1c; --cvHead: #221c1c; --cvMark: #221c1c; --cvShade: #221c1c; }
-    #chart[data-chartstyle="b"] .cs-h { border-bottom: 2px dotted #221c1c; }
-    #chart[data-chartstyle="c"] { --cvPaper: #1b1538; --cvInk: #f4ead0; --cvSoft: #c9a85c; --cvRule: #6a5a3c; --cvHead: #ffd23a; --cvMark: #ffd23a; --cvShade: #0c091c; }
-    #chart[data-chartstyle="c"] .chartside, #chart[data-chartstyle="c"] #mapCard { box-shadow: 0 0 0 2px #c9a85c, inset 0 0 0 4px #1b1538, inset 0 0 0 6px #6a5a3c; }
-    #chart[data-chartstyle="c"] .book .spread { background: #120d28; }
-    #chart[data-chartstyle="c"] .mapctl button, #chart[data-book="pixel"][data-chartstyle="c"] .mapctl button { box-shadow: 0 -2px 0 #c9a85c, 0 2px 0 #c9a85c, -2px 0 0 #c9a85c, 2px 0 0 #c9a85c; }
-    /* CHART-VARIANTS END */
+    /* CHART-LOOK END */
   </style>
 </head>
 <body>
