@@ -225,6 +225,11 @@ New voyage goes straight into the game (no title). A new voyage starts moored al
   - **Festival day, one weekday per harbour (Tama: Sunday):** bunting and lamps round the square; fish fetch +50%.
   - **Lantern night (Saturday), every harbour:** little lanterns float on the water round each island after dusk.
   - Mara mentions market day and lantern night in the morning, the first two times only.
+  - **The paper (Friday), every market:** *The Harbour Tidings* (3g, one copy a week, `src/newspaper.js`). The region's
+    weather for three days (true to the storm-front calendar and the region's character), one face from the harbour,
+    the news (one item is something you did, from the gossip), a notice. Printed at the dread you buy it: stage 2 fewer
+    gulls and lists kept, stage 3 the tide comes in twice, stage 4 *The Tidings*, "for those still awake", and the face is
+    yours. The paper yellows and stains with it. Reread it from the market until the next Friday.
 - **Village customs** (one per harbour, from the seed; `CUSTOMS` in world.js), shown, never explained:
   whitewash (white walls, blue roofs), lamps lit all night, no children, a dusk choir (a ring of villagers with
   candles round the pole), fishing boats with lanterns out at night, kites every afternoon, bells (a bell tower,

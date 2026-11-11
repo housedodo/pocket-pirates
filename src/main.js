@@ -58,6 +58,7 @@ import { Wake } from './wake.js';
 import { Secrets, TALES } from './secrets.js';
 import { OIL_FROM, oilCap, oilRate, lanternLit, OIL_PRICE } from './oil.js';
 import * as life from './harbourlife.js';
+import * as paper from './newspaper.js';
 import { LocalGames } from './localgames.js';
 
 // ---------------------------------------------------------------- params, save, settings
@@ -498,6 +499,7 @@ function openModal(name) {
   audio.setPaused(name === 'pause');
 }
 function closeModal(silent = false) {
+  hbPaper = false;
   if (!modal) return;
   document.body.classList.remove('ashore');
   pauseEl.classList.remove('open'); chartEl.classList.remove('open'); harbourEl.classList.remove('open'); shipEl.classList.remove('open'); yardEl.classList.remove('open'); hutEl.classList.remove('open'); cardEl.classList.remove('open'); pigEl.classList.remove('open'); greetEl.classList.remove('open'); caveEl.classList.remove('open'); if (modal === 'local') localGames.finish();
@@ -915,7 +917,7 @@ $('hbClose').addEventListener('click', () => closeModal());
 // ---------------------------------------------------------------- harbour shipwright
 const UP_MUL = [1.3, 1.6, 1.9];   // economy: the shipwright charges more, steeply for the higher levels
 const upCost = (u, lv, rep) => Math.ceil(u.cost[lv] * UP_MUL[lv] * discount(rep) * costMul());
-let hbTab = 'board';
+let hbTab = 'board', hbPaper = false;   // hbPaper: the Friday paper lies open on the market pane
 function handIn(q, d) {
   const need = questNeed(q);
   if (questProgress(q, state) < need) return;
@@ -1056,6 +1058,10 @@ function renderHarbour() {
       toast(`Rumour: ${t.name}, ${bearingName(t.x - d.x, t.z - d.z)} of here, ~${Math.round(dist)} fathoms. Marked on your map.`, dread > 0.5, 7000);
       audio.play('buy'); renderHarbour();
     });
+  } else if (hbTab === 'market' && hbPaper && paper.thisWeeks(state)) {   // the paper, open
+    pane.innerHTML = paper.paperHTML(paper.thisWeeks(state)) + '<div class="qrow"><div></div><button id="foldPaper">Fold it away</button></div>';
+    $('foldPaper').addEventListener('click', () => { hbPaper = false; audio.play('ui', { vol: 0.3 }); renderHarbour(); });
+    pane.scrollTop = 0;
   } else if (hbTab === 'market') {
     const hg = state.haggle && state.haggle.id === d.id && state.haggle.day === state.dayN ? state.haggle : null, hm = (hg ? hg.mult : 1) / dreamCost() * (isMarketDay() ? 1.25 : 1) * (threads.touched(d) ? 1.15 : 1) * threads.priceMul(d);
     const fishVal = Math.round(state.catch.reduce((a, f) => a + f.value, 0) * 0.7 * (1 + 0.05 * lvl) * hm * (isFestival(d) ? 1.5 : 1));
@@ -1075,6 +1081,13 @@ function renderHarbour() {
     if (unlocked(state, 'cannons')) html += `<div class="sec">BUY</div><div class="qrow"><div><b>${pxi('ball')} 10 cannonballs</b><br><small>you have ${state.ammo}</small></div><button id="buyAmmo" ${state.gold >= ammoCost ? '' : 'disabled'}>${ammoCost}g</button></div>`;
     if (oilOn()) { const kc = Math.ceil(35 * discount(rep) * costMul()); html += `<div class="sec">SAILCLOTH</div><div class="qrow"><div><b>${pxi('sail')} Sail patch kit</b> <span class="kits">${[0, 1, 2].map((k) => `<i class="${k < state.patchKits ? 'on' : ''}"></i>`).join('')}</span><br><small>${state.patchKits} aboard, room for 3: mends a torn sail at sea</small></div>${state.patchKits < 3 ? `<button id="buyKit" ${state.gold >= kc ? '' : 'disabled'}>${kc}g</button>` : '<button disabled>Full</button>'}</div>`; }
     if (oilOn()) { const { need, cost } = buyOil(discount(rep) * costMul()); html += `<div class="sec">LAMP OIL</div><div class="qrow"><div><b>${pxi('lamp')} Fill the lantern</b><span class="gauge"><i style="width:${Math.round(state.oil / oilCap(state.upgrades) * 100)}%"></i></span><br><small>${Math.round(state.oil)} of ${oilCap(state.upgrades)}: it burns at night, in fog and in storms</small></div>${need >= 1 ? `<button id="buyOil" ${state.gold >= cost ? '' : 'disabled'}>${cost}g</button>` : '<button disabled>Full</button>'}</div>`; }
+    { // the paper comes in on the Friday boat: one copy a week (newspaper.js)
+      const cp = paper.thisWeeks(state);
+      html += `<div class="sec">THE PAPER</div>`;
+      if (cp) html += `<div class="qrow"><div><b>${pxi('letter')} ${cp.stage >= 4 ? 'The Tidings' : 'The Harbour Tidings'}</b><br><small>this week's, bought in ${cp.at}</small></div><button id="readPaper">Read</button></div>`;
+      else if (paper.onSale(state)) html += `<div class="qrow"><div><b>${pxi('letter')} The Harbour Tidings</b><br><small>the weather, a face from the harbour, the news</small></div><button id="buyPaper" ${state.gold >= paper.PAPER_COST ? '' : 'disabled'}>${paper.PAPER_COST}g</button></div>`;
+      else html += `<small>The paper comes in on ${paper.nextLine(state)}.</small>`;
+    }
     html += `<div class="sec">SHIPYARD</div><div class="qrow"><div><b>${pxi('paint')} Paint, sails, pennants, figureheads</b></div><button id="openYard">Open</button></div>`;
     pane.innerHTML = html;
     { const bk = $('buyKit'); if (bk) bk.addEventListener('click', () => { const kc = Math.ceil(35 * discount(rep) * costMul()); if (state.gold < kc || state.patchKits >= 3) return; state.gold -= kc; state.patchKits++; audio.play('buy'); renderHarbour(); }); }
@@ -1087,6 +1100,13 @@ function renderHarbour() {
     const sfr = $('sellFruit'); if (sfr) sfr.addEventListener('click', () => { state.gold += fruitVal; toast(`Sold fruit for ${fruitVal} gold.`); state.fruit = {}; audio.play('buy'); renderHarbour(); });
     if ($('buyAmmo')) $('buyAmmo').addEventListener('click', () => { if (state.gold < ammoCost) return; state.gold -= ammoCost; state.ammo += 10; audio.play('buy'); renderHarbour(); });
     $('openYard').addEventListener('click', () => openModal('yard'));
+    { const bp = $('buyPaper'); if (bp) bp.addEventListener('click', () => {
+      if (state.gold < paper.PAPER_COST || paper.thisWeeks(state) || !paper.onSale(state)) return;
+      const fac = sectorAt(d.x, d.z, state.seed).faction;
+      state.gold -= paper.PAPER_COST;
+      const p = life.lifeOf(state).paper = paper.printPaper(state, d, { dread, faction: fac.id, factionName: fac.name, frontOn: unlocked(state, 'passengers') });
+      hbPaper = true; audio.play('buy'); toast(paper.BUY_LINE[p.stage], p.stage >= 3, 4000); renderHarbour(); }); }
+    { const rp = $('readPaper'); if (rp) rp.addEventListener('click', () => { hbPaper = true; audio.play('ui', { vol: 0.3 }); renderHarbour(); }); }
     const hgb = $('haggle'); if (hgb) hgb.addEventListener('click', () => {
       rollCheck(state, { label: 'Talk', kind: 'talk', dc: 12, harbour: d.id, extra: lvl ? [['standing', lvl]] : [] }, (ok, n) => {
         state.haggle = { id: d.id, day: state.dayN, n, mult: ok ? (n === 20 ? 1.5 : 1.3) : n === 1 ? 0.8 : 0.9 };
@@ -1170,7 +1190,7 @@ function renderHarbour() {
   lockPane(state, $('hbPane'));   // what the story has not reached yet is greyed out (gates.js)
   tutorialMarks();
 }
-$('hbTabs').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b || !harbourIsl) return; if (b.dataset.t === 'sail') { closeModal(); return; } if (!isOpen(state, 'tab', b.dataset.t)) return; hbTab = b.dataset.t; (state.story.uiSeen || (state.story.uiSeen = {}))[hbTab] = true; audio.play('ui', { vol: 0.4 }); renderHarbour(); });
+$('hbTabs').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b || !harbourIsl) return; if (b.dataset.t === 'sail') { closeModal(); return; } if (!isOpen(state, 'tab', b.dataset.t)) return; hbTab = b.dataset.t; hbPaper = false; (state.story.uiSeen || (state.story.uiSeen = {}))[hbTab] = true; audio.play('ui', { vol: 0.4 }); renderHarbour(); });
 // a red number on a sign when something waits there
 // the tutorial marks the sign (and the button) the current goal needs; goals later in the story carry no mark at all
 const tutorialGoal = () => { const g = objectives.current; if (!g || !g.tab) return null; try { if (g.check({ state, ship, world })) return null; } catch (e) { /* not checkable yet */ } return g; };   // a goal already done carries no mark
