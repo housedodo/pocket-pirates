@@ -24,6 +24,7 @@ export const UNLOCK = { fish: 1, oars: 2, passengers: 2, crew: 3, dice: 3, haggl
 export const MAIN_GOALS = [
   {
     id: 'sail', ch: 0, title: 'Find your sea legs', reward: 12,
+    where: 'Open water off Tama',   // the slip's second line when the goal has no single place
     text: 'Steer with A and D, set the sails with W and S. Sail about 100 units.',
     // told one line at a time, each when the player has done the last thing (see onbTick in main.js)
     intro: ['Morning, Captain! I am Mara, your first mate, and this is the Merry Gull. She is small, but she is ours.',
@@ -45,17 +46,18 @@ export const MAIN_GOALS = [
   },
   {
     id: 'dig', ch: 1, title: 'Follow the riddle', reward: 36,
-    text: 'Perrin\'s riddle is in your log (Journal). Find the right shore of Hollow Cay Galen and dig.',
+    text: 'Perrin\'s riddle is in your orders (M). Find the right shore of Hollow Cay Galen and dig.',
     // if the letter is already taken and read, she does not tell the player to fetch it
     intro: (c) => (c.state.story.letterP1 === 'taken' ? ['Now to find the shore that riddle means. Press E there: we drop anchor and dig.']
       : ['Perrin left you a letter with the harbourmaster: take it at the Board sign in Tama.', 'Then find the shore its riddle means and press E there: we drop anchor and dig.']),
     outro: ['Ha! Treasure! A captain with gold in the hold is a captain with options.'],
-    hints: ['Take Perrin\'s letter at the Tama Board sign first (the little letter icon). The riddle is then in the log (M, Riddles tab). Sunrise is east, sunset is west.', 'On the right shore, dig squares (click, or arrows and E): darker, wetter sand means the chest is close. The tide comes in with every dig, and two stones break the shovel.'],
+    hints: ['Take Perrin\'s letter at the Tama Board sign first (the little letter icon). The riddle is then in your orders (M). Sunrise is east, sunset is west.', 'On the right shore, dig squares (click, or arrows and E): darker, wetter sand means the chest is close. The tide comes in with every dig, and two stones break the shovel.'],
     check: (c) => c.state.dug.has(HOME_ISLE),
     tab: 'board', mark: ['takeLetter'],
   },
   {
     id: 'upgrade', ch: 1, title: 'Spend your loot', reward: 18,
+    where: 'Any harbour, at the Shipwright sign',   // the slip's second line when the goal has no single place
     text: 'Buy something from a shipwright.',
     intro: ['That is a good haul. The shipwright in any harbour would love some of it. Better sails, and we could go further.'],
     outro: ['You can feel the difference already.'],
@@ -65,6 +67,7 @@ export const MAIN_GOALS = [
   },
   {
     id: 'calm', ch: 2, title: 'Dead calm', reward: 24,
+    where: 'Right here: the oars, then a line',   // the slip's second line when the goal has no single place
     text: 'The wind has died. Put the oars out (G) and row, then catch a fish (stop, then C).',
     intro: ['Not a breath of wind. Press G for the oars, then W to row us a little way.',
       'Then stop and press C to fish. The rest you will see on the line.'],
@@ -76,6 +79,7 @@ export const MAIN_GOALS = [
   },
   {
     id: 'tack', ch: 2, title: 'Beat to windward', reward: 24,
+    where: 'Wherever the wind is against you',   // the slip's second line when the goal has no single place
     text: 'Make headway into the wind by zig-zagging: keep the little triangle on the gold part of the wind ring, and turn across the wind every so often.',
     intro: ['The wind is back, straight in our teeth. A ship can still go upwind if she zig-zags.',
       'Keep the little triangle on the gold edge of the wind ring, then swing across to the other side.'],
@@ -87,6 +91,7 @@ export const MAIN_GOALS = [
   },
   {
     id: 'job', ch: 2, title: 'Earn your keep', reward: 30,
+    where: 'A harbour Board, then where it says',   // the slip's second line when the goal has no single place
     text: 'Take a delivery from a harbour board and bring it where it belongs.',
     intro: ['Harbours pay well for deliveries. Take one from a Board and bring it where it belongs.'],
     outro: ['Reputation matters out here. Harbours remember you.'],
@@ -96,6 +101,7 @@ export const MAIN_GOALS = [
   },
   {
     id: 'passenger', ch: 2, title: 'Passage', reward: 24,
+    where: 'A harbour Board: someone wants passage',   // the slip's second line when the goal has no single place
     text: 'Take a passenger from a harbour board and bring them to where they are bound.',
     intro: ['Some folk pay for passage, and they talk. Take one from a Board and see them to their stop.'],
     outro: ['Good company, and paid for it. Do not tell the cargo.'],
@@ -104,6 +110,7 @@ export const MAIN_GOALS = [
   },
   {
     id: 'chart', ch: 2, title: 'Chart the sea', reward: 24,
+    where: 'Islands you have not sailed up to',   // the slip's second line when the goal has no single place
     text: 'Chart 8 islands by sailing close to them.',
     intro: ['Let us fill in the chart. Sail close to islands and they go on the map (M).'],
     outro: ['A fine start to a map. Perrin would be proud. Probably. Nobody has seen him smile.'],
@@ -113,6 +120,7 @@ export const MAIN_GOALS = [
   },
   {
     id: 'tavern', ch: 3, title: 'Meet the locals', reward: 18,
+    where: 'Any harbour, at the Tavern sign',   // the slip's second line when the goal has no single place
     text: 'In a harbour, open the Tavern sign: hire a hand, or sit down for a game of dice.',
     intro: ['Taverns are hiring hands these days, Captain. And somebody always wants to play dice. Either would do us good.'],
     outro: (c) => (c.state.crew && c.state.crew.length ? ['Good. A crew is only as good as the company it keeps.'] : ['Good. Even the dice in there are friendly. Mostly.']),
@@ -130,14 +138,16 @@ export const MAIN_GOALS = [
   },
   {
     id: 'checkchart', ch: 3, title: 'Check his chart', reward: 36,
+    where: "The isle in Perrin's note (Ship's book)",   // the slip's second line when the goal has no single place
     text: (c) => c.state.story.check ? `Perrin wants to know if ${c.state.story.check.name}, ${c.state.story.check.dir} of Tama, has ${c.state.story.check.detail}. Go and look.` : 'Read Perrin\'s note in your log.',
-    intro: (c) => (c.state.story.noteLine === 'done' ? ['It is far out, Captain. Sail close to the island and slow down to have a good look.'] : ['He wants us to check something on his chart. His note is in the Journal. Far out, Captain.']),
+    intro: (c) => (c.state.story.noteLine === 'done' ? ['It is far out, Captain. Sail close to the island and slow down to have a good look.'] : ['He wants us to check something on his chart. His note is in the Ship\'s book. Far out, Captain.']),
     outro: ['He was right. About everything. Captain... nobody has ever charted that island. Nobody.'],
     hints: ['Perrin\'s note says which island, and roughly where. It is far from Tama.', 'Sail close to the island and slow down to have a good look.'],
     check: (c) => { const k = c.state.story.check; return !!k && Math.hypot(c.ship.pos.x - k.x, c.ship.pos.z - k.z) < k.r + 40 && c.ship.speed < 3; },
   },
   {
     id: 'riddle2', ch: 3, title: 'Riddle me this', reward: 30,
+    where: 'Any isle with a stone arch',   // the slip's second line when the goal has no single place
     text: 'Find another treasure isle. Study the arch (E), then dig the shore its riddle describes.',
     intro: ['Every treasure isle has an arch. Study it with E and it tells you where the chest sleeps.'],
     outro: ['Two chests! Perrin would be insufferable.'],
@@ -146,6 +156,7 @@ export const MAIN_GOALS = [
   },
   {
     id: 'bottles', ch: 4, title: 'What the sea says', reward: 18,
+    where: 'Open sea: sail into the bottles',   // the slip's second line when the goal has no single place
     text: 'Bottles drift out here. Read what they say.',
     intro: ['There are more bottles in the water out here than there used to be. Somebody has a lot to say.'],
     outro: ['They all mention the same thing. A hut. Who writes about a hut?'],
@@ -156,6 +167,7 @@ export const MAIN_GOALS = [
   },
   {
     id: 'gossip', ch: 4, title: 'Ask around', reward: 18,
+    where: 'Any harbour but Tama',   // the slip's second line when the goal has no single place
     text: 'Somebody in a harbour must know about the hut.',
     intro: ['Harbours hear everything. Somebody at a tavern will know.'],
     outro: [],
@@ -164,6 +176,7 @@ export const MAIN_GOALS = [
   },
   {
     id: 'hut', ch: 5, title: 'Find the hut', reward: 0,
+    where: 'Look at the chart',   // the slip's second line when the goal has no single place
     text: 'Find the dark hut.',
     intro: ['I would rather not go there. But you are the captain.'],
     outro: [],
@@ -356,7 +369,7 @@ export class Objectives {
   askHint(dread) {
     const g = this.current;
     this.stall = 0;
-    if (!g) { this.mate.say('That is everything we set out to do, Captain. Sail where you like inside the fog: deliveries, errands, treasure and the side goals in your log (Goals tab) are all still there.'); return; }
+    if (!g) { this.mate.say('That is everything we set out to do, Captain. Sail where you like inside the fog: deliveries, errands, treasure and the side goals in your orders are all still there.'); return; }
     this.mate.say(g.hints[this.hintI++ % g.hints.length], dread > 0.6);
   }
 

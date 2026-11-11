@@ -288,8 +288,8 @@ function giveMap(id, from, reveal = false, quiet = false) {
   state.riddles[id] = d.puzzle.text;
   if (reveal) {
     state.rumoured[id] = state.rumoured[id] || { name: d.name, x: Math.round(d.x), z: Math.round(d.z), source: from, found: false };
-    if (!quiet) toast(`${from} gave you a treasure riddle for ${d.name}. Saved in your log: Riddles tab.`, false, 8000);
-  } else toast(`${from} gave you a riddle. Saved in your log: Riddles tab. Where it points is up to you.`, false, 8000);
+    if (!quiet) toast(`${from} gave you a treasure riddle for ${d.name}. Saved in your orders.`, false, 8000);
+  } else toast(`${from} gave you a riddle. Saved in your orders. Where it points is up to you.`, false, 8000);
 }
 // ---- autosave
 function saveNow() {
@@ -722,9 +722,9 @@ window.addEventListener('keydown', (e) => {
     else if (e.code === 'ArrowLeft') logbook.step(-1);
     else if (e.code === 'ArrowDown' || e.code === 'PageDown') logbook.turn(1);
     else if (e.code === 'ArrowUp' || e.code === 'PageUp') logbook.turn(-1);
-    else if (/^Digit[1-8]$/.test(e.code)) logbook.tabByIndex(parseInt(e.code.slice(5), 10) - 1);
+    else if (/^Digit[1-3]$/.test(e.code)) logbook.tabByIndex(parseInt(e.code.slice(5), 10) - 1);
     else if (e.code === 'KeyM') closeModal();
-    else if (e.code === 'KeyJ') { if (logbook.tab === 'quests') closeModal(); else logbook.open('quests'); }
+    else if (e.code === 'KeyJ') { if (logbook.tab === 'orders') closeModal(); else logbook.open('orders'); }
     logTab = logbook.tab;
     return;
   }
@@ -740,7 +740,7 @@ window.addEventListener('keydown', (e) => {
   }
   if (e.code === 'KeyM') { logTab = state.story.tabMark || 'map'; openModal('chart'); return; }   // the tab Mara sent you to, if she did
   if (e.code === 'KeyL') { toggleLamp(); return; }
-  if (e.code === 'KeyJ') { logTab = 'quests'; openModal('chart'); return; }
+  if (e.code === 'KeyJ') { logTab = 'orders'; openModal('chart'); return; }
   if (modal) return;
   if (e.code === 'Space') e.preventDefault();
   if (e.repeat) return;
@@ -756,7 +756,7 @@ window.addEventListener('keydown', (e) => {
   if (e.code === 'Enter' || e.code === 'NumpadEnter') objectives.mate.skip();
   if (e.code === 'KeyE') { if (digGame.active) digGame.press(); else tryInteract(); }
   if (e.code === 'KeyH') $('hud').classList.toggle('hidden');
-  if (e.code === 'F1') { e.preventDefault(); helpMode = helpMode === 'full' ? 'off' : 'full'; helpEl.innerHTML = '<span>A/D steer &middot; W/S sails &middot; G oars &middot; E interact &middot; C fish<br>M log &middot; J quests &middot; Q tracker &middot; Esc pause &middot; H hide HUD &middot; F1 this help</span>'; helpEl.style.opacity = helpMode === 'full' ? '1' : '0'; }
+  if (e.code === 'F1') { e.preventDefault(); helpMode = helpMode === 'full' ? 'off' : 'full'; helpEl.innerHTML = '<span>A/D steer &middot; W/S sails &middot; G oars &middot; E interact &middot; C fish<br>M log &middot; J orders &middot; Q tracker &middot; Esc pause &middot; H hide HUD &middot; F1 this help</span>'; helpEl.style.opacity = helpMode === 'full' ? '1' : '0'; }
   if (e.code === 'KeyG' && !modal && started && unlocked(state, 'oars')) { ship.rowing = !ship.rowing; toast(ship.rowing ? 'Oars out' : 'Oars in, sails up', false, 2200); if (ship.rowing) objectives.remark('oars', dread); }
   if (e.code === 'KeyQ' && !modal) { settings.tracker = settings.tracker === false; store.set(SETTINGS_KEY, settings); }
   if (!DEV) return;   // test keys only with ?dev=1
@@ -1265,12 +1265,12 @@ function takeLetter(key) {
   if (key === 'letterP1') {
     giveMap('1,-1', 'Old Perrin', true, true);   // no pile of text: Mara asks what you have, then sends you to the log
     openLetter = { from: 'Old Perrin', text: `“${state.riddles['1,-1'] || ''}”` };
-    mate.say('A letter? What have you got there, Captain?'); mate.say('It is in your log now: M, under Riddles.'); logTab = 'riddles';
+    mate.say('A letter? What have you got there, Captain?'); mate.say('It is in your orders now, Captain: M.'); logTab = 'riddles';
     state.story.tabMark = 'riddles'; state.story.riddleLine = 'wait';
   } else if (key === 'letterP2') {
     perrinNote(true);
     { const n = state.notes[state.notes.length - 1]; if (n) openLetter = { from: 'Old Perrin', text: n.text.replace(/^Perrin: /, '') }; }
-    mate.say('Another letter from Perrin? Open your log with M: it is at the top of the Journal tab.'); logTab = 'journal';
+    mate.say('Another letter from Perrin? Open your log with M: it is at the top of the Ship\'s book.'); logTab = 'journal';
     state.story.tabMark = 'journal'; state.story.noteLine = 'wait';
   }
 }
@@ -1366,11 +1366,37 @@ function trackTarget() {
     for (const c of open) if (Math.hypot(c.x - ship.pos.x, c.z - ship.pos.z) < Math.hypot(best.x - ship.pos.x, best.z - ship.pos.z)) best = c;
     return { x: best.x, z: best.z, label: 'Crate' };
   }
-  // the compass dot for the early story: Tama while a letter from Perrin waits there (or is about to), then the riddle's isle
+  return goalTarget();
+}
+/** where the main goal is, when it has one single place (the early story only: later goals are found, never marked) */
+function goalTarget() {
+  // Tama while a letter from Perrin waits there (or is about to), then the riddle's isle
   const g = objectives.current, toTama = g && (g.id === 'perrin' || (g.id === 'dig' && state.story.letterP1 !== 'taken'));
   const cell = g && (toTama ? [0, -1] : ({ harbour: [0, -1], dig: [1, -1] })[g.id]);
   if (cell) { const d = world.desc(cell[0], cell[1]); if (d) return { x: d.x, z: d.z, label: d.name }; }
+  if (g && g.id === 'job' && state.job) return { x: state.job.x, z: state.job.z, label: state.job.toName };
+  if (g && g.id === 'passenger' && state.passenger) return { x: state.passenger.x, z: state.passenger.z, label: state.passenger.toName };
   return null;
+}
+/** a distance as sailing time: nobody can judge 179 fathoms, everyone can judge four minutes */
+function etaText(dist) {
+  const v = ship.rowing ? 2.6 : 8 * ship.mods.speed, m = dist / v / 60;
+  return m < 0.75 ? 'under a minute' : `${Math.max(1, Math.round(m))} min`;
+}
+/** the slip: what to do, where, which way and how long. The same three lines on the HUD, in the log (Orders) and (later) on the chart */
+function slipInfo() {
+  const g = objectives.pending ? null : objectives.current, c = { state, ship };
+  if (!g) { const t = trackTarget(); return t ? slipTo({ what: t.label, goal: false }, t) : { what: objectives.pending ? 'Mara has something to say' : 'Sail where you like', where: objectives.pending ? '' : 'Everything inside the fog is yours', goal: false }; }
+  const s = { what: `${g.title}${goalCount(g, c).replace(/<\/?b>/g, '')}`, goal: true }, t = goalTarget();
+  if (t) return slipTo(s, t);
+  s.where = g.where || ''; return s;
+}
+function slipTo(s, t) {
+  const dx = t.x - ship.pos.x, dz = t.z - ship.pos.z, d = Math.hypot(dx, dz);
+  s.where = t.label; s.way = `${bearingName(dx, dz)} · ${etaText(d)}`; s.place = true;
+  const against = Math.abs(angleDiff(Math.atan2(dx, -dz), wind.dir)) > 0.75 * Math.PI && d > 40 && !ship.rowing && weather.calm < 0.5;
+  if (against) s.note = 'The wind is against you: zig-zag.';
+  return s;
 }
 let trackNow = null;
 function drawCompass(w, heading) {
@@ -1390,12 +1416,13 @@ function updateTracker() {
   const rows = [];
   const g = objectives.pending ? null : objectives.current;   // the next goal shows when Mara announces it
   const fresh = performance.now() < trackerNewUntil; trackerEl.classList.toggle('flash', fresh);
-  if (g) { const ch = CHAPTERS[g.ch]; rows.push(`<div class="thint">${ch.n} · ${ch.title}</div><div class="trow main"><i class="ico flag"></i>${g.title}${goalCount(g, { state, ship })}${fresh ? '<span class="tag">NEW</span>' : ''}</div>`); }
+  if (g) { const s = slipInfo();   // the slip: what, where, which way and how long (always these three, in this order)
+    rows.push(`<div class="trow main"><i class="ico flag"></i>${g.title}${goalCount(g, { state, ship })}${fresh ? '<span class="tag">NEW</span>' : ''}</div>${s.where ? `<div class="trow where">${s.where}</div>` : ''}${s.way ? `<div class="trow way">${s.way}</div>` : ''}`); }
   const tr = trackedOne(), others = (state.job ? 1 : 0) + (state.passenger ? 1 : 0) + state.quests.length - (tr ? 1 : 0);
   if (tr === 'job') rows.push(`<div class="trow">${pxi('letter')} ${state.job.toName}</div>`);
   else if (tr === 'passenger') rows.push(`<div class="trow">${pxi('talk')} ${state.passenger.name} to ${state.passenger.toName}</div>`);
   else { const q = state.quests.find((x) => x.id === tr); if (q) rows.push(`<div class="trow">${questIcon(q)} ${questTitle(q, dread)} <b>${questProgress(q, state)}/${questNeed(q)}</b></div>`); }
-  if (others > 0) rows.push(`<div class="thint">+${others} more in the log (J)</div>`);
+  if (others > 0) rows.push(`<div class="thint">+${others} more in your orders (J)</div>`);
   const html = rows.length ? abyss.hud('track', rows.join('')) + '<div class="thint">[Q] hide</div>' : '';
   if (html !== trackerHtml) { trackerHtml = html; trackerEl.innerHTML = html; }
   trackerEl.style.display = html ? 'block' : 'none';
@@ -1696,7 +1723,7 @@ function tryInteract() {
         const ang = Math.atan2(ship.pos.z - d.z, ship.pos.x - d.x);
         if (Math.abs(angleDiff(ang, d.puzzle.angle)) > 0.85) {
           state.attempts[d.id] = (state.attempts[d.id] || 0) + 1;
-          toast(state.attempts[d.id] >= 2 ? 'Nothing here but sand. Reread the riddle in your log (Journal) and try another shore.' : 'The crew digs and finds only sand and crabs. Wrong shore!', false, 6000);
+          toast(state.attempts[d.id] >= 2 ? 'Nothing here but sand. Reread the riddle in your orders and try another shore.' : 'The crew digs and finds only sand and crabs. Wrong shore!', false, 6000);
           return;
         }
         let loot = abyss.wrongLoot(lootFor(mulberry32(hash2(d.seed, 7, state.seed)), d.dread), state);
@@ -2282,7 +2309,7 @@ function perrinNote(quiet = false) {
   state.story.check = { id: d.id, name: d.name, x: Math.round(d.x), z: Math.round(d.z), r: d.r, dir: bearingName(d.x, d.z), detail };
   state.story.perrinNote = true;
   state.notes.push({ text: `Perrin: "Be a dear and check my chart. ${d.name}, ${state.story.check.dir} of Tama, should have ${detail}. Nobody has been there to tell me, so I need eyes. Bring back my compass if you find it. It's the one that's wrong."`, dark: false });
-  if (!quiet) toast('The harbourmaster hands you a folded note from Old Perrin. (Journal)', false, 6000);
+  if (!quiet) toast('The harbourmaster hands you a folded note from Old Perrin. (Ship\'s book)', false, 6000);
 }
 // Mara notices the hut on the chart: when the chart is next opened, or within a minute of sailing, whichever comes first (and never after the first throw)
 function hutNod(delay) {
@@ -2481,7 +2508,7 @@ $('pbNew').addEventListener('click', () => {
 $('pbHint').addEventListener('click', () => { closeModal(); if (!abyss.maraHint()) objectives.askHint(dread); });
 
 // ---------------------------------------------------------------- captain's log
-const logbook = new Logbook({ abyss, state, world, ship, seed: state.seed, locked: (tab) => !isOpen(state, 'log', tab), toast: (t) => toast(t), close: () => closeModal(), mate: objectives.mate, dread: () => dread, mood: () => maraMood(), tabOpened: (t) => tabOpened(t),
+const logbook = new Logbook({ slip: () => slipInfo(), eta: (d) => etaText(d), abyss, state, world, ship, seed: state.seed, locked: (tab) => !isOpen(state, 'log', tab), toast: (t) => toast(t), close: () => closeModal(), mate: objectives.mate, dread: () => dread, mood: () => maraMood(), tabOpened: (t) => tabOpened(t),
   retrack: () => sea.syncQuests(state.quests.filter((q) => q.id === state.tracked)),
   gate: () => gateRadius(state, tideFalls()), track: () => trackTarget(),
   skipGoal: () => { const g = objectives.current; if (!g) return; if (g.onDone) g.onDone({ state, world, ship, giveMap, forceCalm: setCalm });

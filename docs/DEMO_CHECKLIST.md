@@ -125,3 +125,8 @@ Build it with `python3 scripts/single.py`, ship `pocket-pirates-demo.html` (with
 - [ ] Chapter IV has four goals (tavern, Perrin's note, check his chart, the second riddle); Odd jobs, Salvage rights and the raider are in the log under Optional and complete themselves
 - [ ] A save from before the change loads on a sensible goal
 
+## 14. Three bookmarks and the slip (check once)
+- [ ] Log: Chart, Orders, Ship's book; at the very start only Chart and Orders; nothing greyed
+- [ ] The tracker and the first entry on Orders say the same three lines: what, where, which way and how long
+- [ ] After taking Perrin's letter, M opens Orders with the riddle on the right page and Mara answers
+

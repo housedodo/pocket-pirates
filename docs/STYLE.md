@@ -138,6 +138,8 @@ purple and magenta cosmic horror as dread rises.
 - The HUD shows as little text as possible: gold, time, place. Everything else is in the log or the Q tracker.
 - **Mara's box sits bottom left while sailing** (above the key hint), never across the ship or the water ahead of the bow. In the log it sits under the book, in the middle, clear of the page arrows and the chart's compass rose.
 - **A gauge names itself once:** the first time the sail bar, the wind ring, the hull panel, the cannonball count or the lamp-oil bar appears, a small gold tag with its name (one or two words) points at it for 7 seconds. After that the HUD is wordless again.
+- **The log has three bookmarks:** Chart (where things are), Orders (what to do), Ship's book (what you have). A section the story has not reached is simply not printed; a bookmark with nothing behind it is not there. No locked tabs.
+- **The slip:** what, where, which way and how long, always those three lines in that order. It is the HUD tracker at sea and the first thing on Orders (cream-gold paper, a red edge, a "Show on chart" button). Distances are sailing time ("4 min"), never fathoms.
 - **The log's bookmarks never move:** the book hangs from the same top edge on every tab and the wide chart page shifts the row in, so a tab is always where it was. A click beside the book does not close it (Close, M or Esc do).
 - **A letter is shown where it is taken:** a cream paper card on the board with the words and who wrote it; the same text is kept in the log.
 - **Locked controls are grey but readable** (never invisible) and answer a click with one line.

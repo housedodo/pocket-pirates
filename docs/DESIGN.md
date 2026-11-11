@@ -112,11 +112,11 @@ inside once (`state.story.uiSeen`). Opening points (index in `MAIN_GOALS` = main
 
 | Opens at | What |
 |---|---|
-| 0 | Board sign, Set sail; log: Map, Goals |
-| 2 Follow the riddle | log: Journal, Riddles |
-| 3 Spend your loot | Shipwright sign; log: Ship |
+| 0 | Board sign, Set sail; log: Chart, Orders (the slip, Done) |
+| 2 Follow the riddle | log: the Ship's book appears (journal); Riddles are printed on Orders |
+| 3 Spend your loot | Shipwright sign; Ship's book: the ship pages |
 | 4 Dead calm | Market sign (sell fish, fruit) |
-| 6 Odd jobs | deliveries (Accept, Deliver, Drop off); log: Quests, Standing |
+| 6 Earn your keep | deliveries (Accept, Deliver, Drop off); Orders: Also in hand, If you like; Ship's book: standing |
 | 7 Passengers | Take aboard; Shipyard (paint, figureheads) |
 | 8 Chart 8 islands | buy charts, ask the fishers |
 | 9 The tavern | Tavern sign (hire a hand, dice, a bed for the night), haggling, cannonballs, commissions (Accept, Finish, Let go) |

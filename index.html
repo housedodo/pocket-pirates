@@ -504,6 +504,13 @@
     .metername::after { content: ""; position: absolute; left: 100%; top: 50%; margin-top: -5px; border: 5px solid transparent; border-left-color: #ffd23a; }
     @keyframes mname { 0%, 85% { opacity: 1; } 100% { opacity: 0; } }
     #oilrow, #ammotxt { position: relative; }
+    /* three bookmarks; a bookmark with nothing behind it yet is not there (logbook.js shut) */
+    #logTabs button[hidden] { display: none !important; }
+    #chart #logTabs button { width: 136px !important; }
+    /* the slip: what, where, which way and how long. On the HUD it is the tracker; in the log it is the first thing on Orders */
+    #tracker .trow.where { color: #f4ead0; } #tracker .trow.way { color: #b9b6e0; }
+    #logBody .slip { position: relative; padding: 10px 12px; margin: 6px 0 8px; background: #ffe9a0; color: #2a1608; border-left: 6px solid #a8301c; box-shadow: 4px 4px 0 rgba(58,34,16,.25); break-inside: avoid; }
+    #logBody .slip b { display: block; font-size: 18px; font-weight: 600; } #logBody .slip small { display: block; color: #3a2210 !important; opacity: 1 !important; } #logBody .slip small.note { color: #a8301c !important; }
     #tracker.flash { animation: trflash 1s steps(2) 8; box-shadow: 0 0 0 3px #ffd23a; } @keyframes trflash { 50% { box-shadow: 0 0 0 6px #ff9a3a; } }
     #tracker .tag { display: inline-block; padding: 0 6px; margin-left: 6px; background: #c8402a; color: #fff4d8; }
     #compass.ping { animation: cping 1.2s steps(4) 6; } @keyframes cping { 0% { box-shadow: 0 0 0 0 rgba(255,154,58,.9); } 100% { box-shadow: 0 0 0 26px rgba(255,154,58,0); } }
@@ -654,7 +661,7 @@
     <div id="yardTurn"><button id="yTurnL">&#9668;</button><span id="yAngle">side</span><button id="yTurnR">&#9658;</button><small>drag to turn &middot; wheel to zoom</small></div></div>
   <div id="chart" class="modal" data-book="pixel"><div class="bookwrap"><div class="ribbons" id="logTabs"></div><div class="book">
     <div class="spread"><div id="logBody" class="cols"></div></div>
-    <div class="bookbar"><button id="pgPrev"><i class="pxi left"></i></button><span id="pgNum" style="min-width:48px;text-align:center"></span><button id="pgNext"><i class="pxi right"></i></button><span class="keys">left/right: tabs &middot; up/down: pages &middot; 1-7</span><button id="logClose">Close [M]</button></div>
+    <div class="bookbar"><button id="pgPrev"><i class="pxi left"></i></button><span id="pgNum" style="min-width:48px;text-align:center"></span><button id="pgNext"><i class="pxi right"></i></button><span class="keys">left/right: tabs &middot; up/down: pages &middot; 1-3</span><button id="logClose">Close [M]</button></div>
   </div></div></div>
   <div id="hutmodal" class="modal"><div class="menu" id="hutWide"><h2>THE DARK HUT</h2><canvas id="dieCv" width="72" height="72"></canvas><p class="quote" id="hutTxt"></p><button id="hutRoll">Throw the die [Space]</button><button id="hutLeave">Leave [E]</button></div></div>
   <div id="card" class="modal"><div class="menu" id="cardWide"><div id="cardIcon"></div><h2 id="cardTitle"></h2><p class="quote" id="cardText"></p><div id="cardChoices"></div><p class="quote" id="cardOut"></p><button id="cardDone">Sail on [E]</button></div></div>
