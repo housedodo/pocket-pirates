@@ -70,6 +70,7 @@ import { WEEK, weekday, isMarketDay, isLanternNight, isFestival, tideAt, tideFal
 import { addMark, clearMark, keep, markFromRoll } from './systems/storyflags.js';
 import { lullDread, lullabyTick } from './systems/lullaby.js';
 import { lostTick } from './systems/lostsailors.js';
+import { buildBiome } from './concepts.js';   // dev concept scenes (__game.biome); the Edge builds from it too
 import { edgeTick, startEdge } from './systems/edge.js';
 import { PITCH_MIN, updateCamera, initCamera1, initCamera2 } from './ui/camera.js';
 import { titleEl, startTitle, titleCam, titleKey, INTRO_DUR, endIntro, skipIntro, begin, initTitle1, initTitle2 } from './ui/title.js';
@@ -2022,7 +2023,8 @@ window.__game = { secrets, tideAt: () => tideAt(), lostState: () => ({ lostK: rt
   companion(kind = 'cat', slot = '_pet') { if (this[slot]) ship.root.remove(this[slot].m.g); this[slot] = kind ? new Companion(ship, kind) : null; return !!this[slot]; },
   teleport(x, z, h) { ship.pos.set(x, 0, z); ship.heading = h; rt.camHeading = h; ship.vel = null; },
   /** biome concept scenes (dev): kind 'coral' | 'rain' | 'sunken' */
-  async biome(kind, x, z) { const { buildBiome } = await import('./concepts.js'); if (this._biome) scene.remove(this._biome); this._biome = buildBiome(scene, kind, x, z); return true; },
+  async biome(kind, x, z) {   // concepts.js is imported statically (the Edge uses it): a dynamic import here would split the bundle
+    if (this._biome) scene.remove(this._biome); this._biome = buildBiome(scene, kind, x, z); return true; },
   /** design lineups for screenshots: 'villagers' or 'houses' on a raft at (x, z) */
   showcase(kind, x = 0, z = 60) {
     if (this._show) scene.remove(this._show);

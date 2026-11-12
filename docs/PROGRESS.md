@@ -1050,3 +1050,9 @@ Trials for the owner to compare; nothing changes without a flag and STYLE.md is 
 - **Title**: the "Enter to choose" hint sits on a dark plate at the bottom (it sat on the bobbing hull). "1 isle charted", singular.
 - Not changed (owner's call or another area): distances shown as units on the board and in Orders (RULES 15, gameplay text), the diver's
   night visibility (it is a glimpse), the chart label over the ship marker.
+- **Single-file games fixed before they broke**: `__game.biome` imported `concepts.js` dynamically while the Edge imports it statically,
+  so the bundle split into three files and `scripts/single.py` (which inlines one) produced games that did not start. It is a static
+  import now: one bundle again; the demo and dev single files were built, booted and sailed (then restored: they are rebuilt only when asked).
+- Light gameplay check (the gameplay agent was stopped before it reported): the A/B scripts match their earlier results (title, pause,
+  camera, harbour tabs, upgrade, tavern, shipyard, save); the lost sailors, Ask, the lullaby, the rumour, the passenger pairs and the full
+  Edge pass again after the design fixes; every new beat is gated off in the demo build (checked in the code).
