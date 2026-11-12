@@ -1,7 +1,7 @@
 HOIST (Pocket Pirates): THE MASTER STORY FILE
 ================================================================================================
 This is the main story file for the full game. Edit it, upload it again, and the next session puts every change
-into the game. Built from commit bc171e8 on 2026-11-12. 1429 in-game lines carry an ID.
+into the game. Built from commit 5ad71ac on 2026-11-12. 1429 in-game lines carry an ID.
 
 CONTENTS
   A   HOW TO USE THIS FILE (IDs, status marks, how to add and remove things)
@@ -793,29 +793,29 @@ line says which file it goes back into. 1429 lines.
 
 ### PAS / ADDED 2026-11-12
   PAS-0095 | My brother sailed these waters thirty years. Said the fish here bite on Tuesdays and sulk the rest of the week.
-  PAS-0096 | Today is Thursday. We will manage.
+  PAS-0096 | Today is Thursday. We'll manage.
   PAS-0097 | Master Perrin drew a whole island once from a sailor's description. It turned out the sailor had been describing a whale.
   PAS-0098 | It moved, I suppose. Bad luck for the map.
   PAS-0099 | I lost a ship to a whirlpool off the Pearl Banks. The cook went down still stirring the soup.
   PAS-0100 | Somebody had to finish it.
   PAS-0101 | Our cousin owes us a goat. The goat has been owed for eleven years. It is a very old goat now.
-  PAS-0102 | Then you will want it quickly.
+  PAS-0102 | Then you'll want it quickly.
   PAS-0103 | At the lighthouse we count every ship that passes. Last year we counted one more than came back.
   PAS-0104 | Everyone counts wrong sometimes. Even monks.
   PAS-0105 | My mum says if you whistle on a boat, the wind comes to see who called.
-  PAS-0106 | Do not whistle, then. We have enough wind.
-  PAS-0107 | You do not say much, Captain. My wife was the same. Forty years and I never won an argument.
-  PAS-0108 | The captain does not argue. The captain just steers where they meant to go.
+  PAS-0106 | Don't whistle, then. We have enough wind.
+  PAS-0107 | You don't say much, Captain. My wife was the same. Forty years and I never won an argument.
+  PAS-0108 | The captain doesn't argue. The captain just steers where they meant to go.
   PAS-0109 | Not a word since we left the pier, Captain. I respect a person who saves their breath.
-  PAS-0110 | It is saved for shouting at gulls.
+  PAS-0110 | It's saved for shouting at gulls.
   PAS-0111 | Tully thinks you are shy, Captain. I think you are just listening. Are you listening?
-  PAS-0112 | Always. It is the worst thing about the captain.
+  PAS-0112 | Always. It's the worst thing about the captain.
   PAS-0113 | A quiet captain is a good captain. The loud ones sink first. I was very loud.
-  PAS-0114 | We will keep it quiet, then.
-  PAS-0115 | You sail alone a great deal, do you not, Captain? I can always tell.
+  PAS-0114 | We'll keep it quiet, then.
+  PAS-0115 | You sail alone a great deal, don't you, Captain? I can always tell.
   PAS-0116 | Alone is a strong word.
-  PAS-0117 | Who do you talk to when there is nobody aboard, Captain?
-  PAS-0118 | The ship. She is very patient.
+  PAS-0117 | Who do you talk to when there's nobody aboard, Captain?
+  PAS-0118 | The ship. She's very patient.
 
 ### PAS / RETIRED (the text is no longer in the game; these IDs are never used again)
     was PAS-0044 | Sleep is for people who do not have a captain.

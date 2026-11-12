@@ -41,18 +41,18 @@ const PEOPLE = [
 // The passenger says something to the captain (a story, or a remark about the silent captain) and Mara answers. Nobody ever
 // answers her; that is all. Mara never points out that she is there. `hint`: the faintest hints, rare (CANON 2026-11-12).
 const MARA_BANTER = [
-  { who: 'Old Wendel', p: 'My brother sailed these waters thirty years. Said the fish here bite on Tuesdays and sulk the rest of the week.', m: 'Today is Thursday. We will manage.' },
+  { who: 'Old Wendel', p: 'My brother sailed these waters thirty years. Said the fish here bite on Tuesdays and sulk the rest of the week.', m: 'Today is Thursday. We\'ll manage.' },
   { who: 'Pippa Fairweather', p: 'Master Perrin drew a whole island once from a sailor\'s description. It turned out the sailor had been describing a whale.', m: 'It moved, I suppose. Bad luck for the map.' },
   { who: 'Captain Ruy', p: 'I lost a ship to a whirlpool off the Pearl Banks. The cook went down still stirring the soup.', m: 'Somebody had to finish it.' },
-  { who: 'Mags & Tully', p: 'Our cousin owes us a goat. The goat has been owed for eleven years. It is a very old goat now.', m: 'Then you will want it quickly.' },
+  { who: 'Mags & Tully', p: 'Our cousin owes us a goat. The goat has been owed for eleven years. It is a very old goat now.', m: 'Then you\'ll want it quickly.' },
   { who: 'Brother Ansel', p: 'At the lighthouse we count every ship that passes. Last year we counted one more than came back.', m: 'Everyone counts wrong sometimes. Even monks.' },
-  { who: 'Pim', p: 'My mum says if you whistle on a boat, the wind comes to see who called.', m: 'Do not whistle, then. We have enough wind.' },
-  { who: 'Old Wendel', p: 'You do not say much, Captain. My wife was the same. Forty years and I never won an argument.', m: 'The captain does not argue. The captain just steers where they meant to go.' },
-  { who: 'Master Odo', p: 'Not a word since we left the pier, Captain. I respect a person who saves their breath.', m: 'It is saved for shouting at gulls.' },
-  { who: 'Mags & Tully', p: 'Tully thinks you are shy, Captain. I think you are just listening. Are you listening?', m: 'Always. It is the worst thing about the captain.' },
-  { who: 'Captain Ruy', p: 'A quiet captain is a good captain. The loud ones sink first. I was very loud.', m: 'We will keep it quiet, then.' },
-  { who: 'A quiet woman in grey', p: 'You sail alone a great deal, do you not, Captain? I can always tell.', m: 'Alone is a strong word.', hint: true },
-  { who: 'Pim', p: 'Who do you talk to when there is nobody aboard, Captain?', m: 'The ship. She is very patient.', hint: true },
+  { who: 'Pim', p: 'My mum says if you whistle on a boat, the wind comes to see who called.', m: 'Don\'t whistle, then. We have enough wind.' },
+  { who: 'Old Wendel', p: 'You don\'t say much, Captain. My wife was the same. Forty years and I never won an argument.', m: 'The captain doesn\'t argue. The captain just steers where they meant to go.' },
+  { who: 'Master Odo', p: 'Not a word since we left the pier, Captain. I respect a person who saves their breath.', m: 'It\'s saved for shouting at gulls.' },
+  { who: 'Mags & Tully', p: 'Tully thinks you are shy, Captain. I think you are just listening. Are you listening?', m: 'Always. It\'s the worst thing about the captain.' },
+  { who: 'Captain Ruy', p: 'A quiet captain is a good captain. The loud ones sink first. I was very loud.', m: 'We\'ll keep it quiet, then.' },
+  { who: 'A quiet woman in grey', p: 'You sail alone a great deal, don\'t you, Captain? I can always tell.', m: 'Alone is a strong word.', hint: true },
+  { who: 'Pim', p: 'Who do you talk to when there\'s nobody aboard, Captain?', m: 'The ship. She\'s very patient.', hint: true },
 ];
 const SEASICK = [
   'Is this a storm or is the sea just upset with me personally?',
