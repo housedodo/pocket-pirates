@@ -41,6 +41,7 @@ CODES = {  # source file -> (ID code, what it holds)
     'world.js': ('WRL', 'world text'),
     'harbourlife.js': ('HLF', 'residents, dishes, events, fragments, gossip'),
     'localgames.js': ('LGM', 'tavern games'),
+    'systems/lostsailors.js': ('LOST', 'the sailors who went mad: three meetings in deep dread'),
 }
 
 
