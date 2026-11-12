@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { Builder } from './builder.js';
 import { TILE } from './textures.js';
-import { mats } from './psx.js';
+import { mats, psxMaterial } from './psx.js';
 import { houseKind, villager, palm } from './world.js';
 import { mulberry32 } from './util.js';
 
@@ -87,10 +87,72 @@ function sunken(b, rng) {
   return [new THREE.Mesh(sh.geometry(), mats.shallow)];
 }
 
+
+// ---- the Edge (concept for a ~45 s sequence in the deep dread stages): the sea runs to a straight lip and pours over it into
+// nothing. Out in the dark stand things far too big: a hooded figure, a head on its side, a tower built at the wrong angles, a row
+// of pillars that do not get smaller as they go away. The lip runs along local z = 0; the void is towards -z.
+const VOID = '#07050c', STONE = ['#5a5266', '#4a4458', '#6a6070', '#3c3848'], EYE = '#ff70d0';
+function sinkTo(b, x, z, w, top, col) {   // a column of the dark: whatever stands out there has no bottom, it fades into black
+  for (let i = 0; i < 6; i++) { const y = top - i * 10; b.box(x, y - 10, z, w * (1 + i * 0.05), 10, w * (1 + i * 0.05), i < 2 ? col : i < 4 ? '#2a2632' : '#120f18', TILE.stone); }
+}
+function edge(b, rng) {
+  const W = 420, near = b; b = new Builder();   // near: the lip, foam and streaks (in the fog like the sea); b: the dark and what stands in it, drawn past the fog
+  // the lip: the water turns over the edge (pale foam on the crest, then teal, then the dark), a ragged line of spray along it
+  const bands = [[-6, 0.3, '#cfe6e2'], [0, 4.4, '#e8f4f0'], [3, 4.3, '#9ad0c8'], [7, 4.2, '#3f7f86'], [12, 4.1, '#173a44'], [18, 4.0, '#0b1620'], [26, 4.0, VOID]];   // a shelf above the swell: the sea runs up onto it and goes dark   // raised clear of the swell
+  for (let i = 0; i < bands.length - 1; i++) {
+    const [z0, y0, c0] = bands[i], [z1, y1] = bands[i + 1];
+    (i < 3 ? near : b).quad([-W, y0, -z0], [W, y0, -z0], [W, y1, -z1], [-W, y1, -z1], c0, TILE.white);
+  }
+  b.quad([-W, 4.0, -26], [W, 4.0, -26], [W, 4.0, -900], [-W, 4.0, -900], VOID, TILE.void);   // the dark itself, hiding the sea beyond
+  for (let x = -W; x < W; x += 3 + rng() * 4) near.blob(x, 4.5 + rng() * 0.4, -1 - rng() * 2, 1.4 + rng() * 1.8, 0.5 + rng() * 0.6, 1.2, rng() < 0.5 ? '#f4fbf8' : '#cfe6e2', TILE.white, 0.3, Math.floor(x));
+  // spray rising off the drop in slow columns, where the water goes over
+  for (let x = -W + 20; x < W; x += 28 + rng() * 30) for (let k = 0; k < 2; k++) near.blob(x + (rng() - 0.5) * 6, 4.6 + k * 1.4, -4 - k * 2, 1.2 + k * 0.6, 0.8 + k * 0.4, 1.2 + k * 0.5, k ? '#b8c8cc' : '#e4f0ee', TILE.white, 0.35, Math.floor(x) + k);
+  // streaks on the water running to the lip: the current takes everything over
+  for (let i = 0; i < 90; i++) { const x = (rng() - 0.5) * W * 1.6, z = 4 + rng() * 120, l = 6 + rng() * 14; near.box(x, 0.18, z, 0.35, 0.05, l, '#d8efe8', TILE.white); }
+  // 1) the hooded one: hands folded, no face under the hood, taller than any mast by twenty
+  b.push(-70, 0, -260, 0.25);
+  sinkTo(b, 0, 0, 34, 0, STONE[1]);
+  b.cyl(0, 0, 0, 22, 15, 90, 7, STONE[1], TILE.stone);                      // the robe
+  b.blob(0, 64, 9, 10, 8, 7, STONE[0], TILE.stone, 0.15, 3);                 // folded hands
+  b.cyl(0, 90, 0, 15, 9, 14, 7, STONE[2], TILE.stone);                       // shoulders
+  b.blob(0, 112, 0, 13, 17, 13, STONE[3], TILE.stone, 0.12, 5);              // the hood
+  b.blob(0, 108, 8, 8, 11, 6, VOID, TILE.void, 0.05, 6);                     // and nothing in it
+  b.box(-3, 110, 13.5, 1.6, 1.6, 0.6, EYE, TILE.glow); b.box(3, 110, 13.5, 1.6, 1.6, 0.6, EYE, TILE.glow);
+  b.pop();
+  // 2) a head on its side, half in the dark, one eye open
+  b.push(150, 0, -330, -0.6, 1, 1, 1, 0, 1.2);
+  b.blob(0, 0, 0, 40, 52, 38, STONE[2], TILE.stone, 0.1, 9);
+  b.box(0, 8, 36, 44, 5, 6, STONE[3], TILE.stone);                           // brow
+  b.box(-14, -2, 37, 10, 6, 3, VOID, TILE.void); b.box(-14, -2, 38.5, 4, 4, 1, EYE, TILE.glow);   // the open eye
+  b.box(14, -2, 37, 10, 1.5, 3, STONE[3], TILE.stone);                       // the closed one
+  b.box(0, -24, 36, 18, 3, 4, VOID, TILE.void);                              // the mouth, a line
+  b.pop();
+  // 3) a tower built at the wrong angles: every storey turned and leaning, tiny windows far too small for it
+  b.push(40, 0, -420, 0);
+  sinkTo(b, 0, 0, 30, 0, STONE[3]);
+  let y = 0, lean = 0, w = 30;
+  for (let i = 0; i < 9; i++) {
+    const h = 18 + rng() * 10; lean += (rng() - 0.35) * 0.12;
+    b.push(Math.sin(lean) * y * 0.4, y, 0, i * 0.37, 1, 1, 1, 0, lean);
+    b.box(0, 0, 0, w, h, w * 0.8, STONE[i % 4], TILE.stone);
+    for (let k = 0; k < 6; k++) b.box(-w / 2 + 3 + rng() * (w - 6), 3 + rng() * (h - 6), w * 0.4 + 0.3, 0.9, 1.3, 0.3, rng() < 0.25 ? EYE : VOID, rng() < 0.25 ? TILE.glow : TILE.void);
+    b.pop();
+    y += h; w *= 0.86;
+  }
+  b.cyl(Math.sin(lean) * y * 0.4, y, 0, 3, 0.1, 30, 4, STONE[0], TILE.stone);
+  b.pop();
+  // 4) a row of pillars into the dark that never gets smaller: each one further off is built bigger, so they all look the same
+  for (let i = 0; i < 6; i++) { const d = 140 + i * 70, s = d / 140, x = -230 - i * 30; b.push(x, 0, -d, 0); sinkTo(b, 0, 0, 7 * s, 0, STONE[2]); b.cyl(0, 0, 0, 6 * s, 6 * s, 60 * s, 6, STONE[(i + 2) % 4], TILE.stone); b.box(0, 60 * s, 0, 16 * s, 4 * s, 16 * s, STONE[3], TILE.stone); b.pop(); }
+  // 5) arches standing out of the void in a line, half sunk
+  for (let i = 0; i < 4; i++) { b.push(260 + i * 25, -10, -170 - i * 60, 0.9); b.box(-16, 0, 0, 6, 60, 6, STONE[1], TILE.stone); b.box(16, 0, 0, 6, 60, 6, STONE[1], TILE.stone); b.box(0, 58, 0, 40, 8, 7, STONE[0], TILE.stone); b.pop(); }
+  const far = psxMaterial({ map: mats.props.map, vertexColors: true, fog: false, side: THREE.DoubleSide, key: 'Edge' });
+  return [new THREE.Mesh(b.geometry(), far)];
+}
+
 /** build a concept scene at (x, z); returns the group so a test can remove it */
 export function buildBiome(scene, kind, x, z) {
   const b = new Builder(), rng = mulberry32(kind.length * 97 + 5);
-  const extra = { coral, rain, sunken }[kind](b, rng);
+  const extra = { coral, rain, sunken, edge }[kind](b, rng);
   const g = new THREE.Group(); g.position.set(x, 0, z);
   g.add(new THREE.Mesh(b.geometry(), mats.props)); for (const m of extra) { m.renderOrder = 1; g.add(m); }
   scene.add(g); return g;

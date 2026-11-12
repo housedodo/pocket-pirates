@@ -114,7 +114,7 @@ export function buildDiver(style = 'orig') {
 }
 
 export class Glimpse {
-  constructor(scene, style = 'orig') {
+  constructor(scene, style = 'a') {   // A (limp, both arms down) chosen 2026-11-12; buildDiver keeps the others for comparison
     this.fig = new THREE.Mesh(buildDiver(style), mats.props);
     this.fig.visible = false; this.fig.scale.setScalar(0.95);   // was 1.6: smaller, farther-off
     scene.add(this.fig);

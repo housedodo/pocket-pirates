@@ -928,6 +928,79 @@ function flagLine(b, a, c, k0 = 0) {   // a hanging line of little triangle flag
     b.tri([x - dx, y, z - dz], [x + dx, y, z + dz], [x, y - 0.6, z], col, TILE.flag); b.tri([x + dx, y, z + dz], [x - dx, y, z - dz], [x, y - 0.6, z], col, TILE.flag);
   }
 }
+
+// ---- Tama redesign trials (dev, ?tama=a|b|c): the same island, pier, palette and house kinds, with a planned street and more finish.
+//   a  the square: houses in a ring round a paved square with a well, the bell tower facing the pier, bunting across
+//   b  the waterfront: a crescent of houses facing the water either side of the pier, a lamp-lit promenade, the tavern at the pier's foot
+//   c  the garden town: fewer, bigger houses with yards along three lanes from the square, flowering trees, flower beds
+const TAMA_LOOK = (() => { try { const v = new URLSearchParams(location.search).get('tama'); return ['a', 'b', 'c'].includes(v) ? v : null; } catch (e) { return null; } })();
+function tamaLamp(b, x, y, z) {
+  b.box(x, y, z, 0.18, 2.4, 0.18, '#3a2a1c', TILE.bark); b.box(x, y + 2.4, z, 0.56, 0.12, 0.56, '#3a2a1c', TILE.planks);
+  b.box(x, y + 2.52, z, 0.38, 0.46, 0.38, '#ffffff', TILE.glow); b.box(x, y + 2.98, z, 0.6, 0.12, 0.6, '#3a2a1c', TILE.planks);
+}
+function tamaTree(A, B, x, y, z, col, s = 1) { A.cyl(x, y - 0.1, z, 0.3 * s, 0.24 * s, 1.6 * s, 5, '#6b4a2e', TILE.bark, false); B.blob(x, y + 2.1 * s, z, 1.5 * s, 1.2 * s, 1.5 * s, col, TILE.leaf, 0.22, Math.floor(x * 7 + z)); }
+function tamaPlan(VS, look, extra) {
+  const { d, rng, dockTh, A, B, houseKind: hk } = VS;
+  const H = d.H - 0.1, g = (x, z) => Math.min(H, terrainHeight(d, x, z) - 0.05);
+  const at = (th, r) => [Math.cos(th) * r, Math.sin(th) * r];
+  const face = (x, z, tx, tz) => Math.atan2(tx - x, tz - z);
+  const house = (x, z, ry, kind) => { hk(A, B, x, g(x, z), z, ry, rng, kind); if (kind === 'tavern') extra.tavern = { x, z, ry }; };
+  const lane = (th, r0, r1, w = 2.4) => { const L = r1 - r0; A.push(0, 0, 0, Math.PI / 2 - th); A.box(0, H - 0.04, r0 + L / 2, w, 0.12, L, '#cfc2a4', TILE.stone); A.pop(); };
+  const flags = (p, q) => flagLine(A, [p[0], g(p[0], p[1]) + 4.2, p[1]], [q[0], g(q[0], q[1]) + 4.2, q[1]], Math.floor(rng() * 6));
+  const R = shoreR(d, dockTh);
+  // the square at the heart of every plan, and the lane down to the pier
+  const sq = look === 'c' ? 6 : 7.5;
+  A.cyl(0, H - 0.06, 0, sq, sq, 0.14, 12, '#d8ccb0', TILE.stone, true);
+  A.cyl(0, H - 0.04, 0, sq + 0.4, sq + 0.4, 0.1, 12, '#a89878', TILE.stone, true);
+  lane(dockTh, sq, R * 0.95);
+  A.cyl(0, H, 0, 1.1, 1.2, 0.9, 8, '#bfb4a0', TILE.stone); A.cyl(0, H + 0.85, 0, 0.8, 0.8, 0.05, 8, '#2a4a5a', TILE.white);   // the well
+  for (const sx of [-0.9, 0.9]) A.box(sx, H + 0.9, 0, 0.14, 1.6, 0.14, '#6b4a2e', TILE.bark);
+  A.gable(0, H + 2.5, 0, 2.4, 0.7, 1.6, '#b0503a', TILE.roof, '#6b4a2e');
+  for (const s of [-1, 1]) { const [x, z] = at(dockTh + s * 0.18, R * 0.7); tamaLamp(A, x, g(x, z), z); }
+  if (look === 'a') {
+    const n = 10, list = ['tavern', 'townhouse', 'colonial', 'cottage', 'belltower', 'colonial', 'townhouse', 'planter', 'cottage', 'colonial'];
+    const pos = [];
+    for (let i = 0; i < n; i++) {
+      const th = dockTh + 0.75 + (i / (n - 1)) * (Math.PI * 2 - 1.5), r = i === 4 ? 10.5 : 12 + (i % 2) * 1.6;
+      const [x, z] = at(th, Math.min(r, shoreR(d, th) * 0.62)); pos.push([x, z]);
+      house(x, z, face(x, z, 0, 0), list[i]);
+    }
+    for (let i = 0; i < n - 1; i += 2) flags(pos[i], pos[i + 1 + (i === 2 ? 1 : 0)] || pos[i + 1]);
+    flags(pos[0], pos[n - 1]);
+    for (let i = 0; i < 7; i++) { const th = dockTh + 0.6 + i * 0.75, [x, z] = at(th, shoreR(d, th) * 0.8); palm(A, VS.B, VS.D, x, g(x, z), z, rng, 1 + rng() * 0.3); }
+    for (let i = 0; i < 8; i++) { const th = i * 0.785 + 0.39, [x, z] = at(th, sq - 0.6); if (Math.abs(angleDiff(th, dockTh)) > 0.4) VS.B.blob(x, H + 0.3, z, 0.6, 0.45, 0.6, i % 2 ? '#d83a8a' : '#4a9a40', TILE.leaf, 0.25, i); }
+  } else if (look === 'b') {
+    const kinds = ['townhouse', 'colonial', 'townhouse', 'cottage', 'warehouse', 'colonial', 'townhouse', 'cottage'];
+    const pos = [];
+    { const [tx, tz] = at(dockTh + 0.42, R * 0.55); house(tx, tz, face(tx, tz, ...at(dockTh, R)), 'tavern'); }
+    for (let i = 0; i < kinds.length; i++) {
+      const s = i % 2 ? 1 : -1, k = Math.floor(i / 2), th = dockTh + s * (0.85 + k * 0.32), rr = shoreR(d, th) * 0.6, [x, z] = at(th, rr);
+      pos.push([x, z, th]);
+      house(x, z, face(x, z, x * 2, z * 2), kinds[i]);   // facing the sea
+    }
+    for (const [x, z, th] of pos) { const [lx, lz] = at(th + 0.14, shoreR(d, th) * 0.76); tamaLamp(A, lx, g(lx, lz), lz); }
+    for (let s of [-1, 1]) { const a0 = dockTh + s * 0.55, a1 = dockTh + s * 2.0; for (let t = 0; t < 10; t++) { const th = a0 + (a1 - a0) * t / 10, [x, z] = at(th, shoreR(d, th) * 0.74); A.push(x, g(x, z) + 0.02, z, Math.PI / 2 - th); A.box(0, 0, 0, 3.2, 0.12, 2.0, '#b08858', TILE.planks); A.pop(); } }   // the promenade
+    house(...at(dockTh + Math.PI, 7), face(...at(dockTh + Math.PI, 7), 0, 0), 'belltower');
+    house(...at(dockTh + Math.PI - 0.7, 9), face(...at(dockTh + Math.PI - 0.7, 9), 0, 0), 'planter');
+    house(...at(dockTh + Math.PI + 0.7, 9), face(...at(dockTh + Math.PI + 0.7, 9), 0, 0), 'colonial');
+    for (let i = 0; i < pos.length - 2; i += 2) flags(pos[i], pos[i + 2]);
+    for (let i = 0; i < 6; i++) { const th = dockTh + Math.PI + (i - 2.5) * 0.5, [x, z] = at(th, shoreR(d, th) * 0.45); palm(A, VS.B, VS.D, x, g(x, z), z, rng, 1.1 + rng() * 0.3); }
+  } else {
+    const lanes = [dockTh + 2.1, dockTh + Math.PI, dockTh - 2.1];
+    for (const th of lanes) lane(th, sq, shoreR(d, th) * 0.7, 2.0);
+    const kinds = ['tavern', 'colonial', 'planter', 'belltower', 'townhouse', 'colonial', 'planter'];
+    let i = 0;
+    for (const th of [dockTh + 0.9, ...lanes.flatMap((l) => [l - 0.42, l + 0.42])]) {
+      const r = (i === 0 ? 11 : 13 + (i % 2) * 3), [x, z] = at(th, Math.min(r, shoreR(d, th) * 0.6));
+      house(x, z, face(x, z, 0, 0), kinds[i % kinds.length]);
+      fence(A, ...[x * 1.18, g(x * 1.18, z * 1.18), z * 1.18], th + 1.57, 4);
+      i++;
+    }
+    for (let k = 0; k < 14; k++) { const th = rng() * 6.28; if (Math.abs(angleDiff(th, dockTh)) < 0.45) continue; const [x, z] = at(th, shoreR(d, th) * (0.3 + rng() * 0.4)); tamaTree(A, VS.B, x, g(x, z), z, ['#e89ab8', '#f4d0e0', '#4a9a40', '#ffd23a'][k % 4], 0.9 + rng() * 0.4); }
+    for (let k = 0; k < 12; k++) { const th = k * 0.52, [x, z] = at(th, sq + 0.8); if (Math.abs(angleDiff(th, dockTh)) > 0.35) VS.B.blob(x, H + 0.2, z, 0.5, 0.35, 0.5, ['#d83a8a', '#ffd23a', '#f4f0e8'][k % 3], TILE.leaf, 0.3, k); }
+    for (let k = 0; k < 5; k++) { const th = dockTh + 0.6 + k * 1.1, [x, z] = at(th, shoreR(d, th) * 0.82); palm(A, VS.B, VS.D, x, g(x, z), z, rng, 1.1); }
+  }
+}
 function floatLantern(b, x, z) { b.box(x, 0.2, z, 0.7, 0.18, 0.7, '#8a5a30', TILE.planks); b.box(x, 0.38, z, 0.36, 0.42, 0.36, '#ffffff', TILE.glow); }
 function boatAt(b, x, z, ry, lantern) {
   b.push(x, 0, z, ry); b.box(0, -0.1, 0, 1.4, 0.5, 3.2, '#a06a3a', TILE.planks); b.box(0, 0.4, 0, 1.0, 0.05, 2.6, '#6b4a2e', TILE.planks);
@@ -1154,7 +1227,9 @@ function decorate(d, rng, A, B, D, extra) {
       if (SD.build) SD.build(VS);
       if (d.sh && d.sh.H > 2.6) stairs(VS);                                                  // steps up the ramp from the pier
       if (d.sh && (d.sh.id === 'terraced' || d.sh.id === 'hill')) slopeHouses(VS, 4 + Math.floor(rng() * 4));   // houses down the slope, on their own levels
-      for (let i = 0; i < n * 2 && placed < n && !SD.build; i++) {
+      const tamaLook = d.id === '0,-1' ? TAMA_LOOK : null;
+      if (tamaLook) tamaPlan(VS, tamaLook, extra);
+      for (let i = 0; i < n * 2 && placed < n && !SD.build && !tamaLook; i++) {
         const th = (i / (n * 2)) * Math.PI * 2 + rng() * 0.3;
         if (Math.abs(angleDiff(th, dockTh)) < 0.55) continue;
         const rho = shoreR(d, th) * (0.28 + rng() * 0.38);
@@ -1188,6 +1263,7 @@ function decorate(d, rng, A, B, D, extra) {
         A.cyl(sx * 0.9, 0.84, z, 0.5, 0.5, 0.9, 6, '#ffffff', TILE.planks);
         if (rng() > 0.4) A.box(-sx * 0.8, 0.84, z + 1.4, 1, 0.9, 1, '#ffffff', TILE.planks);
       }
+      if (tamaLook) for (let z = z0 + 5; z < z1 - 3; z += 7) for (const sx of [-1.25, 1.25]) tamaLamp(A, sx, 0.73, z);   // lamps along the pier
       A.box(1.35, 0.84, z1 - 0.4, 0.14, 1.8, 0.14, '#6b4a2e', TILE.bark);
       A.box(1.35, 2.6, z1 - 0.4, 0.4, 0.4, 0.4, '#ffffff', TILE.glow);
       // moored rowboat
