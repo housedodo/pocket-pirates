@@ -2610,16 +2610,16 @@ line says which file it goes back into. 1415 lines.
 # K  WRITER'S LOG
 ################################################################################################
 K1 OPEN QUESTIONS [fill in; I will ask about every ?? first]
-   - What is Mara (beyond where she is from)?                           (empty)  ??
-   - What is the whole old story the fragments tell?                    (empty)  ??
+   - What is Mara (beyond where she is from)?                           A entity created by the sleeper. Her village was part of a previous dream, that came over in the new world (current dream), where HOIST is happening.
+   - What is the whole old story the fragments tell?                    That the world is just a dream and not the first one, but the longest she is currently sleeping so it is staying.
    - What does the Lady write if she is asked who counts?               (empty)  ??
-   - May Mara throw in your place at the Table?                         (empty)  ??
-   - Are the Two Players the same two who play at night?                (empty)  ??
-   - Who is the other berth, whose hook, who dug first, who rowed?      (empty)  ??   (the four small wrong things of the demo)
+   - May Mara throw in your place at the Table?                         She wants to try, but she cannot pick up the dice. Her presence is not supposed to be here but she is too small to be realized as a foreign entity.
+   - Are the Two Players the same two who play at night?                Yes, they have been sailing aswell before but refused to throw the die and as musicians, they were playing the song when entering the dread stages and it soothed it and therefore they figured out, that they can partially in a region stop the dread by keeping the creature asleep and the dream going.
+   - Who is the other berth, whose hook, who dug first, who rowed?      All previous sailors who have gone mad and disappeared somewhere in the dread, a neverending nightmare.
    - Who sails the Pained Raven?                                        (empty)  ??
-   - Which regions get which threads?                                   (empty)  ??
+   - Which regions get which threads?                                   Depends on the biomes and builds, free cays has the musicians and other threads will be distributed according to how the feel there is.
 K2 DECISIONS (with the date; the short list is docs/CANON.md)
-   - 2026-11-11  Mara remembers her village, slowly; she never says its name.
+   - 2026-11-11  Mara remembers her village, slowly; she never says its name. The village was from a different dream.
    - 2026-11-11  Humming the Two Players' tune is the only gentle, happy ending, and it needs no throw.
    - 2026-11-11  The demo ends on the first throw at the hut and the diver on the water. Odd jobs, salvage and the raider are optional.
    - 2026-11-11  At the Table: Throw, Hum the tune, Sit, Leave. "Turn the table to the sea" is cut. The Lady's errands (Act 3) are cut.
