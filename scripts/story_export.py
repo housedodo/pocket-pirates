@@ -44,7 +44,15 @@ CODES = {  # source file -> (ID code, what it holds)
 }
 
 
+# main.js's text also lives in the ui/ modules split out of it (2026-11-12): read together, so the MAIN-xxxx IDs stay the same
+MAIN_PARTS = ['main.js', 'ui/title.js', 'ui/pause.js', 'ui/harbour.js', 'ui/shipyard.js', 'ui/shiptrade.js', 'ui/camera.js', 'ui/dom.js']
+
+
 def read(name):
+    if name == 'main.js':
+        src = '\n'.join((SRC / f).read_text(encoding='utf-8') for f in MAIN_PARTS if (SRC / f).exists())
+        # the split moved main's loose variables into rt (runtime) and its services into G: ${rt.dread} is the old ${dread}
+        return re.sub(r'\$\{[^}]*\}', lambda m: re.sub(r'\b(rt|G)\.', '', m.group(0)), src)
     return (SRC / name).read_text(encoding='utf-8')
 
 

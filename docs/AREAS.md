@@ -21,7 +21,11 @@ area only when the task says so or when the change crosses over (then say which 
 - **Rule:** five dread stages = five music loops, same tempo/meter/key (D family, 6/8, 125 BPM); WAV masters stay with the composer, the game ships ogg (`scripts/studio_ogg.py`).
 
 ## Shared core (everyone)
-- `src/core/config.js`, `src/core/state.js`, `src/core/engine.js`, `src/ui/dom.js`, `src/systems/calendar.js`, `src/systems/storyflags.js`: the layers under `main.js`. See `docs/ARCHITECTURE.md`; change them carefully, they are imported by everything above.
+- `src/core/` (config, state, runtime, engine), `src/ui/dom.js`, `src/systems/calendar.js`, `src/systems/storyflags.js`: the layers
+  under `main.js`. See `docs/ARCHITECTURE.md`; change them carefully, everything above imports them.
+- Split out of `main.js` (same owners as before): `src/ui/camera.js`, `src/ui/title.js` (design), `src/ui/pause.js` (design; sound
+  rows audio), `src/ui/harbour.js`, `src/ui/shiptrade.js` (gameplay), `src/ui/shipyard.js` (design). Their text counts as main.js
+  text in the story export (MAIN-xxxx).
 
 ## Crossing over
 Cave, thread or new-island changes touch all three: gameplay owns the beat, design owns how it looks, audio owns how it sounds.

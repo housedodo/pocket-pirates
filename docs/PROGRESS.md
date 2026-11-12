@@ -962,3 +962,19 @@ Trials for the owner to compare; nothing changes without a flag and STYLE.md is 
 ## main.js split, first layer (2026-11-12)
 - New modules under main.js: `core/config.js` (URL params, DEV, storage, saved voyage, settings, `session.noSave`), `core/state.js` (the state object and save migrations), `core/engine.js` (renderer, post, scene, camera, ocean, sky, resize), `ui/dom.js` (`$`, HUD elements, `toast`), `systems/calendar.js` (week, tide, moon), `systems/storyflags.js` (marks, keepsakes). Imports point one way only; boot order unchanged. `docs/ARCHITECTURE.md` describes the layers, the rules and the next steps.
 - No behaviour change: no player text moved (story-export IDs unchanged). Verified: build; eslint `no-undef` clean (the only other findings were already there); the same headless scripts on the old and new build give identical results (title, set sail, sailing, log, pause, harbour board, a 51-field save, marks) with no console errors.
+
+## main.js split, the rest of the plan (2026-11-12)
+- Step 1: the 106 module-level `let`s of main.js are fields of one runtime object, `rt` (`core/runtime.js`), rewritten with a parser and
+  scope analysis so shadowed locals were left alone.
+- Steps 2-4, moved with the same tool (references to main.js go through the generated `G` registry; load-time code is wrapped in
+  `init...()` and called where it used to be): `ui/camera.js`, `ui/title.js`, `ui/pause.js`, `ui/harbour.js`, `ui/shiptrade.js`,
+  `ui/shipyard.js`. main.js went from 2,956 to about 2,000 lines; imports it no longer used are pruned (bare `import './x.js'` kept
+  where every name went, so load order is unchanged).
+- Story export: the MAIN section reads main.js and its ui/ parts together and ignores `rt.`/`G.` inside placeholders; every MAIN ID
+  is unchanged (0 added, the same 48 retired).
+- Verified: build; eslint `no-undef` clean (only old findings left: 5 duplicate keys in `window.__game`, 3 unused locals); no import
+  cycle touches the new modules; three headless A/B scripts against the commit before the split give identical results (title and
+  set sail, New voyage, intro, camera zoom/orbit framing, sailing, pause panels and display options, dev/abyss panels, log, every
+  harbour tab, upgrade purchase, tavern, shipyard, save); the ship-trade screen opened and rendered by calling it directly.
+- Not done: the rest of main.js (frame loop, story beats, HUD, interaction) stays there for now; ARCHITECTURE.md lists the next
+  candidates. The old `world.js -> harbourlife.js -> jobs.js` import cycle is left as it was.

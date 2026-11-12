@@ -2,53 +2,53 @@ import * as THREE from 'three';
 import { clamp, smoothstep, angleDiff, mulberry32, hash2 } from './util.js';
 import { sampleStage, DARK_THRESHOLD, dreadAtDistance, dreadWithPeak, strataIndex } from './palette.js';
 import { U, mats } from './psx.js';
-import { WATER, NISL, OCEAN_STYLES, waveHeight } from './ocean.js';
+import { WATER, NISL, waveHeight } from './ocean.js';
 import { World, mistMat, villager, VILLAGERS, houseKind, HOUSES, shoreR, lighthouseKind } from './world.js';
 import { Builder } from './builder.js';
 import { TILE } from './textures.js';
 import { Ship } from './ship.js';
-import { AudioBus, AUDIO_ENABLED } from './audio.js';
+import { AudioBus } from './audio.js';
 import { sfx } from './sfx.js';
-import { Mixer } from './mixer.js';
-import { SoundStudio } from './studio.js';
-import { TITLE_SCENES, drawTitleLogo } from './title.js';
-import { pickGreeting, portrait, speakerName, rollGreeting, numberWord } from './greetings.js';
-import { isOpen, lockPane } from './gates.js';
+import './mixer.js';
+import './studio.js';
+import './title.js';
+import { pickGreeting, rollGreeting, numberWord } from './greetings.js';
+import { isOpen } from './gates.js';
 import { DigGame } from './digging.js';
-import { gossip, lootFor, bottleNote, barrelLoot } from './lore.js';
+import { lootFor, bottleNote, barrelLoot } from './lore.js';
 import { Weather } from './weather.js';
 import { Fauna } from './fauna.js';
 import { Companion } from './companion.js';
 import { Caves, CAVES } from './caves.js';
 import { CaveScene, caveLook } from './cavescene.js';
 import { Threads } from './threads.js';
-import { THREAD_DEFS, THREAD_IDS, pickAwake } from './marks.js';
+import { THREAD_IDS } from './marks.js';
 import { Traffic } from './traffic.js';
 import { SeaFeatures } from './seafeatures.js';
-import { makeJob, setReach, findRumour, repOf, friendLevel, discount, bearingName, nearby, RUMOUR_COST, commissionsFor, questProgress, questNeed, questTitle, QUEST_ICON, questIcon, FRUITS, fruitOf, fruitName, plural } from './jobs.js';
+import { setReach, findRumour, repOf, friendLevel, bearingName, nearby, questProgress, questNeed, questTitle, questIcon, fruitOf, fruitName, plural } from './jobs.js';
 import { Logbook } from './logbook.js';
 import { Hut } from './hut.js';
-import { makePassenger, passengerTalk } from './passengers.js';
-import { sectorAt, sectorInfo, sectorCoord, FACTIONS } from './sectors.js';
+import { passengerTalk } from './passengers.js';
+import { sectorAt } from './sectors.js';
 import { KINDS, boatStatus } from './traffic.js';
-import { Fishing, fishById } from './fishing.js';
+import { Fishing } from './fishing.js';
 import { Combat } from './combat.js';
 import { bumpSectors } from './sectors.js';
-import { markSeen, isKnown, level as clueLevel, levels as clueLevels, d3Open } from './clues.js';
+import { markSeen, isKnown, levels as clueLevels, d3Open } from './clues.js';
 import { tableOptions, finalThrow, ENDINGS, maraRemembers } from './table.js';
-import { Objectives, MUSINGS, MAIN_GOALS, CHAPTERS, unlocked, gateRadius, chapterOf, goalText, goalCount } from './objectives.js';
-import { GROUPS, byId } from './customize.js';
+import { Objectives, MUSINGS, MAIN_GOALS, unlocked, gateRadius, chapterOf, goalText, goalCount } from './objectives.js';
+import './customize.js';
 import { Wind } from './wind.js';
 import { WindFX } from './windfx.js';
 import { drawWind } from './windmeters.js';
 import { pxi } from './pixelui.js';
-import { applyTimeOfDay, advanceTime, tod, NIGHT_VIEWS, LAMPS, NIGHT_SET, NIGHT_MODES } from './daynight.js';
-import { UPGRADES, MAX_LEVEL, computeMods, shipwrightLine, UP_CARD } from './upgrades.js';
-import { TRAITS, crewForHire, crewBonus, hasTrait, rollCheck, drawCard, renderCard, Pig, setDieWear, setAdvProvider, TREASURE_TIERS } from './tabletop.js';
-import { FISH, HABITAT } from './fishing.js';
+import { applyTimeOfDay, advanceTime, tod, NIGHT_SET } from './daynight.js';
+import { computeMods, shipwrightLine } from './upgrades.js';
+import { TRAITS, hasTrait, rollCheck, drawCard, renderCard, Pig, setDieWear, setAdvProvider, TREASURE_TIERS } from './tabletop.js';
+import { FISH } from './fishing.js';
 import { Sighting, SIGHTS } from './sighting.js';
 import { pushOut } from './solids.js';
-import { Abyss, EFFECTS, WATCHER_STYLES, WATCHER_NAMES } from './abyss.js';
+import { Abyss, EFFECTS } from './abyss.js';
 import { Places } from './places.js';
 import { LM } from './landmarks.js';
 import { SeaPlay } from './seaplay.js';
@@ -58,31 +58,58 @@ import { Wake } from './wake.js';
 import { Secrets, TALES } from './secrets.js';
 import { OIL_FROM, oilCap, oilRate, lanternLit, OIL_PRICE } from './oil.js';
 import * as life from './harbourlife.js';
-import * as paper from './newspaper.js';
+import './newspaper.js';
 import { LocalGames } from './localgames.js';
 // the core layers (config <- state <- engine) and the small shared systems; see docs/ARCHITECTURE.md
 import { params, store, saved, DEV, settings, session, SAVE_KEY, SETTINGS_KEY, THREADS_KEY } from './core/config.js';
 import { state } from './core/state.js';
 import { rt, G } from './core/runtime.js';
-import { canvas, renderer, post, scene, camera, ocean, sky } from './core/engine.js';
+import { renderer, post, scene, camera, ocean, sky } from './core/engine.js';
 import { $, goldEl, promptEl, promptTxt, promptBar, promptFill, toastsEl, debugEl, helpEl, chartEl, harbourEl, pauseEl, shipEl, compass, toast } from './ui/dom.js';
-import { WEEK, weekday, isMarketDay, isLanternNight, isFestival, tideAt, tideFalls, fullMoon } from './systems/calendar.js';
+import { WEEK, weekday, isMarketDay, isLanternNight, isFestival, tideAt, tideFalls } from './systems/calendar.js';
 import { addMark, clearMark, keep, markFromRoll } from './systems/storyflags.js';
 import { PITCH_MIN, updateCamera, initCamera1, initCamera2 } from './ui/camera.js';
 import { titleEl, startTitle, titleCam, titleKey, INTRO_DUR, endIntro, skipIntro, begin, initTitle1, initTitle2 } from './ui/title.js';
 import { fsEl, fsOk, toggleFullscreen, nightViewNow, showPauseMain, pauseBack, mixer, studio, soundSituation, initPause1, initPause2 } from './ui/pause.js';
+import { renderYard, initShipyard } from './ui/shipyard.js';
+import { hailShip, renderShipTrade, initShipTrade } from './ui/shiptrade.js';
+import { renderHarbour, lettersAt, PETS, companions, petOffer, takePet, tabOpened, showGreeting, greetAdvance, buyUpgrade, initHarbour } from './ui/harbour.js';
 
 // G-REGISTRY START (generated): what main.js lends the modules under it, read at call time
 Object.defineProperties(G, {
+  CHART_NOTES: { get: () => CHART_NOTES },
   INTRO_DUR: { get: () => INTRO_DUR },
+  LOCALS: { get: () => LOCALS },
   abyss: { get: () => abyss },
   audio: { get: () => audio },
+  autosave: { get: () => autosave },
+  buyOil: { get: () => buyOil },
   closeModal: { get: () => closeModal },
+  completeJobIfHere: { get: () => completeJobIfHere },
+  costMul: { get: () => costMul },
+  crewLeave: { get: () => crewLeave },
+  daysLeft: { get: () => daysLeft },
+  dreamCost: { get: () => dreamCost },
+  falseRumour: { get: () => falseRumour },
   fishing: { get: () => fishing },
   fsEl: { get: () => fsEl },
+  giveMap: { get: () => giveMap },
+  greetEl: { get: () => greetEl },
+  laterOK: { get: () => laterOK },
+  lifeOn: { get: () => lifeOn },
+  localGames: { get: () => localGames },
+  noteSkip: { get: () => noteSkip },
   objectives: { get: () => objectives },
+  oilOn: { get: () => oilOn },
   openModal: { get: () => openModal },
+  perrinNote: { get: () => perrinNote },
+  pig: { get: () => pig },
+  refreshMods: { get: () => refreshMods },
+  revealAround: { get: () => revealAround },
+  sea: { get: () => sea },
   ship: { get: () => ship },
+  showDemoEnd: { get: () => showDemoEnd },
+  signOn: { get: () => signOn },
   threadChoice: { get: () => threadChoice },
   threads: { get: () => threads },
   titleCam: { get: () => titleCam },
@@ -90,6 +117,7 @@ Object.defineProperties(G, {
   weather: { get: () => weather },
   wind: { get: () => wind },
   world: { get: () => world },
+  yardEl: { get: () => yardEl },
 });
 // G-REGISTRY END
 
@@ -628,433 +656,7 @@ $('tP').addEventListener('pointerdown', (e) => { begin(); if (rt.modal) closeMod
 
 initPause2();   // (ui/pause.js)
 
-// ---------------------------------------------------------------- harbour shipwright
-const UP_MUL = [1.3, 1.6, 1.9];   // economy: the shipwright charges more, steeply for the higher levels
-const upCost = (u, lv, rep) => Math.ceil(u.cost[lv] * UP_MUL[lv] * discount(rep) * costMul());
-rt.hbTab = 'board', rt.hbPaper = false;   // hbPaper: the Friday paper lies open on the market pane
-function handIn(q, d) {
-  const need = questNeed(q);
-  if (questProgress(q, state) < need) return;
-  if (q.type === 'fish') { let n = need; state.catch = state.catch.filter((f) => (f.id === q.species && n > 0 ? (n--, false) : true)); }
-  if (q.type === 'fruit') state.fruit[q.fruit] -= need;
-  state.gold += q.reward;
-  repOf(state, d.id).deliveries++;
-  state.serial[d.id + '#c'] = (state.serial[d.id + '#c'] || 0) + 1;
-  state.quests = state.quests.filter((x) => x.id !== q.id);
-  sea.syncQuests(state.quests.filter((q) => q.id === state.tracked));
-  state.stats.commissions = (state.stats.commissions || 0) + 1;
-  toast(`Commission done: ${questTitle(q, rt.dread)} (+${q.reward} gold)`, rt.dread > 0.5, 6000);
-  audio.play('treasure');
-}
-function acceptCommission(o) {
-  if (state.quests.length >= 3 || state.quests.some((x) => x.id === o.id)) return;
-  const q = { ...o, base: o.type === 'bounty' ? state.stats.sunk : o.type === 'spot' ? state.stats[o.what] : 0 };
-  if (q.crates) q.crates = q.crates.map((c) => ({ ...c }));
-  state.quests.push(q);
-  if (!state.tracked) state.tracked = q.id;
-  sea.syncQuests(state.quests.filter((q) => q.id === state.tracked));
-  toast(`Commission taken: ${questTitle(q, rt.dread)}`, false, 5000);
-  audio.play('buy');
-}
-
-const REST_LINES = ['You sleep like a stone. Gulls wake you at dawn.', 'Somebody snored all night. Possibly you.', 'You dream of warm water and wake up hungry.'];
-const REST_DARK = ['You sleep. Someone sat by your bed all night; the chair is still warm.', 'You wake at dawn. Your boots are wet, and full of sand you do not recognise.',
-  'You sleep well. The innkeeper says you talked all night, in a voice that was not yours.', 'Your room had two beds. In the morning, both were slept in.'];
-function restAtTavern(cost) {
-  if (state.gold < cost) return;
-  state.gold -= cost;
-  const dk = rt.dread > 0.6, hbd = rt.harbourIsl && rt.harbourIsl.desc;
-  closeModal();
-  $('fade').classList.add('on');
-  setTimeout(() => {
-    if (state.time * 24 >= 6) { noteSkip(); state.dayN++; crewLeave(); }    // slept past midnight
-    state.time = 6 / 24; state.story.restDay = state.dayN;   // Mara is rested
-    state.hp = ship.mods.maxHp;
-    $('fade').classList.remove('on');
-    toast(dk ? REST_DARK[Math.floor(Math.random() * REST_DARK.length)] : REST_LINES[Math.floor(Math.random() * REST_LINES.length)], dk, 6000);
-    objectives.remark('rested', rt.dread);
-    { const x = hbd ? threads.onRest(hbd) : ''; if (x) setTimeout(() => toast(x, true, 8000), 2400); }
-  }, 1100);
-}
-function renderHarbour() {
-  if (!isOpen(state, 'tab', rt.hbTab)) rt.hbTab = 'board';   // a sign that has not opened yet: back to the board
-  const d = rt.harbourIsl.desc, rep = repOf(state, d.id), lvl = friendLevel(rep);
-  $('hbName').textContent = d.name;
-  if ($('hbLine').style.display === 'none') $('hbLine').textContent = rt.harbourLine;
-  $('hbBannerName').textContent = d.name;
-  $('hbGold').textContent = state.gold;
-  $('hbTabs').querySelectorAll('button').forEach((b) => b.classList.toggle('on', b.dataset.t === rt.hbTab));
-  $('hbPlace').textContent = { board: "Harbourmaster's board", market: 'Market', tavern: 'Tavern', wright: 'Shipwright' }[rt.hbTab];
-  postBadges(d, rep);
-  const pane = $('hbPane');
-  let html = '';
-  $('hbWide').classList.toggle('shop', rt.hbTab === 'wright' || rt.hbTab === 'market');   // shops get a wider panel
-  if (rt.hbTab === 'board') {
-    // finish what you came for first: deliveries, passengers and finished commissions for this harbour
-    const due = [];
-    if (state.job && state.job.toId === d.id) due.push(`<div class="qrow"><div><b>${pxi('letter')} Deliver ${state.job.item}</b><br><small>+${state.job.reward}g</small></div><button id="doDeliver">Deliver</button></div>`);
-    if (state.passenger && state.passenger.toId === d.id) due.push(`<div class="qrow"><div><b>${pxi('talk')} ${state.passenger.name} goes ashore</b><br><small>+${state.passenger.reward}g fare</small></div><button id="doDropoff">Drop off</button></div>`);
-    for (const q of state.quests.filter((x) => x.giverId === d.id && questProgress(x, state) >= questNeed(x))) due.push(`<div class="qrow"><div><b>${questIcon(q)} ${questTitle(q, rt.dread)}</b><br><small>done · +${q.reward}g</small></div><button data-hand="${q.id}">Finish</button></div>`);
-    if (rt.openLetter) html += `<div class="sec">A LETTER</div><div class="letterOpen"><p>${rt.openLetter.text}</p><small>${rt.openLetter.from} · kept in your log</small></div>`;
-    for (const lt of lettersAt(d)) html += `<div class="sec">A LETTER</div><div class="qrow letter"><div><b>${pxi('letter')} ${lt.title}</b><br><small>${lt.sub}</small></div><button id="takeLetter" data-letter="${lt.key}">Take it</button></div>`;
-    if (due.length) html += `<div class="sec">FINISH HERE</div>${due.join('')}`;
-    if (lifeOn()) {   // the harbour's own person and their story (harbourlife.js), and this harbour's day in the week
-      for (const r of life.residentRows(state, world, d, { night: state.time * 24 >= 19 || state.time * 24 < 5 })) {
-        if (r.after) html += `<div class="sec">${r.who.toUpperCase()}</div><small class="${r.dark ? 'darkline' : ''}">${r.after}</small>`;
-        else if (r.wait) html += `<div class="sec">${r.who.toUpperCase()}</div><small>${r.text}</small>`;
-        else html += `<div class="sec">${r.who.toUpperCase()}</div><div class="qrow letter"><div><b>${pxi('talk')} ${r.text}</b>${r.block ? `<br><small>${r.block}</small>` : ''}</div><button class="lifeStep" data-k="${r.key}" ${r.block ? 'disabled' : ''}>${r.btn}</button></div>`;
-      }
-      html += `<div class="sec">THIS WEEK</div><small>${life.eventLine(d, state)}: ${life.gameOf(d).name} in the tavern pays double.</small>`;
-    }
-    html += '<div class="sec">DELIVERY</div>';
-    const j = state.job || makeJob(world, d, state.serial[d.id] || 0, state.goals.i <= 8 ? 420 : 750);   // the first jobs stay close
-    if (state.job && state.job.toId === d.id) html += '<small>Deliver the one above first.</small>';
-    else if (state.job) html += `<div class="qrow"><div><b>${pxi('letter')} ${state.job.item}</b><br><small>to ${state.job.toName} · ${bearingName(state.job.x - d.x, state.job.z - d.z)}</small></div><small>${state.job.reward}g</small></div>`;
-    else if (j) html += `<div class="qrow"><div><b>${pxi('letter')} ${j.item}</b><br><small>to ${j.toName} · ${bearingName(j.x - d.x, j.z - d.z)}, ${j.dist} · ${j.reward}g</small></div><button id="jobAccept">Accept</button></div>`;
-    else html += '<small>Nothing today.</small>';
-    html += `<div class="sec">COMMISSIONS (${state.quests.length}/3)</div>`;
-    const mine = state.quests.filter((q) => q.giverId === d.id);
-    for (const q of mine) {
-      const need = questNeed(q), have = questProgress(q, state);
-      if (have < need) html += `<div class="qrow"><div><b>${questIcon(q)} ${questTitle(q, rt.dread)}</b><br><small>${have}/${need} · ${q.reward}g</small></div></div>`;
-    }
-    const offers = commissionsFor(world, d, state.serial[d.id + '#c'] || 0).filter((o) => !state.quests.some((x) => x.id === o.id));
-    for (const o of offers) {
-      const q = { ...o, base: 0 };
-      html += `<div class="qrow"><div><b>${questIcon(o)} ${questTitle(q, rt.dread)}</b><br><small>${o.type === 'crates' ? `lost ${bearingName(o.center.x - d.x, o.center.z - d.z)} of here · ` : ''}${o.reward}g</small></div><button data-accept="${o.id}" ${state.quests.length >= 3 ? 'disabled' : ''}>Accept</button></div>`;
-    }
-    if (!mine.length && !offers.length) html += '<small>The board is empty. Come back after you have been out to sea.</small>';
-    const pass = passengerAt(d);
-    if (pass) html += `<div class="sec">PASSAGE</div><div class="qrow"><div><b>${pxi('talk')} ${pass.name}, ${pass.who}</b><br><small>wants passage to ${pass.toName} · pays ${pass.reward}g</small></div><button id="takePass">Take aboard</button></div>`;
-    const r = findRumour(world, d, state);
-    if (r) html += `<div class="sec">RUMOURS</div><div class="qrow"><div><b>${pxi('talk')} A sailor talks of buried treasure</b></div><button id="rumourBuy" ${state.gold >= RUMOUR_COST ? '' : 'disabled'}>${RUMOUR_COST}g</button></div>`;
-    const chartCost = Math.ceil(30 * costMul());
-    if (!state.charts[d.id]) html += `<div class="sec">LOCAL CHART</div><div class="qrow"><div><b>${pxi('flag')} A hand-drawn chart of these waters</b><br><small>the islands around ${d.name}, as the locals know them</small></div><button id="buyChart" ${state.gold >= chartCost ? '' : 'disabled'}>${chartCost}g</button></div>`;
-    for (const r of threads.harbourRows(d)) html += `<div class="sec">ON THE PIER</div><div class="qrow letter"><div><b>${pxi('talk')} ${r.html}</b></div><button class="thrAct" data-act="${r.id}">${r.btn}</button></div>`;
-    const po = petOffer(d); if (po) html += `<div class="sec">ON THE PIER</div><div class="qrow letter"><div><b>${pxi('talk')} ${PETS[po].title}</b><br><small>${PETS[po].sub}</small></div><button id="takePet" data-pet="${po}">${PETS[po].btn}</button></div>`;
-    pane.innerHTML = html;
-    const bc = $('buyChart'); if (bc) bc.addEventListener('click', () => {
-      if (state.gold < chartCost) return; state.gold -= chartCost; state.charts[d.id] = true;
-      const k = revealAround(d.x, d.z);
-      const note = CHART_NOTES[d.custom]; if (note) state.notes.push({ text: `${d.name}'s chart: ${note}`, dark: ['nochildren', 'statues', 'bells'].includes(d.custom) });
-      toast(k ? `A hand-drawn chart of ${d.name}'s waters. ${k} island${k > 1 ? 's' : ''} added to your map.` : `A hand-drawn chart of ${d.name}'s waters. You know them all already. It is a lovely drawing.`, false, 6000);
-      audio.play('buy'); renderHarbour(); });
-    const ja = $('jobAccept');
-    if (ja) ja.addEventListener('click', () => { state.job = j; toast(`Delivery taken: ${j.toName} (pays ${j.reward}g on arrival)`, j.dark); audio.play('buy'); renderHarbour(); });
-    pane.querySelectorAll('.thrAct').forEach((b) => b.addEventListener('click', () => { const id = b.dataset.act; threads.harbourAct(id, d); if (id === 'hollow') return; renderHarbour(); }));
-    const tkp = $('takePet'); if (tkp) tkp.addEventListener('click', () => { takePet(tkp.dataset.pet); renderHarbour(); });
-    pane.querySelectorAll('.lifeStep').forEach((b) => b.addEventListener('click', () => {
-      const r = life.takeStep(state, world, d, b.dataset.k); if (!r) return;
-      toast(r.toast, r.dark, 7000); audio.play(r.ended ? 'discover' : 'ui', { vol: r.ended ? 0.5 : 0.4 });
-      if (r.ended) { autosave(); setTimeout(() => toast(`${d.name} will not be quite the same again.`, r.dark, 5000), 2600); }
-      renderHarbour(); }));
-    const tl = $('takeLetter'); if (tl) tl.addEventListener('click', () => { takeLetter(tl.dataset.letter); renderHarbour(); });
-    const dv = $('doDeliver'); if (dv) dv.addEventListener('click', () => { completeJobIfHere(d); renderHarbour(); });
-    const dp = $('doDropoff'); if (dp) dp.addEventListener('click', () => {
-      const p = state.passenger, two = !state.story.berths && !(state.stats.passengers || 0);   // the first fare is paid for two berths; the harbourmaster looks for the other one (once, never explained)
-      if (two) { state.story.berths = 1; p.reward *= 2; }
-      state.gold += p.reward; state.passenger = null; state.stats.passengers = (state.stats.passengers || 0) + 1;
-      repOf(state, d.id).deliveries++; toast(`${p.name} waves goodbye from the pier. (+${p.reward}g${two ? ', two berths' : ''})`, false, 6000); audio.play('treasure');
-      if (two) setTimeout(() => toast('"And the other one?" The harbourmaster looks along your deck, then shrugs and stamps the book.', false, 7000), 2200);
-      if (!two && state.crew.length < 2 && Math.random() < 0.3 && !state.crew.some((c) => c.name === p.name)) {   // now and then a passenger asks to sail along for a few days
-        const ids = Object.keys(TRAITS); signOn({ name: p.name, look: 'who did not want to get off', trait: ids[Math.floor(Math.random() * ids.length)], wish: { kind: 'volcano', text: 'wants to see a fire mountain', done: false }, cost: 0 }, 3);
-        setTimeout(() => toast(`${p.name} asks to sail along for a few days. (${TRAITS[state.crew[state.crew.length - 1].trait].name} joins the crew.)`, false, 7000), 1800);
-      }
-      renderHarbour(); });
-    const tp = $('takePass'); if (tp) tp.addEventListener('click', () => {
-      state.passenger = pass; state.serial[d.id + '#p'] = (state.serial[d.id + '#p'] || 0) + 1; state.tracked = 'passenger';
-      toast(`${pass.name} comes aboard, bound for ${pass.toName}.`, false, 5000); renderHarbour(); });
-    pane.querySelectorAll('[data-hand]').forEach((b) => b.addEventListener('click', () => { handIn(state.quests.find((q) => q.id === b.dataset.hand), d); renderHarbour(); }));
-    pane.querySelectorAll('[data-accept]').forEach((b) => b.addEventListener('click', () => { acceptCommission(offers.find((o) => o.id === b.dataset.accept)); renderHarbour(); }));
-    const rb = $('rumourBuy');
-    if (rb) rb.addEventListener('click', () => {
-      if (state.gold < RUMOUR_COST) return;
-      state.gold -= RUMOUR_COST;
-      const f = falseRumour(d), t = f || r.d, dist = f ? f.dist : r.dist;   // not everything a sailor says is true; nothing tells you which
-      state.rumoured[t.id] = { name: t.name, x: Math.round(t.x), z: Math.round(t.z), source: `a drunk in ${d.name}`, found: false };
-      if (f) state.rumoured[t.id].fake = f.variant;
-      toast(`Rumour: ${t.name}, ${bearingName(t.x - d.x, t.z - d.z)} of here, ~${Math.round(dist)} fathoms. Marked on your map.`, rt.dread > 0.5, 7000);
-      audio.play('buy'); renderHarbour();
-    });
-  } else if (rt.hbTab === 'market' && rt.hbPaper && paper.thisWeeks(state)) {   // the paper, open
-    pane.innerHTML = paper.paperHTML(paper.thisWeeks(state)) + '<div class="qrow"><div></div><button id="foldPaper">Fold it away</button></div>';
-    $('foldPaper').addEventListener('click', () => { rt.hbPaper = false; audio.play('ui', { vol: 0.3 }); renderHarbour(); });
-    pane.scrollTop = 0;
-  } else if (rt.hbTab === 'market') {
-    const hg = state.haggle && state.haggle.id === d.id && state.haggle.day === state.dayN ? state.haggle : null, hm = (hg ? hg.mult : 1) / dreamCost() * (isMarketDay() ? 1.25 : 1) * (threads.touched(d) ? 1.15 : 1) * threads.priceMul(d);
-    const fishVal = Math.round(state.catch.reduce((a, f) => a + f.value, 0) * 0.7 * (1 + 0.05 * lvl) * hm * (isFestival(d) ? 1.5 : 1));
-    const fruitList = Object.entries(state.fruit).filter(([, n]) => n > 0);
-    const fruitVal = Math.round(fruitList.reduce((a, [f, n]) => a + FRUITS[f].price * n, 0) * 0.7 * (1 + 0.05 * lvl) * hm);
-    const ammoCost = Math.ceil(25 * discount(rep) * costMul());
-    html += `<div class="sec">STANDING HERE</div><small>${pxi('star').repeat(lvl)}${pxi('nostar').repeat(3 - lvl)}${lvl ? `  (-${lvl * 5}% prices, +${lvl * 5}% for your catch)` : '  (visit and deliver to be remembered)'}</small>`;
-    html += '<div class="sec">SELL</div>' + priceNote() + (isFestival(d) ? '<small>Festival day: fish fetch half again as much.</small>' : isMarketDay() ? '<small>Market day: everything sells for a quarter more.</small>' : '');
-    if (unlocked(state, 'haggle')) html += `<div class="qrow"><div><b>${pxi('coin')} Haggle</b><br><small>${hg ? (hg.mult > 1 ? `they pay ${Math.round((hg.mult - 1) * 100)}% more today` : hg.n === 1 ? 'word got round: 20% less for your catch, everything else 10% dearer' : 'they are offended: 10% less today') : 'a talk roll, once a day: 12 or more'}</small></div>${hg ? '' : '<button id="haggle">Roll</button>'}</div>`;
-    html += `<div class="qrow"><div><b>${pxi('fish')} Fish</b><br><small>${state.catch.length ? `${state.catch.length} in the hold` : 'none: slow down and press C at sea'}</small></div>${state.catch.length ? `<button id="sellFish">+${fishVal}g</button>` : ''}</div>`;
-    html += `<div class="qrow"><div><b>${pxi('banana')} Fruit</b><br><small>${fruitList.length ? fruitList.map(([f, n]) => `${n} ${plural(fruitName(f, rt.dread), n)}`).join(', ') : 'none: press E at jungle isles'}</small></div>${fruitList.length ? `<button id="sellFruit">+${fruitVal}g</button>` : ''}</div>`;
-    { // the Colour thread: the quiet buyer, and a market the colour has already reached
-      const cb = threads.c, hold = state.catch.filter((f) => f.bright), bv = Math.round(hold.reduce((a, f) => a + f.value, 0) * 2.2);
-      if (threads.touched(d)) html += '<small>The fish stalls are full of bright ones today. Nobody says where from.</small>';
-      if (cb && hold.length && !cb.end) html += `<div class="sec">A QUIET BUYER</div><div class="qrow"><div><b>${pxi('fish')} The bright ones</b><br><small>a stranger in a grey coat would take ${hold.length} off your hands at more than twice the price, and not ask where</small></div><button id="sellBright">+${bv}g</button></div>`;
-    }
-    if (unlocked(state, 'cannons')) html += `<div class="sec">BUY</div><div class="qrow"><div><b>${pxi('ball')} 10 cannonballs</b><br><small>you have ${state.ammo}</small></div><button id="buyAmmo" ${state.gold >= ammoCost ? '' : 'disabled'}>${ammoCost}g</button></div>`;
-    if (oilOn()) { const kc = Math.ceil(35 * discount(rep) * costMul()); html += `<div class="sec">SAILCLOTH</div><div class="qrow"><div><b>${pxi('sail')} Sail patch kit</b> <span class="kits">${[0, 1, 2].map((k) => `<i class="${k < state.patchKits ? 'on' : ''}"></i>`).join('')}</span><br><small>${state.patchKits} aboard, room for 3: mends a torn sail at sea</small></div>${state.patchKits < 3 ? `<button id="buyKit" ${state.gold >= kc ? '' : 'disabled'}>${kc}g</button>` : '<button disabled>Full</button>'}</div>`; }
-    if (oilOn()) { const { need, cost } = buyOil(discount(rep) * costMul()); html += `<div class="sec">LAMP OIL</div><div class="qrow"><div><b>${pxi('lamp')} Fill the lantern</b><span class="gauge"><i style="width:${Math.round(state.oil / oilCap(state.upgrades) * 100)}%"></i></span><br><small>${Math.round(state.oil)} of ${oilCap(state.upgrades)}: it burns at night, in fog and in storms</small></div>${need >= 1 ? `<button id="buyOil" ${state.gold >= cost ? '' : 'disabled'}>${cost}g</button>` : '<button disabled>Full</button>'}</div>`; }
-    { // the paper comes in on the Friday boat: one copy a week (newspaper.js)
-      const cp = paper.thisWeeks(state);
-      html += `<div class="sec">THE PAPER</div>`;
-      if (cp) html += `<div class="qrow"><div><b>${pxi('letter')} ${cp.stage >= 4 ? 'The Tidings' : 'The Harbour Tidings'}</b><br><small>this week's, bought in ${cp.at}</small></div><button id="readPaper">Read</button></div>`;
-      else if (paper.onSale(state)) html += `<div class="qrow"><div><b>${pxi('letter')} The Harbour Tidings</b><br><small>the weather, a face from the harbour, the news</small></div><button id="buyPaper" ${state.gold >= paper.PAPER_COST ? '' : 'disabled'}>${paper.PAPER_COST}g</button></div>`;
-      else html += `<small>The paper comes in on ${paper.nextLine(state)}.</small>`;
-    }
-    html += `<div class="sec">SHIPYARD</div><div class="qrow"><div><b>${pxi('paint')} Paint, sails, pennants, figureheads</b></div><button id="openYard">Open</button></div>`;
-    pane.innerHTML = html;
-    { const bk = $('buyKit'); if (bk) bk.addEventListener('click', () => { const kc = Math.ceil(35 * discount(rep) * costMul()); if (state.gold < kc || state.patchKits >= 3) return; state.gold -= kc; state.patchKits++; audio.play('buy'); renderHarbour(); }); }
-    { const bo = $('buyOil'); if (bo) bo.addEventListener('click', () => { const { cost } = buyOil(discount(rep) * costMul()); if (state.gold < cost) return; state.gold -= cost; state.oil = oilCap(state.upgrades); audio.play('buy'); toast('The lantern is full.', false, 2500); renderHarbour(); }); }
-    const sf = $('sellFish'); if (sf) sf.addEventListener('click', () => { state.gold += fishVal; toast(`Sold ${state.catch.length} fish for ${fishVal} gold.`);
-      if (state.story.hook === 'aboard' && state.catch.some((c) => c.hooked)) { state.story.hook = 'sold'; setTimeout(() => toast('"Second one this week," says the fishmonger, and drops the hook in a jar.', false, 7000), 1600); } state.catch = []; audio.play('buy'); renderHarbour(); });
-    const sb = $('sellBright'); if (sb) sb.addEventListener('click', () => {
-      const cb = threads.c, hold = state.catch.filter((f) => f.bright), v = Math.round(hold.reduce((a, f) => a + f.value, 0) * 2.2);
-      state.gold += v; state.catch = state.catch.filter((f) => !f.bright); if (cb) cb.end = 'sold'; addMark('salt');
-      toast(`+${v} gold. He does not weigh it. He lifts it once, nods, and is not on the quay when you look again.`, false, 8000); audio.play('buy'); renderHarbour(); });
-    const sfr = $('sellFruit'); if (sfr) sfr.addEventListener('click', () => { state.gold += fruitVal; toast(`Sold fruit for ${fruitVal} gold.`); state.fruit = {}; audio.play('buy'); renderHarbour(); });
-    if ($('buyAmmo')) $('buyAmmo').addEventListener('click', () => { if (state.gold < ammoCost) return; state.gold -= ammoCost; state.ammo += 10; audio.play('buy'); renderHarbour(); });
-    $('openYard').addEventListener('click', () => openModal('yard'));
-    { const bp = $('buyPaper'); if (bp) bp.addEventListener('click', () => {
-      if (state.gold < paper.PAPER_COST || paper.thisWeeks(state) || !paper.onSale(state)) return;
-      const fac = sectorAt(d.x, d.z, state.seed).faction;
-      state.gold -= paper.PAPER_COST;
-      const p = life.lifeOf(state).paper = paper.printPaper(state, d, { dread: rt.dread, faction: fac.id, factionName: fac.name, frontOn: unlocked(state, 'passengers') });
-      rt.hbPaper = true; audio.play('buy'); toast(paper.BUY_LINE[p.stage], p.stage >= 3, 4000); renderHarbour(); }); }
-    { const rp = $('readPaper'); if (rp) rp.addEventListener('click', () => { rt.hbPaper = true; audio.play('ui', { vol: 0.3 }); renderHarbour(); }); }
-    const hgb = $('haggle'); if (hgb) hgb.addEventListener('click', () => {
-      rollCheck(state, { label: 'Talk', kind: 'talk', dc: 12, harbour: d.id, extra: lvl ? [['standing', lvl]] : [] }, (ok, n) => {
-        state.haggle = { id: d.id, day: state.dayN, n, mult: ok ? (n === 20 ? 1.5 : 1.3) : n === 1 ? 0.8 : 0.9 };
-        toast(ok ? 'The fishmonger laughs and gives in.' : n === 1 ? 'The fishmonger spits on the planks. By noon the whole harbour has heard.' : 'The fishmonger folds their arms. Prices just got worse.', false, 4000); if (rt.harbourIsl) renderHarbour(); }); });
-  } else if (rt.hbTab === 'tavern') {
-    if (lifeOn()) {   // the house dish, the local game, and the old story this harbour keeps (harbourlife.js)
-      const dish = life.DISHES[d.style] || life.DISHES.classic, cur = life.meal(state), dc = Math.ceil(dish.cost * costMul());
-      html += `<div class="sec">THE HOUSE DISH</div><div class="qrow"><div><b>${pxi('fish')} ${dish.name}</b><br><small>${dish.text}, until the dawn after next${cur ? ` · you have eaten: ${Object.values(life.DISHES).find((x) => x.id === cur).name}` : ''}</small></div><button id="eatDish" ${state.gold >= dc && cur !== dish.id ? '' : 'disabled'}>${cur === dish.id ? 'Full' : `${dc}g`}</button></div>`;
-      const gm = life.gameOf(d), played = life.playedToday(state, d), ev = life.isEvent(d, state);
-      html += `<div class="sec">${ev ? gm.event.toUpperCase() + ' (TODAY)' : 'THE LOCAL GAME'}</div><div class="qrow"><div><b>${pxi('pip')} ${gm.name}</b><br><small>${played ? 'you have played here today' : `${gm.how} · stake 5g · ${ev ? 'double prizes today' : `double on ${life.WEEKDAYS[d.festival]}`}`}</small></div><button id="playLocal" ${!played && state.gold >= 5 ? '' : 'disabled'}>Play</button></div>`;
-      const fr = life.fragmentAt(state, d, state.goals.i >= 12);
-      if (fr && !fr.locked) html += `<div class="sec">AN OLD STORY</div><div class="qrow letter"><div><b>${pxi('talk')} ${fr.src}</b><br><small>the locals know you now</small></div><button id="takeFrag">Listen</button></div>`;
-    }
-    { // rooms are let from 17:00, you wake at 06:00 with the hull mended
-      const hour = state.time * 24, open = hour >= 17 || hour < 5, bedCost = Math.ceil(8 * discount(rep) * costMul());
-      html += `<div class="sec">ROOMS</div><div class="qrow"><div><b>${pxi('bed')} A bed for the night</b><br><small>${open ? 'sleep until 06:00, the crew mends the hull' : 'rooms are let from 17:00'}</small></div><button id="restBed" ${open && state.gold >= bedCost ? '' : 'disabled'}>${bedCost}g</button></div>`;
-    }
-    { // the fishers at the quay will tell you where one kind bites, once a day per harbour: the only way to be told
-      const asked = state.fishAsk[d.id] === state.dayN, unheard = FISH.filter((f) => !f.dark && !state.fishHeard[f.id]);
-      html += `<div class="sec">AT THE QUAY</div><div class="qrow"><div><b>${pxi('fish')} Ask the fishers</b><br><small>${asked ? 'they have said what they will for today' : unheard.length ? 'where does anything bite?' : 'you have heard it all'}</small></div><button id="askFish" ${asked || !unheard.length ? 'disabled' : ''}>Ask</button></div>`;
-    }
-    if (window.__BUILD !== 'demo' && laterOK()) { const cl = threads.clueLines(); if (cl.length) html += `<div class="sec">OVERHEARD</div><small>${cl[Math.abs(hash2(d.seed, state.dayN, 5)) % cl.length]}</small>`; }
-    if (unlocked(state, 'crew')) { // hands for hire, and dice with the locals
-      const hand = crewForHire(d, state.dayN, state, world);
-      html += '<div class="sec">AT THE TABLES</div>';
-      if (hand && !state.crew.some((c) => c.name === hand.name)) html += `<div class="qrow"><div><b>${pxi('talk')} ${hand.name}, ${hand.look}</b><br><small>${TRAITS[hand.trait].name}: ${TRAITS[hand.trait].text} · ${hand.wish.text} · stays ${hand.stay || 4} days</small></div><button id="hireHand" ${state.gold >= hand.cost && state.crew.length < 2 ? '' : 'disabled'}>${state.crew.length < 2 ? `Hire ${hand.cost}g` : 'Crew full'}</button></div>`;
-      for (const c of state.crew) html += c.permanent ? `<div class="qrow"><div><b>${pxi('talk')} ${c.name}</b> <small>(${TRAITS[c.trait].name}, stays)</small></div></div>` : `<div class="qrow"><div><b>${pxi('talk')} ${c.name}</b> <small>(${TRAITS[c.trait].name}, ${daysLeft(c)} days left)</small></div><button data-dismiss="${c.name}">Let go</button></div>`;
-      html += `<div class="qrow"><div><b>${pxi('pip')} Dice with the locals</b><br><small>first to 30 · stake 10g</small></div><button id="playPig" ${state.gold >= 10 ? '' : 'disabled'}>Sit down</button></div>`;
-      rt.pendingHand = hand;
-    } else html += '<small>A fiddler, a fire, a lot of very old chairs. Nobody here knows you yet.</small>';
-    pane.innerHTML = html;
-    { const ed = $('eatDish'); if (ed) ed.addEventListener('click', () => { const dish = life.DISHES[d.style] || life.DISHES.classic, dc = Math.ceil(dish.cost * costMul()); if (state.gold < dc) return; state.gold -= dc; toast(`${dish.name}. ${life.eat(state, d)} (${dish.text})`, false, 7000); audio.play('buy'); renderHarbour(); }); }
-    { const pl = $('playLocal'); if (pl) pl.addEventListener('click', () => {
-      if (state.gold < 5 || life.playedToday(state, d)) return; state.gold -= 5; const isl = rt.harbourIsl, gm = life.gameOf(d);
-      openModal('local'); rt.harbourIsl = isl;
-      localGames.open(gm.id, life.isEvent(d, state) ? gm.event.toUpperCase() : gm.name.toUpperCase(), (tier, finished) => {
-        const pr = life.gamePrize(d, state, finished ? tier : 0);
-        if (pr.gold) state.gold += pr.gold + 5;
-        if (pr.ev && tier === 2) life.news(state, 'game', { where: d.name, game: gm.event, at: d.id });
-        setTimeout(() => { rt.harbourIsl = isl; rt.hbTab = 'tavern'; if (rt.modal === 'local' || !rt.modal) { closeModal(true); rt.harbourIsl = isl; openModal('harbour'); }
-          if (pr.gold) toast(`+${pr.gold + 5} gold${pr.ev ? ' (festival prize)' : ''}${pr.keep ? `. And a keepsake: ${pr.keep.name}.` : ''}`, false, 6000); }, 30);
-      }); }); }
-    { const tf = $('takeFrag'); if (tf) tf.addEventListener('click', () => { const fr = life.fragmentAt(state, d, true); if (!fr || fr.locked) return; const n = life.takeFragment(state, d, fr);
-      toast(fr.text, true, 14000); setTimeout(() => toast(`Written in your journal. (${n} of ${life.FRAG_TOTAL} old stories)`, false, 5000), 1500); audio.play('ui'); renderHarbour(); }); }
-    $('restBed').addEventListener('click', () => restAtTavern(Math.ceil(8 * discount(rep) * costMul())));
-    const af = $('askFish'); if (af) af.addEventListener('click', () => {
-      const cl = threads.c;
-      if (cl && !cl.found && !cl.rumoured && state.fishAsk[d.id] !== state.dayN && Math.random() < 0.5) { cl.rumoured = true; state.fishAsk[d.id] = state.dayN; toast(`A fisher at the quay: "Out by ${cl.src.name} the water has gone a shade I have no word for. The fish there are too big. Nobody has eaten one twice."`, false, 11000); audio.play('ui'); renderHarbour(); return; }
-      const unheard = FISH.filter((f) => !f.dark && !state.fishHeard[f.id]); if (!unheard.length || state.fishAsk[d.id] === state.dayN) return;
-      const f = unheard[Math.floor(Math.random() * unheard.length)];
-      state.fishHeard[f.id] = true; state.fishAsk[d.id] = state.dayN;
-      toast(`A fisher at the quay: "${HABITAT[f.id].say}" (Fisherman's log)`, false, 9000); audio.play('ui'); renderHarbour();
-    });
-    const hh = $('hireHand'); if (hh) hh.addEventListener('click', () => {
-      const h = rt.pendingHand; if (!h || state.gold < h.cost || state.crew.length >= 2) return;
-      state.gold -= h.cost; signOn(h, h.stay || 4); audio.play('buy'); toast(`${h.name} signs on. ${h.name} nods once and says nothing.`, false, 5000); objectives.remark('crew', rt.dread); renderHarbour(); });
-    pane.querySelectorAll('[data-dismiss]').forEach((b) => b.addEventListener('click', () => { state.crew = state.crew.filter((c) => c.name !== b.dataset.dismiss); toast(`${b.dataset.dismiss} goes ashore with a small wave.`); renderHarbour(); }));
-    if ($('playPig')) $('playPig').addEventListener('click', () => { if (state.gold < 10) return; state.gold -= 10; state.stats.pig = (state.stats.pig || 0) + 1; const isl = rt.harbourIsl; openModal('pig'); rt.pigHome = isl; pig.start(LOCALS[Math.floor(Math.random() * LOCALS.length)], 10); });
-  } else {
-    if (rt.hbShipLine) html += `<p class="quote">${rt.hbShipLine}</p>`;
-    html += priceNote();   // the shipwright talks here, not over the welcome
-    // one card per upgrade: icon, level, what you have, what the next level gives, what it opens up, the price
-    html += '<div class="upgrid">' + UPGRADES.map((u) => {
-      const lv = state.upgrades[u.id], maxed = lv >= MAX_LEVEL, C = UP_CARD[u.id] || {};
-      const cost = maxed ? 0 : upCost(u, lv, rep), can = !maxed && state.gold >= cost, opens = !maxed && C.opens && C.opens[lv + 1];
-      const now = lv ? u.text[lv - 1].split(':')[0] : C.stock;
-      const pips = Array.from({ length: MAX_LEVEL }, (_, k) => `<i class="${k < lv ? 'on' : ''}${k === lv - 1 && rt.upFlash === u.id ? ' pop' : ''}"></i>`).join('');
-      return `<div class="upc${maxed ? ' max' : ''}${can ? '' : ' poor'}${rt.upFlash === u.id ? ' bought' : ''}">
-        <div class="upi">${pxi(C.icon || 'sail')}</div>
-        <div class="upb"><div class="upt"><b>${u.name}</b><span class="lvp">${pips}</span></div>
-          <div class="upnow">Now: ${now}</div>
-          ${maxed ? '<div class="upnext done">The finest there is.</div>' : `<div class="upnext">${u.text[lv]}</div>`}
-          ${opens ? `<div class="upopen">${pxi('open')}${opens}</div>` : ''}</div>
-        <div class="upbuy">${maxed ? '<span class="upmax">MASTERWORK</span>' : `<button data-id="${u.id}" ${can ? '' : 'disabled'}>${pxi('coin')}${cost}</button>${can ? '' : `<small class="short">${cost - state.gold} short</small>`}`}</div>
-      </div>`;
-    }).join('') + '</div>';
-    pane.innerHTML = html;
-    pane.querySelectorAll('button[data-id]').forEach((b) => b.addEventListener('click', () => buyUpgrade(b.dataset.id)));
-    rt.upFlash = null;
-  }
-  lockPane(state, $('hbPane'));   // what the story has not reached yet is greyed out (gates.js)
-  tutorialMarks();
-}
-$('hbTabs').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b || !rt.harbourIsl) return; if (b.dataset.t === 'sail') { closeModal(); return; } if (!isOpen(state, 'tab', b.dataset.t)) return; rt.hbTab = b.dataset.t; rt.hbPaper = false; (state.story.uiSeen || (state.story.uiSeen = {}))[rt.hbTab] = true; audio.play('ui', { vol: 0.4 }); renderHarbour(); });
-// a red number on a sign when something waits there
-// the tutorial marks the sign (and the button) the current goal needs; goals later in the story carry no mark at all
-const tutorialGoal = () => { const g = objectives.current; if (!g || !g.tab) return null; try { if (g.check({ state, ship, world })) return null; } catch (e) { /* not checkable yet */ } return g; };   // a goal already done carries no mark
-// someone at this harbour asking for passage (the board shows them; the same one every time you look today)
-function passengerAt(d) {
-  return !state.passenger && unlocked(state, 'passengers') && makePassenger(world, d, (state.serial[d.id + '#p'] || 0) + state.dayN * 7, !!(objectives.current && objectives.current.id === 'passenger'));
-}
-function tutorialMarks() {
-  let g = tutorialGoal();
-  if (g && g.id === 'job' && state.job && rt.harbourIsl && state.job.toId !== rt.harbourIsl.desc.id) g = null;   // accepted already: nothing to press here
-  if (g && g.id === 'dig' && (state.story.letterP1 !== 'wait' || !rt.harbourIsl || rt.harbourIsl.desc.id !== '0,-1')) g = null;   // only while Perrin's letter waits, and only at Tama
-  // always marked, tutorial or not: a letter waiting for you here (Perrin's), and a passenger asking for passage. Both sit on the board
-  const always = rt.harbourIsl ? [...(lettersAt(rt.harbourIsl.desc).length ? ['takeLetter'] : []), ...(passengerAt(rt.harbourIsl.desc) && isOpen(state, 'btn', 'takePass') && !(state.stats.passengers || 0) && !state.passenger ? ['takePass'] : [])] : [];
-  const seen = state.story.uiSeen || (state.story.uiSeen = {});
-  $('hbTabs').querySelectorAll('.post').forEach((b) => {
-    const t = b.dataset.t, open = isOpen(state, 'tab', t);
-    b.classList.toggle('locked', !open);
-    b.classList.toggle('fresh', open && t !== 'board' && t !== 'sail' && !seen[t]);   // just opened: it glows until you look inside once
-    b.classList.toggle('next', open && ((!!g && t === g.tab) || (always.length > 0 && t === 'board')));
-  });
-  $('hbPane').querySelectorAll('.hl').forEach((e) => e.classList.remove('hl'));
-  if (rt.hbTab === 'board') for (const id of always) { const el = $(id); if (el && !el.disabled && !el.classList.contains('locked')) el.classList.add('hl'); }
-  if (!g || rt.hbTab !== g.tab) return;
-  for (const id of g.mark || []) {
-    const el = id === 'buy' ? $('hbPane').querySelector('button[data-id]:not([disabled]):not(.locked)') : $(id);
-    if (el && !el.disabled && !el.classList.contains('locked')) el.classList.add('hl');
-  }
-}
-// a control the story has not opened yet (gates.js) still answers a click: one short line, and nothing else happens
-document.addEventListener('click', (e) => {
-  const el = e.target.closest && e.target.closest('.locked'); if (!el) return;
-  e.preventDefault(); e.stopImmediatePropagation();
-  const sign = el.closest('#hbTabs'), tab = el.closest('#logTabs');
-  toast(tab ? 'Those pages are still blank.' : sign ? `The ${(el.firstChild ? el.firstChild.textContent : 'door').trim().toLowerCase()} is shut to us for now. It opens later in the voyage.` : 'Not yet. This opens later in the voyage.', false, 2600);
-  audio.play('ui', { vol: 0.25 });
-}, true);
-// pressing a marked button clears every mark at once (the goal catches up a moment later)
-$('hbPane').addEventListener('click', (e) => { if (e.target.closest('.hl')) { $('hbPane').querySelectorAll('.hl').forEach((x) => x.classList.remove('hl')); $('hbTabs').querySelectorAll('.next').forEach((x) => x.classList.remove('next')); } }, true);
-// ---- letters: Perrin's riddle and his notes wait at the Tama board as a letter. Nothing is handed over until the player takes it.
-function lettersAt(d) {
-  const out = [];
-  if (d.id === '0,-1') {
-    if (state.story.letterP1 === 'wait') out.push({ key: 'letterP1', title: 'A letter from Old Perrin', sub: 'sealed, left with the harbourmaster' });
-    if (state.story.letterP2 === 'wait') out.push({ key: 'letterP2', title: 'Another letter from Old Perrin', sub: 'the harbourmaster waves it at you' });
-  }
-  return out;
-}
-// ---- ship's companions: a stray cat on the pier and a gull on a piling. Optional, harbour events, never needed for anything.
-const PETS = {
-  cat: { title: 'A ginger cat on the pier', sub: 'she has been watching your ship all morning', btn: 'Take her aboard', toast: 'The cat steps aboard as if she had paid for the ticket.' },
-  gull: { title: 'A gull on the piling', sub: 'it eyes your catch and not much else', btn: 'Offer a fish', toast: 'The gull hops onto the rail. It has opinions about your sailing.' },
-};
-const companions = {};
-function addCompanion(kind) { if (!companions[kind]) companions[kind] = new Companion(ship, kind, hash2(state.seed, kind === 'cat' ? 5 : 6, 1)); return companions[kind]; }
-/** which companion (if any) waits at this harbour: Tama has the cat, Velto the gull, other harbours roughly two in seven */
-function petOffer(d) {
-  if (!laterOK()) return null;
-  const own = state.story.pets || {};
-  const k = d.id === '0,-1' ? 'cat' : d.id === '-2,-1' ? 'gull' : [ 'cat', 'gull' ][hash2(d.seed, 31, 7) % 7];
-  return k && PETS[k] && !own[k] ? k : null;
-}
-function takePet(kind) {
-  state.story.pets = { ...(state.story.pets || {}), [kind]: 1 };
-  addCompanion(kind); audio.play('discover'); toast(PETS[kind].toast, false, 6000); autosave();
-}
-for (const k of Object.keys(state.story.pets || {})) if (PETS[k]) addCompanion(k);   // companions from an earlier session
-rt.openLetter = null;   // the letter just taken lies open on the board until the captain leaves the harbour
-function takeLetter(key) {
-  state.story[key] = 'taken'; audio.play('ui');
-  const mate = objectives.mate;
-  if (key === 'letterP1') {
-    giveMap('1,-1', 'Old Perrin', true, true);   // no pile of text: Mara asks what you have, then sends you to the log
-    rt.openLetter = { from: 'Old Perrin', text: `“${state.riddles['1,-1'] || ''}”` };
-    mate.say('A letter? What have you got there, Captain?'); mate.say('He has sent you a riddle. Press M and open your orders to read it.'); rt.logTab = 'riddles';
-    state.story.tabMark = 'riddles'; state.story.riddleLine = 'wait';
-  } else if (key === 'letterP2') {
-    perrinNote(true);
-    { const n = state.notes[state.notes.length - 1]; if (n) rt.openLetter = { from: 'Old Perrin', text: n.text.replace(/^Perrin: /, '') }; }
-    mate.say('Another letter from Perrin? Open your log with M: it is at the top of the Ship\'s book.'); rt.logTab = 'journal';
-    state.story.tabMark = 'journal'; state.story.noteLine = 'wait';
-  }
-}
-/** the log was opened on a tab: if Mara sent you there, she answers (once) and the mark goes */
-function tabOpened(tab) {
-  const st = state.story;
-  if (st.tabMark === tab) st.tabMark = null;
-  if (tab === 'riddles' && st.riddleLine === 'wait') { st.riddleLine = 'done'; objectives.say('Perrin and his riddles! Find the shore it describes, then stop there and press E.'); }
-  if (tab === 'journal' && st.noteLine === 'wait') { st.noteLine = 'done'; objectives.say('He wants us to check his chart. Read the note, then go and look.'); }
-}
-function postBadges(d, rep) {
-  let due = (state.job && state.job.toId === d.id ? 1 : 0) + (state.passenger && state.passenger.toId === d.id ? 1 : 0);
-  due += state.quests.filter((x) => x.giverId === d.id && questProgress(x, state) >= questNeed(x)).length;
-  const goods = state.catch.length + Object.values(state.fruit).reduce((a, n) => a + n, 0);
-  const canUp = UPGRADES.some((u) => state.upgrades[u.id] < MAX_LEVEL && state.gold >= upCost(u, state.upgrades[u.id], rep));
-  const set = (t, v) => { $('hbTabs').querySelector(`[data-t="${t}"] em`).textContent = v || ''; };
-  set('board', due); set('market', goods);
-  if (lettersAt(d).length) $('hbTabs').querySelector('[data-t="board"] em').innerHTML = pxi('letter');   // a little letter on the sign set('tavern', ''); set('wright', canUp ? '!' : ''); set('sail', '');
-}
-// one quiet line when the Lady's last throw moved the prices; nobody says why
-const priceNote = () => { const k = dreamCost(); return k > 1 ? '<small>Prices are up today. Nobody says why.</small>' : k < 1 ? '<small>Prices are down today. Everyone seems to have slept well.</small>' : ''; };
-rt.harbourLine = '', rt.hbShipLine = '';
-// the greeting: a villager's line types out in a box like Mara's, then the harbour menu comes up
-rt.greetNow = null;
-function showGreeting(d, say) {
-  const isl = rt.harbourIsl;
-  openModal('greet'); rt.harbourIsl = isl;
-  greetEl.classList.toggle('dark', !!say.dark);
-  $('grName').textContent = d.name; $('grFace').src = portrait(say.speaker); $('grWho').textContent = speakerName(say.speaker);
-  $('grTxt').textContent = ''; $('grMore').classList.remove('on');
-  rt.greetNow = { say, shown: 0, timer: setInterval(() => {
-    const t = rt.greetNow.say.text; rt.greetNow.shown++; greetText(t.slice(0, rt.greetNow.shown), say.slow);
-    if (rt.greetNow.shown % 3 === 1 && /[A-Za-z0-9]/.test(t[rt.greetNow.shown - 1] || '')) audio.blip(!!say.dark, true);   // the villager's voice, softly
-    if (rt.greetNow.shown >= t.length) { clearInterval(rt.greetNow.timer); rt.greetNow.timer = null; $('grMore').classList.add('on'); }
-  }, say.slow ? 1300 : say.slowWord ? 320 : 34) };   // the stare: one dot at a time, slowly
-}
-function greetText(t, dots) {
-  if (dots) $('grTxt').innerHTML = '<i class="gdot"></i>'.repeat(t.length); else $('grTxt').textContent = t;
-}
-function greetAdvance() {
-  if (!rt.greetNow) return;
-  if (rt.greetNow.timer) { clearInterval(rt.greetNow.timer); rt.greetNow.timer = null; greetText(rt.greetNow.say.text, rt.greetNow.say.slow); $('grMore').classList.add('on'); return; }
-  const said = rt.greetNow.say; rt.greetNow = null;
-  if (said.endsDemo && state.story.demoEnd === 'pending') {   // someone spoke of the throw: that is where the demo ends
-    state.story.demoEnd = 'done'; closeModal(); setTimeout(showDemoEnd, 1800); return;
-  }
-  const isl = rt.harbourIsl; closeModal(true); rt.harbourIsl = isl;
-  $('hbSaid').textContent = ''; { const q = $('hbLine'); q.textContent = said.slow ? '' : `"${said.text}"`; q.style.display = said.slow ? 'none' : 'block'; }   // the line stays at the top of the board panel while you are ashore
-  openModal('harbour');
-}
-$('grBox').addEventListener('click', () => greetAdvance());
-
-rt.upFlash = null;   // the card just bought: it flashes gold once
-function buyUpgrade(id) {
-  const u = UPGRADES.find((x) => x.id === id), lv = state.upgrades[id];
-  const cost = u && lv < MAX_LEVEL ? upCost(u, lv, repOf(state, rt.harbourIsl.desc.id)) : 0;
-  if (!u || lv >= MAX_LEVEL || state.gold < cost) return;
-  state.gold -= cost;
-  state.upgrades[id] = lv + 1;
-  refreshMods();
-  if (id === 'hull') state.hp = ship.mods.maxHp;
-  audio.play('buy');
-  toast(`${u.name} upgraded to level ${lv + 1}`, rt.dread > 0.5);
-  rt.upFlash = id; renderHarbour();
-  { const gEl = $('hbGold'); gEl.classList.remove('spent'); void gEl.offsetWidth; gEl.classList.add('spent'); }
-}
+initHarbour();   // (ui/harbour.js)
 
 // ---------------------------------------------------------------- compass & HUD
 const windView = { dir: 0, strength: 1, gust: 0, floor: 0.27 };
@@ -1598,126 +1200,7 @@ $('endGo').addEventListener('click', () => {
   }
   if (ENDINGS[e.id].mara) objectives.mate.say(ENDINGS[e.id].mara);
 });
-// ---------------------------------------------------------------- hailing other ships
-function localStanding(x, z) {
-  let max = 0, sum = 0;
-  for (const [id, r] of Object.entries(state.rep)) {
-    const [cx, cz] = id.split(',').map(Number), d = world.desc(cx, cz);
-    if (!d || Math.hypot(d.x - x, d.z - z) > 450) continue;
-    const l = friendLevel(r); max = Math.max(max, l); sum += l;
-  }
-  return { max, sum };
-}
-const hailChance = (sh) => { const st = localStanding(sh.x, sh.z); return clamp(0.28 + 0.14 * st.max + 0.03 * Math.min(6, st.sum) + sh.faction.mood, 0.1, 0.88); };
-const REFUSALS = ['The crew glances at you and looks away.', 'A sailor waves you off. They are not in the mood.', 'The captain pretends not to hear you.', 'They hoist a little more sail and leave you behind.'];
-
-function hailShip(sh) {
-  const rng = mulberry32(sh.seed);
-  state.stats.hails++;
-  if (sh.hostile && sh.hp > 0) { sh.state = 'open'; rt.tradeShip = sh; openModal('ship'); return; }
-  if (sh.special === 'regatta') { sh.state = 'done'; toast('They wave without slowing down. It is a race, and they are winning.', false, 5000); return; }
-  if (sh.special === 'market') { sh.state = 'open'; rt.tradeShip = sh; openModal('ship'); return; }
-  if (sh.mode === 'derelict') {
-    sh.state = 'done';
-    const loot = abyss.wrongLoot(lootFor(rng, rt.dread), state); loot.value = Math.round(loot.value * 0.6);
-    loot.name = `From the drifting ${KINDS[sh.kind].label}: ${loot.name}`;
-    state.gold += loot.value; state.loot.push(loot);
-    toast(`You board the empty ship and find: ${loot.name} (+${loot.value}g)`, true, 7000);
-  } else if (sh.mode === 'ghost') {
-    sh.state = 'done';
-    toast('Your hail comes back as your own voice, from a very long way off.', true, 6000);
-  } else if (sh.roll < hailChance(sh)) {
-    sh.state = 'open'; rt.tradeShip = sh; openModal('ship');
-  } else {
-    sh.state = 'refused';
-    const hint = localStanding(sh.x, sh.z).max < 1 ? ' (Perhaps they would listen if you were better known in these waters.)' : '';
-    toast(REFUSALS[Math.floor(rng() * REFUSALS.length)] + hint, false, 6000);
-  }
-}
-
-const FACTION_GREET = {
-  crown: 'Ahoy! The Crown Traders always have time for honest custom.',
-  free: 'The Free Cays welcome you, friend! Come aboard, metaphorically.',
-  reef: 'Make it quick. We have somewhere to be, and none of it is here.',
-  lantern: 'The Lantern Guild keeps the lamps burning. State your business.',
-};
-function shipOffers(sh) {
-  if (sh.offers) return sh.offers;
-  if (sh.hostile) return (sh.offers = [
-    { id: 'tribute', label: 'Pay tribute', cost: 30 + Math.round(KINDS[sh.kind].scale * 15), desc: 'they take the coin and let you pass in peace', used: false },
-    { id: 'bluff', label: 'Bluff', cost: 0, desc: 'they may believe you have a fleet behind you (45%)... or open fire', used: false },
-    { id: 'defy', label: 'Defy them', cost: 0, desc: 'press Space to fire once they are in range', used: false },
-  ]);
-  if (sh.special === 'market') return (sh.offers = [
-    { id: 'sellall', label: 'Sell your catch aboard', cost: 0, desc: 'fish and fruit fetch a third more than ashore', used: false },
-    { id: 'mchart', label: 'A hand-drawn chart', cost: 25, desc: 'the islands round here, as the traders know them', used: false },
-    { id: 'oddment', label: 'An oddment from the back', cost: 12, desc: 'nobody remembers where it came from', used: false },
-  ]);
-  const rng = mulberry32(sh.seed + 11), pool = [];
-  if (findRumour(world, { x: sh.x, z: sh.z }, state)) pool.push({ id: 'chart', label: 'Sea-chart scrap', cost: 35, desc: 'marks a treasure isle on your map' });
-  pool.push({ id: 'supplies', label: 'Fresh supplies', cost: 25, desc: '+15% speed for 3 minutes' });
-  pool.push({ id: 'rum', label: 'Rum rations', cost: 20, desc: 'your crew digs 30% faster for 3 minutes' });
-  pool.push({ id: 'news', label: 'Swap news', cost: 0, desc: 'a forecast and a rumour of the sea' });
-  pool.push({ id: 'tale', label: 'Swap tall tales', cost: 0, desc: 'you jot one down in your journal' });
-  if (nearby(world, sh.x, sh.z, 0, 700, 'harbour').length) pool.push({ id: 'message', label: 'Carry a message', cost: 0, desc: 'a delivery job for a nearby harbour' });
-  for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
-  sh.offers = pool.slice(0, 3).map((o) => ({ ...o, used: false }));
-  return sh.offers;
-}
-function renderShipTrade() {
-  const sh = rt.tradeShip;
-  $('shName').textContent = sh.name;
-  $('shLine').textContent = sh.special === 'market' ? 'A trader leans on the rail among the lanterns: "Everything must go. Everything always goes. Come aboard, captain."' : sh.hostile ? 'The raider captain grins: "Nice ship. Shame if something happened to it. A little tribute, perhaps?"' : (FACTION_GREET[sh.faction.id] || 'Ahoy!');
-  $('shGold').textContent = state.gold;
-  $('shList').innerHTML = shipOffers(sh).map((o, i) => `<div class="up"><div><span class="nm">${i + 1}. ${o.label}</span></div>
-    <button data-i="${i}" ${o.used || state.gold < o.cost ? 'disabled' : ''}>${o.used ? 'Done' : o.cost ? `${o.cost}g` : 'Free'}</button><div class="ds">${o.desc}</div></div>`).join('');
-  $('shList').querySelectorAll('button').forEach((b) => b.addEventListener('click', () => doOffer(parseInt(b.dataset.i, 10))));
-}
-function doOffer(i) {
-  const sh = rt.tradeShip, o = shipOffers(sh)[i];
-  if (!o || o.used || state.gold < o.cost) return;
-  const rng = mulberry32(sh.seed + 77 + i);
-  const idx = Math.min(4, Math.floor(rt.dread * 5));
-  if (o.id === 'sellall') {
-    const fish = state.catch.reduce((a, f) => a + f.value, 0) * 0.7, fruit = Object.entries(state.fruit).reduce((a, [f, n]) => a + FRUITS[f].price * n, 0) * 0.7, v = Math.round((fish + fruit) * 1.33);
-    if (!v) { toast('Nothing in the hold to sell. They are very polite about it.'); return; }
-    state.gold += v; state.catch = []; state.fruit = {}; toast(`Sold your hold aboard the market for ${v} gold.`); audio.play('buy');
-  } else if (o.id === 'mchart') {
-    const k = revealAround(sh.x, sh.z); toast(k ? `A hand-drawn chart: ${k} island${k > 1 ? 's' : ''} added to your map.` : 'You know these waters already. It is a lovely drawing.', false, 6000);
-  } else if (o.id === 'oddment') {
-    const odd = ['a brass button that is always cold', 'a spoon with a second, smaller bowl', 'a map of a room you have not been in', 'a bell the size of a thumb. It rings when nobody touches it'];
-    const it = odd[Math.floor(rng() * odd.length)]; state.loot.push({ name: `From the floating market: ${it}`, value: 0, dark: false }); toast(`An oddment: ${it}.`, false, 6000);
-  } else if (o.id === 'tribute') { sh.hostile = false; sh.engaged = false; toast('The raiders take your coin, grinning, and sail on.'); }
-  else if (o.id === 'bluff') {
-    if (Math.random() < 0.45) { sh.hostile = false; sh.engaged = false; toast('The raiders squint at the horizon, then think better of it.'); }
-    else { sh.fireCd = 0.3; toast('They laugh, and open fire!'); }
-  } else if (o.id === 'defy') { toast('You hoist your colours. Fire when ready (Space).'); }
-  else if (o.id === 'chart') {
-    const r = findRumour(world, { x: sh.x, z: sh.z }, state);
-    if (!r) return;
-    state.rumoured[r.d.id] = { name: r.d.name, x: Math.round(r.d.x), z: Math.round(r.d.z), source: `the ${sh.name}`, found: false };
-    toast(`Chart scrap: ${r.d.name} lies ${bearingName(r.d.x - sh.x, r.d.z - sh.z)} of here. It is marked on your map.`, false, 7000);
-  } else if (o.id === 'supplies') { state.buffs.speed = 180; toast('Fresh supplies stowed: the ship feels lighter.'); }
-  else if (o.id === 'rum') { state.buffs.dig = 180; toast('Rum rations handed out: the crew is in high spirits.'); }
-  else if (o.id === 'news') {
-    const lines = [wind.fromName ? `Winds from the ${wind.fromName}, they say, and shifting.` : '', weather.storm > 0.3 || weather.stormAhead > 0.3 ? 'Watch the evening sky. Red means a blow.' : weather.rain > 0.3 ? 'Rain all week out east.' : 'Fair skies for the next day or so.', tod.night > 0.5 ? 'Keep to the lit harbours after dark.' : 'Lighthouses burn only after dusk, so mind your hour.'];
-    toast(`News from the ${sh.name}: ${lines[Math.floor(rng() * lines.length)]}`, false, 7000);
-  } else if (o.id === 'tale') {
-    const text = bottleNote(rng, idx);
-    state.notes.push({ text, dark: idx >= 2 });
-    toast(`A tall tale, written in your journal: "${text}"`, idx >= 2, 8000);
-  } else if (o.id === 'message') {
-    if (state.job) { toast('You already have a delivery to make.'); return; }
-    const from = nearby(world, sh.x, sh.z, 0, 700, 'harbour').sort((a, b) => a.dist - b.dist)[0].d;
-    const j = makeJob(world, from, (state.serial[from.id] || 0) + 100 + sh.id);
-    if (!j) { toast('They have nothing to send right now.'); return; }
-    j.fromName = `the ${sh.name}`; j.reward = Math.round(j.reward * 0.8);
-    state.job = j;
-    toast(`Message taken: deliver ${j.item} to ${j.toName} (+${j.reward}g)`, j.dark, 7000);
-  }
-  state.gold -= o.cost; o.used = true;
-  renderShipTrade();
-}
+initShipTrade();   // (ui/shiptrade.js)
 
 // each village draws its chart in its own voice (a note goes into the journal)
 const CHART_NOTES = {
@@ -1773,43 +1256,7 @@ function discover(isl) {
   audio.play('discover');
 }
 
-// ---------------------------------------------------------------- shipyard (cosmetics)
-// ---- the shipyard: a turntable. Anything can be tried on first (owned or not); nothing is paid for until Buy.
-rt.yardTab = 'hull', rt.yardTry = null, rt.yardYaw = 0.9, rt.yardZoom = 1, rt.yardIdle = 0, rt.yardDrag = null;
-const yardSel = () => { const [g, , list] = GROUPS.find((x) => x[0] === rt.yardTab); return { g, list, o: byId(list, rt.yardTry[g]) }; };
-function renderYard() {
-  if (!rt.yardTry) rt.yardTry = { ...state.custom };
-  ship.setCustom(rt.yardTry);
-  $('yardGold').textContent = state.gold;
-  $('yardTabs').innerHTML = GROUPS.map(([g, label]) => `<button data-tab="${g}" class="${g === rt.yardTab ? 'on' : ''}">${label.replace('Hull paint', 'Hull').replace('Pennant colour', 'Colour').replace('Pennant shape', 'Shape').replace('Figurehead', 'Figure')}</button>`).join('');
-  const { g, list, o } = yardSel();
-  $('yardBody').innerHTML = `<div class="swatches">${list.map((x) => {
-    const key = `${g}:${x.id}`, owned = !x.cost || state.owned.has(key), locked = x.ok && !x.ok(state), on = rt.yardTry[g] === x.id;
-    const col = g === 'hull' ? x.upper : g === 'flag' ? x.color : g === 'sail' ? `rgb(${x.tint.map((v) => Math.min(255, v * 235) | 0)})` : '';
-    return `<button data-id="${x.id}" class="${on ? 'on' : ''}${locked ? ' lock' : ''}" title="${locked ? x.req : ''}">${col ? `<span class="dot" style="background:${col}"></span>` : ''}${x.name}${owned || locked ? '' : ` ${x.cost}g`}</button>`;
-  }).join('')}</div>`;
-  const key = `${g}:${o.id}`, owned = !o.cost || state.owned.has(key), locked = o.ok && !o.ok(state), worn = state.custom[g] === o.id;
-  $('yardTry').innerHTML = locked ? `${o.name}<small>Locked: ${o.req}</small>` : `${worn ? 'Wearing' : 'Trying'}: ${o.name}<small>${owned ? 'yours' : `${o.cost} gold`}</small>`;
-  const buy = $('yardBuy');
-  buy.textContent = owned ? 'Wear it' : `Buy ${o.cost}g`;
-  buy.disabled = locked || worn || (!owned && state.gold < o.cost);
-  $('yardBack').disabled = rt.yardTry[g] === state.custom[g];
-}
-$('yardTabs').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) { rt.yardTab = b.dataset.tab; audio.play('ui', { vol: 0.4 }); renderYard(); } });
-$('yardBody').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; rt.yardTry[rt.yardTab] = b.dataset.id; audio.play('ui', { vol: 0.3 }); renderYard(); });
-$('yardBuy').addEventListener('click', () => {
-  const { g, o } = yardSel(), key = `${g}:${o.id}`;
-  if (o.cost && !state.owned.has(key)) { if (state.gold < o.cost) return; state.gold -= o.cost; state.owned.add(key); state.stats.cosmetics++; audio.play('buy'); }
-  state.custom[g] = o.id; renderYard();
-});
-$('yardBack').addEventListener('click', () => { const { g } = yardSel(); rt.yardTry[g] = state.custom[g]; renderYard(); });
-const yardTurn = (d) => { rt.yardYaw += d; rt.yardIdle = 0; };
-$('yTurnL').addEventListener('click', () => yardTurn(-Math.PI / 2)); $('yTurnR').addEventListener('click', () => yardTurn(Math.PI / 2));
-$('yardClose').addEventListener('click', () => closeModal());
-yardEl.addEventListener('pointerdown', (e) => { if (e.target === yardEl) { rt.yardDrag = { x: e.clientX, yaw: rt.yardYaw }; yardEl.setPointerCapture(e.pointerId); } });
-yardEl.addEventListener('pointermove', (e) => { if (rt.yardDrag) { rt.yardYaw = rt.yardDrag.yaw - (e.clientX - rt.yardDrag.x) * 0.01; rt.yardIdle = 0; } });
-yardEl.addEventListener('pointerup', () => { rt.yardDrag = null; });
-yardEl.addEventListener('wheel', (e) => { rt.yardZoom = clamp(rt.yardZoom * (e.deltaY < 0 ? 0.92 : 1.08), 0.45, 1.8); e.preventDefault(); }, { passive: false });
+initShipyard();   // (ui/shipyard.js)
 
 // ---------------------------------------------------------------- combat helpers
 rt.lastHit = -99, rt.shake = 0;
