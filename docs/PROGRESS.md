@@ -1032,3 +1032,21 @@ Trials for the owner to compare; nothing changes without a flag and STYLE.md is 
   HUD while it runs (`body.edge`). Dev: `__game.edge()`.
 - Verified headless (full run): it triggers by itself at dread 0.92, every beat renders (screenshots), the helm comes back (sails out
   on W), no console errors. Not judged: the pacing in real time and how it sounds (headless runs at a tenth of real speed).
+
+## Design review fixes (2026-11-12)
+- **Log bookmarks** no longer slide: the old side-ribbon rule (`translateX(16px)` on the open tab) out-specified the new one; an equal
+  rule now keeps the tabs still (RULES 20). Measured: Chart and Orders at the same x on both pages.
+- **Fonts**: STYLE.md and RULES 22 now say what the game does since the owner's revert: DotGothic16 for interface text and headings,
+  Pirata One for the logo, harbour names, chart labels and the masthead (the pairing is switched off, not deleted).
+- **The Edge**: the dark is wide and deep enough that its ends never show (no slab between the statues); the hood has nothing in it (the
+  glowing eyes are gone), is peaked forward, the robe wide at the foot, sleeves over the hands; the head's open eye is larger; the spray is
+  pale streaks falling into the dark; the crest foam is low; the fog keeps the ship clear while it runs; the camera does not roll in its
+  shots; the shots keep the ship in frame; the white mist comes in stepped.
+- **The lost sailors**: proper hulls (pointed bows; the wreck's ragged gunwale and ribs), the rowboat's oars across it and its line ending
+  above the water (as the card says), the sandbar sunk and still with a pale scum ring; warm lanterns on the wreck's mast stump and on a
+  pole in the empty rowboat; they come closer (38-63) and off the bow, so they show in deep-dread fog.
+- **The diver**: the air hose is one run from the helmet into a loop on the water. STYLE.md's glimpse entry now describes the diver.
+- **Tama**: the boardwalk sits lower and closer to the beach; the dead branches of options A and C are gone.
+- **Title**: the "Enter to choose" hint sits on a dark plate at the bottom (it sat on the bobbing hull). "1 isle charted", singular.
+- Not changed (owner's call or another area): distances shown as units on the board and in Orders (RULES 15, gameplay text), the diver's
+  night visibility (it is a glimpse), the chart label over the ship marker.

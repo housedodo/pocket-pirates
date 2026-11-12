@@ -48,7 +48,7 @@ export function updateCamera(rawDt, live, ashore) {
   if (rt.camOverride) { camPos.set(...rt.camOverride.pos); camLook.set(...rt.camOverride.look); }
   camera.position.copy(camPos);
   camera.lookAt(camLook);
-  if (live || params.get('shot')) camera.rotateZ(G.abyss.roll(rt.tNow));
+  if ((live || params.get('shot')) && !rt.edge) camera.rotateZ(G.abyss.roll(rt.tNow));   // the Edge's shots stay level
   camera.updateMatrixWorld();
 }
 

@@ -78,8 +78,7 @@ purple and magenta cosmic horror as dread rises.
 - **Minigame variants** keep the same pixel ring and grid; only colours change: ring tint per water (wreck brown, night
   near-black, swell slate, deep navy, reef teal), red snag arcs; beach ground per kind (sand, grey shingle with grey
   stone dots, pale dunes, brown mud with dark sunk squares).
-- **The glimpse figure:** one tall thin dark shape with a pale featureless head blob, standing in the water. No eyes,
-  no glow, no fade: it is there, then it is not.
+- **The glimpse figure (the diver):** a rusted deep-sea diver standing upright on the water, once (`src/glimpse.js`, look `a`, 2026-11-12): a dented copper helmet with a cracked front glass and one side pane gone, rust running down a swollen canvas suit, lead boots, both arms hanging limp, the air hose in one run from the back of the helmet down into a loop on the water, cut and open. Scale 0.95 at about 48 off the bow; in view about 11 seconds. Nothing glows on him.
 
 ## 4. Colour and mood
 - The sea is low-poly and faceted: a fine wave mesh with small chop, light banded in ~6 steps by facing to the sun,
@@ -125,7 +124,7 @@ purple and magenta cosmic horror as dread rises.
   (`src/palette.js`).
 
 ## 5. Interface (HUD and menus)
-- **Two typefaces** (chosen 2026-11-11): **Pirata One** for titles, headings in the log and place names on the chart (24, 34 and 48 px); **Jersey 10** for all text, HUD included. Jersey 10 is drawn on a 10 px grid and loaded with `size-adjust: 125%`, so 16 px text lands on 20 screen pixels, two per font pixel. DotGothic16 stays bundled as the fallback. Never bold or italic, no blur filters on text; text without a background behind it gets `filter: url(#crisp)`. Both faces are bundled in `public/fonts` (SIL Open Font License).
+- **Typefaces** (2026-11-12, the owner reverted the 2026-11-11 pairing for now: Jersey 10 overlapped in the HUD and the log): **DotGothic16** for all interface text and headings (16 px grid: 16, 32, 48 px), HUD included. **Pirata One** stays for the title logo, the harbour name banner, the chart's harbour labels and the paper's masthead. The Pirata One + Jersey 10 pairing is kept switched off in `src/chartstyles.js` (`UI_FONT = null`, CSS block in index.html) to bring back later.
 - Panels (`.panel`): an 8x8 dithered navy tile (`--pxpanel`, shown at 32px), **no CSS border**. The frame is
   four hard box-shadows of 4px in `--pxedge` (gives notched pixel corners), a 4px pixel drop shadow,
   and 4px inset highlight/shade. Danger/horror panels set `--pxedge: #ff70d0`.

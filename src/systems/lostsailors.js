@@ -35,5 +35,5 @@ export function lostTick({ dt, dread, sighting, ship, world, quiet }) {
   const lost = state.story.lost || {}, next = ORDER.find((id) => lost[id] === undefined);
   if (!next) return;
   rt.lostT = 240 + Math.random() * 180;   // four to seven minutes apart; one left behind may come back later
-  sighting.spawn(LOST_CARDS[next], ship, world);
+  sighting.spawn(LOST_CARDS[next], ship, world, 38, 0.35);   // close (deep-dread fog) and off the bow, where its lantern can be seen
 }

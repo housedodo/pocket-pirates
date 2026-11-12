@@ -29,7 +29,7 @@ need to break one, stop and ask the owner. `docs/CANON.md` says what is true in 
 
 ## Look
 21. **`docs/STYLE.md` is the law for looks.** If the look changes on purpose, STYLE.md changes in the same commit.
-22. **Two typefaces only:** Pirata One for titles and place names, Jersey 10 for text (DotGothic16 is the fallback). Bundled in `public/fonts`, open licence, no web fonts at run time. Never bold or italic.
+22. **Two typefaces only:** DotGothic16 for interface text and headings (for now, 2026-11-12), Pirata One for the title logo, harbour names, the chart's harbour labels and the paper's masthead. (The Pirata One + Jersey 10 pairing is switched off, not deleted.) Bundled in `public/fonts`, open licence, no web fonts at run time. Never bold or italic.
 23. **The chart is an inked portolan:** painted means sailed; bare vellum elsewhere; ink sprites, no round badges. The bare paper stays quiet: it is reserved for a drawing in another hand.
 24. **Everything is procedural and pixel-crisp.** No image or model files. Half-resolution canvases shown pixelated; no anti-aliased strokes, no blur on text.
 

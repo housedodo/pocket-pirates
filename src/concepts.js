@@ -109,28 +109,30 @@ function edge(b, rng) {
     const l = 8 + rng() * 40, y = -1 - rng() * 6;
     near.box(x, y - l, -4.6 - (l / 40), 0.35 + rng() * 0.3, l, 0.25, rng() < 0.6 ? '#f4fbf8' : '#bfe0dc', TILE.white);
   }
-  b.quad([-W, -400, 0], [W, -400, 0], [W, -400, -900], [-W, -400, -900], VOID, TILE.void);     // the floor of the dark, far below
-  b.quad([-W, -400, -900], [W, -400, -900], [W, -80, -900], [-W, -80, -900], VOID, TILE.void);
+  const WV = 2200, ZF = -1450;   // the dark: wide enough that its ends never show; the far wall's top sits just under the horizon
+  b.quad([-WV, -400, 0], [WV, -400, 0], [WV, -400, ZF], [-WV, -400, ZF], VOID, TILE.void);     // the floor of the dark, far below
+  b.quad([-WV, -400, ZF], [WV, -400, ZF], [WV, -12, ZF], [-WV, -12, ZF], VOID, TILE.void);
+  for (const s of [-1, 1]) b.quad([s * WV, -400, 0], [s * WV, -400, ZF], [s * WV, -12, ZF], [s * WV, -12, 0], VOID, TILE.void);   // and its sides
   b.quad([-W, -400, 0], [W, -400, 0], [W, -175, -6.4], [-W, -175, -6.4], VOID, TILE.void);   // under the falls
-  for (let x = -W; x < W; x += 6 + rng() * 8) near.blob(x, 0.5, -0.8, 1.6 + rng() * 1.4, 0.45, 1.2, rng() < 0.5 ? '#f4fbf8' : '#d8eeea', TILE.white, 0.3, Math.floor(x));   // foam on the crest
-  for (let x = -W + 10; x < W; x += 14 + rng() * 18) for (let k = 0; k < 3; k++) b.blob(x + (rng() - 0.5) * 8, -30 - k * 22 - rng() * 10, -10 - k * 4, 6 + k * 3, 4 + k * 2, 5 + k * 2, k ? '#2a3a44' : '#5a7a80', TILE.white, 0.35, Math.floor(x) + k);   // spray hanging in the dark below
+  for (let x = -W; x < W; x += 6 + rng() * 8) near.blob(x, 0.3, -0.8, 1.2 + rng() * 1.0, 0.22, 0.8, rng() < 0.5 ? '#f4fbf8' : '#d8eeea', TILE.white, 0.3, Math.floor(x));   // foam on the crest
+  for (let x = -W + 10; x < W; x += 9 + rng() * 12) for (let k = 0; k < 3; k++) b.box(x + (rng() - 0.5) * 6, -24 - k * 26 - rng() * 8, -9 - k * 3, 1.2 + rng(), 22 + rng() * 10, 0.6, ['#d8eeea', '#7f9a9e', '#2a3a40'][k], TILE.white);   // spray: pale streaks falling into the dark
   // streaks on the water running to the lip: the current takes everything over
   for (let i = 0; i < 90; i++) { const x = (rng() - 0.5) * W * 1.6, z = 4 + rng() * 120, l = 6 + rng() * 14; near.box(x, 0.18, z, 0.35, 0.05, l, '#d8efe8', TILE.white); }
   // 1) the hooded one: hands folded, no face under the hood, taller than any mast by twenty
   b.push(-70, 0, -260, 0.25);
   sinkTo(b, 0, 0, 34, 0, STONE[1]);
-  b.cyl(0, 0, 0, 22, 15, 90, 7, STONE[1], TILE.stone);                      // the robe
-  b.blob(0, 64, 9, 10, 8, 7, STONE[0], TILE.stone, 0.15, 3);                 // folded hands
-  b.cyl(0, 90, 0, 15, 9, 14, 7, STONE[2], TILE.stone);                       // shoulders
-  b.blob(0, 112, 0, 13, 17, 13, STONE[3], TILE.stone, 0.12, 5);              // the hood
-  b.blob(0, 108, 8, 8, 11, 6, VOID, TILE.void, 0.05, 6);                     // and nothing in it
-  b.box(-3, 110, 13.5, 1.6, 1.6, 0.6, EYE, TILE.glow); b.box(3, 110, 13.5, 1.6, 1.6, 0.6, EYE, TILE.glow);
+  b.cyl(0, 0, 0, 27, 13, 92, 7, STONE[1], TILE.stone);                      // the robe, wide at the foot
+  b.box(0, 60, 11, 26, 11, 12, STONE[0], TILE.stone);                        // the sleeves, over the folded hands
+  b.cyl(0, 90, 0, 13, 8, 12, 7, STONE[2], TILE.stone);                       // narrow shoulders
+  b.blob(0, 112, 3, 12, 19, 15, STONE[3], TILE.stone, 0.12, 5);              // the hood, peaked forward
+  b.push(0, 124, 9, 0, 1, 1, 1, -0.6, 0); b.box(0, 0, 0, 14, 10, 12, STONE[3], TILE.stone); b.pop();
+  b.blob(0, 107, 12, 7, 11, 6, VOID, TILE.void, 0.05, 6);                    // and nothing in it
   b.pop();
   // 2) a head on its side, half in the dark, one eye open
   b.push(150, 0, -330, -0.6, 1, 1, 1, 0, 1.2);
   b.blob(0, 0, 0, 40, 52, 38, STONE[2], TILE.stone, 0.1, 9);
   b.box(0, 8, 36, 44, 5, 6, STONE[3], TILE.stone);                           // brow
-  b.box(-14, -2, 37, 10, 6, 3, VOID, TILE.void); b.box(-14, -2, 38.5, 4, 4, 1, EYE, TILE.glow);   // the open eye
+  b.box(-14, -2, 37, 14, 9, 3, VOID, TILE.void); b.box(-14, -2, 38.5, 9, 7, 1, EYE, TILE.glow);   // the open eye, large enough to see from the lip
   b.box(14, -2, 37, 10, 1.5, 3, STONE[3], TILE.stone);                       // the closed one
   b.box(0, -24, 36, 18, 3, 4, VOID, TILE.void);                              // the mouth, a line
   b.pop();

@@ -444,7 +444,7 @@
     #titleMenu button { all: unset; cursor: pointer; position: relative; padding-left: 28px; font-size: 32px !important; line-height: 48px; color: #b8a47c; text-shadow: 2px 0 0 currentColor, 0 2px 0 currentColor, 2px 2px 0 currentColor, 5px 5px 0 #1a0606, 4px 4px 0 #1a0606; }   /* pixel bold: the face drawn twice, a hair apart */
     #titleMenu button:hover, #titleMenu button:focus { color: #f4ead0; outline: none; }
     #titleMenu button:hover::before, #titleMenu button:focus::before { content: ""; position: absolute; left: 0; top: 12px; width: 16px; height: 20px; background: #c8402a; clip-path: polygon(0 0, 100% 50%, 0 100%); filter: drop-shadow(4px 4px 0 #1a0606); }
-    #title .blink { position: absolute; bottom: 4vh; left: 0; right: 0; font-size: 16px !important; color: #e2d4b0; text-shadow: 1px 0 0 currentColor, 3px 3px 0 #1a0606; }
+    #title .blink { position: absolute; bottom: 2vh; left: 50%; right: auto; transform: translateX(-50%); padding: 4px 12px; background: #0e0a20; font-size: 16px !important; color: #e2d4b0; text-shadow: 1px 0 0 currentColor, 3px 3px 0 #1a0606; }   /* on a dark plate: it sat on the bobbing hull */
     #thPanel { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; background: rgba(8,6,22,.8); z-index: 7; } #thPanel.open { display: flex; }
     #thPanel .menu { width: min(560px, 94vw); text-align: left; } #thPanel h2 { text-align: center; } #thPanel .tip { font-size: 14px; color: #c8b890; margin: 0 0 10px; }
     .thmode { display: block; margin: 4px 0; font-size: 16px; color: #fff4d8; cursor: pointer; } .thmode small { color: #b8a8f0; }
@@ -605,6 +605,7 @@
     #chart .ribbons button:hover { transform: translateY(-4px) !important; }
     #chart .ribbons button.on { transform: translateY(2px) !important; --paper: #fbf5e4; box-shadow: none !important; }
     #chart .ribbons button.on em { color: #3a2210 !important; }
+    #chart[data-book="pixel"] .ribbons button.on { transform: translateY(2px) !important; } #chart[data-book="pixel"] .ribbons button:hover { transform: translateY(-4px) !important; }   /* the old side-ribbon rules slid the open tab 16px right (RULES 20: bookmarks never move) */
     #logBody.board { display: flex; flex-direction: column; overflow: hidden; font-family: "DotGothic16", monospace; }
     #logBody .bd { display: flex; flex-direction: column; height: 100%; gap: 8px; }
     #logBody .cork { position: relative; flex: 1; overflow: auto; background: repeating-conic-gradient(#b8905a 0 25%, #a8824e 0 50%) 0 0 / 8px 8px; box-shadow: inset 0 0 0 4px #3a2210, inset 0 0 30px rgba(0,0,0,.4); }

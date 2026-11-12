@@ -1021,16 +1021,10 @@ function tamaPolish(S, look, houses) {
   const pal = { path: ['#f0d49c', '#e4c48c'], pt: TILE.sand, sq: '#f0dca8', sq2: '#e4c48c', edge: '#c8a878', quay: '#c89060', cope: '#6b4a2e', wall: '#e0d0b0' };
   const nearHouse = (x, z, rr, skip) => houses.some((h) => h !== skip && Math.hypot(h.x - x, h.z - z) < rr);
   const slab = (x, z, w, l, ry, col) => { A.push(x, g(x, z) - 0.07, z, ry); A.box(0, 0, 0, w, 0.11, l, col, pal.pt); A.pop(); };
-  // the square: paved (a, c) with a rosette, or a green ringed by a path and flower beds (b)
+  // the square: a green ringed by a path and flower beds
   A.orient([0, -100, 0]);
-  if (look !== 'b') {
-    A.cyl(0, H - 0.09, 0, rP + 0.5, rP + 0.5, 0.1, 16, pal.edge, TILE.stone, true);
-    A.cyl(0, H - 0.07, 0, rP, rP, 0.1, 16, pal.sq, pal.pt, true);
-    for (let i = 0; i < 16; i++) { const a0 = i / 16 * 6.283, a1 = (i + 1) / 16 * 6.283, rr = rP * (i % 2 ? 0.62 : 0.5); A.tri([0, H + 0.04, 0], [Math.cos(a0) * rr, H + 0.04, Math.sin(a0) * rr], [Math.cos(a1) * rr, H + 0.04, Math.sin(a1) * rr], i % 2 ? pal.sq2 : pal.edge, pal.pt); }
-  } else {
-    for (let i = 0; i < 26; i++) { const a = i / 26 * 6.283; slab(Math.cos(a) * rP, Math.sin(a) * rP, 1.6, 1.3, -a, pal.path[i % 2]); }
-    for (let i = 0; i < 14; i++) { const a = i / 14 * 6.283 + 0.2; if (Math.abs(angleDiff(a, dockTh)) < 0.35) continue; hibiscus(A, Math.cos(a) * (rP - 1.4), H - 0.1, Math.sin(a) * (rP - 1.4), 0.55, ['#e8407a', '#f0c030', '#f4f0e8', '#e85a3a'][i % 4]); }
-  }
+  for (let i = 0; i < 26; i++) { const a = i / 26 * 6.283; slab(Math.cos(a) * rP, Math.sin(a) * rP, 1.6, 1.3, -a, pal.path[i % 2]); }
+  for (let i = 0; i < 14; i++) { const a = i / 14 * 6.283 + 0.2; if (Math.abs(angleDiff(a, dockTh)) < 0.35) continue; hibiscus(A, Math.cos(a) * (rP - 1.4), H - 0.1, Math.sin(a) * (rP - 1.4), 0.55, ['#e8407a', '#f0c030', '#f4f0e8', '#e85a3a'][i % 4]); }
   A.orient(null);
   // paths from every door to the square
   const DX = { cottage: -0.8, townhouse: 0.6, thatch: -0.7 };
@@ -1051,24 +1045,24 @@ function tamaPolish(S, look, houses) {
     const x = ax * s - az * o + (r() - 0.5) * 0.15, z = az * s + ax * o + (r() - 0.5) * 0.15;
     slab(x, z, 1.5, 0.8, Math.PI / 2 - dockTh + (r() - 0.5) * 0.2, pal.path[Math.floor(r() * 2)]);
   }
-  // the landing: a quay along the shore either side of the pier (stone, or a plank boardwalk in b)
+  // the landing: a plank boardwalk along the shore either side of the pier, sitting low, close to the beach
   const span = 0.3, yQ = 0.86, steps = Math.round(span * 2 / 0.06), wood = true;
   for (let i = 0; i < steps; i++) {
     const t0 = dockTh - span + i * 0.06, t1 = t0 + 0.06, tm = (t0 + t1) / 2;
-    const ri0 = shoreR(d, t0) * 0.84, ri1 = shoreR(d, t1) * 0.84, ro0 = shoreR(d, t0) * 1.0, ro1 = shoreR(d, t1) * 1.0;
+    const ri0 = shoreR(d, t0) * 0.82, ri1 = shoreR(d, t1) * 0.82, ro0 = shoreR(d, t0) * 0.93, ro1 = shoreR(d, t1) * 0.93;
     const P = (th, rr, y) => [Math.cos(th) * rr, y, Math.sin(th) * rr];
     A.orient([0, -100, 0]); A.quad(P(t0, ri0, yQ), P(t1, ri1, yQ), P(t1, ro1, yQ), P(t0, ro0, yQ), pal.quay, wood ? TILE.planks : TILE.sand);
-    A.orient([0, yQ, 0]); A.quad(P(t0, ro0, -1.6), P(t1, ro1, -1.6), P(t1, ro1, yQ), P(t0, ro0, yQ), wood ? '#5a3e24' : '#f0e4cc', wood ? TILE.planks : TILE.stone);
-    if (i === 0 || i === steps - 1) { const te = i === 0 ? t0 : t1, ri = i === 0 ? ri0 : ri1, ro = i === 0 ? ro0 : ro1; A.orient([Math.cos(tm) * ro * 0.9, yQ, Math.sin(tm) * ro * 0.9]); A.quad(P(te, ri, -1.6), P(te, ro, -1.6), P(te, ro, yQ), P(te, ri, yQ), wood ? '#5a3e24' : '#f0e4cc', wood ? TILE.planks : TILE.stone); }
+    A.orient([0, yQ, 0]); A.quad(P(t0, ro0, -0.6), P(t1, ro1, -0.6), P(t1, ro1, yQ), P(t0, ro0, yQ), wood ? '#5a3e24' : '#f0e4cc', wood ? TILE.planks : TILE.stone);
+    if (i === 0 || i === steps - 1) { const te = i === 0 ? t0 : t1, ri = i === 0 ? ri0 : ri1, ro = i === 0 ? ro0 : ro1; A.orient([Math.cos(tm) * ro * 0.9, yQ, Math.sin(tm) * ro * 0.9]); A.quad(P(te, ri, -0.6), P(te, ro, -0.6), P(te, ro, yQ), P(te, ri, yQ), wood ? '#5a3e24' : '#f0e4cc', wood ? TILE.planks : TILE.stone); }
     A.orient(null);
-    const rm = shoreR(d, tm) * 1.0, onPier = Math.abs(angleDiff(tm, dockTh)) * rm < 2.0;
+    const rm = shoreR(d, tm) * 0.93, onPier = Math.abs(angleDiff(tm, dockTh)) * rm < 2.0;
     if (onPier) continue;
     A.push(Math.cos(tm) * rm, yQ, Math.sin(tm) * rm, Math.PI / 2 - tm);
     if (wood) { A.cyl(0, -1.7, -0.1, 0.18, 0.16, 2.8, 5, '#4a3524', TILE.bark); if (i % 3 === 0) A.box(0, 0, -0.35, 0.16, 0.9, 0.16, '#6b4a2e', TILE.bark); }
     else { A.box(0, 0, -0.25, 0.06 * rm + 0.04, 0.2, 0.55, pal.cope, TILE.white); if (i % 3 === 1) { A.cyl(0, 0.2, -0.55, 0.2, 0.16, 0.42, 6, '#2e2e34', TILE.stone, true); A.cyl(0, 0.62, -0.55, 0.26, 0.26, 0.1, 6, '#2e2e34', TILE.stone, true); } }
     A.pop();
   }
-  if (wood) for (let i = 0; i < steps; i += 3) { const t0 = dockTh - span + i * 0.06, t1 = Math.min(dockTh + span, t0 + 0.18), ro = 0.985;   // a rope rail along the boardwalk's edge
+  if (wood) for (let i = 0; i < steps; i += 3) { const t0 = dockTh - span + i * 0.06, t1 = Math.min(dockTh + span, t0 + 0.18), ro = 0.92;   // a rope rail along the boardwalk's edge
     if (Math.abs(angleDiff((t0 + t1) / 2, dockTh)) * shoreR(d, dockTh) < 2.4) continue;
     const a = [Math.cos(t0) * shoreR(d, t0) * ro, yQ + 0.82, Math.sin(t0) * shoreR(d, t0) * ro], c = [Math.cos(t1) * shoreR(d, t1) * ro, yQ + 0.82, Math.sin(t1) * shoreR(d, t1) * ro];
     A.push((a[0] + c[0]) / 2, yQ + 0.72, (a[2] + c[2]) / 2, Math.atan2(c[0] - a[0], c[2] - a[2])); A.box(0, 0, 0, 0.12, 0.12, Math.hypot(c[0] - a[0], c[2] - a[2]), '#c8b080', TILE.rope); A.pop(); }
@@ -1082,7 +1076,6 @@ function tamaPolish(S, look, houses) {
   // lamps
   const lamps = [[rP + 1.5, 1]];
   for (const [s, side] of lamps) { const o = 1.8, x = ax * s - az * o * side, z = az * s + ax * o * side; lampPost(A, x, g(x, z) - 0.05, z, Math.atan2(-az * side, ax * side) - Math.PI / 2); }
-  if (look !== 'b') for (const side of [-1, 1]) { const [x, z] = quayAt(dockTh + side * (span - 0.08), 0.9); lampPost(A, x, yQ, z, -dockTh); }
   // free ground: grass tufts and flowers where nothing stands
   const free = (x, z) => Math.hypot(x, z) > rP + 1.2 && !nearHouse(x, z, 3.6) && Math.abs(angleDiff(Math.atan2(z, x), dockTh)) * Math.hypot(x, z) > 2.8;
   const tuftCols = ['#3f8a38', '#5aa844', '#4a9a40'];

@@ -1167,7 +1167,7 @@ function goAshore(tg) {
     if (r.heal && state.hp < ship.mods.maxHp) { state.hp = ship.mods.maxHp; bits.push('hull mended'); }
     if (r.fruit) { const f = 'mango'; state.fruit[f] = (state.fruit[f] || 0) + r.fruit; bits.push(`+${r.fruit} ${plural(fruitName(f, 0), r.fruit)}`); }
     if (r.chart) { let n = 0; for (const id of r.chart) { const l = LM[id], [cx, cz] = l.key.split(',').map(Number), o = world.desc(cx, cz); if (o && !state.discovered[o.id]) { state.discovered[o.id] = { name: o.name, type: o.type, x: Math.round(o.x), z: Math.round(o.z) }; n++; } } if (n) bits.push(`${n} new ${n === 1 ? 'place' : 'places'} on your chart`); }
-    if (r.around) { const n = revealAround(d.x, d.z); if (n) bits.push(`${n} isles charted`); }
+    if (r.around) { const n = revealAround(d.x, d.z); if (n) bits.push(`${n} ${n === 1 ? 'isle' : 'isles'} charted`); }
     if (d.lm === 'keeper' && oilOn() && state.oil < oilCap(state.upgrades) - 1) { state.oil = oilCap(state.upgrades); bits.push('Wick fills your lamp'); }
     if (r.oil && oilOn() && state.oil < oilCap(state.upgrades) - 1) { state.oil = oilCap(state.upgrades); bits.push('the lamp is filled'); }
     if (r.note) state.notes.push({ text: r.note, dark: false });
@@ -1867,6 +1867,7 @@ function frame() {
 
   // ---- global shader state
   scene.fog.color.copy(stage.fog); scene.fog.near = stage.fogNear; scene.fog.far = stage.fogFar;
+  if (rt.edge && rt.edge.t < 37) { scene.fog.near = Math.max(scene.fog.near, 90); scene.fog.far = Math.max(scene.fog.far, 420); }   // the Edge: the ship stays clear while the far shapes stand sharp
   mistMat.color.copy(stage.fog).lerp(WHITE_MIST, 0.25);   // the sea mist round the foot of deep places
   U.uDread.value = rt.dread; U.uTime.value = waveT;
   if (window.__waterLock) { const wl = window.__waterLock; if (wl.t != null) U.uTime.value = Math.floor(wl.t * 12) / 12; if (wl.rough != null) { rt.waterRough = wl.rough; U.uRough.value = WATER.rough = wl.rough; } }   // dev: water previews (docs/concept/water)

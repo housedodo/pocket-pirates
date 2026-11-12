@@ -11,6 +11,19 @@ import { mats } from './psx.js';
 export const GLIMPSE_LEN = 17;   // was 9: the diver stays about ten seconds
 
 
+/** a square tube along a list of points (for hoses and lines that bend): four faces per segment */
+function tube(b, pts, r, col, tile) {
+  for (let i = 0; i < pts.length - 1; i++) {
+    const a = pts[i], c = pts[i + 1], d = [c[0] - a[0], c[1] - a[1], c[2] - a[2]], L = Math.hypot(...d) || 1, u = d.map((v) => v / L);
+    const ref = Math.abs(u[1]) > 0.9 ? [1, 0, 0] : [0, 1, 0];
+    const cr = (p, q) => [p[1] * q[2] - p[2] * q[1], p[2] * q[0] - p[0] * q[2], p[0] * q[1] - p[1] * q[0]];
+    let n1 = cr(u, ref); const l1 = Math.hypot(...n1); n1 = n1.map((v) => (v / l1) * r); const n2 = cr(u, n1.map((v) => v / r)).map((v) => v * r);
+    const off = (p, s1, s2) => [p[0] + n1[0] * s1 + n2[0] * s2, p[1] + n1[1] * s1 + n2[1] * s2, p[2] + n1[2] * s1 + n2[2] * s2];
+    const C = [[1, 1], [-1, 1], [-1, -1], [1, -1]];
+    for (let k = 0; k < 4; k++) { const [s1, s2] = C[k], [t1, t2] = C[(k + 1) % 4]; b.quad(off(a, s1, s2), off(a, t1, t2), off(c, t1, t2), off(c, s1, s2), col, tile); }
+  }
+}
+
 export function buildDiver(style = 'orig') {
     const b = new Builder();
     const COP = '#a0602f', COPD = '#6a3b20', RU1 = '#a4562a', RU2 = '#7a3c1e', RU3 = '#c4723a', RUD = '#3f2012', CRUST = '#8c6a46', BARN = '#b9b5a5', BARD = '#8a8678';
@@ -102,10 +115,12 @@ export function buildDiver(style = 'orig') {
       hang(-1, 5.0, 0.14, 0.1); hang(1, 5.0, 0.14, 0.1);
       for (const sx of [-1, 1]) { b.push(sx * 1.55, -1.1, 0.45, 0, 1, 1, 1, 0.1, 0); b.box(0, -1.3, 0, 0.12, 1.3, 0.04, KELP, W); b.pop(); }
     }
-    // the air hose: leaves the back of the helmet, rings of rust, falls in loops, ends cut and open
-    b.push(0, 4.7, -1.15, 0, 1, 1, 1, -0.5, 0); b.cyl(0, 0, 0, 0.22, 0.22, 2.4, 6, RUBBER, R, true); for (const y of [0.4, 1.0, 1.6, 2.2]) b.cyl(0, y, 0, 0.26, 0.26, 0.08, 6, RU2, W, true); b.pop();
-    b.push(0, 3.3, -2.0, 0, 1, 1, 1, 0.1, 0); b.cyl(0, 0, 0, 0.22, 0.22, 2.6, 6, RUBBER, R, true); for (const y of [0.5, 1.3, 2.1]) b.cyl(0, y, 0, 0.26, 0.26, 0.08, 6, RU2, W, true); b.pop();
-    b.push(0, 0.9, -2.15, 0, 1, 1, 1, -0.35, 0); b.cyl(0, 0, 0, 0.22, 0.2, 1.6, 6, RUBBER, R, true); b.cyl(0, 1.5, 0, 0.3, 0.28, 0.25, 6, RU1, W, true); b.box(0, 1.65, 0, 0.18, 0.14, 0.18, '#0a0a0c', W); b.pop();   // the cut end: rusted fitting, open
+    // the air hose, one run: out of the socket at the back of the helmet, down his back, a loop on the water, then the cut end, rusted
+    // fitting up and open. A square tube between points (tube below), rust rings at the bends.
+    const HOSE = [[0, 4.7, -1.25], [0, 4.2, -1.75], [0, 3.0, -2.05], [0, 1.4, -2.2], [0, -0.2, -2.3], [0.1, -1.4, -2.5], [0.9, -1.45, -3.3], [0.2, -1.45, -4.1], [-0.8, -1.45, -3.5], [-0.7, -1.3, -2.8]];
+    tube(b, HOSE, 0.21, RUBBER, R);
+    for (const p of HOSE.slice(1, -1)) b.box(p[0], p[1] - 0.06, p[2], 0.52, 0.12, 0.52, RU2, W);
+    { const e = HOSE[HOSE.length - 1]; b.box(e[0], e[1], e[2], 0.5, 0.3, 0.5, RU1, W); b.box(e[0], e[1] + 0.3, e[2], 0.3, 0.06, 0.3, '#0a0a0c', W); }
     // torn canvas and kelp
     for (const [x, z, h, w] of [[-0.8, 0.8, 1.7, 0.22], [-0.3, 1.0, 1.3, 0.18], [0.5, 0.95, 1.9, 0.24], [0.95, 0.5, 1.2, 0.18], [-0.95, 0.2, 1.4, 0.2]]) b.box(x, 0.1 - h * 0.35, z, w, h, 0.05, SUITD, W);
     for (const [x, z, h] of [[0.2, 1.05, 2.4], [-0.6, 0.9, 1.8], [1.0, -0.3, 2.0]]) { b.push(x, 2.8, z, 0, 1, 1, 1, 0.12, 0.08); b.box(0, -h, 0, 0.12, h, 0.04, KELP, W); b.pop(); }

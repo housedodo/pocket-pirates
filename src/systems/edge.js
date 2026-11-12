@@ -50,15 +50,15 @@ export function edgeTick({ dt, dread, ship, quiet, clearAhead, fadeEl, onDone })
   // low behind the ship, looking up at the statues (28-36 s)
   const S = [ship.pos.x, ship.pos.z], P = (a, b, y) => [S[0] + f[0] * a + r[0] * b, y, S[1] + f[1] * a + r[1] * b], L = (a, b, y) => [lip[0] + f[0] * a + r[0] * b, y, lip[1] + f[1] * a + r[1] * b];
   const shots = [
-    { pos: P(-24, 4, 10), look: L(160, -10, 34) },
-    { pos: L(32, 44, 12), look: L(-4, -2, -10) },
+    { pos: P(-24, 4, 14), look: L(160, -10, 24) },
+    { pos: L(28, 20, 16), look: L(-STOP, 0, 2) },
     { pos: P(-34, 10, 11), look: L(260, -14, 32) },
   ];
   const k1 = smooth(17, 23, t), k2 = smooth(27, 31, t);
   const a = k2 > 0 ? shots[1] : shots[0], b = k2 > 0 ? shots[2] : shots[1], kk = k2 > 0 ? k2 : k1;
   rt.camOverride = t < 37 ? { pos: lerp3(a.pos, b.pos, kk), look: lerp3(a.look, b.look, kk) } : null;
   // the mist comes in white; behind it the edge is gone and the ship drifts away from it, pointing home
-  if (t > 35 && !e.fading) { e.fading = true; fadeEl.style.background = '#e8eef0'; fadeEl.classList.add('on'); }
+  if (t > 35 && !e.fading) { e.fading = true; fadeEl.style.background = '#e8eef0'; fadeEl.style.transition = 'opacity 1.6s steps(8)'; fadeEl.classList.add('on'); }   // stepped, like the demo's end card
   if (t > 37 && !e.turned) {
     e.turned = true;
     scene.remove(e.g); ocean.material.clippingPlanes = null; ocean.material.needsUpdate = true;
@@ -66,5 +66,5 @@ export function edgeTick({ dt, dread, ship, quiet, clearAhead, fadeEl, onDone })
   }
   if (t > 40 && e.fading) { e.fading = false; fadeEl.classList.remove('on'); }
   if (t > 42) document.body.classList.remove('edge');
-  if (t >= LEN) { fadeEl.style.background = ''; rt.edge = null; rt.edgeLock = false; rt.edgeHush = 0; onDone(); }
+  if (t >= LEN) { fadeEl.style.background = ''; fadeEl.style.transition = ''; rt.edge = null; rt.edgeLock = false; rt.edgeHush = 0; onDone(); }
 }
