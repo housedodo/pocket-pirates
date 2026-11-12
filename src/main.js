@@ -69,13 +69,26 @@ import { $, goldEl, promptEl, promptTxt, promptBar, promptFill, toastsEl, debugE
 import { WEEK, weekday, isMarketDay, isLanternNight, isFestival, tideAt, tideFalls, fullMoon } from './systems/calendar.js';
 import { addMark, clearMark, keep, markFromRoll } from './systems/storyflags.js';
 import { PITCH_MIN, updateCamera, initCamera1, initCamera2 } from './ui/camera.js';
+import { titleEl, startTitle, titleCam, titleKey, INTRO_DUR, endIntro, skipIntro, begin, initTitle1, initTitle2 } from './ui/title.js';
+import { fsEl, fsOk, toggleFullscreen, nightViewNow, showPauseMain, pauseBack, mixer, studio, soundSituation, initPause1, initPause2 } from './ui/pause.js';
 
 // G-REGISTRY START (generated): what main.js lends the modules under it, read at call time
 Object.defineProperties(G, {
   INTRO_DUR: { get: () => INTRO_DUR },
   abyss: { get: () => abyss },
+  audio: { get: () => audio },
+  closeModal: { get: () => closeModal },
+  fishing: { get: () => fishing },
+  fsEl: { get: () => fsEl },
+  objectives: { get: () => objectives },
+  openModal: { get: () => openModal },
   ship: { get: () => ship },
+  threadChoice: { get: () => threadChoice },
+  threads: { get: () => threads },
   titleCam: { get: () => titleCam },
+  traffic: { get: () => traffic },
+  weather: { get: () => weather },
+  wind: { get: () => wind },
   world: { get: () => world },
 });
 // G-REGISTRY END
@@ -435,141 +448,10 @@ function closeModal(silent = false) {
 
 // ---------------------------------------------------------------- input
 const touch = { L: false, R: false, U: false, D: false };
-const titleEl = $('title');
-// ---- the title screen: the ship alone on open sea at a random hour, until you set sail
-rt.titleScene = null;
-function startTitle() {
-  if (params.get('autostart') || params.get('notitle')) return;
-  const sc = TITLE_SCENES[params.has('title') ? Math.max(0, TITLE_SCENES.findIndex((t) => t.id === params.get('title'))) : Math.floor(Math.random() * TITLE_SCENES.length)];
-  // an empty stretch of sea (no island within three cells), searched outward from home
-  let spot = [0, 600];
-  find: for (let r = 250; r < 2000; r += 55) for (let a = 0; a < 6.28; a += 0.3) {
-    const x = Math.cos(a) * r, z = Math.sin(a) * r, cx = Math.round(x / 110), cz = Math.round(z / 110);
-    let ok = true; for (let dx = -3; dx <= 3 && ok; dx++) for (let dz = -3; dz <= 3; dz++) if (world.desc(cx + dx, cz + dz)) { ok = false; break; }
-    if (ok) { spot = [x, z]; break find; }
-  }
-  rt.titleScene = { sc, keep: { x: ship.pos.x, z: ship.pos.z, h: ship.heading, time: state.time, trim: ship.trim, forced: rt.forced }, t: 0 };
-  ship.pos.set(spot[0], 0, spot[1]); ship.heading = 0.8; rt.camHeading = 0.8; ship.trim = 0.9;
-  state.time = sc.time; rt.forced = 0; rt.dread = 0;
-  weather.force = sc.weather; Object.assign(weather, sc.weather);
-  $('hud').classList.add('hidden');
-  $('tNew').style.display = saved ? '' : 'none';
-  document.fonts.load("86px 'Pirata One'").then(() => drawTitleLogo($('titleLogo')));
-  setTimeout(() => $('tSail').focus(), 50);
-}
-function titleCam(dt) {
-  const ts = rt.titleScene, [ang, dist, hgt, lookY] = ts.sc.cam; ts.t += dt;
-  const a = ship.heading + ang + Math.sin(ts.t * 0.05) * 0.25;   // a slow drift around the ship
-  ship.speed = 0;                                                    // she only bobs in place
-  rt.camOverride = { pos: [ship.pos.x + Math.sin(a) * dist, hgt + Math.sin(ts.t * 0.4) * 0.15, ship.pos.z - Math.cos(a) * dist], look: [ship.pos.x, lookY, ship.pos.z] };
-}
-function endTitle() {
-  if (!rt.titleScene) return;
-  const k = rt.titleScene.keep; rt.titleScene = null; rt.camOverride = null;
-  ship.pos.set(k.x, 0, k.z); ship.heading = k.h; rt.camHeading = k.h; ship.trim = k.trim; ship.speed = 0;
-  state.time = k.time; rt.forced = k.forced; weather.force = null;
-  if (params.get('hud') !== '0') $('hud').classList.remove('hidden');
-}
-// only Set sail leaves the title: a fade to black, then you are back aboard where your voyage left off
-rt.newAskT = 0, rt.sailing = false;
-function setSail() {
-  if (rt.sailing || rt.started) return; rt.sailing = true;
-  threads.setup(threadChoice());   // dev: the choice made on the title screen
-  $('fade').classList.add('on');
-  setTimeout(() => { begin(); setTimeout(() => $('fade').classList.remove('on'), 250); }, 1000);
-}
-function titleItems() { return [...document.querySelectorAll('#titleMenu button')].filter((b) => b.style.display !== 'none'); }
-function titleKey(e) {
-  const items = titleItems(); let i = Math.max(0, items.indexOf(document.activeElement));
-  if (['ArrowDown', 'KeyS', 'ArrowUp', 'KeyW'].includes(e.code)) { i = (i + (e.code === 'ArrowDown' || e.code === 'KeyS' ? 1 : items.length - 1)) % items.length; items[i].focus(); e.preventDefault(); }
-  if (['Enter', 'Space', 'KeyE'].includes(e.code)) { e.preventDefault(); (document.activeElement && items.includes(document.activeElement) ? document.activeElement : items[0]).click(); }
-}
-$('tSail').addEventListener('click', (e) => { e.stopPropagation(); setSail(); });
-// ---- dev: choose which threads are awake before the game starts (title screen)
-{
-  const panel = $('thPanel'), btn = $('tThreads');
-  if (DEV && !params.get('threads')) btn.style.display = '';
-  const cur = () => store.get(THREADS_KEY) || { mode: 'seeded', ids: [] };
-  const render = () => {
-    const c = cur(), seeded = pickAwake(state.seed);
-    $('thSeed').textContent = `(this seed wakes: ${seeded.map((id) => THREAD_DEFS.find((t) => t.id === id).name).join(', ')})`;
-    panel.querySelectorAll('input[name=thmode]').forEach((r) => { r.checked = r.value === c.mode; });
-    $('thList').innerHTML = THREAD_DEFS.map((t) => `<label class="throw ${c.mode === 'chosen' ? '' : 'off'}"><input type="checkbox" data-id="${t.id}" ${c.mode === 'chosen' && (c.ids || []).includes(t.id) ? 'checked' : ''} ${c.mode === 'chosen' ? '' : 'disabled'}> <span>${t.name}</span> <small>${t.note}</small> ${t.built ? '' : '<em>not built</em>'}</label>`).join('');
-  };
-  const save = (patch) => { store.set(THREADS_KEY, { ...cur(), ...patch }); render(); };
-  btn.addEventListener('click', (e) => { e.stopPropagation(); render(); panel.classList.add('open'); $('thDone').focus(); });
-  panel.addEventListener('change', (e) => {
-    if (e.target.name === 'thmode') save({ mode: e.target.value });
-    else if (e.target.dataset && e.target.dataset.id) save({ ids: [...panel.querySelectorAll('#thList input:checked')].map((i) => i.dataset.id) });
-  });
-  $('thDone').addEventListener('click', (e) => { e.stopPropagation(); panel.classList.remove('open'); btn.focus(); });
-  panel.addEventListener('pointerdown', (e) => e.stopPropagation());
-  panel.addEventListener('keydown', (e) => { e.stopPropagation(); if (e.code === 'Escape') { panel.classList.remove('open'); btn.focus(); } });
-  panel.addEventListener('keyup', (e) => e.stopPropagation());
-}
+initTitle1();   // (ui/title.js)
 
-// fullscreen: on the title and in the pause menu (holding Esc or F11 also leave it)
-const fsEl = () => document.fullscreenElement || document.webkitFullscreenElement;
-const fsOk = !!(document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen);
-function toggleFullscreen() {
-  const d = document, el = d.documentElement;
-  try {
-    if (fsEl()) (d.exitFullscreen || d.webkitExitFullscreen).call(d);
-    else { const r = (el.requestFullscreen || el.webkitRequestFullscreen).call(el, { navigationUI: 'hide' }); if (r && r.catch) r.catch(() => {}); }
-  } catch (err) { /* not allowed here */ }
-}
-function fsLabels() { $('tFull').textContent = fsEl() ? 'Windowed' : 'Fullscreen'; $('pbFull').textContent = `Fullscreen: ${fsEl() ? 'on' : 'off'}`; }
-if (!fsOk) { $('tFull').style.display = 'none'; $('pbFull').style.display = 'none'; }
-// in fullscreen, Esc should still pause instead of throwing you out: the keyboard lock keeps it for the game
-// (Chrome/Edge; holding Esc still leaves fullscreen). Elsewhere P pauses too.
-function fsChanged() {
-  fsLabels(); const kb = navigator.keyboard;
-  try { if (kb && kb.lock) { if (fsEl()) kb.lock(['Escape']).catch(() => {}); else kb.unlock(); } } catch (err) { /* not supported */ }
-}
-document.addEventListener('fullscreenchange', fsChanged); document.addEventListener('webkitfullscreenchange', fsChanged);
-$('tFull').addEventListener('click', (e) => { e.stopPropagation(); toggleFullscreen(); });
-$('pbFull').addEventListener('click', () => { toggleFullscreen(); $('pbFull').focus(); });
-// the look of the water (ocean.js OCEAN_STYLES): cycled in the pause menu, remembered; ?ocean=0..4 forces one
-const oceanLabel = () => { $('pbOcean').textContent = `Ocean: ${OCEAN_STYLES[U.uOcean.value | 0]}`; };
-U.uOcean.value = params.has('ocean') ? clamp(parseInt(params.get('ocean'), 10) || 0, 0, OCEAN_STYLES.length - 1) : settings.ocean2 != null ? settings.ocean2 % OCEAN_STYLES.length : 5; oceanLabel();   // Chop facets by default
-// night view distance and lamp strength (daynight.js): cycled in the pause menu, remembered; ?nightview= / ?lamp= force one
-// night mode: 0 = moon phases (each night a new moon or a full one), 1..4 = one fixed view. Settings keys are new (v2) so the new defaults apply
-rt.nightMode = params.has('nightview') ? clamp((parseInt(params.get('nightview'), 10) || 0) + 1, 1, 4) : settings.nightMode2 != null ? settings.nightMode2 : 0;
-const nightLabels = () => { $('pbNight').textContent = `Night: ${NIGHT_MODES[rt.nightMode]}`; $('pbLamp').textContent = `Lamp: ${LAMPS[NIGHT_SET.lamp].name}`; ship.lampK = LAMPS[NIGHT_SET.lamp].k; };
-NIGHT_SET.lamp = params.has('lamp') ? clamp(parseInt(params.get('lamp'), 10) || 0, 0, 3) : settings.lamp2 != null ? settings.lamp2 : 0;   // a candle by default
-nightLabels();
-$('pbNight').addEventListener('click', () => { rt.nightMode = (rt.nightMode + 1) % NIGHT_MODES.length; settings.nightMode2 = rt.nightMode; store.set(SETTINGS_KEY, settings); nightLabels(); $('pbNight').focus(); });
-$('pbLamp').addEventListener('click', () => { NIGHT_SET.lamp = (NIGHT_SET.lamp + 1) % LAMPS.length; settings.lamp2 = NIGHT_SET.lamp; store.set(SETTINGS_KEY, settings); nightLabels(); $('pbLamp').focus(); });
-/** tonight's moon: a night runs from 19:00 to 06:00; each one is either a new moon (pitch dark, no moon) or a full moon (moonlit) */
-function nightViewNow() { NIGHT_SET.view = rt.nightMode ? rt.nightMode - 1 : fullMoon() ? 2 : 0; }
-$('pbOcean').addEventListener('click', () => { U.uOcean.value = ((U.uOcean.value | 0) + 1) % OCEAN_STYLES.length; settings.ocean2 = U.uOcean.value; store.set(SETTINGS_KEY, settings); oceanLabel(); $('pbOcean').focus(); });
-$('tNew').addEventListener('click', (e) => {
-  e.stopPropagation();
-  if (performance.now() - rt.newAskT > 4000) { rt.newAskT = performance.now(); $('tNew').textContent = 'Really? Press again'; return; }
-  session.noSave = true; try { localStorage.removeItem(SAVE_KEY); sessionStorage.setItem('hoist-new', '1'); if (fsEl()) sessionStorage.setItem('hoist-fs', '1'); } catch (err) { /* storage blocked */ }
-  location.href = location.pathname;
-});
-
-// ---- a new voyage opens with a short cinematic: the camera starts high over Tama and drifts down to behind the ship, then the game begins.
-// Any key or click skips it. Test runs (autostart, nomate) and continued voyages go straight in.
-const INTRO_DUR = 9;
-rt.introT = -1;
-const introWanted = () => params.get('intro') === '1' || (!state.goals.started && !params.get('autostart') && !params.get('nomate') && !params.has('x'));
-function endIntro() {
-  if (rt.introT < 0) return;
-  rt.introT = -1; document.body.classList.remove('intro');
-  if (!params.get('nomate')) objectives.start();
-}
-function skipIntro() { if (rt.introT >= 0 && rt.introT > 0.8) rt.introT = Math.max(rt.introT, INTRO_DUR - 1.2); }
-function begin() {
-  if (rt.started) return;
-  rt.started = true;
-  endTitle();
-  titleEl.style.display = 'none';
-  audio.start();
-  if (introWanted()) { rt.introT = 0; document.body.classList.add('intro'); }
-  else if (!params.get('nomate')) objectives.start();
-}
+initPause1();   // (ui/pause.js)
+initTitle2();   // (ui/title.js)
 rt.forced = params.has('dread') ? clamp(parseFloat(params.get('dread')), 0, 1) : null;
 
 window.addEventListener('pointerdown', () => skipIntro());
@@ -744,90 +626,7 @@ $('tC').addEventListener('pointerup', () => { fishing.hold = false; });
 $('tX').addEventListener('pointerdown', (e) => { begin(); fireCannons(); e.preventDefault(); });
 $('tP').addEventListener('pointerdown', (e) => { begin(); if (rt.modal) closeModal(); else openModal('pause'); e.preventDefault(); });
 
-// ---------------------------------------------------------------- pause menu
-if (!AUDIO_ENABLED) $('pbSoundMenu').style.display = 'none';
-rt.volT = 0;
-for (const r of $('pbVols').querySelectorAll('.pvol')) {   // the player's own volume sliders
-  const inp = r.querySelector('input'), k = inp.dataset.k;
-  inp.value = Math.round((audio.userVol[k] != null ? audio.userVol[k] : 1) * 100); r.querySelector('b').textContent = `${inp.value}%`;
-  inp.addEventListener('input', () => { r.querySelector('b').textContent = `${inp.value}%`; audio.setUserVol(k, inp.value / 100); if (rt.modal === 'pause' && audio.ctx) { audio.ctx.resume(); clearTimeout(rt.volT); rt.volT = setTimeout(() => { if (rt.modal === 'pause') audio.ctx.suspend(); }, 1800); }   // the sound plays for a moment while you drag, so you can hear the level
-    settings.vol = { ...audio.userVol }; store.set(SETTINGS_KEY, settings); });
-  inp.addEventListener('keydown', (e) => { if (e.code.startsWith('Arrow')) e.stopPropagation(); });   // arrows move the slider, not the pause menu focus (Esc still closes)
-}
-// pause menu panels: main > settings > (sound, display), main > controls, main > dev tools > full dread. Back / Esc go up one level.
-const PAUSE_PANELS = { main: 'pauseMain', settings: 'pauseSettings', sound: 'pauseSound', display: 'pauseDisplay', controls: 'pauseControls', dev: 'pauseDev', abyss: 'pauseAbyss' };
-const PAUSE_PARENT = { settings: 'main', controls: 'main', dev: 'main', sound: 'settings', display: 'settings', abyss: 'dev' };
-const PAUSE_OPENER = { settings: 'pbSettings', controls: 'pbControls', dev: 'pbDevTools', sound: 'pbSoundMenu', display: 'pbDisplay', abyss: 'pbAbyss' };
-rt.pausePanel = 'main';
-function showPause(name, focus) {
-  rt.pausePanel = name;
-  for (const [k, id] of Object.entries(PAUSE_PANELS)) $(id).style.display = k === name ? 'block' : 'none';
-  $('pbNew').textContent = 'New voyage (erase save)';
-  $('pbSound').textContent = `Sound: ${audio.muted ? 'off' : 'on'}`;
-  $('pbMusic').textContent = `Music: ${audio.musicOn ? 'on' : 'off'}`;
-  if (name === 'abyss') renderAbyssMenu();
-  const f = focus && $(focus); (f && f.offsetParent ? f : $(PAUSE_PANELS[name]).querySelector('button')).focus();
-}
-const showPauseMain = () => showPause('main');
-function pauseBack() { const from = rt.pausePanel; showPause(PAUSE_PARENT[from] || 'main', PAUSE_OPENER[from]); }
-for (const [name, btn] of Object.entries({ settings: 'pbSettings', controls: 'pbControls', dev: 'pbDevTools', sound: 'pbSoundMenu', display: 'pbDisplay', abyss: 'pbAbyss' })) $(btn).addEventListener('click', () => showPause(name));
-document.querySelectorAll('#pause .pback').forEach((b) => b.addEventListener('click', pauseBack));
-$('pbResume').addEventListener('click', () => closeModal());
-// full-dread effects: switch each one on/off, or try one on its own
-function renderAbyssMenu() {
-  const on = (id) => settings.abyss[id] !== false;
-  $('abList').innerHTML = EFFECTS.map((f, i) => `<div class="abrow"><button class="abtog ${on(f.id) ? 'on' : ''}" data-id="${f.id}">${on(f.id) ? 'ON' : 'OFF'}</button><div class="abtxt"><b>${i + 1}. ${f.name}</b><small>${f.desc}</small></div><button class="abtry" data-id="${f.id}">Try</button>${f.id === 'leviathan' ? '<button class="abtry" data-end="1">Ending</button>' : ''}${f.id === 'watchers' ? `<button class="abstyle">${WATCHER_NAMES[settings.watcherStyle || 'pale']}</button>` : ''}</div>`).join('');
-  const st = $('abList').querySelector('.abstyle');
-  if (st) st.addEventListener('click', () => { const i = WATCHER_STYLES.indexOf(settings.watcherStyle || 'pale'); settings.watcherStyle = WATCHER_STYLES[(i + 1) % WATCHER_STYLES.length]; store.set(SETTINGS_KEY, settings); renderAbyssMenu(); $('abList').querySelector('.abstyle').focus(); });
-  $('abList').querySelectorAll('.abtog').forEach((b) => b.addEventListener('click', () => { settings.abyss[b.dataset.id] = !on(b.dataset.id); store.set(SETTINGS_KEY, settings); renderAbyssMenu(); }));
-  $('abList').querySelectorAll('.abtry').forEach((b) => b.addEventListener('click', () => {
-    rt.forced = 1; rt.dread = 1; abyss.k = 1;
-    if (b.dataset.end) { abyss.solo = 'leviathan'; abyss.startEnding(); closeModal(); return; }
-    const id = b.dataset.id;
-    abyss.trigger(id); closeModal();
-    if (id === 'map') setTimeout(() => { rt.logTab = 'map'; openModal('chart'); }, 150);
-  }));
-  $('abForce').textContent = rt.forced === 1 ? 'Back to automatic dread' : 'Go to full dread now (all ON effects)';
-}
-if (!DEV) { $('pbDevTools').style.display = 'none'; $('pbAbyss').style.display = 'none'; $('pbMixer').style.display = 'none'; $('pbStudio').style.display = 'none'; $('devKeys').style.display = 'none'; settings.abyss = {}; }   // players get every effect, no test menu
-const mixer = new Mixer(audio, (t, d, ms) => toast(t, d, ms));
-$('pbMixer').addEventListener('click', () => { closeModal(); mixer.toggle(true); });
-const studio = DEV ? new SoundStudio(audio, (t, d, ms) => toast(t, d, ms)) : null;   // dev only: load, cut and place your own music
-if (DEV) { window.__studio = studio; $('pbStudio').addEventListener('click', () => { closeModal(); studio.toggle(true); }); }
-/** what is going on right now, as the sound studio's situations (see studio.js) */
-function soundSituation() {
-  const f = new Set(), near = rt.started && !rt.titleScene ? world.nearest(ship.pos.x, ship.pos.z, 60) : null;
-  if (!rt.started || rt.titleScene) f.add('title');
-  else if (!rt.modal) f.add('sailing');
-  if (rt.modal === 'harbour') f.add('harbour'); if (rt.modal === 'yard') f.add('yard'); if (rt.modal === 'hut') f.add('hut'); if (rt.modal === 'cave') f.add('cave');
-  if (rt.modal === 'chart') f.add('chart'); if (rt.modal === 'card') f.add('log'); if (rt.modal === 'greet') f.add('talk'); if (rt.modal === 'pause') f.add('paused');
-  if (fishing.active) f.add('fishing');
-  if (traffic.ships.some((s) => s.hostile && !s.sinking && Math.hypot(s.x - ship.pos.x, s.z - ship.pos.z) < 90)) f.add('combat');
-  if ($('demoend').classList.contains('show')) f.add('ending');
-  f.add(tod.night > 0.6 ? 'night' : tod.twilight > 0.35 ? 'twilight' : 'day');
-  if (weather.rain > 0.3) f.add('rain'); if (weather.storm > 0.3) f.add('storm'); if (weather.fog > 0.4) f.add('fog'); if (wind.strength > 0.9) f.add('windy');
-  f.add(near ? 'land' : 'open');
-  return { flags: f, dread: rt.dread };
-}
-//   // players get every effect, no test menu
-$('abAll').addEventListener('click', () => { const any = EFFECTS.some((f) => settings.abyss[f.id] === false); for (const f of EFFECTS) settings.abyss[f.id] = any; store.set(SETTINGS_KEY, settings); renderAbyssMenu(); });
-$('abForce').addEventListener('click', () => { abyss.stopTest(); if (rt.forced === 1) rt.forced = null; else { rt.forced = 1; rt.dread = 1; } renderAbyssMenu(); });
-$('pbLog').addEventListener('click', () => { rt.logTab = 'map'; openModal('chart'); });
-$('pbMusic').addEventListener('click', () => {
-  audio.setMusic(!audio.musicOn);
-  settings.musicOff = !audio.musicOn; store.set(SETTINGS_KEY, settings);
-  showPause('sound', 'pbMusic');
-});
-$('pbSound').addEventListener('click', () => {
-  audio.setMuted(!audio.muted);
-  settings.muted = audio.muted; store.set(SETTINGS_KEY, settings);
-  showPause('sound', 'pbSound');
-});
-pauseEl.addEventListener('pointerdown', (e) => { if (e.target === pauseEl) closeModal(); });
-// (a click beside the book no longer closes the log: Close, M or Esc do)
-shipEl.addEventListener('pointerdown', (e) => { if (e.target === shipEl) closeModal(); });
-$('shClose').addEventListener('click', () => closeModal());
-$('hbClose').addEventListener('click', () => closeModal());
+initPause2();   // (ui/pause.js)
 
 // ---------------------------------------------------------------- harbour shipwright
 const UP_MUL = [1.3, 1.6, 1.9];   // economy: the shipwright charges more, steeply for the higher levels
