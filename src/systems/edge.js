@@ -27,6 +27,7 @@ export function startEdge(ship, fadeEl) {
   renderer.localClippingEnabled = true; ocean.material.clippingPlanes = [new THREE.Plane(n, -(n.x * lip[0] + n.z * lip[1]))]; ocean.material.needsUpdate = true;
   rt.edge = { t: 0, lip, f, r, g, far, fadeEl, from: [ship.pos.x, ship.pos.z], turned: false };
   rt.edgeLock = true; state.story.edge = state.dayN;
+  document.body.classList.add('edge');   // letterbox, no HUD (index.html)
   return true;
 }
 
@@ -64,5 +65,6 @@ export function edgeTick({ dt, dread, ship, quiet, clearAhead, fadeEl, onDone })
     ship.pos.x -= f[0] * 170; ship.pos.z -= f[1] * 170; ship.heading += Math.PI; ship.speed = 1.5; ship.vel = null; rt.camHeading = ship.heading; rt.yawT = 0; rt.camYaw = 0;
   }
   if (t > 40 && e.fading) { e.fading = false; fadeEl.classList.remove('on'); }
+  if (t > 42) document.body.classList.remove('edge');
   if (t >= LEN) { fadeEl.style.background = ''; rt.edge = null; rt.edgeLock = false; rt.edgeHush = 0; onDone(); }
 }

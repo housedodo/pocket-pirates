@@ -1021,3 +1021,14 @@ Trials for the owner to compare; nothing changes without a flag and STYLE.md is 
   already dug) and the three meetings (region `deep`). They pay off toward "Your Seat" (question 3 at level 3).
 - Verified headless: each spawns, shows its [E] tag, opens its card, marks its clue and `story.lost`; the clue lint passes; the models
   read at night in deep dread (screenshots). Not checked: how often they turn up in real deep-dread sailing.
+
+## The Edge, in the game (2026-11-12)
+- `src/systems/edge.js` (+ `concepts.js` buildEdge, the concept geometry turned to the ship): once per voyage (`story.edge`), full game,
+  the first time the dread reaches 0.9 on open water (nothing within reach ahead, not lost in fog, no menu, outside the quiet window).
+  0-20 s: the lip appears 200 ahead, the far shapes fade in out of the mist, the helm locks (`rt.edgeLock`), the current draws the ship
+  to 7 short of the lip, the sound goes away (`rt.edgeHush` through `audio.hush`). 20-36 s: the camera swings out over the drop looking
+  back at the ship and the falls, then low behind the ship looking up at the statues. 35-40 s: white mist (`#fade`, white); behind it
+  the edge is removed and the sea un-clipped; the ship is 170 back, turned for home. Then the quiet window for 30 s. Letterbox and no
+  HUD while it runs (`body.edge`). Dev: `__game.edge()`.
+- Verified headless (full run): it triggers by itself at dread 0.92, every beat renders (screenshots), the helm comes back (sails out
+  on W), no console errors. Not judged: the pacing in real time and how it sounds (headless runs at a tenth of real speed).

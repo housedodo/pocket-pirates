@@ -650,6 +650,7 @@
     #introbars i { position: fixed; left: 0; right: 0; height: 0; background: #000; z-index: 7; pointer-events: none; transition: height 1.4s ease; } #introbars i:first-child { top: 0; } #introbars i:last-child { bottom: 0; }
     body.intro #introbars i { height: 13vh; transition: height 1s ease; }
     body.intro #hud { opacity: 0 !important; }
+    body.edge #introbars i { height: 13vh; transition: height 2s ease; } body.edge #hud, body.edge #toasts, body.edge #mate, body.edge #help { opacity: 0 !important; transition: opacity 1.5s; }   /* the Edge (systems/edge.js): a cinematic, nothing on screen */
     #introskip { position: fixed; right: 20px; bottom: calc(13vh + 12px); z-index: 8; color: #f4ead0; font-size: 16px; opacity: 0; pointer-events: none; text-shadow: 2px 2px 0 #000; }
     body.intro #introskip { opacity: .8; transition: opacity 1s 2.5s; }
     /* CHART-LOOK START */
