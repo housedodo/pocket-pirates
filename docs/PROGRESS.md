@@ -1073,3 +1073,6 @@ Trials for the owner to compare; nothing changes without a flag and STYLE.md is 
   1,600 to 2,400 out (late-game water) instead of 450 to 1,500: a change of pacing that follows from the mapping.
 - Verified on five seeds with all threads awake: every thread in its region (house, bell, music, captain at their usual distances; the
   coin's passenger asks in Crown harbours). Saved voyages keep the sites they already have.
+- **Tama, the open ground** (`tamaPolish`, its own rng so nothing else moves): either side of the street between the pier and the
+  square, a washing line, a net rack, a small hedged kitchen patch and a stack of barrels, a crate and a rope coil. Checked by day, at
+  dusk, at night (lit windows), at dread 0.6 (the garden harbour withers: bare trees, sallow colours) and from the harbour screen.

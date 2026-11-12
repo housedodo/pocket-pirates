@@ -1103,6 +1103,21 @@ function tamaPolish(S, look, houses) {
     }
     pickSpots(12, 0.3, 0.84, 2.6).forEach(([x, z], i) => { const k = i % 3; bloomTree(S, x, g(x, z) - 0.1, z, 0.95 + r() * 0.35, k === 0 ? '#4a9a40' : '#3f8a38', k === 0 ? '#f4f0e8' : k === 1 ? '#e8402e' : '#f0a0c0'); });
     pickSpots(3, 0.5, 0.7, 4.2).forEach(([x, z, th]) => { A.push(x, g(x, z) - 0.08, z, Math.PI / 2 - th); for (const [hx, hz, hw, hl] of [[0, -2.4, 6.4, 0.8], [-3.2, 0, 0.8, 5.6], [3.2, 0, 0.8, 5.6]]) A.blob(hx, 0.45, hz, hw / 2, 0.55, hl / 2, '#3f8a38', TILE.leaf, 0.15, Math.floor(hx + hz)); for (let j = 0; j < 4; j++) { A.box(0, 0, -1.4 + j * 0.95, 5.2, 0.18, 0.5, '#7a5a3a', TILE.white); A.box(0, 0.18, -1.4 + j * 0.95, 5.0, 0.26, 0.32, j % 2 ? '#5aa844' : '#d8b848', TILE.leaf); } A.pop(); });   // hedged kitchen gardens
+    { // the open ground either side of the street, between the pier and the square: used, not empty (STYLE 8.4). Its own rng (r): the houses do not move
+      const nearStreet = (n, rr) => { const out = []; for (let i = 0; i < 240 && out.length < n; i++) { const side = r() < 0.5 ? -1 : 1, th = dockTh + side * (0.2 + r() * 0.45), t = 0.42 + r() * 0.36, R0 = shoreR(d, th) * t, x = Math.cos(th) * R0, z = Math.sin(th) * R0; if (!free(x, z) || nearHouse(x, z, rr + 3) || used.some((u) => Math.hypot(u[0] - x, u[1] - z) < u[2] + rr)) continue; used.push([x, z, rr]); out.push([x, z, th]); } return out; };
+      const [wl, nr, kp, st] = nearStreet(4, 2.6);
+      if (wl) { const [x, z, th] = wl, len = 4.2, cols = ['#f4f0e4', '#d83a3a', '#3c78c8', '#e8c060', '#f0a0c0', '#5ec45a'];   // a washing line
+        A.push(x, g(x, z) - 0.05, z, -th); for (const sx of [-1, 1]) A.box(sx * len / 2, 0, 0, 0.2, 2.6, 0.2, '#5a3e24', TILE.bark);
+        for (let i = 0; i < 4; i++) A.box(-len / 2 + 0.85 + i * (len - 1.7) / 3, 1.0 + (i % 2) * 0.15, 0, 0.72, 1.05 - (i % 2) * 0.2, 0.08, cols[Math.floor(r() * cols.length)], TILE.white);
+        A.box(0, 2.45, 0, len, 0.14, 0.14, '#8a6a4a', TILE.rope); A.pop(); }
+      if (nr) fishRack(A, nr[0], g(nr[0], nr[1]) - 0.05, nr[1], Math.PI / 2 - nr[2]);   // nets drying
+      if (kp) { const [x, z, th] = kp; A.push(x, g(x, z) - 0.08, z, Math.PI / 2 - th);   // a kitchen patch, small, hedged on one side
+        A.blob(0, 0.45, -1.6, 2.4, 0.5, 0.4, '#3f8a38', TILE.leaf, 0.15, 7);
+        for (let j = 0; j < 3; j++) { A.box(0, 0, -0.9 + j * 0.9, 3.6, 0.18, 0.5, '#7a5a3a', TILE.white); A.box(0, 0.18, -0.9 + j * 0.9, 3.4, 0.26, 0.32, j % 2 ? '#d8b848' : '#5aa844', TILE.leaf); }
+        A.pop(); }
+      if (st) { const [x, z, th] = st, y = g(x, z) - 0.05;   // a little stack by the landing
+        barrel(A, x, y, z, 0.95); barrel(A, x + 0.85, y, z + 0.25, 0.85); crateBox(A, x - 0.4, y, z + 1.0, th, 0.9); ropeCoil(A, x + 1.1, y, z - 0.8, 1.0); }
+    }
     pickSpots(4, 0.66, 0.86, 2.2).forEach(([x, z]) => palm(A, B, D, x, g(x, z), z, r, 1.0 + r() * 0.4));
     { const [x, z] = quayAt(dockTh + 0.22, 0.86); palm(A, B, D, x, g(x, z), z, r, 1.1 + r() * 0.3); }
     for (let i = 0; i < 5; i++) { const a = dockTh + Math.PI * 0.6 + i * 0.5, x = Math.cos(a) * (rP + 3), z = Math.sin(a) * (rP + 3); if (nearHouse(x, z, 3)) continue; A.push(x, H - 0.08, z, -a); for (let j = 0; j < 4; j++) A.box(0, 0, (j - 1.5) * 0.55, 1.6, 0.2, 0.32, '#6a4a2c', TILE.white), A.box(0, 0.2, (j - 1.5) * 0.55, 1.4, 0.24, 0.2, j % 2 ? '#5aa844' : '#d8402e', TILE.leaf); A.pop(); }   // vegetable rows
