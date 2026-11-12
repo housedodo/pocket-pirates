@@ -68,6 +68,17 @@ import { canvas, renderer, post, scene, camera, ocean, sky } from './core/engine
 import { $, goldEl, promptEl, promptTxt, promptBar, promptFill, toastsEl, debugEl, helpEl, chartEl, harbourEl, pauseEl, shipEl, compass, toast } from './ui/dom.js';
 import { WEEK, weekday, isMarketDay, isLanternNight, isFestival, tideAt, tideFalls, fullMoon } from './systems/calendar.js';
 import { addMark, clearMark, keep, markFromRoll } from './systems/storyflags.js';
+import { PITCH_MIN, updateCamera, initCamera1, initCamera2 } from './ui/camera.js';
+
+// G-REGISTRY START (generated): what main.js lends the modules under it, read at call time
+Object.defineProperties(G, {
+  INTRO_DUR: { get: () => INTRO_DUR },
+  abyss: { get: () => abyss },
+  ship: { get: () => ship },
+  titleCam: { get: () => titleCam },
+  world: { get: () => world },
+});
+// G-REGISTRY END
 
 // ---------------------------------------------------------------- params, save, settings (core/config.js), the voyage's state (core/state.js)
 
@@ -719,16 +730,7 @@ if (DEV) {
 window.addEventListener('keyup', (e) => { keys.delete(e.code); if (e.code === 'Space' || e.code === 'KeyC') fishing.hold = false; });
 window.addEventListener('blur', () => { if (rt.started && !rt.modal && !params.get('shot') && !(studio && studio.popped)) openModal('pause'); });   // the studio window may take focus: keep playing
 titleEl.addEventListener('pointerdown', () => { if (!rt.titleScene) begin(); });   // with the live title, only Set sail starts
-
-rt.zoom = parseFloat(params.get('zoom') || '24'), rt.zoomT = rt.zoom;
-const PITCH_MIN = 0.06;   // low, almost level with the deck: the view tilts up to the sky instead of dipping under the hull
-rt.pitch = parseFloat(params.get('pitch') || '0.72'), rt.pitchT = rt.pitch;
-canvas.addEventListener('wheel', (e) => { rt.zoomT = clamp(rt.zoomT * (1 + Math.sign(e.deltaY) * 0.1), 14, ship.mods.zoomMax); e.preventDefault(); }, { passive: false });
-rt.drag = null;
-rt.yawT = 0, rt.camYaw = 0, rt.lastCamInput = -99;   // orbit around the boat (drag sideways, Z / X, V resets)
-canvas.addEventListener('pointerdown', (e) => { rt.drag = { x: e.clientX, y: e.clientY, p: rt.pitchT, yaw: rt.yawT }; rt.lastCamInput = rt.tNow; canvas.setPointerCapture(e.pointerId); });
-canvas.addEventListener('pointermove', (e) => { if (rt.drag && !rt.modal) { rt.pitchT = clamp(rt.drag.p + (e.clientY - rt.drag.y) * 0.006, PITCH_MIN, 1.35); rt.yawT = rt.drag.yaw - (e.clientX - rt.drag.x) * 0.008; rt.lastCamInput = rt.tNow; } });
-canvas.addEventListener('pointerup', () => { rt.drag = null; });
+initCamera1();   // (ui/camera.js)
 
 for (const [id, k] of [['tL', 'L'], ['tR', 'R'], ['tU', 'U'], ['tD', 'D']]) {
   const el = $(id);
@@ -2427,13 +2429,9 @@ const logbook = new Logbook({ slip: () => slipInfo(), eta: (d) => etaText(d), ab
 
 // ---------------------------------------------------------------- main loop
 const GLASS = new THREE.Color('#07030d');
-const camPos = new THREE.Vector3(), camLook = new THREE.Vector3(), _v = new THREE.Vector3();
-rt.camHeading = ship.heading;
-rt.lookUpK = 0;
-rt.camSwell = 0;   // how far the camera has risen with the swell
-rt.camOverride = null; // { pos:[x,y,z], look:[x,y,z] } for concept shots
+const _v = new THREE.Vector3();
+initCamera2();   // (ui/camera.js)
 rt.lastTs = performance.now();
-
 function frame() {
   const nowTs = performance.now();
   const rawDt = Math.min(0.05, (nowTs - rt.lastTs) / 1000);
@@ -2622,43 +2620,7 @@ function frame() {
   ocean.update(camera.position.x, camera.position.z);
 
   // ---- camera
-  rt.zoomT = Math.min(rt.zoomT, ship.mods.zoomMax);
-  rt.zoom += (rt.zoomT - rt.zoom) * Math.min(1, rawDt * 5);
-  rt.pitch += (rt.pitchT - rt.pitch) * Math.min(1, rawDt * 5);
-  rt.lookUpK += ((abyss.lookUp ? 1 : 0) - rt.lookUpK) * Math.min(1, rawDt * 0.6);
-  const pitchNow = rt.pitch + (0.3 - rt.pitch) * rt.lookUpK;
-  rt.camHeading += angleDiff(rt.camHeading, ship.heading) * Math.min(1, rawDt * 1.6);
-  rt.camYaw += (rt.yawT - rt.camYaw) * Math.min(1, rawDt * 7);
-  const ch = rt.camHeading + rt.camYaw;
-  const fx = Math.sin(ch), fz = -Math.cos(ch);
-  const back = rt.zoom * Math.cos(pitchNow), up = rt.zoom * Math.sin(pitchNow);
-  // the camera rises and falls with the slow swell (not with every wave), so on a big swell the ship does not sit in a pit with the water walls above the lens
-  rt.camSwell += ((ship.float && ship.float.y !== undefined ? clamp(ship.float.y, -4, 4) * 0.65 : 0) - rt.camSwell) * Math.min(1, rawDt * 1.1);
-  camPos.set(ship.pos.x - fx * back, up + 1 + rt.camSwell, ship.pos.z - fz * back);
-  const skyK = clamp((0.3 - pitchNow) / (0.3 - PITCH_MIN), 0, 1);   // below the old limit the camera looks up instead of down
-  camLook.set(ship.pos.x + fx * rt.zoom * 0.2, 1.5 + rt.camSwell * 0.7 + rt.lookUpK * 9 + skyK * rt.zoom * 0.42, ship.pos.z + fz * rt.zoom * 0.2);
-  camPos.y = Math.max(camPos.y, 3.2);                                 // never at or under the waterline
-  if (rt.shake > 0) { rt.shake = Math.max(0, rt.shake - rawDt * 1.8); camPos.x += Math.sin(rt.tNow * 70) * rt.shake; camPos.y += Math.cos(rt.tNow * 63) * rt.shake * 0.7; }
-  if (rt.dread > 0.85 && live) { const s = (rt.dread - 0.85) * 0.5; camPos.x += Math.sin(rt.tNow * 31) * s; camPos.y += Math.sin(rt.tNow * 23 + 1) * s; }
-  if (rt.titleScene) titleCam(rawDt);
-  rt.ashoreK += ((ashore && rt.ashoreCam ? 1 : 0) - rt.ashoreK) * Math.min(1, rawDt * 2.2);
-  if (rt.ashoreCam && rt.ashoreK > 0.001) { const k = smoothstep(0, 1, rt.ashoreK); camPos.lerp(rt.ashoreCam.pos, k); camLook.lerp(rt.ashoreCam.look, k); }
-  if (rt.introT >= 0) {   // the opening shot: high over Tama, easing down to the usual place behind the ship
-    const k = clamp(rt.introT / INTRO_DUR, 0, 1), e = k * k * (3 - 2 * k), i0 = world.desc(0, -1);
-    camPos.x += -34 * (1 - e); camPos.y += 78 * (1 - e); camPos.z += 52 * (1 - e);
-    if (i0) camLook.set(i0.x + (camLook.x - i0.x) * e, 8 + (camLook.y - 8) * e, i0.z + (camLook.z - i0.z) * e);
-  }
-  if (rt.modal === 'yard') {   // the turntable: the ship turns slowly by itself until you take over
-    if (!rt.yardDrag) { rt.yardIdle += rawDt; if (rt.yardIdle > 2.5) rt.yardYaw += rawDt * 0.35; }
-    const a = ship.heading + rt.yardYaw, r = 11 * rt.yardZoom;
-    camPos.set(ship.pos.x + Math.sin(a) * r, 3.2 + 2 * rt.yardZoom, ship.pos.z - Math.cos(a) * r); camLook.set(ship.pos.x, 2.6, ship.pos.z);
-    $('yAngle').textContent = ['stern', 'port', 'bow', 'starboard'][Math.round((((rt.yardYaw % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2)) / (Math.PI / 2)) % 4];
-  }
-  if (rt.camOverride) { camPos.set(...rt.camOverride.pos); camLook.set(...rt.camOverride.look); }
-  camera.position.copy(camPos);
-  camera.lookAt(camLook);
-  if (live || params.get('shot')) camera.rotateZ(abyss.roll(rt.tNow));
-  camera.updateMatrixWorld();
+  updateCamera(rawDt, live, ashore);
 
   // ---- discovery / interaction / dig
   // first sight of an island you have never charted: a moment of "land ho!"
