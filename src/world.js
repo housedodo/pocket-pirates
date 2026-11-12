@@ -26,7 +26,7 @@ const COL = {
 const WALLS = ['#f4dfb0', '#f0b3a0', '#a9d6ee', '#f2e48a', '#c9e6a8', '#e8c0e0'];
 const ROOFS = ['#d2483c', '#3c78c8', '#2f9a8a', '#c86a2a', '#7a4ab0'];
 // a village's custom can repaint every house (whitewash) or keep children indoors; set while a harbour is built
-let PAINT = null, NO_CHILD = false, CUR_FLAG = null, FIN = null;   // FIN: Tama's look-polish finish (dev, ?tama=), see TAMA_FIN
+let PAINT = null, NO_CHILD = false, CUR_FLAG = null, FIN = null;   // FIN: Tama's house finish (the garden harbour), see TAMA_FIN
 
 // ---------------------------------------------------------------------------
 // Island description (pure function of seed + cell) and terrain height field
@@ -940,22 +940,13 @@ function flagLine(b, a, c, k0 = 0) {   // a hanging line of little triangle flag
   }
 }
 
-// ---- Tama look-polish options (dev, ?tama=a|b|c). The houses stand exactly where they stand without the flag (same rng, same
-// kinds); only their finish, the ground, paths, the landing, the pier, plants and props change. The losers are deleted when one is chosen.
-//   a  painted town: pastel walls and one terracotta roof family, white trim, painted doors, flower boxes, shell paths, a paved square, a stone quay
-//   b  garden harbour: lush grass, sandy paths, white picket fences, bougainvillea, flowering trees and beds, a plank boardwalk and a roped pier
-//   c  harbour front: a cobbled square and street down to a wide stone quay with bollards, lamps, a crane, a fish stall; striped awnings on the houses
-const TAMA_LOOK = (() => { try { const v = new URLSearchParams(location.search).get('tama'); return ['a', 'b', 'c'].includes(v) ? v : null; } catch (e) { return null; } })();
+// ---- Tama's look: the garden harbour (chosen 2026-11-12 from three polish options). The houses stand where the plain build puts
+// them (same rng, same kinds); only their finish, the ground, paths, the landing, the pier, plants and props are added: lush grass,
+// sandy paths, white picket fences, bougainvillea, flowering trees and beds, a plank boardwalk and a roped pier.
+const TAMA_LOOK = 'b';
 const DOORS = ['#2f8a8a', '#3c6ec8', '#c8402e', '#e8b030', '#3f8a5a', '#f4f0e4'];
-const TAMA_FIN = {
-  a: { walls: { '#f4dfb0': '#f6dca0', '#f0b3a0': '#f29c84', '#a9d6ee': '#8cc8e8', '#f2e48a': '#f4d468', '#c9e6a8': '#9ad8b8', '#e8c0e0': '#e8a8c8' },
-       roofs: { '#d2483c': '#c8583a', '#3c78c8': '#b8503a', '#2f9a8a': '#d27a3a', '#c86a2a': '#c86a2a', '#7a4ab0': '#a84a32' },
-       trim: '#f6f0e2', plinth: '#9a8a78', boxes: true, pots: true, doors: DOORS, blooms: ['#e8407a', '#f0c030', '#f4f0e8', '#e85a3a'] },
-  b: { walls: null, roofs: { '#7a4ab0': '#c8583a' }, trim: '#f2ead6', plinth: '#a89a80', boxes: true, vine: true, doors: DOORS, blooms: ['#e8407a', '#f0c030', '#f4f0e8', '#c078e0'] },
-  c: { walls: null, roofs: { '#7a4ab0': '#c8583a', '#2f9a8a': '#b8503a' }, trim: '#efe6d2', plinth: '#8a8278', doors: DOORS, pots: true,
-       awn: [['#c83a2e', '#f4ece0'], ['#3c6ec8', '#f4ece0'], ['#2f8a6a', '#f4ece0'], ['#e8a830', '#f4ece0']] },
-};
-const TAMA_GROUND = { a: ['#9cc05a', '#86b650'], b: ['#5aac48', '#6cba52'], c: ['#a8b862', '#bcbc72'] };
+const TAMA_FIN = { b: { walls: null, roofs: { '#7a4ab0': '#c8583a' }, trim: '#f2ead6', plinth: '#a89a80', boxes: true, vine: true, doors: DOORS, blooms: ['#e8407a', '#f0c030', '#f4f0e8', '#c078e0'] } };
+const TAMA_GROUND = { b: ['#5aac48', '#6cba52'] };
 const finCol = (map, col) => (map && map[col]) || col;
 const hashXZ = (x, z, k = 0) => { const h = Math.sin(x * 12.9898 + z * 78.233 + k * 37.719) * 43758.5453; return h - Math.floor(h); };
 function doorFrame(A, dx, dw, dh, dy, zf) {   // jambs and a lintel round a door, in the trim colour
@@ -1026,10 +1017,8 @@ function tamaPolish(S, look, houses) {
   const { d, dockTh, A, B, D, R, z0, z1 } = S, r = mulberry32(d.seed + 4242), H = d.H;
   const g = (x, z) => Math.min(H, terrainHeight(d, x, z));
   const ax = Math.cos(dockTh), az = Math.sin(dockTh);
-  const rP = look === 'c' ? 7.2 : 6;
-  const pal = { a: { path: ['#fff4dc', '#f4e6c4'], pt: TILE.sand, sq: '#fff0d8', sq2: '#e07a4a', edge: '#e8d8b8', quay: '#e4e0d6', cope: '#ffffff', wall: '#e8dcc0' },
-                b: { path: ['#f0d49c', '#e4c48c'], pt: TILE.sand, sq: '#f0dca8', sq2: '#e4c48c', edge: '#c8a878', quay: '#c89060', cope: '#6b4a2e', wall: '#e0d0b0' },
-                c: { path: ['#e09878', '#cc8466'], pt: TILE.sand, sq: '#e4a080', sq2: '#f4e8d4', edge: '#b87a60', quay: '#dcd8d0', cope: '#ffffff', wall: '#e8dcc4' } }[look];
+  const rP = 6;
+  const pal = { path: ['#f0d49c', '#e4c48c'], pt: TILE.sand, sq: '#f0dca8', sq2: '#e4c48c', edge: '#c8a878', quay: '#c89060', cope: '#6b4a2e', wall: '#e0d0b0' };
   const nearHouse = (x, z, rr, skip) => houses.some((h) => h !== skip && Math.hypot(h.x - x, h.z - z) < rr);
   const slab = (x, z, w, l, ry, col) => { A.push(x, g(x, z) - 0.07, z, ry); A.box(0, 0, 0, w, 0.11, l, col, pal.pt); A.pop(); };
   // the square: paved (a, c) with a rosette, or a green ringed by a path and flower beds (b)
@@ -1053,17 +1042,17 @@ function tamaPolish(S, look, houses) {
     for (let t = 0; t < L; t += 0.9) {
       const x = sx + ux * t + (r() - 0.5) * 0.2, z = sz + uz * t + (r() - 0.5) * 0.2;
       if (nearHouse(x, z, 2.6, h)) break;
-      slab(x, z, look === 'c' ? 1.7 : 1.4, 0.75, pry + (r() - 0.5) * 0.25, pal.path[Math.floor(r() * 2)]);
+      slab(x, z, 1.4, 0.75, pry + (r() - 0.5) * 0.25, pal.path[Math.floor(r() * 2)]);
     }
   }
   // the street down to the landing
   const tq = 0.875;   // where the quay begins (fraction of the shore radius at the pier)
-  for (let s = rP + 0.3; s < R * tq + 0.6; s += 0.9) for (const o of look === 'c' ? [-1.3, 0, 1.3] : [-0.75, 0.75]) {
+  for (let s = rP + 0.3; s < R * tq + 0.6; s += 0.9) for (const o of [-0.75, 0.75]) {
     const x = ax * s - az * o + (r() - 0.5) * 0.15, z = az * s + ax * o + (r() - 0.5) * 0.15;
-    slab(x, z, look === 'c' ? 1.35 : 1.5, 0.8, Math.PI / 2 - dockTh + (r() - 0.5) * 0.2, pal.path[Math.floor(r() * 2)]);
+    slab(x, z, 1.5, 0.8, Math.PI / 2 - dockTh + (r() - 0.5) * 0.2, pal.path[Math.floor(r() * 2)]);
   }
   // the landing: a quay along the shore either side of the pier (stone, or a plank boardwalk in b)
-  const span = look === 'c' ? 0.42 : 0.3, yQ = 0.86, steps = Math.round(span * 2 / 0.06), wood = look === 'b';
+  const span = 0.3, yQ = 0.86, steps = Math.round(span * 2 / 0.06), wood = true;
   for (let i = 0; i < steps; i++) {
     const t0 = dockTh - span + i * 0.06, t1 = t0 + 0.06, tm = (t0 + t1) / 2;
     const ri0 = shoreR(d, t0) * 0.84, ri1 = shoreR(d, t1) * 0.84, ro0 = shoreR(d, t0) * 1.0, ro1 = shoreR(d, t1) * 1.0;
@@ -1088,32 +1077,22 @@ function tamaPolish(S, look, houses) {
   A.push(0, 0, 0, Math.PI / 2 - dockTh);
   for (const sx of [-1.45, 1.45]) A.box(sx, 0.4, (R * 0.85 + z1) / 2, 0.2, 0.3, z1 - R * 0.85, '#4a3524', TILE.bark);
   for (let z = R * 0.95 + 2, i = 0; z < z1 - 1; z += 4.4, i++) { const sx = i % 2 ? 1.2 : -1.2; A.cyl(sx, 0.84, z, 0.17, 0.14, 0.42, 6, '#2e2e34', TILE.stone, true); A.cyl(sx, 1.26, z, 0.23, 0.23, 0.09, 6, '#2e2e34', TILE.stone, true); }
-  if (look === 'b') for (const sx of [-1.38, 1.38]) for (let z = R * 1.02; z < z1 - 1; z += 2.6) { A.box(sx, 0.84, z, 0.14, 1.0, 0.14, '#6b4a2e', TILE.bark); if (z + 2.6 < z1 - 1) A.box(sx, 1.66, z + 1.3, 0.11, 0.11, 2.6, '#c8b080', TILE.rope); }
-  if (look === 'c') { for (const sx of [-1.38, 1.38]) { for (let z = R * 1.02; z < z1 - 3; z += 1.8) A.box(sx, 0.84, z, 0.16, 0.95, 0.16, '#6b4a2e', TILE.planks); A.box(sx, 1.7, (R * 1.02 + z1 - 3) / 2, 0.16, 0.12, z1 - 3 - R * 1.02, '#7a5a3a', TILE.planks); A.box(sx, 1.25, (R * 1.02 + z1 - 3) / 2, 0.12, 0.1, z1 - 3 - R * 1.02, '#7a5a3a', TILE.planks); }
-    lampPost(A, -1.3, 0.84, z1 - 1.2, Math.PI); }
+  for (const sx of [-1.38, 1.38]) for (let z = R * 1.02; z < z1 - 1; z += 2.6) { A.box(sx, 0.84, z, 0.14, 1.0, 0.14, '#6b4a2e', TILE.bark); if (z + 2.6 < z1 - 1) A.box(sx, 1.66, z + 1.3, 0.11, 0.11, 2.6, '#c8b080', TILE.rope); }
   A.pop();
   // lamps
-  const lamps = look === 'c' ? [[rP + 2, 1], [rP + 2, -1], [rP + 8, 1], [rP + 8, -1]] : look === 'a' ? [[rP + 1.5, 1], [rP + 1.5, -1]] : [[rP + 1.5, 1]];
-  for (const [s, side] of lamps) { const o = look === 'c' ? 2.6 : 1.8, x = ax * s - az * o * side, z = az * s + ax * o * side; lampPost(A, x, g(x, z) - 0.05, z, Math.atan2(-az * side, ax * side) - Math.PI / 2); }
+  const lamps = [[rP + 1.5, 1]];
+  for (const [s, side] of lamps) { const o = 1.8, x = ax * s - az * o * side, z = az * s + ax * o * side; lampPost(A, x, g(x, z) - 0.05, z, Math.atan2(-az * side, ax * side) - Math.PI / 2); }
   if (look !== 'b') for (const side of [-1, 1]) { const [x, z] = quayAt(dockTh + side * (span - 0.08), 0.9); lampPost(A, x, yQ, z, -dockTh); }
   // free ground: grass tufts and flowers where nothing stands
   const free = (x, z) => Math.hypot(x, z) > rP + 1.2 && !nearHouse(x, z, 3.6) && Math.abs(angleDiff(Math.atan2(z, x), dockTh)) * Math.hypot(x, z) > 2.8;
-  const tuftCols = look === 'b' ? ['#3f8a38', '#5aa844', '#4a9a40'] : ['#7aa84a', '#8ab858', '#6a9a3a'];
-  for (let i = 0; i < (look === 'b' ? 90 : 60); i++) { const th = r() * 6.283, rr = shoreR(d, th) * (0.2 + r() * 0.62), x = Math.cos(th) * rr, z = Math.sin(th) * rr; if (!free(x, z) || g(x, z) < H - 0.05) continue; tuft(A, x, g(x, z) - 0.05, z, tuftCols[i % 3], r()); if (i % 4 === 0) flowers(A, x + 0.6, g(x, z), z, r); }
+  const tuftCols = ['#3f8a38', '#5aa844', '#4a9a40'];
+  for (let i = 0; i < 90; i++) { const th = r() * 6.283, rr = shoreR(d, th) * (0.2 + r() * 0.62), x = Math.cos(th) * rr, z = Math.sin(th) * rr; if (!free(x, z) || g(x, z) < H - 0.05) continue; tuft(A, x, g(x, z) - 0.05, z, tuftCols[i % 3], r()); if (i % 4 === 0) flowers(A, x + 0.6, g(x, z), z, r); }
   // plants by the houses: a hibiscus or two at the side of each door
-  for (const h of houses) { if (h.kind === 'belltower') continue; const fx = Math.sin(h.ry), fz = Math.cos(h.ry), lxh = fz, lzh = -fx; for (const s of look === 'b' ? [-1, 1] : [hashXZ(h.x, h.z) > 0.5 ? 1 : -1]) { const x = h.x + lxh * s * 3.4 + fx * 1.6, z = h.z + lzh * s * 3.4 + fz * 1.6; if (nearHouse(x, z, 2.4, h)) continue; hibiscus(A, x, g(x, z) - 0.1, z, 0.8, ['#e8407a', '#f0c030', '#e85a3a', '#f4f0e8'][Math.floor(r() * 4)]); } }
-  // the open ground beyond the houses: a walk round the island (a, c), walled garden plots, groves
+  for (const h of houses) { if (h.kind === 'belltower') continue; const fx = Math.sin(h.ry), fz = Math.cos(h.ry), lxh = fz, lzh = -fx; for (const s of [-1, 1]) { const x = h.x + lxh * s * 3.4 + fx * 1.6, z = h.z + lzh * s * 3.4 + fz * 1.6; if (nearHouse(x, z, 2.4, h)) continue; hibiscus(A, x, g(x, z) - 0.1, z, 0.8, ['#e8407a', '#f0c030', '#e85a3a', '#f4f0e8'][Math.floor(r() * 4)]); } }
+  // the open ground beyond the houses: kitchen gardens, groves
   const used = [];
   const blocked = (th, t) => (t > 0.7 && Math.abs(angleDiff(th, dockTh)) > 1.0 && Math.abs(angleDiff(th, dockTh)) < 1.85) || (t > 0.5 && Math.abs(angleDiff(th, dockTh + Math.PI)) < 0.5);   // the ruins, the lighthouse
   const pickSpots = (n, t0, t1, rr) => { const out = []; for (let i = 0; i < 200 && out.length < n; i++) { const th = r() * 6.283, t = t0 + r() * (t1 - t0), R0 = shoreR(d, th) * t, x = Math.cos(th) * R0, z = Math.sin(th) * R0; if (blocked(th, t) || !free(x, z) || nearHouse(x, z, rr + 3.2) || Math.abs(angleDiff(th, dockTh)) < 0.6 || used.some((u) => Math.hypot(u[0] - x, u[1] - z) < u[2] + rr)) continue; used.push([x, z, rr]); out.push([x, z, th]); } return out; };
-  if (look !== 'b') {
-    let k = 0;
-    for (let th = dockTh + span + 0.04; th < dockTh + Math.PI * 2 - span - 0.04; th += 0.95 / (shoreR(d, th) * 0.79)) {
-      const R0 = shoreR(d, th) * 0.79, x = Math.cos(th) * R0, z = Math.sin(th) * R0; if (nearHouse(x, z, 2.8)) continue;
-      slab(x, z, look === 'c' ? 1.5 : 1.3, 0.8, Math.PI / 2 - th + Math.PI / 2 + (r() - 0.5) * 0.25, pal.path[Math.floor(r() * 2)]);
-      if (look === 'c' && k++ % 30 === 15 && !blocked(th, 0.79)) lampPost(A, x * 1.04, g(x * 1.04, z * 1.04) - 0.05, z * 1.04, -th);
-    }
-  }
   const plot = (x, z, ry, w, l, inner) => {   // a garden plot inside a low whitewashed wall with a gap for the gate
     A.push(x, g(x, z) - 0.08, z, ry);
     A.box(0, 0, -l / 2, w, 0.6, 0.4, pal.wall, TILE.stone); A.box(-w / 2, 0, 0, 0.4, 0.6, l, pal.wall, TILE.stone); A.box(w / 2, 0, 0, 0.4, 0.6, l, pal.wall, TILE.stone);
@@ -1123,13 +1102,7 @@ function tamaPolish(S, look, houses) {
     A.pop();
   };
   // per look
-  if (look === 'a') {
-    pickSpots(3, 0.5, 0.68, 4.2).forEach(([x, z, th], i) => plot(x, z, Math.PI / 2 - th, 6, 4.4, i % 2 ? 'veg' : 'flowers'));
-    pickSpots(7, 0.62, 0.86, 2.2).forEach(([x, z]) => palm(A, B, D, x, g(x, z), z, r, 0.95 + r() * 0.4));
-    for (let i = 0; i < 4; i++) { const a = dockTh + Math.PI / 4 + i * Math.PI / 2, x = Math.cos(a) * (rP - 0.9), z = Math.sin(a) * (rP - 0.9); A.push(x, H - 0.05, z, Math.atan2(-x, -z)); A.box(0, 0.42, 0, 1.6, 0.12, 0.5, '#6b4a2e', TILE.planks); for (const sx of [-0.65, 0.65]) A.box(sx, 0, 0, 0.16, 0.42, 0.42, '#3a3036', TILE.stone); A.pop(); }   // benches round the square
-    for (let k = 0; k < 2; k++) { const [x, z] = quayAt(dockTh + 0.13 + k * 0.11, 0.89); palm(A, B, D, x, yQ, z, r, 1.0 + r() * 0.3); }
-    for (const side of [-1, 1]) { const [x, z] = quayAt(dockTh + side * 0.2, 0.96); barrel(A, x, yQ, z, 0.9); barrel(A, x + 0.8, yQ, z + 0.3, 0.8); crateBox(A, x - 0.4, yQ, z - 0.9, r() * 3); }
-  } else if (look === 'b') {
+  {   // the garden harbour
     for (const h of houses) {   // a picket fence across each front yard, open at the path
       if (h.kind === 'belltower') continue;
       const rho = Math.hypot(h.x, h.z), fz = Math.min(4.6, rho - rP - 1.6); if (fz < 3.2) continue;
@@ -1140,21 +1113,6 @@ function tamaPolish(S, look, houses) {
     pickSpots(4, 0.66, 0.86, 2.2).forEach(([x, z]) => palm(A, B, D, x, g(x, z), z, r, 1.0 + r() * 0.4));
     { const [x, z] = quayAt(dockTh + 0.22, 0.86); palm(A, B, D, x, g(x, z), z, r, 1.1 + r() * 0.3); }
     for (let i = 0; i < 5; i++) { const a = dockTh + Math.PI * 0.6 + i * 0.5, x = Math.cos(a) * (rP + 3), z = Math.sin(a) * (rP + 3); if (nearHouse(x, z, 3)) continue; A.push(x, H - 0.08, z, -a); for (let j = 0; j < 4; j++) A.box(0, 0, (j - 1.5) * 0.55, 1.6, 0.2, 0.32, '#6a4a2c', TILE.white), A.box(0, 0.2, (j - 1.5) * 0.55, 1.4, 0.24, 0.2, j % 2 ? '#5aa844' : '#d8402e', TILE.leaf); A.pop(); }   // vegetable rows
-  } else {
-    { const [x, z] = quayAt(dockTh - 0.3, 0.95); A.push(x, yQ, z, -dockTh + Math.PI / 2);   // a wooden harbour crane (derrick)
-      A.box(0, 0, 0, 1.4, 0.3, 1.4, '#5a3e24', TILE.planks); A.box(0, 0.3, 0, 0.36, 4.6, 0.36, '#6b4a2e', TILE.bark);
-      A.push(0, 4.6, 0, 0, 1, 1, 1, 0, -0.9); A.box(0, 0, 0, 0.28, 3.6, 0.28, '#6b4a2e', TILE.bark); A.pop();
-      A.box(2.8, 1.6, 0, 0.12, 4.4, 0.12, '#c8b080', TILE.rope); A.box(2.8, 1.0, 0, 0.8, 0.7, 0.8, '#a07040', TILE.planks); A.pop(); }
-    { const [x, z] = quayAt(dockTh + 0.27, 0.92); A.push(x, yQ, z, Math.PI / 2 - dockTh - Math.PI / 2);   // the fish stall
-      A.box(0, 0, 0, 2.6, 0.9, 1.1, '#8a6238', TILE.planks); for (let i = 0; i < 5; i++) A.blob(-1 + i * 0.5, 0.98, 0, 0.22, 0.1, 0.4, i % 2 ? '#a8b4bc' : '#8a9aa8', TILE.bone, 0.1, i);
-      for (const sx of [-1.25, 1.25]) A.box(sx, 0, -0.5, 0.14, 2.4, 0.14, '#5a3e24', TILE.bark); awning(A, 0, 2.4, -0.6, 3.0, ['#c83a2e', '#f4ece0']); A.pop(); }
-    for (const side of [-1, 1]) { const [x, z] = quayAt(dockTh + side * 0.16, 0.92); barrel(A, x, yQ, z, 0.9); barrel(A, x + 0.85, yQ, z, 0.85); barrel(A, x + 0.42, yQ + 0.8, z, 0.8); crateBox(A, x - 0.9, yQ, z + 0.6, 0.3); crateBox(A, x - 0.9, yQ + 0.8, z + 0.6, 1.0, 0.8); }
-    { const [x, z] = quayAt(dockTh + 0.36, 0.9); A.push(x, yQ, z, -dockTh); A.box(-0.6, 0.1, 0, 1.6, 0.45, 0.5, '#3a3a40', TILE.stone); A.cyl(0.3, 0.3, 0, 0.3, 0.26, 0.4, 6, '#2e2e34', TILE.stone, true); A.pop(); }   // an old cannon pointing out
-    for (const side of [-1, 1]) { const [x, z] = quayAt(dockTh + side * 0.38, 0.86); A.push(x, g(x, z) - 0.1, z, -dockTh + Math.PI / 2); for (const sx of [-1, 1]) A.box(sx * 1.2, 0, 0, 0.18, 2.4, 0.18, '#5a3e24', TILE.bark); A.quad([-1.2, 2.3, 0.02], [1.2, 2.3, 0.02], [1.1, 0.7, 0.05], [-1.1, 0.9, 0.05], '#c8c0a0', TILE.rope); A.pop(); }   // nets hung to dry
-    { const [x, z] = quayAt(dockTh + 0.5, 0.84); palm(A, B, D, x, g(x, z), z, r, 1.1 + r() * 0.3); }
-    pickSpots(5, 0.62, 0.86, 2.2).forEach(([x, z]) => palm(A, B, D, x, g(x, z), z, r, 0.95 + r() * 0.4));
-    for (let i = 0, n = 0; i < 40 && n < 3; i++) { const th = dockTh + (r() < 0.5 ? -1 : 1) * (span + 0.15 + r() * 0.6), R0 = shoreR(d, th) * 0.95, x = Math.cos(th) * R0, z = Math.sin(th) * R0, hh = terrainHeight(d, x, z); if (hh < 0.15) continue; beachedBoat(A, x, hh, z, th + 1.57 + (r() - 0.5) * 0.5); n++; }   // boats pulled up on the sand
-    pickSpots(2, 0.55, 0.7, 4.2).forEach(([x, z, th]) => plot(x, z, Math.PI / 2 - th, 6, 4.4, 'veg'));
   }
 }
 function floatLantern(b, x, z) { b.box(x, 0.2, z, 0.7, 0.18, 0.7, '#8a5a30', TILE.planks); b.box(x, 0.38, z, 0.36, 0.42, 0.36, '#ffffff', TILE.glow); }
