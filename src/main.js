@@ -2900,6 +2900,8 @@ window.__game = { secrets, tideAt: () => tideAt(), lostState: () => ({ lostK, ga
   setTime(t) { state.time = t; },
   setCam(p, z) { if (p !== undefined) { pitch = pitchT = p; } if (z !== undefined) { zoom = zoomT = z; } },
   setOverride(o) { camOverride = o; },
+  /** concept (dev): cut the sea off north of z (the Edge concept); null puts it back */
+  clipSea(z) { renderer.localClippingEnabled = z != null; ocean.material.clippingPlanes = z != null ? [new THREE.Plane(new THREE.Vector3(0, 0, 1), -z)] : null; ocean.material.needsUpdate = true; },
   setAshoreCam: (pos, look) => { ashoreCam = { pos: new THREE.Vector3(...pos), look: new THREE.Vector3(...look) }; },   // dev: aim the harbour camera (village screenshots)
   get companions() { return companions; }, petOffer, takePet, caves, openCave, threads, addMark,
   /** concept sketch: put a cat or a gull on deck (dev only) */

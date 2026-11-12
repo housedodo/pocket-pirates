@@ -93,20 +93,27 @@ function sunken(b, rng) {
 // of pillars that do not get smaller as they go away. The lip runs along local z = 0; the void is towards -z.
 const VOID = '#07050c', STONE = ['#5a5266', '#4a4458', '#6a6070', '#3c3848'], EYE = '#ff70d0';
 function sinkTo(b, x, z, w, top, col) {   // a column of the dark: whatever stands out there has no bottom, it fades into black
-  for (let i = 0; i < 6; i++) { const y = top - i * 10; b.box(x, y - 10, z, w * (1 + i * 0.05), 10, w * (1 + i * 0.05), i < 2 ? col : i < 4 ? '#2a2632' : '#120f18', TILE.stone); }
+  const C = [col, col, '#3a3442', '#2a2632', '#1c1824', '#120f18', '#0b0910', VOID];
+  for (let i = 0; i < 16; i++) { const y = top - i * 15; b.box(x, y - 15, z, w * (1 + i * 0.04), 15, w * (1 + i * 0.04), C[Math.min(C.length - 1, i >> 1)], TILE.stone); }
 }
 function edge(b, rng) {
   const W = 420, near = b; b = new Builder();   // near: the lip, foam and streaks (in the fog like the sea); b: the dark and what stands in it, drawn past the fog
-  // the lip: the water turns over the edge (pale foam on the crest, then teal, then the dark), a ragged line of spray along it
-  const bands = [[-6, 0.3, '#cfe6e2'], [0, 4.4, '#e8f4f0'], [3, 4.3, '#9ad0c8'], [7, 4.2, '#3f7f86'], [12, 4.1, '#173a44'], [18, 4.0, '#0b1620'], [26, 4.0, VOID]];   // a shelf above the swell: the sea runs up onto it and goes dark   // raised clear of the swell
-  for (let i = 0; i < bands.length - 1; i++) {
-    const [z0, y0, c0] = bands[i], [z1, y1] = bands[i + 1];
-    (i < 3 ? near : b).quad([-W, y0, -z0], [W, y0, -z0], [W, y1, -z1], [-W, y1, -z1], c0, TILE.white);
+  // the drop: the sea (cut off at z = 0, __game.clipSea) turns over the lip and falls, pale at the crest, into the black
+  const prof = [[0, 0.25, '#eef8f4'], [-1.6, -0.6, '#d6ece8'], [-3, -3, '#a8d6ce'], [-4.2, -9, '#5fa0a0'], [-5, -22, '#2e6470'], [-5.6, -50, '#163640'], [-6, -95, '#0b1a22'], [-6.3, -170, VOID]];
+  for (let i = 0; i < prof.length - 1; i++) {
+    const [z0, y0, c0] = prof[i], [z1, y1] = prof[i + 1];
+    (i < 4 ? near : b).quad([-W, y0, z0], [W, y0, z0], [W, y1, z1], [-W, y1, z1], c0, TILE.white);
+    (i < 4 ? near : b).quad([W, y0, z0], [-W, y0, z0], [-W, y1, z1], [W, y1, z1], c0, TILE.white);
   }
-  b.quad([-W, 4.0, -26], [W, 4.0, -26], [W, 4.0, -900], [-W, 4.0, -900], VOID, TILE.void);   // the dark itself, hiding the sea beyond
-  for (let x = -W; x < W; x += 3 + rng() * 4) near.blob(x, 4.5 + rng() * 0.4, -1 - rng() * 2, 1.4 + rng() * 1.8, 0.5 + rng() * 0.6, 1.2, rng() < 0.5 ? '#f4fbf8' : '#cfe6e2', TILE.white, 0.3, Math.floor(x));
-  // spray rising off the drop in slow columns, where the water goes over
-  for (let x = -W + 20; x < W; x += 28 + rng() * 30) for (let k = 0; k < 2; k++) near.blob(x + (rng() - 0.5) * 6, 4.6 + k * 1.4, -4 - k * 2, 1.2 + k * 0.6, 0.8 + k * 0.4, 1.2 + k * 0.5, k ? '#b8c8cc' : '#e4f0ee', TILE.white, 0.35, Math.floor(x) + k);
+  for (let x = -W; x < W; x += 1.2 + rng() * 2.2) {   // white ropes of water down the face
+    const l = 8 + rng() * 40, y = -1 - rng() * 6;
+    near.box(x, y - l, -4.6 - (l / 40), 0.35 + rng() * 0.3, l, 0.25, rng() < 0.6 ? '#f4fbf8' : '#bfe0dc', TILE.white);
+  }
+  b.quad([-W, -400, 0], [W, -400, 0], [W, -400, -900], [-W, -400, -900], VOID, TILE.void);     // the floor of the dark, far below
+  b.quad([-W, -400, -900], [W, -400, -900], [W, -80, -900], [-W, -80, -900], VOID, TILE.void);
+  b.quad([-W, -400, 0], [W, -400, 0], [W, -175, -6.4], [-W, -175, -6.4], VOID, TILE.void);   // under the falls
+  for (let x = -W; x < W; x += 6 + rng() * 8) near.blob(x, 0.5, -0.8, 1.6 + rng() * 1.4, 0.45, 1.2, rng() < 0.5 ? '#f4fbf8' : '#d8eeea', TILE.white, 0.3, Math.floor(x));   // foam on the crest
+  for (let x = -W + 10; x < W; x += 14 + rng() * 18) for (let k = 0; k < 3; k++) b.blob(x + (rng() - 0.5) * 8, -30 - k * 22 - rng() * 10, -10 - k * 4, 6 + k * 3, 4 + k * 2, 5 + k * 2, k ? '#2a3a44' : '#5a7a80', TILE.white, 0.35, Math.floor(x) + k);   // spray hanging in the dark below
   // streaks on the water running to the lip: the current takes everything over
   for (let i = 0; i < 90; i++) { const x = (rng() - 0.5) * W * 1.6, z = 4 + rng() * 120, l = 6 + rng() * 14; near.box(x, 0.18, z, 0.35, 0.05, l, '#d8efe8', TILE.white); }
   // 1) the hooded one: hands folded, no face under the hood, taller than any mast by twenty
