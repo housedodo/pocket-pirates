@@ -1,7 +1,7 @@
 HOIST (Pocket Pirates): THE MASTER STORY FILE
 ================================================================================================
 This is the main story file for the full game. Edit it, upload it again, and the next session puts every change
-into the game. Built from commit 5ad71ac on 2026-11-12. 1429 in-game lines carry an ID.
+into the game. Built from commit be8596d on 2026-11-12. 1429 in-game lines carry an ID.
 
 CONTENTS
   A   HOW TO USE THIS FILE (IDs, status marks, how to add and remove things)
@@ -2681,7 +2681,7 @@ K1 OPEN QUESTIONS [fill in; I will ask about every ?? first]
    - May Mara throw in your place at the Table?                         She wants to try, but she cannot pick up the dice. Her presence is not supposed to be here but she is too small to be realized as a foreign entity.
    - Are the Two Players the same two who play at night?                Yes, they have been sailing aswell before but refused to throw the die and as musicians, they were playing the song when entering the dread stages and it soothed it and therefore they figured out, that they can partially in a region stop the dread by keeping the creature asleep and the dream going.
    - Who is the other berth, whose hook, who dug first, who rowed?      All previous sailors who have gone mad and disappeared somewhere in the dread, a neverending nightmare.
-   - Who sails the Pained Raven?                                        (empty)  ??
+   - Who sails the Pained Raven?                                        It is empty, it was a normal sailor but the dread changed it. No one knows how long the ship has been lonely, it does not seem old, rotten or anything, like time never changed.
    - Which regions get which threads?                                   Depends on the biomes and builds, free cays has the musicians and other threads will be distributed according to how the feel there is.
 K2 DECISIONS (with the date; the short list is docs/CANON.md)
    - 2026-11-11  Mara remembers her village, slowly; she never says its name. The village was from a different dream.
@@ -2690,8 +2690,9 @@ K2 DECISIONS (with the date; the short list is docs/CANON.md)
    - 2026-11-11  At the Table: Throw, Hum the tune, Sit, Leave. "Turn the table to the sea" is cut. The Lady's errands (Act 3) are cut.
    - 2026-11-11  Four small wrong things happen before the hut (the third oar, two berths, the hook, the hole); none is explained.
    - 2026-11-12  The third oar is cut. Three small wrong things remain (two berths, the hook, the hole).
-   - 2026-11-12  Your answers in K1 are canon (docs/CANON.md, sections 2 and 3). Still open: the Lady's writing, the Pained Raven,
-                 which region gets each of the other six threads.
+   - 2026-11-12  Your answers in K1 are canon (docs/CANON.md, sections 2 and 3). Still open: the Lady's writing.
+   - 2026-11-12  Threads by region as proposed in K4 f. The Pained Raven is empty (K1).
+   - 2026-11-12  Next: K4 d (the Two Players keep the Free Cays asleep), then e (the sailors who went mad), then the Edge.
 K3 NEXT TO IMPLEMENT, IN THIS ORDER
    1. The writer rewrites the six ending texts (section J, TBL): they are drafts.
    2. A rumour or a line from Mara that points at the music at night, so the gentle ending can be found.

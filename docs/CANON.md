@@ -36,7 +36,8 @@ Nothing here is ever said to the player in these words.
 | 2026-11-12 | **Mara cannot throw for you:** she wants to try, but she cannot pick up the die. She is not supposed to be here, but she is too small to be noticed as something foreign. |
 | 2026-11-12 | **The Two Players are the two who play at night.** They sailed too, but refused to throw. Playing their song while entering the dread soothed it: they found they can keep the sleeper asleep, and the dream going, in one region. |
 | 2026-11-12 | **The other berth, the hook, the one who dug first** (and who rowed, now cut): previous sailors who went mad and vanished somewhere in the dread, a never-ending nightmare. |
-| 2026-11-12 | **Threads by region:** by biome and feel. The Free Cays have the musicians (the Two Players); the other threads go where they feel right (still to place). |
+| 2026-11-12 | **Threads by region:** Free Cays: the Music out of the Fog (and the Two Players). Lantern: the Drowned Bell. Crown: the Ferryman's Coin and the Strange High House. Reef: the Other Captain. Drowned: the Colour and the Hollow Harbour. A voyage still wakes three, each where it belongs. |
+| 2026-11-12 | **The Pained Raven** (the Other Captain's ship) is empty. It was a normal sailor's ship; the dread changed it. Nobody knows how long it has sailed alone. It is not old, not rotten: as if time never touched it. |
 | 2026-11-12 | **The interface font is DotGothic16 again for now** (Jersey 10 overlapped in the HUD and the log). |
 | 2026-11-11 | **The log has three bookmarks** (Chart, Orders, Ship's book) and **one slip** (what, where, which way and how long). |
 | 2026-11-11 | **The chart is an inked portolan on vellum. The type is Pirata One (titles) with Jersey 10 (text).** |
@@ -88,8 +89,6 @@ halves a bad weight; a natural 1 or 20 stands. A captain who saw nothing still h
 
 ## 8. Open (nobody may decide these but the owner)
 - What the Lady writes if asked who counts.
-- Who sails the Pained Raven.
-- Which region gets each of the other six threads (the Free Cays have the musicians).
 - The six ending texts in `src/table.js` are drafts awaiting the writer.
 
 ## 9. Where the detail lives
