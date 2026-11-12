@@ -63,6 +63,7 @@ import { LocalGames } from './localgames.js';
 // the core layers (config <- state <- engine) and the small shared systems; see docs/ARCHITECTURE.md
 import { params, store, saved, DEV, settings, session, SAVE_KEY, SETTINGS_KEY, THREADS_KEY } from './core/config.js';
 import { state } from './core/state.js';
+import { rt, G } from './core/runtime.js';
 import { canvas, renderer, post, scene, camera, ocean, sky } from './core/engine.js';
 import { $, goldEl, promptEl, promptTxt, promptBar, promptFill, toastsEl, debugEl, helpEl, chartEl, harbourEl, pauseEl, shipEl, compass, toast } from './ui/dom.js';
 import { WEEK, weekday, isMarketDay, isLanternNight, isFestival, tideAt, tideFalls, fullMoon } from './systems/calendar.js';
@@ -77,7 +78,7 @@ const ship = new Ship(scene);
 const audio = new AudioBus();
 audio.layerSeed = state.seed; if (DEV && params.get('musicpace')) audio.layerPace = Math.max(0.1, +params.get('musicpace') || 1);   // the stage-1 instruments arrive in a per-voyage order
 sfx.play = (k, o) => audio.play(k, o);
-for (const ev of ['pointerdown', 'keydown']) window.addEventListener(ev, () => { if (audio.ctx && audio.ctx.state === 'suspended' && modal !== 'pause') audio.ctx.resume(); });   // browsers start audio muted until a click or key
+for (const ev of ['pointerdown', 'keydown']) window.addEventListener(ev, () => { if (audio.ctx && audio.ctx.state === 'suspended' && rt.modal !== 'pause') audio.ctx.resume(); });   // browsers start audio muted until a click or key
 audio.muted = settings.muted; audio.userVol = { music: 1, amb: 1, sfx: 1, ...(settings.vol || {}) };
 const wind = new Wind(state.windT);
 const weather = new Weather(scene);
@@ -87,15 +88,15 @@ const seaplay = new SeaPlay(scene);  // gusts to catch and currents to ride
 const shipWake = new Wake(scene, { len: 5.2, beam: 1.5 });   // the V wake and bow wave (wake.js)
 const secrets = new Secrets(scene, world, state.seed);   // the Kestrel, low-tide wrecks, smoke, the dusk watcher, birds (secrets.js)
 const glimpse = new Glimpse(scene);  // one wrong moment on the way home from the hut
-let glimpseWait = 0, sunScale = 1;
+rt.glimpseWait = 0, rt.sunScale = 1;
 // ---- the quiet window: no random remark, musing, passenger chatter or thread line from Mara or anyone else while the hut is near
 // (about 30 s of sailing out), from the first throw until the diver has come and gone, and for 30 s after the hut or the diver.
-let quietUntil = 0;   // tNow
+rt.quietUntil = 0;   // tNow
 function eventQuiet() {
   const st = state.story;
-  return glimpse.active || (st.demoEnd === 'pending' && !st.glimpse) || tNow < quietUntil;
+  return glimpse.active || (st.demoEnd === 'pending' && !st.glimpse) || rt.tNow < rt.quietUntil;
 }
-let seaWave = 1;
+rt.seaWave = 1;
 const fauna = new Fauna(scene, world);
 const traffic = new Traffic(scene, world, state.seed);
 const sea = new SeaFeatures(scene, world, state.seed, state.collected);
@@ -154,7 +155,7 @@ document.body.appendChild(toastsEl);   // messages sit above every menu, so a qu
 
 weather.onThunder = (delay) => setTimeout(() => audio.thunder(0.9), delay * 1000);   // the long distant roll: audio.thunder keeps them from piling up
 sea.onEvent = (e) => {
-  const idx = Math.min(4, Math.floor(dread * 5));
+  const idx = Math.min(4, Math.floor(rt.dread * 5));
   if (e.type === 'qcrate') {
     const have = questProgress(e.q, state), need = questNeed(e.q);
     toast(have >= need ? `Last crate recovered! Return to ${e.q.giverName}.` : `Crate recovered (${have}/${need}).`, false, 4500);
@@ -173,7 +174,7 @@ sea.onEvent = (e) => {
     toast(`Message in a bottle: "${text}"`, idx >= 2, 10000);
     audio.play('bottle');
   } else if (e.type === 'whirl') {
-    toast('A whirlpool tugs at the keel! Sail out of it.', dread > 0.5);
+    toast('A whirlpool tugs at the keel! Sail out of it.', rt.dread > 0.5);
     audio.play('splash', { vol: 0.6 });
   }
 };
@@ -193,7 +194,7 @@ function giveMap(id, from, reveal = false, quiet = false) {
 // ---- autosave
 function saveNow() {
   if (params.get('fresh') || session.noSave) return false;
-  lastSave = tNow;
+  rt.lastSave = rt.tNow;
   store.set(SAVE_KEY, { seed: state.seed, gold: state.gold, dug: [...state.dug], discovered: state.discovered, loot: state.loot, upgrades: state.upgrades, collected: [...state.collected], notes: state.notes, board: state.board, halves: state.halves, frags: state.frags, rumoured: state.rumoured, rep: state.rep, job: state.job, serial: state.serial, sectorsSeen: state.sectorsSeen, jobHistory: state.jobHistory, buffs: state.buffs, stats: state.stats, quests: state.quests, fruit: state.fruit, harvest: state.harvest, dayN: state.dayN, greet: state.greet, charts: state.charts, hp: state.hp, ammo: state.ammo, oil: state.oil, sailsTorn: state.sailsTorn, patchKits: state.patchKits, custom: state.custom, owned: [...state.owned], riddles: state.riddles, attempts: state.attempts, catch: state.catch, fishLog: state.fishLog, fishHeard: state.fishHeard, fishAsk: state.fishAsk, hut: state.hut, passenger: state.passenger, story: state.story, crew: state.crew, cardsSeen: state.cardsSeen, haggle: state.haggle, tracked: state.tracked, life: state.life, goals: state.goals, hints: state.hints, time: state.time, windT: wind.t, pos: { x: ship.pos.x, z: ship.pos.z, h: ship.heading } });
   return true;
 }
@@ -206,7 +207,7 @@ function autosave() {   // a quest was finished or you docked: save now and show
 }
 
 // ---- quest cues (design A): QUEST COMPLETE, then NEW QUEST, the tracker flashes and the wind ring pulses
-let trackerNewUntil = 0;
+rt.trackerNewUntil = 0;
 function questCue(done, next) {
   // QUEST COMPLETE shows at once; the NEW QUEST card waits until Mara has spoken and the next goal is announced (questNew)
   const el = $('qbanner'); $('qbTitle').textContent = done.title; $('qbRew').textContent = `+${done.reward} gold`;
@@ -218,7 +219,7 @@ function questNew(next, withCard = true) {
   const el = $('qbanner');
   $('qbNext').textContent = next ? next.title : 'Sail where you like'; $('qbText').textContent = next ? goalText(next, { state, ship }) : 'The side goals in your log are always there.';
   if (withCard) { el.classList.remove('show'); el.classList.remove('shownew'); void el.offsetWidth; el.classList.add('shownew'); }
-  trackerNewUntil = performance.now() + 9000; const c = $('compass'); c.classList.remove('ping'); void c.offsetWidth; c.classList.add('ping');
+  rt.trackerNewUntil = performance.now() + 9000; const c = $('compass'); c.classList.remove('ping'); void c.offsetWidth; c.classList.add('ping');
   setTimeout(() => c.classList.remove('ping'), 8000); audio.play('discover', { vol: 0.5 });
 }
 // the story asks for a dead calm (seconds > 0) or for the wind to pick up again (0, and no natural calm for ten minutes)
@@ -231,8 +232,8 @@ objectives.mate.hush = () => eventQuiet();
 objectives.mate.onBlip = (dark, guest) => audio.blip(dark, guest);   // very soft voice blips while she talks
 const abyss = new Abyss({ scene, ship, world, sky, settings, state, mate: objectives.mate, toast: (t, d, ms) => toast(t, d, ms), fade: $('fade'),
   onEnding: () => {
-    forced = null; dread = 0.02; abyss.k = 0;
-    ship.pos.set(0, 0, -25); ship.heading = 0; ship.speed = 0; camHeading = 0; yawT = 0;
+    rt.forced = null; rt.dread = 0.02; abyss.k = 0;
+    ship.pos.set(0, 0, -25); ship.heading = 0; ship.speed = 0; rt.camHeading = 0; rt.yawT = 0;
     state.stats.awakened = (state.stats.awakened || 0) + 1;
     objectives.mate.queue.length = 0;
     objectives.mate.say('Captain? Captain! You were asleep at the wheel. For how long, I... let us just go home.');
@@ -255,7 +256,7 @@ function fishEnv() {
 }
 const fishing = new Fishing(scene, ship, {
   toast: (t) => toast(t),
-  getCtx: () => ({ bonus: Math.max(0, ship.mods.lootMul - 1) + (life.meal(state) === 'stew' ? 0.8 : 0), dread }),
+  getCtx: () => ({ bonus: Math.max(0, ship.mods.lootMul - 1) + (life.meal(state) === 'stew' ? 0.8 : 0), dread: rt.dread }),
   onStrike: (k) => { if (k === 'miss') audio.playTone(196, { dur: 0.3, vol: 0.06 }); else audio.playTone(k === 'gold' ? 880 : 660, { dur: 0.35, vol: 0.07 }); },   // the bite ring: a soft note per strike
   onStart: () => audio.play('cast'),
   onSplash: () => { audio.play('splash', { vol: 0.4 }); toast('Line cast. Wait for a bite...', false, 2500); },
@@ -276,15 +277,15 @@ const fishing = new Fishing(scene, ship, {
     const hooked = !state.story.hook && !f.dark && ((tod.night > 0.5 && state.stats.fish >= 2) || state.stats.fish >= 6);
     if (hooked) { state.story.hook = 'aboard'; f.hooked = true; }
     toast(`Caught: ${f.name}, ${f.kg}kg (worth ${f.value}g)${l.count === 1 ? ' - new species!' : ''}${hooked ? `${l.count === 1 ? '' : '.'} There is a hook in its mouth already: old bronze, the line cut clean.` : ''}`, f.dark, hooked ? 9000 : 6000);
-    if (f.dark) objectives.remark('darkfish', dread);
+    if (f.dark) objectives.remark('darkfish', rt.dread);
   },
 });
 
 // ---------------------------------------------------------------- the dark hut (storyline minigame)
-let glitchT = 0, preGlitch = 0;
+rt.glitchT = 0, rt.preGlitch = 0;
 const hut = new Hut({ state,
   onWin: (n) => { if (n === 20) toast('A natural twenty. Somewhere far below, something is disappointed.', true, 5000); },
-  onFail: () => { preGlitch = dread; glitchT = 0.75; hutEl.classList.add('glitching'); shake = 0.4; },
+  onFail: () => { rt.preGlitch = rt.dread; rt.glitchT = 0.75; hutEl.classList.add('glitching'); rt.shake = 0.4; },
   onClose: () => closeModal() });
 // ---- the week: market day everywhere on Wednesdays, lantern night on Saturdays, and each harbour its own festival day
 const lifeOn = () => isOpen(state, 'tab', 'tavern');   // harbour life opens with the tavern (chapter III)
@@ -306,7 +307,7 @@ function lastThrow() { const h = state.hut, r = h && h.rolls[h.rolls.length - 1]
 function dreamShift() { const n = lastThrow(); const v = !n || n === 10 ? 0 : n === 20 ? -0.3 : n > 10 ? -0.18 : n === 1 ? 0.15 : 0.1; return v > 0 && isKnown(state, 'lamp') ? v * 0.5 : v; }   // the Kestrel's lamp keeps half the dark back   // bad throws only shade home a little; the real dark comes late
 function dreamCost() { const n = lastThrow(); return n && n < 10 ? 1.15 : n >= 17 ? 0.9 : 1; }   // harbours feel it in their prices
 function costMul() {   // today's prices here: the dream, plus a harbour you insulted with a natural 1
-  const id = harbourIsl && harbourIsl.desc.id, hg = state.haggle;
+  const id = rt.harbourIsl && rt.harbourIsl.desc.id, hg = state.haggle;
   return dreamCost() * (hg && hg.id === id && hg.day === state.dayN && hg.n === 1 ? 1.1 : 1);
 }
 const MARA_THROW = {
@@ -331,11 +332,11 @@ function hutLeft() {
 }
 
 // ---------------------------------------------------------------- modal state (pause / chart / harbour)
-let modal = null; // null | 'pause' | 'chart' | 'harbour' | 'ship'
-let logTab = 'map';
-let tradeShip = null;
+rt.modal = null; // null | 'pause' | 'chart' | 'harbour' | 'ship'
+rt.logTab = 'map';
+rt.tradeShip = null;
 const yardEl = $('yardmodal'), hutEl = $('hutmodal'), cardEl = $('card'), pigEl = $('pig'), greetEl = $('greet'), caveEl = $('cave');
-let harbourIsl = null;
+rt.harbourIsl = null;
 const keys = new Set();
 // ---- a quiet start: the HUD and Mara's explanations arrive one at a time, each when the player has done the last thing.
 // (Finished tutorials, old saves and test runs show everything at once.)
@@ -358,74 +359,74 @@ function nameMeter(el, text) {
 }
 function nameOnce(key, el, text) { const s = state.story.named || (state.story.named = {}); if (s[key]) return; s[key] = 1; nameMeter(el, text); }
 const laterOK = () => !!params.get('nomate') || state.goals.i >= 9;   // Mara's chatter, dolphins, sightings, pets and the optional goals wait until the tavern chapter: before that she only talks about the quest in hand
-let onbGold0 = null, onbT0 = null, onbStepT = 0, onbNudged = false;
+rt.onbGold0 = null, rt.onbT0 = null, rt.onbStepT = 0, rt.onbNudged = false;
 function onbTick() {
-  if (!started) return;
+  if (!rt.started) return;
   const s = state.story.onb || (state.story.onb = {});
-  if (onbAll()) { if (helpMode === 'start') { helpMode = 'legacy'; helpEl.innerHTML = '<span>A/D steer &middot; W/S sails &middot; G oars &middot; E interact<br>M log &middot; Esc pause &middot; drag = tilt &middot; wheel = zoom &middot; H hide HUD &middot; F1 help</span>'; } state.story.onbAll = true; for (const [k, id] of Object.entries(ONB_KEYS)) { const el = $(id); if (el) el.classList.remove('onb-off'); } return; }
-  if (onbGold0 === null) { onbGold0 = state.gold; for (const [k, id] of Object.entries(ONB_KEYS)) if (!s[k]) $(id).classList.add('onb-off'); }
+  if (onbAll()) { if (rt.helpMode === 'start') { rt.helpMode = 'legacy'; helpEl.innerHTML = '<span>A/D steer &middot; W/S sails &middot; G oars &middot; E interact<br>M log &middot; Esc pause &middot; drag = tilt &middot; wheel = zoom &middot; H hide HUD &middot; F1 help</span>'; } state.story.onbAll = true; for (const [k, id] of Object.entries(ONB_KEYS)) { const el = $(id); if (el) el.classList.remove('onb-off'); } return; }
+  if (rt.onbGold0 === null) { rt.onbGold0 = state.gold; for (const [k, id] of Object.entries(ONB_KEYS)) if (!s[k]) $(id).classList.add('onb-off'); }
   const gi = state.goals.i, intro = MAIN_GOALS[0].intro, step = state.story.onbStep || 0;
-  if (onbT0 === null) onbT0 = tNow;
+  if (rt.onbT0 === null) rt.onbT0 = rt.tNow;
   // step 0: Mara has introduced herself; if the sails stay furled a while she says so once, kindly
-  if (step === 0 && !onbNudged && tNow - onbT0 > 14 && ship.trim < 0.12 && !objectives.mate.busy) { onbNudged = true; objectives.say('Whenever you are ready, Captain, W lets the sails out.'); }
+  if (step === 0 && !rt.onbNudged && rt.tNow - rt.onbT0 > 14 && ship.trim < 0.12 && !objectives.mate.busy) { rt.onbNudged = true; objectives.say('Whenever you are ready, Captain, W lets the sails out.'); }
   // step 0 -> 1: the first time the sails go out (after she has had time to speak), she says what A and D do and the gauge appears
-  if (step === 0 && ship.trim > 0.12 && tNow - onbT0 > 6) { { const m = objectives.mate, nudge = (q) => q && q.text.startsWith('Whenever you are ready'); m.queue = m.queue.filter((q) => !nudge(q)); if (nudge(m.cur)) { m.skip(); m.skip(); } }   // the sails are out: she does not ask for them any more
-    state.story.onbStep = 1; onbStepT = tNow; onbShow('sail'); objectives.say(intro[1]); setHelp('A / D   steer'); }
+  if (step === 0 && ship.trim > 0.12 && rt.tNow - rt.onbT0 > 6) { { const m = objectives.mate, nudge = (q) => q && q.text.startsWith('Whenever you are ready'); m.queue = m.queue.filter((q) => !nudge(q)); if (nudge(m.cur)) { m.skip(); m.skip(); } }   // the sails are out: she does not ask for them any more
+    state.story.onbStep = 1; rt.onbStepT = rt.tNow; onbShow('sail'); objectives.say(intro[1]); setHelp('A / D   steer'); }
   // step 1 -> 2: once she has really turned or sailed a little, and a good while later, the wind ring is explained
-  else if (step === 1 && (Math.abs(ship.rudder) > 0.3 || state.stats.dist > 25) && tNow - onbStepT > 10) { state.story.onbStep = 2; onbShow('wind'); objectives.say(intro[2]); setHelp(''); }
+  else if (step === 1 && (Math.abs(ship.rudder) > 0.3 || state.stats.dist > 25) && rt.tNow - rt.onbStepT > 10) { state.story.onbStep = 2; onbShow('wind'); objectives.say(intro[2]); setHelp(''); }
   // every other piece arrives with the thing it belongs to
-  if (gi >= 1 || state.gold !== onbGold0) onbShow('gold');
+  if (gi >= 1 || state.gold !== rt.onbGold0) onbShow('gold');
   if (gi >= 1) { onbShow('place'); onbShow('sail'); onbShow('wind'); if (!state.story.onbStep || state.story.onbStep < 2) { state.story.onbStep = 2; setHelp(''); } }
   if (gi >= 2) onbShow('clock');
   if (state.hp < ship.mods.maxHp || unlocked(state, 'cannons')) onbShow('hull');
 }
-let helpMode = 'start';
-function setHelp(t) { helpEl.innerHTML = t ? `<span>${t}</span>` : ''; helpEl.style.opacity = t ? '1' : '0'; helpMode = t ? 'tip' : 'off'; }
-let started = false;
+rt.helpMode = 'start';
+function setHelp(t) { helpEl.innerHTML = t ? `<span>${t}</span>` : ''; helpEl.style.opacity = t ? '1' : '0'; rt.helpMode = t ? 'tip' : 'off'; }
+rt.started = false;
 
 function openModal(name) {
-  if (!started) return;
+  if (!rt.started) return;
   closeModal(true);
-  modal = name;
+  rt.modal = name;
   keys.clear();
   if (fishing.active) fishing.cancel();
-  if (digGame.active) { digGame.cancel(); dig = null; }
+  if (digGame.active) { digGame.cancel(); rt.dig = null; }
   ({ pause: pauseEl, chart: chartEl, harbour: harbourEl, ship: shipEl, yard: yardEl, hut: hutEl, card: cardEl, pig: pigEl, greet: greetEl, cave: caveEl, local: localGames.el })[name].classList.add('open');
   if (name === 'pause') { showPauseMain(); }
-  if (name === 'harbour') openLetter = null;
+  if (name === 'harbour') rt.openLetter = null;
   if (name === 'chart') { abyss.onMapOpen(ship);
     // the first look at the chart after the hut has appeared on it: the chart opens on the hut, so Mara's question has something to point at
     const hd = world.hutDesc;
-    if (hd && state.story.hutNod && !state.story.hutFramed && !(state.hut && state.hut.rolls.length)) { state.story.hutFramed = true; logTab = 'map'; logbook.frame(hd.x, hd.z); }
-    logbook.open(logTab);
+    if (hd && state.story.hutNod && !state.story.hutFramed && !(state.hut && state.hut.rolls.length)) { state.story.hutFramed = true; rt.logTab = 'map'; logbook.frame(hd.x, hd.z); }
+    logbook.open(rt.logTab);
     hutNod(1800); }
   if (name === 'harbour') renderHarbour();
   document.body.classList.toggle('ashore', name === 'harbour' || name === 'greet' || name === 'yard');
   if (name === 'ship') renderShipTrade();
-  if (name === 'yard') { yardTry = { ...state.custom }; yardTab = 'hull'; yardIdle = 0; renderYard(); }
+  if (name === 'yard') { rt.yardTry = { ...state.custom }; rt.yardTab = 'hull'; rt.yardIdle = 0; renderYard(); }
   if (name === 'hut') hut.open();
   audio.play(name === 'pause' ? 'pause' : 'ui');
   audio.setPaused(name === 'pause');
 }
 function closeModal(silent = false) {
-  hbPaper = false;
-  if (!modal) return;
+  rt.hbPaper = false;
+  if (!rt.modal) return;
   document.body.classList.remove('ashore');
-  pauseEl.classList.remove('open'); chartEl.classList.remove('open'); harbourEl.classList.remove('open'); shipEl.classList.remove('open'); yardEl.classList.remove('open'); hutEl.classList.remove('open'); cardEl.classList.remove('open'); pigEl.classList.remove('open'); greetEl.classList.remove('open'); caveEl.classList.remove('open'); if (modal === 'local') localGames.finish();
-  if (modal === 'pause') audio.setPaused(false);
-  if (modal === 'hut') hutLeft();
-  if (modal === 'card') sighting.dismiss();
-  if (modal === 'cave') { caveRun = null; caveScene.stop(); }
-  if (modal === 'yard') { ship.setCustom(state.custom); yardTry = null; }   // anything only tried on is put back
-  modal = null; harbourIsl = null;
-  if (!silent) lastTs = performance.now();
+  pauseEl.classList.remove('open'); chartEl.classList.remove('open'); harbourEl.classList.remove('open'); shipEl.classList.remove('open'); yardEl.classList.remove('open'); hutEl.classList.remove('open'); cardEl.classList.remove('open'); pigEl.classList.remove('open'); greetEl.classList.remove('open'); caveEl.classList.remove('open'); if (rt.modal === 'local') localGames.finish();
+  if (rt.modal === 'pause') audio.setPaused(false);
+  if (rt.modal === 'hut') hutLeft();
+  if (rt.modal === 'card') sighting.dismiss();
+  if (rt.modal === 'cave') { rt.caveRun = null; caveScene.stop(); }
+  if (rt.modal === 'yard') { ship.setCustom(state.custom); rt.yardTry = null; }   // anything only tried on is put back
+  rt.modal = null; rt.harbourIsl = null;
+  if (!silent) rt.lastTs = performance.now();
 }
 
 // ---------------------------------------------------------------- input
 const touch = { L: false, R: false, U: false, D: false };
 const titleEl = $('title');
 // ---- the title screen: the ship alone on open sea at a random hour, until you set sail
-let titleScene = null;
+rt.titleScene = null;
 function startTitle() {
   if (params.get('autostart') || params.get('notitle')) return;
   const sc = TITLE_SCENES[params.has('title') ? Math.max(0, TITLE_SCENES.findIndex((t) => t.id === params.get('title'))) : Math.floor(Math.random() * TITLE_SCENES.length)];
@@ -436,9 +437,9 @@ function startTitle() {
     let ok = true; for (let dx = -3; dx <= 3 && ok; dx++) for (let dz = -3; dz <= 3; dz++) if (world.desc(cx + dx, cz + dz)) { ok = false; break; }
     if (ok) { spot = [x, z]; break find; }
   }
-  titleScene = { sc, keep: { x: ship.pos.x, z: ship.pos.z, h: ship.heading, time: state.time, trim: ship.trim, forced }, t: 0 };
-  ship.pos.set(spot[0], 0, spot[1]); ship.heading = 0.8; camHeading = 0.8; ship.trim = 0.9;
-  state.time = sc.time; forced = 0; dread = 0;
+  rt.titleScene = { sc, keep: { x: ship.pos.x, z: ship.pos.z, h: ship.heading, time: state.time, trim: ship.trim, forced: rt.forced }, t: 0 };
+  ship.pos.set(spot[0], 0, spot[1]); ship.heading = 0.8; rt.camHeading = 0.8; ship.trim = 0.9;
+  state.time = sc.time; rt.forced = 0; rt.dread = 0;
   weather.force = sc.weather; Object.assign(weather, sc.weather);
   $('hud').classList.add('hidden');
   $('tNew').style.display = saved ? '' : 'none';
@@ -446,22 +447,22 @@ function startTitle() {
   setTimeout(() => $('tSail').focus(), 50);
 }
 function titleCam(dt) {
-  const ts = titleScene, [ang, dist, hgt, lookY] = ts.sc.cam; ts.t += dt;
+  const ts = rt.titleScene, [ang, dist, hgt, lookY] = ts.sc.cam; ts.t += dt;
   const a = ship.heading + ang + Math.sin(ts.t * 0.05) * 0.25;   // a slow drift around the ship
   ship.speed = 0;                                                    // she only bobs in place
-  camOverride = { pos: [ship.pos.x + Math.sin(a) * dist, hgt + Math.sin(ts.t * 0.4) * 0.15, ship.pos.z - Math.cos(a) * dist], look: [ship.pos.x, lookY, ship.pos.z] };
+  rt.camOverride = { pos: [ship.pos.x + Math.sin(a) * dist, hgt + Math.sin(ts.t * 0.4) * 0.15, ship.pos.z - Math.cos(a) * dist], look: [ship.pos.x, lookY, ship.pos.z] };
 }
 function endTitle() {
-  if (!titleScene) return;
-  const k = titleScene.keep; titleScene = null; camOverride = null;
-  ship.pos.set(k.x, 0, k.z); ship.heading = k.h; camHeading = k.h; ship.trim = k.trim; ship.speed = 0;
-  state.time = k.time; forced = k.forced; weather.force = null;
+  if (!rt.titleScene) return;
+  const k = rt.titleScene.keep; rt.titleScene = null; rt.camOverride = null;
+  ship.pos.set(k.x, 0, k.z); ship.heading = k.h; rt.camHeading = k.h; ship.trim = k.trim; ship.speed = 0;
+  state.time = k.time; rt.forced = k.forced; weather.force = null;
   if (params.get('hud') !== '0') $('hud').classList.remove('hidden');
 }
 // only Set sail leaves the title: a fade to black, then you are back aboard where your voyage left off
-let newAskT = 0, sailing = false;
+rt.newAskT = 0, rt.sailing = false;
 function setSail() {
-  if (sailing || started) return; sailing = true;
+  if (rt.sailing || rt.started) return; rt.sailing = true;
   threads.setup(threadChoice());   // dev: the choice made on the title screen
   $('fade').classList.add('on');
   setTimeout(() => { begin(); setTimeout(() => $('fade').classList.remove('on'), 250); }, 1000);
@@ -522,18 +523,18 @@ const oceanLabel = () => { $('pbOcean').textContent = `Ocean: ${OCEAN_STYLES[U.u
 U.uOcean.value = params.has('ocean') ? clamp(parseInt(params.get('ocean'), 10) || 0, 0, OCEAN_STYLES.length - 1) : settings.ocean2 != null ? settings.ocean2 % OCEAN_STYLES.length : 5; oceanLabel();   // Chop facets by default
 // night view distance and lamp strength (daynight.js): cycled in the pause menu, remembered; ?nightview= / ?lamp= force one
 // night mode: 0 = moon phases (each night a new moon or a full one), 1..4 = one fixed view. Settings keys are new (v2) so the new defaults apply
-let nightMode = params.has('nightview') ? clamp((parseInt(params.get('nightview'), 10) || 0) + 1, 1, 4) : settings.nightMode2 != null ? settings.nightMode2 : 0;
-const nightLabels = () => { $('pbNight').textContent = `Night: ${NIGHT_MODES[nightMode]}`; $('pbLamp').textContent = `Lamp: ${LAMPS[NIGHT_SET.lamp].name}`; ship.lampK = LAMPS[NIGHT_SET.lamp].k; };
+rt.nightMode = params.has('nightview') ? clamp((parseInt(params.get('nightview'), 10) || 0) + 1, 1, 4) : settings.nightMode2 != null ? settings.nightMode2 : 0;
+const nightLabels = () => { $('pbNight').textContent = `Night: ${NIGHT_MODES[rt.nightMode]}`; $('pbLamp').textContent = `Lamp: ${LAMPS[NIGHT_SET.lamp].name}`; ship.lampK = LAMPS[NIGHT_SET.lamp].k; };
 NIGHT_SET.lamp = params.has('lamp') ? clamp(parseInt(params.get('lamp'), 10) || 0, 0, 3) : settings.lamp2 != null ? settings.lamp2 : 0;   // a candle by default
 nightLabels();
-$('pbNight').addEventListener('click', () => { nightMode = (nightMode + 1) % NIGHT_MODES.length; settings.nightMode2 = nightMode; store.set(SETTINGS_KEY, settings); nightLabels(); $('pbNight').focus(); });
+$('pbNight').addEventListener('click', () => { rt.nightMode = (rt.nightMode + 1) % NIGHT_MODES.length; settings.nightMode2 = rt.nightMode; store.set(SETTINGS_KEY, settings); nightLabels(); $('pbNight').focus(); });
 $('pbLamp').addEventListener('click', () => { NIGHT_SET.lamp = (NIGHT_SET.lamp + 1) % LAMPS.length; settings.lamp2 = NIGHT_SET.lamp; store.set(SETTINGS_KEY, settings); nightLabels(); $('pbLamp').focus(); });
 /** tonight's moon: a night runs from 19:00 to 06:00; each one is either a new moon (pitch dark, no moon) or a full moon (moonlit) */
-function nightViewNow() { NIGHT_SET.view = nightMode ? nightMode - 1 : fullMoon() ? 2 : 0; }
+function nightViewNow() { NIGHT_SET.view = rt.nightMode ? rt.nightMode - 1 : fullMoon() ? 2 : 0; }
 $('pbOcean').addEventListener('click', () => { U.uOcean.value = ((U.uOcean.value | 0) + 1) % OCEAN_STYLES.length; settings.ocean2 = U.uOcean.value; store.set(SETTINGS_KEY, settings); oceanLabel(); $('pbOcean').focus(); });
 $('tNew').addEventListener('click', (e) => {
   e.stopPropagation();
-  if (performance.now() - newAskT > 4000) { newAskT = performance.now(); $('tNew').textContent = 'Really? Press again'; return; }
+  if (performance.now() - rt.newAskT > 4000) { rt.newAskT = performance.now(); $('tNew').textContent = 'Really? Press again'; return; }
   session.noSave = true; try { localStorage.removeItem(SAVE_KEY); sessionStorage.setItem('hoist-new', '1'); if (fsEl()) sessionStorage.setItem('hoist-fs', '1'); } catch (err) { /* storage blocked */ }
   location.href = location.pathname;
 });
@@ -541,76 +542,76 @@ $('tNew').addEventListener('click', (e) => {
 // ---- a new voyage opens with a short cinematic: the camera starts high over Tama and drifts down to behind the ship, then the game begins.
 // Any key or click skips it. Test runs (autostart, nomate) and continued voyages go straight in.
 const INTRO_DUR = 9;
-let introT = -1;
+rt.introT = -1;
 const introWanted = () => params.get('intro') === '1' || (!state.goals.started && !params.get('autostart') && !params.get('nomate') && !params.has('x'));
 function endIntro() {
-  if (introT < 0) return;
-  introT = -1; document.body.classList.remove('intro');
+  if (rt.introT < 0) return;
+  rt.introT = -1; document.body.classList.remove('intro');
   if (!params.get('nomate')) objectives.start();
 }
-function skipIntro() { if (introT >= 0 && introT > 0.8) introT = Math.max(introT, INTRO_DUR - 1.2); }
+function skipIntro() { if (rt.introT >= 0 && rt.introT > 0.8) rt.introT = Math.max(rt.introT, INTRO_DUR - 1.2); }
 function begin() {
-  if (started) return;
-  started = true;
+  if (rt.started) return;
+  rt.started = true;
   endTitle();
   titleEl.style.display = 'none';
   audio.start();
-  if (introWanted()) { introT = 0; document.body.classList.add('intro'); }
+  if (introWanted()) { rt.introT = 0; document.body.classList.add('intro'); }
   else if (!params.get('nomate')) objectives.start();
 }
-let forced = params.has('dread') ? clamp(parseFloat(params.get('dread')), 0, 1) : null;
+rt.forced = params.has('dread') ? clamp(parseFloat(params.get('dread')), 0, 1) : null;
 
 window.addEventListener('pointerdown', () => skipIntro());
 window.addEventListener('keydown', (e) => {
-  if (introT >= 0) { skipIntro(); return; }
+  if (rt.introT >= 0) { skipIntro(); return; }
   if (e.target && e.target.closest && e.target.closest('#mixer, #studio') && e.code !== 'F8' && e.code !== 'F9') return;   // arrow keys on a mixer slider move the slider, not the ship
-  if (!started && $('thPanel').classList.contains('open')) return;
-  if (!started) { if (titleScene) titleKey(e); else begin(); return; }
+  if (!rt.started && $('thPanel').classList.contains('open')) return;
+  if (!rt.started) { if (rt.titleScene) titleKey(e); else begin(); return; }
   if (e.code === 'Escape' || e.code === 'KeyP') {
     e.preventDefault();
-    if (modal === 'pause') { if (pausePanel !== 'main') pauseBack(); else closeModal(); }
-    else if (modal) closeModal(); else openModal('pause');
+    if (rt.modal === 'pause') { if (rt.pausePanel !== 'main') pauseBack(); else closeModal(); }
+    else if (rt.modal) closeModal(); else openModal('pause');
     return;
   }
-  if (modal === 'pause') {
+  if (rt.modal === 'pause') {
     const btns = [...pauseEl.querySelectorAll('button')].filter((b) => b.offsetParent);
     const i = btns.indexOf(document.activeElement);
     if (e.code === 'ArrowDown') { btns[(i + 1) % btns.length].focus(); e.preventDefault(); }
     if (e.code === 'ArrowUp') { btns[(i - 1 + btns.length) % btns.length].focus(); e.preventDefault(); }
     return;
   }
-  if (modal === 'greet') { if (['KeyE', 'Space', 'Enter', 'NumpadEnter'].includes(e.code)) { e.preventDefault(); greetAdvance(); } return; }
-  if (modal === 'cave') {
+  if (rt.modal === 'greet') { if (['KeyE', 'Space', 'Enter', 'NumpadEnter'].includes(e.code)) { e.preventDefault(); greetAdvance(); } return; }
+  if (rt.modal === 'cave') {
     if ($('roll').classList.contains('open')) return;
-    if (cardBusy === 'done' && (e.code === 'KeyE' || e.code === 'Space' || e.code === 'Enter')) { e.preventDefault(); $('caveDone').click(); return; }
-    const n = parseInt(e.key, 10); if (!cardBusy && n >= 1) { const b = $('caveChoices').querySelectorAll('button')[n - 1]; if (b) b.click(); }
+    if (rt.cardBusy === 'done' && (e.code === 'KeyE' || e.code === 'Space' || e.code === 'Enter')) { e.preventDefault(); $('caveDone').click(); return; }
+    const n = parseInt(e.key, 10); if (!rt.cardBusy && n >= 1) { const b = $('caveChoices').querySelectorAll('button')[n - 1]; if (b) b.click(); }
     return;
   }
-  if (modal === 'card') {
+  if (rt.modal === 'card') {
     if ($('roll').classList.contains('open')) return;
-    if (cardBusy === 'done' && (e.code === 'KeyE' || e.code === 'Space' || e.code === 'Enter')) { $('cardDone').click(); return; }
-    const n = parseInt(e.key, 10); if (!cardBusy && n >= 1) { const b = cardEl.querySelectorAll('#cardChoices button')[n - 1]; if (b) b.click(); }
+    if (rt.cardBusy === 'done' && (e.code === 'KeyE' || e.code === 'Space' || e.code === 'Enter')) { $('cardDone').click(); return; }
+    const n = parseInt(e.key, 10); if (!rt.cardBusy && n >= 1) { const b = cardEl.querySelectorAll('#cardChoices button')[n - 1]; if (b) b.click(); }
     return;
   }
-  if (modal === 'pig') {
+  if (rt.modal === 'pig') {
     if (e.code === 'Space') { e.preventDefault(); pig.roll(); }
     if (e.code === 'KeyH') pig.hold();
     if (e.code === 'KeyE') $('pigLeave').click();
     return;
   }
-  if (modal === 'local') { e.preventDefault(); localGames.key(e.code); return; }
-  if (modal === 'hut') {
+  if (rt.modal === 'local') { e.preventDefault(); localGames.key(e.code); return; }
+  if (rt.modal === 'hut') {
     if (e.code === 'Space') { e.preventDefault(); hut.roll(); }
     if (e.code === 'KeyE') closeModal();
     return;
   }
-  if (modal === 'ship') {
+  if (rt.modal === 'ship') {
     if (e.code === 'KeyE') closeModal();
     const n = parseInt(e.key, 10);
     if (n >= 1 && n <= 4) { const b = shipEl.querySelectorAll('#shList button')[n - 1]; if (b && !b.disabled) b.click(); }
     return;
   }
-  if (modal === 'chart') {
+  if (rt.modal === 'chart') {
     if (e.code === 'ArrowRight') logbook.step(1);
     else if (e.code === 'ArrowLeft') logbook.step(-1);
     else if (e.code === 'ArrowDown' || e.code === 'PageDown') logbook.turn(1);
@@ -618,23 +619,23 @@ window.addEventListener('keydown', (e) => {
     else if (/^Digit[1-3]$/.test(e.code)) logbook.tabByIndex(parseInt(e.code.slice(5), 10) - 1);
     else if (e.code === 'KeyM') closeModal();
     else if (e.code === 'KeyJ') { if (logbook.tab === 'orders') closeModal(); else logbook.open('orders'); }
-    logTab = logbook.tab;
+    rt.logTab = logbook.tab;
     return;
   }
-  if (modal === 'harbour') {
+  if (rt.modal === 'harbour') {
     const order = ['board', 'market', 'tavern', 'wright'];
     if (e.code === 'KeyE') { closeModal(); return; }
     if (e.code === 'KeyM') { closeModal(); openModal('chart'); return; }   // Mara says "open your log with M" right after you take a letter here
     const n = parseInt(e.key, 10);
-    const open = order.filter((t) => isOpen(state, 'tab', t)), go = (t) => { hbTab = t; (state.story.uiSeen || (state.story.uiSeen = {}))[t] = true; renderHarbour(); };
+    const open = order.filter((t) => isOpen(state, 'tab', t)), go = (t) => { rt.hbTab = t; (state.story.uiSeen || (state.story.uiSeen = {}))[t] = true; renderHarbour(); };
     if (n >= 1 && n <= 4 && open.includes(order[n - 1])) go(order[n - 1]);
-    if (e.code === 'ArrowRight' || e.code === 'ArrowLeft') go(open[(open.indexOf(hbTab) + (e.code === 'ArrowRight' ? 1 : open.length - 1)) % open.length]);
+    if (e.code === 'ArrowRight' || e.code === 'ArrowLeft') go(open[(open.indexOf(rt.hbTab) + (e.code === 'ArrowRight' ? 1 : open.length - 1)) % open.length]);
     return;
   }
-  if (e.code === 'KeyM') { logTab = state.story.tabMark || 'map'; openModal('chart'); return; }   // the tab Mara sent you to, if she did
+  if (e.code === 'KeyM') { rt.logTab = state.story.tabMark || 'map'; openModal('chart'); return; }   // the tab Mara sent you to, if she did
   if (e.code === 'KeyL') { toggleLamp(); return; }
-  if (e.code === 'KeyJ') { logTab = 'orders'; openModal('chart'); return; }
-  if (modal) return;
+  if (e.code === 'KeyJ') { rt.logTab = 'orders'; openModal('chart'); return; }
+  if (rt.modal) return;
   if (e.code === 'Space') e.preventDefault();
   if (e.repeat) return;
   if (digGame.active) {   // probing the shore: the arrows / WASD move over the beach, not the ship
@@ -644,35 +645,35 @@ window.addEventListener('keydown', (e) => {
   keys.add(e.code);
   if (e.code === 'Space' && digGame.active) { digGame.press(); return; }
   if (e.code === 'Space') { if (fishing.active) { fishing.hold = true; fishing.press(true); } else if (objectives.mate.cur) objectives.mate.skip(); else if (unlocked(state, 'cannons')) fireCannons(); }   // Space (or Enter) moves Mara's text on
-  if (e.code === 'KeyC' && unlocked(state, 'fish')) { if (lampOut && !fishing.active) { toast('Too dark to see the line. The lamp needs oil.', false, 3500); return; } fishing.press(); }
-  if (e.code === 'KeyY' && !abyss.maraHint()) objectives.askHint(dread);
+  if (e.code === 'KeyC' && unlocked(state, 'fish')) { if (rt.lampOut && !fishing.active) { toast('Too dark to see the line. The lamp needs oil.', false, 3500); return; } fishing.press(); }
+  if (e.code === 'KeyY' && !abyss.maraHint()) objectives.askHint(rt.dread);
   if (e.code === 'Enter' || e.code === 'NumpadEnter') objectives.mate.skip();
   if (e.code === 'KeyE') { if (digGame.active) digGame.press(); else tryInteract(); }
   if (e.code === 'KeyH') $('hud').classList.toggle('hidden');
-  if (e.code === 'F1') { e.preventDefault(); helpMode = helpMode === 'full' ? 'off' : 'full'; helpEl.innerHTML = '<span>A/D steer &middot; W/S sails &middot; G oars &middot; E interact &middot; C fish<br>M log &middot; J orders &middot; Q tracker &middot; Esc pause &middot; H hide HUD &middot; F1 this help</span>'; helpEl.style.opacity = helpMode === 'full' ? '1' : '0'; }
-  if (e.code === 'KeyG' && !modal && started && unlocked(state, 'oars')) { ship.rowing = !ship.rowing; toast(ship.rowing ? 'Oars out' : 'Oars in, sails up', false, 2200); if (ship.rowing) objectives.remark('oars', dread); }
-  if (e.code === 'KeyQ' && !modal) { settings.tracker = settings.tracker === false; store.set(SETTINGS_KEY, settings); }
+  if (e.code === 'F1') { e.preventDefault(); rt.helpMode = rt.helpMode === 'full' ? 'off' : 'full'; helpEl.innerHTML = '<span>A/D steer &middot; W/S sails &middot; G oars &middot; E interact &middot; C fish<br>M log &middot; J orders &middot; Q tracker &middot; Esc pause &middot; H hide HUD &middot; F1 this help</span>'; helpEl.style.opacity = rt.helpMode === 'full' ? '1' : '0'; }
+  if (e.code === 'KeyG' && !rt.modal && rt.started && unlocked(state, 'oars')) { ship.rowing = !ship.rowing; toast(ship.rowing ? 'Oars out' : 'Oars in, sails up', false, 2200); if (ship.rowing) objectives.remark('oars', rt.dread); }
+  if (e.code === 'KeyQ' && !rt.modal) { settings.tracker = settings.tracker === false; store.set(SETTINGS_KEY, settings); }
   if (!DEV) return;   // test keys only with ?dev=1
   if (e.code === 'F8') { e.preventDefault(); mixer.toggle(); }
   if (e.code === 'F9') { e.preventDefault(); studio.toggle(); }
   if (e.code === 'Backquote') debugEl.style.display = debugEl.style.display === 'block' ? 'none' : 'block';
-  if (e.code === 'Digit0') { forced = null; abyss.stopTest(); }
+  if (e.code === 'Digit0') { rt.forced = null; abyss.stopTest(); }
   if (/^Digit[1-4]$/.test(e.code)) devTime([6.5, 12, 19.2, 0][parseInt(e.code.slice(5), 10) - 1]);   // dawn, noon, dusk, night
-  if (e.code === 'Comma' && started) devQuest(state.goals.i - 1);
-  if (e.code === 'Period' && started) devQuest(state.goals.i + 1);
+  if (e.code === 'Comma' && rt.started) devQuest(state.goals.i - 1);
+  if (e.code === 'Period' && rt.started) devQuest(state.goals.i + 1);
   if (e.code === 'BracketRight') state.time = (state.time + 1 / 24) % 1;
   if (e.code === 'BracketLeft') state.time = (state.time - 1 / 24 + 1) % 1;
   if (e.code === 'F6') {   // weather: auto -> clear -> light rain -> storm -> auto
     e.preventDefault();
     const W = [['Clear', { cloud: 0, rain: 0, storm: 0, fog: 0 }], ['Light rain', { cloud: 0.7, rain: 0.5, storm: 0, fog: 0 }], ['Storm', { cloud: 1, rain: 1, storm: 0.9, fog: 0 }], ['Auto', null]];
-    devWeather = (devWeather + 1) % W.length; weather.force = W[devWeather][1]; toast(`Weather: ${W[devWeather][0]}`, false, 2500);
+    rt.devWeather = (rt.devWeather + 1) % W.length; weather.force = W[rt.devWeather][1]; toast(`Weather: ${W[rt.devWeather][0]}`, false, 2500);
   }
-  if (e.code === 'F7' && started) {   // finish the current main quest (the stage-1 music adds an instrument)
+  if (e.code === 'F7' && rt.started) {   // finish the current main quest (the stage-1 music adds an instrument)
     e.preventDefault();
     if (objectives.current) { logbook.d.skipGoal(); toast(`Quests done: ${state.goals.i} (stage-1 instruments: ${Math.min(6, state.goals.i ? state.goals.i + 1 : 0)})`, false, 3500); }
   }
 });
-let devWeather = 3;   // F6 cycles the forced weather
+rt.devWeather = 3;   // F6 cycles the forced weather
 // ---- dev bar (dev build only): set the hour and jump to any main quest, back and forth
 function devTime(h) { state.time = (((h / 24) % 1) + 1) % 1; devBarRender(); }
 function devQuest(target) {
@@ -692,42 +693,42 @@ function devQuest(target) {
   const g = objectives.current; if (g && g.onStart) g.onStart({ state, forceCalm: setCalm });
   toast(`Quest: ${g ? g.title : 'all done'}`, false, 2500); devBarRender();
 }
-let devBar = null;
+rt.devBar = null;
 function devBarRender() {
-  if (!devBar) return;
+  if (!rt.devBar) return;
   const g = objectives.current, h = state.time * 24, hh = String(Math.floor(h)).padStart(2, '0'), mm = String(Math.floor((h % 1) * 60)).padStart(2, '0');
-  devBar.querySelector('select').value = String(state.goals.i);
-  devBar.querySelector('.dvq').textContent = g ? `${state.goals.i + 1}/${MAIN_GOALS.length}` : 'done';
-  devBar.querySelector('.dvt').textContent = `${hh}:${mm}`;
-  const sl = devBar.querySelector('#dvDread'), STG = ['Fair', 'Grey', 'Wrong', 'Deep', 'Abyss'];
-  if (document.activeElement !== sl) sl.value = String(dread);
-  devBar.querySelector('.dvd').textContent = `${dread.toFixed(2)} ${STG[Math.min(4, Math.floor(dread * 5))]}${forced === null ? ' (auto)' : ''}`;
+  rt.devBar.querySelector('select').value = String(state.goals.i);
+  rt.devBar.querySelector('.dvq').textContent = g ? `${state.goals.i + 1}/${MAIN_GOALS.length}` : 'done';
+  rt.devBar.querySelector('.dvt').textContent = `${hh}:${mm}`;
+  const sl = rt.devBar.querySelector('#dvDread'), STG = ['Fair', 'Grey', 'Wrong', 'Deep', 'Abyss'];
+  if (document.activeElement !== sl) sl.value = String(rt.dread);
+  rt.devBar.querySelector('.dvd').textContent = `${rt.dread.toFixed(2)} ${STG[Math.min(4, Math.floor(rt.dread * 5))]}${rt.forced === null ? ' (auto)' : ''}`;
 }
 if (DEV) {
-  devBar = document.createElement('div'); devBar.id = 'devbar';
-  devBar.innerHTML = `<button data-q="-1" title="previous quest (,)">&lt;</button><select title="jump to a quest">${MAIN_GOALS.map((g, i) => `<option value="${i}">${i + 1}. ${g.title}</option>`).join('')}<option value="${MAIN_GOALS.length}">(all done)</option></select><button data-q="1" title="next quest (.)">&gt;</button><span class="dvq"></span>
+  rt.devBar = document.createElement('div'); rt.devBar.id = 'devbar';
+  rt.devBar.innerHTML = `<button data-q="-1" title="previous quest (,)">&lt;</button><select title="jump to a quest">${MAIN_GOALS.map((g, i) => `<option value="${i}">${i + 1}. ${g.title}</option>`).join('')}<option value="${MAIN_GOALS.length}">(all done)</option></select><button data-q="1" title="next quest (.)">&gt;</button><span class="dvq"></span>
     <span class="dvsep"></span><button data-h="6.5" title="1">Dawn</button><button data-h="12" title="2">Noon</button><button data-h="19.2" title="3">Dusk</button><button data-h="0" title="4">Night</button><span class="dvt"></span>
     <span class="dvsep"></span><label for="dvDread">Dread</label><input id="dvDread" type="range" min="0" max="1" step="0.01" value="0"><button data-auto="1" title="dread follows the distance from Tama again (0)">auto</button><span class="dvd"></span>`;
-  document.body.appendChild(devBar);
-  devBar.addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; if (b.dataset.auto) { forced = null; abyss.stopTest(); } else if (b.dataset.q) devQuest(state.goals.i + +b.dataset.q); else devTime(+b.dataset.h); b.blur(); devBarRender(); });
-  devBar.querySelector('#dvDread').addEventListener('input', (e) => { forced = +e.target.value; devBarRender(); });   // the music and the world follow (eased, like sailing there)
-  devBar.querySelector('#dvDread').addEventListener('change', (e) => e.target.blur());
-  devBar.querySelector('select').addEventListener('change', (e) => { devQuest(+e.target.value); e.target.blur(); });
+  document.body.appendChild(rt.devBar);
+  rt.devBar.addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; if (b.dataset.auto) { rt.forced = null; abyss.stopTest(); } else if (b.dataset.q) devQuest(state.goals.i + +b.dataset.q); else devTime(+b.dataset.h); b.blur(); devBarRender(); });
+  rt.devBar.querySelector('#dvDread').addEventListener('input', (e) => { rt.forced = +e.target.value; devBarRender(); });   // the music and the world follow (eased, like sailing there)
+  rt.devBar.querySelector('#dvDread').addEventListener('change', (e) => e.target.blur());
+  rt.devBar.querySelector('select').addEventListener('change', (e) => { devQuest(+e.target.value); e.target.blur(); });
   setInterval(devBarRender, 500);
 }
 window.addEventListener('keyup', (e) => { keys.delete(e.code); if (e.code === 'Space' || e.code === 'KeyC') fishing.hold = false; });
-window.addEventListener('blur', () => { if (started && !modal && !params.get('shot') && !(studio && studio.popped)) openModal('pause'); });   // the studio window may take focus: keep playing
-titleEl.addEventListener('pointerdown', () => { if (!titleScene) begin(); });   // with the live title, only Set sail starts
+window.addEventListener('blur', () => { if (rt.started && !rt.modal && !params.get('shot') && !(studio && studio.popped)) openModal('pause'); });   // the studio window may take focus: keep playing
+titleEl.addEventListener('pointerdown', () => { if (!rt.titleScene) begin(); });   // with the live title, only Set sail starts
 
-let zoom = parseFloat(params.get('zoom') || '24'), zoomT = zoom;
+rt.zoom = parseFloat(params.get('zoom') || '24'), rt.zoomT = rt.zoom;
 const PITCH_MIN = 0.06;   // low, almost level with the deck: the view tilts up to the sky instead of dipping under the hull
-let pitch = parseFloat(params.get('pitch') || '0.72'), pitchT = pitch;
-canvas.addEventListener('wheel', (e) => { zoomT = clamp(zoomT * (1 + Math.sign(e.deltaY) * 0.1), 14, ship.mods.zoomMax); e.preventDefault(); }, { passive: false });
-let drag = null;
-let yawT = 0, camYaw = 0, lastCamInput = -99;   // orbit around the boat (drag sideways, Z / X, V resets)
-canvas.addEventListener('pointerdown', (e) => { drag = { x: e.clientX, y: e.clientY, p: pitchT, yaw: yawT }; lastCamInput = tNow; canvas.setPointerCapture(e.pointerId); });
-canvas.addEventListener('pointermove', (e) => { if (drag && !modal) { pitchT = clamp(drag.p + (e.clientY - drag.y) * 0.006, PITCH_MIN, 1.35); yawT = drag.yaw - (e.clientX - drag.x) * 0.008; lastCamInput = tNow; } });
-canvas.addEventListener('pointerup', () => { drag = null; });
+rt.pitch = parseFloat(params.get('pitch') || '0.72'), rt.pitchT = rt.pitch;
+canvas.addEventListener('wheel', (e) => { rt.zoomT = clamp(rt.zoomT * (1 + Math.sign(e.deltaY) * 0.1), 14, ship.mods.zoomMax); e.preventDefault(); }, { passive: false });
+rt.drag = null;
+rt.yawT = 0, rt.camYaw = 0, rt.lastCamInput = -99;   // orbit around the boat (drag sideways, Z / X, V resets)
+canvas.addEventListener('pointerdown', (e) => { rt.drag = { x: e.clientX, y: e.clientY, p: rt.pitchT, yaw: rt.yawT }; rt.lastCamInput = rt.tNow; canvas.setPointerCapture(e.pointerId); });
+canvas.addEventListener('pointermove', (e) => { if (rt.drag && !rt.modal) { rt.pitchT = clamp(rt.drag.p + (e.clientY - rt.drag.y) * 0.006, PITCH_MIN, 1.35); rt.yawT = rt.drag.yaw - (e.clientX - rt.drag.x) * 0.008; rt.lastCamInput = rt.tNow; } });
+canvas.addEventListener('pointerup', () => { rt.drag = null; });
 
 for (const [id, k] of [['tL', 'L'], ['tR', 'R'], ['tU', 'U'], ['tD', 'D']]) {
   const el = $(id);
@@ -735,19 +736,19 @@ for (const [id, k] of [['tL', 'L'], ['tR', 'R'], ['tU', 'U'], ['tD', 'D']]) {
   const up = () => { touch[k] = false; };
   el.addEventListener('pointerup', up); el.addEventListener('pointerleave', up); el.addEventListener('pointercancel', up);
 }
-$('tE').addEventListener('pointerdown', (e) => { begin(); if (modal === 'harbour') closeModal(); else if (digGame.active) digGame.press(); else tryInteract(); e.preventDefault(); });
+$('tE').addEventListener('pointerdown', (e) => { begin(); if (rt.modal === 'harbour') closeModal(); else if (digGame.active) digGame.press(); else tryInteract(); e.preventDefault(); });
 $('tC').addEventListener('pointerdown', (e) => { begin(); if (fishing.active) { fishing.hold = true; fishing.press(true); } else fishing.press(); e.preventDefault(); });
 $('tC').addEventListener('pointerup', () => { fishing.hold = false; });
 $('tX').addEventListener('pointerdown', (e) => { begin(); fireCannons(); e.preventDefault(); });
-$('tP').addEventListener('pointerdown', (e) => { begin(); if (modal) closeModal(); else openModal('pause'); e.preventDefault(); });
+$('tP').addEventListener('pointerdown', (e) => { begin(); if (rt.modal) closeModal(); else openModal('pause'); e.preventDefault(); });
 
 // ---------------------------------------------------------------- pause menu
 if (!AUDIO_ENABLED) $('pbSoundMenu').style.display = 'none';
-let volT = 0;
+rt.volT = 0;
 for (const r of $('pbVols').querySelectorAll('.pvol')) {   // the player's own volume sliders
   const inp = r.querySelector('input'), k = inp.dataset.k;
   inp.value = Math.round((audio.userVol[k] != null ? audio.userVol[k] : 1) * 100); r.querySelector('b').textContent = `${inp.value}%`;
-  inp.addEventListener('input', () => { r.querySelector('b').textContent = `${inp.value}%`; audio.setUserVol(k, inp.value / 100); if (modal === 'pause' && audio.ctx) { audio.ctx.resume(); clearTimeout(volT); volT = setTimeout(() => { if (modal === 'pause') audio.ctx.suspend(); }, 1800); }   // the sound plays for a moment while you drag, so you can hear the level
+  inp.addEventListener('input', () => { r.querySelector('b').textContent = `${inp.value}%`; audio.setUserVol(k, inp.value / 100); if (rt.modal === 'pause' && audio.ctx) { audio.ctx.resume(); clearTimeout(rt.volT); rt.volT = setTimeout(() => { if (rt.modal === 'pause') audio.ctx.suspend(); }, 1800); }   // the sound plays for a moment while you drag, so you can hear the level
     settings.vol = { ...audio.userVol }; store.set(SETTINGS_KEY, settings); });
   inp.addEventListener('keydown', (e) => { if (e.code.startsWith('Arrow')) e.stopPropagation(); });   // arrows move the slider, not the pause menu focus (Esc still closes)
 }
@@ -755,9 +756,9 @@ for (const r of $('pbVols').querySelectorAll('.pvol')) {   // the player's own v
 const PAUSE_PANELS = { main: 'pauseMain', settings: 'pauseSettings', sound: 'pauseSound', display: 'pauseDisplay', controls: 'pauseControls', dev: 'pauseDev', abyss: 'pauseAbyss' };
 const PAUSE_PARENT = { settings: 'main', controls: 'main', dev: 'main', sound: 'settings', display: 'settings', abyss: 'dev' };
 const PAUSE_OPENER = { settings: 'pbSettings', controls: 'pbControls', dev: 'pbDevTools', sound: 'pbSoundMenu', display: 'pbDisplay', abyss: 'pbAbyss' };
-let pausePanel = 'main';
+rt.pausePanel = 'main';
 function showPause(name, focus) {
-  pausePanel = name;
+  rt.pausePanel = name;
   for (const [k, id] of Object.entries(PAUSE_PANELS)) $(id).style.display = k === name ? 'block' : 'none';
   $('pbNew').textContent = 'New voyage (erase save)';
   $('pbSound').textContent = `Sound: ${audio.muted ? 'off' : 'on'}`;
@@ -766,7 +767,7 @@ function showPause(name, focus) {
   const f = focus && $(focus); (f && f.offsetParent ? f : $(PAUSE_PANELS[name]).querySelector('button')).focus();
 }
 const showPauseMain = () => showPause('main');
-function pauseBack() { const from = pausePanel; showPause(PAUSE_PARENT[from] || 'main', PAUSE_OPENER[from]); }
+function pauseBack() { const from = rt.pausePanel; showPause(PAUSE_PARENT[from] || 'main', PAUSE_OPENER[from]); }
 for (const [name, btn] of Object.entries({ settings: 'pbSettings', controls: 'pbControls', dev: 'pbDevTools', sound: 'pbSoundMenu', display: 'pbDisplay', abyss: 'pbAbyss' })) $(btn).addEventListener('click', () => showPause(name));
 document.querySelectorAll('#pause .pback').forEach((b) => b.addEventListener('click', pauseBack));
 $('pbResume').addEventListener('click', () => closeModal());
@@ -778,13 +779,13 @@ function renderAbyssMenu() {
   if (st) st.addEventListener('click', () => { const i = WATCHER_STYLES.indexOf(settings.watcherStyle || 'pale'); settings.watcherStyle = WATCHER_STYLES[(i + 1) % WATCHER_STYLES.length]; store.set(SETTINGS_KEY, settings); renderAbyssMenu(); $('abList').querySelector('.abstyle').focus(); });
   $('abList').querySelectorAll('.abtog').forEach((b) => b.addEventListener('click', () => { settings.abyss[b.dataset.id] = !on(b.dataset.id); store.set(SETTINGS_KEY, settings); renderAbyssMenu(); }));
   $('abList').querySelectorAll('.abtry').forEach((b) => b.addEventListener('click', () => {
-    forced = 1; dread = 1; abyss.k = 1;
+    rt.forced = 1; rt.dread = 1; abyss.k = 1;
     if (b.dataset.end) { abyss.solo = 'leviathan'; abyss.startEnding(); closeModal(); return; }
     const id = b.dataset.id;
     abyss.trigger(id); closeModal();
-    if (id === 'map') setTimeout(() => { logTab = 'map'; openModal('chart'); }, 150);
+    if (id === 'map') setTimeout(() => { rt.logTab = 'map'; openModal('chart'); }, 150);
   }));
-  $('abForce').textContent = forced === 1 ? 'Back to automatic dread' : 'Go to full dread now (all ON effects)';
+  $('abForce').textContent = rt.forced === 1 ? 'Back to automatic dread' : 'Go to full dread now (all ON effects)';
 }
 if (!DEV) { $('pbDevTools').style.display = 'none'; $('pbAbyss').style.display = 'none'; $('pbMixer').style.display = 'none'; $('pbStudio').style.display = 'none'; $('devKeys').style.display = 'none'; settings.abyss = {}; }   // players get every effect, no test menu
 const mixer = new Mixer(audio, (t, d, ms) => toast(t, d, ms));
@@ -793,23 +794,23 @@ const studio = DEV ? new SoundStudio(audio, (t, d, ms) => toast(t, d, ms)) : nul
 if (DEV) { window.__studio = studio; $('pbStudio').addEventListener('click', () => { closeModal(); studio.toggle(true); }); }
 /** what is going on right now, as the sound studio's situations (see studio.js) */
 function soundSituation() {
-  const f = new Set(), near = started && !titleScene ? world.nearest(ship.pos.x, ship.pos.z, 60) : null;
-  if (!started || titleScene) f.add('title');
-  else if (!modal) f.add('sailing');
-  if (modal === 'harbour') f.add('harbour'); if (modal === 'yard') f.add('yard'); if (modal === 'hut') f.add('hut'); if (modal === 'cave') f.add('cave');
-  if (modal === 'chart') f.add('chart'); if (modal === 'card') f.add('log'); if (modal === 'greet') f.add('talk'); if (modal === 'pause') f.add('paused');
+  const f = new Set(), near = rt.started && !rt.titleScene ? world.nearest(ship.pos.x, ship.pos.z, 60) : null;
+  if (!rt.started || rt.titleScene) f.add('title');
+  else if (!rt.modal) f.add('sailing');
+  if (rt.modal === 'harbour') f.add('harbour'); if (rt.modal === 'yard') f.add('yard'); if (rt.modal === 'hut') f.add('hut'); if (rt.modal === 'cave') f.add('cave');
+  if (rt.modal === 'chart') f.add('chart'); if (rt.modal === 'card') f.add('log'); if (rt.modal === 'greet') f.add('talk'); if (rt.modal === 'pause') f.add('paused');
   if (fishing.active) f.add('fishing');
   if (traffic.ships.some((s) => s.hostile && !s.sinking && Math.hypot(s.x - ship.pos.x, s.z - ship.pos.z) < 90)) f.add('combat');
   if ($('demoend').classList.contains('show')) f.add('ending');
   f.add(tod.night > 0.6 ? 'night' : tod.twilight > 0.35 ? 'twilight' : 'day');
   if (weather.rain > 0.3) f.add('rain'); if (weather.storm > 0.3) f.add('storm'); if (weather.fog > 0.4) f.add('fog'); if (wind.strength > 0.9) f.add('windy');
   f.add(near ? 'land' : 'open');
-  return { flags: f, dread };
+  return { flags: f, dread: rt.dread };
 }
 //   // players get every effect, no test menu
 $('abAll').addEventListener('click', () => { const any = EFFECTS.some((f) => settings.abyss[f.id] === false); for (const f of EFFECTS) settings.abyss[f.id] = any; store.set(SETTINGS_KEY, settings); renderAbyssMenu(); });
-$('abForce').addEventListener('click', () => { abyss.stopTest(); if (forced === 1) forced = null; else { forced = 1; dread = 1; } renderAbyssMenu(); });
-$('pbLog').addEventListener('click', () => { logTab = 'map'; openModal('chart'); });
+$('abForce').addEventListener('click', () => { abyss.stopTest(); if (rt.forced === 1) rt.forced = null; else { rt.forced = 1; rt.dread = 1; } renderAbyssMenu(); });
+$('pbLog').addEventListener('click', () => { rt.logTab = 'map'; openModal('chart'); });
 $('pbMusic').addEventListener('click', () => {
   audio.setMusic(!audio.musicOn);
   settings.musicOff = !audio.musicOn; store.set(SETTINGS_KEY, settings);
@@ -829,7 +830,7 @@ $('hbClose').addEventListener('click', () => closeModal());
 // ---------------------------------------------------------------- harbour shipwright
 const UP_MUL = [1.3, 1.6, 1.9];   // economy: the shipwright charges more, steeply for the higher levels
 const upCost = (u, lv, rep) => Math.ceil(u.cost[lv] * UP_MUL[lv] * discount(rep) * costMul());
-let hbTab = 'board', hbPaper = false;   // hbPaper: the Friday paper lies open on the market pane
+rt.hbTab = 'board', rt.hbPaper = false;   // hbPaper: the Friday paper lies open on the market pane
 function handIn(q, d) {
   const need = questNeed(q);
   if (questProgress(q, state) < need) return;
@@ -841,7 +842,7 @@ function handIn(q, d) {
   state.quests = state.quests.filter((x) => x.id !== q.id);
   sea.syncQuests(state.quests.filter((q) => q.id === state.tracked));
   state.stats.commissions = (state.stats.commissions || 0) + 1;
-  toast(`Commission done: ${questTitle(q, dread)} (+${q.reward} gold)`, dread > 0.5, 6000);
+  toast(`Commission done: ${questTitle(q, rt.dread)} (+${q.reward} gold)`, rt.dread > 0.5, 6000);
   audio.play('treasure');
 }
 function acceptCommission(o) {
@@ -851,7 +852,7 @@ function acceptCommission(o) {
   state.quests.push(q);
   if (!state.tracked) state.tracked = q.id;
   sea.syncQuests(state.quests.filter((q) => q.id === state.tracked));
-  toast(`Commission taken: ${questTitle(q, dread)}`, false, 5000);
+  toast(`Commission taken: ${questTitle(q, rt.dread)}`, false, 5000);
   audio.play('buy');
 }
 
@@ -861,7 +862,7 @@ const REST_DARK = ['You sleep. Someone sat by your bed all night; the chair is s
 function restAtTavern(cost) {
   if (state.gold < cost) return;
   state.gold -= cost;
-  const dk = dread > 0.6, hbd = harbourIsl && harbourIsl.desc;
+  const dk = rt.dread > 0.6, hbd = rt.harbourIsl && rt.harbourIsl.desc;
   closeModal();
   $('fade').classList.add('on');
   setTimeout(() => {
@@ -870,30 +871,30 @@ function restAtTavern(cost) {
     state.hp = ship.mods.maxHp;
     $('fade').classList.remove('on');
     toast(dk ? REST_DARK[Math.floor(Math.random() * REST_DARK.length)] : REST_LINES[Math.floor(Math.random() * REST_LINES.length)], dk, 6000);
-    objectives.remark('rested', dread);
+    objectives.remark('rested', rt.dread);
     { const x = hbd ? threads.onRest(hbd) : ''; if (x) setTimeout(() => toast(x, true, 8000), 2400); }
   }, 1100);
 }
 function renderHarbour() {
-  if (!isOpen(state, 'tab', hbTab)) hbTab = 'board';   // a sign that has not opened yet: back to the board
-  const d = harbourIsl.desc, rep = repOf(state, d.id), lvl = friendLevel(rep);
+  if (!isOpen(state, 'tab', rt.hbTab)) rt.hbTab = 'board';   // a sign that has not opened yet: back to the board
+  const d = rt.harbourIsl.desc, rep = repOf(state, d.id), lvl = friendLevel(rep);
   $('hbName').textContent = d.name;
-  if ($('hbLine').style.display === 'none') $('hbLine').textContent = harbourLine;
+  if ($('hbLine').style.display === 'none') $('hbLine').textContent = rt.harbourLine;
   $('hbBannerName').textContent = d.name;
   $('hbGold').textContent = state.gold;
-  $('hbTabs').querySelectorAll('button').forEach((b) => b.classList.toggle('on', b.dataset.t === hbTab));
-  $('hbPlace').textContent = { board: "Harbourmaster's board", market: 'Market', tavern: 'Tavern', wright: 'Shipwright' }[hbTab];
+  $('hbTabs').querySelectorAll('button').forEach((b) => b.classList.toggle('on', b.dataset.t === rt.hbTab));
+  $('hbPlace').textContent = { board: "Harbourmaster's board", market: 'Market', tavern: 'Tavern', wright: 'Shipwright' }[rt.hbTab];
   postBadges(d, rep);
   const pane = $('hbPane');
   let html = '';
-  $('hbWide').classList.toggle('shop', hbTab === 'wright' || hbTab === 'market');   // shops get a wider panel
-  if (hbTab === 'board') {
+  $('hbWide').classList.toggle('shop', rt.hbTab === 'wright' || rt.hbTab === 'market');   // shops get a wider panel
+  if (rt.hbTab === 'board') {
     // finish what you came for first: deliveries, passengers and finished commissions for this harbour
     const due = [];
     if (state.job && state.job.toId === d.id) due.push(`<div class="qrow"><div><b>${pxi('letter')} Deliver ${state.job.item}</b><br><small>+${state.job.reward}g</small></div><button id="doDeliver">Deliver</button></div>`);
     if (state.passenger && state.passenger.toId === d.id) due.push(`<div class="qrow"><div><b>${pxi('talk')} ${state.passenger.name} goes ashore</b><br><small>+${state.passenger.reward}g fare</small></div><button id="doDropoff">Drop off</button></div>`);
-    for (const q of state.quests.filter((x) => x.giverId === d.id && questProgress(x, state) >= questNeed(x))) due.push(`<div class="qrow"><div><b>${questIcon(q)} ${questTitle(q, dread)}</b><br><small>done · +${q.reward}g</small></div><button data-hand="${q.id}">Finish</button></div>`);
-    if (openLetter) html += `<div class="sec">A LETTER</div><div class="letterOpen"><p>${openLetter.text}</p><small>${openLetter.from} · kept in your log</small></div>`;
+    for (const q of state.quests.filter((x) => x.giverId === d.id && questProgress(x, state) >= questNeed(x))) due.push(`<div class="qrow"><div><b>${questIcon(q)} ${questTitle(q, rt.dread)}</b><br><small>done · +${q.reward}g</small></div><button data-hand="${q.id}">Finish</button></div>`);
+    if (rt.openLetter) html += `<div class="sec">A LETTER</div><div class="letterOpen"><p>${rt.openLetter.text}</p><small>${rt.openLetter.from} · kept in your log</small></div>`;
     for (const lt of lettersAt(d)) html += `<div class="sec">A LETTER</div><div class="qrow letter"><div><b>${pxi('letter')} ${lt.title}</b><br><small>${lt.sub}</small></div><button id="takeLetter" data-letter="${lt.key}">Take it</button></div>`;
     if (due.length) html += `<div class="sec">FINISH HERE</div>${due.join('')}`;
     if (lifeOn()) {   // the harbour's own person and their story (harbourlife.js), and this harbour's day in the week
@@ -914,12 +915,12 @@ function renderHarbour() {
     const mine = state.quests.filter((q) => q.giverId === d.id);
     for (const q of mine) {
       const need = questNeed(q), have = questProgress(q, state);
-      if (have < need) html += `<div class="qrow"><div><b>${questIcon(q)} ${questTitle(q, dread)}</b><br><small>${have}/${need} · ${q.reward}g</small></div></div>`;
+      if (have < need) html += `<div class="qrow"><div><b>${questIcon(q)} ${questTitle(q, rt.dread)}</b><br><small>${have}/${need} · ${q.reward}g</small></div></div>`;
     }
     const offers = commissionsFor(world, d, state.serial[d.id + '#c'] || 0).filter((o) => !state.quests.some((x) => x.id === o.id));
     for (const o of offers) {
       const q = { ...o, base: 0 };
-      html += `<div class="qrow"><div><b>${questIcon(o)} ${questTitle(q, dread)}</b><br><small>${o.type === 'crates' ? `lost ${bearingName(o.center.x - d.x, o.center.z - d.z)} of here · ` : ''}${o.reward}g</small></div><button data-accept="${o.id}" ${state.quests.length >= 3 ? 'disabled' : ''}>Accept</button></div>`;
+      html += `<div class="qrow"><div><b>${questIcon(o)} ${questTitle(q, rt.dread)}</b><br><small>${o.type === 'crates' ? `lost ${bearingName(o.center.x - d.x, o.center.z - d.z)} of here · ` : ''}${o.reward}g</small></div><button data-accept="${o.id}" ${state.quests.length >= 3 ? 'disabled' : ''}>Accept</button></div>`;
     }
     if (!mine.length && !offers.length) html += '<small>The board is empty. Come back after you have been out to sea.</small>';
     const pass = passengerAt(d);
@@ -971,14 +972,14 @@ function renderHarbour() {
       const f = falseRumour(d), t = f || r.d, dist = f ? f.dist : r.dist;   // not everything a sailor says is true; nothing tells you which
       state.rumoured[t.id] = { name: t.name, x: Math.round(t.x), z: Math.round(t.z), source: `a drunk in ${d.name}`, found: false };
       if (f) state.rumoured[t.id].fake = f.variant;
-      toast(`Rumour: ${t.name}, ${bearingName(t.x - d.x, t.z - d.z)} of here, ~${Math.round(dist)} fathoms. Marked on your map.`, dread > 0.5, 7000);
+      toast(`Rumour: ${t.name}, ${bearingName(t.x - d.x, t.z - d.z)} of here, ~${Math.round(dist)} fathoms. Marked on your map.`, rt.dread > 0.5, 7000);
       audio.play('buy'); renderHarbour();
     });
-  } else if (hbTab === 'market' && hbPaper && paper.thisWeeks(state)) {   // the paper, open
+  } else if (rt.hbTab === 'market' && rt.hbPaper && paper.thisWeeks(state)) {   // the paper, open
     pane.innerHTML = paper.paperHTML(paper.thisWeeks(state)) + '<div class="qrow"><div></div><button id="foldPaper">Fold it away</button></div>';
-    $('foldPaper').addEventListener('click', () => { hbPaper = false; audio.play('ui', { vol: 0.3 }); renderHarbour(); });
+    $('foldPaper').addEventListener('click', () => { rt.hbPaper = false; audio.play('ui', { vol: 0.3 }); renderHarbour(); });
     pane.scrollTop = 0;
-  } else if (hbTab === 'market') {
+  } else if (rt.hbTab === 'market') {
     const hg = state.haggle && state.haggle.id === d.id && state.haggle.day === state.dayN ? state.haggle : null, hm = (hg ? hg.mult : 1) / dreamCost() * (isMarketDay() ? 1.25 : 1) * (threads.touched(d) ? 1.15 : 1) * threads.priceMul(d);
     const fishVal = Math.round(state.catch.reduce((a, f) => a + f.value, 0) * 0.7 * (1 + 0.05 * lvl) * hm * (isFestival(d) ? 1.5 : 1));
     const fruitList = Object.entries(state.fruit).filter(([, n]) => n > 0);
@@ -988,7 +989,7 @@ function renderHarbour() {
     html += '<div class="sec">SELL</div>' + priceNote() + (isFestival(d) ? '<small>Festival day: fish fetch half again as much.</small>' : isMarketDay() ? '<small>Market day: everything sells for a quarter more.</small>' : '');
     if (unlocked(state, 'haggle')) html += `<div class="qrow"><div><b>${pxi('coin')} Haggle</b><br><small>${hg ? (hg.mult > 1 ? `they pay ${Math.round((hg.mult - 1) * 100)}% more today` : hg.n === 1 ? 'word got round: 20% less for your catch, everything else 10% dearer' : 'they are offended: 10% less today') : 'a talk roll, once a day: 12 or more'}</small></div>${hg ? '' : '<button id="haggle">Roll</button>'}</div>`;
     html += `<div class="qrow"><div><b>${pxi('fish')} Fish</b><br><small>${state.catch.length ? `${state.catch.length} in the hold` : 'none: slow down and press C at sea'}</small></div>${state.catch.length ? `<button id="sellFish">+${fishVal}g</button>` : ''}</div>`;
-    html += `<div class="qrow"><div><b>${pxi('banana')} Fruit</b><br><small>${fruitList.length ? fruitList.map(([f, n]) => `${n} ${plural(fruitName(f, dread), n)}`).join(', ') : 'none: press E at jungle isles'}</small></div>${fruitList.length ? `<button id="sellFruit">+${fruitVal}g</button>` : ''}</div>`;
+    html += `<div class="qrow"><div><b>${pxi('banana')} Fruit</b><br><small>${fruitList.length ? fruitList.map(([f, n]) => `${n} ${plural(fruitName(f, rt.dread), n)}`).join(', ') : 'none: press E at jungle isles'}</small></div>${fruitList.length ? `<button id="sellFruit">+${fruitVal}g</button>` : ''}</div>`;
     { // the Colour thread: the quiet buyer, and a market the colour has already reached
       const cb = threads.c, hold = state.catch.filter((f) => f.bright), bv = Math.round(hold.reduce((a, f) => a + f.value, 0) * 2.2);
       if (threads.touched(d)) html += '<small>The fish stalls are full of bright ones today. Nobody says where from.</small>';
@@ -1021,14 +1022,14 @@ function renderHarbour() {
       if (state.gold < paper.PAPER_COST || paper.thisWeeks(state) || !paper.onSale(state)) return;
       const fac = sectorAt(d.x, d.z, state.seed).faction;
       state.gold -= paper.PAPER_COST;
-      const p = life.lifeOf(state).paper = paper.printPaper(state, d, { dread, faction: fac.id, factionName: fac.name, frontOn: unlocked(state, 'passengers') });
-      hbPaper = true; audio.play('buy'); toast(paper.BUY_LINE[p.stage], p.stage >= 3, 4000); renderHarbour(); }); }
-    { const rp = $('readPaper'); if (rp) rp.addEventListener('click', () => { hbPaper = true; audio.play('ui', { vol: 0.3 }); renderHarbour(); }); }
+      const p = life.lifeOf(state).paper = paper.printPaper(state, d, { dread: rt.dread, faction: fac.id, factionName: fac.name, frontOn: unlocked(state, 'passengers') });
+      rt.hbPaper = true; audio.play('buy'); toast(paper.BUY_LINE[p.stage], p.stage >= 3, 4000); renderHarbour(); }); }
+    { const rp = $('readPaper'); if (rp) rp.addEventListener('click', () => { rt.hbPaper = true; audio.play('ui', { vol: 0.3 }); renderHarbour(); }); }
     const hgb = $('haggle'); if (hgb) hgb.addEventListener('click', () => {
       rollCheck(state, { label: 'Talk', kind: 'talk', dc: 12, harbour: d.id, extra: lvl ? [['standing', lvl]] : [] }, (ok, n) => {
         state.haggle = { id: d.id, day: state.dayN, n, mult: ok ? (n === 20 ? 1.5 : 1.3) : n === 1 ? 0.8 : 0.9 };
-        toast(ok ? 'The fishmonger laughs and gives in.' : n === 1 ? 'The fishmonger spits on the planks. By noon the whole harbour has heard.' : 'The fishmonger folds their arms. Prices just got worse.', false, 4000); if (harbourIsl) renderHarbour(); }); });
-  } else if (hbTab === 'tavern') {
+        toast(ok ? 'The fishmonger laughs and gives in.' : n === 1 ? 'The fishmonger spits on the planks. By noon the whole harbour has heard.' : 'The fishmonger folds their arms. Prices just got worse.', false, 4000); if (rt.harbourIsl) renderHarbour(); }); });
+  } else if (rt.hbTab === 'tavern') {
     if (lifeOn()) {   // the house dish, the local game, and the old story this harbour keeps (harbourlife.js)
       const dish = life.DISHES[d.style] || life.DISHES.classic, cur = life.meal(state), dc = Math.ceil(dish.cost * costMul());
       html += `<div class="sec">THE HOUSE DISH</div><div class="qrow"><div><b>${pxi('fish')} ${dish.name}</b><br><small>${dish.text}, until the dawn after next${cur ? ` · you have eaten: ${Object.values(life.DISHES).find((x) => x.id === cur).name}` : ''}</small></div><button id="eatDish" ${state.gold >= dc && cur !== dish.id ? '' : 'disabled'}>${cur === dish.id ? 'Full' : `${dc}g`}</button></div>`;
@@ -1052,18 +1053,18 @@ function renderHarbour() {
       if (hand && !state.crew.some((c) => c.name === hand.name)) html += `<div class="qrow"><div><b>${pxi('talk')} ${hand.name}, ${hand.look}</b><br><small>${TRAITS[hand.trait].name}: ${TRAITS[hand.trait].text} · ${hand.wish.text} · stays ${hand.stay || 4} days</small></div><button id="hireHand" ${state.gold >= hand.cost && state.crew.length < 2 ? '' : 'disabled'}>${state.crew.length < 2 ? `Hire ${hand.cost}g` : 'Crew full'}</button></div>`;
       for (const c of state.crew) html += c.permanent ? `<div class="qrow"><div><b>${pxi('talk')} ${c.name}</b> <small>(${TRAITS[c.trait].name}, stays)</small></div></div>` : `<div class="qrow"><div><b>${pxi('talk')} ${c.name}</b> <small>(${TRAITS[c.trait].name}, ${daysLeft(c)} days left)</small></div><button data-dismiss="${c.name}">Let go</button></div>`;
       html += `<div class="qrow"><div><b>${pxi('pip')} Dice with the locals</b><br><small>first to 30 · stake 10g</small></div><button id="playPig" ${state.gold >= 10 ? '' : 'disabled'}>Sit down</button></div>`;
-      pendingHand = hand;
+      rt.pendingHand = hand;
     } else html += '<small>A fiddler, a fire, a lot of very old chairs. Nobody here knows you yet.</small>';
     pane.innerHTML = html;
     { const ed = $('eatDish'); if (ed) ed.addEventListener('click', () => { const dish = life.DISHES[d.style] || life.DISHES.classic, dc = Math.ceil(dish.cost * costMul()); if (state.gold < dc) return; state.gold -= dc; toast(`${dish.name}. ${life.eat(state, d)} (${dish.text})`, false, 7000); audio.play('buy'); renderHarbour(); }); }
     { const pl = $('playLocal'); if (pl) pl.addEventListener('click', () => {
-      if (state.gold < 5 || life.playedToday(state, d)) return; state.gold -= 5; const isl = harbourIsl, gm = life.gameOf(d);
-      openModal('local'); harbourIsl = isl;
+      if (state.gold < 5 || life.playedToday(state, d)) return; state.gold -= 5; const isl = rt.harbourIsl, gm = life.gameOf(d);
+      openModal('local'); rt.harbourIsl = isl;
       localGames.open(gm.id, life.isEvent(d, state) ? gm.event.toUpperCase() : gm.name.toUpperCase(), (tier, finished) => {
         const pr = life.gamePrize(d, state, finished ? tier : 0);
         if (pr.gold) state.gold += pr.gold + 5;
         if (pr.ev && tier === 2) life.news(state, 'game', { where: d.name, game: gm.event, at: d.id });
-        setTimeout(() => { harbourIsl = isl; hbTab = 'tavern'; if (modal === 'local' || !modal) { closeModal(true); harbourIsl = isl; openModal('harbour'); }
+        setTimeout(() => { rt.harbourIsl = isl; rt.hbTab = 'tavern'; if (rt.modal === 'local' || !rt.modal) { closeModal(true); rt.harbourIsl = isl; openModal('harbour'); }
           if (pr.gold) toast(`+${pr.gold + 5} gold${pr.ev ? ' (festival prize)' : ''}${pr.keep ? `. And a keepsake: ${pr.keep.name}.` : ''}`, false, 6000); }, 30);
       }); }); }
     { const tf = $('takeFrag'); if (tf) tf.addEventListener('click', () => { const fr = life.fragmentAt(state, d, true); if (!fr || fr.locked) return; const n = life.takeFragment(state, d, fr);
@@ -1078,20 +1079,20 @@ function renderHarbour() {
       toast(`A fisher at the quay: "${HABITAT[f.id].say}" (Fisherman's log)`, false, 9000); audio.play('ui'); renderHarbour();
     });
     const hh = $('hireHand'); if (hh) hh.addEventListener('click', () => {
-      const h = pendingHand; if (!h || state.gold < h.cost || state.crew.length >= 2) return;
-      state.gold -= h.cost; signOn(h, h.stay || 4); audio.play('buy'); toast(`${h.name} signs on. ${h.name} nods once and says nothing.`, false, 5000); objectives.remark('crew', dread); renderHarbour(); });
+      const h = rt.pendingHand; if (!h || state.gold < h.cost || state.crew.length >= 2) return;
+      state.gold -= h.cost; signOn(h, h.stay || 4); audio.play('buy'); toast(`${h.name} signs on. ${h.name} nods once and says nothing.`, false, 5000); objectives.remark('crew', rt.dread); renderHarbour(); });
     pane.querySelectorAll('[data-dismiss]').forEach((b) => b.addEventListener('click', () => { state.crew = state.crew.filter((c) => c.name !== b.dataset.dismiss); toast(`${b.dataset.dismiss} goes ashore with a small wave.`); renderHarbour(); }));
-    if ($('playPig')) $('playPig').addEventListener('click', () => { if (state.gold < 10) return; state.gold -= 10; state.stats.pig = (state.stats.pig || 0) + 1; const isl = harbourIsl; openModal('pig'); pigHome = isl; pig.start(LOCALS[Math.floor(Math.random() * LOCALS.length)], 10); });
+    if ($('playPig')) $('playPig').addEventListener('click', () => { if (state.gold < 10) return; state.gold -= 10; state.stats.pig = (state.stats.pig || 0) + 1; const isl = rt.harbourIsl; openModal('pig'); rt.pigHome = isl; pig.start(LOCALS[Math.floor(Math.random() * LOCALS.length)], 10); });
   } else {
-    if (hbShipLine) html += `<p class="quote">${hbShipLine}</p>`;
+    if (rt.hbShipLine) html += `<p class="quote">${rt.hbShipLine}</p>`;
     html += priceNote();   // the shipwright talks here, not over the welcome
     // one card per upgrade: icon, level, what you have, what the next level gives, what it opens up, the price
     html += '<div class="upgrid">' + UPGRADES.map((u) => {
       const lv = state.upgrades[u.id], maxed = lv >= MAX_LEVEL, C = UP_CARD[u.id] || {};
       const cost = maxed ? 0 : upCost(u, lv, rep), can = !maxed && state.gold >= cost, opens = !maxed && C.opens && C.opens[lv + 1];
       const now = lv ? u.text[lv - 1].split(':')[0] : C.stock;
-      const pips = Array.from({ length: MAX_LEVEL }, (_, k) => `<i class="${k < lv ? 'on' : ''}${k === lv - 1 && upFlash === u.id ? ' pop' : ''}"></i>`).join('');
-      return `<div class="upc${maxed ? ' max' : ''}${can ? '' : ' poor'}${upFlash === u.id ? ' bought' : ''}">
+      const pips = Array.from({ length: MAX_LEVEL }, (_, k) => `<i class="${k < lv ? 'on' : ''}${k === lv - 1 && rt.upFlash === u.id ? ' pop' : ''}"></i>`).join('');
+      return `<div class="upc${maxed ? ' max' : ''}${can ? '' : ' poor'}${rt.upFlash === u.id ? ' bought' : ''}">
         <div class="upi">${pxi(C.icon || 'sail')}</div>
         <div class="upb"><div class="upt"><b>${u.name}</b><span class="lvp">${pips}</span></div>
           <div class="upnow">Now: ${now}</div>
@@ -1102,12 +1103,12 @@ function renderHarbour() {
     }).join('') + '</div>';
     pane.innerHTML = html;
     pane.querySelectorAll('button[data-id]').forEach((b) => b.addEventListener('click', () => buyUpgrade(b.dataset.id)));
-    upFlash = null;
+    rt.upFlash = null;
   }
   lockPane(state, $('hbPane'));   // what the story has not reached yet is greyed out (gates.js)
   tutorialMarks();
 }
-$('hbTabs').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b || !harbourIsl) return; if (b.dataset.t === 'sail') { closeModal(); return; } if (!isOpen(state, 'tab', b.dataset.t)) return; hbTab = b.dataset.t; hbPaper = false; (state.story.uiSeen || (state.story.uiSeen = {}))[hbTab] = true; audio.play('ui', { vol: 0.4 }); renderHarbour(); });
+$('hbTabs').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b || !rt.harbourIsl) return; if (b.dataset.t === 'sail') { closeModal(); return; } if (!isOpen(state, 'tab', b.dataset.t)) return; rt.hbTab = b.dataset.t; rt.hbPaper = false; (state.story.uiSeen || (state.story.uiSeen = {}))[rt.hbTab] = true; audio.play('ui', { vol: 0.4 }); renderHarbour(); });
 // a red number on a sign when something waits there
 // the tutorial marks the sign (and the button) the current goal needs; goals later in the story carry no mark at all
 const tutorialGoal = () => { const g = objectives.current; if (!g || !g.tab) return null; try { if (g.check({ state, ship, world })) return null; } catch (e) { /* not checkable yet */ } return g; };   // a goal already done carries no mark
@@ -1117,10 +1118,10 @@ function passengerAt(d) {
 }
 function tutorialMarks() {
   let g = tutorialGoal();
-  if (g && g.id === 'job' && state.job && harbourIsl && state.job.toId !== harbourIsl.desc.id) g = null;   // accepted already: nothing to press here
-  if (g && g.id === 'dig' && (state.story.letterP1 !== 'wait' || !harbourIsl || harbourIsl.desc.id !== '0,-1')) g = null;   // only while Perrin's letter waits, and only at Tama
+  if (g && g.id === 'job' && state.job && rt.harbourIsl && state.job.toId !== rt.harbourIsl.desc.id) g = null;   // accepted already: nothing to press here
+  if (g && g.id === 'dig' && (state.story.letterP1 !== 'wait' || !rt.harbourIsl || rt.harbourIsl.desc.id !== '0,-1')) g = null;   // only while Perrin's letter waits, and only at Tama
   // always marked, tutorial or not: a letter waiting for you here (Perrin's), and a passenger asking for passage. Both sit on the board
-  const always = harbourIsl ? [...(lettersAt(harbourIsl.desc).length ? ['takeLetter'] : []), ...(passengerAt(harbourIsl.desc) && isOpen(state, 'btn', 'takePass') && !(state.stats.passengers || 0) && !state.passenger ? ['takePass'] : [])] : [];
+  const always = rt.harbourIsl ? [...(lettersAt(rt.harbourIsl.desc).length ? ['takeLetter'] : []), ...(passengerAt(rt.harbourIsl.desc) && isOpen(state, 'btn', 'takePass') && !(state.stats.passengers || 0) && !state.passenger ? ['takePass'] : [])] : [];
   const seen = state.story.uiSeen || (state.story.uiSeen = {});
   $('hbTabs').querySelectorAll('.post').forEach((b) => {
     const t = b.dataset.t, open = isOpen(state, 'tab', t);
@@ -1129,8 +1130,8 @@ function tutorialMarks() {
     b.classList.toggle('next', open && ((!!g && t === g.tab) || (always.length > 0 && t === 'board')));
   });
   $('hbPane').querySelectorAll('.hl').forEach((e) => e.classList.remove('hl'));
-  if (hbTab === 'board') for (const id of always) { const el = $(id); if (el && !el.disabled && !el.classList.contains('locked')) el.classList.add('hl'); }
-  if (!g || hbTab !== g.tab) return;
+  if (rt.hbTab === 'board') for (const id of always) { const el = $(id); if (el && !el.disabled && !el.classList.contains('locked')) el.classList.add('hl'); }
+  if (!g || rt.hbTab !== g.tab) return;
   for (const id of g.mark || []) {
     const el = id === 'buy' ? $('hbPane').querySelector('button[data-id]:not([disabled]):not(.locked)') : $(id);
     if (el && !el.disabled && !el.classList.contains('locked')) el.classList.add('hl');
@@ -1174,19 +1175,19 @@ function takePet(kind) {
   addCompanion(kind); audio.play('discover'); toast(PETS[kind].toast, false, 6000); autosave();
 }
 for (const k of Object.keys(state.story.pets || {})) if (PETS[k]) addCompanion(k);   // companions from an earlier session
-let openLetter = null;   // the letter just taken lies open on the board until the captain leaves the harbour
+rt.openLetter = null;   // the letter just taken lies open on the board until the captain leaves the harbour
 function takeLetter(key) {
   state.story[key] = 'taken'; audio.play('ui');
   const mate = objectives.mate;
   if (key === 'letterP1') {
     giveMap('1,-1', 'Old Perrin', true, true);   // no pile of text: Mara asks what you have, then sends you to the log
-    openLetter = { from: 'Old Perrin', text: `“${state.riddles['1,-1'] || ''}”` };
-    mate.say('A letter? What have you got there, Captain?'); mate.say('He has sent you a riddle. Press M and open your orders to read it.'); logTab = 'riddles';
+    rt.openLetter = { from: 'Old Perrin', text: `“${state.riddles['1,-1'] || ''}”` };
+    mate.say('A letter? What have you got there, Captain?'); mate.say('He has sent you a riddle. Press M and open your orders to read it.'); rt.logTab = 'riddles';
     state.story.tabMark = 'riddles'; state.story.riddleLine = 'wait';
   } else if (key === 'letterP2') {
     perrinNote(true);
-    { const n = state.notes[state.notes.length - 1]; if (n) openLetter = { from: 'Old Perrin', text: n.text.replace(/^Perrin: /, '') }; }
-    mate.say('Another letter from Perrin? Open your log with M: it is at the top of the Ship\'s book.'); logTab = 'journal';
+    { const n = state.notes[state.notes.length - 1]; if (n) rt.openLetter = { from: 'Old Perrin', text: n.text.replace(/^Perrin: /, '') }; }
+    mate.say('Another letter from Perrin? Open your log with M: it is at the top of the Ship\'s book.'); rt.logTab = 'journal';
     state.story.tabMark = 'journal'; state.story.noteLine = 'wait';
   }
 }
@@ -1208,49 +1209,49 @@ function postBadges(d, rep) {
 }
 // one quiet line when the Lady's last throw moved the prices; nobody says why
 const priceNote = () => { const k = dreamCost(); return k > 1 ? '<small>Prices are up today. Nobody says why.</small>' : k < 1 ? '<small>Prices are down today. Everyone seems to have slept well.</small>' : ''; };
-let harbourLine = '', hbShipLine = '';
+rt.harbourLine = '', rt.hbShipLine = '';
 // the greeting: a villager's line types out in a box like Mara's, then the harbour menu comes up
-let greetNow = null;
+rt.greetNow = null;
 function showGreeting(d, say) {
-  const isl = harbourIsl;
-  openModal('greet'); harbourIsl = isl;
+  const isl = rt.harbourIsl;
+  openModal('greet'); rt.harbourIsl = isl;
   greetEl.classList.toggle('dark', !!say.dark);
   $('grName').textContent = d.name; $('grFace').src = portrait(say.speaker); $('grWho').textContent = speakerName(say.speaker);
   $('grTxt').textContent = ''; $('grMore').classList.remove('on');
-  greetNow = { say, shown: 0, timer: setInterval(() => {
-    const t = greetNow.say.text; greetNow.shown++; greetText(t.slice(0, greetNow.shown), say.slow);
-    if (greetNow.shown % 3 === 1 && /[A-Za-z0-9]/.test(t[greetNow.shown - 1] || '')) audio.blip(!!say.dark, true);   // the villager's voice, softly
-    if (greetNow.shown >= t.length) { clearInterval(greetNow.timer); greetNow.timer = null; $('grMore').classList.add('on'); }
+  rt.greetNow = { say, shown: 0, timer: setInterval(() => {
+    const t = rt.greetNow.say.text; rt.greetNow.shown++; greetText(t.slice(0, rt.greetNow.shown), say.slow);
+    if (rt.greetNow.shown % 3 === 1 && /[A-Za-z0-9]/.test(t[rt.greetNow.shown - 1] || '')) audio.blip(!!say.dark, true);   // the villager's voice, softly
+    if (rt.greetNow.shown >= t.length) { clearInterval(rt.greetNow.timer); rt.greetNow.timer = null; $('grMore').classList.add('on'); }
   }, say.slow ? 1300 : say.slowWord ? 320 : 34) };   // the stare: one dot at a time, slowly
 }
 function greetText(t, dots) {
   if (dots) $('grTxt').innerHTML = '<i class="gdot"></i>'.repeat(t.length); else $('grTxt').textContent = t;
 }
 function greetAdvance() {
-  if (!greetNow) return;
-  if (greetNow.timer) { clearInterval(greetNow.timer); greetNow.timer = null; greetText(greetNow.say.text, greetNow.say.slow); $('grMore').classList.add('on'); return; }
-  const said = greetNow.say; greetNow = null;
+  if (!rt.greetNow) return;
+  if (rt.greetNow.timer) { clearInterval(rt.greetNow.timer); rt.greetNow.timer = null; greetText(rt.greetNow.say.text, rt.greetNow.say.slow); $('grMore').classList.add('on'); return; }
+  const said = rt.greetNow.say; rt.greetNow = null;
   if (said.endsDemo && state.story.demoEnd === 'pending') {   // someone spoke of the throw: that is where the demo ends
     state.story.demoEnd = 'done'; closeModal(); setTimeout(showDemoEnd, 1800); return;
   }
-  const isl = harbourIsl; closeModal(true); harbourIsl = isl;
+  const isl = rt.harbourIsl; closeModal(true); rt.harbourIsl = isl;
   $('hbSaid').textContent = ''; { const q = $('hbLine'); q.textContent = said.slow ? '' : `"${said.text}"`; q.style.display = said.slow ? 'none' : 'block'; }   // the line stays at the top of the board panel while you are ashore
   openModal('harbour');
 }
 $('grBox').addEventListener('click', () => greetAdvance());
 
-let upFlash = null;   // the card just bought: it flashes gold once
+rt.upFlash = null;   // the card just bought: it flashes gold once
 function buyUpgrade(id) {
   const u = UPGRADES.find((x) => x.id === id), lv = state.upgrades[id];
-  const cost = u && lv < MAX_LEVEL ? upCost(u, lv, repOf(state, harbourIsl.desc.id)) : 0;
+  const cost = u && lv < MAX_LEVEL ? upCost(u, lv, repOf(state, rt.harbourIsl.desc.id)) : 0;
   if (!u || lv >= MAX_LEVEL || state.gold < cost) return;
   state.gold -= cost;
   state.upgrades[id] = lv + 1;
   refreshMods();
   if (id === 'hull') state.hp = ship.mods.maxHp;
   audio.play('buy');
-  toast(`${u.name} upgraded to level ${lv + 1}`, dread > 0.5);
-  upFlash = id; renderHarbour();
+  toast(`${u.name} upgraded to level ${lv + 1}`, rt.dread > 0.5);
+  rt.upFlash = id; renderHarbour();
   { const gEl = $('hbGold'); gEl.classList.remove('spent'); void gEl.offsetWidth; gEl.classList.add('spent'); }
 }
 
@@ -1314,33 +1315,33 @@ function slipTo(s, t) {
   if (against) s.note = 'The wind is against you: zig-zag.';
   return s;
 }
-let trackNow = null;
+rt.trackNow = null;
 function drawCompass(w, heading) {
-  const jobA = trackNow ? Math.atan2(trackNow.x - ship.pos.x, -(trackNow.z - ship.pos.z)) : null;
+  const jobA = rt.trackNow ? Math.atan2(rt.trackNow.x - ship.pos.x, -(rt.trackNow.z - ship.pos.z)) : null;
   windView.dir = abyss.windDir(w.dir); windView.strength = w.strength; windView.gust = w.gust; windView.floor = abyss.windFloor(Math.max(ship.mods.floor, ship.floorMin || 0)); windView.wedge = ship.wedge; windView.wedgeEnd = ship.wedgeEnd;
   drawWind(compass, windView, heading, performance.now() / 1000, jobA);
 }
 
 // mission tracker (Q)
 const trackerEl = $('tracker');
-let trackerHtml = null;
+rt.trackerHtml = null;
 function updateTracker() {
-  trackNow = trackTarget();
-  const show = settings.tracker !== false && started && !modal;
+  rt.trackNow = trackTarget();
+  const show = settings.tracker !== false && rt.started && !rt.modal;
   trackerEl.style.display = show ? 'block' : 'none';
   if (!show) return;
   const rows = [];
   const g = objectives.pending ? null : objectives.current;   // the next goal shows when Mara announces it
-  const fresh = performance.now() < trackerNewUntil; trackerEl.classList.toggle('flash', fresh);
+  const fresh = performance.now() < rt.trackerNewUntil; trackerEl.classList.toggle('flash', fresh);
   if (g) { const s = slipInfo();   // the slip: what, where, which way and how long (always these three, in this order)
     rows.push(`<div class="trow main"><i class="ico flag"></i>${g.title}${goalCount(g, { state, ship })}${fresh ? '<span class="tag">NEW</span>' : ''}</div>${s.where ? `<div class="trow where">${s.where}</div>` : ''}${s.way ? `<div class="trow way">${s.way}</div>` : ''}`); }
   const tr = trackedOne(), others = (state.job ? 1 : 0) + (state.passenger ? 1 : 0) + state.quests.length - (tr ? 1 : 0);
   if (tr === 'job') rows.push(`<div class="trow">${pxi('letter')} ${state.job.toName}</div>`);
   else if (tr === 'passenger') rows.push(`<div class="trow">${pxi('talk')} ${state.passenger.name} to ${state.passenger.toName}</div>`);
-  else { const q = state.quests.find((x) => x.id === tr); if (q) rows.push(`<div class="trow">${questIcon(q)} ${questTitle(q, dread)} <b>${questProgress(q, state)}/${questNeed(q)}</b></div>`); }
+  else { const q = state.quests.find((x) => x.id === tr); if (q) rows.push(`<div class="trow">${questIcon(q)} ${questTitle(q, rt.dread)} <b>${questProgress(q, state)}/${questNeed(q)}</b></div>`); }
   if (others > 0) rows.push(`<div class="thint">+${others} more in your orders (J)</div>`);
   const html = rows.length ? abyss.hud('track', rows.join('')) + '<div class="thint">[Q] hide</div>' : '';
-  if (html !== trackerHtml) { trackerHtml = html; trackerEl.innerHTML = html; }
+  if (html !== rt.trackerHtml) { rt.trackerHtml = html; trackerEl.innerHTML = html; }
   trackerEl.style.display = html ? 'block' : 'none';
 }
 
@@ -1353,18 +1354,18 @@ function felt() {
   const nightK = strataIndex(Math.hypot(ship.pos.x, ship.pos.z)) >= 2 ? 0.05 * clamp(tod.night, 0, 1) : 0;
   return dreadWithPeak(dist, st.peakDread) + nightK;
 }
-let dread = forced !== null ? forced : dreadAtDistance(Math.hypot(ship.pos.x, ship.pos.z));
-let dark = dread > DARK_THRESHOLD;
-let dig = null;     // { isl, t }
-let digFix = 0, digFixWhy = '';   // after a failed probe: the tide is in, or the crew fetches the spare shovel, until this time
+rt.dread = rt.forced !== null ? rt.forced : dreadAtDistance(Math.hypot(ship.pos.x, ship.pos.z));
+rt.dark = rt.dread > DARK_THRESHOLD;
+rt.dig = null;     // { isl, t }
+rt.digFix = 0, rt.digFixWhy = '';   // after a failed probe: the tide is in, or the crew fetches the spare shovel, until this time
 const digGame = new DigGame({ sound: (k) => { if (k === 'rock') { audio.playTone(1180, { dur: 0.35, vol: 0.09 }); audio.playTone(1530, { dur: 0.25, vol: 0.05 }); } else if (k === 'found') { for (const [f, d] of [[523, 0], [659, 90], [784, 180]]) setTimeout(() => audio.playTone(f, { dur: 0.9, vol: 0.12 }), d); } else audio.play('dig', { vol: 0.35, rate: 1.15 }); } });
-let tNow = 0;
-let curSector = null;
+rt.tNow = 0;
+rt.curSector = null;
 const sighted = new Set();
-let lastSighting = 0;
+rt.lastSighting = 0;
 // ---- lighthouse tidbits: pass close to a lighthouse for the first time and the keeper calls something across the water.
 // Three kinds: about the tower itself (one set per design), where the nearest harbours lie, and what the week holds.
-let lhT = 0;
+rt.lhT = 0;
 const LH_LINES = {
   classic: ['Red and white, so the gulls can find it. And so can I on foggy mornings.', 'Two hundred and twelve steps. I count them every night, for company.', 'Built forty years before the village. The village grew up round her, like ivy.'],
   slim: ['Narrow as a fishing rod. She sways a hand\'s breadth in a gale. I find it restful.', 'The lamp is tiny and the lens is huge. Somebody was very proud of that lens.', 'Only one person fits on the stairs at a time. I have never had to give way.'],
@@ -1380,7 +1381,7 @@ function gullLevel(night) {
   const d = fauna.nearBird;
   if (!(d < 160)) return 0;
   const near = 1 - clamp((d - 8) / 112, 0, 1);
-  return near * near * (1 - night * 0.8) * (1 - weather.storm * 0.7) * (1 - weather.rain * 0.4) * (1 - smoothstep(0.2, 0.35, dread));
+  return near * near * (1 - night * 0.8) * (1 - weather.storm * 0.7) * (1 - weather.rain * 0.4) * (1 - smoothstep(0.2, 0.35, rt.dread));
 }
 // the quiet coast bed (soft breeze, small waves, far gulls): rises over the last ~110 units before an island's shore and is
 // full while you are moored or ashore. Fades away with the dread like the gulls and in storms.
@@ -1388,12 +1389,12 @@ function coastLevel(moored, night) {
   const near = world.nearest(ship.pos.x, ship.pos.z, 110);
   let k = near ? 1 - clamp(world.lastEdge / 110, 0, 1) : 0;
   k = moored ? 0.3 : k * k * 0.75;   // docked: the coast drops to a quiet 30% so the harbour and the music come through
-  return k * (1 - night * 0.5) * (1 - weather.storm * 0.8) * (1 - smoothstep(0.25, 0.4, dread));
+  return k * (1 - night * 0.5) * (1 - weather.storm * 0.8) * (1 - smoothstep(0.25, 0.4, rt.dread));
 }
 // ashore on a big forest island (1): its forest bed plays very quietly. No island is a forest yet (ROADMAP: forest
 // islands); when they exist, mark them with desc.forest and this picks them up
 function forestLevel(ashore) {
-  if (ashore && harbourIsl && harbourIsl.desc && harbourIsl.desc.forest) return 1;
+  if (ashore && rt.harbourIsl && rt.harbourIsl.desc && rt.harbourIsl.desc.forest) return 1;
   const g = LM.grove, d = Math.hypot(ship.pos.x - g.x, ship.pos.z - g.z);   // Hollowgreen: the wood can be heard from the water
   return clamp(1 - (d - g.r - 10) / 40, 0, 1) * 0.8;
 }
@@ -1408,7 +1409,7 @@ const GOSSIP_AT = MAIN_GOALS.findIndex((g) => g.id === 'gossip');
 function hutMusicTarget() {
   const st = state.story, hd = world.hutDesc;
   if (st.hutMusicDone || !world.hutShown || !hd) return 0;
-  if (modal === 'hut') { st.hutEntered = true; return 1; }
+  if (rt.modal === 'hut') { st.hutEntered = true; return 1; }
   const d = Math.hypot(ship.pos.x - hd.x, ship.pos.z - hd.z) - hd.r;
   if (st.hutEntered && d > 260) { st.hutMusicDone = true; return 0; }
   return 1 - smoothstep(90, 280, d);
@@ -1444,9 +1445,9 @@ function landHo(d) {
   el.querySelector('span').textContent = d.name;
   el.querySelector('small').textContent = (d.lm && LM[d.lm].sight) || SIGHT_WORDS[d.type] || 'an island';
   el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
-  if (d.id !== '0,-1') objectives.remark(`sight_${d.type}`, dread);
+  if (d.id !== '0,-1') objectives.remark(`sight_${d.type}`, rt.dread);
 }
-let placeShown = '', lastSave = 0, lastNear = null, lastHour = Math.floor(state.time * 24);
+rt.placeShown = '', rt.lastSave = 0, rt.lastNear = null, rt.lastHour = Math.floor(state.time * 24);
 const shipInput = { steer: 0, sail: 0 };
 
 function fireCannons() {
@@ -1488,7 +1489,7 @@ function completeJobIfHere(d) {
   const j = state.job;
   if (!j || j.toId !== d.id) return;
   const wet = weather.storm > 0.35 ? Math.round(j.reward * 0.6) : 0;   // delivered through a storm: they pay extra
-  j.reward += wet; if (wet) objectives.remark('stormpay', dread);
+  j.reward += wet; if (wet) objectives.remark('stormpay', rt.dread);
   state.gold += j.reward;
   repOf(state, d.id).deliveries++; repOf(state, j.fromId).deliveries++;
   state.serial[j.fromId] = (state.serial[j.fromId] || 0) + 1;
@@ -1500,12 +1501,12 @@ function completeJobIfHere(d) {
 }
 
 // ashore the camera rests on the village, a little to the left so the panel on the right does not cover it
-let waterRough = -1;
-let ashoreCam = null, ashoreK = 0, animT = 0;
+rt.waterRough = -1;
+rt.ashoreCam = null, rt.ashoreK = 0, rt.animT = 0;
 function frameVillage(d) {
   const dx = d.x - ship.pos.x, dz = d.z - ship.pos.z, L = Math.hypot(dx, dz) || 1, ux = dx / L, uz = dz / L, px = -uz, pz = ux;
   const up = Math.max(0, d.H - 1.15);   // a village up on a hill or cliff: lift the camera over the lip
-  ashoreCam = { pos: new THREE.Vector3(ship.pos.x + ux * 9 - px * 3, 7.5 + up * 1.15, ship.pos.z + uz * 9 - pz * 3), look: new THREE.Vector3(d.x - ux * d.r * 0.2 + px * d.r * 0.3, 2.5 + up * 0.9, d.z - uz * d.r * 0.2 + pz * d.r * 0.3) };
+  rt.ashoreCam = { pos: new THREE.Vector3(ship.pos.x + ux * 9 - px * 3, 7.5 + up * 1.15, ship.pos.z + uz * 9 - pz * 3), look: new THREE.Vector3(d.x - ux * d.r * 0.2 + px * d.r * 0.3, 2.5 + up * 0.9, d.z - uz * d.r * 0.2 + pz * d.r * 0.3) };
 }
 // ---- half riddles: now and then an arch holds only half a riddle; the other half is written on a second arch nearby
 const halfSeed = (d) => hash2(Math.round(d.x), Math.round(d.z), state.seed + 55) % 3;
@@ -1539,47 +1540,47 @@ function readArch(d) {
   }
 }
 // ---- oars: a soft stroke sound while rowing
-let oarPhase = 0;
+rt.oarPhase = 0;
 function oarTick(dt) {
   if (!(ship.rowing && ship.rowIn !== 0)) return;
   const ph = Math.floor(ship.stroke / (Math.PI * 2));
-  if (ph !== oarPhase) { oarPhase = ph; audio.play('oar', { vol: 0.5 }); }
+  if (ph !== rt.oarPhase) { rt.oarPhase = ph; audio.play('oar', { vol: 0.5 }); }
 }
 const HEAVE_KINDS = new Set(['thread', 'spring', 'cave', 'treasure', 'fruit', 'wreck', 'landmark', 'patch']);
-let heave = null, anchorAt = null;   // heave: E was pressed under way, the anchor is going down; anchorAt: where she lies while it is down
+rt.heave = null, rt.anchorAt = null;   // heave: E was pressed under way, the anchor is going down; anchorAt: where she lies while it is down
 /** the anchor: down while going ashore, digging, salvaging, patching or fishing, so the ship cannot drift off the spot */
 function anchorTick() {
-  if (heave) {
+  if (rt.heave) {
     const tg = getInteract();
-    if (!tg || tg.key !== heave.key || tNow - heave.t > 8 || modal) heave = null;
-    else if (ship.speed <= 0.3) { heave = null; tryInteract(); }
+    if (!tg || tg.key !== rt.heave.key || rt.tNow - rt.heave.t > 8 || rt.modal) rt.heave = null;
+    else if (ship.speed <= 0.3) { rt.heave = null; tryInteract(); }
   }
-  ship.anchored = !!heave || !!dig || fishing.active;
-  if (!ship.anchored) { anchorAt = null; return; }
-  if (!anchorAt && ship.speed < 0.3) anchorAt = { x: ship.pos.x, z: ship.pos.z };
-  if (anchorAt) { ship.pos.x = anchorAt.x; ship.pos.z = anchorAt.z; }   // currents and leeway do not move an anchored ship
+  ship.anchored = !!rt.heave || !!rt.dig || fishing.active;
+  if (!ship.anchored) { rt.anchorAt = null; return; }
+  if (!rt.anchorAt && ship.speed < 0.3) rt.anchorAt = { x: ship.pos.x, z: ship.pos.z };
+  if (rt.anchorAt) { ship.pos.x = rt.anchorAt.x; ship.pos.z = rt.anchorAt.z; }   // currents and leeway do not move an anchored ship
 }
 function tryInteract() {
-  if (!started || modal) return;
+  if (!rt.started || rt.modal) return;
   const tg = getInteract();
   if (!tg) return;
   if (tg.kind === 'sighting') { openCard(tg.s.card); return; }
   // E under way: the anchor goes down first, and the crew goes ashore as soon as she lies still (no need to stop her by hand)
-  if (HEAVE_KINDS.has(tg.kind) && ship.speed > 0.3 && !dig && !(tg.kind === 'treasure' && tg.isl.dug)) { if (!heave) audio.play('ui'); heave = { key: tg.key, t: tNow }; return; }
+  if (HEAVE_KINDS.has(tg.kind) && ship.speed > 0.3 && !rt.dig && !(tg.kind === 'treasure' && tg.isl.dug)) { if (!rt.heave) audio.play('ui'); rt.heave = { key: tg.key, t: rt.tNow }; return; }
   if (tg.kind === 'thread') { if (ship.speed > 0.35) { toast('Bring the ship to a full stop first (S to reef the sails).', false, 3000); return; } tg.th.run(); return; }
   if (tg.kind === 'spring') { if (ship.speed > 0.35) { toast('Bring the ship to a full stop first (S to reef the sails).', false, 3000); return; } openCave({ id: `spring:${threads.c.src.id}`, kind: 'colourspring' }); return; }
   if (tg.kind === 'cave') { if (ship.speed > 0.35) { toast('Bring the ship to a full stop first (S to reef the sails).', false, 3000); return; } openCave(tg.site); return; }
   if (tg.kind === 'hut') { if (!state.story.hutKnown) { audio.play('knock'); toast('Nobody answers. Inside, a pen scratches, then stops.', true, 4500); return; } openModal('hut'); return; }
   if ((tg.kind === 'treasure' || tg.kind === 'fruit' || tg.kind === 'wreck' || tg.kind === 'landmark') && ship.speed > 0.35) { toast('Bring the ship to a full stop first (S to reef the sails).', false, 3000); return; }
-  if (tg.kind === 'landmark') { if (!dig) goAshore(tg); return; }
+  if (tg.kind === 'landmark') { if (!rt.dig) goAshore(tg); return; }
   if (tg.kind === 'secret') {
     if (ship.speed > 0.6) { toast('Bring the ship to a full stop first (S to reef the sails).', false, 3000); return; }
-    if (!dig) dig = { key: tg.key, t: 0, label: tg.sc.kind === 'kestrel' ? 'Someone goes down on a rope...' : tg.sc.kind === 'camp' ? 'Going ashore...' : 'Salvaging...', need: tg.sc.kind === 'kestrel' ? 5 : 3.2, done: () => secretFound(tg.sc) };
+    if (!rt.dig) rt.dig = { key: tg.key, t: 0, label: tg.sc.kind === 'kestrel' ? 'Someone goes down on a rope...' : tg.sc.kind === 'camp' ? 'Going ashore...' : 'Salvaging...', need: tg.sc.kind === 'kestrel' ? 5 : 3.2, done: () => secretFound(tg.sc) };
     return;
   }
   if (tg.kind === 'patch') {
     if (ship.speed > 0.6) { toast('Bring the ship to a stop to patch the sail (S, and wait).', false, 3000); return; }
-    if (!dig) dig = { key: 'patch', t: 0, label: 'Patching the mainsail...', need: 4.5, done: () => { state.patchKits--; mendSails(`Patched. The sail holds again (${state.patchKits} ${state.patchKits === 1 ? 'kit' : 'kits'} left).`); } };
+    if (!rt.dig) rt.dig = { key: 'patch', t: 0, label: 'Patching the mainsail...', need: 4.5, done: () => { state.patchKits--; mendSails(`Patched. The sail holds again (${state.patchKits} ${state.patchKits === 1 ? 'kit' : 'kits'} left).`); } };
     return;
   }
   if (tg.kind === 'harbour') {
@@ -1589,9 +1590,9 @@ function tryInteract() {
     state.stats.harbours++;
     if (state.hp < ship.mods.maxHp) { state.hp = ship.mods.maxHp; toast('The harbour crew patches up your hull for free.', false, 3000); }
     if (state.sailsTorn) setTimeout(() => mendSails('The sailmaker stitches your mainsail whole again.'), 600);
-    const rng = mulberry32(hash2(d.seed, Math.floor(tNow / 8), 3));
-    const idx = Math.min(4, Math.floor(dread * 5)), lvl = friendLevel(rep);
-    hbShipLine = shipwrightLine(rng, idx);
+    const rng = mulberry32(hash2(d.seed, Math.floor(rt.tNow / 8), 3));
+    const idx = Math.min(4, Math.floor(rt.dread * 5)), lvl = friendLevel(rep);
+    rt.hbShipLine = shipwrightLine(rng, idx);
     threads.onDock(d);
     // someone on the pier may speak first: always on a first visit or a story beat, otherwise rarely
     let say = null;
@@ -1606,10 +1607,10 @@ function tryInteract() {
     }
     if (!say && ending && h && h.rolls.length) { say = rollGreeting(h.rolls[h.rolls.length - 1].n, state.time * 24, Math.random); say.endsDemo = true; state.story.rollSeen = h.rolls.length; }
     if (!say && free && laterOK() && isOpen(state, 'tab', 'tavern') && Math.random() < 0.6) say = life.gossipAt(state, d);
-    if (!say && free && laterOK() && dread < 0.6) say = taleAt(d);
-    if (!say && free && laterOK() && (g.day[d.id] == null || Math.random() < 0.3)) say = pickGreeting({ hour: state.time * 24, weather: weather.label, dread, rnd: Math.random, custom: d.custom, event: isFestival(d) ? 'festival' : isMarketDay() ? 'market' : isLanternNight() ? 'lantern' : null, boat: (() => { const b = boatStatus(d, state.dayN, dread, state.seed); return b.today === 'stayed' ? 'stayed' : b.yesterday === 'lost' ? 'lost' : null; })() });
+    if (!say && free && laterOK() && rt.dread < 0.6) say = taleAt(d);
+    if (!say && free && laterOK() && (g.day[d.id] == null || Math.random() < 0.3)) say = pickGreeting({ hour: state.time * 24, weather: weather.label, dread: rt.dread, rnd: Math.random, custom: d.custom, event: isFestival(d) ? 'festival' : isMarketDay() ? 'market' : isLanternNight() ? 'lantern' : null, boat: (() => { const b = boatStatus(d, state.dayN, rt.dread, state.seed); return b.today === 'stayed' ? 'stayed' : b.yesterday === 'lost' ? 'lost' : null; })() });
     if (!say && free && window.__BUILD !== 'demo') { const tl = threads.harbourLine(d); if (tl) say = { speaker: 'fisher', text: tl, dark: true, story: true }; }
-    harbourIsl = tg.isl; hbTab = 'board'; frameVillage(d); autosave();
+    rt.harbourIsl = tg.isl; rt.hbTab = 'board'; frameVillage(d); autosave();
     if (lettersAt(d).length) setTimeout(() => toast('A letter waits for you at the harbourmaster\'s board.', false, 6000), 900);
     else if (petOffer(d)) setTimeout(() => { const po = PETS[petOffer(d)]; toast(`${po.title}. ${po.sub[0].toUpperCase()}${po.sub.slice(1)}.`, false, 6000); }, 900);
     for (const c of state.crew) if (c.wish && !c.wish.done && c.wish.kind === 'harbour' && c.wish.id === tg.isl.desc.id) wishDone(c);
@@ -1618,17 +1619,17 @@ function tryInteract() {
     if (say && objectives.mate.busy && !say.endsDemo && !say.story) say = null;   // Mara is speaking about the quest: a passing greeting waits for another day
     if (say) { g.day[d.id] = state.dayN; g.lastDay = state.dayN; showGreeting(d, say); } else openModal('harbour');
     audio.play('harbour');
-  } else if (tg.kind === 'treasure' && !tg.isl.dug && !dig) {
+  } else if (tg.kind === 'treasure' && !tg.isl.dug && !rt.dig) {
     const d = tg.isl.desc;
     if (!state.riddles[d.id]) {
-      dig = { key: tg.key, t: 0, label: 'Reading the inscription...', need: 2.2, done: () => { readArch(d); objectives.remark('riddle'); } };
+      rt.dig = { key: tg.key, t: 0, label: 'Reading the inscription...', need: 2.2, done: () => { readArch(d); objectives.remark('riddle'); } };
       audio.play('dig');
     } else if (state.halves[d.id]) {
       toast('Half a riddle is not enough to dig by. The other half is written on another arch.', false, 5000);
-    } else if (digFix > tNow) {
+    } else if (rt.digFix > rt.tNow) {
       toast('The crew is still digging out the collapsed hole.', false, 2500);
     } else {
-      dig = { key: tg.key, t: 0, mini: true, label: 'Digging...', need: 1, done: () => {
+      rt.dig = { key: tg.key, t: 0, mini: true, label: 'Digging...', need: 1, done: () => {
         const ang = Math.atan2(ship.pos.z - d.z, ship.pos.x - d.x);
         if (Math.abs(angleDiff(ang, d.puzzle.angle)) > 0.85) {
           state.attempts[d.id] = (state.attempts[d.id] || 0) + 1;
@@ -1651,36 +1652,36 @@ function tryInteract() {
       } };
       { // probing the shore (digging.js), only on the right shore: a wrong shore is a short dig that finds sand, as before
         const right = Math.abs(angleDiff(Math.atan2(ship.pos.z - d.z, ship.pos.x - d.x), d.puzzle.angle)) <= 0.85;
-        if (!right) { dig.mini = false; dig.need = 2.2; }
+        if (!right) { rt.dig.mini = false; rt.dig.need = 2.2; }
         else {
           const first = d.id === '1,-1', tools = (1 - ship.mods.digTime) * 6 + (state.buffs.dig > 0 ? 2 : 0);   // the first treasure (tutorial) is kinder; better tools, more digs before the tide
           const beach = first ? 'sand' : ['sand', 'shingle', 'dune', 'mud'][Math.abs(hash2(d.seed, 41, 3)) % 4];   // every treasure isle has its own kind of beach (digging.js BEACHES)
           const pa = d.puzzle.angle, ox = Math.cos(pa), oz = Math.sin(pa), rx = Math.sin(pa), rz = -Math.cos(pa);   // the beach: o out to sea, r along it
           const sun = () => { const sx = -Math.sin(tod.sunAz), sz = Math.cos(tod.sunAz); return { elev: tod.sunElev, gx: sx * rx + sz * rz, gy: sx * ox + sz * oz, dim: 1 - 0.75 * Math.max(weather.cloud || 0, weather.rain || 0) }; };   // the arch's shadow on the sand, from where the sun is now
-          const noon = d.puzzle.shadow ? { elev: Math.max(0.3, sunScale), gx: rz, gy: oz } : null;
+          const noon = d.puzzle.shadow ? { elev: Math.max(0.3, rt.sunScale), gx: rz, gy: oz } : null;
           const predug = !first && !state.story.predug && state.stats.treasures >= 1;   // the second chest: one hole is there already, over the chest (once)
           if (predug) state.story.predug = 1;
           digGame.start({ cols: 8, rows: 5, beach, sun, noon, predug, digs: Math.round((first ? 13 : 10) + tools - (d.dread > 0.5 ? 1 : 0)), stones: first ? 2 : 3 + (d.dread > 0.4 ? 1 : 0), lie: d.dread > 0.5 ? 0.3 : 0,
-            onDone: () => { const done = dig && dig.done; dig = null; if (done) done(); if (predug && digGame.preFound) setTimeout(() => objectives.say('Somebody dug here first, and stopped a spade short. Lucky us.'), 3000); },
-            onFail: (why) => { dig = null; digFix = tNow + 6; digFixWhy = why; state.attempts[d.id] = (state.attempts[d.id] || 0) + 1;
+            onDone: () => { const done = rt.dig && rt.dig.done; rt.dig = null; if (done) done(); if (predug && digGame.preFound) setTimeout(() => objectives.say('Somebody dug here first, and stopped a spade short. Lucky us.'), 3000); },
+            onFail: (why) => { rt.dig = null; rt.digFix = rt.tNow + 6; rt.digFixWhy = why; state.attempts[d.id] = (state.attempts[d.id] || 0) + 1;
               toast(why === 'tide' ? 'The tide comes in and fills every hole. The crew waits for it to go out again.' : why === 'mud' ? 'The light goes and the mud is everywhere. The crew scrapes the shovels clean and tries again.' : 'The shovel breaks on a second stone. The crew fetches the spare.', false, 5500); } });
         }
       }
       audio.play('dig');
     }
-  } else if (tg.kind === 'fruit' && !dig) {
+  } else if (tg.kind === 'fruit' && !rt.dig) {
     const d = tg.isl.desc, f = fruitOf(d);
     if (state.harvest[d.id] != null && state.harvest[d.id] >= state.dayN) { toast(`The ${plural(fruitName(f, d.dread), 2)} here are picked clean for today.`, false, 3500); return; }
-    dig = { key: tg.key, t: 0, label: 'Picking fruit...', need: 2.4, done: () => {
+    rt.dig = { key: tg.key, t: 0, label: 'Picking fruit...', need: 2.4, done: () => {
       const n = Math.max(1, Math.round((2 + Math.floor(Math.random() * 3)) * ship.mods.lootMul)) + (life.meal(state) === 'pepper' ? 2 : 0);
       state.fruit[f] = (state.fruit[f] || 0) + n; state.harvest[d.id] = state.dayN; state.stats.fruitPicked += n;
       toast(`The crew picked ${n} ${plural(fruitName(f, d.dread), n)}.`, d.dread > 0.5, 4500);
     } };
   } else if (tg.kind === 'ship') {
     hailShip(tg.s);
-  } else if (tg.kind === 'wreck' && !dig) {
+  } else if (tg.kind === 'wreck' && !rt.dig) {
     const o = tg.o;
-    dig = { key: tg.key, t: 0, label: 'Salvaging the wreck...', need: 3.4 * ship.mods.digTime * (state.buffs.dig > 0 ? 0.7 : 1), done: () => {
+    rt.dig = { key: tg.key, t: 0, label: 'Salvaging the wreck...', need: 3.4 * ship.mods.digTime * (state.buffs.dig > 0 ? 0.7 : 1), done: () => {
       const loot = abyss.wrongLoot(lootFor(mulberry32(o.rngSeed), o.dread), state);
       loot.value = Math.round(loot.value * 1.3 * ship.mods.lootMul * (tideAt() < -0.45 ? 1.3 : 1));   // the tide has uncovered more
       loot.name = `From the wreck: ${loot.name}`;
@@ -1711,7 +1712,7 @@ function secretFound(sc) {
     state.notes.push({ text: 'Where the two white posts sat on the Tooth and the Bell: the Kestrel, on the bottom. Her bell still rings.', dark: false });
   } else if (sc.kind === 'tidewreck') {
     state.collected.add(sc.key);
-    const loot = abyss.wrongLoot(lootFor(mulberry32(hash2(Math.round(sc.m.x), Math.round(sc.m.z), 41)), dread), state); loot.value = Math.round(loot.value * 1.4 * ship.mods.lootMul * threads.salvageMul()); loot.name = `From the low water: ${loot.name}`;
+    const loot = abyss.wrongLoot(lootFor(mulberry32(hash2(Math.round(sc.m.x), Math.round(sc.m.z), 41)), rt.dread), state); loot.value = Math.round(loot.value * 1.4 * ship.mods.lootMul * threads.salvageMul()); loot.name = `From the low water: ${loot.name}`;
     state.gold += loot.value; state.loot.push(loot); state.stats.wrecks++; audio.play('treasure');
     { const x = threads.onSalvage(); if (x) setTimeout(() => toast(x, true, 6000), 1500); }
     toast(`The tide is out and the wreck is bare. ${loot.name} (+${loot.value} gold). The water is already coming back.`, loot.dark, 7000);
@@ -1742,7 +1743,7 @@ function taleAt(d) {
 // going ashore on a hand-made place (places.js says what you find)
 function goAshore(tg) {
   const d = tg.isl.desc;
-  dig = { key: tg.key, t: 0, label: 'Going ashore...', need: 2.6, done: () => {
+  rt.dig = { key: tg.key, t: 0, label: 'Going ashore...', need: 2.6, done: () => {
     if (d.lm === 'table' && d3Open(state) && !state.story.ending && window.__BUILD !== 'demo') { places.visit(d.lm, state, {}); openTable(); return; }
     const r = places.visit(d.lm, state, { night: tod.night > 0.45, calm: weather.calm > 0.5, tide: tideAt(), mara: true }); if (!r) return;
     if (r.clue) seeClue(r.clue);   // the ledger takes it; no popup (docs/WORLD_REDESIGN.md 6.7)
@@ -1766,11 +1767,11 @@ function goAshore(tg) {
 // ---------------------------------------------------------------- the Table by the Water: the end of a voyage (table.js)
 function openTable() {
   const opts = tableOptions(state), memory = (state.story.maraMem || 0) >= 4;
-  cardBusy = false; cardNext = null; openModal('card'); audio.play('card');
-  const done = $('cardDone'), out = (t, next) => { $('cardOut').textContent = t; done.style.display = ''; done.textContent = 'Go on [E]'; cardEl.querySelectorAll('#cardChoices button').forEach((b) => { b.disabled = true; }); cardBusy = 'done'; cardNext = next; };
+  rt.cardBusy = false; rt.cardNext = null; openModal('card'); audio.play('card');
+  const done = $('cardDone'), out = (t, next) => { $('cardOut').textContent = t; done.style.display = ''; done.textContent = 'Go on [E]'; cardEl.querySelectorAll('#cardChoices button').forEach((b) => { b.disabled = true; }); rt.cardBusy = 'done'; rt.cardNext = next; };
   renderCard({ icon: 'pip', title: 'THE TABLE BY THE WATER', dark: true, text: `A table at the water's edge. One chair on this side, one on the other. A die, waiting.${memory ? ' Mara, quietly: "I do not think we are here to throw."' : ''}`,
     choices: opts.map((o) => ({ label: o.label, id: o.id })) }, (ch) => {
-    if (cardBusy) return; cardBusy = true;
+    if (rt.cardBusy) return; rt.cardBusy = true;
     if (ch.id === 'throw') {
       const r = finalThrow(state, 1 + Math.floor(Math.random() * 20)); audio.play('roll_d20', { rate: 0.8 });
       state.hut = state.hut || { rolls: [], wins: 0, fails: 0, lastDay: -1, visits: 0 }; state.hut.rolls.push({ n: r.n, day: state.dayN, last: true });
@@ -1789,10 +1790,10 @@ function showEnding(id, roll = null) {
 }
 $('endGo').addEventListener('click', () => {
   const e = state.story.ending; $('ending').classList.remove('show'); if (!e) return;
-  if (e.id === 'rises') { abyss.solo = 'leviathan'; forced = 1; abyss.startEnding(); return; }   // the Eye opens; you wake off Tama
+  if (e.id === 'rises') { abyss.solo = 'leviathan'; rt.forced = 1; abyss.startEnding(); return; }   // the Eye opens; you wake off Tama
   if (e.id === 'sleep' || e.id === 'dreams' || e.id === 'tune') {   // the sea is quiet again: morning, off Tama, as if you had only been out for the night
-    state.story.peakDread = 0; forced = null; dread = 0.02; abyss.k = 0; state.time = 0.3;
-    ship.pos.set(0, 0, -25); ship.heading = 0; ship.speed = 0; ship.vel = null; camHeading = 0; yawT = 0; objectives.mate.queue.length = 0;
+    state.story.peakDread = 0; rt.forced = null; rt.dread = 0.02; abyss.k = 0; state.time = 0.3;
+    ship.pos.set(0, 0, -25); ship.heading = 0; ship.speed = 0; ship.vel = null; rt.camHeading = 0; rt.yawT = 0; objectives.mate.queue.length = 0;
   }
   if (ENDINGS[e.id].mara) objectives.mate.say(ENDINGS[e.id].mara);
 });
@@ -1812,12 +1813,12 @@ const REFUSALS = ['The crew glances at you and looks away.', 'A sailor waves you
 function hailShip(sh) {
   const rng = mulberry32(sh.seed);
   state.stats.hails++;
-  if (sh.hostile && sh.hp > 0) { sh.state = 'open'; tradeShip = sh; openModal('ship'); return; }
+  if (sh.hostile && sh.hp > 0) { sh.state = 'open'; rt.tradeShip = sh; openModal('ship'); return; }
   if (sh.special === 'regatta') { sh.state = 'done'; toast('They wave without slowing down. It is a race, and they are winning.', false, 5000); return; }
-  if (sh.special === 'market') { sh.state = 'open'; tradeShip = sh; openModal('ship'); return; }
+  if (sh.special === 'market') { sh.state = 'open'; rt.tradeShip = sh; openModal('ship'); return; }
   if (sh.mode === 'derelict') {
     sh.state = 'done';
-    const loot = abyss.wrongLoot(lootFor(rng, dread), state); loot.value = Math.round(loot.value * 0.6);
+    const loot = abyss.wrongLoot(lootFor(rng, rt.dread), state); loot.value = Math.round(loot.value * 0.6);
     loot.name = `From the drifting ${KINDS[sh.kind].label}: ${loot.name}`;
     state.gold += loot.value; state.loot.push(loot);
     toast(`You board the empty ship and find: ${loot.name} (+${loot.value}g)`, true, 7000);
@@ -1825,7 +1826,7 @@ function hailShip(sh) {
     sh.state = 'done';
     toast('Your hail comes back as your own voice, from a very long way off.', true, 6000);
   } else if (sh.roll < hailChance(sh)) {
-    sh.state = 'open'; tradeShip = sh; openModal('ship');
+    sh.state = 'open'; rt.tradeShip = sh; openModal('ship');
   } else {
     sh.state = 'refused';
     const hint = localStanding(sh.x, sh.z).max < 1 ? ' (Perhaps they would listen if you were better known in these waters.)' : '';
@@ -1863,7 +1864,7 @@ function shipOffers(sh) {
   return sh.offers;
 }
 function renderShipTrade() {
-  const sh = tradeShip;
+  const sh = rt.tradeShip;
   $('shName').textContent = sh.name;
   $('shLine').textContent = sh.special === 'market' ? 'A trader leans on the rail among the lanterns: "Everything must go. Everything always goes. Come aboard, captain."' : sh.hostile ? 'The raider captain grins: "Nice ship. Shame if something happened to it. A little tribute, perhaps?"' : (FACTION_GREET[sh.faction.id] || 'Ahoy!');
   $('shGold').textContent = state.gold;
@@ -1872,10 +1873,10 @@ function renderShipTrade() {
   $('shList').querySelectorAll('button').forEach((b) => b.addEventListener('click', () => doOffer(parseInt(b.dataset.i, 10))));
 }
 function doOffer(i) {
-  const sh = tradeShip, o = shipOffers(sh)[i];
+  const sh = rt.tradeShip, o = shipOffers(sh)[i];
   if (!o || o.used || state.gold < o.cost) return;
   const rng = mulberry32(sh.seed + 77 + i);
-  const idx = Math.min(4, Math.floor(dread * 5));
+  const idx = Math.min(4, Math.floor(rt.dread * 5));
   if (o.id === 'sellall') {
     const fish = state.catch.reduce((a, f) => a + f.value, 0) * 0.7, fruit = Object.entries(state.fruit).reduce((a, [f, n]) => a + FRUITS[f].price * n, 0) * 0.7, v = Math.round((fish + fruit) * 1.33);
     if (!v) { toast('Nothing in the hold to sell. They are very polite about it.'); return; }
@@ -1953,7 +1954,7 @@ function falseRumour(from) {
 }
 function resolveFalseRumour(d, r) {
   const v = r.fake, n = (hash2(Math.round(d.x), Math.round(d.z), state.seed) >>> 0);
-  if (!v) { toast(FALSE_NOTHING[n % FALSE_NOTHING.length], dread > 0.4, 7000); return; }
+  if (!v) { toast(FALSE_NOTHING[n % FALSE_NOTHING.length], rt.dread > 0.4, 7000); return; }
   const st = FALSE_STRANGE[v - 1];
   toast(st.text, true, 9000); state.notes.push({ text: st.note, dark: true });
   if (st.loot) state.loot.push({ name: `From ${d.name}: ${st.loot}`, value: 0, dark: true });
@@ -1966,23 +1967,23 @@ function discover(isl) {
   state.discovered[d.id] = { name: d.name, type: d.type, x: Math.round(d.x), z: Math.round(d.z) };
   state.gold += 5;
   const rum = state.rumoured[d.id]; if (rum) rum.found = true;
-  if (!onbQuiet()) toast(`Charted: ${d.name} (+5 gold)`, dread > 0.5);
+  if (!onbQuiet()) toast(`Charted: ${d.name} (+5 gold)`, rt.dread > 0.5);
   if (rum && rum.fake !== undefined) setTimeout(() => resolveFalseRumour(d, rum), 1800);
   audio.play('discover');
 }
 
 // ---------------------------------------------------------------- shipyard (cosmetics)
 // ---- the shipyard: a turntable. Anything can be tried on first (owned or not); nothing is paid for until Buy.
-let yardTab = 'hull', yardTry = null, yardYaw = 0.9, yardZoom = 1, yardIdle = 0, yardDrag = null;
-const yardSel = () => { const [g, , list] = GROUPS.find((x) => x[0] === yardTab); return { g, list, o: byId(list, yardTry[g]) }; };
+rt.yardTab = 'hull', rt.yardTry = null, rt.yardYaw = 0.9, rt.yardZoom = 1, rt.yardIdle = 0, rt.yardDrag = null;
+const yardSel = () => { const [g, , list] = GROUPS.find((x) => x[0] === rt.yardTab); return { g, list, o: byId(list, rt.yardTry[g]) }; };
 function renderYard() {
-  if (!yardTry) yardTry = { ...state.custom };
-  ship.setCustom(yardTry);
+  if (!rt.yardTry) rt.yardTry = { ...state.custom };
+  ship.setCustom(rt.yardTry);
   $('yardGold').textContent = state.gold;
-  $('yardTabs').innerHTML = GROUPS.map(([g, label]) => `<button data-tab="${g}" class="${g === yardTab ? 'on' : ''}">${label.replace('Hull paint', 'Hull').replace('Pennant colour', 'Colour').replace('Pennant shape', 'Shape').replace('Figurehead', 'Figure')}</button>`).join('');
+  $('yardTabs').innerHTML = GROUPS.map(([g, label]) => `<button data-tab="${g}" class="${g === rt.yardTab ? 'on' : ''}">${label.replace('Hull paint', 'Hull').replace('Pennant colour', 'Colour').replace('Pennant shape', 'Shape').replace('Figurehead', 'Figure')}</button>`).join('');
   const { g, list, o } = yardSel();
   $('yardBody').innerHTML = `<div class="swatches">${list.map((x) => {
-    const key = `${g}:${x.id}`, owned = !x.cost || state.owned.has(key), locked = x.ok && !x.ok(state), on = yardTry[g] === x.id;
+    const key = `${g}:${x.id}`, owned = !x.cost || state.owned.has(key), locked = x.ok && !x.ok(state), on = rt.yardTry[g] === x.id;
     const col = g === 'hull' ? x.upper : g === 'flag' ? x.color : g === 'sail' ? `rgb(${x.tint.map((v) => Math.min(255, v * 235) | 0)})` : '';
     return `<button data-id="${x.id}" class="${on ? 'on' : ''}${locked ? ' lock' : ''}" title="${locked ? x.req : ''}">${col ? `<span class="dot" style="background:${col}"></span>` : ''}${x.name}${owned || locked ? '' : ` ${x.cost}g`}</button>`;
   }).join('')}</div>`;
@@ -1991,74 +1992,74 @@ function renderYard() {
   const buy = $('yardBuy');
   buy.textContent = owned ? 'Wear it' : `Buy ${o.cost}g`;
   buy.disabled = locked || worn || (!owned && state.gold < o.cost);
-  $('yardBack').disabled = yardTry[g] === state.custom[g];
+  $('yardBack').disabled = rt.yardTry[g] === state.custom[g];
 }
-$('yardTabs').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) { yardTab = b.dataset.tab; audio.play('ui', { vol: 0.4 }); renderYard(); } });
-$('yardBody').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; yardTry[yardTab] = b.dataset.id; audio.play('ui', { vol: 0.3 }); renderYard(); });
+$('yardTabs').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) { rt.yardTab = b.dataset.tab; audio.play('ui', { vol: 0.4 }); renderYard(); } });
+$('yardBody').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; rt.yardTry[rt.yardTab] = b.dataset.id; audio.play('ui', { vol: 0.3 }); renderYard(); });
 $('yardBuy').addEventListener('click', () => {
   const { g, o } = yardSel(), key = `${g}:${o.id}`;
   if (o.cost && !state.owned.has(key)) { if (state.gold < o.cost) return; state.gold -= o.cost; state.owned.add(key); state.stats.cosmetics++; audio.play('buy'); }
   state.custom[g] = o.id; renderYard();
 });
-$('yardBack').addEventListener('click', () => { const { g } = yardSel(); yardTry[g] = state.custom[g]; renderYard(); });
-const yardTurn = (d) => { yardYaw += d; yardIdle = 0; };
+$('yardBack').addEventListener('click', () => { const { g } = yardSel(); rt.yardTry[g] = state.custom[g]; renderYard(); });
+const yardTurn = (d) => { rt.yardYaw += d; rt.yardIdle = 0; };
 $('yTurnL').addEventListener('click', () => yardTurn(-Math.PI / 2)); $('yTurnR').addEventListener('click', () => yardTurn(Math.PI / 2));
 $('yardClose').addEventListener('click', () => closeModal());
-yardEl.addEventListener('pointerdown', (e) => { if (e.target === yardEl) { yardDrag = { x: e.clientX, yaw: yardYaw }; yardEl.setPointerCapture(e.pointerId); } });
-yardEl.addEventListener('pointermove', (e) => { if (yardDrag) { yardYaw = yardDrag.yaw - (e.clientX - yardDrag.x) * 0.01; yardIdle = 0; } });
-yardEl.addEventListener('pointerup', () => { yardDrag = null; });
-yardEl.addEventListener('wheel', (e) => { yardZoom = clamp(yardZoom * (e.deltaY < 0 ? 0.92 : 1.08), 0.45, 1.8); e.preventDefault(); }, { passive: false });
+yardEl.addEventListener('pointerdown', (e) => { if (e.target === yardEl) { rt.yardDrag = { x: e.clientX, yaw: rt.yardYaw }; yardEl.setPointerCapture(e.pointerId); } });
+yardEl.addEventListener('pointermove', (e) => { if (rt.yardDrag) { rt.yardYaw = rt.yardDrag.yaw - (e.clientX - rt.yardDrag.x) * 0.01; rt.yardIdle = 0; } });
+yardEl.addEventListener('pointerup', () => { rt.yardDrag = null; });
+yardEl.addEventListener('wheel', (e) => { rt.yardZoom = clamp(rt.yardZoom * (e.deltaY < 0 ? 0.92 : 1.08), 0.45, 1.8); e.preventDefault(); }, { passive: false });
 
 // ---------------------------------------------------------------- combat helpers
-let lastHit = -99, shake = 0;
+rt.lastHit = -99, rt.shake = 0;
 // Weather that pushes back: storms shove the ship sideways and waves hitting the side wear the hull;
 // a dead calm leaves only the oars. Thick fog (later in the voyage) fogs the instruments too.
-let stormWear = 0, galeWear = 0, bellT = 0;
+rt.stormWear = 0, rt.galeWear = 0, rt.bellT = 0;
 function stormAndCalm(dt) {
   const st = weather.storm, sail = ship.trim;
   if (st > 0.15) {
-    const gust = 0.6 + 0.4 * Math.sin(tNow * 0.9) * Math.sin(tNow * 2.3);
+    const gust = 0.6 + 0.4 * Math.sin(rt.tNow * 0.9) * Math.sin(rt.tNow * 2.3);
     const push = st * gust * (2.4 + 3.2 * sail) * (ship.rowing ? 0.6 : 1) * dt;                  // shoved downwind, more with the sail up
     ship.pos.x += Math.sin(wind.dir) * push; ship.pos.z -= Math.cos(wind.dir) * push;
     const side = Math.abs(Math.sin(angleDiff(ship.heading, wind.dir)));   // waves run with the wind
     const salt = (hasTrait(state, 'salt') ? 0.5 : 1) * ((state.upgrades.hull || 0) >= 2 ? 0.5 : 1);   // an iron-banded hull rides storms better
     if (st > 0.4 && side > 0.6) {   // waves hitting the side
-      stormWear += dt * st * (side - 0.5) * (0.6 + 1.6 * sail) * 1.4 * salt;
-      if (stormWear >= 4) { stormWear = 0; hurtPlayer(7); objectives.remark('broadside', dread); }
+      rt.stormWear += dt * st * (side - 0.5) * (0.6 + 1.6 * sail) * 1.4 * salt;
+      if (rt.stormWear >= 4) { rt.stormWear = 0; hurtPlayer(7); objectives.remark('broadside', rt.dread); }
     }
     // a gale with the sails out tears at the rigging, whatever the heading: reef them (S) or take the oars
     if (st > 0.45 && sail > 0.35 && !ship.rowing) {
-      galeWear += dt * (st - 0.4) * (sail - 0.25) * 0.6 * salt;   // full storm, full sail: a hit every 4-5 s
-      if (galeWear >= 1) { galeWear = 0; hurtPlayer(6); if (!state.hints.gale) { state.hints.gale = true; toast('The gale tears at the sails! Reef them (S) or put the oars out (G).', true, 6000); } }
-    } else galeWear = Math.max(0, galeWear - dt * 0.2);
+      rt.galeWear += dt * (st - 0.4) * (sail - 0.25) * 0.6 * salt;   // full storm, full sail: a hit every 4-5 s
+      if (rt.galeWear >= 1) { rt.galeWear = 0; hurtPlayer(6); if (!state.hints.gale) { state.hints.gale = true; toast('The gale tears at the sails! Reef them (S) or put the oars out (G).', true, 6000); } }
+    } else rt.galeWear = Math.max(0, rt.galeWear - dt * 0.2);
   }
   if (weather.calm > 0.5) {
-    objectives.remark('calm', dread);
+    objectives.remark('calm', rt.dread);
   }
-  if (weather.redSky > 0.4) objectives.remark('redsky', dread);
-  const thick = weather.fog > 0.5 && (state.dayN >= 3 || dread > 0.3);
+  if (weather.redSky > 0.4) objectives.remark('redsky', rt.dread);
+  const thick = weather.fog > 0.5 && (state.dayN >= 3 || rt.dread > 0.3);
   document.body.classList.toggle('fogged', thick);
   if (thick) {
-    objectives.remark('thickfog', dread);
-    if ((bellT -= dt) <= 0) { bellT = 14 + Math.random() * 8; audio.play('bell', { vol: 0.5 }); }
+    objectives.remark('thickfog', rt.dread);
+    if ((rt.bellT -= dt) <= 0) { rt.bellT = 14 + Math.random() * 8; audio.play('bell', { vol: 0.5 }); }
   }
 }
 
 // ---------------------------------------------------------------- tabletop: encounter cards, crew wishes, dice
 const LOCALS = ['a one-eyed net-mender', 'the harbourmaster\'s aunt', 'a sunburnt docker', 'a very calm child', 'a fisherman who smells of tar'];
-let pendingHand = null, pigHome = null, cardT = 900 + Math.random() * 600, cardBusy = false, wishT = 0;
+rt.pendingHand = null, rt.pigHome = null, rt.cardT = 900 + Math.random() * 600, rt.cardBusy = false, rt.wishT = 0;
 const localGames = new LocalGames(audio);
 const pig = new Pig(pigEl, { onEnd: (won) => { if (won) { state.gold += 20; audio.play('treasure'); if (Math.random() < 0.5) { const r = cardCtx().rumour('a sore loser at the tavern'); if (r) toast(r, false, 7000); } } } });
 $('pigRoll').addEventListener('click', () => pig.roll());
 $('pigHold').addEventListener('click', () => pig.hold());
-$('pigLeave').addEventListener('click', () => { if (pig.busy) return; closeModal(); if (pigHome) { harbourIsl = pigHome; hbTab = 'tavern'; openModal('harbour'); } });
-let cardNext = null;
-$('cardDone').addEventListener('click', () => { if (cardNext) { const f = cardNext; cardNext = null; f(); return; } closeModal(); });
+$('pigLeave').addEventListener('click', () => { if (pig.busy) return; closeModal(); if (rt.pigHome) { rt.harbourIsl = rt.pigHome; rt.hbTab = 'tavern'; openModal('harbour'); } });
+rt.cardNext = null;
+$('cardDone').addEventListener('click', () => { if (rt.cardNext) { const f = rt.cardNext; rt.cardNext = null; f(); return; } closeModal(); });
 function cardCtx() {
   return {
     state, FISH,
     hurt: (n) => hurtPlayer(n),
-    glitch: () => { preGlitch = dread; glitchT = 0.75; shake = 0.4; },
+    glitch: () => { rt.preGlitch = rt.dread; rt.glitchT = 0.75; rt.shake = 0.4; },
     repNear: () => { const h = world.nearest(ship.pos.x, ship.pos.z, 900, ['harbour']); if (h) repOf(state, h.desc.id).deliveries++; },
     rumour: (src) => { const r = findRumour(world, { x: ship.pos.x, z: ship.pos.z }, state); if (!r) return null;
       state.rumoured[r.d.id] = { name: r.d.name, x: Math.round(r.d.x), z: Math.round(r.d.z), source: src, found: false };
@@ -2075,8 +2076,8 @@ function cardCtx() {
 // rattled (a battered hull or the water gone wrong), steady otherwise. Cheerful and rattled tip sea and luck rolls.
 function maraMood() {
   const hull = state.hp / Math.max(1, ship.mods.maxHp), rested = state.story.restDay != null && state.dayN - state.story.restDay <= 2;
-  if (hull < 0.3 || dread >= 0.6) return 'rattled';
-  if (rested && hull >= 0.6 && dread < 0.5) return 'cheerful';
+  if (hull < 0.3 || rt.dread >= 0.6) return 'rattled';
+  if (rested && hull >= 0.6 && rt.dread < 0.5) return 'cheerful';
   return 'steady';
 }
 // advantage and disadvantage on the d20: the die is thrown twice and the better (or worse) one stands
@@ -2097,30 +2098,30 @@ setAdvProvider((check) => {
 });
 function openCard(card) {
   if (!card) return;
-  cardBusy = false; cardNext = null; $('cardDone').textContent = 'Sail on [E]'; openModal('card'); audio.play('card');
-  const out = (t) => { $('cardOut').textContent = t; $('cardDone').style.display = ''; cardEl.querySelectorAll('#cardChoices button').forEach((b) => { b.disabled = true; }); cardBusy = 'done'; };
+  rt.cardBusy = false; rt.cardNext = null; $('cardDone').textContent = 'Sail on [E]'; openModal('card'); audio.play('card');
+  const out = (t) => { $('cardOut').textContent = t; $('cardDone').style.display = ''; cardEl.querySelectorAll('#cardChoices button').forEach((b) => { b.disabled = true; }); rt.cardBusy = 'done'; };
   renderCard(card, (ch) => {
-    if (cardBusy) return; cardBusy = true;
+    if (rt.cardBusy) return; rt.cardBusy = true;
     if (!ch.check) { out(ch.go(cardCtx())); return; }
     rollCheck(state, ch.check, (ok, n) => { markFromRoll(n); out((ok ? ch.ok : ch.fail)(cardCtx())); });
   });
 }
 // ---- one-time caves: a few rooms of choices and d20 checks on their own full screen; when it is over, won or lost, the sea closes over the mouth
-let caveRun = null;
+rt.caveRun = null;
 const caveScene = new CaveScene($('caveCv'));
 const COLOUR_DEEP = new THREE.Color('#5a2a8a'), COLOUR_SHALLOW = new THREE.Color('#b068e8');
 const CAVE_TIDE = { door: 0.2, ledge: 0.34, chest: 0.5 };
 const hermitFace = () => '<i style="position:absolute;left:18px;top:14px;width:28px;height:14px;background:#e8e0d0"></i><i style="position:absolute;left:22px;top:28px;width:20px;height:24px;background:#e8e0d0"></i><i style="position:absolute;left:23px;top:20px;width:18px;height:11px;background:#e8b890"></i><i style="position:absolute;left:10px;top:12px;width:44px;height:7px;background:#7a3a2a"></i>';
 function openCave(site) {
   const cv = CAVES[site.kind]; if (!cv) return;
-  caveRun = site; cardNext = null; cardBusy = false; openModal('cave'); audio.play('card');
+  rt.caveRun = site; rt.cardNext = null; rt.cardBusy = false; openModal('cave'); audio.play('card');
   const look = caveLook(site.kind);
   caveEl.classList.toggle('passage', look === 'passage'); caveEl.classList.toggle('lantern', look === 'lantern');
   $('caveTitle').querySelector('b').textContent = cv.name;
   caveScene.start();
   const done = $('caveDone');
   const show = (id) => {
-    const node = cv.nodes[id]; cardBusy = false; cardNext = null;
+    const node = cv.nodes[id]; rt.cardBusy = false; rt.cardNext = null;
     const tide = CAVE_TIDE[id] != null ? CAVE_TIDE[id] : 0.2;
     caveScene.show(site.kind, id, tide);
     $('caveTitle').querySelector('small').textContent = cv.tag || (site.kind === 'grotto' ? 'THE TIDE IS COMING IN' : site.kind === 'colourspring' ? 'THE WATER HUMS' : id === 'door' ? 'THE MOUTH OF THE CAVE' : '');
@@ -2146,35 +2147,35 @@ function openCave(site) {
     if (fx.colour === 'seal') threads.seal();
     if (fx.event) { const extra = threads.event(fx.event, fx.arg, site); if (extra) text += ` ${extra}`; }
     if (fx.rumour) { const rm = ctx.rumour('a folded chart in a cave'); text += ` ${rm || 'You cannot read where it leads.'}`; }
-    $('caveOut').textContent = text; $('caveBox').classList.add('resolved'); cardBusy = 'done';
-    if (!r.next) { caves.finish(site, r.end || 'win'); done.textContent = 'Back to the ship [E]'; cardNext = null; }
-    else { done.textContent = 'Go deeper [E]'; cardNext = () => show(r.next); }
+    $('caveOut').textContent = text; $('caveBox').classList.add('resolved'); rt.cardBusy = 'done';
+    if (!r.next) { caves.finish(site, r.end || 'win'); done.textContent = 'Back to the ship [E]'; rt.cardNext = null; }
+    else { done.textContent = 'Go deeper [E]'; rt.cardNext = () => show(r.next); }
     done.style.display = 'inline-block';
   };
   const choose = (ch) => {
-    if (cardBusy) return; cardBusy = true;
+    if (rt.cardBusy) return; rt.cardBusy = true;
     if (!ch.check) { resolve(ch.go); return; }
     rollCheck(state, ch.check, (ok, n) => { markFromRoll(n); resolve(ok ? ch.ok : ch.fail); });
   };
-  done.onclick = () => { if (cardNext) { const f = cardNext; cardNext = null; f(); return; } closeModal(); };
+  done.onclick = () => { if (rt.cardNext) { const f = rt.cardNext; rt.cardNext = null; f(); return; } closeModal(); };
   show('door');
 }
 function tabletopTick(dt) {
   // encounter signs: rare, out on open water, never in weather, never part of any story
-  sighting.update(dt, tNow, ship);
-  caves.update(dt, ship, window.__BUILD !== 'demo' && laterOK() && dread < 0.5);   // caves are a full-game feature: not in the demo build
-  if (unlocked(state, 'cards') && !sighting.active && ship.speed > 2 && dread < 0.95 && weather.fog < 0.3 && weather.storm < 0.3 && !world.nearest(ship.pos.x, ship.pos.z, 90) && !fishing.active) {
-    cardT -= dt;
-    if (cardT <= 0) {
-      const card = drawCard(dread, state.cardsSeen, SIGHTS);
-      if (card && sighting.spawn(card, ship, world)) { state.cardsSeen.push(card.id); if (state.cardsSeen.length > 5) state.cardsSeen.shift(); cardT = 1500 + Math.random() * 1000; }
-      else cardT = 30;
+  sighting.update(dt, rt.tNow, ship);
+  caves.update(dt, ship, window.__BUILD !== 'demo' && laterOK() && rt.dread < 0.5);   // caves are a full-game feature: not in the demo build
+  if (unlocked(state, 'cards') && !sighting.active && ship.speed > 2 && rt.dread < 0.95 && weather.fog < 0.3 && weather.storm < 0.3 && !world.nearest(ship.pos.x, ship.pos.z, 90) && !fishing.active) {
+    rt.cardT -= dt;
+    if (rt.cardT <= 0) {
+      const card = drawCard(rt.dread, state.cardsSeen, SIGHTS);
+      if (card && sighting.spawn(card, ship, world)) { state.cardsSeen.push(card.id); if (state.cardsSeen.length > 5) state.cardsSeen.shift(); rt.cardT = 1500 + Math.random() * 1000; }
+      else rt.cardT = 30;
     }
   }
   ship.rowBoost = hasTrait(state, 'rower') ? 1.4 : 1;
   document.body.classList.toggle('eyes', hasTrait(state, 'eyes'));
   // crew wishes
-  if ((wishT -= dt) > 0) return; wishT = 2;
+  if ((rt.wishT -= dt) > 0) return; rt.wishT = 2;
   for (const c of state.crew) {
     const w = c.wish; if (!w || w.done || w.faded) continue;
     const hit = w.kind === 'harbour' ? false : world.nearest(ship.pos.x, ship.pos.z, 70, [w.kind]);
@@ -2241,7 +2242,7 @@ $('demoGo').addEventListener('click', () => {
   if (window.__BUILD === 'demo') toast('Keep sailing: everything inside the fog is still yours to do.', false, 5000);   // the demo opens nothing more
   else { state.story.free = true; toast('The fog thins. The sea is yours.', false, 5000); }
 });
-let gateFog = 0, gateToastT = 0, musingT = 120, gateLost = null, lostK = 0, lostWob = 0;
+rt.gateFog = 0, rt.gateToastT = 0, rt.musingT = 120, rt.gateLost = null, rt.lostK = 0, rt.lostWob = 0;
 /** where the fog leaves no current: 0 in or near any fog (the chapter wall, the fog bank), 1 in clear water */
 function fogEdge(x, z) {
   const R = gateRadius(state, tideFalls()), d = Math.hypot(x, z);
@@ -2251,12 +2252,12 @@ function fogEdge(x, z) {
 }
 /** lost in fog: you see nothing, the helm does not answer, and the ship wanders but is always drawn back out */
 function fogLost(dt) {
-  const out = gateLost || places.lost || (seamT > 0 ? { x: 0, z: 0 } : null);
-  lostK += ((out ? 1 : 0) - lostK) * Math.min(1, dt * (out ? 1.5 : 0.6));
+  const out = rt.gateLost || places.lost || (rt.seamT > 0 ? { x: 0, z: 0 } : null);
+  rt.lostK += ((out ? 1 : 0) - rt.lostK) * Math.min(1, dt * (out ? 1.5 : 0.6));
   if (!out) return;
-  lostWob += dt;
+  rt.lostWob += dt;
   const hum = isKnown(state, 'hum');   // the two players' tune carries through fog: the helm half answers, and the way home is plain
-  const want = Math.atan2(out.x, -out.z) + (Math.sin(lostWob * 0.7) * 0.6 + Math.sin(lostWob * 1.9) * 0.25) * (hum ? 0.25 : 1);   // aimless, but always bending outward
+  const want = Math.atan2(out.x, -out.z) + (Math.sin(rt.lostWob * 0.7) * 0.6 + Math.sin(rt.lostWob * 1.9) * 0.25) * (hum ? 0.25 : 1);   // aimless, but always bending outward
   ship.heading += angleDiff(ship.heading, want) * Math.min(1, dt * (hum ? 1.3 : 0.5));
   ship.trim += (0.45 - ship.trim) * Math.min(1, dt * 0.8);
   ship.speed += (3.2 - ship.speed) * Math.min(1, dt * 0.6);
@@ -2264,29 +2265,29 @@ function fogLost(dt) {
 }
 /** clues that are noticed by being somewhere, stopped, at the right time (docs/WORLD_REDESIGN.md 6.2): Tama's noon bells, the Two Players across the water */
 const WHITE_MIST = new THREE.Color('#ffffff');
-let clueDwell = {};
+rt.clueDwell = {};
 // the loop seam (docs/WORLD_REDESIGN.md 5.5): the far south-east edge of the Dim meets the far west of the Lid. Sail east far enough and you
 // arrive west, in fog, with the helm gone for a few seconds. And the deep sectors are named again each time you come home from them.
-let seamT = 0, seamDone = true, wasDeep = false;
+rt.seamT = 0, rt.seamDone = true, rt.wasDeep = false;
 function seamTick(dt) {
   if (window.__BUILD === 'demo') return;
   const d = Math.hypot(ship.pos.x, ship.pos.z), ang = Math.atan2(ship.pos.z, ship.pos.x) * 180 / Math.PI;
-  if (seamT <= 0 && d > 1925 && d < 2000 && ang > 28 && ang < 52 && (state.story.reach || 0) > 1500) { seamT = 4; seamDone = false; }
-  if (seamT > 0) {
-    seamT -= dt;
-    if (!seamDone && seamT < 2.6) { const a = 220 * Math.PI / 180; ship.pos.x = Math.cos(a) * 1930; ship.pos.z = Math.sin(a) * 1930; seamDone = true; }
+  if (rt.seamT <= 0 && d > 1925 && d < 2000 && ang > 28 && ang < 52 && (state.story.reach || 0) > 1500) { rt.seamT = 4; rt.seamDone = false; }
+  if (rt.seamT > 0) {
+    rt.seamT -= dt;
+    if (!rt.seamDone && rt.seamT < 2.6) { const a = 220 * Math.PI / 180; ship.pos.x = Math.cos(a) * 1930; ship.pos.z = Math.sin(a) * 1930; rt.seamDone = true; }
   }
-  if (d > 1250) wasDeep = true;
-  else if (d < 1000 && wasDeep) { wasDeep = false; state.story.epoch = (state.story.epoch || 0) + 1; bumpSectors(state.story.epoch); }
+  if (d > 1250) rt.wasDeep = true;
+  else if (d < 1000 && rt.wasDeep) { rt.wasDeep = false; state.story.epoch = (state.story.epoch || 0) + 1; bumpSectors(state.story.epoch); }
 }
 bumpSectors((state.story && state.story.epoch) || 0);
 function clueTick(dt) {
   if (!state.story || onbQuiet()) return;
   const slow = ship.speed < 1.2, hour = state.time * 24;
   const at = (lm, R) => Math.hypot(ship.pos.x - LM[lm].x, ship.pos.z - LM[lm].z) < R;
-  const dwell = (k, on, T) => { clueDwell[k] = on ? (clueDwell[k] || 0) + dt : 0; return clueDwell[k] >= T; };
+  const dwell = (k, on, T) => { rt.clueDwell[k] = on ? (rt.clueDwell[k] || 0) + dt : 0; return rt.clueDwell[k] >= T; };
   if (dwell('bells', slow && Math.hypot(ship.pos.x, ship.pos.z) < 150 && hour > 11.8 && hour < 12.4 && state.hut && state.hut.rolls.length > 0, 6)) seeClue('CL-C3-a');
-  if (window.__BUILD !== 'demo') { const l = maraRemembers(state, dt, laterOK() && !objectives.mate.busy && !objectives.pending && !modal && !eventQuiet() && !world.nearest(ship.pos.x, ship.pos.z, 60)); if (l) objectives.mate.say(l); }   // her village comes back to her a piece at a time (table.js); the third piece is the blue door, some time after the Sunken Street
+  if (window.__BUILD !== 'demo') { const l = maraRemembers(state, dt, laterOK() && !objectives.mate.busy && !objectives.pending && !rt.modal && !eventQuiet() && !world.nearest(ship.pos.x, ship.pos.z, 60)); if (l) objectives.mate.say(l); }   // her village comes back to her a piece at a time (table.js); the third piece is the blue door, some time after the Sunken Street
   if (isKnown(state, 'rest') && slow && tod.night > 0.4 && state.story.peakDread > 0) state.story.peakDread = Math.max(0, state.story.peakDread - 0.004 * dt);   // the crew rest on deck (CL-F2-a): the worst you have sailed into fades a little while you lie still at night
   if (dwell('players', slow && tod.night > 0.45 && weather.calm > 0.5 && (at('teo', 300) || at('ilse', 300)), 10)) seeClue('CL-F1-a');
 }
@@ -2299,22 +2300,22 @@ function seaGate(dt) {
     const o = state[key];
     if (o && Math.hypot(o.x, o.z) > R - 30) { state[key] = null; if (state.tracked === key) state.tracked = null; toast(`${label} was bound beyond the fog. It is let go, and nothing is lost.`, false, 6000); }
   }
-  gateFog = R === Infinity ? 0 : clamp((d - (R - 160)) / 160, 0, 1);
-  gateLost = null;
+  rt.gateFog = R === Infinity ? 0 : clamp((d - (R - 160)) / 160, 0, 1);
+  rt.gateLost = null;
   if (d > R) {   // past the fog wall: lost (fogLost takes the helm and the ship drifts back toward Tama)
-    gateLost = { x: -ship.pos.x / d, z: -ship.pos.z / d };
-    objectives.remark('gate', dread);
-    if ((gateToastT -= dt) <= 0) { gateToastT = 25; toast('The fog swallows everything. The helm will not answer; somehow the bow comes round toward home.', false, 5000); }
+    rt.gateLost = { x: -ship.pos.x / d, z: -ship.pos.z / d };
+    objectives.remark('gate', rt.dread);
+    if ((rt.gateToastT -= dt) <= 0) { rt.gateToastT = 25; toast('The fog swallows everything. The helm will not answer; somehow the bow comes round toward home.', false, 5000); }
   }
 }
 
 // gusts, currents and the barriers round the hand-made places (seaplay.js, places.js)
-let laneShown = null;
+rt.laneShown = null;
 function seaTick(dt, windNow) {
-  const ev = seaplay.update(dt, { ship, wind: windNow, t: abyss.waveTime(Math.floor(animT * 12) / 12), wave: seaWave, night: tod.night, calm: weather.calm > 0.5, on: !onbQuiet() && !ship.rowing && lostK < 0.1, slack: window.__BUILD !== 'demo', fogEdge, gustLong: life.meal(state) === 'curry' });
+  const ev = seaplay.update(dt, { ship, wind: windNow, t: abyss.waveTime(Math.floor(rt.animT * 12) / 12), wave: rt.seaWave, night: tod.night, calm: weather.calm > 0.5, on: !onbQuiet() && !ship.rowing && rt.lostK < 0.1, slack: window.__BUILD !== 'demo', fogEdge, gustLong: life.meal(state) === 'curry' });
   if (ev.gust && !state.hints.gust) { state.hints.gust = true; toast('Caught a gust! Steer into the dark patches on the water to fill the sails.', false, 5500); }
-  if (ev.lane !== laneShown) {
-    laneShown = ev.lane;
+  if (ev.lane !== rt.laneShown) {
+    rt.laneShown = ev.lane;
     if (ev.lane && !onbQuiet()) {
       const seen = state.story.lanes = state.story.lanes || {};
       if (!seen[ev.lane.name]) { seen[ev.lane.name] = 1; toast(`A current: ${ev.lane.name}. Ride it and it carries you; fight it and it holds you back.`, false, 6000); }
@@ -2326,39 +2327,39 @@ function seaTick(dt, windNow) {
 
 // lamp oil (oil.js): burns while the lantern is lit; empty at night = a dark lantern and a short view
 const oilOn = () => state.goals.i >= OIL_FROM || !!params.get('nomate');
-let lampOut = false, oilNight = -1;
+rt.lampOut = false, rt.oilNight = -1;
 /** 1 while the ship is in Free Cays waters (their sector), else 0: the night music there is a lone guitar with silences */
 function freeCaysNow() { return sectorAt(ship.pos.x, ship.pos.z, state.seed).faction.id === 'free' ? 1 : 0; }
-function oilCtx() { return { night: tod.night, fog: weather.fog, storm: weather.storm, dread, rowing: ship.rowing }; }
+function oilCtx() { return { night: tod.night, fog: weather.fog, storm: weather.storm, dread: rt.dread, rowing: ship.rowing }; }
 function oilTick(dt) {
   const cap = oilCap(state.upgrades);
   const off = !!state.story.lampOff, needed = lanternLit(oilCtx());   // L puts the lantern out by hand (saves oil, sail by moonlight)
-  if (!oilOn()) { state.oil = cap; lampOut = off && needed; return; }
+  if (!oilOn()) { state.oil = cap; rt.lampOut = off && needed; return; }
   const lit = needed && !off, before = state.oil;
   if (lit) state.oil = clamp(state.oil - oilRate(oilCtx()) * dt, 0, cap);
-  lampOut = needed && (off || state.oil <= 0);
+  rt.lampOut = needed && (off || state.oil <= 0);
   const night = state.dayN * 2 + (state.time > 0.5 ? 1 : 0);   // one warning of each kind per dark spell
-  if (lit && before > cap * 0.25 && state.oil <= cap * 0.25 && oilNight !== night && !eventQuiet()) { oilNight = night; if (!objectives.mate.busy) objectives.mate.say('The lamp is getting low, Captain. Oil at any market, or we turn for home.'); else toast('The lamp oil is running low.', false, 4000); }
-  if (before > 0 && state.oil <= 0 && lit) { toast('The lantern gutters out. The dark comes right up to the rail.', dread > 0.4, 6000); if (!state.hints.oilOut) { state.hints.oilOut = true; setTimeout(() => objectives.mate.say('No light, no line, and I can barely see the bow. Buy oil at a market next time, Captain.'), 3500); } }
+  if (lit && before > cap * 0.25 && state.oil <= cap * 0.25 && rt.oilNight !== night && !eventQuiet()) { rt.oilNight = night; if (!objectives.mate.busy) objectives.mate.say('The lamp is getting low, Captain. Oil at any market, or we turn for home.'); else toast('The lamp oil is running low.', false, 4000); }
+  if (before > 0 && state.oil <= 0 && lit) { toast('The lantern gutters out. The dark comes right up to the rail.', rt.dread > 0.4, 6000); if (!state.hints.oilOut) { state.hints.oilOut = true; setTimeout(() => objectives.mate.say('No light, no line, and I can barely see the bow. Buy oil at a market next time, Captain.'), 3500); } }
 }
 // torn sails: too much canvas in a strong wind for too long and the mainsail rips (two thirds speed, ship.torn) until a patch
 // kit is used at sea (stop, E) or a harbour's sailmaker mends it. Counts from the same chapter as the oil.
-let sailStrain = 0, strainWarned = false;
+rt.sailStrain = 0, rt.strainWarned = false;
 const SAIL_LIMIT = 20;   // seconds of full sail in a gale before it tears (longer with better sails, shorter in a storm)
 function sailTick(dt, windNow) {
-  if (!oilOn() || state.sailsTorn || ship.rowing) { sailStrain = 0; return; }
+  if (!oilOn() || state.sailsTorn || ship.rowing) { rt.sailStrain = 0; return; }
   const gale = weather.storm > 0.6 && windNow.strength > 1.0;   // only a real storm: everyday wind, even a fresh breeze, never tears the canvas
   if (gale && ship.trim > 0.55) {
-    sailStrain += dt * (ship.trim - 0.35) * 1.6 * (0.6 + (weather.storm - 0.6) * 2.5 + Math.max(0, windNow.strength - 1.1)) * (1 - 0.15 * (state.upgrades.sails || 0)) * (life.meal(state) === 'rum' ? 0.4 : 1);
-    if (!strainWarned && sailStrain > SAIL_LIMIT * 0.35) { strainWarned = true; toast('The canvas is straining in this wind! Reef the sails (S) before it tears.', false, 5000); audio.play('ui', { vol: 0.5 }); }
-    if (sailStrain >= SAIL_LIMIT) {
-      state.sailsTorn = true; ship.setTorn(true); sailStrain = 0; strainWarned = false; shake = Math.max(shake, 0.6);
+    rt.sailStrain += dt * (ship.trim - 0.35) * 1.6 * (0.6 + (weather.storm - 0.6) * 2.5 + Math.max(0, windNow.strength - 1.1)) * (1 - 0.15 * (state.upgrades.sails || 0)) * (life.meal(state) === 'rum' ? 0.4 : 1);
+    if (!rt.strainWarned && rt.sailStrain > SAIL_LIMIT * 0.35) { rt.strainWarned = true; toast('The canvas is straining in this wind! Reef the sails (S) before it tears.', false, 5000); audio.play('ui', { vol: 0.5 }); }
+    if (rt.sailStrain >= SAIL_LIMIT) {
+      state.sailsTorn = true; ship.setTorn(true); rt.sailStrain = 0; rt.strainWarned = false; rt.shake = Math.max(rt.shake, 0.6);
       toast('RRRIP! The mainsail tears. Two thirds speed until it is patched.', false, 6500);
       setTimeout(() => objectives.mate.say(state.patchKits > 0 ? 'We have a patch kit, Captain. Bring her to a stop and I will see to it (E).' : 'No patch kit aboard, Captain. We need a harbour and a sailmaker.'), 2500);
     }
-  } else { sailStrain = Math.max(0, sailStrain - dt * 0.8); if (sailStrain < 1) strainWarned = false; }
+  } else { rt.sailStrain = Math.max(0, rt.sailStrain - dt * 0.8); if (rt.sailStrain < 1) rt.strainWarned = false; }
 }
-function mendSails(how) { state.sailsTorn = false; ship.setTorn(false); sailStrain = 0; toast(how, false, 4000); }
+function mendSails(how) { state.sailsTorn = false; ship.setTorn(false); rt.sailStrain = 0; toast(how, false, 4000); }
 function toggleLamp() {
   const off = !state.story.lampOff;
   if (!off && oilOn() && state.oil <= 0) { toast('No oil to light it. Buy some at a market.', false, 3500); return; }
@@ -2370,19 +2371,19 @@ function toggleLamp() {
 function buyOil(costMulNow) { const cap = oilCap(state.upgrades), need = cap - state.oil, cost = Math.ceil(need * OIL_PRICE * costMulNow); return { need, cost }; }
 
 // tacking: Mara's one-time tip when you point straight into the wind, and progress made upwind for the side goal
-let intoWindT = 0;
+rt.intoWindT = 0;
 function tackTick(dt) {
   const rel = Math.abs(angleDiff(ship.heading, wind.dir));
-  if (rel > 0.8 * Math.PI && ship.trim > 0.4 && !ship.rowing) { intoWindT += dt; if (intoWindT > 4) objectives.remark('tack', dread); } else intoWindT = 0;
+  if (rel > 0.8 * Math.PI && ship.trim > 0.4 && !ship.rowing) { rt.intoWindT += dt; if (rt.intoWindT > 4) objectives.remark('tack', rt.dread); } else rt.intoWindT = 0;
   if (rel > 0.5 * Math.PI && rel < 0.8 * Math.PI && !ship.rowing) state.stats.upwind = (state.stats.upwind || 0) + ship.speed * dt * -Math.cos(rel);
 }
 
-let hullShown = -1;
+rt.hullShown = -1;
 function hurtPlayer(dmg) {
   const d = Math.max(1, Math.round(dmg));
-  state.hp -= d; lastHit = tNow; shake = 0.7; audio.play('hit');
+  state.hp -= d; rt.lastHit = rt.tNow; rt.shake = 0.7; audio.play('hit');
   $('hit').classList.add('on'); setTimeout(() => $('hit').classList.remove('on'), 140);
-  if (state.hp / ship.mods.maxHp < 0.35) objectives.remark('lowhp', dread);
+  if (state.hp / ship.mods.maxHp < 0.35) objectives.remark('lowhp', rt.dread);
   if (state.hp <= 0) sinkPlayer();
 }
 function onHitEnemy(s, dmg) {
@@ -2403,21 +2404,21 @@ function sinkPlayer() {
   const tgt = hs ? { x: hs.d.x, z: hs.d.z + hs.d.r * 1.7, name: hs.d.name } : { x: 0, z: 0, name: 'Tama' };
   $('fade').classList.add('on');
   setTimeout(() => {
-    ship.pos.set(tgt.x, 0, tgt.z); ship.heading = 0; ship.speed = 0; camHeading = 0;
+    ship.pos.set(tgt.x, 0, tgt.z); ship.heading = 0; ship.speed = 0; rt.camHeading = 0;
     $('fade').classList.remove('on');
     toast(`The Gull went under. A fisherman dragged you to ${tgt.name}. You lost ${lost} gold; the hull is repaired.`, false, 8000);
   }, 1100);
 }
-let newAsk = 0;
+rt.newAsk = 0;
 $('pbNew').addEventListener('click', () => {
-  if (performance.now() - newAsk > 4000) { newAsk = performance.now(); $('pbNew').textContent = 'Really? Click again to start over'; return; }
+  if (performance.now() - rt.newAsk > 4000) { rt.newAsk = performance.now(); $('pbNew').textContent = 'Really? Click again to start over'; return; }
   session.noSave = true; try { localStorage.removeItem(SAVE_KEY); sessionStorage.setItem('hoist-new', '1'); if (fsEl()) sessionStorage.setItem('hoist-fs', '1'); } catch (e) { /* storage blocked */ }
   location.href = location.pathname;
 });
-$('pbHint').addEventListener('click', () => { closeModal(); if (!abyss.maraHint()) objectives.askHint(dread); });
+$('pbHint').addEventListener('click', () => { closeModal(); if (!abyss.maraHint()) objectives.askHint(rt.dread); });
 
 // ---------------------------------------------------------------- captain's log
-const logbook = new Logbook({ slip: () => slipInfo(), eta: (d) => etaText(d), abyss, state, world, ship, seed: state.seed, locked: (tab) => !isOpen(state, 'log', tab), toast: (t) => toast(t), close: () => closeModal(), mate: objectives.mate, dread: () => dread, mood: () => maraMood(), tabOpened: (t) => tabOpened(t),
+const logbook = new Logbook({ slip: () => slipInfo(), eta: (d) => etaText(d), abyss, state, world, ship, seed: state.seed, locked: (tab) => !isOpen(state, 'log', tab), toast: (t) => toast(t), close: () => closeModal(), mate: objectives.mate, dread: () => rt.dread, mood: () => maraMood(), tabOpened: (t) => tabOpened(t),
   retrack: () => sea.syncQuests(state.quests.filter((q) => q.id === state.tracked)),
   gate: () => gateRadius(state, tideFalls()), track: () => trackTarget(),
   skipGoal: () => { const g = objectives.current; if (!g) return; if (g.onDone) g.onDone({ state, world, ship, giveMap, forceCalm: setCalm });
@@ -2427,23 +2428,23 @@ const logbook = new Logbook({ slip: () => slipInfo(), eta: (d) => etaText(d), ab
 // ---------------------------------------------------------------- main loop
 const GLASS = new THREE.Color('#07030d');
 const camPos = new THREE.Vector3(), camLook = new THREE.Vector3(), _v = new THREE.Vector3();
-let camHeading = ship.heading;
-let lookUpK = 0;
-let camSwell = 0;   // how far the camera has risen with the swell
-let camOverride = null; // { pos:[x,y,z], look:[x,y,z] } for concept shots
-let lastTs = performance.now();
+rt.camHeading = ship.heading;
+rt.lookUpK = 0;
+rt.camSwell = 0;   // how far the camera has risen with the swell
+rt.camOverride = null; // { pos:[x,y,z], look:[x,y,z] } for concept shots
+rt.lastTs = performance.now();
 
 function frame() {
   const nowTs = performance.now();
-  const rawDt = Math.min(0.05, (nowTs - lastTs) / 1000);
-  lastTs = nowTs;
-  if (introT >= 0) { introT += rawDt; if (introT >= INTRO_DUR) endIntro(); }
-  const live = started && !modal && introT < 0;
+  const rawDt = Math.min(0.05, (nowTs - rt.lastTs) / 1000);
+  rt.lastTs = nowTs;
+  if (rt.introT >= 0) { rt.introT += rawDt; if (rt.introT >= INTRO_DUR) endIntro(); }
+  const live = rt.started && !rt.modal && rt.introT < 0;
   const dt = live ? rawDt : 0;           // simulation time: frozen while a menu is open
-  const ashore = modal === 'harbour' || modal === 'greet' || modal === 'yard';
-  const vdt = live || ashore || titleScene ? rawDt : 0;  // ashore the world keeps moving (people, gulls, waves) while the clock stands still
-  tNow += dt; animT += vdt;
-  const stepT = Math.floor(animT * 12) / 12;
+  const ashore = rt.modal === 'harbour' || rt.modal === 'greet' || rt.modal === 'yard';
+  const vdt = live || ashore || rt.titleScene ? rawDt : 0;  // ashore the world keeps moving (people, gulls, waves) while the clock stands still
+  rt.tNow += dt; rt.animT += vdt;
+  const stepT = Math.floor(rt.animT * 12) / 12;
 
   // ---- time of day & wind
   if (live) { const pt = state.time; state.time = advanceTime(state.time, dt); if (state.time < pt) { noteSkip(); state.dayN++; crewLeave(); }
@@ -2454,10 +2455,10 @@ function frame() {
   if (dt > 0) { state.buffs.speed = Math.max(0, state.buffs.speed - dt); state.buffs.dig = Math.max(0, state.buffs.dig - dt); }
   ship.buff = (state.buffs.speed > 0 ? 1.15 : 1) * (life.meal(state) === 'pie' ? 1.06 : 1);
   { const m = life.meal(state); ship.trimMul = m === 'bread' ? 1.7 : 1; ship.lampBoost = m === 'tea' ? 1.6 : 1; }   // the house dish you ate (harbourlife.js)
-  ship.lampOut = lampOut; ship.stormLight = weather.heavy || 0;   // the lantern also shows in a storm
+  ship.lampOut = rt.lampOut; ship.stormLight = weather.heavy || 0;   // the lantern also shows in a storm
   const sec = sectorAt(ship.pos.x, ship.pos.z, state.seed);
-  if (sec.id !== curSector) {
-    curSector = sec.id;
+  if (sec.id !== rt.curSector) {
+    rt.curSector = sec.id;
     if (!state.sectorsSeen.includes(sec.id)) state.sectorsSeen.push(sec.id);
     if (live && !onbQuiet()) toast(`Entering ${sec.name}: ${sec.faction.name} waters`, sec.dread > 0.5, 5000);
   }
@@ -2465,7 +2466,7 @@ function frame() {
     const early = chapterOf(state) < 2;
     let want = wind.raw;
     ship.floorMin = early ? 0.45 : 0; ship.wedge = (early ? 0.68 : 0.6) * Math.PI; ship.wedgeEnd = (early ? 0.97 : 0.95) * Math.PI;
-    if (early && !titleScene) {
+    if (early && !rt.titleScene) {
       const t = world.desc(0, -1), g = world.desc(1, -1), dTama = Math.hypot(ship.pos.x - t.x, ship.pos.z - t.z);
       const k = clamp(1 - (dTama - 450) / 150, 0, 1);
       if (g && k > 0) { const target = Math.atan2(g.x - t.x, -(g.z - t.z)) + Math.PI / 2; want = target + angleDiff(target, want) * (1 - 0.75 * k); }
@@ -2474,12 +2475,12 @@ function frame() {
   }
   { // the glimpse: once, a little while after you sail away from your first throw at the hut
     const hd = world.hutDesc;
-    if (hd && Math.hypot(ship.pos.x - hd.x, ship.pos.z - hd.z) < 400) quietUntil = Math.max(quietUntil, tNow + 30);   // the hut is within about 30 s of sailing
+    if (hd && Math.hypot(ship.pos.x - hd.x, ship.pos.z - hd.z) < 400) rt.quietUntil = Math.max(rt.quietUntil, rt.tNow + 30);   // the hut is within about 30 s of sailing
     if (live && state.story.demoEnd === 'pending' && !state.story.glimpse && hd && Math.hypot(ship.pos.x - hd.x, ship.pos.z - hd.z) > 150) {
-      glimpseWait += dt;
-      if (glimpseWait > 45 && !objectives.mate.busy) { state.story.glimpse = 1; glimpse.start(ship); }
+      rt.glimpseWait += dt;
+      if (rt.glimpseWait > 45 && !objectives.mate.busy) { state.story.glimpse = 1; glimpse.start(ship); }
     }
-    if (live && glimpse.update(dt)) { quietUntil = tNow + 30; setTimeout(() => objectives.mate.say('Captain? You went quiet.'), 2500); }
+    if (live && glimpse.update(dt)) { rt.quietUntil = rt.tNow + 30; setTimeout(() => objectives.mate.say('Captain? You went quiet.'), 2500); }
     audio.hush(glimpse.k * 0.97);
   }
   const windNow = { dir: wind.dir, strength: Math.min(1.4, wind.strength * (1 + 0.25 * weather.storm)) * (1 - 0.92 * weather.calm) * (1 - glimpse.k) };
@@ -2488,13 +2489,13 @@ function frame() {
   // ---- ship
   shipInput.steer = (keys.has('KeyD') || keys.has('ArrowRight') || touch.R ? 1 : 0) - (keys.has('KeyA') || keys.has('ArrowLeft') || touch.L ? 1 : 0);
   shipInput.sail = (keys.has('KeyW') || keys.has('ArrowUp') || touch.U ? 1 : 0) - (keys.has('KeyS') || keys.has('ArrowDown') || touch.D ? 1 : 0);
-  if (!live || digGame.active || lostK > 0.3) { shipInput.steer = 0; shipInput.sail = 0; }   // (lost in fog: the helm does not answer)   // (probing the shore: the keys move over the beach)
-  if (live && (keys.has('KeyZ') || keys.has('KeyX'))) { yawT += ((keys.has('KeyX') ? 1 : 0) - (keys.has('KeyZ') ? 1 : 0)) * dt * 1.8; lastCamInput = tNow; }
-  if (keys.has('KeyV')) { yawT = 0; lastCamInput = tNow; }
-  if (!drag && tNow - lastCamInput > 6) yawT += (0 - yawT) * Math.min(1, rawDt * 0.7);   // drifts back behind the boat after a while
-  if (live && keys.has('KeyR')) pitchT = clamp(pitchT - dt * 0.8, PITCH_MIN, 1.35);
-  if (live && keys.has('KeyF')) pitchT = clamp(pitchT + dt * 0.8, 0.3, 1.35);
-  if (live || params.get('autostart')) ship.update(dt, shipInput, windNow, tNow);
+  if (!live || digGame.active || rt.lostK > 0.3) { shipInput.steer = 0; shipInput.sail = 0; }   // (lost in fog: the helm does not answer)   // (probing the shore: the keys move over the beach)
+  if (live && (keys.has('KeyZ') || keys.has('KeyX'))) { rt.yawT += ((keys.has('KeyX') ? 1 : 0) - (keys.has('KeyZ') ? 1 : 0)) * dt * 1.8; rt.lastCamInput = rt.tNow; }
+  if (keys.has('KeyV')) { rt.yawT = 0; rt.lastCamInput = rt.tNow; }
+  if (!rt.drag && rt.tNow - rt.lastCamInput > 6) rt.yawT += (0 - rt.yawT) * Math.min(1, rawDt * 0.7);   // drifts back behind the boat after a while
+  if (live && keys.has('KeyR')) rt.pitchT = clamp(rt.pitchT - dt * 0.8, PITCH_MIN, 1.35);
+  if (live && keys.has('KeyF')) rt.pitchT = clamp(rt.pitchT + dt * 0.8, 0.3, 1.35);
+  if (live || params.get('autostart')) ship.update(dt, shipInput, windNow, rt.tNow);
   if (live && dt > 0) { stormAndCalm(dt); tabletopTick(dt); seaGate(dt); clueTick(dt); seamTick(dt); tackTick(dt); seaTick(dt, windNow); oilTick(dt); sailTick(dt, windNow); fogLost(dt); }
   if (live) { anchorTick(); oarTick(dt); }
   const solid = [];
@@ -2505,44 +2506,44 @@ function frame() {
   }
 
   // ---- dread + stage palette + time of day
-  const target = forced !== null ? forced : clamp(felt() + (window.__BUILD === 'demo' ? 0 : dreamShift()), 0, 1);
-  dread += (target - dread) * Math.min(1, rawDt * (forced !== null ? 1.2 : 0.4));
-  if (params.get('shot')) dread = target;
-  if (glitchT > 0) { glitchT -= rawDt; dread = 1; if (glitchT <= 0) { dread = preGlitch; hutEl.classList.remove('glitching'); } } // the hut's bad throw
-  dark = dread > DARK_THRESHOLD;
-  const stage = sampleStage(dread);
+  const target = rt.forced !== null ? rt.forced : clamp(felt() + (window.__BUILD === 'demo' ? 0 : dreamShift()), 0, 1);
+  rt.dread += (target - rt.dread) * Math.min(1, rawDt * (rt.forced !== null ? 1.2 : 0.4));
+  if (params.get('shot')) rt.dread = target;
+  if (rt.glitchT > 0) { rt.glitchT -= rawDt; rt.dread = 1; if (rt.glitchT <= 0) { rt.dread = rt.preGlitch; hutEl.classList.remove('glitching'); } } // the hut's bad throw
+  rt.dark = rt.dread > DARK_THRESHOLD;
+  const stage = sampleStage(rt.dread);
   nightViewNow();
-  applyTimeOfDay(stage, state.time, dread);
-  sunScale = stage.sunElev / 0.62;   // how high the sun climbs today (the dig's noon shadow uses it)
+  applyTimeOfDay(stage, state.time, rt.dread);
+  rt.sunScale = stage.sunElev / 0.62;   // how high the sun climbs today (the dig's noon shadow uses it)
   stage.wave *= 0.7 + 0.5 * wind.strength;
-  weather.update(dt, wind.t, dread, wind.dir, wind.strength, camera, tod);
+  weather.update(dt, wind.t, rt.dread, wind.dir, wind.strength, camera, tod);
   weather.apply(stage);
-  if (titleScene && titleScene.sc.tint) { const t = titleScene.sc.tint; stage.skyTop.lerp(new THREE.Color(t.top), t.k * 0.6); stage.skyHorizon.lerp(new THREE.Color(t.hor), t.k); stage.fog.lerp(new THREE.Color(t.fog), t.k); }
+  if (rt.titleScene && rt.titleScene.sc.tint) { const t = rt.titleScene.sc.tint; stage.skyTop.lerp(new THREE.Color(t.top), t.k * 0.6); stage.skyHorizon.lerp(new THREE.Color(t.hor), t.k); stage.fog.lerp(new THREE.Color(t.fog), t.k); }
   stage.fogFar += ship.mods.fogBonus; stage.fogNear += ship.mods.fogBonus * 0.5;
   stage.wave *= 1 - 0.85 * glimpse.k;   // the sea goes flat
-  seaWave = stage.wave;
-  const fogK = Math.max(gateFog, places.fog, lostK);   // the fog wall at the edge of the chapter, or the bank round the Halved Isle
+  rt.seaWave = stage.wave;
+  const fogK = Math.max(rt.gateFog, places.fog, rt.lostK);   // the fog wall at the edge of the chapter, or the bank round the Halved Isle
   { const L = state.upgrades.lantern || 0, dk = Math.max(tod.night, weather.fog || 0, (weather.heavy || 0) * 0.7);   // a lit lantern lets you see further in the dark and in fog: +15% a level
     const tea = life.meal(state) === 'tea' ? 0.25 : 0;
-    if ((L || tea) && !lampOut && dk > 0.05) { const k = 1 + (0.15 * L + tea) * dk; stage.fogFar *= k; stage.fogNear *= k; } }
-  if (lampOut) { stage.fogFar *= 0.32; stage.fogNear *= 0.25; stage.fog.multiplyScalar(1 - 0.6 * tod.night); stage.light *= 1 - 0.35 * tod.night; }   // no lamp: the dark comes in close
+    if ((L || tea) && !rt.lampOut && dk > 0.05) { const k = 1 + (0.15 * L + tea) * dk; stage.fogFar *= k; stage.fogNear *= k; } }
+  if (rt.lampOut) { stage.fogFar *= 0.32; stage.fogNear *= 0.25; stage.fog.multiplyScalar(1 - 0.6 * tod.night); stage.light *= 1 - 0.35 * tod.night; }   // no lamp: the dark comes in close
   if (fogK > 0) { stage.fogFar = Math.max(30, stage.fogFar * (1 - 0.85 * fogK)); stage.fogNear = Math.max(4, stage.fogNear * (1 - 0.9 * fogK)); stage.fog.lerp(new THREE.Color('#b8c0c4'), fogK * 0.7); }
-  if (lostK > 0) { stage.fogFar = Math.max(10, stage.fogFar * (1 - 0.7 * lostK)); stage.fogNear = Math.max(1, stage.fogNear * (1 - 0.9 * lostK)); stage.fog.lerp(new THREE.Color('#c8ced0'), lostK * 0.5); }   // lost: you can barely see the bow
-  abyss.update(dt, { dread, live, camera, camYaw, ch: camHeading + camYaw });
+  if (rt.lostK > 0) { stage.fogFar = Math.max(10, stage.fogFar * (1 - 0.7 * rt.lostK)); stage.fogNear = Math.max(1, stage.fogNear * (1 - 0.9 * rt.lostK)); stage.fog.lerp(new THREE.Color('#c8ced0'), rt.lostK * 0.5); }   // lost: you can barely see the bow
+  abyss.update(dt, { dread: rt.dread, live, camera, camYaw: rt.camYaw, ch: rt.camHeading + rt.camYaw });
   stage.wave *= abyss.waveMul;
   const waveT = abyss.waveTime(stepT);
-  if (glimpse.active) glimpse.fig.position.y = waveHeight(glimpse.fig.position.x, glimpse.fig.position.z, waveT, seaWave);   // the diver stands ON the swell
+  if (glimpse.active) glimpse.fig.position.y = waveHeight(glimpse.fig.position.x, glimpse.fig.position.z, waveT, rt.seaWave);   // the diver stands ON the swell
 
   // ---- world
   const first = world.islands.size === 0;
-  world.update(ship.pos.x, ship.pos.z, dark, first ? 200 : 2);
+  world.update(ship.pos.x, ship.pos.z, rt.dark, first ? 200 : 2);
   const lp = abyss.lightPhase;
   world.setLit(lp === 'stare' || glimpse.k > 0.5 ? true : lp === 'dead' ? false : tod.sunHeight < 0.12 || weather.darkness > 0.6);
   world.stare = lp === 'stare' || glimpse.k > 0.5 ? ship.pos : null;
   world.week = { wd: weekday(), market: isMarketDay(), lantern: isLanternNight() }; world.growthOf = growthOf; world.lifeDoneOf = (id) => life.arcDone(state, id); world.tide = tideAt();
   { // a storm front every sixth afternoon (after chapter III), warned by a red sky the evening before; and the sector's own weather
     const h = state.time * 24, fd = state.dayN % 6 === 5 && unlocked(state, 'passengers'), fa = state.dayN % 6 === 4 && unlocked(state, 'passengers');
-    weather.front = fd ? smoothstep(12, 16, h) * (1 - smoothstep(19, 22, h)) * (0.55 + 0.45 * dread) : 0;
+    weather.front = fd ? smoothstep(12, 16, h) * (1 - smoothstep(19, 22, h)) * (0.55 + 0.45 * rt.dread) : 0;
     weather.frontAhead = fa && h >= 15 ? 1 : 0;
     const fac = sectorAt(ship.pos.x, ship.pos.z, state.seed).faction.id;
     const R = { reef: [1.3, 1.5, 0.9], lantern: [0.9, 0.8, 1.5], drowned: [1, 1.1, 1.4], free: [1.1, 0.8, 0.8] }[fac] || [1, 1, 1];
@@ -2550,70 +2551,70 @@ function frame() {
     if (fa && h >= 17 && laterOK() && !eventQuiet() && !state.hints['front:' + state.dayN]) { state.hints['front:' + state.dayN] = true; if (!state.hints.frontSeen) { state.hints.frontSeen = true; objectives.mate.say('That red in the west... a front is coming in tomorrow afternoon, Captain. I would be in a harbour by then.'); } }
   }
   { // the sea: it grows unruly with distance (dread) and storms, but only slowly, as real water does; and lighter and shallower near islands
-    const target = window.__waterLock && window.__waterLock.rough != null ? window.__waterLock.rough : clamp(0.85 * smoothstep(0.28, 0.82, dread) + 1.1 * weather.heavy + 0.05 * weather.rain, 0, 1);   // light rain leaves the water quiet; a storm whips it up
-    waterRough = waterRough < 0 ? target : waterRough + (target - waterRough) * (1 - Math.exp(-Math.min(vdt, 0.5) / (25 - 13 * (weather.heavy || 0))));
-    WATER.rough = waterRough; U.uRough.value = waterRough;
+    const target = window.__waterLock && window.__waterLock.rough != null ? window.__waterLock.rough : clamp(0.85 * smoothstep(0.28, 0.82, rt.dread) + 1.1 * weather.heavy + 0.05 * weather.rain, 0, 1);   // light rain leaves the water quiet; a storm whips it up
+    rt.waterRough = rt.waterRough < 0 ? target : rt.waterRough + (target - rt.waterRough) * (1 - Math.exp(-Math.min(vdt, 0.5) / (25 - 13 * (weather.heavy || 0))));
+    WATER.rough = rt.waterRough; U.uRough.value = rt.waterRough;
     const near = []; for (const isl of world.islands.values()) { const d = isl.desc, dd = Math.hypot(d.x - ship.pos.x, d.z - ship.pos.z); if (dd < 500) near.push([d.x, d.z, d.r, dd]); }
     near.sort((a, b) => a[3] - b[3]); near.length = Math.min(near.length, NISL); WATER.isl = near;
     for (let i = 0; i < NISL; i++) { const n = near[i]; U.uIsl.value[i].set(n ? n[0] : 1e6, n ? n[1] : 1e6, n ? n[2] : 0); }
   }
   world.hutShown = hutReached();   // no hut on its island before the story gets there
   world.gctx = { calm: weather.calm > 0.5, up: state.upgrades, seen: state.story.seen || {}, lvl: clueLevels(state), d3: d3Open(state), ship: { x: ship.pos.x, z: ship.pos.z } };   // what the places' state props read (ART_SPEC 8)
-  world.tick(animT, tod);
+  world.tick(rt.animT, tod);
   places.labelsTick(camera, ship, (state.upgrades.spyglass || 0), state.discovered, window.innerWidth, window.innerHeight, !onbQuiet() && !$('hud').classList.contains('hidden'), { fogFar: scene.fog.far, d3: d3Open(state) });   // far labels: ?, what it looks like, its name; fade with the fog
-  ship.place(vdt, waveT, stage.wave, dark, tod.night);
-  secrets.update(vdt, waveT, { ship, time: state.time, dayN: state.dayN, tide: tideAt(), wave: stage.wave, light: Math.min(1, 0.25 + stage.light * 0.9), dread, collected: state.collected, windX: Math.sin(wind.dir), windZ: -Math.cos(wind.dir), heading: ship.heading, fogFar: scene.fog.far });
+  ship.place(vdt, waveT, stage.wave, rt.dark, tod.night);
+  secrets.update(vdt, waveT, { ship, time: state.time, dayN: state.dayN, tide: tideAt(), wave: stage.wave, light: Math.min(1, 0.25 + stage.light * 0.9), dread: rt.dread, collected: state.collected, windX: Math.sin(wind.dir), windZ: -Math.cos(wind.dir), heading: ship.heading, fogFar: scene.fog.far });
   shipWake.update(vdt, waveT, stage.wave, { pos: ship.pos, heading: ship.heading, speed: ship.rowing ? ship.speed * 0.6 : ship.speed, max: 11 }, Math.min(1, 0.25 + stage.light * 0.9));
-  const lifeCtx = { light: Math.min(1, 0.25 + stage.light * 0.9), freeze: glimpse.k > 0.3 ? 0 : null, ship, dread, wave: stage.wave, audio, wind: windNow, stage, tod, faction: sec.faction.id, sched: { wd: weekday(), hour: state.time * 24, dayN: state.dayN, dread } };
+  const lifeCtx = { light: Math.min(1, 0.25 + stage.light * 0.9), freeze: glimpse.k > 0.3 ? 0 : null, ship, dread: rt.dread, wave: stage.wave, audio, wind: windNow, stage, tod, faction: sec.faction.id, sched: { wd: weekday(), hour: state.time * 24, dayN: state.dayN, dread: rt.dread } };
   if (live) { state.stats.dist += ship.speed * dt; if (ship.rowing) state.stats.rowed = (state.stats.rowed || 0) + ship.speed * dt; }
   { const cg = objectives.current; if (cg && cg.id === 'calm' && state.goals.started) weather.calmHold = Math.max(weather.calmHold, 8); }   // the calm lasts until you have rowed and fished
-  windfx.update(vdt, animT, windNow.dir, windNow.strength, ship.pos, tod.night, Math.min(1, weather.rain * 1.5));
-  fishing.update(dt, waveT, { wave: stage.wave, dread, night: tod.night, env: fishEnv() });
-  setDieWear(clamp(state.dayN / 12 + dread * 0.6, 0, 1));
+  windfx.update(vdt, rt.animT, windNow.dir, windNow.strength, ship.pos, tod.night, Math.min(1, weather.rain * 1.5));
+  fishing.update(dt, waveT, { wave: stage.wave, dread: rt.dread, night: tod.night, env: fishEnv() });
+  setDieWear(clamp(state.dayN / 12 + rt.dread * 0.6, 0, 1));
   combat.update(dt, waveT, { ship, traffic, wave: stage.wave, onHitEnemy, onHitPlayer: hurtPlayer });
-  { const pork = life.meal(state) === 'pork'; if (live && tNow - lastHit > 12 && (weather.storm < 0.3 || pork) && state.hp < ship.mods.maxHp) state.hp = Math.min(ship.mods.maxHp, state.hp + dt * (pork ? 2 : 1)); }   // no mending in a storm
+  { const pork = life.meal(state) === 'pork'; if (live && rt.tNow - rt.lastHit > 12 && (weather.storm < 0.3 || pork) && state.hp < ship.mods.maxHp) state.hp = Math.min(ship.mods.maxHp, state.hp + dt * (pork ? 2 : 1)); }   // no mending in a storm
   { // while Perrin's letter is being read about, Mara stays on screen even ashore or in the log: she is the tutorial
     const st = state.story, on = st.riddleLine === 'wait' || st.noteLine === 'wait' || (st.mateTail && objectives.mate.busy);
     if (!(st.riddleLine === 'wait' || st.noteLine === 'wait') && !objectives.mate.busy) st.mateTail = false; else if (st.riddleLine === 'done' || st.noteLine === 'done') st.mateTail = true;
     objectives.mate.pin = st.riddleLine === 'wait' || st.noteLine === 'wait';
-    document.body.classList.toggle('onb-mate', !!on && !!modal);
-    if (modal && on) objectives.mate.update(rawDt);
+    document.body.classList.toggle('onb-mate', !!on && !!rt.modal);
+    if (rt.modal && on) objectives.mate.update(rawDt);
   }
-  objectives.update(dt, glitchT > 0 ? preGlitch : dread);   // the hut's flash is not real water: Mara does not react to it
-  if (live && !state.passenger && dread > 0.2 && dread < 0.7 && ship.speed > 1) {   // Mara muses on quiet stretches
-    musingT -= dt;
-    if (musingT <= 0 && !objectives.mate.busy && !eventQuiet()) { musingT = 240 + Math.random() * 200; const m = MUSINGS.filter((x) => !state.hints['muse:' + x]); if (m.length) { const l = m[Math.floor(Math.random() * m.length)]; state.hints['muse:' + l] = true; objectives.mate.say(l); } }
+  objectives.update(dt, rt.glitchT > 0 ? rt.preGlitch : rt.dread);   // the hut's flash is not real water: Mara does not react to it
+  if (live && !state.passenger && rt.dread > 0.2 && rt.dread < 0.7 && ship.speed > 1) {   // Mara muses on quiet stretches
+    rt.musingT -= dt;
+    if (rt.musingT <= 0 && !objectives.mate.busy && !eventQuiet()) { rt.musingT = 240 + Math.random() * 200; const m = MUSINGS.filter((x) => !state.hints['muse:' + x]); if (m.length) { const l = m[Math.floor(Math.random() * m.length)]; state.hints['muse:' + l] = true; objectives.mate.say(l); } }
   }
-  if (live && state.passenger && ship.speed > 1) passengerTalk(state.passenger, dt, { mate: objectives.mate, world, ship, state, dread, storm: weather.storm });
+  if (live && state.passenger && ship.speed > 1) passengerTalk(state.passenger, dt, { mate: objectives.mate, world, ship, state, dread: rt.dread, storm: weather.storm });
   if (live) {
     if (tod.night > 0.35 || tod.twilight > 0.6) objectives.remark('dusk');
     if (weather.storm > 0.4) objectives.remark('storm'); else if (weather.rain > 0.4) objectives.remark('rain'); else if (weather.fog > 0.5) objectives.remark('fog');
-    for (const [k, v] of [['stage2', 0.25], ['stage3', 0.5], ['stage4', 0.75], ['stage5', 0.95]]) if (dread >= v) objectives.remark(k === 'stage5' && (state.story.maraMem || 0) >= 3 ? 'stage5b' : k, dread);
+    for (const [k, v] of [['stage2', 0.25], ['stage3', 0.5], ['stage4', 0.75], ['stage5', 0.95]]) if (rt.dread >= v) objectives.remark(k === 'stage5' && (state.story.maraMem || 0) >= 3 ? 'stage5b' : k, rt.dread);
     if (traffic.ships.some((x) => x.hostile && x.engaged)) objectives.remark('raider');
   }
   fauna.quiet = !laterOK();
   fauna.update(vdt, waveT, lifeCtx);
   threads.update(vdt, ship, window.__BUILD !== 'demo' && laterOK(), waveT, lifeCtx.wave, (txt) => { if (!objectives.mate.busy && !eventQuiet()) objectives.mate.say(txt); });
   for (const k of ['_pet', '_pet2']) if (window.__game[k]) window.__game[k].update(vdt);
-  for (const c of Object.values(companions)) { c.m.g.visible = c.fly > 0 || dread < 0.6; if (c.m.g.visible) c.update(vdt); }
+  for (const c of Object.values(companions)) { c.m.g.visible = c.fly > 0 || rt.dread < 0.6; if (c.m.g.visible) c.update(vdt); }
   traffic.update(dt, waveT, lifeCtx);
   sea.update(dt, waveT, lifeCtx);
 
   // ---- global shader state
   scene.fog.color.copy(stage.fog); scene.fog.near = stage.fogNear; scene.fog.far = stage.fogFar;
   mistMat.color.copy(stage.fog).lerp(WHITE_MIST, 0.25);   // the sea mist round the foot of deep places
-  U.uDread.value = dread; U.uTime.value = waveT;
-  if (window.__waterLock) { const wl = window.__waterLock; if (wl.t != null) U.uTime.value = Math.floor(wl.t * 12) / 12; if (wl.rough != null) { waterRough = wl.rough; U.uRough.value = WATER.rough = wl.rough; } }   // dev: water previews (docs/concept/water)
+  U.uDread.value = rt.dread; U.uTime.value = waveT;
+  if (window.__waterLock) { const wl = window.__waterLock; if (wl.t != null) U.uTime.value = Math.floor(wl.t * 12) / 12; if (wl.rough != null) { rt.waterRough = wl.rough; U.uRough.value = WATER.rough = wl.rough; } }   // dev: water previews (docs/concept/water)
   U.uLight.value = stage.light; U.uWave.value = stage.wave; U.uWindDir.value.set(Math.sin(wind.dir), -Math.cos(wind.dir)); U.uRain.value = weather.rain || 0;   // (this sat inside the comment above since 21 Oct: night light and wave height never reached the shaders)
   U.uDeep.value.copy(stage.deep); U.uShallow.value.copy(stage.shallow);
   if (threads.worldTint > 0.001) { U.uDeep.value.lerp(COLOUR_DEEP, threads.worldTint); U.uShallow.value.lerp(COLOUR_SHALLOW, threads.worldTint * 0.8); scene.fog.color.lerp(COLOUR_SHALLOW, threads.worldTint * 0.25); }   // a sea that is slowly losing a hue
   U.uSnap.value.set(post.internal.w * 0.5 * stage.snap, post.internal.h * 0.5 * stage.snap);
   mats.shallow.color.copy(stage.shallow).lerp(new THREE.Color(1, 1, 1), 0.25);
   mats.foam.color.set(0xffffff).lerp(stage.skyHorizon, 0.25);
-  mats.foam.opacity = 0.55 + 0.25 * Math.sin(animT * 1.8);
-  mats.beam.color.set('#ffe080').lerp(new THREE.Color('#ff50d0'), smoothstep(0.5, 0.8, dread));
+  mats.foam.opacity = 0.55 + 0.25 * Math.sin(rt.animT * 1.8);
+  mats.beam.color.set('#ffe080').lerp(new THREE.Color('#ff50d0'), smoothstep(0.5, 0.8, rt.dread));
   mats.beam.opacity = 0.1 + 0.3 * tod.night;
-  mats.wake.color.set(0xffffff).lerp(new THREE.Color(0.35, 1, 0.9), tod.night * 0.9).lerp(new THREE.Color(1, 0.4, 0.95), tod.night * smoothstep(0.55, 0.9, dread) * 0.8);
+  mats.wake.color.set(0xffffff).lerp(new THREE.Color(0.35, 1, 0.9), tod.night * 0.9).lerp(new THREE.Color(1, 0.4, 0.95), tod.night * smoothstep(0.55, 0.9, rt.dread) * 0.8);
   sky.update(window.__waterLock ? 0 : dt, camera, stage, wind.dir, tod, { sun2: abyss.sun2, storm: weather.heavy || 0, stormWall: Math.max(weather.frontAhead || 0, (weather.stormAhead || 0) * 0.9, (weather.storm || 0) * 0.7) });
   if (NIGHT_SET.view === 0) sky.moon.visible = false;   // a new moon: no moon in the sky
   ocean.material.opacity = 1 - 0.7 * abyss.seeThrough;
@@ -2621,75 +2622,75 @@ function frame() {
   ocean.update(camera.position.x, camera.position.z);
 
   // ---- camera
-  zoomT = Math.min(zoomT, ship.mods.zoomMax);
-  zoom += (zoomT - zoom) * Math.min(1, rawDt * 5);
-  pitch += (pitchT - pitch) * Math.min(1, rawDt * 5);
-  lookUpK += ((abyss.lookUp ? 1 : 0) - lookUpK) * Math.min(1, rawDt * 0.6);
-  const pitchNow = pitch + (0.3 - pitch) * lookUpK;
-  camHeading += angleDiff(camHeading, ship.heading) * Math.min(1, rawDt * 1.6);
-  camYaw += (yawT - camYaw) * Math.min(1, rawDt * 7);
-  const ch = camHeading + camYaw;
+  rt.zoomT = Math.min(rt.zoomT, ship.mods.zoomMax);
+  rt.zoom += (rt.zoomT - rt.zoom) * Math.min(1, rawDt * 5);
+  rt.pitch += (rt.pitchT - rt.pitch) * Math.min(1, rawDt * 5);
+  rt.lookUpK += ((abyss.lookUp ? 1 : 0) - rt.lookUpK) * Math.min(1, rawDt * 0.6);
+  const pitchNow = rt.pitch + (0.3 - rt.pitch) * rt.lookUpK;
+  rt.camHeading += angleDiff(rt.camHeading, ship.heading) * Math.min(1, rawDt * 1.6);
+  rt.camYaw += (rt.yawT - rt.camYaw) * Math.min(1, rawDt * 7);
+  const ch = rt.camHeading + rt.camYaw;
   const fx = Math.sin(ch), fz = -Math.cos(ch);
-  const back = zoom * Math.cos(pitchNow), up = zoom * Math.sin(pitchNow);
+  const back = rt.zoom * Math.cos(pitchNow), up = rt.zoom * Math.sin(pitchNow);
   // the camera rises and falls with the slow swell (not with every wave), so on a big swell the ship does not sit in a pit with the water walls above the lens
-  camSwell += ((ship.float && ship.float.y !== undefined ? clamp(ship.float.y, -4, 4) * 0.65 : 0) - camSwell) * Math.min(1, rawDt * 1.1);
-  camPos.set(ship.pos.x - fx * back, up + 1 + camSwell, ship.pos.z - fz * back);
+  rt.camSwell += ((ship.float && ship.float.y !== undefined ? clamp(ship.float.y, -4, 4) * 0.65 : 0) - rt.camSwell) * Math.min(1, rawDt * 1.1);
+  camPos.set(ship.pos.x - fx * back, up + 1 + rt.camSwell, ship.pos.z - fz * back);
   const skyK = clamp((0.3 - pitchNow) / (0.3 - PITCH_MIN), 0, 1);   // below the old limit the camera looks up instead of down
-  camLook.set(ship.pos.x + fx * zoom * 0.2, 1.5 + camSwell * 0.7 + lookUpK * 9 + skyK * zoom * 0.42, ship.pos.z + fz * zoom * 0.2);
+  camLook.set(ship.pos.x + fx * rt.zoom * 0.2, 1.5 + rt.camSwell * 0.7 + rt.lookUpK * 9 + skyK * rt.zoom * 0.42, ship.pos.z + fz * rt.zoom * 0.2);
   camPos.y = Math.max(camPos.y, 3.2);                                 // never at or under the waterline
-  if (shake > 0) { shake = Math.max(0, shake - rawDt * 1.8); camPos.x += Math.sin(tNow * 70) * shake; camPos.y += Math.cos(tNow * 63) * shake * 0.7; }
-  if (dread > 0.85 && live) { const s = (dread - 0.85) * 0.5; camPos.x += Math.sin(tNow * 31) * s; camPos.y += Math.sin(tNow * 23 + 1) * s; }
-  if (titleScene) titleCam(rawDt);
-  ashoreK += ((ashore && ashoreCam ? 1 : 0) - ashoreK) * Math.min(1, rawDt * 2.2);
-  if (ashoreCam && ashoreK > 0.001) { const k = smoothstep(0, 1, ashoreK); camPos.lerp(ashoreCam.pos, k); camLook.lerp(ashoreCam.look, k); }
-  if (introT >= 0) {   // the opening shot: high over Tama, easing down to the usual place behind the ship
-    const k = clamp(introT / INTRO_DUR, 0, 1), e = k * k * (3 - 2 * k), i0 = world.desc(0, -1);
+  if (rt.shake > 0) { rt.shake = Math.max(0, rt.shake - rawDt * 1.8); camPos.x += Math.sin(rt.tNow * 70) * rt.shake; camPos.y += Math.cos(rt.tNow * 63) * rt.shake * 0.7; }
+  if (rt.dread > 0.85 && live) { const s = (rt.dread - 0.85) * 0.5; camPos.x += Math.sin(rt.tNow * 31) * s; camPos.y += Math.sin(rt.tNow * 23 + 1) * s; }
+  if (rt.titleScene) titleCam(rawDt);
+  rt.ashoreK += ((ashore && rt.ashoreCam ? 1 : 0) - rt.ashoreK) * Math.min(1, rawDt * 2.2);
+  if (rt.ashoreCam && rt.ashoreK > 0.001) { const k = smoothstep(0, 1, rt.ashoreK); camPos.lerp(rt.ashoreCam.pos, k); camLook.lerp(rt.ashoreCam.look, k); }
+  if (rt.introT >= 0) {   // the opening shot: high over Tama, easing down to the usual place behind the ship
+    const k = clamp(rt.introT / INTRO_DUR, 0, 1), e = k * k * (3 - 2 * k), i0 = world.desc(0, -1);
     camPos.x += -34 * (1 - e); camPos.y += 78 * (1 - e); camPos.z += 52 * (1 - e);
     if (i0) camLook.set(i0.x + (camLook.x - i0.x) * e, 8 + (camLook.y - 8) * e, i0.z + (camLook.z - i0.z) * e);
   }
-  if (modal === 'yard') {   // the turntable: the ship turns slowly by itself until you take over
-    if (!yardDrag) { yardIdle += rawDt; if (yardIdle > 2.5) yardYaw += rawDt * 0.35; }
-    const a = ship.heading + yardYaw, r = 11 * yardZoom;
-    camPos.set(ship.pos.x + Math.sin(a) * r, 3.2 + 2 * yardZoom, ship.pos.z - Math.cos(a) * r); camLook.set(ship.pos.x, 2.6, ship.pos.z);
-    $('yAngle').textContent = ['stern', 'port', 'bow', 'starboard'][Math.round((((yardYaw % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2)) / (Math.PI / 2)) % 4];
+  if (rt.modal === 'yard') {   // the turntable: the ship turns slowly by itself until you take over
+    if (!rt.yardDrag) { rt.yardIdle += rawDt; if (rt.yardIdle > 2.5) rt.yardYaw += rawDt * 0.35; }
+    const a = ship.heading + rt.yardYaw, r = 11 * rt.yardZoom;
+    camPos.set(ship.pos.x + Math.sin(a) * r, 3.2 + 2 * rt.yardZoom, ship.pos.z - Math.cos(a) * r); camLook.set(ship.pos.x, 2.6, ship.pos.z);
+    $('yAngle').textContent = ['stern', 'port', 'bow', 'starboard'][Math.round((((rt.yardYaw % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2)) / (Math.PI / 2)) % 4];
   }
-  if (camOverride) { camPos.set(...camOverride.pos); camLook.set(...camOverride.look); }
+  if (rt.camOverride) { camPos.set(...rt.camOverride.pos); camLook.set(...rt.camOverride.look); }
   camera.position.copy(camPos);
   camera.lookAt(camLook);
-  if (live || params.get('shot')) camera.rotateZ(abyss.roll(tNow));
+  if (live || params.get('shot')) camera.rotateZ(abyss.roll(rt.tNow));
   camera.updateMatrixWorld();
 
   // ---- discovery / interaction / dig
   // first sight of an island you have never charted: a moment of "land ho!"
-  if (live && tNow - lastSighting > 1) {
-    lastSighting = tNow;
+  if (live && rt.tNow - rt.lastSighting > 1) {
+    rt.lastSighting = rt.tNow;
     const seen = world.nearest(ship.pos.x, ship.pos.z, 150);
     if (seen && !state.discovered[seen.desc.id] && !sighted.has(seen.desc.id)) { sighted.add(seen.desc.id); landHo(seen.desc); }
   }
-  if (live && laterOK() && tNow - lhT > 0.8) { lhT = tNow; lighthouseTidbit(); }
+  if (live && laterOK() && rt.tNow - rt.lhT > 0.8) { rt.lhT = rt.tNow; lighthouseTidbit(); }
   const nearAny = world.nearest(ship.pos.x, ship.pos.z, 30);
   if (nearAny) {
     if (live) discover(nearAny);
-    lastNear = nearAny;
-  } else lastNear = null;
-  const placeTxt = lastNear ? lastNear.desc.name : sec.name;
+    rt.lastNear = nearAny;
+  } else rt.lastNear = null;
+  const placeTxt = rt.lastNear ? rt.lastNear.desc.name : sec.name;
   const placeOut = abyss.hud('place', placeTxt);
-  if (placeOut !== placeShown) { placeShown = placeOut; $('placeline').innerHTML = ''; const sp = document.createElement('span'); sp.textContent = placeOut; $('placeline').appendChild(sp); $('placeline').style.setProperty('--pxedge', lastNear ? '#120c1c' : sec.faction.color); }
+  if (placeOut !== rt.placeShown) { rt.placeShown = placeOut; $('placeline').innerHTML = ''; const sp = document.createElement('span'); sp.textContent = placeOut; $('placeline').appendChild(sp); $('placeline').style.setProperty('--pxedge', rt.lastNear ? '#120c1c' : sec.faction.color); }
 
   const tgt = getInteract();
-  if (dig && live) {
-    if (!tgt || tgt.key !== dig.key) { dig = null; digGame.cancel(); toast('The crew came back empty-handed.'); }
-    else if (dig.mini) digGame.update(dt);
+  if (rt.dig && live) {
+    if (!tgt || tgt.key !== rt.dig.key) { rt.dig = null; digGame.cancel(); toast('The crew came back empty-handed.'); }
+    else if (rt.dig.mini) digGame.update(dt);
     else {
-      dig.t += dt;
-      promptFill.style.width = `${Math.min(100, (dig.t / dig.need) * 100)}%`;
-      if (dig.t >= dig.need) { const done = dig.done; dig = null; done(); }
+      rt.dig.t += dt;
+      promptFill.style.width = `${Math.min(100, (rt.dig.t / rt.dig.need) * 100)}%`;
+      if (rt.dig.t >= rt.dig.need) { const done = rt.dig.done; rt.dig = null; done(); }
     }
   }
   if (tgt && live) {
     promptEl.style.display = 'block';
-    if (dig) { promptTxt.textContent = dig.label || 'Digging...'; promptBar.style.display = dig.mini ? 'none' : 'block'; }
-    else if (digFix > tNow && tgt.kind === 'treasure') { promptBar.style.display = 'none'; promptTxt.textContent = digFixWhy === 'tide' ? 'The tide is in. Wait for it to go out...' : digFixWhy === 'mud' ? 'Scraping the shovels clean...' : 'Fetching the spare shovel...'; }
+    if (rt.dig) { promptTxt.textContent = rt.dig.label || 'Digging...'; promptBar.style.display = rt.dig.mini ? 'none' : 'block'; }
+    else if (rt.digFix > rt.tNow && tgt.kind === 'treasure') { promptBar.style.display = 'none'; promptTxt.textContent = rt.digFixWhy === 'tide' ? 'The tide is in. Wait for it to go out...' : rt.digFixWhy === 'mud' ? 'Scraping the shovels clean...' : 'Fetching the spare shovel...'; }
     else {
       promptBar.style.display = 'none';
       promptTxt.textContent = tgt.kind === 'thread' ? tgt.th.prompt : tgt.kind === 'spring' ? '[E] Look into the water' : tgt.kind === 'cave' ? '[E] Look into the cave' : tgt.kind === 'sighting' ? `[E] ${tgt.s.label}` : tgt.kind === 'harbourfar' ? 'Sail to the pier to go ashore' : tgt.kind === 'hut' ? '[E] Knock on the dark hut' : tgt.kind === 'harbour' ? `[E] Visit ${tgt.isl.desc.name}`
@@ -2701,7 +2702,7 @@ function frame() {
         : tgt.kind === 'ship' ? (tgt.s.mode === 'derelict' ? `[E] Board the drifting ${KINDS[tgt.s.kind].label}` : tgt.s.mode === 'ghost' ? '[E] Hail the pale ship' : `[E] Hail the ${tgt.s.name}`)
         : '[E] Salvage the wreck';
       if (tgt.kind === 'secret' && ship.speed > 0.6) promptEl.style.display = 'none';
-      if (heave) promptTxt.textContent = 'Dropping anchor...';
+      if (rt.heave) promptTxt.textContent = 'Dropping anchor...';
     }
   } else promptEl.style.display = 'none';
 
@@ -2715,28 +2716,28 @@ function frame() {
   if (studio) studio.update(rawDt, soundSituation());
   $('clockicon').className = `ico ${tod.sunElev > 0 ? 'sun' : 'moon'}`;
   $('sailfill').style.width = `${Math.round(ship.trim * 100)}%`;
-  $('sailbar').classList.toggle('torn', state.sailsTorn); $('sailbar').classList.toggle('strain', sailStrain > SAIL_LIMIT * 0.35);
+  $('sailbar').classList.toggle('torn', state.sailsTorn); $('sailbar').classList.toggle('strain', rt.sailStrain > SAIL_LIMIT * 0.35);
   drawCompass(wind, ship.heading);
   onbTick();
-  if (onbAll() && tNow > 18 && helpMode !== 'full') helpEl.style.opacity = '0';
-  if (modal === 'harbour') { $('hbGold').textContent = state.gold; }
-  if (modal === 'hut') hut.update(rawDt);
-  if (modal === 'ship') { $('shGold').textContent = state.gold; }
-  if (debugEl.style.display === 'block') debugEl.textContent = `tris ${renderer.info.render.triangles} calls ${renderer.info.render.calls}  dread ${dread.toFixed(2)} stage ${stage.index + 1} ${forced !== null ? '(forced)' : '(auto)'}  time ${tod.clock}  pos ${ship.pos.x | 0},${ship.pos.z | 0}  spd ${ship.speed.toFixed(1)}  islands ${world.islands.size}`;
+  if (onbAll() && rt.tNow > 18 && rt.helpMode !== 'full') helpEl.style.opacity = '0';
+  if (rt.modal === 'harbour') { $('hbGold').textContent = state.gold; }
+  if (rt.modal === 'hut') hut.update(rawDt);
+  if (rt.modal === 'ship') { $('shGold').textContent = state.gold; }
+  if (debugEl.style.display === 'block') debugEl.textContent = `tris ${renderer.info.render.triangles} calls ${renderer.info.render.calls}  dread ${rt.dread.toFixed(2)} stage ${stage.index + 1} ${rt.forced !== null ? '(forced)' : '(auto)'}  time ${tod.clock}  pos ${ship.pos.x | 0},${ship.pos.z | 0}  spd ${ship.speed.toFixed(1)}  islands ${world.islands.size}`;
 
   { // the hull is five planks: each one is a fifth of its strength; a damaged plank drains, so every hit shows
     const frac = Math.max(0, state.hp / ship.mods.maxHp), key = Math.round(frac * 100);
-    if (key !== hullShown) {
-      const hit = hullShown > key; hullShown = key;
+    if (key !== rt.hullShown) {
+      const hit = rt.hullShown > key; rt.hullShown = key;
       $('hptxt').innerHTML = `<span class="hp5${hit ? ' hurt' : ''}">${[0, 1, 2, 3, 4].map((i) => { const f = clamp(frac * 5 - i, 0, 1); return f >= 0.999 ? '<i class="on"></i>' : f <= 0.001 ? '<i class="off"></i>' : `<i class="part" style="--f:${Math.round(f * 100)}%"></i>`; }).join('')}</span>`;
       $('hpfill').parentNode.style.display = 'none';
     }
   }
   $('ammotxt').textContent = `\u25cf ${state.ammo}`;
   document.body.classList.toggle('nooil', !oilOn());
-  if (oilOn() && started && !modal) nameOnce('oil', $('oilrow'), 'Lamp oil');
+  if (oilOn() && rt.started && !rt.modal) nameOnce('oil', $('oilrow'), 'Lamp oil');
   { const f = state.oil / oilCap(state.upgrades); $('oilfill').style.width = `${Math.round(f * 100)}%`; $('oilrow').classList.toggle('low', f < 0.25); }
-  { const can = unlocked(state, 'cannons'); traffic.noRaiders = !can; document.body.classList.toggle('nocannons', !can); if (can && started && !modal) nameOnce('ammo', $('ammotxt'), 'Cannonballs'); }
+  { const can = unlocked(state, 'cannons'); traffic.noRaiders = !can; document.body.classList.toggle('nocannons', !can); if (can && rt.started && !rt.modal) nameOnce('ammo', $('ammotxt'), 'Cannonballs'); }
   $('reloadfill').style.width = `${100 - Math.min(100, (combat.reload / ship.mods.reload) * 100)}%`;
   const tgtE = combat.target(ship, traffic, 110);
   const eb = $('ebar');
@@ -2748,48 +2749,48 @@ function frame() {
   audio.setLoop('forest', forestLevel(ashore) * 0.3);   // ashore on a forest island: very quietly under everything
   if (ashore) audio.setLoop('gulls', gullLevel(tod.night) * 0.3 * 0.9);   // moored: the colony is a background murmur, not a racket
   audio.hutUpdate(rawDt, hutMusicTarget());   // the hut's theme, first visit only
-  audio.tavernUpdate(rawDt, modal === 'pig' || (modal === 'harbour' && hbTab === 'tavern') ? 1 : ashore ? 0.35 : 0);   // tavern music through the wall
+  audio.tavernUpdate(rawDt, rt.modal === 'pig' || (rt.modal === 'harbour' && rt.hbTab === 'tavern') ? 1 : ashore ? 0.35 : 0);   // tavern music through the wall
   if (live) {
-    audio.update(dt, { dread, speed: ship.speed / 11, night: tod.night, freecays: freeCaysNow(), wind: wind.strength, rain: weather.rain, storm: weather.storm, gulls: gullLevel(tod.night),
+    audio.update(dt, { dread: rt.dread, speed: ship.speed / 11, night: tod.night, freecays: freeCaysNow(), wind: wind.strength, rain: weather.rain, storm: weather.storm, gulls: gullLevel(tod.night),
       quests: state.goals.i, open: openSea(), battle: inBattle() });
     const hour = Math.floor(state.time * 24);
-    if (hour !== lastHour) { lastHour = hour; if (world.nearest(ship.pos.x, ship.pos.z, 80, ['harbour'])) audio.play('bell', { vol: 0.6 }); }
+    if (hour !== rt.lastHour) { rt.lastHour = hour; if (world.nearest(ship.pos.x, ship.pos.z, 80, ['harbour'])) audio.play('bell', { vol: 0.6 }); }
   }
 
   // ---- save (every few seconds, and at once when a quest is finished or you dock; those two also show the little ship)
-  if (tNow - lastSave > 4) saveNow();
+  if (rt.tNow - rt.lastSave > 4) saveNow();
 
   // ---- render
   const pu = post.material.uniforms;
-  pu.uDread.value = dread; pu.uTime.value = tNow; pu.uSat.value = stage.sat; pu.uVig.value = stage.vig;
+  pu.uDread.value = rt.dread; pu.uTime.value = rt.tNow; pu.uSat.value = stage.sat; pu.uVig.value = stage.vig;
   pu.uDither.value = stage.dither; pu.uTint.value.copy(stage.tint);
-  if (modal === 'local' && localGames.view) localGames.render(post); else post.render(scene, camera);   // a tavern game shows its own little 3D scene
+  if (rt.modal === 'local' && localGames.view) localGames.render(post); else post.render(scene, camera);   // a tavern game shows its own little 3D scene
   requestAnimationFrame(frame);
 }
 
 // handy for tests / screenshots
-$('oilrow').addEventListener('pointerdown', (e) => { if (started && !modal) { toggleLamp(); e.preventDefault(); } });
+$('oilrow').addEventListener('pointerdown', (e) => { if (rt.started && !rt.modal) { toggleLamp(); e.preventDefault(); } });
 $('oilrow').classList.toggle('off', !!state.story.lampOff);
 installGamepad(() => toast('Controller connected: stick to sail, A to interact, Y for the log, Start to pause.', false, 6000));
-window.__game = { secrets, tideAt: () => tideAt(), lostState: () => ({ lostK, gateLost, placesLost: places.lost, heading: ship.heading, trim: ship.trim }), places, seaplay, glimpse, fishing, sails: () => ({ torn: state.sailsTorn, kits: state.patchKits, strain: sailStrain }), oilState: () => ({ oil: state.oil, lampOut }),
+window.__game = { secrets, tideAt: () => tideAt(), lostState: () => ({ lostK: rt.lostK, gateLost: rt.gateLost, placesLost: places.lost, heading: ship.heading, trim: ship.trim }), places, seaplay, glimpse, fishing, sails: () => ({ torn: state.sailsTorn, kits: state.patchKits, strain: rt.sailStrain }), oilState: () => ({ oil: state.oil, lampOut: rt.lampOut }),
   readArch, partnerOf, maraMood, windfx, logbook,
-  life, localGames, openHarbour(id, tab = 'board') { const isl = [...world.islands.values()].find((i) => i.desc.id === id); if (!isl) return false; closeModal(true); harbourIsl = isl; hbTab = tab; frameVillage(isl.desc); openModal('harbour'); return true; }, renderHarbour: () => renderHarbour(),
+  life, localGames, openHarbour(id, tab = 'board') { const isl = [...world.islands.values()].find((i) => i.desc.id === id); if (!isl) return false; closeModal(true); rt.harbourIsl = isl; rt.hbTab = tab; frameVillage(isl.desc); openModal('harbour'); return true; }, renderHarbour: () => renderHarbour(),
   audio,
   objectives, perrinNote, gateRadius: () => gateRadius(state, tideFalls()), trackTarget: () => trackTarget(), digGame,
   openCard, sighting, spawnSight: (id) => { const c = (SIGHTS[id] && drawCard(0, [], { [id]: 1 })); return c && sighting.spawn(c, ship, world); },
   weather,
-  setDread(v) { forced = v; dread = v; },
-  get dread() { return dread; },
+  setDread(v) { rt.forced = v; rt.dread = v; },
+  get dread() { return rt.dread; },
   setTime(t) { state.time = t; },
-  setCam(p, z) { if (p !== undefined) { pitch = pitchT = p; } if (z !== undefined) { zoom = zoomT = z; } },
-  setOverride(o) { camOverride = o; },
+  setCam(p, z) { if (p !== undefined) { rt.pitch = rt.pitchT = p; } if (z !== undefined) { rt.zoom = rt.zoomT = z; } },
+  setOverride(o) { rt.camOverride = o; },
   /** concept (dev): cut the sea off north of z (the Edge concept); null puts it back */
   clipSea(z) { renderer.localClippingEnabled = z != null; ocean.material.clippingPlanes = z != null ? [new THREE.Plane(new THREE.Vector3(0, 0, 1), -z)] : null; ocean.material.needsUpdate = true; },
-  setAshoreCam: (pos, look) => { ashoreCam = { pos: new THREE.Vector3(...pos), look: new THREE.Vector3(...look) }; },   // dev: aim the harbour camera (village screenshots)
+  setAshoreCam: (pos, look) => { rt.ashoreCam = { pos: new THREE.Vector3(...pos), look: new THREE.Vector3(...look) }; },   // dev: aim the harbour camera (village screenshots)
   get companions() { return companions; }, petOffer, takePet, caves, openCave, threads, addMark,
   /** concept sketch: put a cat or a gull on deck (dev only) */
   companion(kind = 'cat', slot = '_pet') { if (this[slot]) ship.root.remove(this[slot].m.g); this[slot] = kind ? new Companion(ship, kind) : null; return !!this[slot]; },
-  teleport(x, z, h) { ship.pos.set(x, 0, z); ship.heading = h; camHeading = h; ship.vel = null; },
+  teleport(x, z, h) { ship.pos.set(x, 0, z); ship.heading = h; rt.camHeading = h; ship.vel = null; },
   /** biome concept scenes (dev): kind 'coral' | 'rain' | 'sunken' */
   async biome(kind, x, z) { const { buildBiome } = await import('./concepts.js'); if (this._biome) scene.remove(this._biome); this._biome = buildBiome(scene, kind, x, z); return true; },
   /** design lineups for screenshots: 'villagers' or 'houses' on a raft at (x, z) */
@@ -2824,8 +2825,8 @@ window.__game = { secrets, tideAt: () => tideAt(), lostState: () => ({ lostK, ga
   },
   sectorAt: (x, z) => sectorAt(x, z, state.seed), traffic, abyss, hut, ship, world, state, begin, scene, camera, renderer, wind, weather, fauna, traffic, sea, audio, fishing, combat, objectives, hurtPlayer, openModal, closeModal, buyUpgrade, refreshMods,
 };
-let newVoyage = false;   // New voyage reloads straight into the game, no title in between
-try { newVoyage = sessionStorage.getItem('hoist-new') === '1'; sessionStorage.removeItem('hoist-new'); } catch (e) { /* storage blocked */ }
+rt.newVoyage = false;   // New voyage reloads straight into the game, no title in between
+try { rt.newVoyage = sessionStorage.getItem('hoist-new') === '1'; sessionStorage.removeItem('hoist-new'); } catch (e) { /* storage blocked */ }
 // New voyage reloads the page, and a reload always leaves fullscreen; the browser only allows going back in on a key press
 // or click, so the first one after the reload does it
 try {
@@ -2835,5 +2836,5 @@ try {
     addEventListener('pointerdown', back, true); addEventListener('keydown', back, true);
   }
 } catch (e) { /* storage blocked */ }
-if (params.get('autostart') || newVoyage) begin(); else startTitle();
+if (params.get('autostart') || rt.newVoyage) begin(); else startTitle();
 frame();
