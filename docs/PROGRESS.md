@@ -1084,3 +1084,6 @@ Trials for the owner to compare; nothing changes without a flag and STYLE.md is 
 - Verified: build; eslint no-undef clean (the old 5 duplicate keys in `__game` only); the three A/B scripts match their old results; a sign
   at sea plays through its card and dice; a cave opens; the lost sailors, Let Mara throw, the tells (the lamp shadow now lives in
   storybeats), the rest line and the fragments pass.
+- **Single-file games rebuilt** (owner asked): `pocket-pirates-demo.html` (19.2 MB), `pocket-pirates-demo-silent.html` (1.5 MB),
+  `pocket-pirates-dev.html` (20.0 MB), from the commit after the main.js split step 5. Each was opened from disk and sailed: the demo and
+  the silent demo with no console errors; the dev build only with its known Sound Studio fetch (file:// cannot fetch).
