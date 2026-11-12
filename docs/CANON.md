@@ -28,6 +28,7 @@ Nothing here is ever said to the player in these words.
 | 2026-11-11 | **At the Table: Throw, Hum the tune, Sit, Leave.** "Turn the table to the sea" is cut. |
 | 2026-11-11 | **The Lady's errands (old Act 3) are cut.** The story after the demo is told by going places. |
 | 2026-11-11 | **Four small wrong things happen before the hut** (the third oar, two berths, the hook already in it, the hole that was already there). Each happens once, has an ordinary reading, and is never explained. |
+| 2026-11-12 | **The third oar is cut** (the owner asked): no extra stroke, no Mara line. Three small wrong things remain before the hut. |
 | 2026-11-11 | **The log has three bookmarks** (Chart, Orders, Ship's book) and **one slip** (what, where, which way and how long). |
 | 2026-11-11 | **The chart is an inked portolan on vellum. The type is Pirata One (titles) with Jersey 10 (text).** |
 | earlier | The title is HOIST. The Lady is never seen and never speaks. Dread follows where you are, never time. The demo has no dread. |
@@ -49,7 +50,7 @@ A question is understood when sources from two or three different regions agree.
 ## 5. The shape of a voyage
 | Part | Where | What happens |
 |---|---|---|
-| Chapters I to III, "Fair winds" | Home Sound | Learn the ship; Perrin's riddle; work the waters. The third oar, two berths, the hook. |
+| Chapters I to III, "Fair winds" | Home Sound | Learn the ship; Perrin's riddle; work the waters. Two berths, the hook. |
 | Chapters IV to VI, "Loose talk" | out to 1650 | Perrin's chart, the second riddle (the hole), bottles, gossip, the hut, the first throw, the diver. **The demo ends.** |
 | Gather | the Shoals, the Trade Belt | Harbours write things down: bells, ledgers, names. |
 | Compare | the Slack, the Dim | Other people's traces. Sources disagree on purpose. |

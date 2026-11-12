@@ -12,11 +12,11 @@ import { LM } from './landmarks.js';
 import { isKnown } from './clues.js';
 
 export const CHART_STYLE = 'a';   // the key the drawing code branches on; 'b' and 'c' were the trials not taken
-export const UI_FONT = 'b';
-if (typeof document !== 'undefined') { document.documentElement.dataset.uifont = UI_FONT; document.documentElement.dataset.chartstyle = CHART_STYLE; }
+export const UI_FONT = null;   // the Pirata One / Jersey 10 pairing (data-uifont="b", CSS in index.html) is switched off for now: it overlapped in the HUD and the log
+if (typeof document !== 'undefined') { if (UI_FONT) document.documentElement.dataset.uifont = UI_FONT; document.documentElement.dataset.chartstyle = CHART_STYLE; }
 
 /** display face (harbours, the name of the waters) and text face (isles, notes), with the sizes that sit on each font's own grid */
-export const FONTS = { disp: '"Pirata One", Georgia, serif', dpx: 24, dbig: 26, body: '"Jersey 10", "DotGothic16", monospace', bpx: 16 };   // Jersey 10 carries size-adjust 125%: 16px draws at 20, two screen pixels per font pixel
+export const FONTS = { disp: '"Pirata One", Georgia, serif', dpx: 22, dbig: 26, body: '"DotGothic16", monospace', bpx: 16 };   // Jersey 10 carries size-adjust 125%: 16px draws at 20, two screen pixels per font pixel
 let fontsAsked = false;
 
 // ---- the look

@@ -1290,7 +1290,7 @@ function takeLetter(key) {
   if (key === 'letterP1') {
     giveMap('1,-1', 'Old Perrin', true, true);   // no pile of text: Mara asks what you have, then sends you to the log
     openLetter = { from: 'Old Perrin', text: `“${state.riddles['1,-1'] || ''}”` };
-    mate.say('A letter? What have you got there, Captain?'); mate.say('It is in your orders now, Captain: M.'); logTab = 'riddles';
+    mate.say('A letter? What have you got there, Captain?'); mate.say('He has sent you a riddle. Press M and open your orders to read it.'); logTab = 'riddles';
     state.story.tabMark = 'riddles'; state.story.riddleLine = 'wait';
   } else if (key === 'letterP2') {
     perrinNote(true);
@@ -1647,19 +1647,12 @@ function readArch(d) {
     if (ad) { state.riddles[aid] = ad.puzzle.text; toast(`The two halves fit: "${ad.puzzle.text}" (${ad.name})`, false, 11000); }
   }
 }
-// ---- oars: a soft stroke sound while rowing, and (once, in the dead calm of chapter III) one stroke more after the rowing has stopped.
-// Nothing explains it; Mara puts it down to the flat water.
-let oarPhase = 0, oarStill = 0, oarRowed = 0;
+// ---- oars: a soft stroke sound while rowing
+let oarPhase = 0;
 function oarTick(dt) {
-  const rowing = ship.rowing && ship.rowIn !== 0;
-  if (rowing) { oarStill = 0; oarRowed += dt; const ph = Math.floor(ship.stroke / (Math.PI * 2)); if (ph !== oarPhase) { oarPhase = ph; audio.play('oar', { vol: 0.5 }); } return; }
-  if (!ship.rowing || ship.oarOut < 1) { oarStill = 0; return; }
-  oarStill += dt;
-  const g = objectives.current;
-  if (!state.story.oar3 && g && g.id === 'calm' && weather.calm > 0.5 && oarRowed > 5 && oarStill > 2.4 && !(ship.ghostStroke > 0)) {
-    state.story.oar3 = 1; ship.ghostStroke = Math.PI * 2; audio.play('oar', { vol: 0.9 });
-    setTimeout(() => objectives.say('Hm? ... Nothing. Flat water plays tricks.'), 2600);
-  }
+  if (!(ship.rowing && ship.rowIn !== 0)) return;
+  const ph = Math.floor(ship.stroke / (Math.PI * 2));
+  if (ph !== oarPhase) { oarPhase = ph; audio.play('oar', { vol: 0.5 }); }
 }
 const HEAVE_KINDS = new Set(['thread', 'spring', 'cave', 'treasure', 'fruit', 'wreck', 'landmark', 'patch']);
 let heave = null, anchorAt = null;   // heave: E was pressed under way, the anchor is going down; anchorAt: where she lies while it is down
@@ -2557,7 +2550,7 @@ function frame() {
   const live = started && !modal && introT < 0;
   const dt = live ? rawDt : 0;           // simulation time: frozen while a menu is open
   const ashore = modal === 'harbour' || modal === 'greet' || modal === 'yard';
-  const vdt = live || ashore ? rawDt : 0;  // ashore the world keeps moving (people, gulls, waves) while the clock stands still
+  const vdt = live || ashore || titleScene ? rawDt : 0;  // ashore the world keeps moving (people, gulls, waves) while the clock stands still
   tNow += dt; animT += vdt;
   const stepT = Math.floor(animT * 12) / 12;
 

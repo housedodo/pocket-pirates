@@ -117,7 +117,6 @@ Build it with `python3 scripts/single.py`, ship `pocket-pirates-demo.html` (with
 - [ ] Mara's box is bottom left while sailing; Sails, Wind, Hull, Cannonballs and Lamp oil each show their name once
 
 ## 12. Four small wrong things (each once per voyage)
-- [ ] Dead calm: stop rowing with the oars out; one more stroke, Mara shrugs it off
 - [ ] First passenger: fare doubled as "two berths", the harbourmaster asks for the other one
 - [ ] A night catch with a hook already in it; the fishmonger's line when it is sold
 - [ ] Second treasure beach: one hole there already, over the chest; Mara's "Lucky us"

@@ -181,7 +181,7 @@ Only these effects play. Everything else the game asks for (splash, treasure, di
 
 A single-file build (`window.__AUDIO` set) never fetches a sound it does not carry: a listed cue with no inlined file is synthesised.
 
-`oar` (synthesised, no file yet): one soft stroke per pull while rowing, at half volume; and once, in the dead calm of chapter III, one stroke more at 90% after the rowing has stopped (PROGRESS: four small wrong things). A recorded `oar.ogg` in `public/audio/` replaces it.
+`oar` (synthesised, no file yet): one soft stroke per pull while rowing, at half volume (PROGRESS: four small wrong things). A recorded `oar.ogg` in `public/audio/` replaces it.
 
 | File | When |
 |---|---|

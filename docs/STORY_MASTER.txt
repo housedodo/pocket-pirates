@@ -1,7 +1,7 @@
 HOIST (Pocket Pirates): THE MASTER STORY FILE
 ================================================================================================
 This is the main story file for the full game. Edit it, upload it again, and the next session puts every change
-into the game. Built from commit 0247109 on 2026-11-11. 1415 in-game lines carry an ID.
+into the game. Built from commit 71860ea on 2026-11-12. 1414 in-game lines carry an ID.
 
 CONTENTS
   A   HOW TO USE THIS FILE (IDs, status marks, how to add and remove things)
@@ -559,7 +559,7 @@ Where the story hides in the mechanics, and where its text lives (section J).
 # J  EVERY LINE IN THE GAME
 ################################################################################################
 Pulled from the code. Edit the text after the "|" (see part A). Sources are grouped by file; the CODE in front of every
-line says which file it goes back into. 1415 lines.
+line says which file it goes back into. 1414 lines.
 
 
 
@@ -2304,7 +2304,6 @@ line says which file it goes back into. 1415 lines.
   MAIN-0268 | Those pages are still blank.
   MAIN-0269 | The ${(el.firstChild ? el.firstChild.textContent : 'door').trim().toLowerCase()} is shut to us for now. It opens later in the voyage.
   MAIN-0270 | Not yet. This opens later in the voyage.
-  MAIN-0271 | It is in your orders now, Captain: M.
   MAIN-0272 | Another letter from Perrin? Open your log with M: it is at the top of the Ship's book.
   MAIN-0273 | You reached your pin.
   MAIN-0274 | The wind is against you: zig-zag.
@@ -2312,7 +2311,6 @@ line says which file it goes back into. 1415 lines.
   MAIN-0276 | The arch inscription reads: "${d.puzzle.text}"
   MAIN-0277 | Scratched small on the back of the arch: "${state.frags[d.id]}" It reads like the end of something else.
   MAIN-0278 | The two halves fit: "${ad.puzzle.text}" (${ad.name})
-  MAIN-0279 | Hm? ... Nothing. Flat water plays tricks.
   MAIN-0280 | The black hut? Out past the ${bearingName(world.hutDesc.x - d.x, world.hutDesc.z - d.z)} water. There is a table, they say.
   MAIN-0281 | Nothing here but sand. Reread the riddle in your orders and try another shore.
   MAIN-0282 | Somebody dug here first, and stopped a spade short. Lucky us.
@@ -2338,6 +2336,9 @@ line says which file it goes back into. 1415 lines.
   MAIN-0302 | Lantern out. Saving oil; you sail by the moon.
   MAIN-0303 | The crew came back empty-handed.
 
+### MAIN / ADDED 2026-11-12
+  MAIN-0304 | He has sent you a riddle. Press M and open your orders to read it.
+
 ### MAIN / RETIRED (the text is no longer in the game; these IDs are never used again)
     was MAIN-0011 | ${from} gave you a treasure riddle for ${d.name}. Saved in your log: Riddles tab.
     was MAIN-0012 | ${from} gave you a riddle. Saved in your log: Riddles tab. Where it points is up to you.
@@ -2352,6 +2353,8 @@ line says which file it goes back into. 1415 lines.
     was MAIN-0243 | Stop the ship completely (S) to look inside
     was MAIN-0248 | Stop the ship to patch the torn sail
     was MAIN-0251 | Stop the ship completely (S) to go ashore
+    was MAIN-0271 | It is in your orders now, Captain: M.
+    was MAIN-0279 | Hm? ... Nothing. Flat water plays tricks.
 
 
 ####################################################################################################

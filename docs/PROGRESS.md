@@ -938,3 +938,9 @@ Trials for the owner to compare; nothing changes without a flag and STYLE.md is 
 - **Verified:** the real `printPaper` and `paperHTML` rendered through the game's own CSS and fonts for every stage, at the market pane's width (480 px) and at a phone width (368 px); the demo gate by calling `printPaper` with `__BUILD = 'demo'` at dread 0.95. **Not verified:** the paper opened inside the running game (no headless playthrough), and how it feels on a real screen.
 - **Not done:** the single-file games are not rebuilt (RULES 38: only when asked), so they do not have the paper until the next rebuild.
 
+
+## Title boat, old font, third oar cut, Perrin's letter line (2026-11-12)
+- **Title screen alive again:** the animation clock `vdt` in `main.js` was 0 on the title (not live, not ashore), so the swell, the ship's float, the wake and the sea life all stood still; it now runs while the title scene is up. She bobs and the water moves; the sim clock stays frozen.
+- **Old font back:** Pirata One / Jersey 10 pairing is off (`UI_FONT = null` in `chartstyles.js`, so `data-uifont` is not set); text and headings are DotGothic16 again as before 6a1511d, the chart canvas labels too. The CSS block stays in `index.html`, inert, to switch back on later.
+- **The third oar is cut** (owner's request): no ghost stroke, no Mara line; rowing keeps its soft stroke sound. CANON dated.
+- **Perrin's letter:** Mara's second line is now "He has sent you a riddle. Press M and open your orders to read it." (was "It is in your orders now, Captain: M.").

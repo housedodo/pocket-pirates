@@ -37,7 +37,7 @@ need to break one, stop and ask the owner. `docs/CANON.md` says what is true in 
 25. **Only cues listed in `CUES.oneShots` (`src/audio.js`) play.** Silence elsewhere is on purpose. Adding a cue means adding it there and to `docs/AUDIO.md`.
 26. **Five dread stages, five loops, same tempo, metre and key** (D family, 6/8, 125 BPM). Horror by removing and bending, never by adding a scare.
 27. **WAV masters stay with the composer; the game ships ogg** (`scripts/studio_ogg.py`). Volumes live in `public/audio/volumes.json`.
-28. **A sound that carries story needs a silent twin.** The third oar is also visible; a player with the sound off must still be able to notice.
+28. **A sound that carries story needs a silent twin.** What the sound shows must also be visible; a player with the sound off must still be able to notice.
 
 ## Code
 29. **The demo build is a different game.** `window.__BUILD === 'demo'`: no dread, the chapter fog wall, no caves, no threads, no Table, no test tools. Anything from after the hut must be gated out of it. Check before every demo rebuild that nothing new leaks.

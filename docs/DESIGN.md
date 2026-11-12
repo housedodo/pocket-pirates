@@ -299,7 +299,6 @@ something to do in each. See PROGRESS.md "Harbour life" for the list.
 ## Four small wrong things before the hut (2026-11-11)
 | Flag in `state.story` | When | What |
 |---|---|---|
-| `oar3` | chapter III dead calm, 2.4 s after rowing stops with the oars out | one more stroke by itself (`ship.ghostStroke`), the `oar` cue, Mara shrugs |
 | `berths` | the first passenger dropped off | the fare doubles, "two berths", the harbourmaster asks for the other one |
 | `hook` | a night catch from the second fish on, or the sixth fish | a hook already in its mouth; the fishmonger's line when sold |
 | `predug` | the second treasure beach | one hole there already, over the chest (`digging.js` `predug`) |
