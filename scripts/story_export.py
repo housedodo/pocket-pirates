@@ -736,7 +736,15 @@ def main():
     parts.append(PART_I)
     parts.append(PART_J_HEAD.format(n=n))
     parts.append(lines_text)
-    parts.append(PART_K)
+    # the writer's log is hand-written: keep it exactly as it stands in the file (PART_K only seeds a file that has none)
+    prev = OUT.read_text(encoding='utf-8') if OUT.exists() else ''
+    mark = "# K  WRITER'S LOG"
+    if mark in prev:
+        k = prev[prev.index(mark):]
+        bar = prev[:prev.index(mark)].rstrip('\n').rsplit('\n', 1)[-1]          # the ##### line above the heading
+        parts.append('\n\n\n' + bar + '\n' + k.rstrip('\n') + '\n')
+    else:
+        parts.append(PART_K)
 
     OUT.write_text('\n'.join(parts) + '\n', encoding='utf-8')
     print(f'wrote {OUT.relative_to(ROOT)}: {n} coded lines, {len(gl)} goals, {len(lm)} places, {len(ts)} threads, {len(ar)} residents')

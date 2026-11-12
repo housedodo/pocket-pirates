@@ -1,7 +1,7 @@
 HOIST (Pocket Pirates): THE MASTER STORY FILE
 ================================================================================================
 This is the main story file for the full game. Edit it, upload it again, and the next session puts every change
-into the game. Built from commit 9407b40 on 2026-11-12. 1414 in-game lines carry an ID.
+into the game. Built from commit 31858b3 on 2026-11-12. 1414 in-game lines carry an ID.
 
 CONTENTS
   A   HOW TO USE THIS FILE (IDs, status marks, how to add and remove things)
@@ -2627,12 +2627,29 @@ K2 DECISIONS (with the date; the short list is docs/CANON.md)
    - 2026-11-11  The demo ends on the first throw at the hut and the diver on the water. Odd jobs, salvage and the raider are optional.
    - 2026-11-11  At the Table: Throw, Hum the tune, Sit, Leave. "Turn the table to the sea" is cut. The Lady's errands (Act 3) are cut.
    - 2026-11-11  Four small wrong things happen before the hut (the third oar, two berths, the hook, the hole); none is explained.
+   - 2026-11-12  The third oar is cut. Three small wrong things remain (two berths, the hook, the hole).
+   - 2026-11-12  Your answers in K1 are canon (docs/CANON.md, sections 2 and 3). Still open: the Lady's writing, the Pained Raven,
+                 which region gets each of the other six threads.
 K3 NEXT TO IMPLEMENT, IN THIS ORDER
    1. The writer rewrites the six ending texts (section J, TBL): they are drafts.
    2. A rumour or a line from Mara that points at the music at night, so the gentle ending can be found.
    3. Something small at the Table for "who counts", "what a throw costs" and "why Tama is home", or the decision that they only colour the story.
    4. The four small wrong things join the clue list as home-water hints.
-K4 SUGGESTION FROM THE ASSISTANT (delete if unwanted)
-   Fill part F first: three places per region with a different dread stage each (one near, one middle, one far), so each
-   region has a story you can only see by going there. Then link at most one thread to each region.
+K4 SUGGESTION FROM THE ASSISTANT (delete if unwanted): how to build the K1 answers, shown and never explained
+   a. Mara cannot hold the die. At the Table, with Mara aboard, one more choice: "Let Mara throw". She reaches; the die does not
+      move, as if her hand were not quite there. She laughs it off ("Slippery thing.") and the choices come back. Once only.
+   b. Mara was made, not born. Three tiny tells, each once, late in the voyage: villagers greet the Captain and never her; she
+      is never in the tavern's head count; in lantern light only one shadow falls on the deck. Nobody remarks on any of them.
+   c. Earlier dreams. Three or four new fragments in far harbours: a chart of islands that do not exist, a calendar for a year
+      that never was, an old fisher who remembers a sea with two moons. The last one shows something from Mara's village.
+      The Edge (the falls into the dark) is where these earlier dreams stand: the statues are what is left of them.
+   d. The Two Players keep a region asleep. In the Free Cays at night, while Teo or Ilse play, dread there stops climbing (it
+      stays below stage 3) and the music turns to their tune. A rumour points at it (K3 item 2): "In the Cays they say the dark
+      keeps quiet while somebody plays." Teo, once: "Never sat at her table. Never will. We play instead."
+   e. The sailors who went mad. In deep dread you meet them, never named: a passenger still waiting for their stop on a wreck
+      (the other berth), a line with a bronze hook trailing from a drifting boat (the hook), a man digging on a black beach who
+      never reaches the bottom (the one who dug first). The three home-water wrong things join the clue list and pay off here.
+   f. Threads by region (needs your yes): Free Cays: the Music out of the Fog. Lantern: the Drowned Bell. Crown: the Ferryman's
+      Coin and the Strange High House. Reef: the Other Captain. Drowned: the Colour and the Hollow Harbour. A voyage still wakes
+      three, but each where it belongs.
 

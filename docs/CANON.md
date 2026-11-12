@@ -16,7 +16,8 @@ Nothing here is ever said to the player in these words.
 - The Lady keeps it asleep with the die. Each low throw is a moment it nearly woke; the world pays for it somewhere.
 - Tama is home because it is where the sleeper is kept gentle: the bells ring softly.
 - Others sat at the table before you. Some did not leave.
-- Mara is from a village that is no longer above water.
+- Mara is from a village that is no longer above water. **The world is the sleeper's dream, and not its first one; this is the longest
+  she has slept, so it stays. Mara is an entity the sleeper made; her village belonged to an earlier dream and came over into this one.** (2026-11-12)
 
 ## 3. Decisions (dated; never reopen one without the owner)
 | Date | Decision |
@@ -29,6 +30,13 @@ Nothing here is ever said to the player in these words.
 | 2026-11-11 | **The Lady's errands (old Act 3) are cut.** The story after the demo is told by going places. |
 | 2026-11-11 | **Four small wrong things happen before the hut** (the third oar, two berths, the hook already in it, the hole that was already there). Each happens once, has an ordinary reading, and is never explained. |
 | 2026-11-12 | **The third oar is cut** (the owner asked): no extra stroke, no Mara line. Three small wrong things remain before the hut. |
+| 2026-11-12 | **What Mara is:** an entity created by the sleeper. Her village was part of a previous dream that came over into the current one, where HOIST happens. Never said in the game. |
+| 2026-11-12 | **What the fragments tell:** the world is a dream, not the first one; the sleeper has slept longest this time, so this dream stays. |
+| 2026-11-12 | **Mara cannot throw for you:** she wants to try, but she cannot pick up the die. She is not supposed to be here, but she is too small to be noticed as something foreign. |
+| 2026-11-12 | **The Two Players are the two who play at night.** They sailed too, but refused to throw. Playing their song while entering the dread soothed it: they found they can keep the sleeper asleep, and the dream going, in one region. |
+| 2026-11-12 | **The other berth, the hook, the one who dug first** (and who rowed, now cut): previous sailors who went mad and vanished somewhere in the dread, a never-ending nightmare. |
+| 2026-11-12 | **Threads by region:** by biome and feel. The Free Cays have the musicians (the Two Players); the other threads go where they feel right (still to place). |
+| 2026-11-12 | **The interface font is DotGothic16 again for now** (Jersey 10 overlapped in the HUD and the log). |
 | 2026-11-11 | **The log has three bookmarks** (Chart, Orders, Ship's book) and **one slip** (what, where, which way and how long). |
 | 2026-11-11 | **The chart is an inked portolan on vellum. The type is Pirata One (titles) with Jersey 10 (text).** |
 | earlier | The title is HOIST. The Lady is never seen and never speaks. Dread follows where you are, never time. The demo has no dread. |
@@ -78,11 +86,9 @@ halves a bad weight; a natural 1 or 20 stands. A captain who saw nothing still h
 - **The captain**: never speaks. People speak at the captain; Mara answers for the ship.
 
 ## 8. Open (nobody may decide these but the owner)
-- What Mara is, beyond where she is from.
-- What the Lady writes if asked who counts. Whether Mara may throw in your place.
-- Whether the Two Players are the same two who play at night.
-- Who the other berth is, whose hook, who dug first, who rowed.
-- What the twelve harbour fragments say as a whole. Who sails the Pained Raven.
+- What the Lady writes if asked who counts.
+- Who sails the Pained Raven.
+- Which region gets each of the other six threads (the Free Cays have the musicians).
 - The six ending texts in `src/table.js` are drafts awaiting the writer.
 
 ## 9. Where the detail lives
