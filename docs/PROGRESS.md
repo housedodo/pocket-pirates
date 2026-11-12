@@ -1076,3 +1076,11 @@ Trials for the owner to compare; nothing changes without a flag and STYLE.md is 
 - **Tama, the open ground** (`tamaPolish`, its own rng so nothing else moves): either side of the street between the pier and the
   square, a washing line, a net rack, a small hedged kitchen patch and a stack of barrels, a crate and a rope coil. Checked by day, at
   dusk, at night (lit windows), at dread 0.6 (the garden harbour withers: bare trees, sallow colours) and from the harbour screen.
+
+## main.js split, step 5 (2026-11-12)
+- Moved with the same tool: `ui/hud.js` (compass, tracker, slip), `ui/encounters.js` (cards, pig game, caves, crew wishes) and
+  `systems/storybeats.js` (fog wall, lost, sea gates, seams, clues by place, oil, sails, tack, hull, sinking, demo end). main.js is about
+  1,630 lines (from 2,956 this morning). The story export reads them with main.js (MAIN IDs unchanged: 0 added, the same retired).
+- Verified: build; eslint no-undef clean (the old 5 duplicate keys in `__game` only); the three A/B scripts match their old results; a sign
+  at sea plays through its card and dice; a cave opens; the lost sailors, Let Mara throw, the tells (the lamp shadow now lives in
+  storybeats), the rest line and the fragments pass.

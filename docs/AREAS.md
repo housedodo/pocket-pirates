@@ -24,7 +24,9 @@ area only when the task says so or when the change crosses over (then say which 
 - `src/core/` (config, state, runtime, engine), `src/ui/dom.js`, `src/systems/calendar.js`, `src/systems/storyflags.js`: the layers
   under `main.js`. See `docs/ARCHITECTURE.md`; change them carefully, everything above imports them.
 - Split out of `main.js` (same owners as before): `src/ui/camera.js`, `src/ui/title.js` (design), `src/ui/pause.js` (design; sound
-  rows audio), `src/ui/harbour.js`, `src/ui/shiptrade.js` (gameplay), `src/ui/shipyard.js` (design). Their text counts as main.js
+  rows audio), `src/ui/harbour.js`, `src/ui/shiptrade.js` (gameplay), `src/ui/shipyard.js` (design), `src/ui/hud.js` (design), `src/ui/encounters.js` and `src/systems/storybeats.js` (gameplay),
+  `src/systems/lullaby.js` (gameplay; the music placement is audio's), `src/systems/lostsailors.js` (gameplay), `src/systems/edge.js`
+  (design and gameplay). Their text counts as main.js
   text in the story export (MAIN-xxxx).
 
 ## Crossing over

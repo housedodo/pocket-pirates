@@ -46,7 +46,8 @@ CODES = {  # source file -> (ID code, what it holds)
 
 
 # main.js's text also lives in the ui/ modules split out of it (2026-11-12): read together, so the MAIN-xxxx IDs stay the same
-MAIN_PARTS = ['main.js', 'ui/title.js', 'ui/pause.js', 'ui/harbour.js', 'ui/shipyard.js', 'ui/shiptrade.js', 'ui/camera.js', 'ui/dom.js']
+MAIN_PARTS = ['main.js', 'ui/title.js', 'ui/pause.js', 'ui/harbour.js', 'ui/shipyard.js', 'ui/shiptrade.js', 'ui/camera.js', 'ui/dom.js',
+              'ui/hud.js', 'ui/encounters.js', 'systems/storybeats.js']
 
 
 def read(name):

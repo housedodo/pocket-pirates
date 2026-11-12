@@ -19,13 +19,13 @@ import { lootFor, bottleNote, barrelLoot } from './lore.js';
 import { Weather } from './weather.js';
 import { Fauna } from './fauna.js';
 import { Companion } from './companion.js';
-import { Caves, CAVES } from './caves.js';
-import { CaveScene, caveLook } from './cavescene.js';
+import { Caves } from './caves.js';
+import './cavescene.js';
 import { Threads } from './threads.js';
 import { THREAD_IDS } from './marks.js';
 import { Traffic } from './traffic.js';
 import { SeaFeatures } from './seafeatures.js';
-import { setReach, findRumour, repOf, friendLevel, bearingName, nearby, questProgress, questNeed, questTitle, questIcon, fruitOf, fruitName, plural } from './jobs.js';
+import { repOf, friendLevel, bearingName, nearby, questProgress, questNeed, fruitOf, fruitName, plural } from './jobs.js';
 import { Logbook } from './logbook.js';
 import { Hut } from './hut.js';
 import { passengerTalk } from './passengers.js';
@@ -33,19 +33,19 @@ import { sectorAt } from './sectors.js';
 import { KINDS, boatStatus } from './traffic.js';
 import { Fishing } from './fishing.js';
 import { Combat } from './combat.js';
-import { bumpSectors } from './sectors.js';
+import './sectors.js';
 import { markSeen, isKnown, levels as clueLevels, d3Open } from './clues.js';
-import { tableOptions, finalThrow, ENDINGS, maraRemembers } from './table.js';
-import { Objectives, MUSINGS, MAIN_GOALS, unlocked, gateRadius, chapterOf, goalText, goalCount } from './objectives.js';
+import { tableOptions, finalThrow, ENDINGS } from './table.js';
+import { Objectives, MUSINGS, MAIN_GOALS, unlocked, gateRadius, chapterOf, goalText } from './objectives.js';
 import './customize.js';
 import { Wind } from './wind.js';
 import { WindFX } from './windfx.js';
-import { drawWind } from './windmeters.js';
-import { pxi } from './pixelui.js';
+import './windmeters.js';
+import './pixelui.js';
 import { applyTimeOfDay, advanceTime, tod, NIGHT_SET } from './daynight.js';
 import { computeMods, shipwrightLine } from './upgrades.js';
-import { TRAITS, hasTrait, rollCheck, drawCard, renderCard, Pig, setDieWear, setAdvProvider, TREASURE_TIERS } from './tabletop.js';
-import { FISH } from './fishing.js';
+import { hasTrait, rollCheck, drawCard, renderCard, setDieWear, TREASURE_TIERS } from './tabletop.js';
+import './fishing.js';
 import { Sighting, SIGHTS } from './sighting.js';
 import { pushOut } from './solids.js';
 import { Abyss, EFFECTS } from './abyss.js';
@@ -56,18 +56,18 @@ import { Glimpse } from './glimpse.js';
 import { installGamepad } from './gamepad.js';
 import { Wake } from './wake.js';
 import { Secrets, TALES } from './secrets.js';
-import { OIL_FROM, oilCap, oilRate, lanternLit, OIL_PRICE } from './oil.js';
+import { oilCap } from './oil.js';
 import * as life from './harbourlife.js';
 import './newspaper.js';
-import { LocalGames } from './localgames.js';
+import './localgames.js';
 // the core layers (config <- state <- engine) and the small shared systems; see docs/ARCHITECTURE.md
 import { params, store, saved, DEV, settings, session, SAVE_KEY, SETTINGS_KEY, THREADS_KEY } from './core/config.js';
 import { state } from './core/state.js';
 import { rt, G } from './core/runtime.js';
 import { renderer, post, scene, camera, ocean, sky } from './core/engine.js';
-import { $, goldEl, promptEl, promptTxt, promptBar, promptFill, toastsEl, debugEl, helpEl, chartEl, harbourEl, pauseEl, shipEl, compass, toast } from './ui/dom.js';
+import { $, goldEl, promptEl, promptTxt, promptBar, promptFill, toastsEl, debugEl, helpEl, chartEl, harbourEl, pauseEl, shipEl, toast } from './ui/dom.js';
 import { WEEK, weekday, isMarketDay, isLanternNight, isFestival, tideAt, tideFalls } from './systems/calendar.js';
-import { addMark, clearMark, keep, markFromRoll } from './systems/storyflags.js';
+import { addMark, clearMark, keep } from './systems/storyflags.js';
 import { lullDread, lullabyTick, playersEar } from './systems/lullaby.js';
 import { lostTick } from './systems/lostsailors.js';
 import { buildBiome } from './concepts.js';   // dev concept scenes (__game.biome); the Edge builds from it too
@@ -78,42 +78,56 @@ import { fsEl, fsOk, toggleFullscreen, nightViewNow, showPauseMain, pauseBack, m
 import { renderYard, initShipyard } from './ui/shipyard.js';
 import { hailShip, renderShipTrade, initShipTrade } from './ui/shiptrade.js';
 import { renderHarbour, lettersAt, PETS, companions, petOffer, takePet, tabOpened, showGreeting, greetAdvance, buyUpgrade, initHarbour } from './ui/harbour.js';
+import { HUT_NOTES, perrinNote, hutNod, revealHut, showDemoEnd, fogLost, WHITE_MIST, seamTick, clueTick, seaGate, seaTick, oilOn, freeCaysNow, oilTick, SAIL_LIMIT, sailTick, mendSails, toggleLamp, buyOil, tackTick, hurtPlayer, onHitEnemy, initStoryBeats } from './systems/storybeats.js';
+import { trackTarget, etaText, slipInfo, drawCompass, updateTracker, initHud } from './ui/hud.js';
+import { LOCALS, localGames, pig, maraMood, openCard, caveScene, COLOUR_DEEP, COLOUR_SHALLOW, openCave, tabletopTick, signOn, daysLeft, crewLeave, wishDone, initEncounters } from './ui/encounters.js';
 
 // G-REGISTRY START (generated): what main.js lends the modules under it, read at call time
 Object.defineProperties(G, {
   CHART_NOTES: { get: () => CHART_NOTES },
   INTRO_DUR: { get: () => INTRO_DUR },
-  lateTell: { get: () => lateTell },
   LOCALS: { get: () => LOCALS },
   abyss: { get: () => abyss },
   audio: { get: () => audio },
   autosave: { get: () => autosave },
   buyOil: { get: () => buyOil },
+  cardEl: { get: () => cardEl },
+  caveEl: { get: () => caveEl },
+  caves: { get: () => caves },
   closeModal: { get: () => closeModal },
   completeJobIfHere: { get: () => completeJobIfHere },
   costMul: { get: () => costMul },
   crewLeave: { get: () => crewLeave },
   daysLeft: { get: () => daysLeft },
   dreamCost: { get: () => dreamCost },
+  eventQuiet: { get: () => eventQuiet },
   falseRumour: { get: () => falseRumour },
   fishing: { get: () => fishing },
   fsEl: { get: () => fsEl },
   giveMap: { get: () => giveMap },
   greetEl: { get: () => greetEl },
+  hurtPlayer: { get: () => hurtPlayer },
+  lateTell: { get: () => lateTell },
   laterOK: { get: () => laterOK },
   lifeOn: { get: () => lifeOn },
   localGames: { get: () => localGames },
   noteSkip: { get: () => noteSkip },
   objectives: { get: () => objectives },
   oilOn: { get: () => oilOn },
+  onbQuiet: { get: () => onbQuiet },
   openModal: { get: () => openModal },
   perrinNote: { get: () => perrinNote },
   pig: { get: () => pig },
+  pigEl: { get: () => pigEl },
+  places: { get: () => places },
   refreshMods: { get: () => refreshMods },
   revealAround: { get: () => revealAround },
   sea: { get: () => sea },
+  seaplay: { get: () => seaplay },
+  seeClue: { get: () => seeClue },
   ship: { get: () => ship },
   showDemoEnd: { get: () => showDemoEnd },
+  sighting: { get: () => sighting },
   signOn: { get: () => signOn },
   threadChoice: { get: () => threadChoice },
   threads: { get: () => threads },
@@ -666,95 +680,7 @@ initPause2();   // (ui/pause.js)
 
 initHarbour();   // (ui/harbour.js)
 
-// ---------------------------------------------------------------- compass & HUD
-const windView = { dir: 0, strength: 1, gust: 0, floor: 0.27 };
-function trackedOne() {
-  const t = state.tracked;
-  if (t === 'job' && state.job) return 'job';
-  if (t === 'passenger' && state.passenger) return 'passenger';
-  if (t && state.quests.some((q) => q.id === t)) return t;
-  state.tracked = state.passenger ? 'passenger' : state.job ? 'job' : state.quests.length ? state.quests[0].id : null;
-  sea.syncQuests(state.quests.filter((q) => q.id === state.tracked));   // only the followed errand's crates float
-  return state.tracked;
-}
-function trackTarget() {
-  { const pin = state.story.pins && state.story.pins.find((q) => q.on);   // a pin you put on the chart: the compass follows it until you get there
-    if (pin) { if (Math.hypot(pin.x - ship.pos.x, pin.z - ship.pos.z) < 22) { state.story.pins.splice(state.story.pins.indexOf(pin), 1); toast('You reached your pin.', false, 3000); } else return { x: pin.x, z: pin.z, label: 'Your pin' }; } }
-  const tr = trackedOne();
-  if (tr === 'job') return { x: state.job.x, z: state.job.z, label: state.job.toName };
-  if (tr === 'passenger') return { x: state.passenger.x, z: state.passenger.z, label: state.passenger.toName };
-  for (const q of state.quests) {
-    if (q.id !== tr) continue;
-    if (questProgress(q, state) >= questNeed(q)) { const [cx, cz] = q.giverId.split(',').map(Number), gd = world.desc(cx, cz); if (gd) return { x: gd.x, z: gd.z, label: q.giverName }; }
-    if (q.type !== 'crates') continue;
-    const open = q.crates.filter((c) => !c.got);
-    if (!open.length) continue;
-    if (Math.hypot(q.center.x - ship.pos.x, q.center.z - ship.pos.z) > 75) return { x: q.center.x, z: q.center.z, label: 'Lost crates' };
-    let best = open[0];
-    for (const c of open) if (Math.hypot(c.x - ship.pos.x, c.z - ship.pos.z) < Math.hypot(best.x - ship.pos.x, best.z - ship.pos.z)) best = c;
-    return { x: best.x, z: best.z, label: 'Crate' };
-  }
-  return goalTarget();
-}
-/** where the main goal is, when it has one single place (the early story only: later goals are found, never marked) */
-function goalTarget() {
-  // Tama while a letter from Perrin waits there (or is about to), then the riddle's isle
-  const g = objectives.current, toTama = g && (g.id === 'perrin' || (g.id === 'dig' && state.story.letterP1 !== 'taken'));
-  const cell = g && (toTama ? [0, -1] : ({ harbour: [0, -1], dig: [1, -1] })[g.id]);
-  if (cell) { const d = world.desc(cell[0], cell[1]); if (d) return { x: d.x, z: d.z, label: d.name }; }
-  if (g && g.id === 'job' && state.job) return { x: state.job.x, z: state.job.z, label: state.job.toName };
-  if (g && g.id === 'passenger' && state.passenger) return { x: state.passenger.x, z: state.passenger.z, label: state.passenger.toName };
-  return null;
-}
-/** a distance as sailing time: nobody can judge 179 fathoms, everyone can judge four minutes */
-function etaText(dist) {
-  const v = ship.rowing ? 2.6 : 8 * ship.mods.speed, m = dist / v / 60;
-  return m < 0.75 ? 'under a minute' : `${Math.max(1, Math.round(m))} min`;
-}
-/** the slip: what to do, where, which way and how long. The same three lines on the HUD, in the log (Orders) and (later) on the chart */
-function slipInfo() {
-  const g = objectives.pending ? null : objectives.current, c = { state, ship };
-  if (!g) { const t = trackTarget(); return t ? slipTo({ what: t.label, goal: false }, t) : { what: objectives.pending ? 'Mara has something to say' : 'Sail where you like', where: objectives.pending ? '' : 'Everything inside the fog is yours', goal: false }; }
-  const s = { what: `${g.title}${goalCount(g, c).replace(/<\/?b>/g, '')}`, goal: true }, t = goalTarget();
-  if (t) return slipTo(s, t);
-  s.where = g.where || ''; return s;
-}
-function slipTo(s, t) {
-  const dx = t.x - ship.pos.x, dz = t.z - ship.pos.z, d = Math.hypot(dx, dz);
-  s.where = t.label; s.way = `${bearingName(dx, dz)} · ${etaText(d)}`; s.place = true;
-  const against = Math.abs(angleDiff(Math.atan2(dx, -dz), wind.dir)) > 0.75 * Math.PI && d > 40 && !ship.rowing && weather.calm < 0.5;
-  if (against) s.note = 'The wind is against you: zig-zag.';
-  return s;
-}
-rt.trackNow = null;
-function drawCompass(w, heading) {
-  const jobA = rt.trackNow ? Math.atan2(rt.trackNow.x - ship.pos.x, -(rt.trackNow.z - ship.pos.z)) : null;
-  windView.dir = abyss.windDir(w.dir); windView.strength = w.strength; windView.gust = w.gust; windView.floor = abyss.windFloor(Math.max(ship.mods.floor, ship.floorMin || 0)); windView.wedge = ship.wedge; windView.wedgeEnd = ship.wedgeEnd;
-  drawWind(compass, windView, heading, performance.now() / 1000, jobA);
-}
-
-// mission tracker (Q)
-const trackerEl = $('tracker');
-rt.trackerHtml = null;
-function updateTracker() {
-  rt.trackNow = trackTarget();
-  const show = settings.tracker !== false && rt.started && !rt.modal;
-  trackerEl.style.display = show ? 'block' : 'none';
-  if (!show) return;
-  const rows = [];
-  const g = objectives.pending ? null : objectives.current;   // the next goal shows when Mara announces it
-  const fresh = performance.now() < rt.trackerNewUntil; trackerEl.classList.toggle('flash', fresh);
-  if (g) { const s = slipInfo();   // the slip: what, where, which way and how long (always these three, in this order)
-    rows.push(`<div class="trow main"><i class="ico flag"></i>${g.title}${goalCount(g, { state, ship })}${fresh ? '<span class="tag">NEW</span>' : ''}</div>${s.where ? `<div class="trow where">${s.where}</div>` : ''}${s.way ? `<div class="trow way">${s.way}</div>` : ''}`); }
-  const tr = trackedOne(), others = (state.job ? 1 : 0) + (state.passenger ? 1 : 0) + state.quests.length - (tr ? 1 : 0);
-  if (tr === 'job') rows.push(`<div class="trow">${pxi('letter')} ${state.job.toName}</div>`);
-  else if (tr === 'passenger') rows.push(`<div class="trow">${pxi('talk')} ${state.passenger.name} to ${state.passenger.toName}</div>`);
-  else { const q = state.quests.find((x) => x.id === tr); if (q) rows.push(`<div class="trow">${questIcon(q)} ${questTitle(q, rt.dread)} <b>${questProgress(q, state)}/${questNeed(q)}</b></div>`); }
-  if (others > 0) rows.push(`<div class="thint">+${others} more in your orders (J)</div>`);
-  const html = rows.length ? abyss.hud('track', rows.join('')) + '<div class="thint">[Q] hide</div>' : '';
-  if (html !== rt.trackerHtml) { rt.trackerHtml = html; trackerEl.innerHTML = html; }
-  trackerEl.style.display = html ? 'block' : 'none';
-}
+initHud();   // (ui/hud.js)
 
 // ---------------------------------------------------------------- game state
 /** the dread the captain feels: by distance, but never reset by turning back (peak hysteresis), and a little more at night from the Trade Belt on */
@@ -1309,378 +1235,9 @@ function stormAndCalm(dt) {
   }
 }
 
-// ---------------------------------------------------------------- tabletop: encounter cards, crew wishes, dice
-const LOCALS = ['a one-eyed net-mender', 'the harbourmaster\'s aunt', 'a sunburnt docker', 'a very calm child', 'a fisherman who smells of tar'];
-rt.pendingHand = null, rt.pigHome = null, rt.cardT = 900 + Math.random() * 600, rt.cardBusy = false, rt.wishT = 0;
-const localGames = new LocalGames(audio);
-const pig = new Pig(pigEl, { onEnd: (won) => { if (won) { state.gold += 20; audio.play('treasure'); if (Math.random() < 0.5) { const r = cardCtx().rumour('a sore loser at the tavern'); if (r) toast(r, false, 7000); } } } });
-$('pigRoll').addEventListener('click', () => pig.roll());
-$('pigHold').addEventListener('click', () => pig.hold());
-$('pigLeave').addEventListener('click', () => { if (pig.busy) return; closeModal(); if (rt.pigHome) { rt.harbourIsl = rt.pigHome; rt.hbTab = 'tavern'; openModal('harbour'); } });
-rt.cardNext = null;
-$('cardDone').addEventListener('click', () => { if (rt.cardNext) { const f = rt.cardNext; rt.cardNext = null; f(); return; } closeModal(); });
-function cardCtx() {
-  return {
-    state, FISH,
-    hurt: (n) => hurtPlayer(n),
-    glitch: () => { rt.preGlitch = rt.dread; rt.glitchT = 0.75; rt.shake = 0.4; },
-    repNear: () => { const h = world.nearest(ship.pos.x, ship.pos.z, 900, ['harbour']); if (h) repOf(state, h.desc.id).deliveries++; },
-    rumour: (src) => { const r = findRumour(world, { x: ship.pos.x, z: ship.pos.z }, state); if (!r) return null;
-      state.rumoured[r.d.id] = { name: r.d.name, x: Math.round(r.d.x), z: Math.round(r.d.z), source: src, found: false };
-      return `A map: treasure on ${r.d.name}, ${bearingName(r.d.x - ship.pos.x, r.d.z - ship.pos.z)} of here. Marked on your chart.`; },
-    castaway: () => {
-      if (state.crew.length >= 2) { cardCtx().repNear(); return 'They are dropped off at the next harbour with a story to tell. Your crew is full.'; }
-      const ids = Object.keys(TRAITS), names = ['Wren', 'Old Ibbs', 'Salt Annie', 'Pim'];
-      const c = { name: names.find((n) => !state.crew.some((x) => x.name === n)) || 'Pim', look: 'still salty from the raft', trait: ids[Math.floor(Math.random() * ids.length)], wish: { kind: 'volcano', text: 'wants to see a fire mountain', done: false }, cost: 0 };
-      signOn(c, 3); return `${c.name} climbs aboard, drinks a whole bucket of water, and picks up a rope. (${TRAITS[c.trait].name} joins the crew.)`;
-    },
-  };
-}
-// Mara's mood, from how the voyage has treated her: cheerful (rested within two days, hull sound, the water still bright),
-// rattled (a battered hull or the water gone wrong), steady otherwise. Cheerful and rattled tip sea and luck rolls.
-function maraMood() {
-  const hull = state.hp / Math.max(1, ship.mods.maxHp), rested = state.story.restDay != null && state.dayN - state.story.restDay <= 2;
-  if (hull < 0.3 || rt.dread >= 0.6) return 'rattled';
-  if (rested && hull >= 0.6 && rt.dread < 0.5) return 'cheerful';
-  return 'steady';
-}
-// advantage and disadvantage on the d20: the die is thrown twice and the better (or worse) one stands
-setAdvProvider((check) => {
-  let a = 0; const why = [];
-  const up = (t) => { a++; why.push(t); }, down = (t) => { a--; why.push(t); };
-  if (check.treasure && !check.attempts) up('right shore first try');
-  { const mood = maraMood(); if (check.kind === 'sea' || check.kind === 'luck') { if (mood === 'cheerful') up('Mara is cheerful'); else if (mood === 'rattled') down('Mara is rattled'); } }
-  if (check.kind === 'talk') {   // standing: regulars are heard, a stranger at their own counter is not
-    const h = check.harbour ? { desc: { id: check.harbour } } : world.nearest(ship.pos.x, ship.pos.z, 400, ['harbour']);
-    if (h) { const lvl = friendLevel(repOf(state, h.desc.id)); if (lvl >= 2) up('known here'); else if (lvl === 0 && check.harbour) down('a stranger here'); }
-  }
-  if (check.treasure && state.buffs.dig > 0) up('rum rations');
-  if (check.kind === 'sea' && weather.storm > 0.35) down('storm');
-  if ((check.kind === 'sea' || check.kind === 'luck') && tod.night > 0.6 && !state.upgrades.lantern) down('dark, no lantern');
-  a = Math.max(-1, Math.min(1, a));
-  return [a, a ? why : []];
-});
-function openCard(card) {
-  if (!card) return;
-  rt.cardBusy = false; rt.cardNext = null; $('cardDone').textContent = 'Sail on [E]'; openModal('card'); audio.play('card');
-  const out = (t) => { $('cardOut').textContent = t; $('cardDone').style.display = ''; cardEl.querySelectorAll('#cardChoices button').forEach((b) => { b.disabled = true; }); rt.cardBusy = 'done'; };
-  renderCard(card, (ch) => {
-    if (rt.cardBusy) return; rt.cardBusy = true;
-    if (!ch.check) { out(ch.go(cardCtx())); return; }
-    rollCheck(state, ch.check, (ok, n) => { markFromRoll(n); out((ok ? ch.ok : ch.fail)(cardCtx())); });
-  });
-}
-// ---- one-time caves: a few rooms of choices and d20 checks on their own full screen; when it is over, won or lost, the sea closes over the mouth
-rt.caveRun = null;
-const caveScene = new CaveScene($('caveCv'));
-const COLOUR_DEEP = new THREE.Color('#5a2a8a'), COLOUR_SHALLOW = new THREE.Color('#b068e8');
-const CAVE_TIDE = { door: 0.2, ledge: 0.34, chest: 0.5 };
-const hermitFace = () => '<i style="position:absolute;left:18px;top:14px;width:28px;height:14px;background:#e8e0d0"></i><i style="position:absolute;left:22px;top:28px;width:20px;height:24px;background:#e8e0d0"></i><i style="position:absolute;left:23px;top:20px;width:18px;height:11px;background:#e8b890"></i><i style="position:absolute;left:10px;top:12px;width:44px;height:7px;background:#7a3a2a"></i>';
-function openCave(site) {
-  const cv = CAVES[site.kind]; if (!cv) return;
-  rt.caveRun = site; rt.cardNext = null; rt.cardBusy = false; openModal('cave'); audio.play('card');
-  const look = caveLook(site.kind);
-  caveEl.classList.toggle('passage', look === 'passage'); caveEl.classList.toggle('lantern', look === 'lantern');
-  $('caveTitle').querySelector('b').textContent = cv.name;
-  caveScene.start();
-  const done = $('caveDone');
-  const show = (id) => {
-    const node = cv.nodes[id]; rt.cardBusy = false; rt.cardNext = null;
-    const tide = CAVE_TIDE[id] != null ? CAVE_TIDE[id] : 0.2;
-    caveScene.show(site.kind, id, tide);
-    $('caveTitle').querySelector('small').textContent = cv.tag || (site.kind === 'grotto' ? 'THE TIDE IS COMING IN' : site.kind === 'colourspring' ? 'THE WATER HUMS' : id === 'door' ? 'THE MOUTH OF THE CAVE' : '');
-    if (node.enter) threads.event(node.enter, null, site);   // a room can do something when it is shown (the bell tolls)
-    $('caveTide').firstElementChild.style.height = `${Math.round(tide / 0.6 * 100)}%`;
-    const face = $('caveFace'); face.classList.toggle('gone', look === 'passage');
-    face.innerHTML = site.kind === 'larder' && id === 'tea' ? hermitFace() : `<i class="pxi ico ${cv.icon}"></i>`;
-    $('caveWho').textContent = site.kind === 'larder' && id === 'tea' ? 'The hermit' : '';
-    const list = (typeof node.choices === 'function' ? node.choices(threads) : node.choices).filter((ch) => !ch.if || threads.flag(ch.if));
-    $('caveBox').classList.remove('resolved'); $('caveSay').textContent = typeof node.text === 'function' ? node.text(threads) : node.text; $('caveOut').textContent = ''; done.style.display = 'none';
-    $('caveChoices').innerHTML = list.map((ch, i) => `<button data-i="${i}">${i + 1}. ${ch.label}${ch.check ? ` <small>(${ch.check.label} ${ch.check.dc})</small>` : ''}</button>`).join('');
-    $('caveChoices').querySelectorAll('button').forEach((bt) => bt.addEventListener('click', () => choose(list[+bt.dataset.i])));
-  };
-  const resolve = (r) => {
-    if (r.cancel) { closeModal(); return; }   // not yet: the cave stays
-    let text = r.text || ''; const fx = r.fx || {}, ctx = cardCtx();
-    if (!text && r.next && !Object.keys(fx).length) { show(r.next); return; }   // the doorway: straight into the first room
-    if (fx.gold) { state.gold = Math.max(0, state.gold + fx.gold); text += ` (${fx.gold > 0 ? '+' : ''}${fx.gold} gold)`; }
-    if (fx.hurt) ctx.hurt(fx.hurt);
-    if (fx.note) state.notes.push({ text: fx.note, dark: false });
-    if (fx.time) state.time = (state.time + fx.time) % 1;
-    if (fx.rep) ctx.repNear();
-    if (fx.colour === 'seal') threads.seal();
-    if (fx.event) { const extra = threads.event(fx.event, fx.arg, site); if (extra) text += ` ${extra}`; }
-    if (fx.rumour) { const rm = ctx.rumour('a folded chart in a cave'); text += ` ${rm || 'You cannot read where it leads.'}`; }
-    $('caveOut').textContent = text; $('caveBox').classList.add('resolved'); rt.cardBusy = 'done';
-    if (!r.next) { caves.finish(site, r.end || 'win'); done.textContent = 'Back to the ship [E]'; rt.cardNext = null; }
-    else { done.textContent = 'Go deeper [E]'; rt.cardNext = () => show(r.next); }
-    done.style.display = 'inline-block';
-  };
-  const choose = (ch) => {
-    if (rt.cardBusy) return; rt.cardBusy = true;
-    if (!ch.check) { resolve(ch.go); return; }
-    rollCheck(state, ch.check, (ok, n) => { markFromRoll(n); resolve(ok ? ch.ok : ch.fail); });
-  };
-  done.onclick = () => { if (rt.cardNext) { const f = rt.cardNext; rt.cardNext = null; f(); return; } closeModal(); };
-  show('door');
-}
-function tabletopTick(dt) {
-  // encounter signs: rare, out on open water, never in weather, never part of any story
-  sighting.update(dt, rt.tNow, ship);
-  caves.update(dt, ship, window.__BUILD !== 'demo' && laterOK() && rt.dread < 0.5);   // caves are a full-game feature: not in the demo build
-  if (unlocked(state, 'cards') && !sighting.active && ship.speed > 2 && rt.dread < 0.95 && weather.fog < 0.3 && weather.storm < 0.3 && !world.nearest(ship.pos.x, ship.pos.z, 90) && !fishing.active) {
-    rt.cardT -= dt;
-    if (rt.cardT <= 0) {
-      const card = drawCard(rt.dread, state.cardsSeen, SIGHTS);
-      if (card && sighting.spawn(card, ship, world)) { state.cardsSeen.push(card.id); if (state.cardsSeen.length > 5) state.cardsSeen.shift(); rt.cardT = 1500 + Math.random() * 1000; }
-      else rt.cardT = 30;
-    }
-  }
-  ship.rowBoost = hasTrait(state, 'rower') ? 1.4 : 1;
-  document.body.classList.toggle('eyes', hasTrait(state, 'eyes'));
-  // crew wishes
-  if ((rt.wishT -= dt) > 0) return; rt.wishT = 2;
-  for (const c of state.crew) {
-    const w = c.wish; if (!w || w.done || w.faded) continue;
-    const hit = w.kind === 'harbour' ? false : world.nearest(ship.pos.x, ship.pos.z, 70, [w.kind]);
-    if (hit) wishDone(c);
-  }
-}
-// ---- crew only stay a while: a hired hand for 3-5 days, a castaway or a passenger for 3, a fulfilled wish adds two. Then they go ashore.
-for (const c of state.crew) if (c.until == null) c.until = state.dayN + 4;   // crew from an older save
-function signOn(c, stay) { c.until = state.dayN + stay; state.crew.push(c); }
-const daysLeft = (c) => Math.max(0, (c.until || 0) - state.dayN);
-function crewLeave() {
-  for (const c of [...state.crew]) {
-    if (c.until == null) c.until = state.dayN + 4;   // crew from an older save
-    if (c.permanent || c.until > state.dayN) continue;
-    state.crew = state.crew.filter((x) => x !== c);
-    toast(`${c.name} has gone ashore. ${c.wish && c.wish.done ? 'Smiling, mostly.' : 'No hard feelings.'} (${TRAITS[c.trait].name} leaves the crew.)`, false, 7000);
-  }
-}
-function wishDone(c) {
-  c.wish.done = true; c.until = Math.max(c.until || state.dayN, state.dayN) + 2;
-  toast(`${c.name} stands at the rail a long time. (${c.name}'s wish came true: their bonus grows by 1.)`, false, 7000);
-  if (!eventQuiet()) objectives.mate.say(`Look at ${c.name}. I have never seen anyone smile with only their eyebrows before.`);
-}
+initEncounters();   // (ui/encounters.js)
 
-// ---------------------------------------------------------------- story: chapter beats, the fog wall, the demo end
-const HUT_NOTES = [
-  'If you find the black hut, do not sit down. I sat down. - R.',
-  'She has a book. My name is in it now. Twice. She let me throw once. It came up {fate}. It will come up {fate} for you too. - R.',
-  'Third bottle I have thrown. The hut is not where I left it. The hut is exactly where I left it.',
-];
-const CHECKS = [['a red rock on its north shore', 'red'], ['three palms in a row on its east side', 'palms'], ['a bell on a post by the water', 'bell'], ['a white stone shaped like a tooth', 'tooth']];
-function perrinNote(quiet = false) {
-  // an island far from Tama that Perrin "checks": the farthest ring the fog allows in chapter IV
-  const rng = mulberry32(hash2(state.seed, 77, 9)), cands = [];
-  for (let cz = -12; cz <= 12; cz++) for (let cx = -12; cx <= 12; cx++) {
-    const d = world.desc(cx, cz); if (!d || d.type === 'harbour' || d.hut) continue;
-    const r = Math.hypot(d.x, d.z); if (r > 720 && r < 1080) cands.push(d);
-  }
-  const d = cands[Math.floor(rng() * cands.length)] || world.desc(1, -1);
-  const [detail] = CHECKS[Math.floor(rng() * CHECKS.length)];
-  state.story.check = { id: d.id, name: d.name, x: Math.round(d.x), z: Math.round(d.z), r: d.r, dir: bearingName(d.x, d.z), detail };
-  state.story.perrinNote = true;
-  state.notes.push({ text: `Perrin: "Be a dear and check my chart. ${d.name}, ${state.story.check.dir} of Tama, should have ${detail}. Nobody has been there to tell me, so I need eyes. Bring back my compass if you find it. It's the one that's wrong."`, dark: false });
-  if (!quiet) toast('The harbourmaster hands you a folded note from Old Perrin. (Ship\'s book)', false, 6000);
-}
-// Mara notices the hut on the chart: when the chart is next opened, or within a minute of sailing, whichever comes first (and never after the first throw)
-function hutNod(delay) {
-  if (state.story.hutNod !== 'pending') return;
-  state.story.hutNod = 'done';
-  if (state.hut && state.hut.rolls.length) return;
-  const line = state.story.hutFramed ? 'Captain... was that hut always on our chart? I did not draw it. Did you draw it?'
-    : 'Captain... look at our chart. There is a hut on it now. I did not draw it. Did you?';   // not looked yet: she points you to it
-  setTimeout(() => objectives.mate.say(line, true), delay);
-}
-function revealHut() {
-  const h = world.hutDesc; if (!h) return;
-  state.discovered[h.id] = state.discovered[h.id] || 1;
-  state.story.hutNod = 'pending';
-  setTimeout(() => hutNod(0), 60000);
-}
-function showDemoEnd() { $('demoend').classList.add('show'); audio.play('ending'); }
-$('demoGo').addEventListener('click', () => {
-  $('demoend').classList.remove('show');
-  if (window.__BUILD === 'demo') toast('Keep sailing: everything inside the fog is still yours to do.', false, 5000);   // the demo opens nothing more
-  else { state.story.free = true; toast('The fog thins. The sea is yours.', false, 5000); }
-});
-rt.gateFog = 0, rt.gateToastT = 0, rt.musingT = 120, rt.gateLost = null, rt.lostK = 0, rt.lostWob = 0;
-/** where the fog leaves no current: 0 in or near any fog (the chapter wall, the fog bank), 1 in clear water */
-function fogEdge(x, z) {
-  const R = gateRadius(state, tideFalls()), d = Math.hypot(x, z);
-  let k = R === Infinity ? 1 : 1 - smoothstep(R - 220, R - 120, d);
-  const b = LM.broken; if (!places.open('broken', state.upgrades)) k = Math.min(k, smoothstep(110 + 40, 110 + 100, Math.hypot(x - b.x, z - b.z)));
-  return k;
-}
-/** lost in fog: you see nothing, the helm does not answer, and the ship wanders but is always drawn back out */
-function fogLost(dt) {
-  const out = rt.gateLost || places.lost || (rt.seamT > 0 ? { x: 0, z: 0 } : null);
-  rt.lostK += ((out ? 1 : 0) - rt.lostK) * Math.min(1, dt * (out ? 1.5 : 0.6));
-  if (!out) return;
-  rt.lostWob += dt;
-  const hum = isKnown(state, 'hum');   // the two players' tune carries through fog: the helm half answers, and the way home is plain
-  const want = Math.atan2(out.x, -out.z) + (Math.sin(rt.lostWob * 0.7) * 0.6 + Math.sin(rt.lostWob * 1.9) * 0.25) * (hum ? 0.25 : 1);   // aimless, but always bending outward
-  ship.heading += angleDiff(ship.heading, want) * Math.min(1, dt * (hum ? 1.3 : 0.5));
-  ship.trim += (0.45 - ship.trim) * Math.min(1, dt * 0.8);
-  ship.speed += (3.2 - ship.speed) * Math.min(1, dt * 0.6);
-  ship.pos.x += out.x * 1.8 * dt; ship.pos.z += out.z * 1.8 * dt;   // and the fog itself lets go of you
-}
-/** clues that are noticed by being somewhere, stopped, at the right time (docs/WORLD_REDESIGN.md 6.2): Tama's noon bells, the Two Players across the water */
-const WHITE_MIST = new THREE.Color('#ffffff');
-rt.clueDwell = {};
-// the loop seam (docs/WORLD_REDESIGN.md 5.5): the far south-east edge of the Dim meets the far west of the Lid. Sail east far enough and you
-// arrive west, in fog, with the helm gone for a few seconds. And the deep sectors are named again each time you come home from them.
-rt.seamT = 0, rt.seamDone = true, rt.wasDeep = false;
-function seamTick(dt) {
-  if (window.__BUILD === 'demo') return;
-  const d = Math.hypot(ship.pos.x, ship.pos.z), ang = Math.atan2(ship.pos.z, ship.pos.x) * 180 / Math.PI;
-  if (rt.seamT <= 0 && d > 1925 && d < 2000 && ang > 28 && ang < 52 && (state.story.reach || 0) > 1500) { rt.seamT = 4; rt.seamDone = false; }
-  if (rt.seamT > 0) {
-    rt.seamT -= dt;
-    if (!rt.seamDone && rt.seamT < 2.6) { const a = 220 * Math.PI / 180; ship.pos.x = Math.cos(a) * 1930; ship.pos.z = Math.sin(a) * 1930; rt.seamDone = true; }
-  }
-  if (d > 1250) rt.wasDeep = true;
-  else if (d < 1000 && rt.wasDeep) { rt.wasDeep = false; state.story.epoch = (state.story.epoch || 0) + 1; bumpSectors(state.story.epoch); }
-}
-bumpSectors((state.story && state.story.epoch) || 0);
-function clueTick(dt) {
-  if (!state.story || onbQuiet()) return;
-  const slow = ship.speed < 1.2, hour = state.time * 24;
-  const at = (lm, R) => Math.hypot(ship.pos.x - LM[lm].x, ship.pos.z - LM[lm].z) < R;
-  const dwell = (k, on, T) => { rt.clueDwell[k] = on ? (rt.clueDwell[k] || 0) + dt : 0; return rt.clueDwell[k] >= T; };
-  if (dwell('bells', slow && Math.hypot(ship.pos.x, ship.pos.z) < 150 && hour > 11.8 && hour < 12.4 && state.hut && state.hut.rolls.length > 0, 6)) seeClue('CL-C3-a');
-  if (window.__BUILD !== 'demo') { const l = maraRemembers(state, dt, laterOK() && !objectives.mate.busy && !objectives.pending && !rt.modal && !eventQuiet() && !world.nearest(ship.pos.x, ship.pos.z, 60)); if (l) objectives.mate.say(l); }   // her village comes back to her a piece at a time (table.js); the third piece is the blue door, some time after the Sunken Street
-  if (isKnown(state, 'rest') && slow && tod.night > 0.4 && state.story.peakDread > 0) state.story.peakDread = Math.max(0, state.story.peakDread - 0.004 * dt);   // the crew rest on deck (CL-F2-a): the worst you have sailed into fades a little while you lie still at night
-  if (dwell('players', slow && tod.night > 0.45 && weather.calm > 0.5 && (at('teo', 300) || at('ilse', 300)), 10)) seeClue('CL-F1-a');
-}
-function seaGate(dt) {
-  const R = gateRadius(state, tideFalls()), d = Math.hypot(ship.pos.x, ship.pos.z);
-  if (d < R && d > (state.story.reach || 0)) state.story.reach = d;   // how far you have really sailed: a stratum, once entered, stays open
-  setReach(R);
-  // an errand or passenger that points beyond the fog (taken before the fog was understood, or from an old save) is released
-  for (const [key, label] of [['job', 'The delivery'], ['passenger', 'Your passenger']]) {
-    const o = state[key];
-    if (o && Math.hypot(o.x, o.z) > R - 30) { state[key] = null; if (state.tracked === key) state.tracked = null; toast(`${label} was bound beyond the fog. It is let go, and nothing is lost.`, false, 6000); }
-  }
-  rt.gateFog = R === Infinity ? 0 : clamp((d - (R - 160)) / 160, 0, 1);
-  rt.gateLost = null;
-  if (d > R) {   // past the fog wall: lost (fogLost takes the helm and the ship drifts back toward Tama)
-    rt.gateLost = { x: -ship.pos.x / d, z: -ship.pos.z / d };
-    objectives.remark('gate', rt.dread);
-    if ((rt.gateToastT -= dt) <= 0) { rt.gateToastT = 25; toast('The fog swallows everything. The helm will not answer; somehow the bow comes round toward home.', false, 5000); }
-  }
-}
-
-// gusts, currents and the barriers round the hand-made places (seaplay.js, places.js)
-rt.laneShown = null;
-function seaTick(dt, windNow) {
-  const ev = seaplay.update(dt, { ship, wind: windNow, t: abyss.waveTime(Math.floor(rt.animT * 12) / 12), wave: rt.seaWave, night: tod.night, calm: weather.calm > 0.5, on: !onbQuiet() && !ship.rowing && rt.lostK < 0.1, slack: window.__BUILD !== 'demo', fogEdge, gustLong: life.meal(state) === 'curry' });
-  if (ev.gust && !state.hints.gust) { state.hints.gust = true; toast('Caught a gust! Steer into the dark patches on the water to fill the sails.', false, 5500); }
-  if (ev.lane !== rt.laneShown) {
-    rt.laneShown = ev.lane;
-    if (ev.lane && !onbQuiet()) {
-      const seen = state.story.lanes = state.story.lanes || {};
-      if (!seen[ev.lane.name]) { seen[ev.lane.name] = 1; toast(`A current: ${ev.lane.name}. Ride it and it carries you; fight it and it holds you back.`, false, 6000); }
-    }
-  }
-  const pm = places.tick(dt, ship, state.upgrades, scene.fog.color, false);
-  if (pm) { toast(pm.text, false, 5000); if (pm.hurt) hurtPlayer(pm.hurt); }
-}
-
-// lamp oil (oil.js): burns while the lantern is lit; empty at night = a dark lantern and a short view
-const oilOn = () => state.goals.i >= OIL_FROM || !!params.get('nomate');
-rt.lampOut = false, rt.oilNight = -1;
-/** 1 while the ship is in Free Cays waters (their sector), else 0: the night music there is a lone guitar with silences */
-function freeCaysNow() { return sectorAt(ship.pos.x, ship.pos.z, state.seed).faction.id === 'free' ? 1 : 0; }
-function oilCtx() { return { night: tod.night, fog: weather.fog, storm: weather.storm, dread: rt.dread, rowing: ship.rowing }; }
-function oilTick(dt) {
-  const cap = oilCap(state.upgrades);
-  const off = !!state.story.lampOff, needed = lanternLit(oilCtx());   // L puts the lantern out by hand (saves oil, sail by moonlight)
-  if (!oilOn()) { state.oil = cap; rt.lampOut = off && needed; return; }
-  const lit = needed && !off, before = state.oil;
-  if (lit) state.oil = clamp(state.oil - oilRate(oilCtx()) * dt, 0, cap);
-  rt.lampOut = needed && (off || state.oil <= 0);
-  const night = state.dayN * 2 + (state.time > 0.5 ? 1 : 0);   // one warning of each kind per dark spell
-  if (lit && before > cap * 0.25 && state.oil <= cap * 0.25 && rt.oilNight !== night && !eventQuiet()) { rt.oilNight = night; if (!objectives.mate.busy) objectives.mate.say('The lamp is getting low, Captain. Oil at any market, or we turn for home.'); else toast('The lamp oil is running low.', false, 4000); }
-  if (lit && tod.night > 0.6 && !state.story.tellShadow && lateTell()) { state.story.tellShadow = 1; toast('The lamp throws one shadow across the deck.', false, 6000); }   // a tell: one shadow
-  if (before > 0 && state.oil <= 0 && lit) { toast('The lantern gutters out. The dark comes right up to the rail.', rt.dread > 0.4, 6000); if (!state.hints.oilOut) { state.hints.oilOut = true; setTimeout(() => objectives.mate.say('No light, no line, and I can barely see the bow. Buy oil at a market next time, Captain.'), 3500); } }
-}
-// torn sails: too much canvas in a strong wind for too long and the mainsail rips (two thirds speed, ship.torn) until a patch
-// kit is used at sea (stop, E) or a harbour's sailmaker mends it. Counts from the same chapter as the oil.
-rt.sailStrain = 0, rt.strainWarned = false;
-const SAIL_LIMIT = 20;   // seconds of full sail in a gale before it tears (longer with better sails, shorter in a storm)
-function sailTick(dt, windNow) {
-  if (!oilOn() || state.sailsTorn || ship.rowing) { rt.sailStrain = 0; return; }
-  const gale = weather.storm > 0.6 && windNow.strength > 1.0;   // only a real storm: everyday wind, even a fresh breeze, never tears the canvas
-  if (gale && ship.trim > 0.55) {
-    rt.sailStrain += dt * (ship.trim - 0.35) * 1.6 * (0.6 + (weather.storm - 0.6) * 2.5 + Math.max(0, windNow.strength - 1.1)) * (1 - 0.15 * (state.upgrades.sails || 0)) * (life.meal(state) === 'rum' ? 0.4 : 1);
-    if (!rt.strainWarned && rt.sailStrain > SAIL_LIMIT * 0.35) { rt.strainWarned = true; toast('The canvas is straining in this wind! Reef the sails (S) before it tears.', false, 5000); audio.play('ui', { vol: 0.5 }); }
-    if (rt.sailStrain >= SAIL_LIMIT) {
-      state.sailsTorn = true; ship.setTorn(true); rt.sailStrain = 0; rt.strainWarned = false; rt.shake = Math.max(rt.shake, 0.6);
-      toast('RRRIP! The mainsail tears. Two thirds speed until it is patched.', false, 6500);
-      setTimeout(() => objectives.mate.say(state.patchKits > 0 ? 'We have a patch kit, Captain. Bring her to a stop and I will see to it (E).' : 'No patch kit aboard, Captain. We need a harbour and a sailmaker.'), 2500);
-    }
-  } else { rt.sailStrain = Math.max(0, rt.sailStrain - dt * 0.8); if (rt.sailStrain < 1) rt.strainWarned = false; }
-}
-function mendSails(how) { state.sailsTorn = false; ship.setTorn(false); rt.sailStrain = 0; toast(how, false, 4000); }
-function toggleLamp() {
-  const off = !state.story.lampOff;
-  if (!off && oilOn() && state.oil <= 0) { toast('No oil to light it. Buy some at a market.', false, 3500); return; }
-  state.story.lampOff = off;
-  toast(off ? 'Lantern out. Saving oil; you sail by the moon.' : 'Lantern lit.', false, 3000);
-  audio.play('ui', { vol: 0.4 });
-  $('oilrow').classList.toggle('off', off);
-}
-function buyOil(costMulNow) { const cap = oilCap(state.upgrades), need = cap - state.oil, cost = Math.ceil(need * OIL_PRICE * costMulNow); return { need, cost }; }
-
-// tacking: Mara's one-time tip when you point straight into the wind, and progress made upwind for the side goal
-rt.intoWindT = 0;
-function tackTick(dt) {
-  const rel = Math.abs(angleDiff(ship.heading, wind.dir));
-  if (rel > 0.8 * Math.PI && ship.trim > 0.4 && !ship.rowing) { rt.intoWindT += dt; if (rt.intoWindT > 4) objectives.remark('tack', rt.dread); } else rt.intoWindT = 0;
-  if (rel > 0.5 * Math.PI && rel < 0.8 * Math.PI && !ship.rowing) state.stats.upwind = (state.stats.upwind || 0) + ship.speed * dt * -Math.cos(rel);
-}
-
-rt.hullShown = -1;
-function hurtPlayer(dmg) {
-  const d = Math.max(1, Math.round(dmg));
-  state.hp -= d; rt.lastHit = rt.tNow; rt.shake = 0.7; audio.play('hit');
-  $('hit').classList.add('on'); setTimeout(() => $('hit').classList.remove('on'), 140);
-  if (state.hp / ship.mods.maxHp < 0.35) objectives.remark('lowhp', rt.dread);
-  if (state.hp <= 0) sinkPlayer();
-}
-function onHitEnemy(s, dmg) {
-  s.hp -= dmg;
-  if (s.hp > 0) return;
-  s.sinking = true; s.hostile = false; s.state = 'done'; s.engaged = false;
-  const gold = Math.round((45 + Math.random() * 70) * KINDS[s.kind].scale);   // cannonballs are only ever bought, so every volley counts
-  state.gold += gold; state.stats.sunk++; life.news(state, 'raider');
-  toast(`Raider sunk! +${gold} gold`, false, 6000);
-  if (state.stats.sunk === 1) toast('Unlocked: skull figurehead (see the shipyard).', false, 5000);
-}
-function sinkPlayer() {
-  state.hp = ship.mods.maxHp;
-  const lost = Math.round(state.gold * 0.25);
-  state.gold -= lost;
-  traffic.ships.filter((x) => x.hostile).forEach((x) => { x.hostile = false; x.engaged = false; });
-  const hs = nearby(world, ship.pos.x, ship.pos.z, 0, 1500, 'harbour').sort((a, b) => a.dist - b.dist)[0];
-  const tgt = hs ? { x: hs.d.x, z: hs.d.z + hs.d.r * 1.7, name: hs.d.name } : { x: 0, z: 0, name: 'Tama' };
-  $('fade').classList.add('on');
-  setTimeout(() => {
-    ship.pos.set(tgt.x, 0, tgt.z); ship.heading = 0; ship.speed = 0; rt.camHeading = 0;
-    $('fade').classList.remove('on');
-    toast(`The Gull went under. A fisherman dragged you to ${tgt.name}. You lost ${lost} gold; the hull is repaired.`, false, 8000);
-  }, 1100);
-}
-rt.newAsk = 0;
-$('pbNew').addEventListener('click', () => {
-  if (performance.now() - rt.newAsk > 4000) { rt.newAsk = performance.now(); $('pbNew').textContent = 'Really? Click again to start over'; return; }
-  session.noSave = true; try { localStorage.removeItem(SAVE_KEY); sessionStorage.setItem('hoist-new', '1'); if (fsEl()) sessionStorage.setItem('hoist-fs', '1'); } catch (e) { /* storage blocked */ }
-  location.href = location.pathname;
-});
-$('pbHint').addEventListener('click', () => { closeModal(); if (!abyss.maraHint()) objectives.askHint(rt.dread); });
+initStoryBeats();   // (systems/storybeats.js)
 
 // ---------------------------------------------------------------- captain's log
 const logbook = new Logbook({ slip: () => slipInfo(), eta: (d) => etaText(d), abyss, state, world, ship, seed: state.seed, locked: (tab) => !isOpen(state, 'log', tab), toast: (t) => toast(t), close: () => closeModal(), mate: objectives.mate, dread: () => rt.dread, mood: () => maraMood(), tabOpened: (t) => tabOpened(t),
