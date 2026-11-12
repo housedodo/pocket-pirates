@@ -3,6 +3,9 @@ import { shoreR } from './world.js';
 import { waveHeight } from './ocean.js';
 import { hash2 } from './util.js';
 import { THREAD_IDS, pickAwake } from './marks.js';
+import { sectorAt } from './sectors.js';
+// each thread belongs to a region (owner's mapping, CANON 2026-11-12); its site is looked for there first, then anywhere as before
+export const THREAD_REGION = { music: 'free', bell: 'lantern', coin: 'crown', house: 'crown', captain: 'reef', colour: 'drowned', hollow: 'drowned' };
 import { MODS } from './thread_mods.js';
 import './threadscenes.js';   // registers the scenes in CAVES
 
@@ -39,14 +42,24 @@ export class Threads {
   home() { return this.world.desc(0, -1); }
   /** per-thread saved state */
   tp(id, init) { const st = this.state.story; st.tp = st.tp || {}; return st.tp[id] || (st.tp[id] = init); }
-  /** a persistent open-water site for a thread, between min and max from Tama, clear of every island and of other sites */
+  /** every island out to about 2,500 from Tama (cached): the region searches reach the Drowned waters, which begin about 1,500 out */
+  scanFar() {
+    if (this.far) return this.far;
+    const list = [];
+    for (let cx = -22; cx <= 22; cx++) for (let cz = -23; cz <= 21; cz++) { const d = this.world.desc(cx, cz); if (d) list.push(d); }
+    return (this.far = list);
+  }
+  /** is (x, z) in the thread's own region (THREAD_REGION)? */
+  inRegion(id, x, z) { const r = THREAD_REGION[id]; return !r || sectorAt(x, z, this.state.seed).faction.id === r; }
+  /** a persistent open-water site for a thread, between min and max from Tama, clear of every island and of other sites; in its own
+   *  region if any such water lies within a wider band (min * 0.8 to max * 1.5), else as before */
   pick(id, min, max) {
     const tp = this.tp(id, {}); if (tp.site) return tp.site;
     const h = this.home(), isl = this.scan(), n = THREAD_IDS.indexOf(id) + 1, others = Object.values(this.state.story.tp || {}).map((o) => o.site).filter(Boolean);
-    for (let k = 0; k < 300; k++) {
-      const a = (Math.abs(hash2(this.state.seed, k, 301 + n)) % 628) / 100, r = min + (Math.abs(hash2(this.state.seed, k, 401 + n)) % 1000) / 1000 * (max - min);
+    for (const [lo, hi, own] of [[min * 0.8, max * 1.5, true], [min, max, false]]) for (let k = 0; k < 400; k++) {
+      const a = (Math.abs(hash2(this.state.seed, k, 301 + n)) % 628) / 100, r = lo + (Math.abs(hash2(this.state.seed, k, 401 + n)) % 1000) / 1000 * (hi - lo);
       const x = h.x + Math.cos(a) * r, z = h.z + Math.sin(a) * r;
-      if (isl.some((d) => Math.hypot(d.x - x, d.z - z) < d.r + 55) || others.some((o) => Math.hypot(o.x - x, o.z - z) < 300)) continue;
+      if ((own && !this.inRegion(id, x, z)) || isl.some((d) => Math.hypot(d.x - x, d.z - z) < d.r + 55) || others.some((o) => Math.hypot(o.x - x, o.z - z) < 300)) continue;
       return (tp.site = { x, z });
     }
     return (tp.site = { x: h.x + max, z: h.z });
@@ -100,8 +113,8 @@ export class Threads {
     if (!this.awake('colour')) return null;
     if (st.colour) return st.colour;
     const home = this.world.desc(0, -1); if (!home) return null;
-    const cand = this.scan().filter((d) => d.type === 'atoll' && Math.hypot(d.x - home.x, d.z - home.z) > 450 && Math.hypot(d.x - home.x, d.z - home.z) < 1300)
-      .sort((a, b) => a.id < b.id ? -1 : 1);
+    const atolls = (lo, hi, own) => (own ? this.scanFar() : this.scan()).filter((d) => d.type === 'atoll' && Math.hypot(d.x - home.x, d.z - home.z) > lo && Math.hypot(d.x - home.x, d.z - home.z) < hi && (!own || this.inRegion('colour', d.x, d.z))).sort((a, b) => a.id < b.id ? -1 : 1);
+    const own = atolls(400, 2400, true), cand = own.length ? own : atolls(450, 1300, false);   // in the Drowned waters if there is an atoll there
     if (!cand.length) return null;
     const d = cand[hash2(this.state.seed, 61, 1) % cand.length], th = ((hash2(Math.round(d.x), Math.round(d.z), this.state.seed + 9) >> 3) % 628) / 100, r = shoreR(d, th) + 22;
     st.colour = { src: { id: d.id, name: d.name, x: d.x + Math.cos(th) * r, z: d.z + Math.sin(th) * r }, found: false, day0: null, lastDay: null, patches: [{ x: d.x + Math.cos(th) * r, z: d.z + Math.sin(th) * r, r: 16 }], fish: 0, end: null, said: false, rumoured: false };
@@ -148,7 +161,7 @@ export class Threads {
     if (c.end === 'sealed') { for (const p of c.patches) p.r -= 7; c.patches = c.patches.filter((p) => p.r > 4); return; }
     for (const p of c.patches) p.r = Math.min(CAP, p.r + GROW);
     if (c.patches.length < MAX_PATCHES && (day - c.day0) % 3 === 2) {   // a new patch off the nearest trade harbour
-      const hs = this.scan().filter((d) => d.type === 'harbour' && c.patches.some((p) => Math.hypot(p.x - d.x, p.z - d.z) < 900) && !c.patches.some((p) => Math.hypot(p.x - d.x, p.z - d.z) < 140));
+      const hs = this.scanFar().filter((d) => d.type === 'harbour' && c.patches.some((p) => Math.hypot(p.x - d.x, p.z - d.z) < 900) && !c.patches.some((p) => Math.hypot(p.x - d.x, p.z - d.z) < 140));
       if (hs.length) {
         const d = hs[hash2(day, c.patches.length, S.seed + 4) % hs.length], th = ((hash2(Math.round(d.x), day, S.seed) >> 2) % 628) / 100, r = shoreR(d, th) + 40;
         c.patches.push({ x: d.x + Math.cos(th) * r, z: d.z + Math.sin(th) * r, r: 10 });

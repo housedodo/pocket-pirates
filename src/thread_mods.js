@@ -153,7 +153,8 @@ export function bellMod(hub) {
 // ================= THE FERRYMAN'S COIN: a grey passenger who pays in a worn coin, and a pier on no chart
 export function coinMod(hub) {
   const tp = hub.tp('coin', { state: 'none', from: null, day0: 0, fee: 0, ended: null, tp: null });
-  const offer = () => hub.scan().filter((d) => d.type === 'harbour' && d.id !== '0,-1' && Math.hypot(d.x - hub.home().x, d.z - hub.home().z) < 1100).sort((a, b) => a.id < b.id ? -1 : 1);
+  const harbours = (hi, own) => (own ? hub.scanFar() : hub.scan()).filter((d) => d.type === 'harbour' && d.id !== '0,-1' && Math.hypot(d.x - hub.home().x, d.z - hub.home().z) < hi && (!own || hub.inRegion('coin', d.x, d.z))).sort((a, b) => a.id < b.id ? -1 : 1);
+  const offer = () => { const own = harbours(1700, true); return own.length >= 2 ? own : harbours(1100, false); };   // the grey passenger asks in Crown harbours
   const offerAt = () => { const l = offer(); return l.length ? [l[Math.abs(hub.state.seed) % l.length], l[(Math.abs(hub.state.seed) + 3) % l.length]] : []; };
   return {
     stage: () => tp.state, hasCoin: () => tp.state === 'carry', spend() { if (tp.state === 'carry') { tp.state = 'done'; tp.ended = 'spent'; } },
@@ -192,7 +193,7 @@ export function coinMod(hub) {
         hub.state.crew.push({ name: 'The Passenger', look: 'grey, always at the rail', trait: 'omen', wish: { kind: 'none', text: 'has nowhere to go', done: false }, cost: 0, until: 99999, permanent: true });
         return '(Superstitious joins the crew, and stays.)';
       }
-      if (n === 'swap') { tp.state = 'done'; tp.ended = 'swapped'; api.addMark('salt'); const f = hub.scan().find((o) => o.id === tp.from); api.state.dayN++; api.state.time = 0.3; if (f) api.teleport(f); return ''; }
+      if (n === 'swap') { tp.state = 'done'; tp.ended = 'swapped'; api.addMark('salt'); const f = hub.scanFar().find((o) => o.id === tp.from); api.state.dayN++; api.state.time = 0.3; if (f) api.teleport(f); return ''; }
     },
     harbourLine() { if (tp.lamps) { tp.lamps = false; return 'The harbour has lit its lamps very early today. Nobody remembers lighting them.'; } return null; },
     clue: () => 'A grey figure stood on the quay all week, asking each captain for passage. Nobody asked where.',
@@ -203,8 +204,9 @@ export function coinMod(hub) {
 export function hollowMod(hub) {
   const tp = hub.tp('hollow', { id: null, w: 0, lastW: -1, accepted: false, docked: false, left: false });
   const harbour = () => {
-    if (tp.id) return hub.scan().find((d) => d.id === tp.id);
-    const h = hub.home(), l = hub.scan().filter((d) => d.type === 'harbour' && Math.hypot(d.x - h.x, d.z - h.z) > 900 && Math.hypot(d.x - h.x, d.z - h.z) < 1500).sort((a, b) => a.id < b.id ? -1 : 1);
+    if (tp.id) return hub.scanFar().find((d) => d.id === tp.id);   // it may lie out in the Drowned waters
+    const h = hub.home(), within = (lo, hi, own) => (own ? hub.scanFar() : hub.scan()).filter((d) => d.type === 'harbour' && Math.hypot(d.x - h.x, d.z - h.z) > lo && Math.hypot(d.x - h.x, d.z - h.z) < hi && (!own || hub.inRegion('hollow', d.x, d.z))).sort((a, b) => a.id < b.id ? -1 : 1);
+    const mine = within(700, 2400, true), l = mine.length ? mine : within(900, 1500, false);   // a Drowned harbour if there is one
     if (!l.length) return null;
     const d = l[Math.abs(hub.state.seed) % l.length]; tp.id = d.id; return d;
   };

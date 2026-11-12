@@ -1063,3 +1063,13 @@ Trials for the owner to compare; nothing changes without a flag and STYLE.md is 
   lullaby holds the dread down. The synth placeholder is removed (`systems/lullaby.js` now only holds the quiet and `playersEar`).
 - Verified headless (audio running): near Teo at night the episode comes within about 15 s, kind `G>V`, the guitar swelling in first,
   pans following where each player is. Not heard (headless).
+
+## Threads by region (2026-11-12, the owner's mapping)
+- `threads.js` THREAD_REGION: music: Free Cays; bell: Lantern; coin and house: Crown; captain: Reef; colour and hollow: Drowned. A voyage
+  still wakes three (pickAwake); each now looks for its place in its own region first (`hub.inRegion`), in a wider distance band than
+  before (0.8x to 1.5x for open-water sites), and falls back to the old placement only if the region has nothing in reach.
+- The Drowned waters begin about 1,500 from Tama, past the old island scan (about 1,300): `hub.scanFar()` (to about 2,500) is used for
+  the region searches, the Colour's daily creep and saved-harbour lookups. The Colour's spring and the Hollow Harbour therefore now lie
+  1,600 to 2,400 out (late-game water) instead of 450 to 1,500: a change of pacing that follows from the mapping.
+- Verified on five seeds with all threads awake: every thread in its region (house, bell, music, captain at their usual distances; the
+  coin's passenger asks in Crown harbours). Saved voyages keep the sites they already have.
