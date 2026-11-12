@@ -31,6 +31,7 @@ Nothing here is ever said to the player in these words.
 | 2026-11-11 | **Four small wrong things happen before the hut** (the third oar, two berths, the hook already in it, the hole that was already there). Each happens once, has an ordinary reading, and is never explained. |
 | 2026-11-12 | **The third oar is cut** (the owner asked): no extra stroke, no Mara line. Three small wrong things remain before the hut. |
 | 2026-11-12 | **What Mara is:** an entity created by the sleeper. Her village was part of a previous dream that came over into the current one, where HOIST happens. Never said in the game. |
+| 2026-11-12 | **Nobody sees or hears Mara but the captain.** Passengers talk to the captain; Mara answers; they never hear her. Never pointed out. Small tells, each once, after the first throw: the harbourmaster puts you down as one, the innkeeper counts one head, the lamp throws one shadow. |
 | 2026-11-12 | **What the fragments tell:** the world is a dream, not the first one; the sleeper has slept longest this time, so this dream stays. |
 | 2026-11-12 | **Mara cannot throw for you:** she wants to try, but she cannot pick up the die. She is not supposed to be here, but she is too small to be noticed as something foreign. |
 | 2026-11-12 | **The Two Players are the two who play at night.** They sailed too, but refused to throw. Playing their song while entering the dread soothed it: they found they can keep the sleeper asleep, and the dream going, in one region. |
@@ -79,7 +80,7 @@ halves a bad weight; a natural 1 or 20 stands. A captain who saw nothing still h
 "The Eye awakens" after lingering at full dread is not an ending: you wake off Tama.
 
 ## 7. People
-- **Mara**: first mate. Warm, quick, a little cheeky; one or two short lines; calls you Captain. Cheerful, then steady, then rattled, then she breaks at full dread. Never explains. Her village returns to her in four pieces.
+- **Mara**: first mate. Only the captain sees and hears her. Warm, quick, a little cheeky; one or two short lines; calls you Captain. Cheerful, then steady, then rattled, then she breaks at full dread. Never explains. Her village returns to her in four pieces.
 - **The Lady**: never seen, never speaks. A chair in the dark, a bone die, candles (one more for every low throw), a book.
 - **Old Perrin**: the cartographer who never left port. Letters only. Dry, precise, a little smug.
 - **The diver**: a rusted deep-sea diver standing upright on the water, once, after the first throw. Nothing explains him.

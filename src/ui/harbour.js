@@ -66,6 +66,7 @@ export function restAtTavern(cost) {
     toast(dk ? REST_DARK[Math.floor(Math.random() * REST_DARK.length)] : REST_LINES[Math.floor(Math.random() * REST_LINES.length)], dk, 6000);
     G.objectives.remark('rested', rt.dread);
     { const x = hbd ? G.threads.onRest(hbd) : ''; if (x) setTimeout(() => toast(x, true, 8000), 2400); }
+    if (!state.story.tellRoom && G.lateTell()) { state.story.tellRoom = 1; setTimeout(() => toast('The innkeeper counted heads last night, got one, and charged you for one.', false, 7000), 4200); }   // a tell: never counted
   }, 1100);
 }
 export function renderHarbour() {
@@ -261,7 +262,9 @@ export function renderHarbour() {
           if (pr.gold) toast(`+${pr.gold + 5} gold${pr.ev ? ' (festival prize)' : ''}${pr.keep ? `. And a keepsake: ${pr.keep.name}.` : ''}`, false, 6000); }, 30);
       }); }); }
     { const tf = $('takeFrag'); if (tf) tf.addEventListener('click', () => { const fr = life.fragmentAt(state, d, true); if (!fr || fr.locked) return; const n = life.takeFragment(state, d, fr);
-      toast(fr.text, true, 14000); setTimeout(() => toast(`Written in your journal. (${n} of ${life.FRAG_TOTAL} old stories)`, false, 5000), 1500); G.audio.play('ui'); renderHarbour(); }); }
+      toast(fr.text, true, 14000); setTimeout(() => toast(`Written in your journal. (${n} of ${life.FRAG_TOTAL} old stories)`, false, 5000), 1500);
+      if (fr.mara) setTimeout(() => toast('Mara does not say anything for a long while.', false, 6000), 7000);   // her village, in an earlier dream; she never explains
+      G.audio.play('ui'); renderHarbour(); }); }
     $('restBed').addEventListener('click', () => restAtTavern(Math.ceil(8 * discount(rep) * G.costMul())));
     const af = $('askFish'); if (af) af.addEventListener('click', () => {
       const cl = G.threads.c;

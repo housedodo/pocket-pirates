@@ -978,3 +978,20 @@ Trials for the owner to compare; nothing changes without a flag and STYLE.md is 
   harbour tab, upgrade purchase, tavern, shipyard, save); the ship-trade screen opened and rendered by calling it directly.
 - Not done: the rest of main.js (frame loop, story beats, HUD, interaction) stays there for now; ARCHITECTURE.md lists the next
   candidates. The old `world.js -> harbourlife.js -> jobs.js` import cycle is left as it was.
+
+## Mara, unseen (2026-11-12)
+- **Passengers** (`passengers.js`): the banter is in threes now: the passenger speaks to the captain, Mara answers, the passenger
+  carries on as if nobody had spoken. The seasick line too ("Which side is downwind, Captain? Never mind."). In the demo as well:
+  it reads as passengers being odd, and is never pointed out.
+- **a, Let Mara throw** (`table.js`, `main.js` openTable): once, a choice at the Table; the die does not move for her; she laughs it
+  off and the choices come back without it (`story.maraTried`).
+- **b, three tells** (`main.js` lateTell, harbour arrival, oilTick; `ui/harbour.js` rest): each once, full game only, after the
+  first throw, never in the quiet window: the harbourmaster "will put you down as one" (`tellGreet`, 50% on an eligible visit),
+  the innkeeper charged for one head (`tellRoom`), the lamp throws one shadow at night (`tellShadow`).
+- **c, earlier dreams** (`harbourlife.js` FRAG_EARLIER): four new old stories, only in harbours more than 600 from Tama, in order,
+  full game only: a chart of islands that are nowhere, a calendar for a year that never was, two moons, and a painting of her
+  village's street, bell and blue door (then: "Mara does not say anything for a long while."). 16 old stories in all.
+- Verified headless: the banter sequence, the Table choice and its return, the greeting, the rest line, the shadow flag, the
+  fragment order (far harbours get the four first, then the usual ones; near harbours never get them); no console errors.
+  Not checked by eye: how often the tells come up in real play.
+- `window.__game.openTable()` added for tests.

@@ -247,6 +247,16 @@ const FRAG_SPARE = [
   { src: 'A sailor\'s tattoo', text: 'An old sailor shows you a tattoo on his wrist: a single die, showing twenty. "So she knows I am on her side," he says, and pulls his sleeve down.' },
   { src: 'A sign on the harbour wall', text: 'A painted sign by the pier, very old: QUIET AFTER DARK. SHE IS COUNTING.' },
 ];
+// Earlier dreams (CANON 2026-11-12: the world is a dream, and not the first one). Only in harbours far from Tama, in this order,
+// full game only. The last shows something of Mara's village (the street down to the water, the bell, the blue door); she says nothing.
+export const FRAG_EARLIER = [
+  { src: 'A chart in the harbourmaster\'s drawer', text: 'At the bottom of the harbourmaster\'s drawer, an old chart in a hand nobody here knows. Every island on it is wrong. None of them is anywhere. The sea is drawn exactly the same.' },
+  { src: 'A calendar by the tavern door', text: 'A calendar nailed up by the tavern door, the paper gone soft as cloth. The months have names nobody uses. The year printed at the top has never been.' },
+  { src: 'An old fisher\'s memory', text: 'An old fisher mending in the sun says that when he was small there were two moons, one behind the other. "Nobody else remembers," he says. "I stopped saying."' },
+  { src: 'A small painting in the chapel', text: 'A small painting, very old: a street that runs down to the water, not along it. A bell over the roofs. The third door is blue. Nobody here knows what town it is.', mara: true },
+];
+const EARLIER_ON = () => typeof window === 'undefined' || window.__BUILD !== 'demo';
+const FAR = 600;   // a harbour this far from Tama (0, -118) may keep one of the earlier dreams
 /** the fragment this harbour holds (or null once taken). Shown once the harbour knows you: two of a resident step,
  * its game and its dish, and only once the story has reached its later chapters (ok) */
 export function fragmentAt(state, d, ok) {
@@ -254,6 +264,10 @@ export function fragmentAt(state, d, ok) {
   if (!ok || L.fragAt[d.id]) return null;
   const known = (L.arcs[d.id] && L.arcs[d.id].step > 0 ? 1 : 0) + (L.played[d.id] != null ? 1 : 0) + (L.ate[d.id] != null ? 1 : 0);
   if (known < 2) return { locked: true };
+  if (EARLIER_ON() && Math.hypot(d.x, d.z + 118) > FAR) {   // far out: the next of the earlier dreams, while any is left
+    const next = FRAG_EARLIER.find((e) => !L.frags.some((x) => x.text === e.text));
+    if (next) return { ...next, style: 'earlier' };
+  }
   const style = FRAG_BY_STYLE[d.style] || FRAG_BY_STYLE.classic;
   const usedStyle = L.frags.some((f) => f.style === d.style);
   const f = usedStyle ? FRAG_SPARE.find((s) => !L.frags.some((x) => x.text === s.text)) : style;
@@ -264,4 +278,4 @@ export function takeFragment(state, d, f) {
   state.notes.push({ text: `${f.src}, ${d.name}: ${f.text}`, dark: true });
   return L.frags.length;
 }
-export const FRAG_TOTAL = Object.keys(FRAG_BY_STYLE).length + FRAG_SPARE.length;
+export const FRAG_TOTAL = Object.keys(FRAG_BY_STYLE).length + FRAG_SPARE.length + (EARLIER_ON() ? FRAG_EARLIER.length : 0);

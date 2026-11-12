@@ -79,6 +79,7 @@ import { renderHarbour, lettersAt, PETS, companions, petOffer, takePet, tabOpene
 Object.defineProperties(G, {
   CHART_NOTES: { get: () => CHART_NOTES },
   INTRO_DUR: { get: () => INTRO_DUR },
+  lateTell: { get: () => lateTell },
   LOCALS: { get: () => LOCALS },
   abyss: { get: () => abyss },
   audio: { get: () => audio },
@@ -144,6 +145,9 @@ rt.glimpseWait = 0, rt.sunScale = 1;
 // ---- the quiet window: no random remark, musing, passenger chatter or thread line from Mara or anyone else while the hut is near
 // (about 30 s of sailing out), from the first throw until the diver has come and gone, and for 30 s after the hut or the diver.
 rt.quietUntil = 0;   // tNow
+/** the small tells that only the captain has company (CANON 2026-11-12: nobody sees or hears Mara but the captain): each once,
+ *  full game only, after the first throw at the hut, never inside the quiet window. Nobody remarks on them. */
+function lateTell() { return window.__BUILD !== 'demo' && !!(state.hut && state.hut.rolls.length) && !eventQuiet(); }
 function eventQuiet() {
   const st = state.story;
   return glimpse.active || (st.demoEnd === 'pending' && !st.glimpse) || rt.tNow < rt.quietUntil;
@@ -1009,6 +1013,7 @@ function tryInteract() {
       if (told === 0 || ending || Math.random() < 0.5) { say = rollGreeting(h.rolls[h.rolls.length - 1].n, state.time * 24, Math.random); if (ending) say.endsDemo = true; }
     }
     if (!say && ending && h && h.rolls.length) { say = rollGreeting(h.rolls[h.rolls.length - 1].n, state.time * 24, Math.random); say.endsDemo = true; state.story.rollSeen = h.rolls.length; }
+    if (!say && free && !state.story.tellGreet && lateTell() && Math.random() < 0.5) { state.story.tellGreet = 1; say = { speaker: 'harbourmaster', text: 'Captain. Just yourself again? I will put you down as one.', story: true }; }   // a tell: they greet only you
     if (!say && free && laterOK() && isOpen(state, 'tab', 'tavern') && Math.random() < 0.6) say = life.gossipAt(state, d);
     if (!say && free && laterOK() && rt.dread < 0.6) say = taleAt(d);
     if (!say && free && laterOK() && (g.day[d.id] == null || Math.random() < 0.3)) say = pickGreeting({ hour: state.time * 24, weather: weather.label, dread: rt.dread, rnd: Math.random, custom: d.custom, event: isFestival(d) ? 'festival' : isMarketDay() ? 'market' : isLanternNight() ? 'lantern' : null, boat: (() => { const b = boatStatus(d, state.dayN, rt.dread, state.seed); return b.today === 'stayed' ? 'stayed' : b.yesterday === 'lost' ? 'lost' : null; })() });
@@ -1180,6 +1185,9 @@ function openTable() {
       state.hut = state.hut || { rolls: [], wins: 0, fails: 0, lastDay: -1, visits: 0 }; state.hut.rolls.push({ n: r.n, day: state.dayN, last: true });
       const words = ['', 'one', 'two', 'three'];
       out(`The die clatters across the table. ${r.n}.${r.w ? ` She turns the book round. It ${r.w > 0 ? 'gives' : 'takes'} ${words[Math.abs(r.w)]}.` : ''}`, () => { closeModal(); showEnding(r.end, r); });
+    } else if (ch.id === 'mara') {   // she wants to try; the die does not move for her. Never explained.
+      state.story.maraTried = 1;
+      out('Mara reaches for the die. Her fingers close round it, and it does not move. She tries again. "Slippery thing," she says, and laughs, a little too quickly.', () => { closeModal(true); openTable(); });
     } else { closeModal(); showEnding(ch.id); }
   });
 }
@@ -1588,6 +1596,7 @@ function oilTick(dt) {
   rt.lampOut = needed && (off || state.oil <= 0);
   const night = state.dayN * 2 + (state.time > 0.5 ? 1 : 0);   // one warning of each kind per dark spell
   if (lit && before > cap * 0.25 && state.oil <= cap * 0.25 && rt.oilNight !== night && !eventQuiet()) { rt.oilNight = night; if (!objectives.mate.busy) objectives.mate.say('The lamp is getting low, Captain. Oil at any market, or we turn for home.'); else toast('The lamp oil is running low.', false, 4000); }
+  if (lit && tod.night > 0.6 && !state.story.tellShadow && lateTell()) { state.story.tellShadow = 1; toast('The lamp throws one shadow across the deck.', false, 6000); }   // a tell: one shadow
   if (before > 0 && state.oil <= 0 && lit) { toast('The lantern gutters out. The dark comes right up to the rail.', rt.dread > 0.4, 6000); if (!state.hints.oilOut) { state.hints.oilOut = true; setTimeout(() => objectives.mate.say('No light, no line, and I can barely see the bow. Buy oil at a market next time, Captain.'), 3500); } }
 }
 // torn sails: too much canvas in a strong wind for too long and the mainsail rips (two thirds speed, ship.torn) until a patch
@@ -1985,7 +1994,7 @@ window.__game = { secrets, tideAt: () => tideAt(), lostState: () => ({ lostK: rt
   life, localGames, openHarbour(id, tab = 'board') { const isl = [...world.islands.values()].find((i) => i.desc.id === id); if (!isl) return false; closeModal(true); rt.harbourIsl = isl; rt.hbTab = tab; frameVillage(isl.desc); openModal('harbour'); return true; }, renderHarbour: () => renderHarbour(),
   audio,
   objectives, perrinNote, gateRadius: () => gateRadius(state, tideFalls()), trackTarget: () => trackTarget(), digGame,
-  openCard, sighting, spawnSight: (id) => { const c = (SIGHTS[id] && drawCard(0, [], { [id]: 1 })); return c && sighting.spawn(c, ship, world); },
+  openCard, openTable, sighting, spawnSight: (id) => { const c = (SIGHTS[id] && drawCard(0, [], { [id]: 1 })); return c && sighting.spawn(c, ship, world); },
   weather,
   setDread(v) { rt.forced = v; rt.dread = v; },
   get dread() { return rt.dread; },

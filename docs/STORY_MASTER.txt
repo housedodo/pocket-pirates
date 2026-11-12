@@ -1,7 +1,7 @@
 HOIST (Pocket Pirates): THE MASTER STORY FILE
 ================================================================================================
 This is the main story file for the full game. Edit it, upload it again, and the next session puts every change
-into the game. Built from commit 31858b3 on 2026-11-12. 1414 in-game lines carry an ID.
+into the game. Built from commit e2d4d45 on 2026-11-12. 1432 in-game lines carry an ID.
 
 CONTENTS
   A   HOW TO USE THIS FILE (IDs, status marks, how to add and remove things)
@@ -559,7 +559,7 @@ Where the story hides in the mechanics, and where its text lives (section J).
 # J  EVERY LINE IN THE GAME
 ################################################################################################
 Pulled from the code. Edit the text after the "|" (see part A). Sources are grouped by file; the CODE in front of every
-line says which file it goes back into. 1414 lines.
+line says which file it goes back into. 1432 lines.
 
 
 
@@ -774,21 +774,8 @@ line says which file it goes back into. 1414 lines.
   PAS-0043 | Contracts, captain, are like tides. They come back around.
 
 ### PAS / MARA_BANTER
-  PAS-0044 | Sleep is for people who do not have a captain.
-  PAS-0045 | Why is there a cat on the chart table?
-  PAS-0046 | She is navigating. Do not interrupt her.
-  PAS-0047 | What happens if the lamp goes out?
-  PAS-0048 | We find out how good the captain is at guessing.
-  PAS-0049 | Is she always this cheerful?
-  PAS-0050 | Always! Even in storms. ESPECIALLY in storms.
-  PAS-0051 | Does the captain ever speak?
-  PAS-0052 | Only in emergencies. And knots. Very expressive knots.
   PAS-0053 | This ship is smaller than it looked from the dock.
   PAS-0054 | She is cosy! Cosy is a feature.
-  PAS-0055 | Is that fish hanging from the mast for luck?
-  PAS-0056 | For lunch. Luck was yesterday's fish.
-  PAS-0057 | How long have you sailed together?
-  PAS-0058 | Since forever! Well. Since Tuesday. Forever-ish.
   PAS-0059 | I think a gull just stole my hat.
   PAS-0060 | He does that. We call him the Quartermaster.
 
@@ -808,8 +795,48 @@ line says which file it goes back into. 1414 lines.
   PAS-0069 | Lean over the downwind side. The OTHER side!
 
 ### PAS / ADDED 2026-11-11
-  PAS-0070 | Does Mara ever sleep?
   PAS-0071 | My grandfather swore there was gold buried on ${r.d.name}, ${bearingName(r.d.x - ctx.ship.pos.x, r.d.z - ctx.ship.pos.z)} of here. Mark it, if you like. I never had a boat.
+
+### PAS / ADDED 2026-11-12
+  PAS-0072 | Just the one of you on this whole ship, Captain? Brave.
+  PAS-0073 | Two! There are two of us. Hello?
+  PAS-0074 | Must get lonely out here. I would talk to myself.
+  PAS-0075 | Who were you smiling at just now, Captain? ...Never mind. Sea air.
+  PAS-0076 | At me. I told a very good joke.
+  PAS-0077 | My uncle used to smile at the sea like that. Nice man.
+  PAS-0078 | Is there tea aboard? I can make it myself, I do not want to be a bother.
+  PAS-0079 | Second cup is mine, thank you.
+  PAS-0080 | One cup, then. One is plenty.
+  PAS-0081 | Do you always set out two mugs, Captain?
+  PAS-0082 | Yes. Because there ARE two.
+  PAS-0083 | Habit, I suppose. I still set a place for my mother.
+  PAS-0084 | Somebody has left a coat on the hatch. Yours?
+  PAS-0085 | Mine. Do not sit on it.
+  PAS-0086 | Lovely and warm. As if somebody just took it off.
+  PAS-0087 | Does the ship always creak like that? Like somebody walking about?
+  PAS-0088 | That is me. I am walking about.
+  PAS-0089 | Old boats talk, my father said. Pay them no mind.
+  PAS-0090 | Who steers while you sleep, Captain?
+  PAS-0091 | The sea, I suppose. It knows the way.
+  PAS-0092 | Nobody saw that, did they? Good.
+  PAS-0093 | Still. Room enough for one.
+  PAS-0094 | Which side is downwind, Captain? Never mind. I will guess.
+
+### PAS / RETIRED (the text is no longer in the game; these IDs are never used again)
+    was PAS-0044 | Sleep is for people who do not have a captain.
+    was PAS-0045 | Why is there a cat on the chart table?
+    was PAS-0046 | She is navigating. Do not interrupt her.
+    was PAS-0047 | What happens if the lamp goes out?
+    was PAS-0048 | We find out how good the captain is at guessing.
+    was PAS-0049 | Is she always this cheerful?
+    was PAS-0050 | Always! Even in storms. ESPECIALLY in storms.
+    was PAS-0051 | Does the captain ever speak?
+    was PAS-0052 | Only in emergencies. And knots. Very expressive knots.
+    was PAS-0055 | Is that fish hanging from the mast for luck?
+    was PAS-0056 | For lunch. Luck was yesterday's fish.
+    was PAS-0057 | How long have you sailed together?
+    was PAS-0058 | Since forever! Well. Since Tuesday. Forever-ish.
+    was PAS-0070 | Does Mara ever sleep?
 
 
 ####################################################################################################
@@ -2339,6 +2366,13 @@ line says which file it goes back into. 1414 lines.
 ### MAIN / ADDED 2026-11-12
   MAIN-0304 | He has sent you a riddle. Press M and open your orders to read it.
 
+### MAIN / ADDED 2026-11-12
+  MAIN-0305 | Captain. Just yourself again? I will put you down as one.
+  MAIN-0306 | Mara reaches for the die. Her fingers close round it, and it does not move. She tries again. "Slippery thing," she says, and laughs, a little too quickly.
+  MAIN-0307 | The lamp throws one shadow across the deck.
+  MAIN-0308 | The innkeeper counted heads last night, got one, and charged you for one.
+  MAIN-0309 | Mara does not say anything for a long while.
+
 ### MAIN / RETIRED (the text is no longer in the game; these IDs are never used again)
     was MAIN-0011 | ${from} gave you a treasure riddle for ${d.name}. Saved in your log: Riddles tab.
     was MAIN-0012 | ${from} gave you a riddle. Saved in your log: Riddles tab. Where it points is up to you.
@@ -2520,6 +2554,12 @@ line says which file it goes back into. 1414 lines.
   HLF-0132 | Heard you cleaned up at the {G} in {W}. They want a rematch.
   HLF-0133 | Folk say the Merry Gull is the friendliest passage between here and {W}.
 
+### HLF / ADDED 2026-11-12
+  HLF-0134 | At the bottom of the harbourmaster's drawer, an old chart in a hand nobody here knows. Every island on it is wrong. None of them is anywhere. The sea is drawn exactly the same.
+  HLF-0135 | A calendar nailed up by the tavern door, the paper gone soft as cloth. The months have names nobody uses. The year printed at the top has never been.
+  HLF-0136 | An old fisher mending in the sun says that when he was small there were two moons, one behind the other. "Nobody else remembers," he says. "I stopped saying."
+  HLF-0137 | A small painting, very old: a street that runs down to the water, not along it. A bell over the roofs. The third door is blue. Nobody here knows what town it is.
+
 
 ####################################################################################################
 ## SOURCE LGM   (localgames.js): tavern games
@@ -2636,6 +2676,9 @@ K3 NEXT TO IMPLEMENT, IN THIS ORDER
    3. Something small at the Table for "who counts", "what a throw costs" and "why Tama is home", or the decision that they only colour the story.
    4. The four small wrong things join the clue list as home-water hints.
 K4 SUGGESTION FROM THE ASSISTANT (delete if unwanted): how to build the K1 answers, shown and never explained
+   BUILT 2026-11-12: a (Let Mara throw), b (the three tells: the harbourmaster's "put you down as one", the innkeeper's head
+   count, the lamp's one shadow), c (four earlier-dream fragments in far harbours; the last is her village). Also: passengers
+   now talk to the captain; Mara answers; they never hear her (PAS, the banter in threes).
    a. Mara cannot hold the die. At the Table, with Mara aboard, one more choice: "Let Mara throw". She reaches; the die does not
       move, as if her hand were not quite there. She laughs it off ("Slippery thing.") and the choices come back. Once only.
    b. Mara was made, not born. Three tiny tells, each once, late in the voyage: villagers greet the Captain and never her; she
