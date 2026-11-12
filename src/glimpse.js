@@ -1,4 +1,4 @@
-// One wrong moment, once. After the first throw at the hut, on the way home, for about nine seconds: the wind drops, the sea
+// One wrong moment, once. After the first throw at the hut, on the way home, for about seventeen seconds: the wind drops, the sea
 // goes flat, every sound goes away, the gulls stop and turn to look, a lighthouse in sight swings its beam onto the deck, and
 // a deep-sea diver stands upright on the water off the bow, broken: a cracked helmet, torn suit, a snapped air hose. Then it is gone and everything is as it was. Nothing explains it;
 // Mara only asks why you went quiet. (main.js applies k to the wind, waves, sound, gulls and lighthouses.)
@@ -8,7 +8,7 @@ import { Builder } from './builder.js';
 import { TILE } from './textures.js';
 import { mats } from './psx.js';
 
-export const GLIMPSE_LEN = 9;
+export const GLIMPSE_LEN = 17;   // was 9: the diver stays about ten seconds
 
 export class Glimpse {
   constructor(scene) {
@@ -93,7 +93,7 @@ export class Glimpse {
     for (const [x, z, h] of [[0.2, 1.05, 2.4], [-0.6, 0.9, 1.8], [1.0, -0.3, 2.0]]) { b.push(x, 2.8, z, 0, 1, 1, 1, 0.12, 0.08); b.box(0, -h, 0, 0.12, h, 0.04, KELP, W); b.pop(); }
     b.pop();
     this.fig = new THREE.Mesh(b.geometry(), mats.props);
-    this.fig.visible = false; this.fig.scale.setScalar(1.6);
+    this.fig.visible = false; this.fig.scale.setScalar(0.95);   // was 1.6: smaller, farther-off
     scene.add(this.fig);
     this.t = -1; this.k = 0;
   }
@@ -110,7 +110,7 @@ export class Glimpse {
     this.t += dt;
     const t = this.t;
     this.k = smoothstep(0, 1.2, t) * (1 - smoothstep(GLIMPSE_LEN - 2, GLIMPSE_LEN, t));
-    this.fig.visible = t > 2 && t < 6.6;   // there, and then not there: no fade
+    this.fig.visible = t > 3 && t < 14;   // there, and then not there: no fade
     if (t >= GLIMPSE_LEN) { this.t = -1; this.k = 0; this.fig.visible = false; return true; }
     return false;
   }

@@ -74,7 +74,7 @@ export function makePassenger(world, from, serial, force = false) {
 
 /** called every frame while a passenger is aboard and the ship is sailing */
 export function passengerTalk(pass, dt, ctx) {   // ctx: { mate, world, ship, state, dread }
-  if (ctx.mate.busy) return;
+  if (ctx.mate.busy || (ctx.mate.hush && ctx.mate.hush())) return;   // no chatter round the hut or the diver
   pass.timer -= dt;
   if (pass.timer > 0) return;
   pass.timer = 28 + Math.random() * 22;

@@ -944,3 +944,7 @@ Trials for the owner to compare; nothing changes without a flag and STYLE.md is 
 - **Old font back:** Pirata One / Jersey 10 pairing is off (`UI_FONT = null` in `chartstyles.js`, so `data-uifont` is not set); text and headings are DotGothic16 again as before 6a1511d, the chart canvas labels too. The CSS block stays in `index.html`, inert, to switch back on later.
 - **The third oar is cut** (owner's request): no ghost stroke, no Mara line; rowing keeps its soft stroke sound. CANON dated.
 - **Perrin's letter:** Mara's second line is now "He has sent you a riddle. Press M and open your orders to read it." (was "It is in your orders now, Captain: M.").
+
+## Quiet around the hut and the diver; a longer, smaller diver (2026-11-12)
+- **Quiet window:** `eventQuiet()` in `main.js` hushes the random voices (remarks, musings, passenger talk, thread lines, week/market/whale/regatta/front/tide/oil comments, Mara's village memories, crew wishes, the stuck-nudge) within ~400 of the hut and for 30 s after leaving it, from the first throw until the diver has gone, and for 30 s after the diver. Remarks are kept for later, not lost. Quest lines and the event's own lines still play.
+- **Diver:** waits 45 s (was 12) after you are 150 from the hut; scale 0.95 (was 1.6); in view about 11 s (was 4.6); the whole moment 17 s (was 9).

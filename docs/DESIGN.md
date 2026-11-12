@@ -224,8 +224,9 @@ Ten effects (the star-eye and ghost ship were cut) that only run at dread >= ~0.
   `state.story.lm` (day of last visit). (`labelsTick` once drew far labels over islands; removed: no text over islands while sailing.)
 - **Sea play** (`seaplay.js`): three `LANES` (`ROUND` is gone), faded out near any fog by `fogEdge`; `currentAt(x, z)` is the drift (used for the ship and the foam).
   Gusts set `ship.gust` (a speed factor in `Ship.update`). `state.story.lanes` remembers currents met.
-- **Glimpse** (`glimpse.js`): `k` 0..1 over nine seconds; main.js applies it to the wind, `stage.wave`, `audio.hush`,
-  `fauna` (`ctx.freeze`) and `world.stare`. Starts once (`state.story.glimpse`) while `demoEnd === 'pending'`.
+- **Glimpse** (`glimpse.js`): `k` 0..1 over seventeen seconds (the diver is in view about eleven of them, at 0.95 scale); main.js applies it to the wind, `stage.wave`, `audio.hush`,
+  `fauna` (`ctx.freeze`) and `world.stare`. Starts once (`state.story.glimpse`) while `demoEnd === 'pending'`, 45 s after you are 150 away from the hut.
+- **Quiet window** (`main.js` `eventQuiet`, `Mate.hush`): no random remark, musing, passenger chatter, thread line, market/regatta/whale comment, lamp or tide warning, or village memory from Mara or anyone else while within ~400 of the hut (about 30 s of sailing), from the first throw until the diver has gone, and for 30 s after the hut or the diver (live time). Quest intros/outros and the throw's own lines are not touched.
 - **Pins**: `state.story.pins` ([{x, z, on}]); `trackTarget` follows the one that is `on`.
 
 ## Lamp oil (`oil.js`)

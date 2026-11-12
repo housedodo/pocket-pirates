@@ -280,6 +280,7 @@ export class Mate {
     this.more = document.getElementById('matemore');
     this.queue = []; this.cur = null; this.shown = 0; this.acc = 0; this.wait = -1; this.pause = 0; this.pin = false;
     this.history = [];
+    this.hush = null;   // () => true while chatter must hold its tongue (main.js eventQuiet: the hut, the diver, 30 s either side)
     this.onBlip = null;   // (dark, guest) a soft voice blip every few letters (main.js plugs in audio.blip)
     this.el.addEventListener('pointerdown', () => this.skip());
   }
@@ -358,6 +359,7 @@ export class Objectives {
     // until the tutorial is well under way Mara only speaks about the quest in hand: the remarks tied to a goal's mechanic come through, the rest wait
     const MECH = ['riddle', 'crew', 'raider', 'noammo', 'notarget', 'lowhp', 'broadside', 'stormpay', 'gate'];
     if (this.d.quiet && this.d.quiet()) return;
+    if (this.mate.hush && this.mate.hush()) return;   // kept for later, not lost
     if (this.d.later && !this.d.later() && !MECH.includes(key)) return;
     if (this.mate.busy || this.pending) return;   // never pile a remark onto a line she is still saying, nor in front of the next quest
     const h = this.state.hints;
@@ -399,7 +401,7 @@ export class Objectives {
       return;
     }
     this.stall += dt;
-    if (this.stall > 240 && !this.mate.busy && this.current && this.state.goals.started) this.askHint(dread);   // stuck: a gentle nudge
+    if (this.stall > 240 && !this.mate.busy && !(this.mate.hush && this.mate.hush()) && this.current && this.state.goals.started) this.askHint(dread);   // stuck: a gentle nudge
     this.timer -= dt;
     if (this.timer > 0) return;
     this.timer = 0.5;

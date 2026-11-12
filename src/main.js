@@ -166,6 +166,13 @@ const shipWake = new Wake(scene, { len: 5.2, beam: 1.5 });   // the V wake and b
 const secrets = new Secrets(scene, world, state.seed);   // the Kestrel, low-tide wrecks, smoke, the dusk watcher, birds (secrets.js)
 const glimpse = new Glimpse(scene);  // one wrong moment on the way home from the hut
 let glimpseWait = 0, sunScale = 1;
+// ---- the quiet window: no random remark, musing, passenger chatter or thread line from Mara or anyone else while the hut is near
+// (about 30 s of sailing out), from the first throw until the diver has come and gone, and for 30 s after the hut or the diver.
+let quietUntil = 0;   // tNow
+function eventQuiet() {
+  const st = state.story;
+  return glimpse.active || (st.demoEnd === 'pending' && !st.glimpse) || tNow < quietUntil;
+}
 let seaWave = 1;
 const fauna = new Fauna(scene, world);
 const traffic = new Traffic(scene, world, state.seed);
@@ -201,13 +208,13 @@ sea.syncQuests(state.quests.filter((q) => q.id === state.tracked));
 traffic.onEvent = (what) => {
   if (!laterOK()) return;   // market and regatta wait for the tutorial
   if (what === 'market') toast('A floating market, with bunting on every line. (Friday)', false, 5000);
-  if (what === 'regatta') { toast('A regatta! Five boats, racing.', false, 4500); if (!state.hints.regattaSeen && laterOK()) { state.hints.regattaSeen = true; setTimeout(() => objectives.mate.say('A regatta! Look at them go. I wonder who they are racing, and who is giving the prize.'), 2500); } }
+  if (what === 'regatta') { toast('A regatta! Five boats, racing.', false, 4500); if (!state.hints.regattaSeen && laterOK() && !eventQuiet()) { state.hints.regattaSeen = true; setTimeout(() => objectives.mate.say('A regatta! Look at them go. I wonder who they are racing, and who is giving the prize.'), 2500); } }
 };
 fauna.onSpot = (what) => {
   if (!laterOK()) return;   // no dolphins or whales for the first goals
   const k = what === 'migration' ? 'whales' : what; state.stats[k] = (state.stats[k] || 0) + 1;
   toast(what === 'dolphins' ? 'Dolphins!' : what === 'migration' ? 'Another whale, heading east.' : what === 'turtles' ? 'A sea turtle, drifting by.' : 'A whale surfaces in the distance!', false, 2500);
-  if (what === 'migration' && !state.hints.migrationSeen && laterOK()) { state.hints.migrationSeen = true; setTimeout(() => objectives.mate.say('They are all going the same way, Captain. East. Every one of them. As if they were called.'), 2500); }
+  if (what === 'migration' && !state.hints.migrationSeen && laterOK() && !eventQuiet()) { state.hints.migrationSeen = true; setTimeout(() => objectives.mate.say('They are all going the same way, Captain. East. Every one of them. As if they were called.'), 2500); }
 };
 audio.musicOn = !settings.musicOff;
 
@@ -329,6 +336,7 @@ const objectives = new Objectives({ state, world, ship, toast: (t, d) => toast(t
   chapterCard: (ch) => { $('qbanner').classList.remove('show'); const el = $('landho'); el.querySelector('b').textContent = `CHAPTER ${ch.n}`; el.querySelector('span').textContent = ch.title; el.querySelector('small').textContent = ch.act; el.classList.remove('show'); void el.offsetWidth; el.classList.add('show'); audio.play('chapter'); },
   questCue: (done, next) => questCue(done, next), questNew: (next, withCard) => questNew(next, withCard),
   onStep: (done, next) => { if (done.id === 'gossip') revealHut(); } });
+objectives.mate.hush = () => eventQuiet();
 objectives.mate.onBlip = (dark, guest) => audio.blip(dark, guest);   // very soft voice blips while she talks
 const abyss = new Abyss({ scene, ship, world, sky, settings, state, mate: objectives.mate, toast: (t, d, ms) => toast(t, d, ms), fade: $('fade'),
   onEnding: () => {
@@ -403,7 +411,7 @@ function noonBells() {   // villages that keep the bells ring them at noon; you 
   for (const isl of world.islands.values()) { const d = isl.desc; if (d.custom !== 'bells') continue; const dist = Math.hypot(d.x - ship.pos.x, d.z - ship.pos.z); if (dist < 260) audio.play('bell', { vol: clamp(1 - dist / 280, 0.15, 0.8) }); }
 }
 function weekMorning() {   // Mara mentions the day the first couple of times, then never again
-  const k = isMarketDay() ? 'market' : isLanternNight() ? 'lanterns' : null; if (!k || !laterOK() || objectives.pending) return;   // Mara only talks about the quest in hand until the tutorial is well under way
+  const k = isMarketDay() ? 'market' : isLanternNight() ? 'lanterns' : null; if (!k || !laterOK() || objectives.pending || eventQuiet()) return;   // Mara only talks about the quest in hand until the tutorial is well under way
   const n = state.hints['week:' + k] || 0; if (n >= 2) return; state.hints['week:' + k] = n + 1;
   objectives.mate.say(k === 'market' ? 'Market day, Captain! Every harbour pays a bit more for what we bring in.' : 'Lantern night tonight. They set little lights on the water. I always want to follow one.');
 }
@@ -2305,7 +2313,7 @@ function crewLeave() {
 function wishDone(c) {
   c.wish.done = true; c.until = Math.max(c.until || state.dayN, state.dayN) + 2;
   toast(`${c.name} stands at the rail a long time. (${c.name}'s wish came true: their bonus grows by 1.)`, false, 7000);
-  objectives.mate.say(`Look at ${c.name}. I have never seen anyone smile with only their eyebrows before.`);
+  if (!eventQuiet()) objectives.mate.say(`Look at ${c.name}. I have never seen anyone smile with only their eyebrows before.`);
 }
 
 // ---------------------------------------------------------------- story: chapter beats, the fog wall, the demo end
@@ -2395,7 +2403,7 @@ function clueTick(dt) {
   const at = (lm, R) => Math.hypot(ship.pos.x - LM[lm].x, ship.pos.z - LM[lm].z) < R;
   const dwell = (k, on, T) => { clueDwell[k] = on ? (clueDwell[k] || 0) + dt : 0; return clueDwell[k] >= T; };
   if (dwell('bells', slow && Math.hypot(ship.pos.x, ship.pos.z) < 150 && hour > 11.8 && hour < 12.4 && state.hut && state.hut.rolls.length > 0, 6)) seeClue('CL-C3-a');
-  if (window.__BUILD !== 'demo') { const l = maraRemembers(state, dt, laterOK() && !objectives.mate.busy && !objectives.pending && !modal && !world.nearest(ship.pos.x, ship.pos.z, 60)); if (l) objectives.mate.say(l); }   // her village comes back to her a piece at a time (table.js); the third piece is the blue door, some time after the Sunken Street
+  if (window.__BUILD !== 'demo') { const l = maraRemembers(state, dt, laterOK() && !objectives.mate.busy && !objectives.pending && !modal && !eventQuiet() && !world.nearest(ship.pos.x, ship.pos.z, 60)); if (l) objectives.mate.say(l); }   // her village comes back to her a piece at a time (table.js); the third piece is the blue door, some time after the Sunken Street
   if (isKnown(state, 'rest') && slow && tod.night > 0.4 && state.story.peakDread > 0) state.story.peakDread = Math.max(0, state.story.peakDread - 0.004 * dt);   // the crew rest on deck (CL-F2-a): the worst you have sailed into fades a little while you lie still at night
   if (dwell('players', slow && tod.night > 0.45 && weather.calm > 0.5 && (at('teo', 300) || at('ilse', 300)), 10)) seeClue('CL-F1-a');
 }
@@ -2447,7 +2455,7 @@ function oilTick(dt) {
   if (lit) state.oil = clamp(state.oil - oilRate(oilCtx()) * dt, 0, cap);
   lampOut = needed && (off || state.oil <= 0);
   const night = state.dayN * 2 + (state.time > 0.5 ? 1 : 0);   // one warning of each kind per dark spell
-  if (lit && before > cap * 0.25 && state.oil <= cap * 0.25 && oilNight !== night) { oilNight = night; if (!objectives.mate.busy) objectives.mate.say('The lamp is getting low, Captain. Oil at any market, or we turn for home.'); else toast('The lamp oil is running low.', false, 4000); }
+  if (lit && before > cap * 0.25 && state.oil <= cap * 0.25 && oilNight !== night && !eventQuiet()) { oilNight = night; if (!objectives.mate.busy) objectives.mate.say('The lamp is getting low, Captain. Oil at any market, or we turn for home.'); else toast('The lamp oil is running low.', false, 4000); }
   if (before > 0 && state.oil <= 0 && lit) { toast('The lantern gutters out. The dark comes right up to the rail.', dread > 0.4, 6000); if (!state.hints.oilOut) { state.hints.oilOut = true; setTimeout(() => objectives.mate.say('No light, no line, and I can barely see the bow. Buy oil at a market next time, Captain.'), 3500); } }
 }
 // torn sails: too much canvas in a strong wind for too long and the mainsail rips (two thirds speed, ship.torn) until a patch
@@ -2557,7 +2565,7 @@ function frame() {
   // ---- time of day & wind
   if (live) { const pt = state.time; state.time = advanceTime(state.time, dt); if (state.time < pt) { noteSkip(); state.dayN++; crewLeave(); }
     if (pt < 0.5 && state.time >= 0.5) noonBells();
-    if (tideAt() < -0.45 && !state.hints['tide:low'] && laterOK() && !objectives.pending && !objectives.mate.busy) { state.hints['tide:low'] = true; objectives.mate.say('The tide is out, Captain. Keep off the shallows, and the wrecks give up more at low water.'); }
+    if (tideAt() < -0.45 && !state.hints['tide:low'] && laterOK() && !objectives.pending && !objectives.mate.busy && !eventQuiet()) { state.hints['tide:low'] = true; objectives.mate.say('The tide is out, Captain. Keep off the shallows, and the wrecks give up more at low water.'); }
     if (pt < 0.27 && state.time >= 0.27) weekMorning(); }
   wind.update(dt);
   if (dt > 0) { state.buffs.speed = Math.max(0, state.buffs.speed - dt); state.buffs.dig = Math.max(0, state.buffs.dig - dt); }
@@ -2583,11 +2591,12 @@ function frame() {
   }
   { // the glimpse: once, a little while after you sail away from your first throw at the hut
     const hd = world.hutDesc;
+    if (hd && Math.hypot(ship.pos.x - hd.x, ship.pos.z - hd.z) < 400) quietUntil = Math.max(quietUntil, tNow + 30);   // the hut is within about 30 s of sailing
     if (live && state.story.demoEnd === 'pending' && !state.story.glimpse && hd && Math.hypot(ship.pos.x - hd.x, ship.pos.z - hd.z) > 150) {
       glimpseWait += dt;
-      if (glimpseWait > 12 && !objectives.mate.busy) { state.story.glimpse = 1; glimpse.start(ship); }
+      if (glimpseWait > 45 && !objectives.mate.busy) { state.story.glimpse = 1; glimpse.start(ship); }
     }
-    if (live && glimpse.update(dt)) setTimeout(() => objectives.mate.say('Captain? You went quiet.'), 2500);
+    if (live && glimpse.update(dt)) { quietUntil = tNow + 30; setTimeout(() => objectives.mate.say('Captain? You went quiet.'), 2500); }
     audio.hush(glimpse.k * 0.97);
   }
   const windNow = { dir: wind.dir, strength: Math.min(1.4, wind.strength * (1 + 0.25 * weather.storm)) * (1 - 0.92 * weather.calm) * (1 - glimpse.k) };
@@ -2655,7 +2664,7 @@ function frame() {
     const fac = sectorAt(ship.pos.x, ship.pos.z, state.seed).faction.id;
     const R = { reef: [1.3, 1.5, 0.9], lantern: [0.9, 0.8, 1.5], drowned: [1, 1.1, 1.4], free: [1.1, 0.8, 0.8] }[fac] || [1, 1, 1];
     weather.region.rain = R[0]; weather.region.storm = R[1]; weather.region.fog = R[2];
-    if (fa && h >= 17 && laterOK() && !state.hints['front:' + state.dayN]) { state.hints['front:' + state.dayN] = true; if (!state.hints.frontSeen) { state.hints.frontSeen = true; objectives.mate.say('That red in the west... a front is coming in tomorrow afternoon, Captain. I would be in a harbour by then.'); } }
+    if (fa && h >= 17 && laterOK() && !eventQuiet() && !state.hints['front:' + state.dayN]) { state.hints['front:' + state.dayN] = true; if (!state.hints.frontSeen) { state.hints.frontSeen = true; objectives.mate.say('That red in the west... a front is coming in tomorrow afternoon, Captain. I would be in a harbour by then.'); } }
   }
   { // the sea: it grows unruly with distance (dread) and storms, but only slowly, as real water does; and lighter and shallower near islands
     const target = window.__waterLock && window.__waterLock.rough != null ? window.__waterLock.rough : clamp(0.85 * smoothstep(0.28, 0.82, dread) + 1.1 * weather.heavy + 0.05 * weather.rain, 0, 1);   // light rain leaves the water quiet; a storm whips it up
@@ -2690,7 +2699,7 @@ function frame() {
   objectives.update(dt, glitchT > 0 ? preGlitch : dread);   // the hut's flash is not real water: Mara does not react to it
   if (live && !state.passenger && dread > 0.2 && dread < 0.7 && ship.speed > 1) {   // Mara muses on quiet stretches
     musingT -= dt;
-    if (musingT <= 0 && !objectives.mate.busy) { musingT = 240 + Math.random() * 200; const m = MUSINGS.filter((x) => !state.hints['muse:' + x]); if (m.length) { const l = m[Math.floor(Math.random() * m.length)]; state.hints['muse:' + l] = true; objectives.mate.say(l); } }
+    if (musingT <= 0 && !objectives.mate.busy && !eventQuiet()) { musingT = 240 + Math.random() * 200; const m = MUSINGS.filter((x) => !state.hints['muse:' + x]); if (m.length) { const l = m[Math.floor(Math.random() * m.length)]; state.hints['muse:' + l] = true; objectives.mate.say(l); } }
   }
   if (live && state.passenger && ship.speed > 1) passengerTalk(state.passenger, dt, { mate: objectives.mate, world, ship, state, dread, storm: weather.storm });
   if (live) {
@@ -2701,7 +2710,7 @@ function frame() {
   }
   fauna.quiet = !laterOK();
   fauna.update(vdt, waveT, lifeCtx);
-  threads.update(vdt, ship, window.__BUILD !== 'demo' && laterOK(), waveT, lifeCtx.wave, (txt) => { if (!objectives.mate.busy) objectives.mate.say(txt); });
+  threads.update(vdt, ship, window.__BUILD !== 'demo' && laterOK(), waveT, lifeCtx.wave, (txt) => { if (!objectives.mate.busy && !eventQuiet()) objectives.mate.say(txt); });
   for (const k of ['_pet', '_pet2']) if (window.__game[k]) window.__game[k].update(vdt);
   for (const c of Object.values(companions)) { c.m.g.visible = c.fly > 0 || dread < 0.6; if (c.m.g.visible) c.update(vdt); }
   traffic.update(dt, waveT, lifeCtx);
