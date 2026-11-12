@@ -1087,3 +1087,10 @@ Trials for the owner to compare; nothing changes without a flag and STYLE.md is 
 - **Single-file games rebuilt** (owner asked): `pocket-pirates-demo.html` (19.2 MB), `pocket-pirates-demo-silent.html` (1.5 MB),
   `pocket-pirates-dev.html` (20.0 MB), from the commit after the main.js split step 5. Each was opened from disk and sailed: the demo and
   the silent demo with no console errors; the dev build only with its known Sound Studio fetch (file:// cannot fetch).
+
+## A standalone app to send (2026-11-12)
+- `electron/`: an Electron wrapper (33.2.1) that plays the single-file demo in its own window (no menu bar, F11 fullscreen, music may
+  start without a click, saves in the app's own storage). `npm run pack:win|pack:mac|pack:linux` (see electron/README.md); `node pack.js
+  win32 dev` packs the dev build. Build output (`electron/out`, `electron/game`, `electron/node_modules`) is not committed.
+- Built for Windows x64 (HOIST.exe, 128 MB zipped, unsigned). Checked by running the same app on Linux under a virtual display: the
+  title scene renders, the menu works, a save carries over between runs, no errors. The Windows .exe itself was not run here.

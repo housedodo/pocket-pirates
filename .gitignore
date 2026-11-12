@@ -1,3 +1,6 @@
 node_modules
 dist
 *.log
+electron/node_modules
+electron/out
+electron/game

@@ -1,0 +1,17 @@
+{
+  "name": "hoist",
+  "productName": "HOIST",
+  "version": "0.1.0",
+  "description": "HOIST: a small pirate game (demo)",
+  "main": "main.js",
+  "private": true,
+  "scripts": {
+    "pack:win": "node pack.js win32",
+    "pack:mac": "node pack.js darwin",
+    "pack:linux": "node pack.js linux"
+  },
+  "devDependencies": {
+    "electron": "33.2.1",
+    "@electron/packager": "18.3.6"
+  }
+}
