@@ -10,11 +10,8 @@ import { mats } from './psx.js';
 
 export const GLIMPSE_LEN = 17;   // was 9: the diver stays about ten seconds
 
-export class Glimpse {
-  constructor(scene) {
-    // a deep-sea diver, broken and rusted through: a dented copper helmet with a cracked front window and one side pane gone, flaking
-    // rust and barnacles, rust running down the swollen canvas suit in long streaks, corroded straps, weights and cuffs, one arm bent the wrong
-    // way, a snapped lifeline chain and a snapped air hose. It leans, standing in the water to the knee, facing the ship (+z is the front).
+
+export function buildDiver(style = 'orig') {
     const b = new Builder();
     const COP = '#a0602f', COPD = '#6a3b20', RU1 = '#a4562a', RU2 = '#7a3c1e', RU3 = '#c4723a', RUD = '#3f2012', CRUST = '#8c6a46', BARN = '#b9b5a5', BARD = '#8a8678';
     const VER = '#5f8068', VERL = '#86ab96', GLASS = '#0b0f13', CRACK = '#cfe0e4', RUBBER = '#18181a', LEAD = '#3e3d44', LEADR = '#5a4034', SUIT = '#242a24', SUITD = '#161b18', STAIN = '#3a2a1c', KELP = '#1d3a2b';
@@ -76,7 +73,17 @@ export class Glimpse {
     barn(-1.1, 0.45, -0.3, 0.12, 20); barn(-1.05, 0.55, -0.45, 0.1, 21);
     b.cyl(0, 0.5, -1.1, 0.34, 0.3, 0.6, 6, RU2, W, true); b.cyl(0, 0.5, -1.1, 0.36, 0.36, 0.1, 6, VER, W, true);   // the hose socket, green at the nut
     b.pop();
-    // arms: the left hangs too low, the right is bent wrong; rusted cuffs and elbow plates
+    // arms. Style 'orig': the left hangs too low, the right is bent wrong. Every other style has both arms hanging down.
+    const hang = (sx, len, out, fwd) => {   // an arm from the shoulder straight down (out: swung away from the body, fwd: swung forward), rusted cuff, elbow plate, hand
+      b.push(sx * 1.3, 3.55, 0.1, 0, 1, 1, 1, fwd, Math.PI + sx * out);
+      b.cyl(0, 0, 0, 0.27, 0.34, len, 6, SUIT, W, true);
+      b.cyl(0, len - 0.42, 0, 0.4, 0.42, 0.34, 6, RU1, W, true); radial(6, 0.42, len - 0.3, (x, y, z) => rivet(x, y, z, RU3));   // the cuff
+      b.blob(0, len * 0.5, 0.05, 0.42, 0.32, 0.38, COPD, W, 0.15, 23);                              // elbow plate
+      b.blob(0, len + 0.05, 0, 0.4, 0.45, 0.35, SUITD, W, 0.15, 3);                                  // the hand
+      b.blob(sx * 0.25, len * 0.2, 0, 0.22, 0.4, 0.3, RU2, W, 0.2, 22);                              // a stain on the sleeve
+      b.pop();
+    };
+    if (style === 'orig') {
     b.cyl(-1.3, 0.1, 0.1, 0.34, 0.26, 3.5, 6, SUIT, W, true);
     b.cyl(-1.3, 0.0, 0.1, 0.42, 0.4, 0.34, 6, RU1, W, true); radial(6, 0.42, 0.15, (x, y, z) => rivet(-1.3 + x, y, 0.1 + z, RU3));   // the cuff
     b.blob(-1.3, -0.35, 0.1, 0.4, 0.45, 0.35, SUITD, W, 0.15, 3);                              // the hand
@@ -84,6 +91,17 @@ export class Glimpse {
     b.cyl(1.3, 2.4, 0, 0.34, 0.28, 1.5, 6, SUIT, W, true);
     b.blob(1.3, 2.35, 0.05, 0.42, 0.32, 0.38, COPD, W, 0.15, 23);                              // elbow plate
     b.push(1.35, 2.4, 0, 0, 1, 1, 1, 0, -1.9); b.cyl(0, 0, 0, 0.28, 0.24, 1.9, 6, SUIT, W, true); b.cyl(0, 1.55, 0, 0.36, 0.34, 0.3, 6, RU1, W, true); b.blob(0, 2.15, 0, 0.36, 0.42, 0.3, SUITD, W, 0.15, 4); b.pop();
+    } else if (style === 'a') {          // A, limp: both arms hang straight, the same, a little away from the body
+      hang(-1, 3.5, 0.08, 0); hang(1, 3.5, 0.08, 0);
+    } else if (style === 'b') {          // B, one longer: the right arm is too long, the hand trails below the knee and turns out
+      hang(-1, 3.5, 0.06, 0); hang(1, 4.4, 0.2, 0.12);   // the right arm is a hand's length too long, the hand turned out
+    } else if (style === 'c') {          // C, holding on: both arms down, the right hand still closed round the end of the snapped air hose
+      hang(-1, 3.5, 0.08, 0); hang(1, 3.5, 0.1, 0.18);
+      b.push(1.55, -0.25, 0.5, 0, 1, 1, 1, 0.05, 0); b.cyl(0, 0, 0, 0.2, 0.2, 2.6, 6, RUBBER, R, true); for (const y of [0.4, 1.0, 1.6, 2.2]) b.cyl(0, y, 0, 0.26, 0.26, 0.08, 6, RU2, W, true); b.cyl(0, -0.15, 0, 0.3, 0.28, 0.25, 6, RU1, W, true); b.pop();   // the hose end, rusted fitting up, in the fist and trailing
+    } else if (style === 'd') {          // D, reaching: both arms hang too far, the hands are in the water, kelp wound round the wrists
+      hang(-1, 5.0, 0.14, 0.1); hang(1, 5.0, 0.14, 0.1);
+      for (const sx of [-1, 1]) { b.push(sx * 1.55, -1.1, 0.45, 0, 1, 1, 1, 0.1, 0); b.box(0, -1.3, 0, 0.12, 1.3, 0.04, KELP, W); b.pop(); }
+    }
     // the air hose: leaves the back of the helmet, rings of rust, falls in loops, ends cut and open
     b.push(0, 4.7, -1.15, 0, 1, 1, 1, -0.5, 0); b.cyl(0, 0, 0, 0.22, 0.22, 2.4, 6, RUBBER, R, true); for (const y of [0.4, 1.0, 1.6, 2.2]) b.cyl(0, y, 0, 0.26, 0.26, 0.08, 6, RU2, W, true); b.pop();
     b.push(0, 3.3, -2.0, 0, 1, 1, 1, 0.1, 0); b.cyl(0, 0, 0, 0.22, 0.22, 2.6, 6, RUBBER, R, true); for (const y of [0.5, 1.3, 2.1]) b.cyl(0, y, 0, 0.26, 0.26, 0.08, 6, RU2, W, true); b.pop();
@@ -92,7 +110,12 @@ export class Glimpse {
     for (const [x, z, h, w] of [[-0.8, 0.8, 1.7, 0.22], [-0.3, 1.0, 1.3, 0.18], [0.5, 0.95, 1.9, 0.24], [0.95, 0.5, 1.2, 0.18], [-0.95, 0.2, 1.4, 0.2]]) b.box(x, 0.1 - h * 0.35, z, w, h, 0.05, SUITD, W);
     for (const [x, z, h] of [[0.2, 1.05, 2.4], [-0.6, 0.9, 1.8], [1.0, -0.3, 2.0]]) { b.push(x, 2.8, z, 0, 1, 1, 1, 0.12, 0.08); b.box(0, -h, 0, 0.12, h, 0.04, KELP, W); b.pop(); }
     b.pop();
-    this.fig = new THREE.Mesh(b.geometry(), mats.props);
+  return b.geometry();
+}
+
+export class Glimpse {
+  constructor(scene, style = 'orig') {
+    this.fig = new THREE.Mesh(buildDiver(style), mats.props);
     this.fig.visible = false; this.fig.scale.setScalar(0.95);   // was 1.6: smaller, farther-off
     scene.add(this.fig);
     this.t = -1; this.k = 0;
