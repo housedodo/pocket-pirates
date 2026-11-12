@@ -23,6 +23,7 @@ export function tableOptions(state) {
   out.push({ id: 'throw', label: 'Throw the die' });
   if (isKnown(state, 'hum')) out.push({ id: 'tune', label: 'Hum the tune the two of them play' });
   if (!st.maraTried) out.push({ id: 'mara', label: 'Let Mara throw' });   // once: she cannot pick it up (CANON 2026-11-12); then the choices come back
+  if (!st.asked && level(state, 1) >= 2) out.push({ id: 'ask', label: 'Ask her who counts' });   // once, when 'who counts' is understood: she writes YOU
   if (level(state, 3) >= 3) out.push({ id: 'sit', label: 'Walk round and sit in the other chair' });
   if (st.kept || rolls.length <= 1) out.push({ id: 'leave', label: 'Push your chair in and go back to the boat' });
   return out;

@@ -274,3 +274,9 @@ in `public/audio/volumes.json` (was 0.4).
 - **Tower:** at the open door on a calm night, a low note from far below, once.
 - **Sleepers (Hammock Isle):** murmured numbers by day, never above nine; none at night.
 - **Capabilities that should sound:** "Set the die down" (no dice sound, a held breath), the tally in the Journal (soft tick per mark), Look up (the sea's hush).
+
+## The Two Players' tune (placeholder, 2026-11-12)
+`src/systems/lullaby.js` plays the eight bars on the synth tone (`audio.playTone`) near Teo's Sandbar and Ilse's Rock on a Free Cays
+night: Teo's four bars (D, 6/8, 125 BPM: A F# | G E | F# E D | E), then Ilse's four an octave up (A B | A F# | G F# E | D), panned to
+where each of them is, quieter with distance, every 45 to 75 seconds. It is a stand-in: the composer's recording (guitar, then violin)
+should replace it, same key and meter. The dread cap there (below stage 3) keeps the sea music in its bright band.

@@ -1,7 +1,7 @@
 HOIST (Pocket Pirates): THE MASTER STORY FILE
 ================================================================================================
 This is the main story file for the full game. Edit it, upload it again, and the next session puts every change
-into the game. Built from commit be8596d on 2026-11-12. 1429 in-game lines carry an ID.
+into the game. Built from commit 2f3cab8 on 2026-11-12. 1431 in-game lines carry an ID.
 
 CONTENTS
   A   HOW TO USE THIS FILE (IDs, status marks, how to add and remove things)
@@ -559,7 +559,7 @@ Where the story hides in the mechanics, and where its text lives (section J).
 # J  EVERY LINE IN THE GAME
 ################################################################################################
 Pulled from the code. Edit the text after the "|" (see part A). Sources are grouped by file; the CODE in front of every
-line says which file it goes back into. 1429 lines.
+line says which file it goes back into. 1431 lines.
 
 
 
@@ -1176,7 +1176,6 @@ line says which file it goes back into. 1429 lines.
   PLC-0025 | A sandbar and a cold fire. He plays at night, when the water is quiet.
   PLC-0026 | Teo, on the sand, plays eight bars and stops. Across the water a violin takes the tune where he left it. "She answers. We have never met. Forty years. It is manners."
   PLC-0027 | Teo and Ilse: two players on two islands, forty years, never met.
-  PLC-0028 | Teo plays eight bars and stops. The violin waits.
   PLC-0029 | A rock with a stool on it. She plays at night, when the water is quiet.
   PLC-0030 | Ilse, on the rock: "He starts it. I finish it. If one of us goes quiet, the other waits."
   PLC-0031 | Ilse finishes what Teo starts.
@@ -1215,6 +1214,12 @@ line says which file it goes back into. 1429 lines.
   PLC-0064 | A table at the water's edge. One chair on this side, one on the other. A die, waiting.
   PLC-0065 | The chair on the other side has not moved.
   PLC-0066 | A bare sandbar at the end of the chart. The sea here is very still. Nothing is laid.
+
+### PLC / ADDED 2026-11-12
+  PLC-0067 | Teo plays eight bars and stops. "Never sat at her table. Never will. We play instead." The violin waits.
+
+### PLC / RETIRED (the text is no longer in the game; these IDs are never used again)
+    was PLC-0028 | Teo plays eight bars and stops. The violin waits.
 
 
 ####################################################################################################
@@ -2395,6 +2400,10 @@ line says which file it goes back into. 1429 lines.
   MAIN-0308 | The innkeeper counted heads last night, got one, and charged you for one.
   MAIN-0309 | Mara does not say anything for a long while.
 
+### MAIN / ADDED 2026-11-12
+  MAIN-0310 | In the Cays they say the dark keeps quiet while somebody plays.
+  MAIN-0311 | She writes your question on a clean line: WHO COUNTS? Under it, one word. YOU. Every line above it, as far back as the book goes, ends with the same word.
+
 ### MAIN / RETIRED (the text is no longer in the game; these IDs are never used again)
     was MAIN-0011 | ${from} gave you a treasure riddle for ${d.name}. Saved in your log: Riddles tab.
     was MAIN-0012 | ${from} gave you a riddle. Saved in your log: Riddles tab. Where it points is up to you.
@@ -2677,7 +2686,7 @@ line says which file it goes back into. 1429 lines.
 K1 OPEN QUESTIONS [fill in; I will ask about every ?? first]
    - What is Mara (beyond where she is from)?                           A entity created by the sleeper. Her village was part of a previous dream, that came over in the new world (current dream), where HOIST is happening.
    - What is the whole old story the fragments tell?                    That the world is just a dream and not the first one, but the longest she is currently sleeping so it is staying.
-   - What does the Lady write if she is asked who counts?               (empty)  ??
+   - What does the Lady write if she is asked who counts?               You. The Lady does not discern the sailors, they are all one entity known as the sailor.
    - May Mara throw in your place at the Table?                         She wants to try, but she cannot pick up the dice. Her presence is not supposed to be here but she is too small to be realized as a foreign entity.
    - Are the Two Players the same two who play at night?                Yes, they have been sailing aswell before but refused to throw the die and as musicians, they were playing the song when entering the dread stages and it soothed it and therefore they figured out, that they can partially in a region stop the dread by keeping the creature asleep and the dream going.
    - Who is the other berth, whose hook, who dug first, who rowed?      All previous sailors who have gone mad and disappeared somewhere in the dread, a neverending nightmare.
@@ -2690,7 +2699,8 @@ K2 DECISIONS (with the date; the short list is docs/CANON.md)
    - 2026-11-11  At the Table: Throw, Hum the tune, Sit, Leave. "Turn the table to the sea" is cut. The Lady's errands (Act 3) are cut.
    - 2026-11-11  Four small wrong things happen before the hut (the third oar, two berths, the hook, the hole); none is explained.
    - 2026-11-12  The third oar is cut. Three small wrong things remain (two berths, the hook, the hole).
-   - 2026-11-12  Your answers in K1 are canon (docs/CANON.md, sections 2 and 3). Still open: the Lady's writing.
+   - 2026-11-12  Your answers in K1 are canon (docs/CANON.md, sections 2 and 3).
+   - 2026-11-12  BUILT: Ask her who counts (she writes YOU); K4 d, the Two Players keep the Free Cays asleep (systems/lullaby.js).
    - 2026-11-12  Threads by region as proposed in K4 f. The Pained Raven is empty (K1).
    - 2026-11-12  Next: K4 d (the Two Players keep the Free Cays asleep), then e (the sailors who went mad), then the Edge.
 K3 NEXT TO IMPLEMENT, IN THIS ORDER

@@ -68,6 +68,7 @@ import { renderer, post, scene, camera, ocean, sky } from './core/engine.js';
 import { $, goldEl, promptEl, promptTxt, promptBar, promptFill, toastsEl, debugEl, helpEl, chartEl, harbourEl, pauseEl, shipEl, compass, toast } from './ui/dom.js';
 import { WEEK, weekday, isMarketDay, isLanternNight, isFestival, tideAt, tideFalls } from './systems/calendar.js';
 import { addMark, clearMark, keep, markFromRoll } from './systems/storyflags.js';
+import { lullDread, lullabyTick } from './systems/lullaby.js';
 import { PITCH_MIN, updateCamera, initCamera1, initCamera2 } from './ui/camera.js';
 import { titleEl, startTitle, titleCam, titleKey, INTRO_DUR, endIntro, skipIntro, begin, initTitle1, initTitle2 } from './ui/title.js';
 import { fsEl, fsOk, toggleFullscreen, nightViewNow, showPauseMain, pauseBack, mixer, studio, soundSituation, initPause1, initPause2 } from './ui/pause.js';
@@ -1013,6 +1014,7 @@ function tryInteract() {
       if (told === 0 || ending || Math.random() < 0.5) { say = rollGreeting(h.rolls[h.rolls.length - 1].n, state.time * 24, Math.random); if (ending) say.endsDemo = true; }
     }
     if (!say && ending && h && h.rolls.length) { say = rollGreeting(h.rolls[h.rolls.length - 1].n, state.time * 24, Math.random); say.endsDemo = true; state.story.rollSeen = h.rolls.length; }
+    if (!say && free && laterOK() && window.__BUILD !== 'demo' && !state.story.lullRumour && sectorAt(d.x, d.z, state.seed).faction.id === 'free') { state.story.lullRumour = 1; say = { speaker: 'oldsalt', text: 'In the Cays they say the dark keeps quiet while somebody plays.', story: true }; }   // points at the Two Players (the gentle ending)
     if (!say && free && !state.story.tellGreet && lateTell() && Math.random() < 0.5) { state.story.tellGreet = 1; say = { speaker: 'harbourmaster', text: 'Captain. Just yourself again? I will put you down as one.', story: true }; }   // a tell: they greet only you
     if (!say && free && laterOK() && isOpen(state, 'tab', 'tavern') && Math.random() < 0.6) say = life.gossipAt(state, d);
     if (!say && free && laterOK() && rt.dread < 0.6) say = taleAt(d);
@@ -1185,6 +1187,9 @@ function openTable() {
       state.hut = state.hut || { rolls: [], wins: 0, fails: 0, lastDay: -1, visits: 0 }; state.hut.rolls.push({ n: r.n, day: state.dayN, last: true });
       const words = ['', 'one', 'two', 'three'];
       out(`The die clatters across the table. ${r.n}.${r.w ? ` She turns the book round. It ${r.w > 0 ? 'gives' : 'takes'} ${words[Math.abs(r.w)]}.` : ''}`, () => { closeModal(); showEnding(r.end, r); });
+    } else if (ch.id === 'ask') {   // she does not tell sailors apart: to her they are all one, the sailor (CANON 2026-11-12). Never explained.
+      state.story.asked = 1;
+      out('She writes your question on a clean line: WHO COUNTS? Under it, one word. YOU. Every line above it, as far back as the book goes, ends with the same word.', () => { closeModal(true); openTable(); });
     } else if (ch.id === 'mara') {   // she wants to try; the die does not move for her. Never explained.
       state.story.maraTried = 1;
       out('Mara reaches for the die. Her fingers close round it, and it does not move. She tries again. "Slippery thing," she says, and laughs, a little too quickly.', () => { closeModal(true); openTable(); });
@@ -1751,6 +1756,7 @@ function frame() {
   if (live || params.get('autostart')) ship.update(dt, shipInput, windNow, rt.tNow);
   if (live && dt > 0) { stormAndCalm(dt); tabletopTick(dt); seaGate(dt); clueTick(dt); seamTick(dt); tackTick(dt); seaTick(dt, windNow); oilTick(dt); sailTick(dt, windNow); fogLost(dt); }
   if (live) { anchorTick(); oarTick(dt); }
+  if (live && dt > 0 && window.__BUILD !== 'demo') lullabyTick({ dt, free: !!freeCaysNow(), night: tod.night, storm: weather.storm, ship, audio });   // the Two Players
   const solid = [];
   traffic.solids(solid); fauna.solids(solid); sea.solids(solid); sighting.solids(solid); secrets.solids(solid);
   if (world.collide(ship.pos, 2.2) | pushOut(ship.pos, 2.2, solid)) {
@@ -1759,7 +1765,7 @@ function frame() {
   }
 
   // ---- dread + stage palette + time of day
-  const target = rt.forced !== null ? rt.forced : clamp(felt() + (window.__BUILD === 'demo' ? 0 : dreamShift()), 0, 1);
+  const target = rt.forced !== null ? rt.forced : lullDread(clamp(felt() + (window.__BUILD === 'demo' ? 0 : dreamShift()), 0, 1));   // the Cays' night quiet holds it down (systems/lullaby.js)
   rt.dread += (target - rt.dread) * Math.min(1, rawDt * (rt.forced !== null ? 1.2 : 0.4));
   if (params.get('shot')) rt.dread = target;
   if (rt.glitchT > 0) { rt.glitchT -= rawDt; rt.dread = 1; if (rt.glitchT <= 0) { rt.dread = rt.preGlitch; hutEl.classList.remove('glitching'); } } // the hut's bad throw

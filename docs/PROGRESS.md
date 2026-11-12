@@ -998,3 +998,15 @@ Trials for the owner to compare; nothing changes without a flag and STYLE.md is 
 - **Passenger talk, final form** (owner-approved lines, 2026-11-12): a pair, not a three: the passenger says something to the captain,
   Mara answers, nothing more. Twelve pairs, each tied to its passenger; the two faint hints ("Alone is a strong word", "The ship. She is
   very patient.") come up one time in five when picked. The seasick line is back to Mara's single answer.
+
+## The Two Players keep the Free Cays asleep; Ask her who counts (2026-11-12)
+- **Lullaby** (`src/systems/lullaby.js`, wired in `frame()`): in the Free Cays, at night without storm, `rt.lullK` rises (about 10 s)
+  and the dread target is pulled down to 0.45 (below stage 3); by day it lets go. Near Teo or Ilse (600) the eight bars play every 45-75 s
+  (placeholder synth, AUDIO.md). Full game only.
+- **Pointing at it** (K3 item 2): the first time you dock in a Free Cays harbour (from the tavern chapter), an old salt says "In the
+  Cays they say the dark keeps quiet while somebody plays." Teo, on later visits: "Never sat at her table. Never will. We play instead."
+- **Ask her who counts** (`table.js`, `openTable`): once, when question 1 is at level 2: she writes WHO COUNTS? and under it YOU; every
+  line above ends with the same word. The choices come back.
+- Verified headless: the cap (0.8 -> 0.45 at full quiet), lullK rising at night near Teo and falling by day, the tune (15 notes, Teo then
+  Ilse an octave up, panned), the old salt's line on docking at Haven Monar (a Free Cays harbour), the Ask choice appearing only at
+  level 2 and its text; no console errors. Not heard: the tune itself (headless has no ears).

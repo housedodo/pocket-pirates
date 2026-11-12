@@ -51,7 +51,7 @@ const VISITS = {
   teo: {
     clue: 'CL-F1-a', need: (c) => c.night && c.calm, no: 'A sandbar and a cold fire. He plays at night, when the water is quiet.',
     once: { text: 'Teo, on the sand, plays eight bars and stops. Across the water a violin takes the tune where he left it. "She answers. We have never met. Forty years. It is manners."', note: 'Teo and Ilse: two players on two islands, forty years, never met.' },
-    again: 'Teo plays eight bars and stops. The violin waits.',
+    again: 'Teo plays eight bars and stops. "Never sat at her table. Never will. We play instead." The violin waits.',
   },
   ilse: {
     clue: 'CL-F1-a', need: (c) => c.night && c.calm, no: 'A rock with a stool on it. She plays at night, when the water is quiet.',
