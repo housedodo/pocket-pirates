@@ -2,8 +2,8 @@ import { mulberry32, hash2 } from './util.js';
 import { nearby, findRumour, bearingName } from './jobs.js';
 
 // Passengers: people who pay for passage to another harbour. On the way they talk, a line every half
-// minute or so: little stories, hints about buried treasure, gossip. They talk to the captain. Mara answers them, and they never
-// hear her: nobody sees or hears Mara but the captain (CANON 2026-11-12). Never pointed out. The captain never says a word.
+// minute or so: little stories, hints about buried treasure, gossip. They talk to the captain; Mara answers; nobody answers her
+// (only the captain sees and hears her, CANON 2026-11-12; never said, barely hinted). The captain never says a word.
 const PEOPLE = [
   { name: 'Old Wendel', who: 'a retired net-mender', lines: [
     'I mended nets in Tama for forty years. Never once caught a fish myself. Did not like the look in their eyes.',
@@ -38,17 +38,21 @@ const PEOPLE = [
     'Everything must be signed, captain. Births, ships, tides. Somebody signs the tides, you know.',
     'Your name, for my records? ...Never mind. I seem to have it already.', 'The letter is sealed. I do not know what it says. I would very much like to know what it says.', 'Contracts, captain, are like tides. They come back around.'] },
 ];
-// [the passenger, to the captain] [Mara, answering] [the passenger again, as if nobody had spoken]
+// The passenger says something to the captain (a story, or a remark about the silent captain) and Mara answers. Nobody ever
+// answers her; that is all. Mara never points out that she is there. `hint`: the faintest hints, rare (CANON 2026-11-12).
 const MARA_BANTER = [
-  ['Just the one of you on this whole ship, Captain? Brave.', 'Two! There are two of us. Hello?', 'Must get lonely out here. I would talk to myself.'],
-  ['Who were you smiling at just now, Captain? ...Never mind. Sea air.', 'At me. I told a very good joke.', 'My uncle used to smile at the sea like that. Nice man.'],
-  ['Is there tea aboard? I can make it myself, I do not want to be a bother.', 'Second cup is mine, thank you.', 'One cup, then. One is plenty.'],
-  ['Do you always set out two mugs, Captain?', 'Yes. Because there ARE two.', 'Habit, I suppose. I still set a place for my mother.'],
-  ['Somebody has left a coat on the hatch. Yours?', 'Mine. Do not sit on it.', 'Lovely and warm. As if somebody just took it off.'],
-  ['Does the ship always creak like that? Like somebody walking about?', 'That is me. I am walking about.', 'Old boats talk, my father said. Pay them no mind.'],
-  ['Who steers while you sleep, Captain?', 'I do! Me. Right here.', 'The sea, I suppose. It knows the way.'],
-  ['I think a gull just stole my hat.', 'He does that. We call him the Quartermaster.', 'Nobody saw that, did they? Good.'],
-  ['This ship is smaller than it looked from the dock.', 'She is cosy! Cosy is a feature.', 'Still. Room enough for one.'],
+  { who: 'Old Wendel', p: 'My brother sailed these waters thirty years. Said the fish here bite on Tuesdays and sulk the rest of the week.', m: 'Today is Thursday. We will manage.' },
+  { who: 'Pippa Fairweather', p: 'Master Perrin drew a whole island once from a sailor\'s description. It turned out the sailor had been describing a whale.', m: 'It moved, I suppose. Bad luck for the map.' },
+  { who: 'Captain Ruy', p: 'I lost a ship to a whirlpool off the Pearl Banks. The cook went down still stirring the soup.', m: 'Somebody had to finish it.' },
+  { who: 'Mags & Tully', p: 'Our cousin owes us a goat. The goat has been owed for eleven years. It is a very old goat now.', m: 'Then you will want it quickly.' },
+  { who: 'Brother Ansel', p: 'At the lighthouse we count every ship that passes. Last year we counted one more than came back.', m: 'Everyone counts wrong sometimes. Even monks.' },
+  { who: 'Pim', p: 'My mum says if you whistle on a boat, the wind comes to see who called.', m: 'Do not whistle, then. We have enough wind.' },
+  { who: 'Old Wendel', p: 'You do not say much, Captain. My wife was the same. Forty years and I never won an argument.', m: 'The captain does not argue. The captain just steers where they meant to go.' },
+  { who: 'Master Odo', p: 'Not a word since we left the pier, Captain. I respect a person who saves their breath.', m: 'It is saved for shouting at gulls.' },
+  { who: 'Mags & Tully', p: 'Tully thinks you are shy, Captain. I think you are just listening. Are you listening?', m: 'Always. It is the worst thing about the captain.' },
+  { who: 'Captain Ruy', p: 'A quiet captain is a good captain. The loud ones sink first. I was very loud.', m: 'We will keep it quiet, then.' },
+  { who: 'A quiet woman in grey', p: 'You sail alone a great deal, do you not, Captain? I can always tell.', m: 'Alone is a strong word.', hint: true },
+  { who: 'Pim', p: 'Who do you talk to when there is nobody aboard, Captain?', m: 'The ship. She is very patient.', hint: true },
 ];
 const SEASICK = [
   'Is this a storm or is the sea just upset with me personally?',
@@ -83,7 +87,7 @@ export function passengerTalk(pass, dt, ctx) {   // ctx: { mate, world, ship, st
   const say = (t, dk) => ctx.mate.say(t, dk, pass.name);
   const dk = ctx.dread > 0.55;
   const roll = Math.random();
-  if (ctx.storm > 0.4 && roll < 0.6) { say(SEASICK[Math.floor(Math.random() * SEASICK.length)]); if (Math.random() < 0.4) { ctx.mate.say('Lean over the downwind side. The OTHER side!'); say('Which side is downwind, Captain? Never mind. I will guess.'); } return; }
+  if (ctx.storm > 0.4 && roll < 0.6) { say(SEASICK[Math.floor(Math.random() * SEASICK.length)]); if (Math.random() < 0.4) ctx.mate.say('Lean over the downwind side. The OTHER side!'); return; }
   if (dk && roll < 0.5) { say(DARK_LINES[pass.said++ % DARK_LINES.length], true); return; }
   if (roll < 0.3) {                                                // a treasure hint: it goes on your chart
     const r = findRumour(ctx.world, { x: ctx.ship.pos.x, z: ctx.ship.pos.z }, ctx.state);
@@ -93,6 +97,9 @@ export function passengerTalk(pass, dt, ctx) {   // ctx: { mate, world, ship, st
       return;
     }
   }
-  if (roll < 0.55) { const [a, b, c] = MARA_BANTER[Math.floor(Math.random() * MARA_BANTER.length)]; say(a); ctx.mate.say(b, false); if (c) say(c); return; }   // she answers; they do not hear her
+  if (roll < 0.55) {   // the passenger says something to the captain; Mara answers. A hint is rare: most times it gives way to an ordinary line
+    const mine = MARA_BANTER.filter((x) => x.who === pass.name && (!x.hint || Math.random() < 0.2));
+    if (mine.length) { const x = mine[Math.floor(Math.random() * mine.length)]; say(x.p); ctx.mate.say(x.m, false); return; }
+  }
   say(p.lines[pass.said++ % p.lines.length]);
 }

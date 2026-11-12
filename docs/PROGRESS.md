@@ -995,3 +995,6 @@ Trials for the owner to compare; nothing changes without a flag and STYLE.md is 
   fragment order (far harbours get the four first, then the usual ones; near harbours never get them); no console errors.
   Not checked by eye: how often the tells come up in real play.
 - `window.__game.openTable()` added for tests.
+- **Passenger talk, final form** (owner-approved lines, 2026-11-12): a pair, not a three: the passenger says something to the captain,
+  Mara answers, nothing more. Twelve pairs, each tied to its passenger; the two faint hints ("Alone is a strong word", "The ship. She is
+  very patient.") come up one time in five when picked. The seasick line is back to Mara's single answer.

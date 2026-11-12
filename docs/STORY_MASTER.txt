@@ -1,7 +1,7 @@
 HOIST (Pocket Pirates): THE MASTER STORY FILE
 ================================================================================================
 This is the main story file for the full game. Edit it, upload it again, and the next session puts every change
-into the game. Built from commit e2d4d45 on 2026-11-12. 1432 in-game lines carry an ID.
+into the game. Built from commit bc171e8 on 2026-11-12. 1429 in-game lines carry an ID.
 
 CONTENTS
   A   HOW TO USE THIS FILE (IDs, status marks, how to add and remove things)
@@ -559,7 +559,7 @@ Where the story hides in the mechanics, and where its text lives (section J).
 # J  EVERY LINE IN THE GAME
 ################################################################################################
 Pulled from the code. Edit the text after the "|" (see part A). Sources are grouped by file; the CODE in front of every
-line says which file it goes back into. 1432 lines.
+line says which file it goes back into. 1429 lines.
 
 
 
@@ -773,12 +773,6 @@ line says which file it goes back into. 1432 lines.
   PAS-0042 | The letter is sealed. I do not know what it says. I would very much like to know what it says.
   PAS-0043 | Contracts, captain, are like tides. They come back around.
 
-### PAS / MARA_BANTER
-  PAS-0053 | This ship is smaller than it looked from the dock.
-  PAS-0054 | She is cosy! Cosy is a feature.
-  PAS-0059 | I think a gull just stole my hat.
-  PAS-0060 | He does that. We call him the Quartermaster.
-
 ### PAS / SEASICK
   PAS-0061 | Is this a storm or is the sea just upset with me personally?
   PAS-0062 | I am going to lie down on the deck. If I roll overboard, it was a good trip.
@@ -798,29 +792,30 @@ line says which file it goes back into. 1432 lines.
   PAS-0071 | My grandfather swore there was gold buried on ${r.d.name}, ${bearingName(r.d.x - ctx.ship.pos.x, r.d.z - ctx.ship.pos.z)} of here. Mark it, if you like. I never had a boat.
 
 ### PAS / ADDED 2026-11-12
-  PAS-0072 | Just the one of you on this whole ship, Captain? Brave.
-  PAS-0073 | Two! There are two of us. Hello?
-  PAS-0074 | Must get lonely out here. I would talk to myself.
-  PAS-0075 | Who were you smiling at just now, Captain? ...Never mind. Sea air.
-  PAS-0076 | At me. I told a very good joke.
-  PAS-0077 | My uncle used to smile at the sea like that. Nice man.
-  PAS-0078 | Is there tea aboard? I can make it myself, I do not want to be a bother.
-  PAS-0079 | Second cup is mine, thank you.
-  PAS-0080 | One cup, then. One is plenty.
-  PAS-0081 | Do you always set out two mugs, Captain?
-  PAS-0082 | Yes. Because there ARE two.
-  PAS-0083 | Habit, I suppose. I still set a place for my mother.
-  PAS-0084 | Somebody has left a coat on the hatch. Yours?
-  PAS-0085 | Mine. Do not sit on it.
-  PAS-0086 | Lovely and warm. As if somebody just took it off.
-  PAS-0087 | Does the ship always creak like that? Like somebody walking about?
-  PAS-0088 | That is me. I am walking about.
-  PAS-0089 | Old boats talk, my father said. Pay them no mind.
-  PAS-0090 | Who steers while you sleep, Captain?
-  PAS-0091 | The sea, I suppose. It knows the way.
-  PAS-0092 | Nobody saw that, did they? Good.
-  PAS-0093 | Still. Room enough for one.
-  PAS-0094 | Which side is downwind, Captain? Never mind. I will guess.
+  PAS-0095 | My brother sailed these waters thirty years. Said the fish here bite on Tuesdays and sulk the rest of the week.
+  PAS-0096 | Today is Thursday. We will manage.
+  PAS-0097 | Master Perrin drew a whole island once from a sailor's description. It turned out the sailor had been describing a whale.
+  PAS-0098 | It moved, I suppose. Bad luck for the map.
+  PAS-0099 | I lost a ship to a whirlpool off the Pearl Banks. The cook went down still stirring the soup.
+  PAS-0100 | Somebody had to finish it.
+  PAS-0101 | Our cousin owes us a goat. The goat has been owed for eleven years. It is a very old goat now.
+  PAS-0102 | Then you will want it quickly.
+  PAS-0103 | At the lighthouse we count every ship that passes. Last year we counted one more than came back.
+  PAS-0104 | Everyone counts wrong sometimes. Even monks.
+  PAS-0105 | My mum says if you whistle on a boat, the wind comes to see who called.
+  PAS-0106 | Do not whistle, then. We have enough wind.
+  PAS-0107 | You do not say much, Captain. My wife was the same. Forty years and I never won an argument.
+  PAS-0108 | The captain does not argue. The captain just steers where they meant to go.
+  PAS-0109 | Not a word since we left the pier, Captain. I respect a person who saves their breath.
+  PAS-0110 | It is saved for shouting at gulls.
+  PAS-0111 | Tully thinks you are shy, Captain. I think you are just listening. Are you listening?
+  PAS-0112 | Always. It is the worst thing about the captain.
+  PAS-0113 | A quiet captain is a good captain. The loud ones sink first. I was very loud.
+  PAS-0114 | We will keep it quiet, then.
+  PAS-0115 | You sail alone a great deal, do you not, Captain? I can always tell.
+  PAS-0116 | Alone is a strong word.
+  PAS-0117 | Who do you talk to when there is nobody aboard, Captain?
+  PAS-0118 | The ship. She is very patient.
 
 ### PAS / RETIRED (the text is no longer in the game; these IDs are never used again)
     was PAS-0044 | Sleep is for people who do not have a captain.
@@ -832,11 +827,38 @@ line says which file it goes back into. 1432 lines.
     was PAS-0050 | Always! Even in storms. ESPECIALLY in storms.
     was PAS-0051 | Does the captain ever speak?
     was PAS-0052 | Only in emergencies. And knots. Very expressive knots.
+    was PAS-0053 | This ship is smaller than it looked from the dock.
+    was PAS-0054 | She is cosy! Cosy is a feature.
     was PAS-0055 | Is that fish hanging from the mast for luck?
     was PAS-0056 | For lunch. Luck was yesterday's fish.
     was PAS-0057 | How long have you sailed together?
     was PAS-0058 | Since forever! Well. Since Tuesday. Forever-ish.
+    was PAS-0059 | I think a gull just stole my hat.
+    was PAS-0060 | He does that. We call him the Quartermaster.
     was PAS-0070 | Does Mara ever sleep?
+    was PAS-0072 | Just the one of you on this whole ship, Captain? Brave.
+    was PAS-0073 | Two! There are two of us. Hello?
+    was PAS-0074 | Must get lonely out here. I would talk to myself.
+    was PAS-0075 | Who were you smiling at just now, Captain? ...Never mind. Sea air.
+    was PAS-0076 | At me. I told a very good joke.
+    was PAS-0077 | My uncle used to smile at the sea like that. Nice man.
+    was PAS-0078 | Is there tea aboard? I can make it myself, I do not want to be a bother.
+    was PAS-0079 | Second cup is mine, thank you.
+    was PAS-0080 | One cup, then. One is plenty.
+    was PAS-0081 | Do you always set out two mugs, Captain?
+    was PAS-0082 | Yes. Because there ARE two.
+    was PAS-0083 | Habit, I suppose. I still set a place for my mother.
+    was PAS-0084 | Somebody has left a coat on the hatch. Yours?
+    was PAS-0085 | Mine. Do not sit on it.
+    was PAS-0086 | Lovely and warm. As if somebody just took it off.
+    was PAS-0087 | Does the ship always creak like that? Like somebody walking about?
+    was PAS-0088 | That is me. I am walking about.
+    was PAS-0089 | Old boats talk, my father said. Pay them no mind.
+    was PAS-0090 | Who steers while you sleep, Captain?
+    was PAS-0091 | The sea, I suppose. It knows the way.
+    was PAS-0092 | Nobody saw that, did they? Good.
+    was PAS-0093 | Still. Room enough for one.
+    was PAS-0094 | Which side is downwind, Captain? Never mind. I will guess.
 
 
 ####################################################################################################
