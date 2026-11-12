@@ -231,6 +231,8 @@ export function initStoryBeats() {
   rt.intoWindT = 0;
   rt.hullShown = -1;
   rt.newAsk = 0;
+  $('pbExit').addEventListener('click', () => { G.saveNow(); location.href = location.pathname; });   // saved, then the title (Set sail continues)
+  if (/Electron/.test(navigator.userAgent)) { $('pbQuit').style.display = ''; $('pbQuit').addEventListener('click', () => { G.saveNow(); window.close(); }); }   // the standalone app (electron/)
   $('pbNew').addEventListener('click', () => {
     if (performance.now() - rt.newAsk > 4000) { rt.newAsk = performance.now(); $('pbNew').textContent = 'Really? Click again to start over'; return; }
     session.noSave = true; try { localStorage.removeItem(SAVE_KEY); sessionStorage.setItem('hoist-new', '1'); if (G.fsEl()) sessionStorage.setItem('hoist-fs', '1'); } catch (e) { /* storage blocked */ }

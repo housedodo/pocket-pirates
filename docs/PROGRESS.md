@@ -1094,3 +1094,16 @@ Trials for the owner to compare; nothing changes without a flag and STYLE.md is 
   win32 dev` packs the dev build. Build output (`electron/out`, `electron/game`, `electron/node_modules`) is not committed.
 - Built for Windows x64 (HOIST.exe, 128 MB zipped, unsigned). Checked by running the same app on Linux under a virtual display: the
   title scene renders, the menu works, a save carries over between runs, no errors. The Windows .exe itself was not run here.
+
+## A friend's playtest notes (2026-11-12)
+- Title menu letters closer (-0.05em: DotGothic16 is monospaced, so narrow letters left wide gaps).
+- Music on the title: the sea's stage-1 band (audio starts on the title; a browser lets it sound from the first click or key).
+- The log's Done list shows every finished goal (with where it was) and every delivery, not the last few.
+- "Earn your keep" slip: "Take a delivery from a harbour Board and deliver it".
+- Rammed into a pier: pressed against something, the rudder still bites (`ship.blockT`), so she turns away without the oars.
+- Mouse orbit no longer inverted sideways (drag right, the view swings right).
+- Deliveries, passengers, hand-ins and Tama/Perrin goals point at the pier (`world.js pierOf`), on the compass, the slip and the chart flag.
+- Harbour E reach: 22 from the mooring point (was 13).
+- The jib grew without end while paused (its flutter was added every frame): fixed.
+- Pause menu: Controls moved under Settings; "Save and exit to title"; "Save and quit" in the standalone app only.
+- Not done, asked the owner: a minimap.

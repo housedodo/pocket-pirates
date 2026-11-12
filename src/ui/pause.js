@@ -36,7 +36,7 @@ export function fsChanged() {
 export function nightViewNow() { NIGHT_SET.view = rt.nightMode ? rt.nightMode - 1 : fullMoon() ? 2 : 0; }
 // pause menu panels: main > settings > (sound, display), main > controls, main > dev tools > full dread. Back / Esc go up one level.
 export const PAUSE_PANELS = { main: 'pauseMain', settings: 'pauseSettings', sound: 'pauseSound', display: 'pauseDisplay', controls: 'pauseControls', dev: 'pauseDev', abyss: 'pauseAbyss' };
-export const PAUSE_PARENT = { settings: 'main', controls: 'main', dev: 'main', sound: 'settings', display: 'settings', abyss: 'dev' };
+export const PAUSE_PARENT = { settings: 'main', controls: 'settings', dev: 'main', sound: 'settings', display: 'settings', abyss: 'dev' };
 export const PAUSE_OPENER = { settings: 'pbSettings', controls: 'pbControls', dev: 'pbDevTools', sound: 'pbSoundMenu', display: 'pbDisplay', abyss: 'pbAbyss' };
 export function showPause(name, focus) {
   rt.pausePanel = name;

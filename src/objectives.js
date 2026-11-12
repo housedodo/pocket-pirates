@@ -91,7 +91,7 @@ export const MAIN_GOALS = [
   },
   {
     id: 'job', ch: 2, title: 'Earn your keep', reward: 30,
-    where: 'A harbour Board, then where it says',   // the slip's second line when the goal has no single place
+    where: 'Take a delivery from a harbour Board and deliver it',   // the slip's second line when the goal has no single place
     text: 'Take a delivery from a harbour board and bring it where it belongs.',
     intro: ['Harbours pay well for deliveries. Take one from a Board and bring it where it belongs.'],
     outro: ['Reputation matters out here. Harbours remember you.'],

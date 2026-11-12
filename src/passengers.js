@@ -1,5 +1,6 @@
 import { mulberry32, hash2 } from './util.js';
 import { nearby, findRumour, bearingName } from './jobs.js';
+import { pierOf } from './world.js';
 
 // Passengers: people who pay for passage to another harbour. On the way they talk, a line every half
 // minute or so: little stories, hints about buried treasure, gossip. They talk to the captain; Mara answers; nobody answers her
@@ -74,7 +75,7 @@ export function makePassenger(world, from, serial, force = false) {
   if (!list.length) return null;
   const { d: to, dist } = list[Math.floor(rng() * list.length) % list.length];
   const p = PEOPLE[Math.floor(rng() * PEOPLE.length) % PEOPLE.length];
-  return { name: p.name, who: p.who, fromId: from.id, toId: to.id, toName: to.name, x: to.x, z: to.z, reward: Math.round(15 + dist * 0.09), said: 0, timer: 12 };
+  return { name: p.name, who: p.who, fromId: from.id, toId: to.id, toName: to.name, ...pierOf(to), reward: Math.round(15 + dist * 0.09), said: 0, timer: 12 };
 }
 
 /** called every frame while a passenger is aboard and the ship is sailing */

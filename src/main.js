@@ -90,6 +90,7 @@ Object.defineProperties(G, {
   abyss: { get: () => abyss },
   audio: { get: () => audio },
   autosave: { get: () => autosave },
+  saveNow: { get: () => saveNow },
   buyOil: { get: () => buyOil },
   cardEl: { get: () => cardEl },
   caveEl: { get: () => caveEl },
@@ -802,10 +803,10 @@ function getInteract() {
   const spr = threads.springNear(ship.pos.x, ship.pos.z); if (spr) return { kind: 'spring', key: 'spring', src: spr };
   const thr = threads.interact(ship); if (thr) return { kind: 'thread', key: thr.key, th: thr };
   // a harbour is entered at its pier; anywhere else along its shore you only get a hint
-  const hb = world.nearest(ship.pos.x, ship.pos.z, 30, ['harbour']);
+  const hb = world.nearest(ship.pos.x, ship.pos.z, 38, ['harbour']);
   if (hb) {
     const d = hb.desc, dk = d.dock;
-    if (dk && Math.hypot(ship.pos.x - (d.x + dk.x), ship.pos.z - (d.z + dk.z)) < 13) return (!onbAll() && state.goals.i < 1) ? null : { kind: 'harbour', key: d.id, isl: hb };   // no "visit" at the very start: Mara sends you when it is time
+    if (dk && Math.hypot(ship.pos.x - (d.x + dk.x), ship.pos.z - (d.z + dk.z)) < 22) return (!onbAll() && state.goals.i < 1) ? null : { kind: 'harbour', key: d.id, isl: hb };   // no "visit" at the very start: Mara sends you when it is time
     if (world.lastEdge < 16) return { kind: 'harbourfar', key: d.id, isl: hb };
   }
   const sc = secrets.near(ship.pos.x, ship.pos.z, state.collected); if (sc && !(sc.kind === 'camp' && state.story.secrets && state.story.secrets[sc.key + '@'] === state.dayN)) return { kind: 'secret', key: sc.key, sc };
@@ -1325,7 +1326,7 @@ function frame() {
   traffic.solids(solid); fauna.solids(solid); sea.solids(solid); sighting.solids(solid); secrets.solids(solid);
   if (world.collide(ship.pos, 2.2) | pushOut(ship.pos, 2.2, solid)) {
     if (ship.speed > 3 && dt > 0) audio.play('bump', { vol: clamp(ship.speed / 10, 0.3, 1) });
-    ship.speed *= 0.9;
+    ship.speed *= 0.9; ship.blockT = 0.8;
   }
 
   // ---- dread + stage palette + time of day
@@ -1541,6 +1542,8 @@ function frame() {
   if (live) {
     audio.update(dt, { dread: rt.dread, speed: ship.speed / 11, night: tod.night, freecays: freeCaysNow(), players: window.__BUILD === 'demo' ? null : playersEar(ship), lull: rt.lullK || 0, wind: wind.strength, rain: weather.rain, storm: weather.storm, gulls: gullLevel(tod.night),
       quests: state.goals.i, open: openSea(), battle: inBattle() });
+  } else if (rt.titleScene) {   // the title: the band of the bright sea, calm and open
+    audio.update(rawDt, { dread: 0, speed: 0.2, night: tod.night, freecays: 0, players: null, lull: 0, wind: 0.5, rain: 0, storm: 0, gulls: 0.3, quests: 6, open: 1, battle: false });
     const hour = Math.floor(state.time * 24);
     if (hour !== rt.lastHour) { rt.lastHour = hour; if (world.nearest(ship.pos.x, ship.pos.z, 80, ['harbour'])) audio.play('bell', { vol: 0.6 }); }
   }

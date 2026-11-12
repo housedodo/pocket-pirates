@@ -441,7 +441,7 @@
     #title { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 6vh; background: radial-gradient(ellipse at 50% 45%, rgba(0,0,0,0) 45%, rgba(4,2,8,.55)); text-align: center; z-index: 5; cursor: pointer; }
     #titleLogo { width: min(820px, 92vw); image-rendering: pixelated; }
     #titleMenu { position: absolute; left: max(16px, 5vw); bottom: 10vh; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
-    #titleMenu button { all: unset; cursor: pointer; position: relative; padding-left: 28px; font-size: 32px !important; line-height: 48px; color: #b8a47c; text-shadow: 2px 0 0 currentColor, 0 2px 0 currentColor, 2px 2px 0 currentColor, 5px 5px 0 #1a0606, 4px 4px 0 #1a0606; }   /* pixel bold: the face drawn twice, a hair apart */
+    #titleMenu button { all: unset; cursor: pointer; position: relative; padding-left: 28px; font-size: 32px !important; line-height: 48px; letter-spacing: -0.05em !important; color: #b8a47c; text-shadow: 2px 0 0 currentColor, 0 2px 0 currentColor, 2px 2px 0 currentColor, 5px 5px 0 #1a0606, 4px 4px 0 #1a0606; }   /* pixel bold: the face drawn twice, a hair apart */
     #titleMenu button:hover, #titleMenu button:focus { color: #f4ead0; outline: none; }
     #titleMenu button:hover::before, #titleMenu button:focus::before { content: ""; position: absolute; left: 0; top: 12px; width: 16px; height: 20px; background: #c8402a; clip-path: polygon(0 0, 100% 50%, 0 100%); filter: drop-shadow(4px 4px 0 #1a0606); }
     #title .blink { position: absolute; bottom: 2vh; left: 50%; right: auto; transform: translateX(-50%); padding: 4px 12px; background: #0e0a20; font-size: 16px !important; color: #e2d4b0; text-shadow: 1px 0 0 currentColor, 3px 3px 0 #1a0606; }   /* on a dark plate: it sat on the bobbing hull */
@@ -738,10 +738,10 @@
   <div id="harbour" class="modal"><div class="hbBanner"><div class="hbName" id="hbBannerName"></div><div class="hbDay" id="hbDay"></div><div class="hbSaid" id="hbSaid"></div></div><div class="menu" id="hbWide"><h2 id="hbName" style="display:none"></h2><p class="quote" id="hbLine" style="display:none"></p><div class="goldline"><span id="hbPlace"></span><span>Gold: <b id="hbGold"></b></span></div><div id="hbPane"></div><button id="hbClose" style="display:none">Set sail [E]</button></div><div id="hbTabs"><button class="post" data-t="board">Board<em></em><small>1</small></button><button class="post" data-t="market">Market<em></em><small>2</small></button><button class="post" data-t="tavern">Tavern<em></em><small>3</small></button><button class="post" data-t="wright">Shipwright<em></em><small>4</small></button><button class="post" data-t="sail">Set sail<em></em><small>E</small></button></div></div>
   <div id="pause" class="modal"><div class="menu">
     <div id="pauseMain"><h2>PAUSED</h2>
-      <button id="pbResume">Resume</button><button id="pbLog">Captain's log</button><button id="pbHint">Ask Mara for a hint</button><button id="pbSettings">Settings</button><button id="pbControls">Controls</button><button id="pbDevTools">Dev tools</button><button id="pbNew">New voyage (erase save)</button>
+      <button id="pbResume">Resume</button><button id="pbLog">Captain's log</button><button id="pbHint">Ask Mara for a hint</button><button id="pbSettings">Settings</button><button id="pbDevTools">Dev tools</button><button id="pbNew">New voyage (erase save)</button><button id="pbExit">Save and exit to title</button><button id="pbQuit" style="display:none">Save and quit</button>
     </div>
     <div id="pauseSettings" style="display:none"><h2>SETTINGS</h2>
-      <button id="pbSoundMenu">Sound and music</button><button id="pbDisplay">Display</button><button id="pbFull">Fullscreen: off</button>
+      <button id="pbSoundMenu">Sound and music</button><button id="pbDisplay">Display</button><button id="pbControls">Controls</button><button id="pbFull">Fullscreen: off</button>
       <button class="pback">Back</button>
     </div>
     <div id="pauseDev" style="display:none"><h2>DEV TOOLS</h2>

@@ -9,6 +9,7 @@ import { settings } from '../core/config.js';
 import { state } from '../core/state.js';
 import { rt, G } from '../core/runtime.js';
 import { $, compass, toast } from './dom.js';
+import { pierOf } from '../world.js';
 
 export let trackerEl;   // set by the init function(s) below, at the point in boot where main.js had them
 
@@ -31,7 +32,7 @@ export function trackTarget() {
   if (tr === 'passenger') return { x: state.passenger.x, z: state.passenger.z, label: state.passenger.toName };
   for (const q of state.quests) {
     if (q.id !== tr) continue;
-    if (questProgress(q, state) >= questNeed(q)) { const [cx, cz] = q.giverId.split(',').map(Number), gd = G.world.desc(cx, cz); if (gd) return { x: gd.x, z: gd.z, label: q.giverName }; }
+    if (questProgress(q, state) >= questNeed(q)) { const [cx, cz] = q.giverId.split(',').map(Number), gd = G.world.desc(cx, cz); if (gd) return { ...pierOf(gd), label: q.giverName }; }
     if (q.type !== 'crates') continue;
     const open = q.crates.filter((c) => !c.got);
     if (!open.length) continue;
@@ -47,7 +48,7 @@ export function goalTarget() {
   // Tama while a letter from Perrin waits there (or is about to), then the riddle's isle
   const g = G.objectives.current, toTama = g && (g.id === 'perrin' || (g.id === 'dig' && state.story.letterP1 !== 'taken'));
   const cell = g && (toTama ? [0, -1] : ({ harbour: [0, -1], dig: [1, -1] })[g.id]);
-  if (cell) { const d = G.world.desc(cell[0], cell[1]); if (d) return { x: d.x, z: d.z, label: d.name }; }
+  if (cell) { const d = G.world.desc(cell[0], cell[1]); if (d) return { ...(d.type === 'harbour' ? pierOf(d) : { x: d.x, z: d.z }), label: d.name }; }
   if (g && g.id === 'job' && state.job) return { x: state.job.x, z: state.job.z, label: state.job.toName };
   if (g && g.id === 'passenger' && state.passenger) return { x: state.passenger.x, z: state.passenger.z, label: state.passenger.toName };
   return null;

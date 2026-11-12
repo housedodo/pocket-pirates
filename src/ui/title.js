@@ -11,6 +11,7 @@ export let titleEl, introWanted;   // set by the init function(s) below, at the 
 
 export function startTitle() {
   if (params.get('autostart') || params.get('notitle')) return;
+  G.audio.start();   // the title has music: the band of the bright sea (main.js frame); a browser lets it sound from the first click or key
   const sc = TITLE_SCENES[params.has('title') ? Math.max(0, TITLE_SCENES.findIndex((t) => t.id === params.get('title'))) : Math.floor(Math.random() * TITLE_SCENES.length)];
   // an empty stretch of sea (no island within three cells), searched outward from home
   let spot = [0, 600];

@@ -60,7 +60,7 @@ export function initCamera1() {
   rt.drag = null;
   rt.yawT = 0, rt.camYaw = 0, rt.lastCamInput = -99;   // orbit around the boat (drag sideways, Z / X, V resets)
   canvas.addEventListener('pointerdown', (e) => { rt.drag = { x: e.clientX, y: e.clientY, p: rt.pitchT, yaw: rt.yawT }; rt.lastCamInput = rt.tNow; canvas.setPointerCapture(e.pointerId); });
-  canvas.addEventListener('pointermove', (e) => { if (rt.drag && !rt.modal) { rt.pitchT = clamp(rt.drag.p + (e.clientY - rt.drag.y) * 0.006, PITCH_MIN, 1.35); rt.yawT = rt.drag.yaw - (e.clientX - rt.drag.x) * 0.008; rt.lastCamInput = rt.tNow; } });
+  canvas.addEventListener('pointermove', (e) => { if (rt.drag && !rt.modal) { rt.pitchT = clamp(rt.drag.p + (e.clientY - rt.drag.y) * 0.006, PITCH_MIN, 1.35); rt.yawT = rt.drag.yaw + (e.clientX - rt.drag.x) * 0.008; /* drag right, the view swings right (it felt inverted) */ rt.lastCamInput = rt.tNow; } });
   canvas.addEventListener('pointerup', () => { rt.drag = null; });
 }
 

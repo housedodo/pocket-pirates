@@ -428,7 +428,8 @@ export class Ship {
 
     // turning: a rudder only works with water flowing past it (almost nothing at a standstill), and the hull has weight,
     // so the swing builds up and dies away over about a second instead of snapping round
-    const flow = clamp(this.speed / 5, 0, 1);
+    if (this.blockT > 0) this.blockT -= dt;
+    const flow = clamp(Math.max(this.speed / 5, this.blockT > 0 ? 0.6 : 0), 0, 1);   // pressed against a pier or a shore (main.js sets blockT), she can still turn away
     const wantYaw = this.rudder * this.mods.turn * (0.08 + 0.62 * flow) * (1 - 0.25 * clamp((this.speed - 7) / 5, 0, 1));   // very fast: a little stiffer
     this.yaw = (this.yaw || 0) + (wantYaw - (this.yaw || 0)) * Math.min(1, dt * 2.2);
     this.heading += this.yaw * dt;
@@ -489,7 +490,8 @@ export class Ship {
     const flutter = luff * (Math.sin(t * 19) * 0.22 + Math.sin(t * 31 + 1.3) * 0.12);
     this.sail.scale.x = this.sailBase + flutter;
     this.luff = luff;
-    this.jib.scale.x += (sgn * (1 - 0.6 * (this.luff || 0)) - this.jib.scale.x) * Math.min(1, dt * 2.5); this.jib.scale.x += (this.luff || 0) * Math.sin(t * 23) * 0.18;
+    this.jibBase = (this.jibBase ?? sgn) + (sgn * (1 - 0.6 * (this.luff || 0)) - (this.jibBase ?? sgn)) * Math.min(1, dt * 2.5);   // the flutter used to be added every frame: paused, it grew without end
+    this.jib.scale.x = this.jibBase + (this.luff || 0) * Math.sin(t * 23) * 0.18;
     this.jib.scale.y = flat;
     this.topsail.scale.set(this.jib.scale.x, flat, 1);
     this.jib.position.y = (1 - flat) * 0;

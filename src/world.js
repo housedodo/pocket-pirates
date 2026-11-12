@@ -139,6 +139,8 @@ export function describeCell(cx, cz, seed) {
   return desc;
 }
 
+/** where a harbour's pier ends, in world space (for the compass, the chart flag and the slip): the island's middle if it has no pier */
+export function pierOf(d) { if (!d || d.dockTh === undefined) return d ? { x: d.x, z: d.z } : null; const r = shoreR(d, d.dockTh) + 10; return { x: d.x + Math.cos(d.dockTh) * r, z: d.z + Math.sin(d.dockTh) * r }; }
 export function shoreR(d, th) {
   const L = d.lobes;
   const R = d.r * (1 + L[0] * Math.sin(2 * th + L[3]) + L[1] * Math.sin(3 * th + L[4]) + L[2] * Math.sin(5 * th + L[5]));

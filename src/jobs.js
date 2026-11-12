@@ -1,7 +1,7 @@
 import { hash2, mulberry32, pick, smoothstep } from './util.js';
 import { FISH } from './fishing.js';
 import { FRUIT_ORDER, FRUITS, fruitOf, fruitName, plural } from './fruit.js';
-import { CELL } from './world.js';
+import { CELL, pierOf } from './world.js';
 import { dreadAtDistance } from './palette.js';
 import { pxi } from './pixelui.js';
 
@@ -35,7 +35,7 @@ export function makeJob(world, from, serial, maxDist = 750) {
   const { d: to, dist } = list[Math.floor(rng() * list.length) % list.length];
   const dark = rng() < smoothstep(0.35, 0.8, dreadAtDistance(Math.hypot(from.x, from.z)));
   return {
-    fromId: from.id, fromName: from.name, toId: to.id, toName: to.name, x: to.x, z: to.z,
+    fromId: from.id, fromName: from.name, toId: to.id, toName: to.name, ...pierOf(to),   // x, z: the pier, where the errand is handed in
     reward: Math.round(20 + dist * 0.12 + to.dread * 40), item: pick(rng, dark ? ITEMS_DARK : ITEMS_BRIGHT), dark, dist: Math.round(dist),
   };
 }

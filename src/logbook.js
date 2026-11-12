@@ -256,9 +256,9 @@ export class Logbook {
     if (open.length && !this.sec('quests')) html += h3('If you like') + open.map((x) => ent(`${pxi('open')} ${x.title}`, x.text, `${x.reward}g`)).join('');
     html += h3('Done');
     const doneMain = MAIN_GOALS.slice(0, g.i), doneSide = SIDE_GOALS.filter((x) => g.side[x.id]), hist = state.jobHistory || [];
-    html += [...doneMain].reverse().slice(0, 6).map((m) => ent(`${pxi('check')} ${m.title}`, '', m.reward ? `${m.reward}g` : '', 'done')).join('') + more(doneMain, 6);
+    html += [...doneMain].reverse().map((m) => ent(`${pxi('check')} ${m.title}`, m.where || '', m.reward ? `${m.reward}g` : '', 'done')).join('');   // all of them (the friend could not look back at finished ones)
     html += doneSide.map((x) => ent(`${pxi('check')} ${x.title}`, '', `${x.reward}g`, 'done')).join('');
-    html += hist.slice(-3).reverse().map((h) => ent(`${pxi('check')} ${h.item}`, `to ${h.to}`, `+${h.reward}g`, 'done')).join('');
+    html += hist.slice().reverse().map((h) => ent(`${pxi('check')} ${h.item}`, `to ${h.to}`, `+${h.reward}g`, 'done')).join('');
     if (!doneMain.length && !doneSide.length && !hist.length) html += ent('Nothing yet', '', '', 'dim');
     this.compose([[html, () => {
       const b = document.getElementById('skipGoal'); if (b) b.addEventListener('click', () => { this.d.skipGoal(); this.render(); });
