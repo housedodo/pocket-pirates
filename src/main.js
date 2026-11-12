@@ -70,6 +70,7 @@ import { WEEK, weekday, isMarketDay, isLanternNight, isFestival, tideAt, tideFal
 import { addMark, clearMark, keep, markFromRoll } from './systems/storyflags.js';
 import { lullDread, lullabyTick } from './systems/lullaby.js';
 import { lostTick } from './systems/lostsailors.js';
+import { edgeTick, startEdge } from './systems/edge.js';
 import { PITCH_MIN, updateCamera, initCamera1, initCamera2 } from './ui/camera.js';
 import { titleEl, startTitle, titleCam, titleKey, INTRO_DUR, endIntro, skipIntro, begin, initTitle1, initTitle2 } from './ui/title.js';
 import { fsEl, fsOk, toggleFullscreen, nightViewNow, showPauseMain, pauseBack, mixer, studio, soundSituation, initPause1, initPause2 } from './ui/pause.js';
@@ -1740,7 +1741,7 @@ function frame() {
       if (rt.glimpseWait > 45 && !objectives.mate.busy) { state.story.glimpse = 1; glimpse.start(ship); }
     }
     if (live && glimpse.update(dt)) { rt.quietUntil = rt.tNow + 30; setTimeout(() => objectives.mate.say('Captain? You went quiet.'), 2500); }
-    audio.hush(glimpse.k * 0.97);
+    audio.hush(Math.max(glimpse.k * 0.97, rt.edgeHush || 0));   // the glimpse, and the Edge (systems/edge.js)
   }
   const windNow = { dir: wind.dir, strength: Math.min(1.4, wind.strength * (1 + 0.25 * weather.storm)) * (1 - 0.92 * weather.calm) * (1 - glimpse.k) };
   if (live && wind.shifted() && onbAll()) toast(`The wind is shifting: now from the ${wind.fromName}`, false, 4200);
@@ -1748,7 +1749,7 @@ function frame() {
   // ---- ship
   shipInput.steer = (keys.has('KeyD') || keys.has('ArrowRight') || touch.R ? 1 : 0) - (keys.has('KeyA') || keys.has('ArrowLeft') || touch.L ? 1 : 0);
   shipInput.sail = (keys.has('KeyW') || keys.has('ArrowUp') || touch.U ? 1 : 0) - (keys.has('KeyS') || keys.has('ArrowDown') || touch.D ? 1 : 0);
-  if (!live || digGame.active || rt.lostK > 0.3) { shipInput.steer = 0; shipInput.sail = 0; }   // (lost in fog: the helm does not answer)   // (probing the shore: the keys move over the beach)
+  if (!live || digGame.active || rt.lostK > 0.3 || rt.edgeLock) { shipInput.steer = 0; shipInput.sail = 0; }   // (lost in fog: the helm does not answer)   // (probing the shore: the keys move over the beach)
   if (live && (keys.has('KeyZ') || keys.has('KeyX'))) { rt.yawT += ((keys.has('KeyX') ? 1 : 0) - (keys.has('KeyZ') ? 1 : 0)) * dt * 1.8; rt.lastCamInput = rt.tNow; }
   if (keys.has('KeyV')) { rt.yawT = 0; rt.lastCamInput = rt.tNow; }
   if (!rt.drag && rt.tNow - rt.lastCamInput > 6) rt.yawT += (0 - rt.yawT) * Math.min(1, rawDt * 0.7);   // drifts back behind the boat after a while
@@ -1757,7 +1758,10 @@ function frame() {
   if (live || params.get('autostart')) ship.update(dt, shipInput, windNow, rt.tNow);
   if (live && dt > 0) { stormAndCalm(dt); tabletopTick(dt); seaGate(dt); clueTick(dt); seamTick(dt); tackTick(dt); seaTick(dt, windNow); oilTick(dt); sailTick(dt, windNow); fogLost(dt); }
   if (live) { anchorTick(); oarTick(dt); }
-  if (live && dt > 0 && window.__BUILD !== 'demo') lostTick({ dt, dread: rt.dread, sighting, ship, world, quiet: eventQuiet() || !!rt.modal });   // the sailors who went mad
+  if (live && dt > 0 && window.__BUILD !== 'demo') edgeTick({ dt, dread: rt.dread, ship, quiet: eventQuiet() || !!rt.modal || rt.lostK > 0 || !!rt.gateLost,
+    clearAhead: () => { const f = [Math.sin(ship.heading), -Math.cos(ship.heading)]; for (const d of [60, 140, 220, 300]) if (world.nearest(ship.pos.x + f[0] * d, ship.pos.z + f[1] * d, 120)) return false; return true; },
+    fadeEl: $('fade'), onDone: () => { rt.quietUntil = rt.tNow + 30; } });   // the Edge, once, at the deepest dread
+  if (live && dt > 0 && window.__BUILD !== 'demo') lostTick({ dt, dread: rt.dread, sighting, ship, world, quiet: eventQuiet() || !!rt.modal || !!rt.edge });   // the sailors who went mad
   if (live && dt > 0 && window.__BUILD !== 'demo') lullabyTick({ dt, free: !!freeCaysNow(), night: tod.night, storm: weather.storm, ship, audio });   // the Two Players
   const solid = [];
   traffic.solids(solid); fauna.solids(solid); sea.solids(solid); sighting.solids(solid); secrets.solids(solid);
@@ -2002,7 +2006,7 @@ window.__game = { secrets, tideAt: () => tideAt(), lostState: () => ({ lostK: rt
   life, localGames, openHarbour(id, tab = 'board') { const isl = [...world.islands.values()].find((i) => i.desc.id === id); if (!isl) return false; closeModal(true); rt.harbourIsl = isl; rt.hbTab = tab; frameVillage(isl.desc); openModal('harbour'); return true; }, renderHarbour: () => renderHarbour(),
   audio,
   objectives, perrinNote, gateRadius: () => gateRadius(state, tideFalls()), trackTarget: () => trackTarget(), digGame,
-  openCard, openTable, sighting, spawnSight: (id) => { const c = (SIGHTS[id] && drawCard(0, [], { [id]: 1 })); return c && sighting.spawn(c, ship, world); },
+  openCard, openTable, edge: () => startEdge(ship, $('fade')), sighting, spawnSight: (id) => { const c = (SIGHTS[id] && drawCard(0, [], { [id]: 1 })); return c && sighting.spawn(c, ship, world); },
   weather,
   setDread(v) { rt.forced = v; rt.dread = v; },
   get dread() { return rt.dread; },

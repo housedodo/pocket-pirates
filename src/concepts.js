@@ -6,7 +6,7 @@ import { houseKind, villager, palm } from './world.js';
 import { mulberry32 } from './util.js';
 
 // Concept scenes for new biomes, built from the game's own parts so they look like the game.
-// Dev only: __game.biome(kind, x, z) from a test. Nothing in the real world uses this yet.
+// Dev only: __game.biome(kind, x, z) from a test. The one exception is the Edge: systems/edge.js builds it in the game (buildEdge).
 
 const CORAL = ['#f06aa0', '#ffd23a', '#ff8a50', '#b070e0', '#ff5a6a', '#f4ead0'];
 
@@ -157,6 +157,12 @@ function edge(b, rng) {
 }
 
 /** build a concept scene at (x, z); returns the group so a test can remove it */
+/** the Edge, turned so its void lies along `ry` (the group's rotation.y): systems/edge.js. The far part (the dark and what stands in it)
+ *  is returned as g.userData.far so it can fade in. */
+export function buildEdge(scene, x, z, ry) {
+  const g = buildBiome(scene, 'edge', x, z); g.rotation.y = ry;
+  g.userData.far = g.children[1]; return g;
+}
 export function buildBiome(scene, kind, x, z) {
   const b = new Builder(), rng = mulberry32(kind.length * 97 + 5);
   const extra = { coral, rain, sunken, edge }[kind](b, rng);
