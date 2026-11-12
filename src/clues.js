@@ -1,7 +1,7 @@
 // The clue ledger (docs/WORLD_REDESIGN.md part 6): every clue is a thing in the world. Seeing it sets one flag, `state.story.seen[id] = dayN`,
 // and what it grants is a capability (a button that works, a route that is safe), never a popup. Question levels are DERIVED here, never
 // stored or shown. The one table below is the source of truth for code; docs are written from it.
-//   region: where it lives (home, crown, free, reef, lantern, drowned). q: the questions it feeds (1 Who counts, 2 What is the Eye,
+//   region: where it lives (home, crown, free, reef, lantern, drowned; deep = met in deep dread anywhere). q: the questions it feeds (1 Who counts, 2 What is the Eye,
 //   3 Who sat before you, 4 What does a throw cost, 5 Why is Tama home, 6 What is Mara, 7 Can it end). w: weight (a rare clue counts double).
 //   cap: the capability it grants (read with isKnown). line: the log line, a fact in another hand that never concludes.
 // Tone guards (tests/lint in `clueLint`): before the hut is known no clue may say she, the Lady, the hut or a number; never the banned words.
@@ -24,6 +24,13 @@ export const CLUES = [
   { id: 'CL-LAG-a',  region: 'free',  q: [2],    w: 1, cap: null,      line: 'A chest on the bottom. Somebody expected to come back.' },
   { id: 'CL-RIBS-a', region: 'reef',  q: [3],    w: 1, cap: null,      line: 'Ships come here and stay.' },
   { id: 'CL-HALF-a', region: 'lantern', q: [7],  w: 1, cap: null,      line: 'Half a house. Half a strongbox.' },
+  // the small wrong things near home, and the sailors who went mad that answer them (systems/lostsailors.js, CANON 2026-11-12)
+  { id: 'CL-H1-berth', region: 'home', q: [3],    w: 1, cap: null,      line: 'The first fare paid for two berths. One stayed empty.' },
+  { id: 'CL-H2-hook',  region: 'home', q: [3],    w: 1, cap: null,      line: 'A bronze hook already in the catch. The line cut clean.' },
+  { id: 'CL-H3-hole',  region: 'home', q: [3],    w: 1, cap: null,      line: 'A hole dug first, a spade short of the chest.' },
+  { id: 'CL-X1-berth', region: 'deep', q: [3],    w: 1, cap: null,      line: 'A man on a wreck, waiting for his stop. The ticket is for two.' },
+  { id: 'CL-X2-hook',  region: 'deep', q: [3],    w: 1, cap: null,      line: 'A rowboat with a cut line. The old knot, for a bronze hook.' },
+  { id: 'CL-X3-hole',  region: 'deep', q: [3],    w: 1, cap: null,      line: 'Somebody still digging. The sand runs back in.' },
 ];
 export const CLUE = Object.fromEntries(CLUES.map((c) => [c.id, c]));
 

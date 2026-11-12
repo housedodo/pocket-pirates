@@ -15,9 +15,24 @@ export const SIGHTS = {
   stowaway: { model: 'crate', label: 'A crate that moves' },
   shoal: { model: 'shoal', label: 'A silver shoal' },
   calm: { model: 'glass', label: 'A patch of glass' },
+  // the sailors who went mad (systems/lostsailors.js spawns these; the random deck never does)
+  lost_berth: { model: 'wreckman', label: 'A wreck, someone aboard' },
+  lost_hook: { model: 'lineboat', label: 'A rowboat, line out' },
+  lost_dig: { model: 'digbar', label: 'A black sandbar' },
 };
 
 const GEO = {};
+// a figure: legs, body, arms down, head (no face), in dull clothes
+function figure(b, x, y, z, ry, col, sit = false) {
+  b.push(x, y, z, ry);
+  if (sit) { b.box(0, 0.45, 0.25, 0.42, 0.18, 0.55, '#2a2420', TILE.white); b.box(0, 0, 0.5, 0.4, 0.5, 0.16, '#2a2420', TILE.white); }
+  else b.box(0, 0, 0, 0.42, 0.8, 0.22, '#2a2420', TILE.white);
+  const by = sit ? 0.5 : 0.8;
+  b.box(0, by, 0, 0.52, 0.75, 0.3, col, TILE.white);
+  for (const s of [-1, 1]) b.box(s * 0.33, by + 0.05, 0, 0.13, 0.65, 0.15, col, TILE.white);
+  b.blob(0, by + 0.95, 0, 0.2, 0.24, 0.2, '#b8a890', TILE.white, 0.1, 3);
+  b.pop();
+}
 function geos() {
   if (GEO.boat) return;
   let b = new Builder(); b.doubleSided = true;
@@ -27,6 +42,26 @@ function geos() {
   b.box(0.08, 1.7, -0.2, 0.06, 1.3, 1.1, '#e8dcc0', TILE.sail);
   b.box(0.4, 0.55, 0.6, 0.28, 0.28, 0.28, '#ffd23a', TILE.glow);   // a lamp, lit
   GEO.boat = b.geometry();
+  b = new Builder(); b.doubleSided = true;   // a wreck lying over, a man on his trunk on the dry side
+  b.push(0, -0.6, 0, 0, 1, 1, 1, 0, 0.42);
+  b.box(0, 0, 0, 2.8, 1.3, 7.5, '#4a3424', TILE.planks); b.box(0, 0.65, 0, 2.6, 0.12, 7.2, '#5a4430', TILE.planks);
+  b.cyl(0, 0.7, 0.6, 0.12, 0.14, 3.2, 5, '#3a2a1c', TILE.bark, false);   // the stump of the mast
+  b.pop();
+  b.box(-0.9, 0.95, -1.2, 0.8, 0.5, 0.55, '#6a4a2a', TILE.planks);       // the trunk
+  figure(b, -0.9, 0.95, -1.2, 0.6, '#5a6a7a', true);
+  b.box(-0.55, 1.75, -0.9, 0.2, 0.14, 0.02, '#e8dcc0', TILE.white);     // the ticket
+  GEO.wreckman = b.geometry();
+  b = new Builder(); b.doubleSided = true;   // a rowboat, oars shipped, nobody in it, a line straight down over the side
+  b.box(0, 0, 0, 1.5, 0.6, 3.4, '#ffffff', TILE.planks); b.box(0, 0.32, 0, 1.1, 0.06, 2.9, '#5a3a1c', TILE.planks);
+  for (const s of [-0.3, 0.3]) b.box(s, 0.42, -0.2, 0.1, 0.1, 2.8, '#8a6a42', TILE.bark);   // the oars, shipped
+  b.box(0.78, 0.4, 1.3, 0.06, 0.06, 0.06, '#c8b080', TILE.rope); b.box(0.82, -0.6, 1.3, 0.04, 2.0, 0.04, '#c8b080', TILE.rope);
+  GEO.lineboat = b.geometry();
+  b = new Builder(); b.doubleSided = true;   // a black sandbar, a hole, a mound that runs back in, a man with a spade
+  b.cyl(0, -0.3, 0, 5.5, 6.2, 0.55, 9, '#1a1820', TILE.sand); b.cyl(1.2, 0.26, 0.3, 1.3, 1.1, 0.04, 8, '#050407', TILE.white);
+  b.blob(-1.2, 0.3, 0.6, 1.1, 0.45, 0.9, '#24222c', TILE.sand, 0.3, 4);
+  figure(b, 0.2, 0.25, -0.2, 2.2, '#4a4a3a');
+  b.push(0.75, 0.6, 0.1, 0, 1, 1, 1, 0.5, 0); b.box(0, 0.6, 0, 0.07, 1.4, 0.07, '#6a4a2a', TILE.bark); b.box(0, -0.1, 0, 0.32, 0.36, 0.05, '#5a5a62', TILE.white); b.pop();
+  GEO.digbar = b.geometry();
   b = new Builder(); b.doubleSided = true;
   b.box(0, 0, 0, 1.1, 0.9, 1.1, '#ffffff', TILE.planks);
   b.box(0, 0.5, 0, 1.2, 0.12, 1.2, '#8a5a30', TILE.planks);

@@ -1010,3 +1010,14 @@ Trials for the owner to compare; nothing changes without a flag and STYLE.md is 
 - Verified headless: the cap (0.8 -> 0.45 at full quiet), lullK rising at night near Teo and falling by day, the tune (15 notes, Teo then
   Ilse an octave up, panned), the old salt's line on docking at Haven Monar (a Free Cays harbour), the Ask choice appearing only at
   level 2 and its text; no console errors. Not heard: the tune itself (headless has no ears).
+
+## The sailors who went mad (2026-11-12)
+- `src/systems/lostsailors.js`: in deep dread (0.75+), full game, outside the quiet window and menus, one of three signs at sea shows
+  every four to seven minutes until each has been met once: **a wreck, someone aboard** (a man on his trunk with a ticket for two
+  berths: "Is this my stop?"), **a rowboat, line out** (a line cut clean, the old knot for a bronze hook; it does not end when hauled),
+  **a black sandbar** (a man digging; the sand runs back in; "Nearly there."). Shown by `sighting.js` (three new models), never drawn
+  from the random deck. One left behind can come back later.
+- `clues.js`: six clues for question 3: the three small wrong things near home (seen when they happen: two berths, the hook, the hole
+  already dug) and the three meetings (region `deep`). They pay off toward "Your Seat" (question 3 at level 3).
+- Verified headless: each spawns, shows its [E] tag, opens its card, marks its clue and `story.lost`; the clue lint passes; the models
+  read at night in deep dread (screenshots). Not checked: how often they turn up in real deep-dread sailing.

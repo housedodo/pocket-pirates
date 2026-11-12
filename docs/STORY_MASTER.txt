@@ -1,7 +1,7 @@
 HOIST (Pocket Pirates): THE MASTER STORY FILE
 ================================================================================================
 This is the main story file for the full game. Edit it, upload it again, and the next session puts every change
-into the game. Built from commit 2f3cab8 on 2026-11-12. 1431 in-game lines carry an ID.
+into the game. Built from commit 1f1416c on 2026-11-12. 1431 in-game lines carry an ID.
 
 CONTENTS
   A   HOW TO USE THIS FILE (IDs, status marks, how to add and remove things)
@@ -2701,6 +2701,8 @@ K2 DECISIONS (with the date; the short list is docs/CANON.md)
    - 2026-11-12  The third oar is cut. Three small wrong things remain (two berths, the hook, the hole).
    - 2026-11-12  Your answers in K1 are canon (docs/CANON.md, sections 2 and 3).
    - 2026-11-12  BUILT: Ask her who counts (she writes YOU); K4 d, the Two Players keep the Free Cays asleep (systems/lullaby.js).
+   - 2026-11-12  BUILT: K4 e, the sailors who went mad (systems/lostsailors.js): the man on the wreck, the cut line, the digger;
+                 the three small wrong things near home join the clue list (question 3).
    - 2026-11-12  Threads by region as proposed in K4 f. The Pained Raven is empty (K1).
    - 2026-11-12  Next: K4 d (the Two Players keep the Free Cays asleep), then e (the sailors who went mad), then the Edge.
 K3 NEXT TO IMPLEMENT, IN THIS ORDER

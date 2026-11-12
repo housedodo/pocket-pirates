@@ -17,6 +17,7 @@ import * as life from '../harbourlife.js';
 import * as paper from '../newspaper.js';
 import { state } from '../core/state.js';
 import { rt, G } from '../core/runtime.js';
+import { markSeen } from '../clues.js';
 import { $, toast } from './dom.js';
 import { isMarketDay, isFestival } from '../systems/calendar.js';
 import { addMark } from '../systems/storyflags.js';
@@ -145,7 +146,7 @@ export function renderHarbour() {
     const dv = $('doDeliver'); if (dv) dv.addEventListener('click', () => { G.completeJobIfHere(d); renderHarbour(); });
     const dp = $('doDropoff'); if (dp) dp.addEventListener('click', () => {
       const p = state.passenger, two = !state.story.berths && !(state.stats.passengers || 0);   // the first fare is paid for two berths; the harbourmaster looks for the other one (once, never explained)
-      if (two) { state.story.berths = 1; p.reward *= 2; }
+      if (two) { state.story.berths = 1; p.reward *= 2; markSeen(state, 'CL-H1-berth'); }
       state.gold += p.reward; state.passenger = null; state.stats.passengers = (state.stats.passengers || 0) + 1;
       repOf(state, d.id).deliveries++; toast(`${p.name} waves goodbye from the pier. (+${p.reward}g${two ? ', two berths' : ''})`, false, 6000); G.audio.play('treasure');
       if (two) setTimeout(() => toast('"And the other one?" The harbourmaster looks along your deck, then shrugs and stamps the book.', false, 7000), 2200);

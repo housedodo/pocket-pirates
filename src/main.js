@@ -69,6 +69,7 @@ import { $, goldEl, promptEl, promptTxt, promptBar, promptFill, toastsEl, debugE
 import { WEEK, weekday, isMarketDay, isLanternNight, isFestival, tideAt, tideFalls } from './systems/calendar.js';
 import { addMark, clearMark, keep, markFromRoll } from './systems/storyflags.js';
 import { lullDread, lullabyTick } from './systems/lullaby.js';
+import { lostTick } from './systems/lostsailors.js';
 import { PITCH_MIN, updateCamera, initCamera1, initCamera2 } from './ui/camera.js';
 import { titleEl, startTitle, titleCam, titleKey, INTRO_DUR, endIntro, skipIntro, begin, initTitle1, initTitle2 } from './ui/title.js';
 import { fsEl, fsOk, toggleFullscreen, nightViewNow, showPauseMain, pauseBack, mixer, studio, soundSituation, initPause1, initPause2 } from './ui/pause.js';
@@ -332,7 +333,7 @@ const fishing = new Fishing(scene, ship, {
     }
     // once: a catch that somebody else hooked first (at night, from the second fish on; by the sixth fish at the latest)
     const hooked = !state.story.hook && !f.dark && ((tod.night > 0.5 && state.stats.fish >= 2) || state.stats.fish >= 6);
-    if (hooked) { state.story.hook = 'aboard'; f.hooked = true; }
+    if (hooked) { state.story.hook = 'aboard'; f.hooked = true; markSeen(state, 'CL-H2-hook'); }
     toast(`Caught: ${f.name}, ${f.kg}kg (worth ${f.value}g)${l.count === 1 ? ' - new species!' : ''}${hooked ? `${l.count === 1 ? '' : '.'} There is a hook in its mouth already: old bronze, the line cut clean.` : ''}`, f.dark, hooked ? 9000 : 6000);
     if (f.dark) objectives.remark('darkfish', rt.dread);
   },
@@ -1072,7 +1073,7 @@ function tryInteract() {
           const predug = !first && !state.story.predug && state.stats.treasures >= 1;   // the second chest: one hole is there already, over the chest (once)
           if (predug) state.story.predug = 1;
           digGame.start({ cols: 8, rows: 5, beach, sun, noon, predug, digs: Math.round((first ? 13 : 10) + tools - (d.dread > 0.5 ? 1 : 0)), stones: first ? 2 : 3 + (d.dread > 0.4 ? 1 : 0), lie: d.dread > 0.5 ? 0.3 : 0,
-            onDone: () => { const done = rt.dig && rt.dig.done; rt.dig = null; if (done) done(); if (predug && digGame.preFound) setTimeout(() => objectives.say('Somebody dug here first, and stopped a spade short. Lucky us.'), 3000); },
+            onDone: () => { const done = rt.dig && rt.dig.done; rt.dig = null; if (done) done(); if (predug && digGame.preFound) markSeen(state, 'CL-H3-hole'); if (predug && digGame.preFound) setTimeout(() => objectives.say('Somebody dug here first, and stopped a spade short. Lucky us.'), 3000); },
             onFail: (why) => { rt.dig = null; rt.digFix = rt.tNow + 6; rt.digFixWhy = why; state.attempts[d.id] = (state.attempts[d.id] || 0) + 1;
               toast(why === 'tide' ? 'The tide comes in and fills every hole. The crew waits for it to go out again.' : why === 'mud' ? 'The light goes and the mud is everywhere. The crew scrapes the shovels clean and tries again.' : 'The shovel breaks on a second stone. The crew fetches the spare.', false, 5500); } });
         }
@@ -1756,6 +1757,7 @@ function frame() {
   if (live || params.get('autostart')) ship.update(dt, shipInput, windNow, rt.tNow);
   if (live && dt > 0) { stormAndCalm(dt); tabletopTick(dt); seaGate(dt); clueTick(dt); seamTick(dt); tackTick(dt); seaTick(dt, windNow); oilTick(dt); sailTick(dt, windNow); fogLost(dt); }
   if (live) { anchorTick(); oarTick(dt); }
+  if (live && dt > 0 && window.__BUILD !== 'demo') lostTick({ dt, dread: rt.dread, sighting, ship, world, quiet: eventQuiet() || !!rt.modal });   // the sailors who went mad
   if (live && dt > 0 && window.__BUILD !== 'demo') lullabyTick({ dt, free: !!freeCaysNow(), night: tod.night, storm: weather.storm, ship, audio });   // the Two Players
   const solid = [];
   traffic.solids(solid); fauna.solids(solid); sea.solids(solid); sighting.solids(solid); secrets.solids(solid);
