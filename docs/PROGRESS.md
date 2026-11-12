@@ -1106,4 +1106,4 @@ Trials for the owner to compare; nothing changes without a flag and STYLE.md is 
 - Harbour E reach: 22 from the mooring point (was 13).
 - The jib grew without end while paused (its flutter was added every frame): fixed.
 - Pause menu: Controls moved under Settings; "Save and exit to title"; "Save and quit" in the standalone app only.
-- Not done, asked the owner: a minimap.
+- A minimap: the owner decided against it (CANON 2026-11-12). The title music (the sea's band) and the full Done list stay.
