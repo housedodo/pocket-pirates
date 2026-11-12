@@ -274,7 +274,7 @@ export class AudioBus {
     this.setLoop('music_3', smoothstep(0.45, 0.58, dread) * (1 - smoothstep(0.75, 0.9, dread)) * 0.75);   // the "Dread" piece: after stage 2, until the deep
     if (layered) {
       // the stage-1 band carries the bright half of the sea (dread up to about 0.3, ~660 units from Tama), then hands over to music_3
-      const lv = this.layers.update(dt, { quests: s.quests || 0, open: s.open, wind: s.wind, stage: 1 - smoothstep(0.2, 0.32, dread), stage2: smoothstep(0.2, 0.32, dread) * (1 - smoothstep(0.45, 0.58, dread)), battle: !!s.battle, night: s.night, freecays: s.freecays });   // stage 1 band, then stage 2, then music_3
+      const lv = this.layers.update(dt, { quests: s.quests || 0, open: s.open, wind: s.wind, stage: 1 - smoothstep(0.2, 0.32, dread), stage2: smoothstep(0.2, 0.32, dread) * (1 - smoothstep(0.45, 0.58, dread)), battle: !!s.battle, night: s.night, freecays: s.freecays, players: s.players, lull: s.lull });   // stage 1 band, then stage 2, then music_3
       for (const k of LAYERS) if (k in lv) this.setLoop(k, lv[k] * 1.5);   // the stems are mastered quiet (about -25 LUFS each): this puts the full band a few dB under the sea
     }
     this.setLoop('sea', 0.3 + s.speed * 0.45);

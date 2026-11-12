@@ -275,8 +275,9 @@ in `public/audio/volumes.json` (was 0.4).
 - **Sleepers (Hammock Isle):** murmured numbers by day, never above nine; none at night.
 - **Capabilities that should sound:** "Set the die down" (no dice sound, a held breath), the tally in the Journal (soft tick per mark), Look up (the sea's hush).
 
-## The Two Players' tune (placeholder, 2026-11-12)
-`src/systems/lullaby.js` plays the eight bars on the synth tone (`audio.playTone`) near Teo's Sandbar and Ilse's Rock on a Free Cays
-night: Teo's four bars (D, 6/8, 125 BPM: A F# | G E | F# E D | E), then Ilse's four an octave up (A B | A F# | G F# E | D), panned to
-where each of them is, quieter with distance, every 45 to 75 seconds. It is a stand-in: the composer's recording (guitar, then violin)
-should replace it, same key and meter. The dread cap there (below stage 3) keeps the sea music in its bright band.
+## The Two Players are the Free Cays night music (2026-11-12, owner's decision)
+The somber guitar `fc_night` is Teo's and the violin `fc_violin` is Ilse's. `src/layers.js` already plays them in slow episodes with
+long silences in Free Cays waters at night; now, near Teo's Sandbar and Ilse's Rock (`playersEar` in `src/systems/lullaby.js`, within
+600), each voice is panned to where its player sits, the silences are short (12 s at most), and an episode is "he starts it, she
+finishes it" (`G>V`, or both). Where the Two Players keep the Cays quiet (`rt.lullK`), their music keeps playing past dread stage 1.
+The synth placeholder of the eight bars is gone.

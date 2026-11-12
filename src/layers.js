@@ -197,13 +197,15 @@ export class SeaLayers {
       N.k += (N.pad - N.k) * (1 - Math.exp(-d / 5));   // ~12 s to cross over
     }
     { // the Free Cays night episodes: silence 25-65 s, then guitar alone / violin alone / both / one joins the other (and the first sometimes leaves)
+      // The guitar is Teo's and the violin Ilse's (the Two Players, systems/lullaby.js): near them the silences are short and he starts, she finishes.
+      const P = s.players, near = P ? P.near : 0;
       const F = this.fc, ok = fk > 0.6 && nk > 0.5 && FC.every((k) => this.srcs.has(k));
       if (!ok) { F.ep = null; F.want = [0, 0]; if (F.phase !== 'rest') F.phase = 'out'; if (F.phase === 'rest') F.t = Math.min(F.t, 14); }
       else if (F.phase === 'rest') {
-        F.t -= d;
+        F.t -= d; if (near > 0.5) F.t = Math.min(F.t, 12);
         if (F.t <= 0) {
           const kinds = ['G', 'V', 'B', 'G>V', 'V>G', 'G>V>', 'V>G>'].filter((x) => !F.last.includes(x));
-          const kind = kinds[Math.floor(this.rnd() * kinds.length)], L = 28 + this.rnd() * 32, dl = 9 + this.rnd() * 14;
+          const kind = near > 0.5 ? (F.last.includes('G>V') ? 'B' : 'G>V') : kinds[Math.floor(this.rnd() * kinds.length)], L = 28 + this.rnd() * 32, dl = 9 + this.rnd() * 14;
           // on / off times (seconds from the start) per voice [guitar, violin]; a trailing ">" means the first voice leaves while the second stays
           const ep = { kind, clock: 0, end: L, on: [0, 0], off: [L, L] };
           if (kind === 'G') ep.on[1] = ep.off[1] = -1;
@@ -240,8 +242,9 @@ export class SeaLayers {
       if (FC.includes(k)) {   // the Free Cays night: this voice's level follows the episode (see below)
         const i = FC.indexOf(k), F = this.fc;
         const [home, wander, sp] = PLACE[k];
-        this.pans.get(k).pan.setTargetAtTime(Math.max(-0.9, Math.min(0.9, home + wander * Math.sin(this.t * sp * 6.283 + st.ph))), T, 2);
-        out[k] = smooth(F.k[i]) * (1 - 0.16 * smooth(F.k[1 - i])) * nk * fk * (s.stage ?? 1) * (0.4 + 0.6 * this.open);   // a little lower when both play
+        const drift = home + wander * Math.sin(this.t * sp * 6.283 + st.ph), there = s.players ? (i ? s.players.vPan : s.players.gPan) : drift, nr = s.players ? s.players.near : 0;
+        this.pans.get(k).pan.setTargetAtTime(Math.max(-0.9, Math.min(0.9, drift + (there - drift) * nr)), T, 2);   // near them: from where each of them sits
+        out[k] = smooth(F.k[i]) * (1 - 0.16 * smooth(F.k[1 - i])) * nk * fk * Math.max(s.stage ?? 1, s.lull || 0) * (0.4 + 0.6 * this.open);   // a little lower when both play; the Cays' quiet keeps them playing
         continue;
       }
       if (k === PAD) {   // the night pad, in place of the night band while it holds

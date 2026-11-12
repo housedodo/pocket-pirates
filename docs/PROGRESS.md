@@ -1056,3 +1056,10 @@ Trials for the owner to compare; nothing changes without a flag and STYLE.md is 
 - Light gameplay check (the gameplay agent was stopped before it reported): the A/B scripts match their earlier results (title, pause,
   camera, harbour tabs, upgrade, tavern, shipyard, save); the lost sailors, Ask, the lullaby, the rumour, the passenger pairs and the full
   Edge pass again after the design fixes; every new beat is gated off in the demo build (checked in the code).
+
+## The Two Players' music is the somber guitar and the violin (2026-11-12)
+- Owner: the Free Cays night recordings (`fc_night` guitar, `fc_violin` violin) are the Two Players. `src/layers.js` pans each to its
+  player near Teo's Sandbar and Ilse's Rock, shortens the silences there, plays "he starts, she finishes", and keeps them playing where the
+  lullaby holds the dread down. The synth placeholder is removed (`systems/lullaby.js` now only holds the quiet and `playersEar`).
+- Verified headless (audio running): near Teo at night the episode comes within about 15 s, kind `G>V`, the guitar swelling in first,
+  pans following where each player is. Not heard (headless).
