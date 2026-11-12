@@ -26,7 +26,7 @@ const COL = {
 const WALLS = ['#f4dfb0', '#f0b3a0', '#a9d6ee', '#f2e48a', '#c9e6a8', '#e8c0e0'];
 const ROOFS = ['#d2483c', '#3c78c8', '#2f9a8a', '#c86a2a', '#7a4ab0'];
 // a village's custom can repaint every house (whitewash) or keep children indoors; set while a harbour is built
-let PAINT = null, NO_CHILD = false, CUR_FLAG = null;
+let PAINT = null, NO_CHILD = false, CUR_FLAG = null, FIN = null;   // FIN: Tama's look-polish finish (dev, ?tama=), see TAMA_FIN
 
 // ---------------------------------------------------------------------------
 // Island description (pure function of seed + cell) and terrain height field
@@ -206,7 +206,7 @@ function faceColor(d, hc, slope, noise) {
     case 'rocky': c = slope > 0.45 || hc > d.H * 0.5 ? (noise > 0.5 ? COL.rock2 : COL.rock1) : (hc < 1.8 ? COL.dirt : COL.g3); break;
     case 'jungle': c = slope > 0.55 && hc > 2.5 ? COL.rock1 : hc < 1.6 ? (noise > 0.5 ? COL.g1 : COL.g2) : hc < d.H * 0.65 ? (noise > 0.45 ? COL.g2 : COL.g3) : COL.g3; break;
     case 'treasure': c = noise > 0.55 ? COL.g1 : COL.sand; break;
-    case 'harbour': { const g = STYLE_DEF[d.style] && STYLE_DEF[d.style].ground; if (d.sh && slope > 0.3 && hc > 1.2) { c = noise > 0.5 ? COL.rock2 : COL.rock1; break; } c = g ? (noise > 0.55 ? (GC[g[0]] || (GC[g[0]] = C(g[0]))) : (GC[g[1]] || (GC[g[1]] = C(g[1])))) : (noise > 0.62 ? COL.g1 : COL.dirt); break; }
+    case 'harbour': { const g = (TAMA_LOOK && d.id === '0,-1' && TAMA_GROUND[TAMA_LOOK]) || (STYLE_DEF[d.style] && STYLE_DEF[d.style].ground); if (d.sh && slope > 0.3 && hc > 1.2) { c = noise > 0.5 ? COL.rock2 : COL.rock1; break; } c = g ? (noise > 0.55 ? (GC[g[0]] || (GC[g[0]] = C(g[0]))) : (GC[g[1]] || (GC[g[1]] = C(g[1])))) : (noise > 0.62 ? COL.g1 : COL.dirt); break; }
     default: c = COL.sand;
   }
   return c;
@@ -313,9 +313,11 @@ function house(A, B, x, y, z, ry, rng) {
   const w = 3.2 + rng() * 1.4, dep = 3 + rng() * 1.2, h = 2.1 + rng() * 0.9;
   let wall = pickCol(rng, WALLS), roof = pickCol(rng, ROOFS);
   if (PAINT) { if (PAINT.walls) wall = pickCol(rng, PAINT.walls); if (PAINT.roofs) roof = pickCol(rng, PAINT.roofs); if (PAINT.wall) wall = PAINT.wall; if (PAINT.roof) roof = PAINT.roof; }
+  if (FIN) { wall = finCol(FIN.walls, wall); roof = finCol(FIN.roofs, roof); }
   A.push(x, y, z, ry);
   A.box(0, 0, 0, w, h, dep, wall, TILE.wall, TILE.white);
-  A.gable(0, h, 0, w + 0.6, 1.4 + rng() * 0.5, dep + 0.6, roof, TILE.roof, wall);
+  const rh = 1.4 + rng() * 0.5;
+  A.gable(0, h, 0, w + 0.6, rh, dep + 0.6, roof, TILE.roof, wall);
   A.box(w * 0.28, h + 0.9, -dep * 0.2, 0.55, 1.1, 0.55, '#a89a88', TILE.stone);
   A.box(-w * 0.2, 0, dep / 2 + 0.01, 0.95, 1.8, 0.12, '#7a4e2c', TILE.planks);
   A.box(-w * 0.2, -0.05, dep / 2 + 0.35, 1.2, 0.18, 0.7, '#8a8070', TILE.stone);            // doorstep
@@ -327,6 +329,7 @@ function house(A, B, x, y, z, ry, rng) {
   A.box(w / 2 + 0.02, 0.2, -dep * 0.25, 0.05, h - 0.2, 0.18, '#5a6a6a', TILE.stone);            // drainpipe
   A.blob(w * 0.12, h + 1.15, dep * 0.1, 0.45, 0.05, 0.4, '#8a5a3a', TILE.roof, 0.25, 6);       // patched tiles
   A.blob(-w * 0.3, h + 0.7, -dep * 0.12, 0.5, 0.06, 0.4, '#6a8a4a', TILE.white, 0.3, 8);       // moss
+  if (FIN) finishHouse(A, { w, dep, h, rh, roof, door: [-w * 0.2, 0.95, 1.8], wins: [w / 2 - 0.6], winY: 0.75, chim: [w * 0.28, h + 2.0, -dep * 0.2, 0.55], x, z });
   A.pop();
   if (rng() < 0.6) { // flag pole + pennant (only while it is still a happy town)
     B.push(x, y + h + 1.4, z, ry);
@@ -450,6 +453,7 @@ export function houseKind(A, B, x, y, z, ry, rng, kind) {
   let wall = pickCol(rng, WALLS), roof = pickCol(rng, ROOFS);
   if (PAINT) { if (PAINT.walls) wall = pickCol(rng, PAINT.walls); if (PAINT.roofs) roof = pickCol(rng, PAINT.roofs); if (PAINT.wall) wall = PAINT.wall; if (PAINT.roof) roof = PAINT.roof; }
   if (kind === 'cottage') return house(A, B, x, y, z, ry, rng);
+  if (FIN) { wall = finCol(FIN.walls, wall); roof = finCol(FIN.roofs, roof); }
   A.push(x, y, z, ry);
   switch (kind) {
     case 'townhouse': { // two storeys, a trim band, a balcony with railings
@@ -462,6 +466,7 @@ export function houseKind(A, B, x, y, z, ry, rng, kind) {
       A.box(0, 2.78, dep / 2 + 0.86, w * 0.7, 0.07, 0.07, '#5a3a20', TILE.bark);
       A.box(0.6, 0, dep / 2 + 0.01, 0.9, 1.85, 0.1, '#5a3a20', TILE.planks);
       A.box(-w * 0.25, h + 0.8, 0, 0.5, 1.2, 0.5, '#a89a88', TILE.stone);
+      if (FIN) finishHouse(A, { w, dep, h, rh: 1.5, roof, door: [0.6, 0.9, 1.85], wins: [-0.8], winY: 0.75, chim: [-w * 0.25, h + 2.0, 0, 0.5], x, z });
       break;
     }
     case 'stilt': { // a fisher's house up on posts, with a ladder and a net
@@ -475,7 +480,7 @@ export function houseKind(A, B, x, y, z, ry, rng, kind) {
       break;
     }
     case 'colonial': { // a low whitewashed house with a hipped terracotta roof and a veranda
-      const w = 3.6 + rng() * 1.2, dep = w - 0.4 + rng() * 0.8, h = 2.2 + rng() * 0.5, rf = PAINT && PAINT.roofs ? roof : pickCol(rng, TERRACOTTA), sh = pickCol(rng, SHUTTERS);
+      const w = 3.6 + rng() * 1.2, dep = w - 0.4 + rng() * 0.8, h = 2.2 + rng() * 0.5, rf = finCol(FIN && FIN.roofs, PAINT && PAINT.roofs ? roof : pickCol(rng, TERRACOTTA)), sh = pickCol(rng, SHUTTERS);
       A.box(0, 0, 0, w, h, dep, wall, TILE.wall, TILE.white);
       A.push(0, h, 0, Math.PI / 4); A.cyl(0, 0, 0, Math.max(w, dep) * 0.78 + 0.5, 0.2, 1.6 + rng() * 0.5, 4, rf, TILE.roof, false); A.pop();
       A.box(0, 0, dep / 2 + 0.9, w + 0.4, 0.22, 1.7, '#8a6238', TILE.planks);            // the veranda floor
@@ -484,11 +489,12 @@ export function houseKind(A, B, x, y, z, ry, rng, kind) {
       A.box(0, 0.22, dep / 2 + 0.01, 0.95, 1.8, 0.1, '#5a3a20', TILE.planks);
       for (const sx of [-1, 1]) { A.box(sx * w * 0.3, 1.0, dep / 2 + 0.03, 0.6, 0.8, 0.08, '#2a2a3a', TILE.white); A.box(sx * w * 0.3 - 0.45, 1.0, dep / 2 + 0.06, 0.2, 0.8, 0.08, sh, TILE.planks); A.box(sx * w * 0.3 + 0.45, 1.0, dep / 2 + 0.06, 0.2, 0.8, 0.08, sh, TILE.planks); }
       A.box(w * 0.28, h + 0.7, -dep * 0.2, 0.5, 1.1, 0.5, '#a89a88', TILE.stone);
+      if (FIN) finishHouse(A, { w, dep, h, roof: rf, door: [0, 0.95, 1.8, 0.22], wins: [-w * 0.3, w * 0.3], winY: 0.72, chim: [w * 0.28, h + 1.8, -dep * 0.2, 0.5], porch: dep / 2 + 1.75, x, z });
       yard(A, rng, w, dep, rng() < 0.5 ? 1 : -1);
       break;
     }
     case 'planter': { // a planter's house: stone ground floor, a shuttered upper storey with a balcony, a big hipped roof
-      const w = 4.4 + rng() * 1.0, dep = 3.8 + rng() * 0.6, rf = PAINT && PAINT.roofs ? roof : pickCol(rng, TERRACOTTA), sh = pickCol(rng, SHUTTERS);
+      const w = 4.4 + rng() * 1.0, dep = 3.8 + rng() * 0.6, rf = finCol(FIN && FIN.roofs, PAINT && PAINT.roofs ? roof : pickCol(rng, TERRACOTTA)), sh = pickCol(rng, SHUTTERS);
       A.box(0, 0, 0, w, 2.3, dep, '#d8d0c0', TILE.stone, TILE.stone);
       A.box(0, 2.3, 0, w - 0.3, 2.1, dep - 0.3, wall, TILE.wall, TILE.white);
       A.box(0, 2.25, dep / 2 + 0.55, w + 0.2, 0.2, 1.1, '#8a6238', TILE.planks);          // balcony
@@ -498,6 +504,7 @@ export function houseKind(A, B, x, y, z, ry, rng, kind) {
       A.box(0, 0, dep / 2 + 0.01, 1.2, 1.9, 0.1, '#5a3a20', TILE.planks);
       for (const sx of [-1, 1]) { A.box(sx * w * 0.32, 0.9, dep / 2 + 0.03, 0.7, 0.9, 0.08, '#2a2a3a', TILE.white); for (const o of [-0.5, 0.5]) A.box(sx * w * 0.32 + o, 3.1, dep / 2 - 0.1, 0.2, 1.0, 0.08, sh, TILE.planks); }
       A.box(-w * 0.28, 5.2, -dep * 0.15, 0.55, 1.3, 0.55, '#a89a88', TILE.stone);
+      if (FIN) finishHouse(A, { w: w - 0.3, dep: dep - 0.3, h: 4.4, h0: 2.3, roof: rf, door: [0, 1.2, 1.9], wins: [-w * 0.32, w * 0.32], winY: 0.66, winZ: dep / 2, chim: [-w * 0.28, 6.5, -dep * 0.15, 0.55], noPlinth: true, x, z });
       yard(A, rng, w, dep, rng() < 0.5 ? 1 : -1);
       break;
     }
@@ -510,6 +517,7 @@ export function houseKind(A, B, x, y, z, ry, rng, kind) {
       A.box(0, 0, dep / 2 + 0.7, w * 0.8, 0.18, 1.0, '#8a6238', TILE.planks);
       for (const sx of [-1, 1]) A.box(sx * w * 0.38, 0, dep / 2 + 1.1, 0.2, 1.7, 0.2, '#5a3e24', TILE.bark);
       if (rng() < 0.6) A.cyl(w / 2 + 0.5, 0, 0.2, 0.35, 0.3, 0.6, 6, '#c8a860', TILE.rope, true);   // a crab pot
+      if (FIN) finishHouse(A, { w, dep, h: 1.7, rh: 2.2, roof: th, thatch: true, door: [-w * 0.2, 0.9, 1.5], wins: [w * 0.28], winY: 0.66, porch: dep / 2 + 1.25, x, z });
       yard(A, rng, w, dep, rng() < 0.5 ? 1 : -1);
       break;
     }
@@ -544,6 +552,7 @@ export function houseKind(A, B, x, y, z, ry, rng, kind) {
       barrel(A, -w / 2 + 0.6, 0, dep / 2 + 0.6, 1); barrel(A, -w / 2 + 1.4, 0, dep / 2 + 0.7, 0.9); barrel(A, -w / 2 + 1.0, 0.85, dep / 2 + 0.65, 0.8);
       A.box(w * 0.2, 0, dep / 2 + 0.8, 1.6, 0.45, 0.4, '#6b4a2e', TILE.planks);
       A.box(-w * 0.3, h + 1.0, -dep * 0.2, 0.6, 1.3, 0.6, '#a89a88', TILE.stone);
+      if (FIN) finishHouse(A, { w, dep, h, rh: 1.7, roof: '#8a3a2a', door: [0, 1.2, 1.8], wins: [1.75], winY: 0.75, chim: [-w * 0.3, h + 2.3, -dep * 0.2, 0.6], tavern: true, x, z });
       break;
     }
     case 'warehouse': { // long and low, a wide door, crates stacked outside
@@ -552,6 +561,7 @@ export function houseKind(A, B, x, y, z, ry, rng, kind) {
       A.gable(0, h, 0, w + 0.5, 0.9, dep + 0.4, '#6a5a4a', TILE.roof, '#9a7a58');
       A.box(0, 0, dep / 2 + 0.01, 1.9, 2.0, 0.12, '#3a2a1c', TILE.planks);
       crateBox(A, w / 2 + 0.6, 0, dep / 2 - 0.5, 0.3); crateBox(A, w / 2 + 0.6, 0.85, dep / 2 - 0.4, 1.1, 0.8); crateBox(A, w / 2 + 0.7, 0, dep / 2 - 1.6, 0.8);
+      if (FIN) finishHouse(A, { w, dep, h, rh: 0.9, roof: '#6a5a4a', door: [0, 1.9, 2.0], wins: [], plank: true, x, z });
       break;
     }
     default: { // belltower: a stone tower, an open belfry and a bell
@@ -560,6 +570,7 @@ export function houseKind(A, B, x, y, z, ry, rng, kind) {
       A.cyl(0, 6.6, 0, 1.45, 0, 1.6, 4, roof, TILE.roof, false);
       A.cyl(0, 5.45, 0, 0.42, 0.22, 0.75, 7, '#c8a040', TILE.glow, true);
       A.box(0, 0, 0.91, 0.8, 1.5, 0.1, '#5a3a20', TILE.planks);
+      if (FIN) { A.box(0, -0.05, 0, 2.1, 0.5, 2.1, FIN.plinth, TILE.stone); A.box(0, 4.95, 0, 2.05, 0.28, 2.05, FIN.trim, TILE.white); doorFrame(A, 0, 0.8, 1.5, 0, 0.9); }
     }
   }
   A.pop();
@@ -929,76 +940,221 @@ function flagLine(b, a, c, k0 = 0) {   // a hanging line of little triangle flag
   }
 }
 
-// ---- Tama redesign trials (dev, ?tama=a|b|c): the same island, pier, palette and house kinds, with a planned street and more finish.
-//   a  the square: houses in a ring round a paved square with a well, the bell tower facing the pier, bunting across
-//   b  the waterfront: a crescent of houses facing the water either side of the pier, a lamp-lit promenade, the tavern at the pier's foot
-//   c  the garden town: fewer, bigger houses with yards along three lanes from the square, flowering trees, flower beds
+// ---- Tama look-polish options (dev, ?tama=a|b|c). The houses stand exactly where they stand without the flag (same rng, same
+// kinds); only their finish, the ground, paths, the landing, the pier, plants and props change. The losers are deleted when one is chosen.
+//   a  painted town: pastel walls and one terracotta roof family, white trim, painted doors, flower boxes, shell paths, a paved square, a stone quay
+//   b  garden harbour: lush grass, sandy paths, white picket fences, bougainvillea, flowering trees and beds, a plank boardwalk and a roped pier
+//   c  harbour front: a cobbled square and street down to a wide stone quay with bollards, lamps, a crane, a fish stall; striped awnings on the houses
 const TAMA_LOOK = (() => { try { const v = new URLSearchParams(location.search).get('tama'); return ['a', 'b', 'c'].includes(v) ? v : null; } catch (e) { return null; } })();
-function tamaLamp(b, x, y, z) {
-  b.box(x, y, z, 0.18, 2.4, 0.18, '#3a2a1c', TILE.bark); b.box(x, y + 2.4, z, 0.56, 0.12, 0.56, '#3a2a1c', TILE.planks);
-  b.box(x, y + 2.52, z, 0.38, 0.46, 0.38, '#ffffff', TILE.glow); b.box(x, y + 2.98, z, 0.6, 0.12, 0.6, '#3a2a1c', TILE.planks);
+const DOORS = ['#2f8a8a', '#3c6ec8', '#c8402e', '#e8b030', '#3f8a5a', '#f4f0e4'];
+const TAMA_FIN = {
+  a: { walls: { '#f4dfb0': '#f6dca0', '#f0b3a0': '#f29c84', '#a9d6ee': '#8cc8e8', '#f2e48a': '#f4d468', '#c9e6a8': '#9ad8b8', '#e8c0e0': '#e8a8c8' },
+       roofs: { '#d2483c': '#c8583a', '#3c78c8': '#b8503a', '#2f9a8a': '#d27a3a', '#c86a2a': '#c86a2a', '#7a4ab0': '#a84a32' },
+       trim: '#f6f0e2', plinth: '#9a8a78', boxes: true, pots: true, doors: DOORS, blooms: ['#e8407a', '#f0c030', '#f4f0e8', '#e85a3a'] },
+  b: { walls: null, roofs: { '#7a4ab0': '#c8583a' }, trim: '#f2ead6', plinth: '#a89a80', boxes: true, vine: true, doors: DOORS, blooms: ['#e8407a', '#f0c030', '#f4f0e8', '#c078e0'] },
+  c: { walls: null, roofs: { '#7a4ab0': '#c8583a', '#2f9a8a': '#b8503a' }, trim: '#efe6d2', plinth: '#8a8278', doors: DOORS, pots: true,
+       awn: [['#c83a2e', '#f4ece0'], ['#3c6ec8', '#f4ece0'], ['#2f8a6a', '#f4ece0'], ['#e8a830', '#f4ece0']] },
+};
+const TAMA_GROUND = { a: ['#9cc05a', '#86b650'], b: ['#5aac48', '#6cba52'], c: ['#a8b862', '#bcbc72'] };
+const finCol = (map, col) => (map && map[col]) || col;
+const hashXZ = (x, z, k = 0) => { const h = Math.sin(x * 12.9898 + z * 78.233 + k * 37.719) * 43758.5453; return h - Math.floor(h); };
+function doorFrame(A, dx, dw, dh, dy, zf) {   // jambs and a lintel round a door, in the trim colour
+  for (const s of [-1, 1]) A.box(dx + s * (dw / 2 + 0.08), dy, zf + 0.03, 0.18, dh + 0.1, 0.14, FIN.trim, TILE.white);
+  A.box(dx, dy + dh, zf + 0.03, dw + 0.36, 0.2, 0.16, FIN.trim, TILE.white);
 }
-function tamaTree(A, B, x, y, z, col, s = 1) { A.cyl(x, y - 0.1, z, 0.3 * s, 0.24 * s, 1.6 * s, 5, '#6b4a2e', TILE.bark, false); B.blob(x, y + 2.1 * s, z, 1.5 * s, 1.2 * s, 1.5 * s, col, TILE.leaf, 0.22, Math.floor(x * 7 + z)); }
-function tamaPlan(VS, look, extra) {
-  const { d, rng, dockTh, A, B, houseKind: hk } = VS;
-  const H = d.H - 0.1, g = (x, z) => Math.min(H, terrainHeight(d, x, z) - 0.05);
-  const at = (th, r) => [Math.cos(th) * r, Math.sin(th) * r];
-  const face = (x, z, tx, tz) => Math.atan2(tx - x, tz - z);
-  const house = (x, z, ry, kind) => { hk(A, B, x, g(x, z), z, ry, rng, kind); if (kind === 'tavern') extra.tavern = { x, z, ry }; };
-  const lane = (th, r0, r1, w = 2.4) => { const L = r1 - r0; A.push(0, 0, 0, Math.PI / 2 - th); A.box(0, H - 0.04, r0 + L / 2, w, 0.12, L, '#cfc2a4', TILE.stone); A.pop(); };
-  const flags = (p, q) => flagLine(A, [p[0], g(p[0], p[1]) + 4.2, p[1]], [q[0], g(q[0], q[1]) + 4.2, q[1]], Math.floor(rng() * 6));
-  const R = shoreR(d, dockTh);
-  // the square at the heart of every plan, and the lane down to the pier
-  const sq = look === 'c' ? 6 : 7.5;
-  A.cyl(0, H - 0.06, 0, sq, sq, 0.14, 12, '#d8ccb0', TILE.stone, true);
-  A.cyl(0, H - 0.04, 0, sq + 0.4, sq + 0.4, 0.1, 12, '#a89878', TILE.stone, true);
-  lane(dockTh, sq, R * 0.95);
-  A.cyl(0, H, 0, 1.1, 1.2, 0.9, 8, '#bfb4a0', TILE.stone); A.cyl(0, H + 0.85, 0, 0.8, 0.8, 0.05, 8, '#2a4a5a', TILE.white);   // the well
-  for (const sx of [-0.9, 0.9]) A.box(sx, H + 0.9, 0, 0.14, 1.6, 0.14, '#6b4a2e', TILE.bark);
-  A.gable(0, H + 2.5, 0, 2.4, 0.7, 1.6, '#b0503a', TILE.roof, '#6b4a2e');
-  for (const s of [-1, 1]) { const [x, z] = at(dockTh + s * 0.18, R * 0.7); tamaLamp(A, x, g(x, z), z); }
-  if (look === 'a') {
-    const n = 10, list = ['tavern', 'townhouse', 'colonial', 'cottage', 'belltower', 'colonial', 'townhouse', 'planter', 'cottage', 'colonial'];
-    const pos = [];
-    for (let i = 0; i < n; i++) {
-      const th = dockTh + 0.75 + (i / (n - 1)) * (Math.PI * 2 - 1.5), r = i === 4 ? 10.5 : 12 + (i % 2) * 1.6;
-      const [x, z] = at(th, Math.min(r, shoreR(d, th) * 0.62)); pos.push([x, z]);
-      house(x, z, face(x, z, 0, 0), list[i]);
-    }
-    for (let i = 0; i < n - 1; i += 2) flags(pos[i], pos[i + 1 + (i === 2 ? 1 : 0)] || pos[i + 1]);
-    flags(pos[0], pos[n - 1]);
-    for (let i = 0; i < 7; i++) { const th = dockTh + 0.6 + i * 0.75, [x, z] = at(th, shoreR(d, th) * 0.8); palm(A, VS.B, VS.D, x, g(x, z), z, rng, 1 + rng() * 0.3); }
-    for (let i = 0; i < 8; i++) { const th = i * 0.785 + 0.39, [x, z] = at(th, sq - 0.6); if (Math.abs(angleDiff(th, dockTh)) > 0.4) VS.B.blob(x, H + 0.3, z, 0.6, 0.45, 0.6, i % 2 ? '#d83a8a' : '#4a9a40', TILE.leaf, 0.25, i); }
-  } else if (look === 'b') {
-    const kinds = ['townhouse', 'colonial', 'townhouse', 'cottage', 'warehouse', 'colonial', 'townhouse', 'cottage'];
-    const pos = [];
-    { const [tx, tz] = at(dockTh + 0.42, R * 0.55); house(tx, tz, face(tx, tz, ...at(dockTh, R)), 'tavern'); }
-    for (let i = 0; i < kinds.length; i++) {
-      const s = i % 2 ? 1 : -1, k = Math.floor(i / 2), th = dockTh + s * (0.85 + k * 0.32), rr = shoreR(d, th) * 0.6, [x, z] = at(th, rr);
-      pos.push([x, z, th]);
-      house(x, z, face(x, z, x * 2, z * 2), kinds[i]);   // facing the sea
-    }
-    for (const [x, z, th] of pos) { const [lx, lz] = at(th + 0.14, shoreR(d, th) * 0.76); tamaLamp(A, lx, g(lx, lz), lz); }
-    for (let s of [-1, 1]) { const a0 = dockTh + s * 0.55, a1 = dockTh + s * 2.0; for (let t = 0; t < 10; t++) { const th = a0 + (a1 - a0) * t / 10, [x, z] = at(th, shoreR(d, th) * 0.74); A.push(x, g(x, z) + 0.02, z, Math.PI / 2 - th); A.box(0, 0, 0, 3.2, 0.12, 2.0, '#b08858', TILE.planks); A.pop(); } }   // the promenade
-    house(...at(dockTh + Math.PI, 7), face(...at(dockTh + Math.PI, 7), 0, 0), 'belltower');
-    house(...at(dockTh + Math.PI - 0.7, 9), face(...at(dockTh + Math.PI - 0.7, 9), 0, 0), 'planter');
-    house(...at(dockTh + Math.PI + 0.7, 9), face(...at(dockTh + Math.PI + 0.7, 9), 0, 0), 'colonial');
-    for (let i = 0; i < pos.length - 2; i += 2) flags(pos[i], pos[i + 2]);
-    for (let i = 0; i < 6; i++) { const th = dockTh + Math.PI + (i - 2.5) * 0.5, [x, z] = at(th, shoreR(d, th) * 0.45); palm(A, VS.B, VS.D, x, g(x, z), z, rng, 1.1 + rng() * 0.3); }
+function awning(A, cx, y, zf, wid, cols) {   // a striped canvas awning, sloping down to the front, with a scalloped edge
+  A.push(cx, y, zf, 0, 1, 1, 1, 0.42);
+  const n = Math.max(3, Math.round(wid / 0.36));
+  for (let i = 0; i < n; i++) { const sx = -wid / 2 + (i + 0.5) * wid / n; A.box(sx, 0, 0.55, wid / n, 0.07, 1.1, cols[i % 2], TILE.sail); A.box(sx, -0.2, 1.08, wid / n * 0.8, 0.2, 0.06, cols[i % 2], TILE.sail); }
+  A.pop();
+}
+function finishHouse(A, o) {   // trim, plinth, painted door, flower boxes, ridge and chimney caps (house-local: front is +z)
+  const F = FIN, hw = o.w / 2, hd = o.dep / 2, h0 = o.h0 || 0, k = hashXZ(o.x, o.z);
+  if (!o.noPlinth && !o.plank) A.box(0, -0.05, 0, o.w + 0.16, 0.45, o.dep + 0.16, F.plinth, TILE.stone);
+  if (!o.plank && !o.thatch) {
+    for (const sx of [-1, 1]) for (const sz of [-1, 1]) A.box(sx * hw, h0 + (o.noPlinth ? 0 : 0.4), sz * hd, 0.3, o.h - h0 - (o.noPlinth ? 0 : 0.4), 0.3, F.trim, TILE.white);   // quoins
+    A.box(0, o.h - 0.26, 0, o.w + 0.16, 0.26, o.dep + 0.16, F.trim, TILE.white);   // the eave band
+  }
+  const [dx, dw, dh, dy = 0] = o.door;
+  if (!o.plank) {
+    doorFrame(A, dx, dw, dh, dy, hd);
+    A.box(dx, dy + 0.05, hd + 0.1, dw - 0.14, dh - 0.12, 0.05, F.doors[Math.floor(k * F.doors.length)], TILE.planks);   // a painted door
+  }
+  if (!o.porch) A.box(dx, -0.06, hd + 0.4, dw + 0.6, 0.2, 0.7, F.plinth, TILE.stone);   // a stone step
+  if (F.boxes) for (const wx of o.wins) {
+    const zf = (o.winZ == null ? hd : o.winZ) + 0.17;
+    A.box(wx, o.winY, zf, 0.86, 0.2, 0.3, '#6b4a2e', TILE.planks);
+    A.blob(wx, o.winY + 0.26, zf, 0.42, 0.14, 0.16, '#3f8a38', TILE.white, 0.3, 3);
+    for (let i = 0; i < 3; i++) A.blob(wx + (i - 1) * 0.26, o.winY + 0.34, zf + 0.06, 0.12, 0.12, 0.12, F.blooms[Math.floor(hashXZ(o.x + i, o.z, wx) * F.blooms.length)], TILE.white, 0.05, i);
+  }
+  if (o.rh) A.box(0, o.h + o.rh - (o.thatch ? 0.22 : 0.12), 0, o.thatch ? 0.6 : 0.34, o.thatch ? 0.34 : 0.22, o.dep + (o.thatch ? 1.1 : 0.7), o.thatch ? '#8a7038' : '#7a3a2a', o.thatch ? TILE.rope : TILE.roof);   // ridge
+  if (o.chim) { const [cx, cy, cz, cs] = o.chim; A.box(cx, cy, cz, cs + 0.2, 0.16, cs + 0.2, F.trim, TILE.stone); A.cyl(cx, cy + 0.16, cz, 0.13, 0.11, 0.3, 5, '#b8603a', TILE.stone, true); }
+  if (F.pots && !o.plank) for (const s of [-1, 1]) { const px = dx + s * (dw / 2 + 0.45); if (o.porch && Math.abs(px) > hw) continue; A.cyl(px, (o.porch ? 0.22 : 0), hd + (o.porch ? 0.5 : 0.35), 0.22, 0.17, 0.36, 6, '#b8603a', TILE.stone, true); A.blob(px, (o.porch ? 0.22 : 0) + 0.55, hd + (o.porch ? 0.5 : 0.35), 0.3, 0.26, 0.3, k > 0.5 ? '#3f8a38' : '#4a9a40', TILE.leaf, 0.3, 2); A.blob(px, (o.porch ? 0.22 : 0) + 0.78, hd + (o.porch ? 0.55 : 0.4), 0.11, 0.11, 0.11, F.blooms ? F.blooms[s > 0 ? 0 : 1] : '#e8407a', TILE.white, 0.05, 1); }
+  if (F.vine && k > 0.3) {   // bougainvillea climbing one front corner
+    const sx = k > 0.65 ? 1 : -1;
+    for (let i = 0; i < 4; i++) A.blob(sx * (hw + 0.1) - sx * i * 0.25, 0.5 + i * (o.h - 0.4) / 4, hd + 0.12, 0.4 - i * 0.04, 0.42, 0.22, i % 2 ? '#d83a8a' : '#e85aa0', TILE.leaf, 0.35, i);
+    A.blob(sx * (hw + 0.1), 0.25, hd + 0.12, 0.3, 0.3, 0.25, '#3f7a34', TILE.leaf, 0.3, 7);
+  }
+  if (F.awn && !o.plank) {
+    const cols = F.awn[Math.floor(k * F.awn.length)];
+    if (o.porch) for (const wx of o.wins) awning(A, wx, 1.95, hd + 0.05, 1.1, cols);
+    else awning(A, dx, (o.door[3] || 0) + o.door[2] + 0.28, hd + 0.05, dw + 0.9, cols);
+    if (o.tavern) for (const wx of [-1.75, 1.75]) awning(A, wx, 2.0, hd + 0.05, 1.2, cols);
+  }
+}
+function lampPost(A, x, y, z, ry) {   // a black iron post with an arm and a hanging lantern
+  A.push(x, y, z, ry);
+  A.box(0, 0, 0, 0.4, 0.3, 0.4, '#5a5a5e', TILE.stone); A.box(0, 0.3, 0, 0.16, 2.7, 0.16, '#2a2a30', TILE.bark);
+  A.box(0.32, 2.85, 0, 0.8, 0.12, 0.12, '#2a2a30', TILE.bark);
+  A.box(0.62, 2.22, 0, 0.36, 0.44, 0.36, '#ffffff', TILE.glow); A.box(0.62, 2.66, 0, 0.5, 0.12, 0.5, '#2a2a30', TILE.bark);
+  A.pop();
+}
+function hibiscus(A, x, y, z, s, col) { A.blob(x, y + 0.4 * s, z, 0.75 * s, 0.6 * s, 0.75 * s, '#3f8a38', TILE.leaf, 0.3, Math.floor(x * 3 + z)); for (let i = 0; i < 5; i++) { const a = i * 1.26 + x; A.blob(x + Math.cos(a) * 0.55 * s, y + (0.55 + (i % 2) * 0.3) * s, z + Math.sin(a) * 0.55 * s, 0.13, 0.13, 0.13, col, TILE.white, 0.05, i); } }
+function tuft(A, x, y, z, col, k) { for (let i = 0; i < 3; i++) { const a = k * 6.28 + i * 2.1; A.tri([x - Math.sin(a) * 0.18, y, z + Math.cos(a) * 0.18], [x + Math.sin(a) * 0.18, y, z - Math.cos(a) * 0.18], [x + Math.cos(a) * 0.3, y + 0.45 + (i % 2) * 0.15, z + Math.sin(a) * 0.3], col, TILE.leaf); A.tri([x + Math.sin(a) * 0.18, y, z - Math.cos(a) * 0.18], [x - Math.sin(a) * 0.18, y, z + Math.cos(a) * 0.18], [x + Math.cos(a) * 0.3, y + 0.45 + (i % 2) * 0.15, z + Math.sin(a) * 0.3], col, TILE.leaf); } }
+function bloomTree(S, x, y, z, s, crown, flower) {   // a flowering tree (flamboyant, frangipani); a bare claw in the dark mood
+  const { A, B, D } = S;
+  A.cyl(x, y - 0.1, z, 0.3 * s, 0.22 * s, 1.7 * s, 5, '#6b4a2e', TILE.bark, false);
+  B.blob(x, y + 2.2 * s, z, 1.7 * s, 0.95 * s, 1.7 * s, crown, TILE.leaf, 0.25, Math.floor(x * 7 + z));
+  for (let i = 0; i < 8; i++) { const a = i * 0.8 + x, rr = i % 2 ? 1.45 : 0.8; B.blob(x + Math.cos(a) * rr * s, y + (i % 2 ? 2.55 : 3.05) * s, z + Math.sin(a) * rr * s, 0.48 * s, 0.32 * s, 0.48 * s, flower, TILE.white, 0.2, i); }
+  for (let i = 0; i < 4; i++) { const a = i * 1.57 + x; D.tri([x, y + 1.2 * s, z], [x + Math.cos(a) * 0.3, y + 2.3 * s, z + Math.sin(a) * 0.3], [x + Math.cos(a) * 1.3 * s, y + 2.6 * s, z + Math.sin(a) * 1.3 * s], '#6a6070', TILE.bone, [[0.5, 0], [0, 0.5], [0.5, 1]]); }
+}
+function picketFence(A, x0, x1, gap0, gap1) {   // house-local, along x at z = 0
+  for (let x = x0; x <= x1 + 0.01; x += 0.42) if (x < gap0 || x > gap1) A.box(x, 0, 0, 0.14, 0.78, 0.1, '#f4f0e4', TILE.white);
+  for (const [a, b] of [[x0, gap0], [gap1, x1]]) if (b - a > 0.3) for (const y of [0.22, 0.56]) A.box((a + b) / 2, y, -0.05, b - a, 0.1, 0.06, '#e8e2d2', TILE.white);
+}
+function tamaPolish(S, look, houses) {
+  const { d, dockTh, A, B, D, R, z0, z1 } = S, r = mulberry32(d.seed + 4242), H = d.H;
+  const g = (x, z) => Math.min(H, terrainHeight(d, x, z));
+  const ax = Math.cos(dockTh), az = Math.sin(dockTh);
+  const rP = look === 'c' ? 7.2 : 6;
+  const pal = { a: { path: ['#fff4dc', '#f4e6c4'], pt: TILE.sand, sq: '#fff0d8', sq2: '#e07a4a', edge: '#e8d8b8', quay: '#e4e0d6', cope: '#ffffff', wall: '#e8dcc0' },
+                b: { path: ['#f0d49c', '#e4c48c'], pt: TILE.sand, sq: '#f0dca8', sq2: '#e4c48c', edge: '#c8a878', quay: '#c89060', cope: '#6b4a2e', wall: '#e0d0b0' },
+                c: { path: ['#e09878', '#cc8466'], pt: TILE.sand, sq: '#e4a080', sq2: '#f4e8d4', edge: '#b87a60', quay: '#dcd8d0', cope: '#ffffff', wall: '#e8dcc4' } }[look];
+  const nearHouse = (x, z, rr, skip) => houses.some((h) => h !== skip && Math.hypot(h.x - x, h.z - z) < rr);
+  const slab = (x, z, w, l, ry, col) => { A.push(x, g(x, z) - 0.07, z, ry); A.box(0, 0, 0, w, 0.11, l, col, pal.pt); A.pop(); };
+  // the square: paved (a, c) with a rosette, or a green ringed by a path and flower beds (b)
+  A.orient([0, -100, 0]);
+  if (look !== 'b') {
+    A.cyl(0, H - 0.09, 0, rP + 0.5, rP + 0.5, 0.1, 16, pal.edge, TILE.stone, true);
+    A.cyl(0, H - 0.07, 0, rP, rP, 0.1, 16, pal.sq, pal.pt, true);
+    for (let i = 0; i < 16; i++) { const a0 = i / 16 * 6.283, a1 = (i + 1) / 16 * 6.283, rr = rP * (i % 2 ? 0.62 : 0.5); A.tri([0, H + 0.04, 0], [Math.cos(a0) * rr, H + 0.04, Math.sin(a0) * rr], [Math.cos(a1) * rr, H + 0.04, Math.sin(a1) * rr], i % 2 ? pal.sq2 : pal.edge, pal.pt); }
   } else {
-    const lanes = [dockTh + 2.1, dockTh + Math.PI, dockTh - 2.1];
-    for (const th of lanes) lane(th, sq, shoreR(d, th) * 0.7, 2.0);
-    const kinds = ['tavern', 'colonial', 'planter', 'belltower', 'townhouse', 'colonial', 'planter'];
-    let i = 0;
-    for (const th of [dockTh + 0.9, ...lanes.flatMap((l) => [l - 0.42, l + 0.42])]) {
-      const r = (i === 0 ? 11 : 13 + (i % 2) * 3), [x, z] = at(th, Math.min(r, shoreR(d, th) * 0.6));
-      house(x, z, face(x, z, 0, 0), kinds[i % kinds.length]);
-      fence(A, ...[x * 1.18, g(x * 1.18, z * 1.18), z * 1.18], th + 1.57, 4);
-      i++;
+    for (let i = 0; i < 26; i++) { const a = i / 26 * 6.283; slab(Math.cos(a) * rP, Math.sin(a) * rP, 1.6, 1.3, -a, pal.path[i % 2]); }
+    for (let i = 0; i < 14; i++) { const a = i / 14 * 6.283 + 0.2; if (Math.abs(angleDiff(a, dockTh)) < 0.35) continue; hibiscus(A, Math.cos(a) * (rP - 1.4), H - 0.1, Math.sin(a) * (rP - 1.4), 0.55, ['#e8407a', '#f0c030', '#f4f0e8', '#e85a3a'][i % 4]); }
+  }
+  A.orient(null);
+  // paths from every door to the square
+  const DX = { cottage: -0.8, townhouse: 0.6, thatch: -0.7 };
+  for (const h of houses) {
+    const fx = Math.sin(h.ry), fz = Math.cos(h.ry), lxh = fz, lzh = -fx, ox = DX[h.kind] || 0;
+    const sx = h.x + lxh * ox + fx * 2.2, sz = h.z + lzh * ox + fz * 2.2, L = Math.hypot(sx, sz) - rP + 0.2;
+    if (L < 0.5) continue;
+    const ux = -sx / Math.hypot(sx, sz), uz = -sz / Math.hypot(sx, sz), pry = Math.atan2(ux, uz);
+    for (let t = 0; t < L; t += 0.9) {
+      const x = sx + ux * t + (r() - 0.5) * 0.2, z = sz + uz * t + (r() - 0.5) * 0.2;
+      if (nearHouse(x, z, 2.6, h)) break;
+      slab(x, z, look === 'c' ? 1.7 : 1.4, 0.75, pry + (r() - 0.5) * 0.25, pal.path[Math.floor(r() * 2)]);
     }
-    for (let k = 0; k < 14; k++) { const th = rng() * 6.28; if (Math.abs(angleDiff(th, dockTh)) < 0.45) continue; const [x, z] = at(th, shoreR(d, th) * (0.3 + rng() * 0.4)); tamaTree(A, VS.B, x, g(x, z), z, ['#e89ab8', '#f4d0e0', '#4a9a40', '#ffd23a'][k % 4], 0.9 + rng() * 0.4); }
-    for (let k = 0; k < 12; k++) { const th = k * 0.52, [x, z] = at(th, sq + 0.8); if (Math.abs(angleDiff(th, dockTh)) > 0.35) VS.B.blob(x, H + 0.2, z, 0.5, 0.35, 0.5, ['#d83a8a', '#ffd23a', '#f4f0e8'][k % 3], TILE.leaf, 0.3, k); }
-    for (let k = 0; k < 5; k++) { const th = dockTh + 0.6 + k * 1.1, [x, z] = at(th, shoreR(d, th) * 0.82); palm(A, VS.B, VS.D, x, g(x, z), z, rng, 1.1); }
+  }
+  // the street down to the landing
+  const tq = 0.875;   // where the quay begins (fraction of the shore radius at the pier)
+  for (let s = rP + 0.3; s < R * tq + 0.6; s += 0.9) for (const o of look === 'c' ? [-1.3, 0, 1.3] : [-0.75, 0.75]) {
+    const x = ax * s - az * o + (r() - 0.5) * 0.15, z = az * s + ax * o + (r() - 0.5) * 0.15;
+    slab(x, z, look === 'c' ? 1.35 : 1.5, 0.8, Math.PI / 2 - dockTh + (r() - 0.5) * 0.2, pal.path[Math.floor(r() * 2)]);
+  }
+  // the landing: a quay along the shore either side of the pier (stone, or a plank boardwalk in b)
+  const span = look === 'c' ? 0.42 : 0.3, yQ = 0.86, steps = Math.round(span * 2 / 0.06), wood = look === 'b';
+  for (let i = 0; i < steps; i++) {
+    const t0 = dockTh - span + i * 0.06, t1 = t0 + 0.06, tm = (t0 + t1) / 2;
+    const ri0 = shoreR(d, t0) * 0.84, ri1 = shoreR(d, t1) * 0.84, ro0 = shoreR(d, t0) * 1.0, ro1 = shoreR(d, t1) * 1.0;
+    const P = (th, rr, y) => [Math.cos(th) * rr, y, Math.sin(th) * rr];
+    A.orient([0, -100, 0]); A.quad(P(t0, ri0, yQ), P(t1, ri1, yQ), P(t1, ro1, yQ), P(t0, ro0, yQ), pal.quay, wood ? TILE.planks : TILE.sand);
+    A.orient([0, yQ, 0]); A.quad(P(t0, ro0, -1.6), P(t1, ro1, -1.6), P(t1, ro1, yQ), P(t0, ro0, yQ), wood ? '#5a3e24' : '#f0e4cc', wood ? TILE.planks : TILE.stone);
+    if (i === 0 || i === steps - 1) { const te = i === 0 ? t0 : t1, ri = i === 0 ? ri0 : ri1, ro = i === 0 ? ro0 : ro1; A.orient([Math.cos(tm) * ro * 0.9, yQ, Math.sin(tm) * ro * 0.9]); A.quad(P(te, ri, -1.6), P(te, ro, -1.6), P(te, ro, yQ), P(te, ri, yQ), wood ? '#5a3e24' : '#f0e4cc', wood ? TILE.planks : TILE.stone); }
+    A.orient(null);
+    const rm = shoreR(d, tm) * 1.0, onPier = Math.abs(angleDiff(tm, dockTh)) * rm < 2.0;
+    if (onPier) continue;
+    A.push(Math.cos(tm) * rm, yQ, Math.sin(tm) * rm, Math.PI / 2 - tm);
+    if (wood) { A.cyl(0, -1.7, -0.1, 0.18, 0.16, 2.8, 5, '#4a3524', TILE.bark); if (i % 3 === 0) A.box(0, 0, -0.35, 0.16, 0.9, 0.16, '#6b4a2e', TILE.bark); }
+    else { A.box(0, 0, -0.25, 0.06 * rm + 0.04, 0.2, 0.55, pal.cope, TILE.white); if (i % 3 === 1) { A.cyl(0, 0.2, -0.55, 0.2, 0.16, 0.42, 6, '#2e2e34', TILE.stone, true); A.cyl(0, 0.62, -0.55, 0.26, 0.26, 0.1, 6, '#2e2e34', TILE.stone, true); } }
+    A.pop();
+  }
+  if (wood) for (let i = 0; i < steps; i += 3) { const t0 = dockTh - span + i * 0.06, t1 = Math.min(dockTh + span, t0 + 0.18), ro = 0.985;   // a rope rail along the boardwalk's edge
+    if (Math.abs(angleDiff((t0 + t1) / 2, dockTh)) * shoreR(d, dockTh) < 2.4) continue;
+    const a = [Math.cos(t0) * shoreR(d, t0) * ro, yQ + 0.82, Math.sin(t0) * shoreR(d, t0) * ro], c = [Math.cos(t1) * shoreR(d, t1) * ro, yQ + 0.82, Math.sin(t1) * shoreR(d, t1) * ro];
+    A.push((a[0] + c[0]) / 2, yQ + 0.72, (a[2] + c[2]) / 2, Math.atan2(c[0] - a[0], c[2] - a[2])); A.box(0, 0, 0, 0.12, 0.12, Math.hypot(c[0] - a[0], c[2] - a[2]), '#c8b080', TILE.rope); A.pop(); }
+  const quayAt = (th, f) => { const rr = shoreR(d, th) * f; return [Math.cos(th) * rr, Math.sin(th) * rr]; };
+  // the pier's finish: dark stringers, bollards; a rope rail (b), plank railings and lamps (c)
+  A.push(0, 0, 0, Math.PI / 2 - dockTh);
+  for (const sx of [-1.45, 1.45]) A.box(sx, 0.4, (R * 0.85 + z1) / 2, 0.2, 0.3, z1 - R * 0.85, '#4a3524', TILE.bark);
+  for (let z = R * 0.95 + 2, i = 0; z < z1 - 1; z += 4.4, i++) { const sx = i % 2 ? 1.2 : -1.2; A.cyl(sx, 0.84, z, 0.17, 0.14, 0.42, 6, '#2e2e34', TILE.stone, true); A.cyl(sx, 1.26, z, 0.23, 0.23, 0.09, 6, '#2e2e34', TILE.stone, true); }
+  if (look === 'b') for (const sx of [-1.38, 1.38]) for (let z = R * 1.02; z < z1 - 1; z += 2.6) { A.box(sx, 0.84, z, 0.14, 1.0, 0.14, '#6b4a2e', TILE.bark); if (z + 2.6 < z1 - 1) A.box(sx, 1.66, z + 1.3, 0.11, 0.11, 2.6, '#c8b080', TILE.rope); }
+  if (look === 'c') { for (const sx of [-1.38, 1.38]) { for (let z = R * 1.02; z < z1 - 3; z += 1.8) A.box(sx, 0.84, z, 0.16, 0.95, 0.16, '#6b4a2e', TILE.planks); A.box(sx, 1.7, (R * 1.02 + z1 - 3) / 2, 0.16, 0.12, z1 - 3 - R * 1.02, '#7a5a3a', TILE.planks); A.box(sx, 1.25, (R * 1.02 + z1 - 3) / 2, 0.12, 0.1, z1 - 3 - R * 1.02, '#7a5a3a', TILE.planks); }
+    lampPost(A, -1.3, 0.84, z1 - 1.2, Math.PI); }
+  A.pop();
+  // lamps
+  const lamps = look === 'c' ? [[rP + 2, 1], [rP + 2, -1], [rP + 8, 1], [rP + 8, -1]] : look === 'a' ? [[rP + 1.5, 1], [rP + 1.5, -1]] : [[rP + 1.5, 1]];
+  for (const [s, side] of lamps) { const o = look === 'c' ? 2.6 : 1.8, x = ax * s - az * o * side, z = az * s + ax * o * side; lampPost(A, x, g(x, z) - 0.05, z, Math.atan2(-az * side, ax * side) - Math.PI / 2); }
+  if (look !== 'b') for (const side of [-1, 1]) { const [x, z] = quayAt(dockTh + side * (span - 0.08), 0.9); lampPost(A, x, yQ, z, -dockTh); }
+  // free ground: grass tufts and flowers where nothing stands
+  const free = (x, z) => Math.hypot(x, z) > rP + 1.2 && !nearHouse(x, z, 3.6) && Math.abs(angleDiff(Math.atan2(z, x), dockTh)) * Math.hypot(x, z) > 2.8;
+  const tuftCols = look === 'b' ? ['#3f8a38', '#5aa844', '#4a9a40'] : ['#7aa84a', '#8ab858', '#6a9a3a'];
+  for (let i = 0; i < (look === 'b' ? 90 : 60); i++) { const th = r() * 6.283, rr = shoreR(d, th) * (0.2 + r() * 0.62), x = Math.cos(th) * rr, z = Math.sin(th) * rr; if (!free(x, z) || g(x, z) < H - 0.05) continue; tuft(A, x, g(x, z) - 0.05, z, tuftCols[i % 3], r()); if (i % 4 === 0) flowers(A, x + 0.6, g(x, z), z, r); }
+  // plants by the houses: a hibiscus or two at the side of each door
+  for (const h of houses) { if (h.kind === 'belltower') continue; const fx = Math.sin(h.ry), fz = Math.cos(h.ry), lxh = fz, lzh = -fx; for (const s of look === 'b' ? [-1, 1] : [hashXZ(h.x, h.z) > 0.5 ? 1 : -1]) { const x = h.x + lxh * s * 3.4 + fx * 1.6, z = h.z + lzh * s * 3.4 + fz * 1.6; if (nearHouse(x, z, 2.4, h)) continue; hibiscus(A, x, g(x, z) - 0.1, z, 0.8, ['#e8407a', '#f0c030', '#e85a3a', '#f4f0e8'][Math.floor(r() * 4)]); } }
+  // the open ground beyond the houses: a walk round the island (a, c), walled garden plots, groves
+  const used = [];
+  const blocked = (th, t) => (t > 0.7 && Math.abs(angleDiff(th, dockTh)) > 1.0 && Math.abs(angleDiff(th, dockTh)) < 1.85) || (t > 0.5 && Math.abs(angleDiff(th, dockTh + Math.PI)) < 0.5);   // the ruins, the lighthouse
+  const pickSpots = (n, t0, t1, rr) => { const out = []; for (let i = 0; i < 200 && out.length < n; i++) { const th = r() * 6.283, t = t0 + r() * (t1 - t0), R0 = shoreR(d, th) * t, x = Math.cos(th) * R0, z = Math.sin(th) * R0; if (blocked(th, t) || !free(x, z) || nearHouse(x, z, rr + 3.2) || Math.abs(angleDiff(th, dockTh)) < 0.6 || used.some((u) => Math.hypot(u[0] - x, u[1] - z) < u[2] + rr)) continue; used.push([x, z, rr]); out.push([x, z, th]); } return out; };
+  if (look !== 'b') {
+    let k = 0;
+    for (let th = dockTh + span + 0.04; th < dockTh + Math.PI * 2 - span - 0.04; th += 0.95 / (shoreR(d, th) * 0.79)) {
+      const R0 = shoreR(d, th) * 0.79, x = Math.cos(th) * R0, z = Math.sin(th) * R0; if (nearHouse(x, z, 2.8)) continue;
+      slab(x, z, look === 'c' ? 1.5 : 1.3, 0.8, Math.PI / 2 - th + Math.PI / 2 + (r() - 0.5) * 0.25, pal.path[Math.floor(r() * 2)]);
+      if (look === 'c' && k++ % 30 === 15 && !blocked(th, 0.79)) lampPost(A, x * 1.04, g(x * 1.04, z * 1.04) - 0.05, z * 1.04, -th);
+    }
+  }
+  const plot = (x, z, ry, w, l, inner) => {   // a garden plot inside a low whitewashed wall with a gap for the gate
+    A.push(x, g(x, z) - 0.08, z, ry);
+    A.box(0, 0, -l / 2, w, 0.6, 0.4, pal.wall, TILE.stone); A.box(-w / 2, 0, 0, 0.4, 0.6, l, pal.wall, TILE.stone); A.box(w / 2, 0, 0, 0.4, 0.6, l, pal.wall, TILE.stone);
+    for (const s of [-1, 1]) A.box(s * (w / 4 + 0.4), 0, l / 2, w / 2 - 0.8, 0.6, 0.4, pal.wall, TILE.stone);
+    A.box(0, 0.6, -l / 2, w + 0.1, 0.1, 0.5, '#ffffff', TILE.white);
+    for (let j = 0; j < Math.floor(l - 1); j++) { const zz = -l / 2 + 1 + j; A.box(0, 0, zz, w - 1.2, 0.18, 0.5, '#7a5a3a', TILE.white); if (inner === 'veg') A.box(0, 0.18, zz, w - 1.4, 0.24, 0.32, j % 2 ? '#5aa844' : '#8ac455', TILE.leaf); else for (let q = 0; q < Math.floor(w - 1.6); q++) A.blob(-w / 2 + 1.2 + q, 0.35, zz, 0.32, 0.28, 0.28, ['#e8407a', '#f0c030', '#f4f0e8', '#e85a3a'][(q + j) % 4], TILE.leaf, 0.2, q + j); }
+    A.pop();
+  };
+  // per look
+  if (look === 'a') {
+    pickSpots(3, 0.5, 0.68, 4.2).forEach(([x, z, th], i) => plot(x, z, Math.PI / 2 - th, 6, 4.4, i % 2 ? 'veg' : 'flowers'));
+    pickSpots(7, 0.62, 0.86, 2.2).forEach(([x, z]) => palm(A, B, D, x, g(x, z), z, r, 0.95 + r() * 0.4));
+    for (let i = 0; i < 4; i++) { const a = dockTh + Math.PI / 4 + i * Math.PI / 2, x = Math.cos(a) * (rP - 0.9), z = Math.sin(a) * (rP - 0.9); A.push(x, H - 0.05, z, Math.atan2(-x, -z)); A.box(0, 0.42, 0, 1.6, 0.12, 0.5, '#6b4a2e', TILE.planks); for (const sx of [-0.65, 0.65]) A.box(sx, 0, 0, 0.16, 0.42, 0.42, '#3a3036', TILE.stone); A.pop(); }   // benches round the square
+    for (let k = 0; k < 2; k++) { const [x, z] = quayAt(dockTh + 0.13 + k * 0.11, 0.89); palm(A, B, D, x, yQ, z, r, 1.0 + r() * 0.3); }
+    for (const side of [-1, 1]) { const [x, z] = quayAt(dockTh + side * 0.2, 0.96); barrel(A, x, yQ, z, 0.9); barrel(A, x + 0.8, yQ, z + 0.3, 0.8); crateBox(A, x - 0.4, yQ, z - 0.9, r() * 3); }
+  } else if (look === 'b') {
+    for (const h of houses) {   // a picket fence across each front yard, open at the path
+      if (h.kind === 'belltower') continue;
+      const rho = Math.hypot(h.x, h.z), fz = Math.min(4.6, rho - rP - 1.6); if (fz < 3.2) continue;
+      A.push(h.x, H - 0.08, h.z, h.ry); A.push(0, 0, fz); const ox = DX[h.kind] || 0; picketFence(A, -3.0, 3.0, ox - 0.8, ox + 0.8); A.pop(); A.pop();
+    }
+    pickSpots(12, 0.3, 0.84, 2.6).forEach(([x, z], i) => { const k = i % 3; bloomTree(S, x, g(x, z) - 0.1, z, 0.95 + r() * 0.35, k === 0 ? '#4a9a40' : '#3f8a38', k === 0 ? '#f4f0e8' : k === 1 ? '#e8402e' : '#f0a0c0'); });
+    pickSpots(3, 0.5, 0.7, 4.2).forEach(([x, z, th]) => { A.push(x, g(x, z) - 0.08, z, Math.PI / 2 - th); for (const [hx, hz, hw, hl] of [[0, -2.4, 6.4, 0.8], [-3.2, 0, 0.8, 5.6], [3.2, 0, 0.8, 5.6]]) A.blob(hx, 0.45, hz, hw / 2, 0.55, hl / 2, '#3f8a38', TILE.leaf, 0.15, Math.floor(hx + hz)); for (let j = 0; j < 4; j++) { A.box(0, 0, -1.4 + j * 0.95, 5.2, 0.18, 0.5, '#7a5a3a', TILE.white); A.box(0, 0.18, -1.4 + j * 0.95, 5.0, 0.26, 0.32, j % 2 ? '#5aa844' : '#d8b848', TILE.leaf); } A.pop(); });   // hedged kitchen gardens
+    pickSpots(4, 0.66, 0.86, 2.2).forEach(([x, z]) => palm(A, B, D, x, g(x, z), z, r, 1.0 + r() * 0.4));
+    { const [x, z] = quayAt(dockTh + 0.22, 0.86); palm(A, B, D, x, g(x, z), z, r, 1.1 + r() * 0.3); }
+    for (let i = 0; i < 5; i++) { const a = dockTh + Math.PI * 0.6 + i * 0.5, x = Math.cos(a) * (rP + 3), z = Math.sin(a) * (rP + 3); if (nearHouse(x, z, 3)) continue; A.push(x, H - 0.08, z, -a); for (let j = 0; j < 4; j++) A.box(0, 0, (j - 1.5) * 0.55, 1.6, 0.2, 0.32, '#6a4a2c', TILE.white), A.box(0, 0.2, (j - 1.5) * 0.55, 1.4, 0.24, 0.2, j % 2 ? '#5aa844' : '#d8402e', TILE.leaf); A.pop(); }   // vegetable rows
+  } else {
+    { const [x, z] = quayAt(dockTh - 0.3, 0.95); A.push(x, yQ, z, -dockTh + Math.PI / 2);   // a wooden harbour crane (derrick)
+      A.box(0, 0, 0, 1.4, 0.3, 1.4, '#5a3e24', TILE.planks); A.box(0, 0.3, 0, 0.36, 4.6, 0.36, '#6b4a2e', TILE.bark);
+      A.push(0, 4.6, 0, 0, 1, 1, 1, 0, -0.9); A.box(0, 0, 0, 0.28, 3.6, 0.28, '#6b4a2e', TILE.bark); A.pop();
+      A.box(2.8, 1.6, 0, 0.12, 4.4, 0.12, '#c8b080', TILE.rope); A.box(2.8, 1.0, 0, 0.8, 0.7, 0.8, '#a07040', TILE.planks); A.pop(); }
+    { const [x, z] = quayAt(dockTh + 0.27, 0.92); A.push(x, yQ, z, Math.PI / 2 - dockTh - Math.PI / 2);   // the fish stall
+      A.box(0, 0, 0, 2.6, 0.9, 1.1, '#8a6238', TILE.planks); for (let i = 0; i < 5; i++) A.blob(-1 + i * 0.5, 0.98, 0, 0.22, 0.1, 0.4, i % 2 ? '#a8b4bc' : '#8a9aa8', TILE.bone, 0.1, i);
+      for (const sx of [-1.25, 1.25]) A.box(sx, 0, -0.5, 0.14, 2.4, 0.14, '#5a3e24', TILE.bark); awning(A, 0, 2.4, -0.6, 3.0, ['#c83a2e', '#f4ece0']); A.pop(); }
+    for (const side of [-1, 1]) { const [x, z] = quayAt(dockTh + side * 0.16, 0.92); barrel(A, x, yQ, z, 0.9); barrel(A, x + 0.85, yQ, z, 0.85); barrel(A, x + 0.42, yQ + 0.8, z, 0.8); crateBox(A, x - 0.9, yQ, z + 0.6, 0.3); crateBox(A, x - 0.9, yQ + 0.8, z + 0.6, 1.0, 0.8); }
+    { const [x, z] = quayAt(dockTh + 0.36, 0.9); A.push(x, yQ, z, -dockTh); A.box(-0.6, 0.1, 0, 1.6, 0.45, 0.5, '#3a3a40', TILE.stone); A.cyl(0.3, 0.3, 0, 0.3, 0.26, 0.4, 6, '#2e2e34', TILE.stone, true); A.pop(); }   // an old cannon pointing out
+    for (const side of [-1, 1]) { const [x, z] = quayAt(dockTh + side * 0.38, 0.86); A.push(x, g(x, z) - 0.1, z, -dockTh + Math.PI / 2); for (const sx of [-1, 1]) A.box(sx * 1.2, 0, 0, 0.18, 2.4, 0.18, '#5a3e24', TILE.bark); A.quad([-1.2, 2.3, 0.02], [1.2, 2.3, 0.02], [1.1, 0.7, 0.05], [-1.1, 0.9, 0.05], '#c8c0a0', TILE.rope); A.pop(); }   // nets hung to dry
+    { const [x, z] = quayAt(dockTh + 0.5, 0.84); palm(A, B, D, x, g(x, z), z, r, 1.1 + r() * 0.3); }
+    pickSpots(5, 0.62, 0.86, 2.2).forEach(([x, z]) => palm(A, B, D, x, g(x, z), z, r, 0.95 + r() * 0.4));
+    for (let i = 0, n = 0; i < 40 && n < 3; i++) { const th = dockTh + (r() < 0.5 ? -1 : 1) * (span + 0.15 + r() * 0.6), R0 = shoreR(d, th) * 0.95, x = Math.cos(th) * R0, z = Math.sin(th) * R0, hh = terrainHeight(d, x, z); if (hh < 0.15) continue; beachedBoat(A, x, hh, z, th + 1.57 + (r() - 0.5) * 0.5); n++; }   // boats pulled up on the sand
+    pickSpots(2, 0.55, 0.7, 4.2).forEach(([x, z, th]) => plot(x, z, Math.PI / 2 - th, 6, 4.4, 'veg'));
   }
 }
 function floatLantern(b, x, z) { b.box(x, 0.2, z, 0.7, 0.18, 0.7, '#8a5a30', TILE.planks); b.box(x, 0.38, z, 0.36, 0.42, 0.36, '#ffffff', TILE.glow); }
@@ -1227,15 +1383,16 @@ function decorate(d, rng, A, B, D, extra) {
       if (SD.build) SD.build(VS);
       if (d.sh && d.sh.H > 2.6) stairs(VS);                                                  // steps up the ramp from the pier
       if (d.sh && (d.sh.id === 'terraced' || d.sh.id === 'hill')) slopeHouses(VS, 4 + Math.floor(rng() * 4));   // houses down the slope, on their own levels
-      const tamaLook = d.id === '0,-1' ? TAMA_LOOK : null;
-      if (tamaLook) tamaPlan(VS, tamaLook, extra);
-      for (let i = 0; i < n * 2 && placed < n && !SD.build && !tamaLook; i++) {
+      const tamaLook = d.id === '0,-1' ? TAMA_LOOK : null, tamaHouses = [];
+      if (tamaLook) FIN = TAMA_FIN[tamaLook];   // the houses' finish (no rng: the layout stays exactly the same)
+      for (let i = 0; i < n * 2 && placed < n && !SD.build; i++) {
         const th = (i / (n * 2)) * Math.PI * 2 + rng() * 0.3;
         if (Math.abs(angleDiff(th, dockTh)) < 0.55) continue;
         const rho = shoreR(d, th) * (0.28 + rng() * 0.38);
         const x = Math.cos(th) * rho, z = Math.sin(th) * rho;
         const kind = placed === 0 ? 'tavern' : placed === 1 && (rng() < 0.45 || d.custom === 'bells') ? (d.id === '0,-1' ? 'belltower' : 'church') : pickCol(rng, ['cottage', 'colonial', 'colonial', 'planter', 'thatch', 'thatch', 'townhouse', 'round', 'stilt', 'warehouse']);
         hk(A, B, x, d.H - 0.1, z, Math.atan2(-x, -z), rng, kind);
+        tamaHouses.push({ x, z, ry: Math.atan2(-x, -z), kind });
         if (kind === 'tavern') extra.tavern = { x, z, ry: Math.atan2(-x, -z) };
         placed++;
       }
@@ -1263,7 +1420,6 @@ function decorate(d, rng, A, B, D, extra) {
         A.cyl(sx * 0.9, 0.84, z, 0.5, 0.5, 0.9, 6, '#ffffff', TILE.planks);
         if (rng() > 0.4) A.box(-sx * 0.8, 0.84, z + 1.4, 1, 0.9, 1, '#ffffff', TILE.planks);
       }
-      if (tamaLook) for (let z = z0 + 5; z < z1 - 3; z += 7) for (const sx of [-1.25, 1.25]) tamaLamp(A, sx, 0.73, z);   // lamps along the pier
       A.box(1.35, 0.84, z1 - 0.4, 0.14, 1.8, 0.14, '#6b4a2e', TILE.bark);
       A.box(1.35, 2.6, z1 - 0.4, 0.4, 0.4, 0.4, '#ffffff', TILE.glow);
       // moored rowboat
@@ -1275,8 +1431,9 @@ function decorate(d, rng, A, B, D, extra) {
       A.pop();
       // quayside clutter
       for (let i = 0; i < 6; i++) {
-        const th = dockTh + (rng() - 0.5) * 1.1, rho = shoreR(d, th) * (0.5 + rng() * 0.3), x = Math.cos(th) * rho, z = Math.sin(th) * rho;
-        const k = i % 3;
+        let th = dockTh + (rng() - 0.5) * 1.1; const rho = shoreR(d, th) * (0.5 + rng() * 0.3);
+        if (tamaLook) { const lat = rho * Math.sin(th - dockTh); if (Math.abs(lat) < 5) th = dockTh + (lat < 0 ? -1 : 1) * Math.asin(Math.min(1, 5 / rho)); }   // off the street
+        const x = Math.cos(th) * rho, z = Math.sin(th) * rho, k = i % 3;
         const gy = Math.min(d.H - 0.1, terrainHeight(d, x, z) - 0.05);
         if (k === 0) { barrel(A, x, gy, z, 0.9 + rng() * 0.3); barrel(A, x + 0.8, gy, z + 0.2, 0.8); }
         else if (k === 1) { crateBox(A, x, gy, z, rng() * 3); crateBox(A, x + 0.1, gy + 0.8, z, rng() * 3, 0.8); }
@@ -1317,7 +1474,8 @@ function decorate(d, rng, A, B, D, extra) {
         if (d.sleepy) for (let i = 0; i < 2; i++) { const [x, z] = at(0.2, 0.5); hammockSleeper(cr.siesta, x, yy, z, rng() * 6.28, rng); }
         weekAndCustoms(d, rng, cr, { yy, R: Rp, dockTh, z1, n, at, dockAt });
       }
-      PAINT = null; NO_CHILD = false; CUR_FLAG = null;
+      PAINT = null; NO_CHILD = false; CUR_FLAG = null; FIN = null;
+      if (tamaLook) tamaPolish({ ...VS, R, z0, z1 }, tamaLook, tamaHouses);   // its own rng: nothing after it moves
       const nW = 11;
       for (let i = 0; i < nW; i++) {
         const th = (i / nW) * Math.PI * 2 + rng() * 0.2, rho = shoreR(d, th) * 0.8;
