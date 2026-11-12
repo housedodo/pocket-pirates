@@ -1,9 +1,8 @@
 import * as THREE from 'three';
 import { clamp, smoothstep, angleDiff, mulberry32, hash2 } from './util.js';
 import { sampleStage, DARK_THRESHOLD, dreadAtDistance, dreadWithPeak, strataIndex } from './palette.js';
-import { U, initMaterials, mats, PostFX } from './psx.js';
-import { Ocean, WATER, NISL, OCEAN_STYLES, waveHeight } from './ocean.js';
-import { Sky } from './sky.js';
+import { U, mats } from './psx.js';
+import { WATER, NISL, OCEAN_STYLES, waveHeight } from './ocean.js';
 import { World, mistMat, villager, VILLAGERS, houseKind, HOUSES, shoreR, lighthouseKind } from './world.js';
 import { Builder } from './builder.js';
 import { TILE } from './textures.js';
@@ -38,11 +37,11 @@ import { bumpSectors } from './sectors.js';
 import { markSeen, isKnown, level as clueLevel, levels as clueLevels, d3Open } from './clues.js';
 import { tableOptions, finalThrow, ENDINGS, maraRemembers } from './table.js';
 import { Objectives, MUSINGS, MAIN_GOALS, CHAPTERS, unlocked, gateRadius, chapterOf, goalText, goalCount } from './objectives.js';
-import { GROUPS, DEFAULT_CUSTOM, byId } from './customize.js';
+import { GROUPS, byId } from './customize.js';
 import { Wind } from './wind.js';
 import { WindFX } from './windfx.js';
-import { drawWind, PX } from './windmeters.js';
-import { installPixelUI, pxi } from './pixelui.js';
+import { drawWind } from './windmeters.js';
+import { pxi } from './pixelui.js';
 import { applyTimeOfDay, advanceTime, tod, NIGHT_VIEWS, LAMPS, NIGHT_SET, NIGHT_MODES } from './daynight.js';
 import { UPGRADES, MAX_LEVEL, computeMods, shipwrightLine, UP_CARD } from './upgrades.js';
 import { TRAITS, crewForHire, crewBonus, hasTrait, rollCheck, drawCard, renderCard, Pig, setDieWear, setAdvProvider, TREASURE_TIERS } from './tabletop.js';
@@ -61,94 +60,17 @@ import { OIL_FROM, oilCap, oilRate, lanternLit, OIL_PRICE } from './oil.js';
 import * as life from './harbourlife.js';
 import * as paper from './newspaper.js';
 import { LocalGames } from './localgames.js';
+// the core layers (config <- state <- engine) and the small shared systems; see docs/ARCHITECTURE.md
+import { params, store, saved, DEV, settings, session, SAVE_KEY, SETTINGS_KEY, THREADS_KEY } from './core/config.js';
+import { state } from './core/state.js';
+import { canvas, renderer, post, scene, camera, ocean, sky } from './core/engine.js';
+import { $, goldEl, promptEl, promptTxt, promptBar, promptFill, toastsEl, debugEl, helpEl, chartEl, harbourEl, pauseEl, shipEl, compass, toast } from './ui/dom.js';
+import { WEEK, weekday, isMarketDay, isLanternNight, isFestival, tideAt, tideFalls, fullMoon } from './systems/calendar.js';
+import { addMark, clearMark, keep, markFromRoll } from './systems/storyflags.js';
 
-// ---------------------------------------------------------------- params, save, settings
-const params = new URLSearchParams(location.search);
-let noSave = false;
-const SAVE_KEY = 'pocket-pirates-save-v1', SETTINGS_KEY = 'pocket-pirates-settings-v1';
-const store = {
-  get(k) { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } },
-  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* private mode etc. */ } },
-};
-const saved = params.get('fresh') ? null : store.get(SAVE_KEY);
-const DEV = !!params.get('dev') || window.__BUILD === 'dev';   // ?dev=1: test keys (1-5 dread, 0, [ ], `) and the full-dread effects menu
-const settings = Object.assign({ muted: false, musicOff: false, vol: { music: 1, amb: 1, sfx: 1 }, windStyle: 'dial', hud: 'classic', tracker: true, abyss: {} }, store.get(SETTINGS_KEY) || {});
-installPixelUI();
-const state = {
-  seed: parseInt(params.get('seed') || (saved && saved.seed) || '1337', 10),
-  gold: (saved && saved.gold) || 0,
-  dug: new Set((saved && saved.dug) || []),
-  discovered: (saved && saved.discovered) || {},
-  loot: (saved && saved.loot) || [],
-  upgrades: Object.assign({ sails: 0, rudder: 0, lantern: 0, spyglass: 0, crew: 0, hull: 0, cannons: 0 }, (saved && saved.upgrades) || {}),
-  time: params.has('time') ? parseFloat(params.get('time')) : (saved && saved.time != null ? saved.time : 0.33),
-  windT: (saved && saved.windT) || 0,
-  collected: new Set((saved && saved.collected) || []),
-  notes: (saved && saved.notes) || [],
-  board: (saved && saved.board) || { pos: {}, ties: [], note: '', guess: [] },
-  halves: (saved && saved.halves) || {},   // arches that hold only half a riddle: isle id -> the isle with the other half
-  frags: (saved && saved.frags) || {},
-  rumoured: (saved && saved.rumoured) || {},
-  rep: (saved && saved.rep) || {},
-  job: (saved && saved.job) || null,
-  serial: (saved && saved.serial) || {},
-  sectorsSeen: (saved && saved.sectorsSeen) || [],
-  jobHistory: (saved && saved.jobHistory) || [],
-  buffs: (saved && saved.buffs) || { speed: 0, dig: 0 },
-  quests: (saved && saved.quests) || [],
-  fruit: (saved && saved.fruit) || {},
-  harvest: (saved && saved.harvest) || {},
-  dayN: (saved && saved.dayN) || 0,
-  greet: (saved && saved.greet) || { day: {} },
-  charts: (saved && saved.charts) || {},
-  stats: Object.assign({ dolphins: 0, whales: 0, fruitPicked: 0, dist: 0, harbours: 0, deliveries: 0, fish: 0, wrecks: 0, bottles: 0, sunk: 0, hails: 0, solved: 0, treasures: 0, cosmetics: 0 }, (saved && saved.stats) || {}),
-  hp: saved && saved.hp != null ? saved.hp : 100,
-  ammo: saved && saved.ammo != null ? saved.ammo : 8,
-  oil: saved && saved.oil != null ? saved.oil : 100,   // lamp oil (oil.js)
-  sailsTorn: !!(saved && saved.sailsTorn),   // a gale tore the mainsail: two thirds speed until patched
-  patchKits: saved && saved.patchKits != null ? saved.patchKits : 1,   // sail patch kits in the hold (one to start with)
-  custom: Object.assign({}, DEFAULT_CUSTOM, (saved && saved.custom) || {}),
-  owned: new Set((saved && saved.owned) || []),
-  riddles: (saved && saved.riddles) || {},
-  attempts: (saved && saved.attempts) || {},
-  catch: (saved && saved.catch) || [],
-  fishLog: (saved && saved.fishLog) || {},
-  fishHeard: (saved && saved.fishHeard) || {},   // species whose habitat a fisher has described
-  fishAsk: (saved && saved.fishAsk) || {},       // harbour id -> the day you last asked there
-  goals: Object.assign({ i: 0, side: {}, started: false }, (saved && saved.goals) || { v: 2 }),   // v: 2 = goal list without "A bed for the night"
-  story: (saved && saved.story) || {},              // chapter flags: perrinNote, check, b0, hutKnown, hutNod, demoEnd, free
-  hints: (saved && saved.hints) || {},
-  hut: (saved && saved.hut) || null,
-  passenger: (saved && saved.passenger) || null,
-  crew: (saved && saved.crew) || [],                // hired hands (max 2), each with a trait and a wish
-  cardsSeen: (saved && saved.cardsSeen) || [],
-  haggle: (saved && saved.haggle) || null,   // someone paying for passage
-  tracked: (saved && saved.tracked) || null,       // the one errand shown on the tracker and wind meter: 'job' | 'passenger' | quest id          // the dark hut storyline: every throw is remembered
-  life: (saved && saved.life) || null,   // harbour life: residents, dishes, local games, gossip, fragments (harbourlife.js)
-  pos: (saved && saved.pos) || { x: 0, z: 0, h: 0 },
-};
-if (params.has('x')) state.pos = { x: +params.get('x'), z: +params.get('z') || 0, h: +params.get('h') || 0 };
+// ---------------------------------------------------------------- params, save, settings (core/config.js), the voyage's state (core/state.js)
 
-// ---------------------------------------------------------------- renderer & scene
-const canvas = document.getElementById('game');
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance', preserveDrawingBuffer: !!params.get('shot') });
-renderer.setPixelRatio(1);
-renderer.outputColorSpace = THREE.LinearSRGBColorSpace;
-renderer.autoClear = true;
-renderer.info.autoReset = false; // we reset once per frame so stats cover both passes
-initMaterials();
-const post = new PostFX(renderer);
-
-const scene = new THREE.Scene();
-scene.fog = new THREE.Fog(0xbfeaff, 90, 330);
-const camera = new THREE.PerspectiveCamera(62, 1, 0.5, 1600);
-
-const ocean = new Ocean();
-ocean.material.transparent = true; ocean.mesh.renderOrder = -1; // can turn see-through (glass calm)
-scene.add(ocean.mesh);
-const sky = new Sky(scene);
-if (!state.goals.v) { if (state.goals.i > 15) state.goals.i--; state.goals.v = 2; }
-if (state.goals.v < 3) { const i = state.goals.i; state.goals.i = i - (i > 12 ? 1 : 0) - (i > 13 ? 1 : 0) - (i > 15 ? 1 : 0); state.goals.v = 3; }   // saves from before Odd jobs (12), Salvage rights (13) and the raider (15) became optional side goals   // saves from before "A bed for the night" (goal 15) was dropped: it made you wait for 17:00
+// ---------------------------------------------------------------- renderer & scene (core/engine.js)
 const world = new World(scene, state.seed, state.dug);
 const ship = new Ship(scene);
 { const hd = world.hutDesc; if (hd) U.uMurk.value.set(hd.x, hd.z, hd.r); }   // the dark water round the hut's island (ocean.js)
@@ -181,7 +103,6 @@ const sighting = new Sighting(scene);
 const caves = new Caves(scene, world, state);
 const threads = new Threads(scene, world, state);
 // the Tide of Threads: which threads this voyage has awake. In the dev build the title screen can choose (or ?threads=colour,bell / all / none)
-const THREADS_KEY = 'pocket-pirates-threads-v1';
 function threadChoice() {
   const q = params.get('threads');
   if (q) return q === 'all' ? [...THREAD_IDS] : q === 'none' ? [] : q === 'seeded' ? null : q.split(',').filter((id) => THREAD_IDS.includes(id));
@@ -189,9 +110,6 @@ function threadChoice() {
   return null;
 }
 threads.setup(threadChoice());
-function addMark(key) { if (window.__BUILD === 'demo') return; state.story.marks = { ...(state.story.marks || {}), [key]: 1 }; }   // shown only on the Standing page, in the world's words
-function clearMark(key) { if (state.story.marks) { const m = { ...state.story.marks }; delete m[key]; state.story.marks = m; } }
-function keep(id, name, text) { if (window.__BUILD === 'demo') return; const k = state.story.keeps = state.story.keeps || []; if (!k.some((o) => o.id === id)) k.push({ id, name, text }); }
 threads.bind({
   get state() { return state; }, audio, ship, addMark, clearMark, keep,
   toast: (t, dark, ms) => toast(t, dark, ms), say: (t) => { if (!objectives.mate.busy) objectives.mate.say(t); },
@@ -201,7 +119,6 @@ threads.bind({
   setLook: (c) => { state.custom = { ...state.custom, ...c }; ship.setCustom(state.custom); },
   teleport: (d) => { const dk = d.dock || { x: 0, z: 0 }; ship.pos.set(d.x + dk.x, 0, d.z + dk.z); ship.speed = 0; ship.vel = null; state.pos = { x: ship.pos.x, z: ship.pos.z, h: ship.heading }; },
 });
-function markFromRoll(n) { if (n === 1) addMark('counted'); else if (n === 20) addMark('called'); }   // a natural 1 gets you counted, a natural 20 gets you called   // optional dark threads (Story Bible, "Multiple paths"); the Colour is the first prototype
 { const h = world.desc(0, -1); if (h) caves.force(h, 3); }
 const combat = new Combat(scene, fauna);
 sea.syncQuests(state.quests.filter((q) => q.id === state.tracked));
@@ -231,35 +148,9 @@ ship.setCustom(state.custom);
 refreshMods();
 ship.setTorn(state.sailsTorn);
 
-function resize() {
-  const w = window.innerWidth, h = window.innerHeight;
-  renderer.setSize(w, h, false);
-  camera.aspect = w / h;
-  camera.updateProjectionMatrix();
-  post.resize(w, h);
-}
-window.addEventListener('resize', resize);
-resize();
 
-// ---------------------------------------------------------------- DOM helpers
-const $ = (id) => document.getElementById(id);
-const goldEl = $('gold').querySelector('b');
-const promptEl = $('prompt'), promptTxt = $('prompttxt'), promptBar = promptEl.querySelector('.bar'), promptFill = promptBar.querySelector('i');
-const toastsEl = $('toasts'), debugEl = $('debug'), helpEl = $('help');
+// ---------------------------------------------------------------- DOM helpers (ui/dom.js)
 document.body.appendChild(toastsEl);   // messages sit above every menu, so a quest or rumour line is never hidden behind the shop
-const chartEl = $('chart'), harbourEl = $('harbour'), pauseEl = $('pause'), shipEl = $('shipmodal');
-const compass = $('compassCv').getContext('2d');
-$('compassCv').width = PX; $('compassCv').height = PX;
-if (params.get('hud') === '0') $('hud').classList.add('hidden');
-
-function toast(text, dark = false, ms = 5200) {
-  const el = document.createElement('div');
-  el.className = 'toast panel txt' + (dark ? ' dark' : '');
-  const sp = document.createElement('span'); sp.textContent = text; el.appendChild(sp);
-  toastsEl.appendChild(el);
-  while (toastsEl.children.length > 3) toastsEl.firstChild.remove();
-  setTimeout(() => el.remove(), ms);
-}
 
 weather.onThunder = (delay) => setTimeout(() => audio.thunder(0.9), delay * 1000);   // the long distant roll: audio.thunder keeps them from piling up
 sea.onEvent = (e) => {
@@ -301,7 +192,7 @@ function giveMap(id, from, reveal = false, quiet = false) {
 }
 // ---- autosave
 function saveNow() {
-  if (params.get('fresh') || noSave) return false;
+  if (params.get('fresh') || session.noSave) return false;
   lastSave = tNow;
   store.set(SAVE_KEY, { seed: state.seed, gold: state.gold, dug: [...state.dug], discovered: state.discovered, loot: state.loot, upgrades: state.upgrades, collected: [...state.collected], notes: state.notes, board: state.board, halves: state.halves, frags: state.frags, rumoured: state.rumoured, rep: state.rep, job: state.job, serial: state.serial, sectorsSeen: state.sectorsSeen, jobHistory: state.jobHistory, buffs: state.buffs, stats: state.stats, quests: state.quests, fruit: state.fruit, harvest: state.harvest, dayN: state.dayN, greet: state.greet, charts: state.charts, hp: state.hp, ammo: state.ammo, oil: state.oil, sailsTorn: state.sailsTorn, patchKits: state.patchKits, custom: state.custom, owned: [...state.owned], riddles: state.riddles, attempts: state.attempts, catch: state.catch, fishLog: state.fishLog, fishHeard: state.fishHeard, fishAsk: state.fishAsk, hut: state.hut, passenger: state.passenger, story: state.story, crew: state.crew, cardsSeen: state.cardsSeen, haggle: state.haggle, tracked: state.tracked, life: state.life, goals: state.goals, hints: state.hints, time: state.time, windT: wind.t, pos: { x: ship.pos.x, z: ship.pos.z, h: ship.heading } });
   return true;
@@ -396,14 +287,8 @@ const hut = new Hut({ state,
   onFail: () => { preGlitch = dread; glitchT = 0.75; hutEl.classList.add('glitching'); shake = 0.4; },
   onClose: () => closeModal() });
 // ---- the week: market day everywhere on Wednesdays, lantern night on Saturdays, and each harbour its own festival day
-const WEEK = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-const weekday = () => state.dayN % 7, isMarketDay = () => weekday() === 2, isLanternNight = () => weekday() === 5;
-const isFestival = (d) => d && d.festival === weekday();
 const lifeOn = () => isOpen(state, 'tab', 'tavern');   // harbour life opens with the tavern (chapter III)
 // two tides a day, drifting a little later each day; low tide (below -0.45) uncovers more at wrecks and widens the shallows
-const tideAt = (time = state.time, day = state.dayN) => Math.sin(Math.PI * 2 * (time * 2 + day * 0.07));
-/** is the tide going out right now (the Dim can only be entered on a falling tide) */
-const tideFalls = () => tideAt(state.time + 0.002) < tideAt(state.time);
 const tideWord = () => { const a = tideAt(), b = tideAt(state.time + 0.02); return a < -0.45 ? 'low tide' : a > 0.45 ? 'high tide' : b > a ? 'tide coming in' : 'tide going out'; };
 function dayLine(d) { const ev = isFestival(d) ? 'festival day' : isMarketDay() ? 'market day' : isLanternNight() ? 'lantern night' : ''; return WEEK[weekday()] + (ev ? ` · ${ev}` : '') + ` · ${tideWord()}`; }
 // a harbour grows with your trade there: more boats, then a busier quay, then flags over the pier
@@ -644,14 +529,12 @@ nightLabels();
 $('pbNight').addEventListener('click', () => { nightMode = (nightMode + 1) % NIGHT_MODES.length; settings.nightMode2 = nightMode; store.set(SETTINGS_KEY, settings); nightLabels(); $('pbNight').focus(); });
 $('pbLamp').addEventListener('click', () => { NIGHT_SET.lamp = (NIGHT_SET.lamp + 1) % LAMPS.length; settings.lamp2 = NIGHT_SET.lamp; store.set(SETTINGS_KEY, settings); nightLabels(); $('pbLamp').focus(); });
 /** tonight's moon: a night runs from 19:00 to 06:00; each one is either a new moon (pitch dark, no moon) or a full moon (moonlit) */
-const nightKey = () => Math.floor(state.dayN + state.time - 0.79 + 1);
-const fullMoon = () => (hash2(state.seed, nightKey(), 717) % 100) < 50;
 function nightViewNow() { NIGHT_SET.view = nightMode ? nightMode - 1 : fullMoon() ? 2 : 0; }
 $('pbOcean').addEventListener('click', () => { U.uOcean.value = ((U.uOcean.value | 0) + 1) % OCEAN_STYLES.length; settings.ocean2 = U.uOcean.value; store.set(SETTINGS_KEY, settings); oceanLabel(); $('pbOcean').focus(); });
 $('tNew').addEventListener('click', (e) => {
   e.stopPropagation();
   if (performance.now() - newAskT > 4000) { newAskT = performance.now(); $('tNew').textContent = 'Really? Press again'; return; }
-  noSave = true; try { localStorage.removeItem(SAVE_KEY); sessionStorage.setItem('hoist-new', '1'); if (fsEl()) sessionStorage.setItem('hoist-fs', '1'); } catch (err) { /* storage blocked */ }
+  session.noSave = true; try { localStorage.removeItem(SAVE_KEY); sessionStorage.setItem('hoist-new', '1'); if (fsEl()) sessionStorage.setItem('hoist-fs', '1'); } catch (err) { /* storage blocked */ }
   location.href = location.pathname;
 });
 
@@ -2528,7 +2411,7 @@ function sinkPlayer() {
 let newAsk = 0;
 $('pbNew').addEventListener('click', () => {
   if (performance.now() - newAsk > 4000) { newAsk = performance.now(); $('pbNew').textContent = 'Really? Click again to start over'; return; }
-  noSave = true; try { localStorage.removeItem(SAVE_KEY); sessionStorage.setItem('hoist-new', '1'); if (fsEl()) sessionStorage.setItem('hoist-fs', '1'); } catch (e) { /* storage blocked */ }
+  session.noSave = true; try { localStorage.removeItem(SAVE_KEY); sessionStorage.setItem('hoist-new', '1'); if (fsEl()) sessionStorage.setItem('hoist-fs', '1'); } catch (e) { /* storage blocked */ }
   location.href = location.pathname;
 });
 $('pbHint').addEventListener('click', () => { closeModal(); if (!abyss.maraHint()) objectives.askHint(dread); });

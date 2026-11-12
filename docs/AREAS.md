@@ -20,6 +20,9 @@ area only when the task says so or when the change crosses over (then say which 
 - **Code:** `src/audio.js`, `layers.js`, `sfx.js`, `synth.js`, `mixer.js`, `studio.js`, `public/audio/`, `public/audio/volumes.json`.
 - **Rule:** five dread stages = five music loops, same tempo/meter/key (D family, 6/8, 125 BPM); WAV masters stay with the composer, the game ships ogg (`scripts/studio_ogg.py`).
 
+## Shared core (everyone)
+- `src/core/config.js`, `src/core/state.js`, `src/core/engine.js`, `src/ui/dom.js`, `src/systems/calendar.js`, `src/systems/storyflags.js`: the layers under `main.js`. See `docs/ARCHITECTURE.md`; change them carefully, they are imported by everything above.
+
 ## Crossing over
 Cave, thread or new-island changes touch all three: gameplay owns the beat, design owns how it looks, audio owns how it sounds.
 The main session coordinates: brief each specialist with only its slice, then check the results agree. Shared files
