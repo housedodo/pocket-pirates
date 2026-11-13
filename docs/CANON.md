@@ -118,3 +118,4 @@ halves a bad weight; a natural 1 or 20 stands. A captain who saw nothing still h
 | The sound | `docs/AUDIO.md`, `docs/SOUNDTRACK_BRIEF.md` |
 | What was built, in order | `docs/PROGRESS.md` |
 | What comes next | `docs/ROADMAP.md` |
+| What is left to write (drafts and empty slots) | `docs/WRITER_TODO.txt` |

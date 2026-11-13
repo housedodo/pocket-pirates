@@ -1,0 +1,218 @@
+HOIST: WHAT IS LEFT TO WRITE
+Made 2026-11-13. Every line below is in the game right now as a DRAFT (or is an empty slot).
+Write your version under "yours:" and send the file back; I put it into the code and keep every ID.
+Rules that still apply (docs/RULES.md): short lines, horror implied and never explained, the word "Lady" never in
+player text, she never speaks, no "eye / lid / sleeper" before the end, ${...} and {P}/{H} are filled in by the game: keep them.
+
+Contents
+  PART 1  MUST WRITE: drafts the player can see today      (1.1 to 1.6)
+  PART 2  OPEN STORY DECISIONS: only you can decide these  (2.1 to 2.4)
+  PART 3  OPTIONAL: empty slots for more content           (3.1 to 3.6)
+
+
+================================================================================================================
+PART 1  MUST WRITE (the game shows these drafts today)
+================================================================================================================
+
+1.1  THE TABLE BY THE WATER: arriving (main.js)
+----------------------------------------------------------------------------------------------------------------
+The card when you reach the Table. A painted picture sits above it: night sand, a table, two chairs, the book,
+the die, a candle, and a dark shape in the far chair.
+
+  MAIN-0289  The card text
+     draft: A table at the water's edge. One chair on this side, one on the other. A die, waiting.
+     (added when Mara has remembered her whole village:) Mara, quietly: "I do not think we are here to throw."
+     yours:
+
+  The choices (only the ones the voyage has earned are shown):
+     1 Throw the die
+     2 Hum the tune the two of them play                (Teo and Ilse have been heard)
+     3 Let Mara throw                                   (once)
+     4 Ask her who counts                               (once; "who counts" understood)
+     5 Walk round and sit in the other chair            ("who sat before you" fully understood)
+     6 Push your chair in and go back to the boat       (a captain who set the die down, or threw only once)
+     yours:
+
+  After a throw
+     draft: The die clatters across the table. {n}.  (+ if earlier throws weigh in:) She turns the book round. It gives / takes {one|two|three}.
+     yours:
+
+  MAIN-0306  Let Mara throw
+     draft: Mara reaches for the die. Her fingers close round it, and it does not move. She tries again. "Slippery thing," she says,
+            and laughs, a little too quickly.
+     yours:
+
+  MAIN-0311  Ask her who counts
+     draft: She writes your question on a clean line: WHO COUNTS? Under it, one word. YOU. Every line above it, as far back as the
+            book goes, ends with the same word.
+     yours:
+
+
+1.2  THE SIX ENDINGS (table.js; each shows the painted table under its own sky)
+----------------------------------------------------------------------------------------------------------------
+  THE LONG SLEEP        (a throw of 20 after the book's weight; picture: first light, only an old woman in the chair)
+     (no ID)   Twenty.
+     TBL-0001  She closes the book. For the first time she looks up, and it is only an old woman, very tired.
+     TBL-0002  The sea breathes out. It will be a hundred years.
+     yours:
+
+  GOOD DREAMS           (10 to 19; picture: blue night, two lights far off)
+     TBL-0003  She writes the number and blots it.
+     TBL-0004  Far across the water two instruments find each other for a bar.
+     TBL-0005  The sea stays blue. Mara is already talking about supper.
+     yours:
+
+  SHE RISES             (1 to 9; picture: the sea lit pink from below; then the Eye sequence plays and you wake off Tama)
+     TBL-0006  She writes the number. Then she puts the pen down.
+     TBL-0007  Under the table, under the sand, under the sea, something that was lying still is not.
+     yours:
+
+  THE TUNE IS KEPT      (hum the tune; no throw; the only gentle ending; Teo's guitar and Ilse's violin play)
+     TBL-0008  You hum the eight bars. Your voice is not good. It does not matter.
+     TBL-0009  The die stays where it is. The pen stops.
+     TBL-0010  Far off, a violin answers. It always did need two.
+     TBL-0011  Nobody throws tonight.
+     TBL-0012  (Mara, afterwards, at sea:) I suppose one of us ought to learn the guitar.
+     yours:
+
+  THE UNSEEN THROW      (push the chair in; picture: the table far behind you, your steps in the sand)
+     TBL-0013  You push the chair in and walk back down the sand.
+     TBL-0014  Nobody calls after you. Behind you a pen starts again, on a new line.
+     TBL-0015  There is a blank in the book where your number would be. It will stay there.
+     yours:
+
+  YOUR SEAT             (sit in the other chair; picture: the far chair empty)
+     TBL-0016  You walk round the table and sit in the other chair. It is warm.
+     TBL-0017  The book is in front of you. The pen is in your hand. You know every name in it.
+     TBL-0018  Across the table Mara sits down, slowly. She does not ask.
+     TBL-0019  A die waits on the wood.
+     yours:
+
+
+1.3  THE EPILOGUE LINES (table.js EPILOGUE): one line in the Ship's book, in another hand, after each ending
+----------------------------------------------------------------------------------------------------------------
+     TBL-0024  long sleep:   Logged: a twenty, at the table by the water. The sea has been quiet since.
+     TBL-0025  good dreams:  Logged: a middling throw. That night the two of them were heard playing together, for one bar.
+     TBL-0026  she rises:    Logged: a low throw. The next page is wet through.
+     TBL-0027  tune kept:    Logged: no throw. Somebody hummed. A violin answered.
+     TBL-0028  unseen throw: Logged: a blank line, left blank.
+     TBL-0029  your seat:    Logged, in our own hand: the other chair is warm.
+     yours:
+
+
+1.4  PERRIN'S LETTERS AFTER THE HUT (objectives.js, perrin_*; full game only)
+----------------------------------------------------------------------------------------------------------------
+After the first throw, Perrin sends the captain into each region in turn. A letter never says what to find; it is
+done when the captain has seen anything that region holds. Each has: the letter, Mara's intro, and her hint when
+you are stuck. (Mara's first intro line is the same for all five: "A letter from Perrin came in with the post, Captain.")
+
+  Crown Traders' waters
+     OBJ-0152  The Crown writes down every ship that comes in. Ask to see the book. Tell me whose name is at the top.
+     OBJ-0155  (hint) Perrin wants us in the Crown Traders' waters. The chart shows whose waters we are in.
+     yours:
+
+  Free Cays
+     OBJ-0156  In the Free Cays they sleep by day and play by night. Go at night. Take nothing but your ears.
+     OBJ-0158  (hint) Perrin wants us in the Free Cays. The chart shows whose waters we are in.
+     yours:
+
+  Lantern Guild's waters
+     OBJ-0159  The Guild's lamps burn a colour I have no name for. You will tell me I am wrong. Go and look.
+     OBJ-0161  (hint) Perrin wants us in the Lantern Guild's waters. The chart shows whose waters we are in.
+     yours:
+
+  Reef Brotherhood's waters
+     OBJ-0162  The Reef counts its wrecks. Count them yourself. I would like a second opinion.
+     OBJ-0164  (hint) Perrin wants us in the Reef Brotherhood's waters. The chart shows whose waters we are in.
+     yours:
+
+  The Drowned waters
+     OBJ-0165  The Drowned waters have streets, and streets have doors. Go at low water, and count the doors.
+     OBJ-0167  (hint) Perrin wants us in the Drowned waters. The chart shows whose waters we are in.
+     yours:
+
+  Mara at the edge of the sea, after the hut (where the ship needs better parts):
+     OBJ-0168  The shipwrights say a stronger hull or better sails go further than this, and on a falling tide. Past that, nobody sells charts.
+     yours:
+
+
+1.5  THE THREAD CLUES (clues.js, CL-T-*): the line added to the log the first time each thread is met
+----------------------------------------------------------------------------------------------------------------
+A clue line is a fact in another hand that never concludes. Before the hut is known it may not say she, her, the hut,
+or a number.
+     CL-T-music    (Free Cays)  A tune that never ends. Nobody near it sleeps without it.
+     CL-T-bell     (Lantern)    A bell under the water rings the hours of Tama, not of this place.     (feeds "Why is Tama home")
+     CL-T-coin     (Crown)      A coin that finds its way back to the purse it left.
+     CL-T-house    (Crown)      A house that keeps a book of who stayed. Our name is in it.
+     CL-T-captain  (Reef)       A ship like ours in the wrong colours, lower in the water.
+     CL-T-colour   (Drowned)    A patch of sea the wrong colour. The fish from it taste of nothing.
+     CL-T-hollow   (Drowned)    A harbour that knew we were coming, and had a place set.
+     yours:
+
+
+1.6  THE CREDITS (index.html, #credits; after "End the voyage")
+----------------------------------------------------------------------------------------------------------------
+     now:  HOIST / A voyage. / Thank you for sailing. / The die is back on the table.
+     Names, roles, thanks (music, playtesters, anyone you want), and whether the last line stays:
+     yours:
+
+
+================================================================================================================
+PART 2  OPEN STORY DECISIONS (only you decide these; I will not fill them in)
+================================================================================================================
+
+2.1  What does her book say at the very end?  Every throw is kept with its day (the "Counted" tally in the Ship's book).
+     Is there anything the player ever reads in it?
+     yours:
+
+2.2  Does the hut change on later visits?  Ideas, none built: more candles, a second chair, a page left open with
+     your ship drawn on it, a natural 1 leaves the hut empty next time.  Which, if any?
+     yours:
+
+2.3  Mara: the canon is that the sleeper made her and her village came from an earlier dream. The game never says
+     what that makes her. Should anything at the very end (any ending) touch it, or does it stay unsaid?
+     yours:
+
+2.4  General writing rules you want me to keep (words to avoid, running jokes, how long a line may be):
+     yours:
+
+
+================================================================================================================
+PART 3  OPTIONAL (empty slots; the game works without them)
+================================================================================================================
+
+3.1  Places not built yet (one line each is enough; I build the island around it)
+     Crown    W-C2  The Governor's Dinner: a harbour feast; talk and luck checks; a toast to somebody who is not there.
+              W-C3  The Closed Mint: a fort-ruin, a rusted cannon, coins all stamped with the same ship.
+     Free     W-F1  The Turtle Road: turtles that always swim the same way, and stop somewhere.
+              W-F3  The Singing Sandbar: one note when the tide turns; a fiddler waits for it.
+     Reef     W-R1  The Wreckers' Light: a lamp that lures ships; a keeper who keeps it lit "for her husband".
+              W-R3  The Surrender: a raider captain who gives up and warns that the sea further out is eating the map.
+     Drowned  W-D2  The Island That Moves: in a new place each time it is charted. It is resting on something.
+     yours:
+
+3.2  Side-story seeds not used yet: pick any, or add your own
+      5  The fisherman's debt: the man who drags you home after a sinking keeps asking to be paid; never gold.
+      6  Letters from a captain on your route: years old, same stops, the handwriting slowly becomes yours.
+      7  The twin harbour: two harbours with one name; the people in one do not blink.
+     10  The other dice: wrecks hold d20s each missing a number; she would very much like them back.
+     11  The choir of gulls: a gull follows you for days; at high dread their cries spell out where the hut is.
+     yours:
+
+3.3  Little harbour quests (full game): the lost kitten; the birthday cake; "the other kitten" (the same, slightly wrong).
+     More?
+     yours:
+
+3.4  Voice notes for the cast (one line each helps me keep them in character)
+     Mara · Old Perrin · the harbourmaster at Tama · Ada the baker · Tilda and her dog · Ines at the lamp ·
+     Nilo the boatbuilder · Old Sabe · Lune who sings · Marisol the bride (and Anselm) · Corvo who counts ships ·
+     Teo (guitar) · Ilse (violin)
+     yours:
+
+3.5  The seven threads: anything to change in a thread's story or its ending (their lines are THR, TSC, TMOD in
+     docs/STORY_MASTER.txt). Regions are decided: Free Cays: Music; Lantern: the Bell Below; Crown: the Coin and the
+     High House; Reef: the Other Captain; Drowned: the Colour and the Hollow Harbour.
+     yours:
+
+3.6  Everything else: every one of the 1,462 lines in the game, with its ID, is in docs/STORY_MASTER.txt (section J).
+     Edit any line there the same way and I bring it into the code.
