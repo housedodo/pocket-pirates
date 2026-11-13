@@ -1,15 +1,20 @@
-// What each region puts on the water round its islands (2026-11-13, owner; docs/proposals/REGIONS.md). It goes with the region's own
-// light (systems/regionlook.js): from a distance you can tell whose waters these are, and what they are like, without a word.
-//   Crown:    a buoyed lane into every harbour (red to port, green to starboard, lit at night) and a signal mast with a pennant string
-//   Free:     houses on stilts over the shallows, coloured lantern strings at night
-//   Reef:     black coral heads in white breakers, a mast leaning out of the water
-//   Lantern:  lamps on floats round the island, lit day and night
-//   Drowned:  roofs to the ridge and chimneys, now and then a leaning belfry: a street under the water
+// What each region puts on the water round its islands (2026-11-13, owner; docs/proposals/REGIONS.md, the bolder prototype sheet
+// region_looks_bold.png: sizes and placement follow it). It goes with the region's own light (systems/regionlook.js): from a distance
+// you can tell whose waters these are, and what they are like, without a word.
+//   Crown:    a buoyed lane into every harbour (red to port, green to starboard, lit at night) and a tall signal mast with a pennant string
+//   Free:     houses on stilts over the shallows by the way in, canoes, coloured lantern strings at night
+//   Reef:     black coral heads in white breakers across the way in, a mast leaning out of the water
+//   Lantern:  two rows of lamps on floats lining the way in, lit day and night; a tall dark tower with a light on top
+//   Drowned:  roofs to the ridge and chimneys along the way in, a leaning belfry: a street under the water
+// "The way in" is the harbour's approach (its pier direction) or, for other islands, one side picked from the island's seed.
 // Built once with the island (world.js Island), in the island's own frame. Home Sound and the hand-made places are left alone.
+// Lamps are drawn with the game's glow material (additive, never fogged), so they read at night.
 import { TILE } from './textures.js';
+import { mats } from './psx.js';
 import { mulberry32 } from './util.js';
 
 const NIGHT = (i) => i.tod && i.tod.night > 0.45;
+const ALWAYS = () => true;
 
 /** d: the island; A: its prop builder; extra: its state props; h: { shoreR, terrainHeight } from world.js */
 export function regionDecor(d, A, extra, h) {
@@ -17,75 +22,77 @@ export function regionDecor(d, A, extra, h) {
   if (!reg || d.lm || d.blight || Math.hypot(d.x, d.z) < 480) return;
   if (reg === 'drowned' && typeof window !== 'undefined' && window.__BUILD === 'demo') return;   // the demo has no deep
   const rng = mulberry32((d.seed || 1) * 7919 + 13);
-  const st = (b, when) => (extra.states = extra.states || []).push({ b, when });
-  const mk = () => new A.constructor();
-  const dock = d.type === 'harbour' ? d.dockTh : null;
-  const clear = (th) => dock == null || Math.abs(Math.atan2(Math.sin(th - dock), Math.cos(th - dock))) > 0.75;   // keep the approach to the pier free
-  const at = (th, off) => { const R = h.shoreR(d, th) + off; return [Math.cos(th) * R, Math.sin(th) * R]; };
-  const freeAngle = () => { for (let k = 0; k < 12; k++) { const th = rng() * Math.PI * 2; if (clear(th)) return th; } return null; };
+  const st = (b, when, mat) => (extra.states = extra.states || []).push({ b, when, mat });
+  const mk = () => { const b = new A.constructor(); b.grime = 0; b.ambient = 1; return b; };   // lamps: flat, full colour
+  const harbour = d.type === 'harbour';
+  const way = harbour ? d.dockTh : rng() * Math.PI * 2;                     // the way in
+  const fx = Math.cos(way), fz = Math.sin(way), sx = -fz, sz = fx;          // out along it, and across it
+  const base = h.shoreR(d, way);
+  const P = (out, side) => [fx * (base + out) + sx * side, fz * (base + out) + sz * side];   // a point on the water by the way in
+  const lane = harbour ? 1 : 0.6;   // other islands get a smaller version
 
   if (reg === 'crown') {
-    if (dock != null) {   // the lane: pairs of buoys out from the pier head
-      const L = mk(), cx = Math.cos(dock), cz = Math.sin(dock), px = -cz, pz = cx, base = h.shoreR(d, dock);
-      for (let i = 0; i < 4; i++) {
-        const r = base + 34 + i * 16, x = cx * r, z = cz * r;
-        const [rx, rz] = [x + px * 8, z + pz * 8], [gx, gz] = [x - px * 8, z - pz * 8];
-        A.cyl(rx, -1, rz, 0.9, 0.9, 3.2, 6, '#c8302a'); A.cyl(rx, 1.4, rz, 0.92, 0.92, 0.4, 6, '#f2f2ee', TILE.white, false);   // red can, white band
-        A.cyl(gx, -1, gz, 1.2, 0.0, 3.8, 6, '#1f9a48');                                                                        // green cone
-        L.box(rx, 2.3, rz, 0.5, 0.5, 0.5, '#ff4a40', TILE.glow); L.box(gx, 2.9, gz, 0.5, 0.5, 0.5, '#50ff80', TILE.glow);
+    if (harbour) {   // the buoyed lane: five pairs out from the pier head, red to one side, green to the other
+      const L = mk();
+      for (let i = 0; i < 5; i++) {
+        const out = 12 + i * 11, [rx, rz] = P(out, 9), [gx, gz] = P(out, -9);
+        A.cyl(rx, -1, rz, 1.1, 1.1, 3.2, 6, '#c8302a'); A.cyl(rx, 1.3, rz, 1.12, 1.12, 0.5, 6, '#f2f2ee', TILE.white, false);   // red can, white band
+        A.cyl(gx, -1, gz, 1.3, 0.0, 3.6, 6, '#1f9a48');                                                                          // green cone
+        L.box(rx, 2.6, rz, 1.5, 1.5, 1.5, '#ff3a30'); L.box(gx, 2.8, gz, 1.5, 1.5, 1.5, '#30ff70');
       }
-      st(L, NIGHT);
-      // the signal mast on the point beside the pier, a string of pennants from the yard
-      const th = dock + 0.55, R = h.shoreR(d, th) - 5, mx = Math.cos(th) * R, mz = Math.sin(th) * R, y = Math.max(0, h.terrainHeight(d, mx, mz));
-      A.cyl(mx, y, mz, 0.3, 0.22, 14, 6, '#f0f0ea'); A.box(mx, y + 11.5, mz, 6, 0.25, 0.25, '#f0f0ea');
-      const cols = ['#c8302a', '#f2d020', '#2050c8', '#f0f0ea', '#c8302a', '#2050c8'];
-      cols.forEach((c, i) => { const ox = -2.6 + i * 1.05; A.tri([mx + ox - 0.45, y + 11.4, mz], [mx + ox + 0.45, y + 11.4, mz], [mx + ox, y + 9.9, mz], c, TILE.flag); });
-    } else if (rng() < 0.45) {   // a lone daymark off other Crown isles
-      const th = freeAngle(); if (th != null) { const [x, z] = at(th, 14); A.cyl(x, -1, z, 0.7, 0.7, 4.6, 6, '#c8302a'); A.cyl(x, 1.2, z, 0.72, 0.72, 0.8, 6, '#f2f2ee', TILE.white, false); }
+      st(L, NIGHT, mats.glow);
+      // the signal mast at the water's edge beside the lane: tall, white, a yard with a string of pennants
+      const [mx, mz] = P(-2, 20);
+      A.cyl(mx, -1, mz, 0.5, 0.4, 27, 6, '#f2f2ee'); A.box(mx, 21.8, mz, 10, 0.4, 0.4, '#f2f2ee');
+      const cols = ['#c8302a', '#f2d020', '#2050c8', '#f2f2ee', '#c8302a', '#2050c8'];
+      cols.forEach((c, i) => { const o = -4.5 + i * 1.8, px = mx + sx * o, pz = mz + sz * o; A.cyl(px, 19.3, pz, 0.0, 0.9, 2.4, 3, c, TILE.flag); });
+    } else if (rng() < 0.5) {   // a lone daymark off other Crown isles
+      const [x, z] = P(14, 0); A.cyl(x, -1, z, 0.9, 0.9, 5, 6, '#c8302a'); A.cyl(x, 1.6, z, 0.92, 0.92, 0.9, 6, '#f2f2ee', TILE.white, false);
     }
-  } else if (reg === 'free') {
-    const n = d.type === 'harbour' ? 3 : rng() < 0.6 ? 1 : 0;
+  } else if (reg === 'free') {   // houses on stilts either side of the way in, canoes, lantern strings at night
+    const spots = harbour ? [[22, -24, 1], [10, 22, 1.2], [34, -40, 0.9], [26, 38, 0.8]] : rng() < 0.6 ? [[14, (rng() < 0.5 ? -1 : 1) * 18, 0.9]] : [];
     const L = mk();
-    for (let i = 0; i < n; i++) {
-      const th = dock != null ? dock + (i % 2 ? 1 : -1) * (0.95 + rng() * 0.6) : freeAngle(); if (th == null) continue;   // at a harbour: beside the approach, where you sail past them
-      const [x, z] = at(th, 5 + rng() * 6), s = 0.8 + rng() * 0.35;
-      for (const [ox, oz] of [[-2, -2], [2, -2], [-2, 2], [2, 2]]) A.cyl(x + ox * s, -1.5, z + oz * s, 0.16, 0.16, 4.2 * s, 4, '#5a3a1c', TILE.bark, false);
-      A.box(x, 2.4 * s, z, 5.2 * s, 0.35, 5.2 * s, '#8a6a3a', TILE.planks);
-      A.box(x, 2.75 * s, z, 4 * s, 2.2 * s, 4 * s, '#c89a5a', TILE.wall);
-      A.cyl(x, 4.9 * s, z, 3.9 * s, 0, 2.8 * s, 4, '#d8b860', TILE.roof);
-      for (let k = 0; k < 5; k++) L.box(x - 2.6 * s + k * 1.3 * s, 4.7 * s - Math.sin(k / 4 * Math.PI) * 0.5, z + 2.3 * s, 0.4, 0.4, 0.4, ['#ffd060', '#ff7040', '#60d0ff', '#ff60c0', '#90ff60'][k], TILE.glow);
+    for (const [out, side, s] of spots) {
+      const [x, z] = P(out, side);
+      for (const [ox, oz] of [[-3, -3], [3, -3], [-3, 3], [3, 3]]) A.cyl(x + ox * s, -1.5 * s, z + oz * s, 0.25, 0.25, 6 * s, 4, '#5a3a1c', TILE.bark, false);
+      A.box(x, 3 * s, z, 7 * s, 3 * s, 7 * s, '#c89a5a', TILE.wall);
+      A.cyl(x, 6 * s, z, 6.5 * s, 0, 4 * s, 4, '#e0c070', TILE.roof);
+      for (let k = 0; k < 7; k++) { const o = -6 * s + k * 2 * s, y = 6.6 * s - Math.sin(k / 6 * Math.PI) * 1.2 * s; L.box(x + sx * o - fx * 3.8 * s, y, z + sz * o - fz * 3.8 * s, 1.8, 1.8, 1.8, ['#ffd060', '#ff7040', '#60d0ff', '#ff60c0', '#90ff60', '#ffd060', '#ff7040'][k]); }
     }
-    if (n) st(L, NIGHT);
-  } else if (reg === 'reef') {
-    const n = 5 + Math.floor(rng() * 5);
+    if (spots.length) st(L, NIGHT, mats.glow);
+    if (harbour) for (const side of [-12, 14]) { const [x, z] = P(40, side); A.push(x, -0.2, z, way + 0.3); A.box(0, 0, 0, 1.4, 0.6, 7, '#8a4a20', TILE.planks); A.pop(); }   // canoes
+  } else if (reg === 'reef') {   // coral heads in white water across the way in, a mast leaning out of the water
+    const n = Math.round(14 * lane), F = mk();
     for (let i = 0; i < n; i++) {
-      const th = freeAngle(); if (th == null) continue;
-      const [x, z] = at(th, 6 + rng() * 26), r = 1 + rng() * 1.6;
-      A.blob(x, 0.2, z, r, 0.9 + rng() * 1.4, r, '#18120e', TILE.stone, 0.35, i + 1);
-      A.cyl(x, -0.15, z, r * 2.3, r * 2.0, 0.35, 9, '#f4f8f4', TILE.white, true);   // the white water breaking on it
+      const out = 8 + ((i * 53) % 60) * lane, side = (i % 2 ? 1 : -1) * (8 + ((i * 37) % 30));
+      if (harbour && Math.abs(side) < 10) continue;   // a harbour keeps a channel open
+      const [x, z] = P(out, side), r = 1.2 + (i % 3), ht = 2.5 + (i % 4);
+      A.cyl(x, 0.6 - ht / 2, z, r, 0, ht, 5, '#14100e', TILE.stone);
+      F.cyl(x, 0.05, z, 3 + (i % 3), 3.6 + (i % 3), 0.3, 10, '#ffffff', TILE.white, true);   // the white water breaking on it (flat white, above the swell)
     }
-    if (rng() < 0.5) { const th = freeAngle(); if (th != null) { const [x, z] = at(th, 18 + rng() * 10);
-      A.push(x, -1, z, rng() * 6, 1, 1, 1, 0, 0.42); A.cyl(0, 0, 0, 0.32, 0.22, 11, 5, '#4a3020', TILE.bark); A.box(0, 7.5, 0, 5, 0.25, 0.25, '#4a3020', TILE.bark); A.pop(); } }
-  } else if (reg === 'lantern') {
-    const n = 4 + Math.floor(rng() * 3), th0 = rng() * Math.PI * 2, G = mk();
-    for (let i = 0; i < n; i++) {
-      const th = th0 + i / n * Math.PI * 2; if (!clear(th)) continue;
-      const [x, z] = at(th, 15);
-      A.cyl(x, -0.4, z, 1.3, 1.5, 0.8, 6, '#2a2018', TILE.planks); A.cyl(x, 0.3, z, 0.18, 0.18, 6.5, 4, '#1a1410', TILE.white, false);
-      G.box(x, 6.6, z, 1.5, 1.5, 1.5, '#ffb040', TILE.glow); A.box(x, 8.1, z, 1.8, 0.3, 1.8, '#1a1410');
+    st(F, ALWAYS);
+    if (rng() < 0.8) { const [x, z] = P(48 * lane, 20); A.push(x, -3, z, way, 1, 1, 1, 0, 0.45); A.cyl(0, 0, 0, 0.45, 0.35, 14, 5, '#4a3020', TILE.bark); A.box(0, 11.5, 0, 7, 0.3, 0.3, '#4a3020', TILE.bark); A.pop(); }
+  } else if (reg === 'lantern') {   // two rows of lamps on floats lining the way in, lit day and night; a tall dark tower
+    const G = mk(), pairs = harbour ? 5 : 3;
+    for (let i = 0; i < pairs; i++) for (const side of [-11, 11]) {
+      const [x, z] = P(8 + i * 16, side);
+      A.cyl(x, -0.2, z, 1.4, 1.6, 0.8, 6, '#2a2018', TILE.planks); A.cyl(x, 0.2, z, 0.2, 0.2, 6, 4, '#1a1410', TILE.white, false);
+      G.box(x, 5.6, z, 2.0, 2.0, 2.0, '#ffb040'); A.box(x, 7.7, z, 2.2, 0.3, 2.2, '#1a1410');
     }
-    st(G, () => true);   // lit day and night (a glow piece lights only as its own layer)
-  } else if (reg === 'drowned') {
-    const n = 3 + Math.floor(rng() * 4);
-    for (let i = 0; i < n; i++) {
-      const th = freeAngle(); if (th == null) continue;
-      const [x, z] = at(th, 10 + rng() * 26), w = 4 + rng() * 2;
-      A.push(x, 0, z, th, 1, 1, 1, 0, 0);
-      A.gable(0, -1.1, 0, w, 3.2, 6 + rng() * 3, '#3a3036', TILE.roof, '#4a4046');
-      if (rng() < 0.7) A.box(w * 0.25, 0.4, 1.2, 0.9, 1.8, 0.9, '#7a6458', TILE.stone);
+    st(G, ALWAYS, mats.glow);
+    if (harbour || rng() < 0.3) {
+      const [tx, tz] = P(-6, -(h.shoreR(d, way + Math.PI / 2) + 30));
+      A.cyl(tx, -1, tz, 4.5, 3, 41, 8, '#2a2420', TILE.stone);
+      const T = mk(); T.box(tx, 40, tz, 5, 5, 5, '#ffc060'); st(T, ALWAYS, mats.glow);
+    }
+  } else if (reg === 'drowned') {   // roofs to the ridge and chimneys along the way in, a leaning belfry
+    for (let i = 0; i < (harbour ? 6 : 4); i++) {
+      const [x, z] = P(14 + Math.floor(i / 2) * 18, (i % 2 ? 1 : -1) * 16);
+      A.push(x, 0, z, way + (rng() - 0.5) * 0.3);
+      A.gable(0, -1.6, 0, 7, 3.6, 11, '#6a6064', TILE.roof, '#5a5256');
+      A.box(2.2, -0.5, -2, 1.4, 3.8, 1.4, '#8a6a5a', TILE.stone);
       A.pop();
     }
-    if (rng() < 0.3) { const th = freeAngle(); if (th != null) { const [x, z] = at(th, 30);
-      A.push(x, -2, z, rng() * 6, 1, 1, 1, 0.1, 0.16); A.box(0, 0, 0, 4.5, 16, 4.5, '#6e686a', TILE.stone); A.cyl(0, 16, 0, 3.6, 0, 5, 4, '#3e383a', TILE.roof); A.pop(); } }
+    if (harbour || rng() < 0.4) { const [x, z] = P(50, -26); A.push(x, -3, z, way, 1, 1, 1, 0, 0.18); A.box(0, 0, 0, 5, 18, 5, '#7a7476', TILE.stone); A.cyl(0, 18, 0, 4, 0, 6, 4, '#4a4446', TILE.roof); A.pop(); }
   }
 }

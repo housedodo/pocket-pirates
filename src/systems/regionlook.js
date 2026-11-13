@@ -46,11 +46,11 @@ export function regionLook(stage, pos, dt, dread, seed) {
   const a = jump ? 1 : 1 - Math.exp(-Math.min(dt, 0.5) / TAU);
   for (const id of IDS) cur.w[id] += (t[id] - cur.w[id]) * a;
   cur.at = { x: pos.x, z: pos.z };
-  // the regions' colours give way to the dread palette as the sea deepens; the Drowned's grey belongs to the deep and stays
-  const fade = 1 - smoothstep(0.35, 0.72, dread);
+  // the regions' colours give way to the dread palette in the deep (dread 0.5 to 0.85); the Drowned's grey belongs to the deep and stays
+  const fade = 1 - smoothstep(0.5, 0.85, dread);   // the mid sea keeps its colours; the deep takes them
   let k = 0; for (const c of COLS) mix.c[c].setRGB(0, 0, 0); for (const n of NUMS) mix.n[n] = 0;
   for (const id of IDS) {
-    const f = cur.w[id] * (id === 'drowned' ? (window.__BUILD === 'demo' ? 0 : 0.6) : fade); if (f < 1e-4) continue;   // the demo has no deep
+    const f = cur.w[id] * (id === 'drowned' ? (window.__BUILD === 'demo' ? 0 : 1) : fade); if (f < 1e-4) continue;   // the demo has no deep
     const L = LOOKS[id]; k += f;
     for (const c of COLS) mix.c[c].r += L[c].r * f, mix.c[c].g += L[c].g * f, mix.c[c].b += L[c].b * f;
     for (const n of NUMS) mix.n[n] += L[n] * f;

@@ -1139,10 +1139,15 @@ Trials for the owner to compare; nothing changes without a flag and STYLE.md is 
 - **Slow crossings** (owner: smooth and slow): the nearby sectors are blended by distance (a gradient a few hundred units wide, not a line),
   and that blend eases in over time (22 s time constant). Measured headless, sailing from Crown into the Free Cays: the Crown weight went
   0.93 → 0.63 and the Free Cays weight 0 → 0.35 over the whole stretch, without a jump. Home Sound stays the plain sea; the regional
-  colours give way to the dread palette from dread 0.35 to 0.72.
+  colours give way to the dread palette only in the deep (dread 0.5 to 0.85); the Drowned's grey is the deep's and stays at full strength.
 - `regiondecor.js` (built with each island): Crown buoyed lanes into every harbour (lit red and green at night) and a signal mast with
   pennants; Free Cays houses on stilts beside the harbour approach, lantern strings at night; Reef black coral heads in white breakers, a
   leaning mast; Lantern lamps on floats, lit day and night; Drowned roofs to the ridge and chimneys, a leaning belfry. Home Sound and the
   hand-made places are left alone; the approach to every pier stays clear. Purely visual for now (no collision, no gameplay).
 - Not judged headless: how the colours feel over a long sail, and the Lantern lamps at night (small at a distance).
+- Matched against the prototype sheet (owner): sizes and placement follow it; the lanes and rows run out along the way in to each
+  island (the pier direction at a harbour). Lamps use the game's glow material (the old glow tile only lit near-yellow faces, so the
+  red/green buoy lamps and the amber floats stayed dark). Reef breakers flat white above the swell; Free Cays lantern strings larger.
+  Compared side by side headless: Crown, Free Cays, Reef and Lantern match by day and night. The Drowned matches at night; by day the
+  deep's own effects (it is always deep there) make the sky paler than the prototype, which held the dread low.
 
