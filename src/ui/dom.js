@@ -11,7 +11,12 @@ export const compass = $('compassCv').getContext('2d');
 $('compassCv').width = PX; $('compassCv').height = PX;
 if (params.get('hud') === '0') $('hud').classList.add('hidden');
 
-export function toast(text, dark = false, ms = 5200) {
+/** while hold() is true (the diver, the Edge, the sail home after the first throw, 30 s after them; never inside a menu) messages wait */
+let hold = null; const waiting = [];
+export function setToastHold(fn) { hold = fn; }
+export function flushToasts() { if (waiting.length && !(hold && hold())) show(...waiting.shift()); }
+export function toast(text, dark = false, ms = 5200) { if (hold && hold()) { if (waiting.length < 6) waiting.push([text, dark, ms]); return; } show(text, dark, ms); }
+function show(text, dark = false, ms = 5200) {
   const el = document.createElement('div');
   el.className = 'toast panel txt' + (dark ? ' dark' : '');
   const sp = document.createElement('span'); sp.textContent = text; el.appendChild(sp);

@@ -9,7 +9,7 @@ import { d3Open } from './clues.js';
 // what you find ashore. once: the first visit; again: later visits (null = nothing more to take); every: days between repeat gifts
 const VISITS = {
   crag: {
-    once: { text: 'Gannets on every ledge, and nothing grows. On the top, a cairn; in it, a tin box with a list of ships in many hands, the last one crossed out: KESTREL. You add the Merry Gull. On the lid someone has scratched a little drawing: a white post, standing exactly in front of this rock. And two places.', note: 'The Grey Tooth: a tin box, a list of ships; KESTREL crossed out. On the lid a drawing: a white post exactly in front of the Tooth.', chart: ['ribs', 'bell'] },
+    once: { text: 'Gannets on every ledge, and nothing grows. On the top, a cairn; in it, a tin box with a list of ships in many hands, the last one crossed out: KESTREL. You add the Merry Gull. Inside, someone has scratched a little drawing: a white post, standing exactly in front of this rock. And two places.', note: 'The Grey Tooth: a tin box, a list of ships; KESTREL crossed out. Inside the box a drawing: a white post exactly in front of the Tooth.', chart: ['ribs', 'bell'] },
     again: 'The gannets do not look up. The list in the tin box has not changed.',
   },
   bell: {

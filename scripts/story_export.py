@@ -210,6 +210,8 @@ def coded_lines():
             out += ['', f'### {code} / RETIRED (the text is no longer in the game; these IDs are never used again)']
             for num, text in sorted(gone): out.append(f'    was {code}-{num:04d} | {text}'); gone_n += 1
     print(f'section J: {total} lines with an ID ({new_n} added, {gone_n} retired in all)')
+    flagged = [l for l in out if re.match(r'^  [A-Z]+-\d{4} \| ', l) and re.search(r"\b(lid|eye|sleeper|lady|kept soft)\b|mara is from", l, re.I)]
+    print(f'tone check (RULES 6): {len(flagged)} line(s) with a banned word' + ''.join('\n    ' + l.strip()[:110] for l in flagged))
     return '\n'.join(out), total
 
 
@@ -297,7 +299,7 @@ THE PREMISE [BUILT, never explained]
 THE RULES OF TELLING [BUILT]
   B1  Horror is implied, never explained. No monsters with names; small wrong details (a table laid for two, a boat
       that returns with nobody aboard, a dog that sits facing you).
-  B2  The Lady is never seen. The hut text describes only a chair in the dark.
+  B2  The Lady never speaks. She may be seen (2026-11-13): a chair in the dark, a nod, a pen. The word Lady is never written in the game.
   B3  Never resolve a storyline casually. Every thread is recorded and can be picked up later.
   B4  HUD text stays minimal. Writing is short. A line is one idea.
   B5  No handholding: nothing is marked right or wrong; riddles, rumours and notes are a memory aid.
@@ -339,7 +341,7 @@ C-002 OLD PERRIN [BUILT as letters only]
   Voice     dry, precise, a little smug. Never met in person.
   Hooks     he once visited the hut [IDEA]; his riddles describe shores he could not have seen.   Your edits:  (empty)
 
-C-003 THE LADY IN THE HUT [BUILT, never seen, never speaks]
+C-003 THE LADY IN THE HUT [BUILT, never speaks; may be seen]
   Role      throws the d20 to keep the Eye asleep, writes every low roll in a ledger.
   Shown     a silent old woman, an old bone die, candles (one more for every low throw), a chair in the dark.
   Never     her face, her voice, an explanation.   Your edits:  (empty)

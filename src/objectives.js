@@ -32,8 +32,7 @@ export const MAIN_GOALS = [
       'That ring is the wind. Gold means she sails well, red means she crawls. The little triangle is our bow.'],
     outro: ['Good. Beam and downwind is fast; straight into the wind is slow.'],
     hints: ['Hold W to let the sails out, then A or D to turn.', 'Turn until the little triangle sits on a gold part of the wind ring: that is where she runs fast.'],
-    check: (c) => c.state.stats.dist >= 100 && ((c.state.story.onbStep || 0) >= 2 || !!c.state.story.onbAll),   // not before Mara has explained the steering and the wind ring
-    waitMate: true,
+    check: (c) => c.state.stats.dist >= 100,   // done on the distance (it used to wait for Mara, and the ship sailed on into the fog wall)
   },
   {
     id: 'harbour', ch: 0, title: 'Make landfall', reward: 12,
@@ -239,6 +238,12 @@ export const MUSINGS = [
   'Funny how the horizon never gets any closer, isn\'t it? Not funny ha-ha.',
   'The bell back home rang twice every hour. Nobody knew why. Nobody minded.',
   'If anyone asks, you have always been the captain. Seems like the sort of thing people ask out here.',
+  'The water is the right colour today. I checked.',
+  'Somebody has been coiling the ropes while we sleep. Nicely, too.',
+  'I keep thinking we passed that rock before. Different rock. Same thought.',
+  'The gulls have stopped following us. Gulls know things. Or they are lazy.',
+  'Remember when the sea was loud? I miss it a little.',
+  'If I start humming, tell me. I do not always notice.',
 ];
 export const REMARKS = {
   dusk: ['The sun is going. Lighthouses only light at dusk, so keep one in sight if you can.'],
@@ -254,10 +259,9 @@ export const REMARKS = {
   redsky: ['Red sky tonight... my gran said that means a blow is coming.'],
   broadside: ['Turn into the waves, Captain! Or take the sail in. She cannot take them side-on.'],
   stormpay: ['Delivered in a storm? They will pay extra for that. People are nicer when they are wet.'],
-  raider: ['Raiders, off the bow! They are Reef Brotherhood. You can outrun them, pay tribute, or fight with Space.'],
+  raider: ['Raiders, off the bow! Reef Brotherhood. Outrun them, pay them, or fight.'],
   lowhp: ['We are taking on water, Captain! Harbours repair us for free.'],
   noammo: ['We are out of cannonballs. Any harbour sells more.'],
-  notarget: ['No raider in range. Space only fires at raiders that are attacking us.'],
   stage2: ['Is it just me, or has it gone very quiet out here?'],
   stage3: ['The gulls are watching us. I mean really watching us. Please tell me I am imagining it.'],
   stage4: ['I keep hearing something humming under the keel. Do you hear it?'],

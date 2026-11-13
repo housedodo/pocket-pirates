@@ -1,6 +1,7 @@
 import { mulberry32, hash2 } from './util.js';
 import { nearby, findRumour, bearingName } from './jobs.js';
 import { pierOf } from './world.js';
+import { WEEK } from './systems/calendar.js';
 
 // Passengers: people who pay for passage to another harbour. On the way they talk, a line every half
 // minute or so: little stories, hints about buried treasure, gossip. They talk to the captain; Mara answers; nobody answers her
@@ -42,7 +43,7 @@ const PEOPLE = [
 // The passenger says something to the captain (a story, or a remark about the silent captain) and Mara answers. Nobody ever
 // answers her; that is all. Mara never points out that she is there. `hint`: the faintest hints, rare (CANON 2026-11-12).
 const MARA_BANTER = [
-  { who: 'Old Wendel', p: 'My brother sailed these waters thirty years. Said the fish here bite on Tuesdays and sulk the rest of the week.', m: 'Today is Thursday. We\'ll manage.' },
+  { who: 'Old Wendel', p: 'My brother sailed these waters thirty years. Said the fish here bite on Tuesdays and sulk the rest of the week.', m: 'Today is {day}. We\'ll manage.' },
   { who: 'Pippa Fairweather', p: 'Master Perrin drew a whole island once from a sailor\'s description. It turned out the sailor had been describing a whale.', m: 'It moved, I suppose. Bad luck for the map.' },
   { who: 'Captain Ruy', p: 'I lost a ship to a whirlpool off the Pearl Banks. The cook went down still stirring the soup.', m: 'Somebody had to finish it.' },
   { who: 'Mags & Tully', p: 'Our cousin owes us a goat. The goat has been owed for eleven years. It is a very old goat now.', m: 'Then you\'ll want it quickly.' },
@@ -100,7 +101,7 @@ export function passengerTalk(pass, dt, ctx) {   // ctx: { mate, world, ship, st
   }
   if (roll < 0.55) {   // the passenger says something to the captain; Mara answers. A hint is rare: most times it gives way to an ordinary line
     const mine = MARA_BANTER.filter((x) => x.who === pass.name && (!x.hint || Math.random() < 0.2));
-    if (mine.length) { const x = mine[Math.floor(Math.random() * mine.length)]; say(x.p); ctx.mate.say(x.m, false); return; }
+    if (mine.length) { const x = mine[Math.floor(Math.random() * mine.length)]; say(x.p); ctx.mate.say(x.m.replace('{day}', WEEK[ctx.state.dayN % 7]), false); return; }
   }
   say(p.lines[pass.said++ % p.lines.length]);
 }

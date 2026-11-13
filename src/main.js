@@ -65,11 +65,11 @@ import { params, store, saved, DEV, settings, session, SAVE_KEY, SETTINGS_KEY, T
 import { state } from './core/state.js';
 import { rt, G } from './core/runtime.js';
 import { renderer, post, scene, camera, ocean, sky } from './core/engine.js';
-import { $, goldEl, promptEl, promptTxt, promptBar, promptFill, toastsEl, debugEl, helpEl, chartEl, harbourEl, pauseEl, shipEl, toast } from './ui/dom.js';
+import { $, goldEl, promptEl, promptTxt, promptBar, promptFill, toastsEl, debugEl, helpEl, chartEl, harbourEl, pauseEl, shipEl, toast , setToastHold, flushToasts } from './ui/dom.js';
 import { WEEK, weekday, isMarketDay, isLanternNight, isFestival, tideAt, tideFalls } from './systems/calendar.js';
 import { addMark, clearMark, keep } from './systems/storyflags.js';
 import { lullDread, lullabyTick, playersEar } from './systems/lullaby.js';
-import { lostTick } from './systems/lostsailors.js';
+import { lostTick, LOST_CARDS } from './systems/lostsailors.js';
 import { buildBiome } from './concepts.js';   // dev concept scenes (__game.biome); the Edge builds from it too
 import { edgeTick, startEdge } from './systems/edge.js';
 import { PITCH_MIN, updateCamera, initCamera1, initCamera2 } from './ui/camera.js';
@@ -166,6 +166,7 @@ rt.glimpseWait = 0, rt.sunScale = 1;
 rt.quietUntil = 0;   // tNow
 /** the small tells that only the captain has company (CANON 2026-11-12: nobody sees or hears Mara but the captain): each once,
  *  full game only, after the first throw at the hut, never inside the quiet window. Nobody remarks on them. */
+setToastHold(() => !rt.modal && (glimpse.active || !!rt.edge || (state.story.demoEnd === 'pending' && !state.story.glimpse) || rt.tNow < rt.quietUntil));   // messages wait (ui/dom.js)
 function lateTell() { return window.__BUILD !== 'demo' && !!(state.hut && state.hut.rolls.length) && !eventQuiet(); }
 function eventQuiet() {
   const st = state.story;
@@ -200,13 +201,12 @@ const combat = new Combat(scene, fauna);
 sea.syncQuests(state.quests.filter((q) => q.id === state.tracked));
 traffic.onEvent = (what) => {
   if (!laterOK()) return;   // market and regatta wait for the tutorial
-  if (what === 'market') toast('A floating market, with bunting on every line. (Friday)', false, 5000);
-  if (what === 'regatta') { toast('A regatta! Five boats, racing.', false, 4500); if (!state.hints.regattaSeen && laterOK() && !eventQuiet()) { state.hints.regattaSeen = true; setTimeout(() => objectives.mate.say('A regatta! Look at them go. I wonder who they are racing, and who is giving the prize.'), 2500); } }
+  if (what === 'regatta') { if (!state.hints.regattaSeen && laterOK() && !eventQuiet()) { state.hints.regattaSeen = true; setTimeout(() => objectives.mate.say('A regatta! Look at them go. I wonder who they are racing, and who is giving the prize.'), 2500); } }
 };
 fauna.onSpot = (what) => {
   if (!laterOK()) return;   // no dolphins or whales for the first goals
   const k = what === 'migration' ? 'whales' : what; state.stats[k] = (state.stats[k] || 0) + 1;
-  toast(what === 'dolphins' ? 'Dolphins!' : what === 'migration' ? 'Another whale, heading east.' : what === 'turtles' ? 'A sea turtle, drifting by.' : 'A whale surfaces in the distance!', false, 2500);
+  // no message: the sea just has them (owner, 2026-11-13); they still count for the stats and the sea goals
   if (what === 'migration' && !state.hints.migrationSeen && laterOK() && !eventQuiet()) { state.hints.migrationSeen = true; setTimeout(() => objectives.mate.say('They are all going the same way, Captain. East. Every one of them. As if they were called.'), 2500); }
 };
 audio.musicOn = !settings.musicOff;
@@ -286,7 +286,7 @@ rt.trackerNewUntil = 0;
 function questCue(done, next) {
   // QUEST COMPLETE shows at once; the NEW QUEST card waits until Mara has spoken and the next goal is announced (questNew)
   const el = $('qbanner'); $('qbTitle').textContent = done.title; $('qbRew').textContent = `+${done.reward} gold`;
-  el.classList.remove('shownew'); el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
+  if (done.reward) { el.classList.remove('shownew'); el.classList.remove('show'); void el.offsetWidth; el.classList.add('show'); }   // no banner for a goal that pays nothing (the hut)
   setTimeout(autosave, 600); audio.play('discover', { vol: 0.5 });
   if (!next) setTimeout(() => questNew(null), 3000);
 }
@@ -588,7 +588,7 @@ window.addEventListener('keydown', (e) => {
   }
   keys.add(e.code);
   if (e.code === 'Space' && digGame.active) { digGame.press(); return; }
-  if (e.code === 'Space') { if (fishing.active) { fishing.hold = true; fishing.press(true); } else if (objectives.mate.cur) objectives.mate.skip(); else if (unlocked(state, 'cannons')) fireCannons(); }   // Space (or Enter) moves Mara's text on
+  if (e.code === 'Space') { if (fishing.active) { rt.fishLast = rt.tNow; fishing.hold = true; fishing.press(true); } else if (objectives.mate.cur) objectives.mate.skip(); else if (unlocked(state, 'cannons') && rt.tNow - (rt.fishLast ?? -9) > 1.5) fireCannons(); }   // the strike's Space does not fire the cannons a moment later   // Space (or Enter) moves Mara's text on
   if (e.code === 'KeyC' && unlocked(state, 'fish')) { if (rt.lampOut && !fishing.active) { toast('Too dark to see the line. The lamp needs oil.', false, 3500); return; } fishing.press(); }
   if (e.code === 'KeyY' && !abyss.maraHint()) objectives.askHint(rt.dread);
   if (e.code === 'Enter' || e.code === 'NumpadEnter') objectives.mate.skip();
@@ -792,7 +792,7 @@ function fireCannons() {
   const r = combat.playerFire(ship, traffic, state, ship.mods);
   if (r !== 'ammo' && r !== 'target') audio.play('cannon');
   if (r === 'ammo') { toast('Out of cannonballs! Buy more at a harbour.'); objectives.remark('noammo'); }
-  else if (r === 'target') objectives.remark('notarget');
+  else if (r === 'target') { setHelp('Space fires only at raiders that are attacking you'); setTimeout(() => { if (rt.helpMode === 'tip') setHelp(''); }, 4000); }
 }
 
 function getInteract() {
@@ -1194,7 +1194,7 @@ function discover(isl) {
   state.discovered[d.id] = { name: d.name, type: d.type, x: Math.round(d.x), z: Math.round(d.z) };
   state.gold += 5;
   const rum = state.rumoured[d.id]; if (rum) rum.found = true;
-  if (!onbQuiet()) toast(`Charted: ${d.name} (+5 gold)`, rt.dread > 0.5);
+  if (!onbQuiet() && rt.dread < 0.5) toast(`Charted: ${d.name} (+5 gold)`);   // no gold toasts in the deep dread
   if (rum && rum.fake !== undefined) setTimeout(() => resolveFalseRumour(d, rum), 1800);
   audio.play('discover');
 }
@@ -1317,6 +1317,7 @@ function frame() {
   if (live || params.get('autostart')) ship.update(dt, shipInput, windNow, rt.tNow);
   if (live && dt > 0) { stormAndCalm(dt); tabletopTick(dt); seaGate(dt); clueTick(dt); seamTick(dt); tackTick(dt); seaTick(dt, windNow); oilTick(dt); sailTick(dt, windNow); fogLost(dt); }
   if (live) { anchorTick(); oarTick(dt); }
+  if (live && Math.floor(rt.tNow * 0.7) !== Math.floor((rt.tNow - dt) * 0.7)) flushToasts();   // a held message every 1.4 s, once the quiet is over
   if (live && dt > 0 && window.__BUILD !== 'demo') edgeTick({ dt, dread: rt.dread, ship, quiet: eventQuiet() || !!rt.modal || rt.lostK > 0 || !!rt.gateLost,
     clearAhead: () => { const f = [Math.sin(ship.heading), -Math.cos(ship.heading)]; for (const d of [60, 140, 220, 300]) if (world.nearest(ship.pos.x + f[0] * d, ship.pos.z + f[1] * d, 120)) return false; return true; },
     fadeEl: $('fade'), onDone: () => { rt.quietUntil = rt.tNow + 30; } });   // the Edge, once, at the deepest dread
@@ -1407,14 +1408,14 @@ function frame() {
   objectives.update(dt, rt.glitchT > 0 ? rt.preGlitch : rt.dread);   // the hut's flash is not real water: Mara does not react to it
   if (live && !state.passenger && rt.dread > 0.2 && rt.dread < 0.7 && ship.speed > 1) {   // Mara muses on quiet stretches
     rt.musingT -= dt;
-    if (rt.musingT <= 0 && !objectives.mate.busy && !eventQuiet()) { rt.musingT = 240 + Math.random() * 200; const m = MUSINGS.filter((x) => !state.hints['muse:' + x]); if (m.length) { const l = m[Math.floor(Math.random() * m.length)]; state.hints['muse:' + l] = true; objectives.mate.say(l); } }
+    if (rt.musingT <= 0 && !objectives.mate.busy && !eventQuiet()) { rt.musingT = 240 + Math.random() * 200; const m = MUSINGS.filter((x) => !state.hints['muse:' + x] && (!/bell back home/.test(x) || (state.story.maraMem || 0) >= 1)); /* the bell musing waits until she has remembered the bell */ if (m.length) { const l = m[Math.floor(Math.random() * m.length)]; state.hints['muse:' + l] = true; objectives.mate.say(l); } }
   }
   if (live && state.passenger && ship.speed > 1) passengerTalk(state.passenger, dt, { mate: objectives.mate, world, ship, state, dread: rt.dread, storm: weather.storm });
   if (live) {
     if (tod.night > 0.35 || tod.twilight > 0.6) objectives.remark('dusk');
     if (weather.storm > 0.4) objectives.remark('storm'); else if (weather.rain > 0.4) objectives.remark('rain'); else if (weather.fog > 0.5) objectives.remark('fog');
     for (const [k, v] of [['stage2', 0.25], ['stage3', 0.5], ['stage4', 0.75], ['stage5', 0.95]]) if (rt.dread >= v) objectives.remark(k === 'stage5' && (state.story.maraMem || 0) >= 3 ? 'stage5b' : k, rt.dread);
-    if (traffic.ships.some((x) => x.hostile && x.engaged)) objectives.remark('raider');
+    if (traffic.ships.some((x) => x.hostile && x.engaged)) { objectives.remark('raider'); if (!state.hints.raiderKey) { state.hints.raiderKey = 1; setHelp('Space fires the cannons'); setTimeout(() => { if (rt.helpMode === 'tip') setHelp(''); }, 6000); } }   // the key on the help strip, not in Mara's voice
   }
   fauna.quiet = !laterOK();
   fauna.update(vdt, waveT, lifeCtx);
@@ -1568,7 +1569,7 @@ window.__game = { secrets, tideAt: () => tideAt(), lostState: () => ({ lostK: rt
   life, localGames, openHarbour(id, tab = 'board') { const isl = [...world.islands.values()].find((i) => i.desc.id === id); if (!isl) return false; closeModal(true); rt.harbourIsl = isl; rt.hbTab = tab; frameVillage(isl.desc); openModal('harbour'); return true; }, renderHarbour: () => renderHarbour(),
   audio,
   objectives, perrinNote, gateRadius: () => gateRadius(state, tideFalls()), trackTarget: () => trackTarget(), digGame,
-  openCard, openTable, edge: () => startEdge(ship, $('fade')), sighting, spawnSight: (id) => { const c = (SIGHTS[id] && drawCard(0, [], { [id]: 1 })); return c && sighting.spawn(c, ship, world); },
+  openCard, openTable, edge: () => startEdge(ship, $('fade')), sighting, spawnSight: (id) => { if (LOST_CARDS[id]) return sighting.spawn(LOST_CARDS[id], ship, world, 38, 0.35); const c = (SIGHTS[id] && drawCard(0, [], { [id]: 1 })); return c && sighting.spawn(c, ship, world); },
   weather,
   setDread(v) { rt.forced = v; rt.dread = v; },
   get dread() { return rt.dread; },

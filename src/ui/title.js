@@ -20,7 +20,7 @@ export function startTitle() {
     let ok = true; for (let dx = -3; dx <= 3 && ok; dx++) for (let dz = -3; dz <= 3; dz++) if (G.world.desc(cx + dx, cz + dz)) { ok = false; break; }
     if (ok) { spot = [x, z]; break find; }
   }
-  rt.titleScene = { sc, keep: { x: G.ship.pos.x, z: G.ship.pos.z, h: G.ship.heading, time: state.time, trim: G.ship.trim, forced: rt.forced }, t: 0 };
+  rt.titleScene = { sc, keep: { x: G.ship.pos.x, z: G.ship.pos.z, h: G.ship.heading, time: state.time, trim: G.ship.trim, forced: rt.forced, w: Object.fromEntries(Object.keys(sc.weather || {}).map((k) => [k, G.weather[k]])) }, t: 0 };   // w: the voyage's own weather, put back when the title ends
   G.ship.pos.set(spot[0], 0, spot[1]); G.ship.heading = 0.8; rt.camHeading = 0.8; G.ship.trim = 0.9;
   state.time = sc.time; rt.forced = 0; rt.dread = 0;
   G.weather.force = sc.weather; Object.assign(G.weather, sc.weather);
@@ -39,7 +39,7 @@ export function endTitle() {
   if (!rt.titleScene) return;
   const k = rt.titleScene.keep; rt.titleScene = null; rt.camOverride = null;
   G.ship.pos.set(k.x, 0, k.z); G.ship.heading = k.h; rt.camHeading = k.h; G.ship.trim = k.trim; G.ship.speed = 0;
-  state.time = k.time; rt.forced = k.forced; G.weather.force = null;
+  state.time = k.time; rt.forced = k.forced; G.weather.force = null; Object.assign(G.weather, k.w || {}); G.weather.mid = null;   // the title's rain does not follow you out
   if (params.get('hud') !== '0') $('hud').classList.remove('hidden');
 }
 export function setSail() {

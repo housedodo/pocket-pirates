@@ -43,11 +43,14 @@ Nothing here is ever said to the player in these words.
 | 2026-11-12 | **The Edge:** once, the first time the ship reaches the deepest dread on open water, the sea ahead runs to a straight lip and falls into the dark; past it stand things far too big (a hooded figure with nothing in the hood, a head on its side with one eye open, a tower built at wrong angles, pillars that never get smaller, sunk arches). The helm does not answer; the current draws the ship to the lip; white mist; the ship drifts away pointing home. About 45 seconds. Nothing explains it. |
 | 2026-11-12 | **The Pained Raven** (the Other Captain's ship) is empty. It was a normal sailor's ship; the dread changed it. Nobody knows how long it has sailed alone. It is not old, not rotten: as if time never touched it. |
 | 2026-11-12 | **The interface font is DotGothic16 again for now** (Jersey 10 overlapped in the HUD and the log). |
+| 2026-11-13 | **The Lady may be seen** ("she nods", "she does not look up"); she still never speaks, and the word Lady stays out of player text (RULES 6). |
+| 2026-11-13 | **No sighting messages** (dolphins, whales, turtles, the floating market, the regatta): the sea just has them. Mara's one-time lines stay. |
+| 2026-11-13 | **Distances are measured from the pier**, everywhere: the board, the slip, the chart. |
 | 2026-11-13 | **Distances are shown as units** (the plain number, as on the harbour board), never as minutes of sailing: minutes made it a fetch game. |
 | 2026-11-12 | **No minimap.** The chart (M) is the map; the HUD stays minimal. The title plays the sea's band. |
 | 2026-11-11 | **The log has three bookmarks** (Chart, Orders, Ship's book) and **one slip** (what, where, which way and how long). |
 | 2026-11-11 | **The chart is an inked portolan on vellum. The type is Pirata One (titles) with Jersey 10 (text).** |
-| earlier | The title is HOIST. The Lady is never seen and never speaks. Dread follows where you are, never time. The demo has no dread. |
+| earlier | The title is HOIST. The Lady never speaks. Dread follows where you are, never time. The demo has no dread. |
 
 ## 4. The seven questions (the whole mystery)
 | # | Question | The answer, never stated | Where the world shows it |
@@ -88,7 +91,7 @@ halves a bad weight; a natural 1 or 20 stands. A captain who saw nothing still h
 
 ## 7. People
 - **Mara**: first mate. Only the captain sees and hears her. Warm, quick, a little cheeky; one or two short lines; calls you Captain. Cheerful, then steady, then rattled, then she breaks at full dread. Never explains. Her village returns to her in four pieces.
-- **The Lady**: never seen, never speaks. A chair in the dark, a bone die, candles (one more for every low throw), a book.
+- **The Lady**: never speaks. She may be seen (2026-11-13: the rule that she is never seen is removed). A chair in the dark, a bone die, candles (one more for every low throw), a book.
 - **Old Perrin**: the cartographer who never left port. Letters only. Dry, precise, a little smug.
 - **The diver**: a rusted deep-sea diver standing upright on the water, once, after the first throw. Nothing explains him.
 - **The captain**: never speaks. People speak at the captain; Mara answers for the ship.

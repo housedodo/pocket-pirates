@@ -1,7 +1,7 @@
 HOIST (Pocket Pirates): THE MASTER STORY FILE
 ================================================================================================
 This is the main story file for the full game. Edit it, upload it again, and the next session puts every change
-into the game. Built from commit d0ea419 on 2026-11-12. 1440 in-game lines carry an ID.
+into the game. Built from commit 8e0a1d7 on 2026-11-13. 1439 in-game lines carry an ID.
 
 CONTENTS
   A   HOW TO USE THIS FILE (IDs, status marks, how to add and remove things)
@@ -79,7 +79,7 @@ THE PREMISE [BUILT, never explained]
 THE RULES OF TELLING [BUILT]
   B1  Horror is implied, never explained. No monsters with names; small wrong details (a table laid for two, a boat
       that returns with nobody aboard, a dog that sits facing you).
-  B2  The Lady is never seen. The hut text describes only a chair in the dark.
+  B2  The Lady never speaks. She may be seen (2026-11-13): a chair in the dark, a nod, a pen. The word Lady is never written in the game.
   B3  Never resolve a storyline casually. Every thread is recorded and can be picked up later.
   B4  HUD text stays minimal. Writing is short. A line is one idea.
   B5  No handholding: nothing is marked right or wrong; riddles, rumours and notes are a memory aid.
@@ -120,7 +120,7 @@ C-002 OLD PERRIN [BUILT as letters only]
   Voice     dry, precise, a little smug. Never met in person.
   Hooks     he once visited the hut [IDEA]; his riddles describe shores he could not have seen.   Your edits:  (empty)
 
-C-003 THE LADY IN THE HUT [BUILT, never seen, never speaks]
+C-003 THE LADY IN THE HUT [BUILT, never speaks; may be seen]
   Role      throws the d20 to keep the Eye asleep, writes every low roll in a ledger.
   Shown     a silent old woman, an old bone die, candles (one more for every low throw), a chair in the dark.
   Never     her face, her voice, an explanation.   Your edits:  (empty)
@@ -559,7 +559,7 @@ Where the story hides in the mechanics, and where its text lives (section J).
 # J  EVERY LINE IN THE GAME
 ################################################################################################
 Pulled from the code. Edit the text after the "|" (see part A). Sources are grouped by file; the CODE in front of every
-line says which file it goes back into. 1440 lines.
+line says which file it goes back into. 1439 lines.
 
 
 
@@ -669,10 +669,8 @@ line says which file it goes back into. 1440 lines.
   OBJ-0111 | [redsky] Red sky tonight... my gran said that means a blow is coming.
   OBJ-0112 | [broadside] Turn into the waves, Captain! Or take the sail in. She cannot take them side-on.
   OBJ-0113 | [stormpay] Delivered in a storm? They will pay extra for that. People are nicer when they are wet.
-  OBJ-0114 | [raider] Raiders, off the bow! They are Reef Brotherhood. You can outrun them, pay tribute, or fight with Space.
   OBJ-0115 | [lowhp] We are taking on water, Captain! Harbours repair us for free.
   OBJ-0116 | [noammo] We are out of cannonballs. Any harbour sells more.
-  OBJ-0117 | [notarget] No raider in range. Space only fires at raiders that are attacking us.
   OBJ-0118 | [stage2] Is it just me, or has it gone very quiet out here?
   OBJ-0119 | [stage3] The gulls are watching us. I mean really watching us. Please tell me I am imagining it.
   OBJ-0120 | [stage4] I keep hearing something humming under the keel. Do you hear it?
@@ -702,6 +700,15 @@ line says which file it goes back into. 1440 lines.
   OBJ-0143 | That is everything we set out to do, Captain. Sail where you like inside the fog: deliveries, errands, treasure and the side goals in your orders are all still there.
   OBJ-0144 | Goal complete: ${goal.title} (+${goal.reward} gold)
 
+### OBJ / ADDED 2026-11-13
+  OBJ-0145 | The water is the right colour today. I checked.
+  OBJ-0146 | Somebody has been coiling the ropes while we sleep. Nicely, too.
+  OBJ-0147 | I keep thinking we passed that rock before. Different rock. Same thought.
+  OBJ-0148 | The gulls have stopped following us. Gulls know things. Or they are lazy.
+  OBJ-0149 | Remember when the sea was loud? I miss it a little.
+  OBJ-0150 | If I start humming, tell me. I do not always notice.
+  OBJ-0151 | Raiders, off the bow! Reef Brotherhood. Outrun them, pay them, or fight.
+
 ### OBJ / RETIRED (the text is no longer in the game; these IDs are never used again)
     was OBJ-0012 | [text] Perrin's riddle is in your log (Journal). Find the right shore of Hollow Cay Galen and dig.
     was OBJ-0013 | [intro] Now to find the shore that riddle means. Stop the ship there and press E to dig.
@@ -721,6 +728,8 @@ line says which file it goes back into. 1440 lines.
     was OBJ-0077 | [outro] Splendid! They will think twice. For a day or two.
     was OBJ-0078 | [hints] Raiders only fire when they are close. Turn so they are beside you and press Space.
     was OBJ-0079 | [hints] Harbours repair the hull for free, and sell cannonballs.
+    was OBJ-0114 | [raider] Raiders, off the bow! They are Reef Brotherhood. You can outrun them, pay tribute, or fight with Space.
+    was OBJ-0117 | [notarget] No raider in range. Space only fires at raiders that are attacking us.
     was OBJ-0129 | That is everything we set out to do, Captain. Sail where you like inside the fog: deliveries, errands, treasure and the side goals in your log (Goals tab) are all still there.
 
 
@@ -793,7 +802,6 @@ line says which file it goes back into. 1440 lines.
 
 ### PAS / ADDED 2026-11-12
   PAS-0095 | My brother sailed these waters thirty years. Said the fish here bite on Tuesdays and sulk the rest of the week.
-  PAS-0096 | Today is Thursday. We'll manage.
   PAS-0097 | Master Perrin drew a whole island once from a sailor's description. It turned out the sailor had been describing a whale.
   PAS-0098 | It moved, I suppose. Bad luck for the map.
   PAS-0099 | I lost a ship to a whirlpool off the Pearl Banks. The cook went down still stirring the soup.
@@ -816,6 +824,9 @@ line says which file it goes back into. 1440 lines.
   PAS-0116 | Alone is a strong word.
   PAS-0117 | Who do you talk to when there's nobody aboard, Captain?
   PAS-0118 | The ship. She's very patient.
+
+### PAS / ADDED 2026-11-13
+  PAS-0119 | Today is {day}. We'll manage.
 
 ### PAS / RETIRED (the text is no longer in the game; these IDs are never used again)
     was PAS-0044 | Sleep is for people who do not have a captain.
@@ -859,6 +870,7 @@ line says which file it goes back into. 1440 lines.
     was PAS-0092 | Nobody saw that, did they? Good.
     was PAS-0093 | Still. Room enough for one.
     was PAS-0094 | Which side is downwind, Captain? Never mind. I will guess.
+    was PAS-0096 | Today is Thursday. We'll manage.
 
 
 ####################################################################################################
@@ -1131,15 +1143,18 @@ line says which file it goes back into. 1440 lines.
   GRT-0132 | Welcome back, captain. Your chair is where you left it.
   GRT-0133 | Bad luck travels fast, captain. {A} {w}, was it?
   GRT-0134 | Heard it came up {w}. Nobody told me. I just heard.
-  GRT-0135 | You threw {a} {w} last night, did you not? The fish knew before we did.
   GRT-0136 | The tide came in {w} minutes late this morning. Funny number, {w}.
   GRT-0137 | Heard you threw {a} {w}! The whole pier slept well.
   GRT-0138 | Calm night, thanks to you. {W}, was it? Lovely number.
   GRT-0139 | Somebody threw {a} {w} and the whole sea went soft. Was that you, captain?
 
+### GRT / ADDED 2026-11-13
+  GRT-0140 | You threw {a} {w}, did you not? The fish knew before we did.
+
 ### GRT / RETIRED (the text is no longer in the game; these IDs are never used again)
     was GRT-0124 | It is not angry. That is the worst part. It is only very, very patient.
     was GRT-0125 | Welcome home, captain. We saved your seat. It was always your seat.
+    was GRT-0135 | You threw {a} {w} last night, did you not? The fish knew before we did.
 
 
 ####################################################################################################
@@ -1168,8 +1183,6 @@ line says which file it goes back into. 1440 lines.
   PLC-0019 | [again] Nobody has come back for the other half.
 
 ### PLC / ADDED 2026-11-11
-  PLC-0020 | Gannets on every ledge, and nothing grows. On the top, a cairn; in it, a tin box with a list of ships in many hands, the last one crossed out: KESTREL. You add the Merry Gull. On the lid someone has scratched a little drawing: a white post, standing exactly in front of this rock. And two places.
-  PLC-0021 | The Grey Tooth: a tin box, a list of ships; KESTREL crossed out. On the lid a drawing: a white post exactly in front of the Tooth.
   PLC-0022 | A man in a blue coat waves you to the end of the pier and opens a ledger. He writes THE MERRY GULL and the date, and leaves the line for the master blank. "Always blank. It has always been blank." Tired, kind, he turns the page: ships that have not come in yet.
   PLC-0023 | Customs Pier: the ledger has the Merry Gull on it, and a blank line for the master.
   PLC-0024 | The ledger is open. Someone has left a second cup on the desk.
@@ -1218,7 +1231,15 @@ line says which file it goes back into. 1440 lines.
 ### PLC / ADDED 2026-11-12
   PLC-0067 | Teo plays eight bars and stops. "Never sat at her table. Never will. We play instead." The violin waits.
 
+### PLC / ADDED 2026-11-13
+  PLC-0068 | The Grey Tooth: a tin box, a list of ships; KESTREL crossed out. Inside the box a drawing: a white post exactly in front of the Tooth.
+
+### PLC / ADDED 2026-11-13
+  PLC-0069 | Gannets on every ledge, and nothing grows. On the top, a cairn; in it, a tin box with a list of ships in many hands, the last one crossed out: KESTREL. You add the Merry Gull. Inside, someone has scratched a little drawing: a white post, standing exactly in front of this rock. And two places.
+
 ### PLC / RETIRED (the text is no longer in the game; these IDs are never used again)
+    was PLC-0020 | Gannets on every ledge, and nothing grows. On the top, a cairn; in it, a tin box with a list of ships in many hands, the last one crossed out: KESTREL. You add the Merry Gull. On the lid someone has scratched a little drawing: a white post, standing exactly in front of this rock. And two places.
+    was PLC-0021 | The Grey Tooth: a tin box, a list of ships; KESTREL crossed out. On the lid a drawing: a white post exactly in front of the Tooth.
     was PLC-0028 | Teo plays eight bars and stops. The violin waits.
 
 
@@ -1426,7 +1447,6 @@ line says which file it goes back into. 1440 lines.
 
 ### TAB / LOOKS
   TAB-0005 | with a parrot that does not talk
-  TAB-0006 | with a tattoo of an eye
   TAB-0007 | who never blinks first
 
 ### TAB / WISHES
@@ -1494,6 +1514,9 @@ line says which file it goes back into. 1440 lines.
 ### TAB / step
   TAB-0062 | ${this.opp} rolls ${n}. (${t} this turn)
   TAB-0063 | ${this.opp} holds at ${t}.
+
+### TAB / RETIRED (the text is no longer in the game; these IDs are never used again)
+    was TAB-0006 | with a tattoo of an eye
 
 
 ####################################################################################################
@@ -1830,9 +1853,7 @@ line says which file it goes back into. 1440 lines.
   HUT-0003 | She nods once, as if this was always going to happen.
 
 ### HUT / LOSE_LINES
-  HUT-0004 | The lady in the hut does not say anything. She writes something down.
   HUT-0005 | She does not say anything. Somewhere under the floor, something turns over.
-  HUT-0006 | The lady does not look up. The candle leans toward you.
   HUT-0007 | She says nothing. You are sure she said your name.
 
 ### HUT / TRINKETS
@@ -1861,6 +1882,14 @@ line says which file it goes back into. 1440 lines.
   HUT-0020 | The die is already on the table, waiting for you.${this.candles()}
   HUT-0021 | You set the die down, and leave your hand on it a while. The chair does not move. Nothing is written.
   HUT-0022 | There are ${['', '', 'two', 'three', 'four', 'five', 'six'][c]} candles now.
+
+### HUT / ADDED 2026-11-13
+  HUT-0023 | She writes something down. She does not say anything.
+  HUT-0024 | She does not look up. The candle leans toward you.
+
+### HUT / RETIRED (the text is no longer in the game; these IDs are never used again)
+    was HUT-0004 | The lady in the hut does not say anything. She writes something down.
+    was HUT-0006 | The lady does not look up. The candle leans toward you.
 
 
 ####################################################################################################
@@ -1911,14 +1940,9 @@ line says which file it goes back into. 1440 lines.
 ####################################################################################################
 
 ### MAIN / combat
-  MAIN-0001 | A floating market, with bunting on every line. (Friday)
-  MAIN-0002 | A regatta! Five boats, racing.
   MAIN-0003 | A regatta! Look at them go. I wonder who they are racing, and who is giving the prize.
 
 ### MAIN / k
-  MAIN-0004 | Another whale, heading east.
-  MAIN-0005 | A sea turtle, drifting by.
-  MAIN-0006 | A whale surfaces in the distance!
   MAIN-0007 | They are all going the same way, Captain. East. Every one of them. As if they were called.
 
 ### MAIN / have
@@ -2349,7 +2373,6 @@ line says which file it goes back into. 1440 lines.
   MAIN-0259 | A hand-drawn chart of ${d.name}'s waters. You know them all already. It is a lovely drawing.
   MAIN-0260 | Delivery taken: ${j.toName} (pays ${j.reward}g on arrival)
   MAIN-0261 | "And the other one?" The harbourmaster looks along your deck, then shrugs and stamps the book.
-  MAIN-0262 | Rumour: ${t.name}, ${bearingName(t.x - d.x, t.z - d.z)} of here, ~${Math.round(dist)} fathoms. Marked on your map.
   MAIN-0263 | The lantern is full.
   MAIN-0264 | "Second one this week," says the fishmonger, and drops the hook in a jar.
   MAIN-0265 | Written in your journal. (${n} of ${life.FRAG_TOTAL} old stories)
@@ -2404,7 +2427,15 @@ line says which file it goes back into. 1440 lines.
   MAIN-0310 | In the Cays they say the dark keeps quiet while somebody plays.
   MAIN-0311 | She writes your question on a clean line: WHO COUNTS? Under it, one word. YOU. Every line above it, as far back as the book goes, ends with the same word.
 
+### MAIN / ADDED 2026-11-13
+  MAIN-0312 | Rumour: ${t.name}, ${bearingName(t.x - pierOf(d).x, t.z - pierOf(d).z)} of here, ~${Math.round(Math.hypot(t.x - pierOf(d).x, t.z - pierOf(d).z))}. Marked on your map.
+
 ### MAIN / RETIRED (the text is no longer in the game; these IDs are never used again)
+    was MAIN-0001 | A floating market, with bunting on every line. (Friday)
+    was MAIN-0002 | A regatta! Five boats, racing.
+    was MAIN-0004 | Another whale, heading east.
+    was MAIN-0005 | A sea turtle, drifting by.
+    was MAIN-0006 | A whale surfaces in the distance!
     was MAIN-0011 | ${from} gave you a treasure riddle for ${d.name}. Saved in your log: Riddles tab.
     was MAIN-0012 | ${from} gave you a riddle. Saved in your log: Riddles tab. Where it points is up to you.
     was MAIN-0061 | Open your log with M and look under the Riddles tab.
@@ -2418,6 +2449,7 @@ line says which file it goes back into. 1440 lines.
     was MAIN-0243 | Stop the ship completely (S) to look inside
     was MAIN-0248 | Stop the ship to patch the torn sail
     was MAIN-0251 | Stop the ship completely (S) to go ashore
+    was MAIN-0262 | Rumour: ${t.name}, ${bearingName(t.x - d.x, t.z - d.z)} of here, ~${Math.round(dist)} fathoms. Marked on your map.
     was MAIN-0271 | It is in your orders now, Captain: M.
     was MAIN-0279 | Hm? ... Nothing. Flat water plays tricks.
 
@@ -2506,7 +2538,6 @@ line says which file it goes back into. 1440 lines.
   HLF-0063 | Sabe sits on the steps with his eyes shut, and knows where you have been.
   HLF-0064 | Lune hums the tune until you have it.
   HLF-0065 | You keep the words in your head the whole way back.
-  HLF-0066 | You give Lune the words. She sings the whole song for the first time: a table by the water, someone who keeps the count, and everyone asleep. She stops. "That is not how I remember it ending."
   HLF-0067 | The quay is very quiet.
   HLF-0068 | At dusk the whole village sings Lune's song, all the way to the end. Lune does not. She says she never knew the words before, and hums something else.
   HLF-0069 | You find you know all the words.
@@ -2539,11 +2570,9 @@ line says which file it goes back into. 1440 lines.
 
 ### HLF / FRAG_BY_STYLE
   HLF-0092 | [classic] The bell's inscription
-  HLF-0093 | [classic] Cut round the rim of the old bell, worn almost smooth: RUNG FOR THE ONE WHO SLEEPS. RING SOFTLY.
   HLF-0094 | [fishing] An old fisher's story
   HLF-0095 | [fishing] An old fisher says his grandfather rowed out one calm night to a little black house on the water, and played a game at a table with a woman who never said a word. He won. The fish came back that year.
   HLF-0096 | [terraced] A painting on the terrace wall
-  HLF-0097 | [terraced] Painted along the terrace wall, older than the houses: the sea drawn as a closed eye, the horizon its lid, and a tiny house sitting on the lid.
   HLF-0098 | [thatch] A children's counting rhyme
   HLF-0099 | [thatch] Children skipping on the beach: "One for the gull and two for the bell, three for the one who keeps the sea well... nineteen, twenty, and all of us sleep." They start again at one.
   HLF-0100 | [market] An old woman at the market sells dice, all of them twenty-sided, every one missing a different number. "She would like them back," she says, and does not say who.
@@ -2591,6 +2620,16 @@ line says which file it goes back into. 1440 lines.
   HLF-0136 | An old fisher mending in the sun says that when he was small there were two moons, one behind the other. "Nobody else remembers," he says. "I stopped saying."
   HLF-0137 | A small painting, very old: a street that runs down to the water, not along it. A bell over the roofs. The third door is blue. Nobody here knows what town it is.
 
+### HLF / ADDED 2026-11-13
+  HLF-0138 | You give Lune the words. She sings the whole song for the first time: a table by the water, a candle, and a number nobody says. She stops. "That is not how I remember it ending."
+  HLF-0139 | Cut round the rim of the old bell, worn almost smooth: RING SOFTLY. TWO STROKES, NEVER THREE.
+  HLF-0140 | Painted along the terrace wall, older than the houses: the sea drawn as one long smooth line, a tiny house sitting on it, a light in the house, and nothing else.
+
+### HLF / RETIRED (the text is no longer in the game; these IDs are never used again)
+    was HLF-0066 | You give Lune the words. She sings the whole song for the first time: a table by the water, someone who keeps the count, and everyone asleep. She stops. "That is not how I remember it ending."
+    was HLF-0093 | [classic] Cut round the rim of the old bell, worn almost smooth: RUNG FOR THE ONE WHO SLEEPS. RING SOFTLY.
+    was HLF-0097 | [terraced] Painted along the terrace wall, older than the houses: the sea drawn as a closed eye, the horizon its lid, and a tiny house sitting on the lid.
+
 
 ####################################################################################################
 ## SOURCE LGM   (localgames.js): tavern games
@@ -2629,7 +2668,6 @@ line says which file it goes back into. 1440 lines.
   LGM-0032 | A local bids ${c.price}.
   LGM-0033 | You paid more than it was all worth. The auctioneer thanks you warmly. (${g.profit >= 0 ? '+' : ''}${g.profit})
   LGM-0034 | A little ahead. Nobody noticed. (+${g.profit})
-  LGM-0035 | A sharp eye! The dealers glare at you over their pipes. (+${g.profit})
   LGM-0036 | worth about ${g.cur.guess}?
   LGM-0037 | The marker swings: press Space as it sits over a coconut. Five balls.
   LGM-0038 | Coconuts down: ${g.hits}. Balls left: ${g.balls}.
@@ -2642,11 +2680,15 @@ line says which file it goes back into. 1440 lines.
   LGM-0045 | Some of them make it out to sea. (${g.through}/6)
   LGM-0046 | A line of little lights goes out to sea, and keeps going. (${g.through}/6)
 
+### LGM / ADDED 2026-11-13
+  LGM-0047 | Sharp work! The dealers glare at you over their pipes. (+${g.profit})
+
 ### LGM / RETIRED (the text is no longer in the game; these IDs are never used again)
     was LGM-0002 | The shuttle runs along the torn line: press Space as it crosses the gold hole.
     was LGM-0004 | Gusts push the kite about: hold A and D to keep it in the gold band for 20 seconds.
     was LGM-0005 | The arm swings: press Space as it points at a coconut. Five balls.
     was LGM-0006 | Let a lantern go with Space: the current carries it up to the rocks. It must pass the gap. Six lanterns.
+    was LGM-0035 | A sharp eye! The dealers glare at you over their pipes. (+${g.profit})
 
 
 ####################################################################################################

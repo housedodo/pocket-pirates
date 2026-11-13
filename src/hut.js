@@ -61,7 +61,7 @@ export function dieGeometry() {
 }
 
 const WIN_LINES = ['She pushes something across the table without looking at it.', 'A dry little laugh. She pays.', 'She nods once, as if this was always going to happen.'];
-const LOSE_LINES = ['The lady in the hut does not say anything. She writes something down.', 'She does not say anything. Somewhere under the floor, something turns over.', 'The lady does not look up. The candle leans toward you.', 'She says nothing. You are sure she said your name.'];
+const LOSE_LINES = ['She writes something down. She does not say anything.', 'She does not say anything. Somewhere under the floor, something turns over.', 'She does not look up. The candle leans toward you.', 'She says nothing. You are sure she said your name.'];
 const TRINKETS = ['a tooth with a tiny ship carved into it', 'a fishbone needle', 'a jar of very old sand', 'a black pearl that is warm', 'a knot of hair tied in a sailor\'s hitch'];
 
 export class Hut {

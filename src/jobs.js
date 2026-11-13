@@ -36,7 +36,7 @@ export function makeJob(world, from, serial, maxDist = 750) {
   const dark = rng() < smoothstep(0.35, 0.8, dreadAtDistance(Math.hypot(from.x, from.z)));
   return {
     fromId: from.id, fromName: from.name, toId: to.id, toName: to.name, ...pierOf(to),   // x, z: the pier, where the errand is handed in
-    reward: Math.round(20 + dist * 0.12 + to.dread * 40), item: pick(rng, dark ? ITEMS_DARK : ITEMS_BRIGHT), dark, dist: Math.round(dist),
+    reward: Math.round(20 + dist * 0.12 + to.dread * 40), item: pick(rng, dark ? ITEMS_DARK : ITEMS_BRIGHT), dark, dist: (() => { const a = pierOf(from), b = pierOf(to); return Math.round(Math.hypot(b.x - a.x, b.z - a.z)); })(),   // shown: pier to pier
   };
 }
 

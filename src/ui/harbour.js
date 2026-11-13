@@ -18,6 +18,7 @@ import * as paper from '../newspaper.js';
 import { state } from '../core/state.js';
 import { rt, G } from '../core/runtime.js';
 import { markSeen } from '../clues.js';
+import { pierOf } from '../world.js';
 import { $, toast } from './dom.js';
 import { isMarketDay, isFestival } from '../systems/calendar.js';
 import { addMark } from '../systems/storyflags.js';
@@ -104,7 +105,7 @@ export function renderHarbour() {
     const j = state.job || makeJob(G.world, d, state.serial[d.id] || 0, state.goals.i <= 8 ? 420 : 750);   // the first jobs stay close
     if (state.job && state.job.toId === d.id) html += '<small>Deliver the one above first.</small>';
     else if (state.job) html += `<div class="qrow"><div><b>${pxi('letter')} ${state.job.item}</b><br><small>to ${state.job.toName} · ${bearingName(state.job.x - d.x, state.job.z - d.z)}</small></div><small>${state.job.reward}g</small></div>`;
-    else if (j) html += `<div class="qrow"><div><b>${pxi('letter')} ${j.item}</b><br><small>to ${j.toName} · ${bearingName(j.x - d.x, j.z - d.z)}, ${j.dist} · ${j.reward}g</small></div><button id="jobAccept">Accept</button></div>`;
+    else if (j) html += `<div class="qrow"><div><b>${pxi('letter')} ${j.item}</b><br><small>to ${j.toName} · ${bearingName(j.x - pierOf(d).x, j.z - pierOf(d).z)}, ${j.dist} · ${j.reward}g</small></div><button id="jobAccept">Accept</button></div>`;
     else html += '<small>Nothing today.</small>';
     html += `<div class="sec">COMMISSIONS (${state.quests.length}/3)</div>`;
     const mine = state.quests.filter((q) => q.giverId === d.id);
@@ -157,7 +158,7 @@ export function renderHarbour() {
       renderHarbour(); });
     const tp = $('takePass'); if (tp) tp.addEventListener('click', () => {
       state.passenger = pass; state.serial[d.id + '#p'] = (state.serial[d.id + '#p'] || 0) + 1; state.tracked = 'passenger';
-      toast(`${pass.name} comes aboard, bound for ${pass.toName}.`, false, 5000); renderHarbour(); });
+      toast(`${pass.name} ${/&/.test(pass.name) ? 'come' : 'comes'} aboard, bound for ${pass.toName}.`, false, 5000); renderHarbour(); });
     pane.querySelectorAll('[data-hand]').forEach((b) => b.addEventListener('click', () => { handIn(state.quests.find((q) => q.id === b.dataset.hand), d); renderHarbour(); }));
     pane.querySelectorAll('[data-accept]').forEach((b) => b.addEventListener('click', () => { acceptCommission(offers.find((o) => o.id === b.dataset.accept)); renderHarbour(); }));
     const rb = $('rumourBuy');
@@ -167,7 +168,7 @@ export function renderHarbour() {
       const f = G.falseRumour(d), t = f || r.d, dist = f ? f.dist : r.dist;   // not everything a sailor says is true; nothing tells you which
       state.rumoured[t.id] = { name: t.name, x: Math.round(t.x), z: Math.round(t.z), source: `a drunk in ${d.name}`, found: false };
       if (f) state.rumoured[t.id].fake = f.variant;
-      toast(`Rumour: ${t.name}, ${bearingName(t.x - d.x, t.z - d.z)} of here, ~${Math.round(dist)} fathoms. Marked on your map.`, rt.dread > 0.5, 7000);
+      toast(`Rumour: ${t.name}, ${bearingName(t.x - pierOf(d).x, t.z - pierOf(d).z)} of here, ~${Math.round(Math.hypot(t.x - pierOf(d).x, t.z - pierOf(d).z))}. Marked on your map.`, rt.dread > 0.5, 7000);
       G.audio.play('buy'); renderHarbour();
     });
   } else if (rt.hbTab === 'market' && rt.hbPaper && paper.thisWeeks(state)) {   // the paper, open
@@ -230,7 +231,7 @@ export function renderHarbour() {
       html += `<div class="sec">THE HOUSE DISH</div><div class="qrow"><div><b>${pxi('fish')} ${dish.name}</b><br><small>${dish.text}, until the dawn after next${cur ? ` · you have eaten: ${Object.values(life.DISHES).find((x) => x.id === cur).name}` : ''}</small></div><button id="eatDish" ${state.gold >= dc && cur !== dish.id ? '' : 'disabled'}>${cur === dish.id ? 'Full' : `${dc}g`}</button></div>`;
       const gm = life.gameOf(d), played = life.playedToday(state, d), ev = life.isEvent(d, state);
       html += `<div class="sec">${ev ? gm.event.toUpperCase() + ' (TODAY)' : 'THE LOCAL GAME'}</div><div class="qrow"><div><b>${pxi('pip')} ${gm.name}</b><br><small>${played ? 'you have played here today' : `${gm.how} · stake 5g · ${ev ? 'double prizes today' : `double on ${life.WEEKDAYS[d.festival]}`}`}</small></div><button id="playLocal" ${!played && state.gold >= 5 ? '' : 'disabled'}>Play</button></div>`;
-      const fr = life.fragmentAt(state, d, state.goals.i >= 12);
+      const fr = life.fragmentAt(state, d, state.goals.i >= 12 && !!state.story.hutKnown);   // RULES 6: nothing about her before the hut is known
       if (fr && !fr.locked) html += `<div class="sec">AN OLD STORY</div><div class="qrow letter"><div><b>${pxi('talk')} ${fr.src}</b><br><small>the locals know you now</small></div><button id="takeFrag">Listen</button></div>`;
     }
     { // rooms are let from 17:00, you wake at 06:00 with the hull mended

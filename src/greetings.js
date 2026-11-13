@@ -187,7 +187,7 @@ export const numberWord = (n) => WORDS[n] || String(n);
 const cap = (s) => s[0].toUpperCase() + s.slice(1);
 const an = (n) => (n === 8 || n === 11 || n === 18 ? 'an' : 'a');
 const BY_ROLL = {
-  low: ['Bad luck travels fast, captain. {A} {w}, was it?', 'Heard it came up {w}. Nobody told me. I just heard.', 'You threw {a} {w} last night, did you not? The fish knew before we did.', '{W}. Hm. Well. Nobody blames you. Not yet.', 'The tide came in {w} minutes late this morning. Funny number, {w}.'],
+  low: ['Bad luck travels fast, captain. {A} {w}, was it?', 'Heard it came up {w}. Nobody told me. I just heard.', 'You threw {a} {w}, did you not? The fish knew before we did.', '{W}. Hm. Well. Nobody blames you. Not yet.', 'The tide came in {w} minutes late this morning. Funny number, {w}.'],
   ten: ['Ten. Nothing at all. She almost smiled, did she not?', 'A ten, they say. Neither here nor there. Like the rest of us.'],
   mid: ['Heard you threw {a} {w}! The whole pier slept well.', '{A} {w}, they say. Good. Good. Keep doing that.', 'Calm night, thanks to you. {W}, was it? Lovely number.'],
   high: ['{W}! The nets came up singing this morning. That was you, was it not?', 'Somebody threw {a} {w} and the whole sea went soft. Was that you, captain?'],

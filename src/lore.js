@@ -14,13 +14,14 @@ const PREFIX = {
 };
 const SYL1 = ['Mar', 'Ros', 'Tor', 'Bel', 'Cor', 'Dun', 'Fen', 'Gal', 'Hal', 'Lor', 'Mon', 'Pel', 'Sal', 'Tam', 'Vel', 'Bri', 'Cal', 'Per'];
 const SYL2 = ['ow', 'ra', 'is', 'to', 'en', 'ia', 'ay', 'ell', 'on', 'ina', 'a', 'ar'];
-const ELD1 = ["Y'", 'Ul', 'Nyth', 'Zhar', 'Kth', 'Oth', 'Vhul', 'Cth', 'Ish', 'Gha', "R'"];
-const ELD2 = ['hal', 'thu', 'ax', 'nor', 'ul', 'ith', 'oth', 'gur', 'lyeh', 'nagl'];
-const ELD_PRE = ['Isle of', 'Maw of', 'The', 'Mouth of', 'Rest of'];
+// far out the names wear away: an ordinary name (often one from home) with letters gone, as if rubbed off a chart (no genre names)
+const WORN_BASE = ['Tama', 'Tama', 'Velto', 'Monar', 'Belell', 'Salia', 'Perrin', 'Galen'];
+const worn = (rng) => { let w = rng() < 0.5 ? pick(rng, WORN_BASE) : `${pick(rng, SYL1)}${pick(rng, SYL2)}`; for (let k = 0, n = 1 + Math.floor(rng() * 2); k < n && w.length > 3; k++) { const i = 1 + Math.floor(rng() * (w.length - 1)); w = w.slice(0, i) + w.slice(i + 1); } return w; };
+const ELD_PRE = ['Isle of', 'The', 'Rest of', 'Little'];
 
 export function makeName(rng, type, dread) {
   if (rng() < smoothstep(0.35, 0.85, dread)) {
-    return `${pick(rng, ELD_PRE)} ${pick(rng, ELD1)}${pick(rng, ELD2)}`;
+    return `${pick(rng, ELD_PRE)} ${worn(rng)}`;
   }
   const pre = pick(rng, PREFIX[type]), w = `${pick(rng, SYL1)}${pick(rng, SYL2)}`;
   return `${pre} ${w === 'Mara' ? 'Maren' : w}`;   // never the first mate's name (other islands called Tama are renamed in describeCell)
@@ -140,7 +141,7 @@ export function barrelLoot(rng, dread) {
 const SEC_ADJ = ['Windward', 'Sunlit', 'Golden', 'Quiet', 'Pearl', 'Coral', 'Salt', 'Lazy', 'Emerald', 'Cinder', 'Gilded', 'Misty'];
 const SEC_NOUN = ['Reaches', 'Shoals', 'Straits', 'Banks', 'Sound', 'Cays', 'Passage', 'Waters', 'Flats'];
 export function makeSectorName(rng, dread) {
-  if (dread > 0.72 || rng() < smoothstep(0.4, 0.85, dread) * 0.7) return `${pick(rng, ['The', 'The', 'Maw of the'])} ${pick(rng, ELD1)}${pick(rng, ELD2)} ${pick(rng, ['Deep', 'Reach', 'Expanse'])}`;
+  if (dread > 0.72 || rng() < smoothstep(0.4, 0.85, dread) * 0.7) return `The ${worn(rng)} ${pick(rng, ['Deep', 'Reach', 'Water'])}`;
   return `${pick(rng, SEC_ADJ)} ${pick(rng, SEC_NOUN)}`;
 }
 

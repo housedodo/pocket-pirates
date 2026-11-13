@@ -109,7 +109,7 @@ export const ARCS = {
   singer: { who: 'Lune who sings', prop: 'candles', steps: [
     { at: 'home', say: 'Lune sings on the quay every evening, but one song always stops halfway. "My mother never taught me the end. Someone in {P} might know it."', btn: 'Ask for her', done: 'Lune hums the tune until you have it.' },
     { at: 'partner', say: 'An old woman in {P} knows the tune. She sings the last verse very quietly, and makes you say it back twice.', btn: 'Learn it', done: 'You keep the words in your head the whole way back.' },
-    { at: 'home', say: 'You give Lune the words. She sings the whole song for the first time: a table by the water, someone who keeps the count, and everyone asleep. She stops. "That is not how I remember it ending."', btn: 'Listen', done: 'The quay is very quiet.', gold: 8, dark: true },
+    { at: 'home', say: 'You give Lune the words. She sings the whole song for the first time: a table by the water, a candle, and a number nobody says. She stops. "That is not how I remember it ending."', btn: 'Listen', done: 'The quay is very quiet.', gold: 8, dark: true },
     { at: 'home', say: 'At dusk the whole village sings Lune\'s song, all the way to the end. Lune does not. She says she never knew the words before, and hums something else.', btn: 'Listen', done: 'You find you know all the words.', end: true, dark: true },
   ], after: 'At dusk they sing Lune\'s song to the end. Lune hums something else.' },
   bride: { who: 'Marisol the bride', prop: 'arch', steps: [
@@ -232,9 +232,9 @@ export function gossipAt(state, d) {
 // The source fits the village (a carving at the shrine, a song at the fishing town...). A second harbour of the same
 // style tells one of the spare ones. Never names her; never explains.
 const FRAG_BY_STYLE = {
-  classic: { src: 'The bell\'s inscription', text: 'Cut round the rim of the old bell, worn almost smooth: RUNG FOR THE ONE WHO SLEEPS. RING SOFTLY.' },
+  classic: { src: 'The bell\'s inscription', text: 'Cut round the rim of the old bell, worn almost smooth: RING SOFTLY. TWO STROKES, NEVER THREE.' },
   fishing: { src: 'An old fisher\'s story', text: 'An old fisher says his grandfather rowed out one calm night to a little black house on the water, and played a game at a table with a woman who never said a word. He won. The fish came back that year.' },
-  terraced: { src: 'A painting on the terrace wall', text: 'Painted along the terrace wall, older than the houses: the sea drawn as a closed eye, the horizon its lid, and a tiny house sitting on the lid.' },
+  terraced: { src: 'A painting on the terrace wall', text: 'Painted along the terrace wall, older than the houses: the sea drawn as one long smooth line, a tiny house sitting on it, a light in the house, and nothing else.' },
   thatch: { src: 'A children\'s counting rhyme', text: 'Children skipping on the beach: "One for the gull and two for the bell, three for the one who keeps the sea well... nineteen, twenty, and all of us sleep." They start again at one.' },
   market: { src: 'A dice seller', text: 'An old woman at the market sells dice, all of them twenty-sided, every one missing a different number. "She would like them back," she says, and does not say who.' },
   farm: { src: 'A page wrapping eggs', text: 'The eggs come wrapped in an old ledger page: two columns, a date and a number from one to twenty, going back two hundred years. The last line is dated next month.' },

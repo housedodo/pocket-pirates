@@ -16,7 +16,7 @@ export const TRAITS = {
   omen: { name: 'Superstitious', text: '+3 on rolls when the sea is wrong', omen: 3 },
 };
 const HANDS = ['Tobiah', 'Nell', 'Quint', 'Sabela', 'Ojo', 'Marisol', 'Hendrik', 'Little Fen', 'Ada Brine', 'Corvo'];
-const LOOKS = ['missing two fingers', 'humming all the time', 'with a parrot that does not talk', 'very tall', 'barefoot, always', 'with a tattoo of an eye', 'who never blinks first'];
+const LOOKS = ['missing two fingers', 'humming all the time', 'with a parrot that does not talk', 'very tall', 'barefoot, always', 'with a tattoo of an anchor', 'who never blinks first'];
 const WISHES = [
   { kind: 'volcano', text: 'wants to see a fire mountain' },
   { kind: 'atoll', text: 'wants to swim in a ring-island lagoon' },

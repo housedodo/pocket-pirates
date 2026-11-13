@@ -376,7 +376,7 @@ const GAMES = {
       if (code === 'Digit2' || code === 'Numpad2') settle(L, c.high === 'you');
     };
     g.tier = () => (g.profit >= 40 ? 2 : g.profit > 0 ? 1 : 0);
-    g.result = (t) => [`You paid more than it was all worth. The auctioneer thanks you warmly. (${g.profit >= 0 ? '+' : ''}${g.profit})`, `A little ahead. Nobody noticed. (+${g.profit})`, `A sharp eye! The dealers glare at you over their pipes. (+${g.profit})`][t];
+    g.result = (t) => [`You paid more than it was all worth. The auctioneer thanks you warmly. (${g.profit >= 0 ? '+' : ''}${g.profit})`, `A little ahead. Nobody noticed. (+${g.profit})`, `Sharp work! The dealers glare at you over their pipes. (+${g.profit})`][t];
     g.sync = (T, L) => {
       L.aim(0.6, 2.6, 6.6, 0, 1.4, -0.4);
       if (g.newIcon) { g.newIcon = false; g.lotG.clear(); g.lotG.add(lotMesh(g.cur.icon)); }
