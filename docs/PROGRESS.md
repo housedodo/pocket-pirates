@@ -1157,3 +1157,21 @@ Trials for the owner to compare; nothing changes without a flag and STYLE.md is 
 - A 35 s demo video (7 s per region) was recorded headless by stepping the game clock 1/30 s per frame (not committed).
 - Docs: STYLE 4 (each region's look, the law), RULES 24a, ARCHITECTURE, AREAS, DESIGN, the proposal (looks built, gameplay proposed).
 
+## Regions that play differently (2026-11-13, owner: "all of it")
+- `src/regions.js` holds every rule and number; `systems/reef.js` and `systems/drowned.js` run the Reef's and the Drowned's waters. The
+  table is in DESIGN.md. In short: Crown deadlines, a shared record of arrivals, customs cutters, the buoy lane; Free Cays safe nights,
+  night market, dusk fishing; Reef salvage 1.5x, bounties, coral that hurts, shoals that move at dawn, storm wrecks; Lantern oil trade,
+  dead lights to relight, the lamp burning by the lights; Drowned shoal belt open at low water, coinless harbours; regional prices.
+- Planned harbours (`world.js plannedHarbours`): one in every region's Shoals and a second for the Lantern Guild. Checked on seeds 1337,
+  1 and 42: all five planned harbours stand, each in its own region (crown 668-805, free 649-666, reef 622-637, lantern 589-606 and 893-900).
+  Old saves: a planned cell that was another island becomes a harbour.
+- Fixed on the way: the thread's salvage multiplier was applied after the gold was paid (it only changed the message).
+- Verified headless (scratchpad rules.cjs, rules2.cjs, lamp.cjs, lane.cjs): market notes and prices per region (Lantern fish 42 vs 28;
+  Cays shut by day, 39 at night; Reef ammo 15 and kits 21); Crown board "by 16:10: 151g, late 57g" for a base 104; customs took dark cargo
+  and wrote a black line; raider chances per region and hour; coral cost 15 hull and stopped the ship; a storm wreck surfaced in Reef
+  waters; a dead Guild light was dark at night, "Light the lamp (30 oil)" took 30 oil, paid 30g and lit the beam; the belt threw the
+  ship back at high water and let it through at low water; the Drowned market filled the lamp and kept a fish; the buoy lane gave one
+  clean line a day (pay 1.05x). Full game and demo regression clean.
+- Not judged headless: whether the numbers feel right over a real voyage (deadlines, the belt's wait, the coral), and the bounty and
+  the lamp burn rates (code paths not driven by a test).
+

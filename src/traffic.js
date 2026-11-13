@@ -1,3 +1,4 @@
+import { raiderChance } from './regions.js';
 import * as THREE from 'three';
 import { shipGeos } from './ship.js';
 import { Builder } from './builder.js';
@@ -107,13 +108,15 @@ export class Traffic {
     const aim = Math.atan2(ship.pos.x - x + (Math.random() - 0.5) * 200, -(ship.pos.z - z + (Math.random() - 0.5) * 200));
     const parts = this.build(kind, faction, mode === 'ghost');
     this.scene.add(parts.root);
-    const hostile = !this.noRaiders && mode === 'live' && faction.id === 'reef' && Math.random() < 0.22 && !this.ships.some((q) => q.hostile && !q.sinking);   // raiders are rare: one at a time, now and then   // no raiders until you have cannons
+    const hostile = !this.noRaiders && mode === 'live' && Math.random() < raiderChance(faction.id, this.hour ?? 12) && !this.ships.some((q) => q.hostile && !q.sinking);   // the Reef always; the Cays by day only (regions.js)   // raiders are rare: one at a time, now and then   // no raiders until you have cannons
     this.ships.push(armed({
       ...parts, id: this.nextId++, kind, mode, faction, sector, x, z, heading: aim,
       speed: mode === 'live' ? K.speed[0] + Math.random() * (K.speed[1] - K.speed[0]) : mode === 'derelict' ? 1.2 : 3.2,
       age: 0, sgn: 1, roll: Math.random(), state: 'none', seed: Math.floor(Math.random() * 1e9),
       name: `${faction.name} ${hostile ? 'raider' : K.label}`,
     }, hostile));
+    const s = this.ships[this.ships.length - 1];
+    if (!hostile && mode === 'live' && faction.id === 'crown' && Math.random() < 0.15) { s.special = 'customs'; s.name = 'Customs cutter'; }   // the Crown checks what you carry (regions.js)
   }
 
   /** place a specific ship (also used by tests) */
@@ -222,6 +225,7 @@ export class Traffic {
   }
 
   update(dt, t, ctx) {
+    if (ctx.sched) this.hour = ctx.sched.hour;
     const { ship, dread, wave, wind } = ctx;
     this.routines(dt, t, ctx);
     this.timer -= dt;
@@ -247,6 +251,11 @@ export class Traffic {
           s.heading += clamp(angleDiff(s.heading, want), -0.7 * dt, 0.7 * dt);
           s.speed = K.speed[1] * 0.95;
         } else s.speed = Math.max(s.speed, K.speed[0]);   // never idle in the water
+      }
+      if (s.special === 'customs' && !s.inspected) {   // a customs cutter comes alongside once, looks in the hold, and goes on its way
+        const dx = ship.pos.x - s.x, dz = ship.pos.z - s.z, dd = Math.hypot(dx, dz);
+        if (dd < 200) { s.heading += clamp(angleDiff(s.heading, Math.atan2(dx, -dz)), -0.6 * dt, 0.6 * dt); s.speed = KINDS[s.kind].speed[1]; }
+        if (dd < 24) { s.inspected = true; s.heading += Math.PI * 0.6; if (this.onCustoms) this.onCustoms(s); }
       }
       if (s.mode === 'derelict') s.heading += Math.sin(s.age * 0.07 + i) * 0.03 * dt;
       s.x += Math.sin(s.heading) * s.speed * dt; s.z -= Math.cos(s.heading) * s.speed * dt;

@@ -121,7 +121,7 @@ export function doOffer(i) {
     const j = makeJob(G.world, from, (state.serial[from.id] || 0) + 100 + sh.id);
     if (!j) { toast('They have nothing to send right now.'); return; }
     j.fromName = `the ${sh.name}`; j.reward = Math.round(j.reward * 0.8);
-    state.job = j;
+    state.job = j;   // (a ship's delivery is never timed)
     toast(`Message taken: deliver ${j.item} to ${j.toName} (+${j.reward}g)`, j.dark, 7000);
   }
   state.gold -= o.cost; o.used = true;

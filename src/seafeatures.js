@@ -74,7 +74,24 @@ function geos() {
   discGeo.setAttribute('color', new THREE.Float32BufferAttribute(dc, 4));
 }
 
+function wreckMesh(ry, x, z) {
+  const g = new THREE.Group();
+  const hull = new THREE.Mesh(shipGeos().hull, mats.props);
+  hull.rotation.set(0.32, 0, 0.45); hull.position.y = -1.4; hull.scale.setScalar(1.3);
+  g.add(hull); g.add(new THREE.Mesh(wreckExtraGeo, mats.props));
+  g.rotation.y = ry; g.position.set(x, 0, z);
+  return g;
+}
+
 export class SeaFeatures {
+  /** a wreck that is not in the cell plan (a Reef storm brings one up, regions.js); null if its water is not loaded */
+  addWreck(x, z, id, dread, rngSeed) {
+    const items = this.cells.get(`${Math.round(x / CELL)},${Math.round(z / CELL)}`); if (!items) return null;
+    const o = { type: 'wreck', id, x, z, mesh: wreckMesh((rngSeed % 628) / 100, x, z), dread, salvaged: false, rngSeed, extra: true };
+    items.push(o); this.scene.add(o.mesh); return o;
+  }
+  /** take such a wreck away again (the next low tide) */
+  removeWreck(id) { for (const items of this.cells.values()) { const i = items.findIndex((o) => o.id === id); if (i >= 0) { this.scene.remove(items[i].mesh); items.splice(i, 1); if (this.nearWreck && this.nearWreck.o.id === id) this.nearWreck = null; return true; } } return false; }
   /** is there a wreck (salvaged or not) within r of the point */
   wreckNear(x, z, r) { for (const items of this.cells.values()) for (const o of items) if (o.type === 'wreck' && Math.hypot(o.x - x, o.z - z) < r) return true; return false; }
   /** half-sunk wrecks are solid */
@@ -144,12 +161,7 @@ export class SeaFeatures {
       }
     } else if (roll < 0.34) {   // wrecks: a rare find (8% of open cells, was 20%); still about ten inside the fog once salvage opens
       const id = `w:${cx},${cz}`;
-      const g = new THREE.Group();
-      const hull = new THREE.Mesh(shipGeos().hull, mats.props);
-      hull.rotation.set(0.32, 0, 0.45); hull.position.y = -1.4; hull.scale.setScalar(1.3);
-      g.add(hull); g.add(new THREE.Mesh(wreckExtraGeo, mats.props));
-      g.rotation.y = rng() * 6.28;
-      g.position.set(bx, 0, bz);
+      const g = wreckMesh(rng() * 6.28, bx, bz);
       add({ type: 'wreck', id, x: bx, z: bz, mesh: g, dread, salvaged: this.collected.has(id), rngSeed: hash2(cx, cz, this.seed + 5) });
     } else if (roll < 0.46) {   // nothing: open water
     } else if (roll < 0.54 && dread > 0.08) {

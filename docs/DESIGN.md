@@ -311,3 +311,13 @@ lantern strings, Reef coral heads in breakers, Lantern lamp rows and dark towers
 blends slowly in space and time. For now this is the look only: the shapes have no collision and change no rules. The gameplay half
 (regional earning, risks and rhythms that the looks are meant to announce) is proposed in `docs/proposals/REGIONS.md`.
 
+## Regions that play differently (2026-11-13, `src/regions.js`)
+| Region | How it plays | Numbers |
+|---|---|---|
+| Crown Traders | Deliveries from Crown harbours have a deadline ("by 14:30"); a shared record of arrivals at every Crown harbour (ticks and black lines on the board); customs cutters come alongside once and look in the hold; sailing in between the buoys is a clean arrival | on time 1.45x, late 0.55x; +5% pay per clean line up to +25%, -15% per black line; three clean in a row wipe a black one; clean hold +5g, dark cargo taken and a black line; customs 15% of Crown ships |
+| Free Cays | Raiders only by day; the stalls open after dark and pay more; swordfish, cuttlefish and moonfish come into open water at their hours | raiders 10% of spawns by day, 0 at night; night market 1.4x fish and fruit; dusk fish 2x |
+| Reef Brotherhood | Wrecks pay more; a bounty for raiders sunk there, paid at any Reef harbour; coral heads are rock; the shoals are laid out again each dawn; a storm brings a wreck up, gone at the next low water; powder and sailcloth cheap | salvage 1.5x; bounty 40g; coral 6+ hull and the ship stops; ammo and patch kits 0.6x |
+| Lantern Guild | Fish dear; the Guild buys lamp oil; half its lighthouses are dark at night, relight one with 30 oil for pay and the local chart; the lamp burns half near a lit light and double in the open dark | fish 1.5x; oil 0.9g a unit (Tama sells at 0.42); relight 30 oil for 30g; lighthouses on 85% of its harbours, 60% of its rocky isles |
+| The Drowned | A shoal belt (1740-1800 from Tama) only open at low water: at high water it throws you back and scrapes the hull; its harbours take no coin, fill the lamp, the kits and the hull once a day and keep one thing from the hold | belt opens below tide -0.3; 5 hull a scrape (full game only) |
+Every region has a harbour in its Shoals (about 620 out) and the Lantern Guild a second one (about 950), planned per seed (`world.js plannedHarbours`). Crown towns pay 1.5x for fruit.
+

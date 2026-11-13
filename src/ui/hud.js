@@ -11,6 +11,7 @@ import { rt, G } from '../core/runtime.js';
 import { $, compass, toast } from './dom.js';
 import { pierOf } from '../world.js';
 import { LM } from '../landmarks.js';
+import { clockAt } from '../regions.js';
 import { sectorAt } from '../sectors.js';
 
 export let trackerEl;   // set by the init function(s) below, at the point in boot where main.js had them
@@ -94,7 +95,7 @@ export function updateTracker() {
   if (g) { const s = slipInfo();   // the slip: what, where, which way and how long (always these three, in this order)
     rows.push(`<div class="trow main"><i class="ico flag"></i>${g.title}${goalCount(g, { state, ship: G.ship })}${fresh ? '<span class="tag">NEW</span>' : ''}</div>${s.where ? `<div class="trow where">${s.where}</div>` : ''}${s.way ? `<div class="trow way">${s.way}</div>` : ''}`); }
   const tr = trackedOne(), others = (state.job ? 1 : 0) + (state.passenger ? 1 : 0) + state.quests.length - (tr ? 1 : 0);
-  if (tr === 'job') rows.push(`<div class="trow">${pxi('letter')} ${state.job.toName}</div>`);
+  if (tr === 'job') rows.push(`<div class="trow">${pxi('letter')} ${state.job.toName}${state.job.due != null ? ` · ${clockAt(state.job.due)}` : ''}</div>`);
   else if (tr === 'passenger') rows.push(`<div class="trow">${pxi('talk')} ${state.passenger.name} to ${state.passenger.toName}</div>`);
   else { const q = state.quests.find((x) => x.id === tr); if (q) rows.push(`<div class="trow">${questIcon(q)} ${questTitle(q, rt.dread)} <b>${questProgress(q, state)}/${questNeed(q)}</b></div>`); }
   if (others > 0) rows.push(`<div class="thint">+${others} more in your orders (J)</div>`);

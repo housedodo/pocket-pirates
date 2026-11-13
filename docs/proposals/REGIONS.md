@@ -1,7 +1,8 @@
 # Regions that play differently: proposal (2026-11-13)
 
 **Status:** the looks are BUILT (each region's light and its things on the water; STYLE 4, `systems/regionlook.js`,
-`regiondecor.js`). The gameplay below is still a proposal: nothing of it is built yet.
+`regiondecor.js`). The gameplay is BUILT too (2026-11-13, `src/regions.js`, DESIGN.md "Regions that play differently"), except regional standing and
+per-region derelicts in the deep, which stay ideas.
 
 Merged from the gameplay and design studies (scripts and screenshots were throwaway; nothing here is built yet).
 None of it needs text from the writer. Every idea implies the region's story through rules and pictures, never words.

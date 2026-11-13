@@ -18,6 +18,7 @@ import * as paper from '../newspaper.js';
 import { state } from '../core/state.js';
 import { rt, G } from '../core/runtime.js';
 import { markSeen } from '../clues.js';
+import { drownedTake, OIL_SELL, sellMul, buyMul, marketNote, takeJob, clockAt, nowD, jobPay, DAY_SECONDS, recordMarks } from '../regions.js';
 import { pierOf } from '../world.js';
 import { $, toast } from './dom.js';
 import { isMarketDay, isFestival } from '../systems/calendar.js';
@@ -105,7 +106,10 @@ export function renderHarbour() {
     const j = state.job || makeJob(G.world, d, state.serial[d.id] || 0, state.goals.i <= 8 ? 420 : 750);   // the first jobs stay close
     if (state.job && state.job.toId === d.id) html += '<small>Deliver the one above first.</small>';
     else if (state.job) html += `<div class="qrow"><div><b>${pxi('letter')} ${state.job.item}</b><br><small>to ${state.job.toName} · ${bearingName(state.job.x - d.x, state.job.z - d.z)}</small></div><small>${state.job.reward}g</small></div>`;
-    else if (j) html += `<div class="qrow"><div><b>${pxi('letter')} ${j.item}</b><br><small>to ${j.toName} · ${bearingName(j.x - pierOf(d).x, j.z - pierOf(d).z)}, ${j.dist} · ${j.reward}g</small></div><button id="jobAccept">Accept</button></div>`;
+    else if (j && j.timed) {   // the Crown keeps time: a deadline, two prices, and the shared book of arrivals (regions.js)
+      const due = clockAt(nowD(state) + j.timed / DAY_SECONDS), on = jobPay(state, { ...j, due: Infinity }, 'crown'), late = jobPay(state, { ...j, due: -1 }, 'crown');
+      html += `<div class="qrow"><div><b>${pxi('letter')} ${j.item}</b><br><small>to ${j.toName} · ${bearingName(j.x - pierOf(d).x, j.z - pierOf(d).z)}, ${j.dist} · by ${due}: ${on}g, late ${late}g</small></div><button id="jobAccept">Accept</button></div><div class="ledgerrow">${recordMarks(state, pxi)}</div>`;
+    } else if (j) html += `<div class="qrow"><div><b>${pxi('letter')} ${j.item}</b><br><small>to ${j.toName} · ${bearingName(j.x - pierOf(d).x, j.z - pierOf(d).z)}, ${j.dist} · ${j.reward}g</small></div><button id="jobAccept">Accept</button></div>`;
     else html += '<small>Nothing today.</small>';
     html += `<div class="sec">COMMISSIONS (${state.quests.length}/3)</div>`;
     const mine = state.quests.filter((q) => q.giverId === d.id);
@@ -135,7 +139,7 @@ export function renderHarbour() {
       toast(k ? `A hand-drawn chart of ${d.name}'s waters. ${k} island${k > 1 ? 's' : ''} added to your map.` : `A hand-drawn chart of ${d.name}'s waters. You know them all already. It is a lovely drawing.`, false, 6000);
       G.audio.play('buy'); renderHarbour(); });
     const ja = $('jobAccept');
-    if (ja) ja.addEventListener('click', () => { state.job = j; toast(`Delivery taken: ${j.toName} (pays ${j.reward}g on arrival)`, j.dark); G.audio.play('buy'); renderHarbour(); });
+    if (ja) ja.addEventListener('click', () => { state.job = takeJob(state, j); toast(j.due != null ? `Delivery taken: ${j.toName}, by ${clockAt(j.due)}.` : `Delivery taken: ${j.toName} (pays ${j.reward}g on arrival)`, j.dark); G.audio.play('buy'); renderHarbour(); });
     pane.querySelectorAll('.thrAct').forEach((b) => b.addEventListener('click', () => { const id = b.dataset.act; G.threads.harbourAct(id, d); if (id === 'hollow') return; renderHarbour(); }));
     const tkp = $('takePet'); if (tkp) tkp.addEventListener('click', () => { takePet(tkp.dataset.pet); renderHarbour(); });
     pane.querySelectorAll('.lifeStep').forEach((b) => b.addEventListener('click', () => {
@@ -175,24 +179,37 @@ export function renderHarbour() {
     pane.innerHTML = paper.paperHTML(paper.thisWeeks(state)) + '<div class="qrow"><div></div><button id="foldPaper">Fold it away</button></div>';
     $('foldPaper').addEventListener('click', () => { rt.hbPaper = false; G.audio.play('ui', { vol: 0.3 }); renderHarbour(); });
     pane.scrollTop = 0;
+  } else if (rt.hbTab === 'market' && d.region === 'drowned') {   // the Drowned take no coin: they give what you lack, and keep one thing (regions.js)
+    const done = state.story.placeSet && state.story.placeSet[d.id] === state.dayN, take = drownedTake(state);
+    html += `<div class="sec">MARKET</div><small>Nobody here will take coin.</small>`;
+    html += done ? '<small>The table is cleared. Come back tomorrow.</small>' : `<div class="qrow"><div><b>${pxi('lamp')} What the ship needs</b><br><small>oil to the brim, sailcloth, the hull made good. They keep ${take ? take.label : 'nothing: the hold is empty'}.</small></div><button id="placeSet">Take it</button></div>`;
+    pane.innerHTML = html;
+    const ps = $('placeSet'); if (ps) ps.addEventListener('click', () => {
+      const tk = drownedTake(state); if (tk) tk.take();
+      state.oil = oilCap(state.upgrades); state.patchKits = 3; state.hp = G.ship.mods.maxHp;
+      (state.story.placeSet = state.story.placeSet || {})[d.id] = state.dayN;
+      toast(tk ? `They fill the lamp, fold sailcloth into the locker and mend the hull. They keep ${tk.label}. Nobody says thank you.` : 'They fill the lamp, fold sailcloth into the locker and mend the hull. They ask for nothing. That is worse.', true, 7000);
+      G.audio.play('buy'); renderHarbour(); });
   } else if (rt.hbTab === 'market') {
     const hg = state.haggle && state.haggle.id === d.id && state.haggle.day === state.dayN ? state.haggle : null, hm = (hg ? hg.mult : 1) / G.dreamCost() * (isMarketDay() ? 1.25 : 1) * (G.threads.touched(d) ? 1.15 : 1) * G.threads.priceMul(d);
-    const fishVal = Math.round(state.catch.reduce((a, f) => a + f.value, 0) * 0.7 * (1 + 0.05 * lvl) * hm * (isFestival(d) ? 1.5 : 1));
+    const hr = state.time * 24, shut = d.region === 'free' && !(hr >= 19 || hr < 5);   // the Cays' stalls open after dark (regions.js)
+    const fishVal = Math.round(state.catch.reduce((a, f) => a + f.value, 0) * 0.7 * (1 + 0.05 * lvl) * hm * (isFestival(d) ? 1.5 : 1) * sellMul(d, 'fish', hr));
     const fruitList = Object.entries(state.fruit).filter(([, n]) => n > 0);
-    const fruitVal = Math.round(fruitList.reduce((a, [f, n]) => a + FRUITS[f].price * n, 0) * 0.7 * (1 + 0.05 * lvl) * hm);
-    const ammoCost = Math.ceil(25 * discount(rep) * G.costMul());
+    const fruitVal = Math.round(fruitList.reduce((a, [f, n]) => a + FRUITS[f].price * n, 0) * 0.7 * (1 + 0.05 * lvl) * hm * sellMul(d, 'fruit', hr));
+    const ammoCost = Math.ceil(25 * discount(rep) * G.costMul() * buyMul(d, 'ammo'));
     html += `<div class="sec">STANDING HERE</div><small>${pxi('star').repeat(lvl)}${pxi('nostar').repeat(3 - lvl)}${lvl ? `  (-${lvl * 5}% prices, +${lvl * 5}% for your catch)` : '  (visit and deliver to be remembered)'}</small>`;
-    html += '<div class="sec">SELL</div>' + priceNote() + (isFestival(d) ? '<small>Festival day: fish fetch half again as much.</small>' : isMarketDay() ? '<small>Market day: everything sells for a quarter more.</small>' : '');
+    html += '<div class="sec">SELL</div>' + priceNote() + (marketNote(d, hr) ? `<small>${marketNote(d, hr)}</small>` : '') + (isFestival(d) ? '<small>Festival day: fish fetch half again as much.</small>' : isMarketDay() ? '<small>Market day: everything sells for a quarter more.</small>' : '');
     if (unlocked(state, 'haggle')) html += `<div class="qrow"><div><b>${pxi('coin')} Haggle</b><br><small>${hg ? (hg.mult > 1 ? `they pay ${Math.round((hg.mult - 1) * 100)}% more today` : hg.n === 1 ? 'word got round: 20% less for your catch, everything else 10% dearer' : 'they are offended: 10% less today') : 'a talk roll, once a day: 12 or more'}</small></div>${hg ? '' : '<button id="haggle">Roll</button>'}</div>`;
-    html += `<div class="qrow"><div><b>${pxi('fish')} Fish</b><br><small>${state.catch.length ? `${state.catch.length} in the hold` : 'none: slow down and press C at sea'}</small></div>${state.catch.length ? `<button id="sellFish">+${fishVal}g</button>` : ''}</div>`;
-    html += `<div class="qrow"><div><b>${pxi('banana')} Fruit</b><br><small>${fruitList.length ? fruitList.map(([f, n]) => `${n} ${plural(fruitName(f, rt.dread), n)}`).join(', ') : 'none: press E at jungle isles'}</small></div>${fruitList.length ? `<button id="sellFruit">+${fruitVal}g</button>` : ''}</div>`;
+    html += `<div class="qrow"><div><b>${pxi('fish')} Fish</b><br><small>${state.catch.length ? `${state.catch.length} in the hold` : 'none: slow down and press C at sea'}</small></div>${state.catch.length && !shut ? `<button id="sellFish">+${fishVal}g</button>` : ''}</div>`;
+    html += `<div class="qrow"><div><b>${pxi('banana')} Fruit</b><br><small>${fruitList.length ? fruitList.map(([f, n]) => `${n} ${plural(fruitName(f, rt.dread), n)}`).join(', ') : 'none: press E at jungle isles'}</small></div>${fruitList.length && !shut ? `<button id="sellFruit">+${fruitVal}g</button>` : ''}</div>`;
     { // the Colour thread: the quiet buyer, and a market the colour has already reached
       const cb = G.threads.c, hold = state.catch.filter((f) => f.bright), bv = Math.round(hold.reduce((a, f) => a + f.value, 0) * 2.2);
       if (G.threads.touched(d)) html += '<small>The fish stalls are full of bright ones today. Nobody says where from.</small>';
       if (cb && hold.length && !cb.end) html += `<div class="sec">A QUIET BUYER</div><div class="qrow"><div><b>${pxi('fish')} The bright ones</b><br><small>a stranger in a grey coat would take ${hold.length} off your hands at more than twice the price, and not ask where</small></div><button id="sellBright">+${bv}g</button></div>`;
     }
+    if (d.region === 'lantern' && G.oilOn() && state.oil > 10) { const ov = Math.round((state.oil - 10) * OIL_SELL * hm); html += `<div class="qrow"><div><b>${pxi('lamp')} Lamp oil</b><br><small>the Guild buys all but a little for the way home</small></div><button id="sellOil">+${ov}g</button></div>`; }   // the Lantern Guild buys oil (regions.js)
     if (unlocked(state, 'cannons')) html += `<div class="sec">BUY</div><div class="qrow"><div><b>${pxi('ball')} 10 cannonballs</b><br><small>you have ${state.ammo}</small></div><button id="buyAmmo" ${state.gold >= ammoCost ? '' : 'disabled'}>${ammoCost}g</button></div>`;
-    if (G.oilOn()) { const kc = Math.ceil(35 * discount(rep) * G.costMul()); html += `<div class="sec">SAILCLOTH</div><div class="qrow"><div><b>${pxi('sail')} Sail patch kit</b> <span class="kits">${[0, 1, 2].map((k) => `<i class="${k < state.patchKits ? 'on' : ''}"></i>`).join('')}</span><br><small>${state.patchKits} aboard, room for 3: mends a torn sail at sea</small></div>${state.patchKits < 3 ? `<button id="buyKit" ${state.gold >= kc ? '' : 'disabled'}>${kc}g</button>` : '<button disabled>Full</button>'}</div>`; }
+    if (G.oilOn()) { const kc = Math.ceil(35 * discount(rep) * G.costMul() * buyMul(d, 'kit')); html += `<div class="sec">SAILCLOTH</div><div class="qrow"><div><b>${pxi('sail')} Sail patch kit</b> <span class="kits">${[0, 1, 2].map((k) => `<i class="${k < state.patchKits ? 'on' : ''}"></i>`).join('')}</span><br><small>${state.patchKits} aboard, room for 3: mends a torn sail at sea</small></div>${state.patchKits < 3 ? `<button id="buyKit" ${state.gold >= kc ? '' : 'disabled'}>${kc}g</button>` : '<button disabled>Full</button>'}</div>`; }
     if (G.oilOn()) { const { need, cost } = G.buyOil(discount(rep) * G.costMul()); html += `<div class="sec">LAMP OIL</div><div class="qrow"><div><b>${pxi('lamp')} Fill the lantern</b><span class="gauge"><i style="width:${Math.round(state.oil / oilCap(state.upgrades) * 100)}%"></i></span><br><small>${Math.round(state.oil)} of ${oilCap(state.upgrades)}: it burns at night, in fog and in storms</small></div>${need >= 1 ? `<button id="buyOil" ${state.gold >= cost ? '' : 'disabled'}>${cost}g</button>` : '<button disabled>Full</button>'}</div>`; }
     { // the paper comes in on the Friday boat: one copy a week (newspaper.js)
       const cp = paper.thisWeeks(state);
@@ -203,7 +220,7 @@ export function renderHarbour() {
     }
     html += `<div class="sec">SHIPYARD</div><div class="qrow"><div><b>${pxi('paint')} Paint, sails, pennants, figureheads</b></div><button id="openYard">Open</button></div>`;
     pane.innerHTML = html;
-    { const bk = $('buyKit'); if (bk) bk.addEventListener('click', () => { const kc = Math.ceil(35 * discount(rep) * G.costMul()); if (state.gold < kc || state.patchKits >= 3) return; state.gold -= kc; state.patchKits++; G.audio.play('buy'); renderHarbour(); }); }
+    { const bk = $('buyKit'); if (bk) bk.addEventListener('click', () => { const kc = Math.ceil(35 * discount(rep) * G.costMul() * buyMul(d, 'kit')); if (state.gold < kc || state.patchKits >= 3) return; state.gold -= kc; state.patchKits++; G.audio.play('buy'); renderHarbour(); }); }
     { const bo = $('buyOil'); if (bo) bo.addEventListener('click', () => { const { cost } = G.buyOil(discount(rep) * G.costMul()); if (state.gold < cost) return; state.gold -= cost; state.oil = oilCap(state.upgrades); G.audio.play('buy'); toast('The lantern is full.', false, 2500); renderHarbour(); }); }
     const sf = $('sellFish'); if (sf) sf.addEventListener('click', () => { state.gold += fishVal; toast(`Sold ${state.catch.length} fish for ${fishVal} gold.`);
       if (state.story.hook === 'aboard' && state.catch.some((c) => c.hooked)) { state.story.hook = 'sold'; setTimeout(() => toast('"Second one this week," says the fishmonger, and drops the hook in a jar.', false, 7000), 1600); } state.catch = []; G.audio.play('buy'); renderHarbour(); });
@@ -211,6 +228,7 @@ export function renderHarbour() {
       const cb = G.threads.c, hold = state.catch.filter((f) => f.bright), v = Math.round(hold.reduce((a, f) => a + f.value, 0) * 2.2);
       state.gold += v; state.catch = state.catch.filter((f) => !f.bright); if (cb) cb.end = 'sold'; addMark('salt');
       toast(`+${v} gold. He does not weigh it. He lifts it once, nods, and is not on the quay when you look again.`, false, 8000); G.audio.play('buy'); renderHarbour(); });
+    { const so = $('sellOil'); if (so) so.addEventListener('click', () => { const v = Math.round((state.oil - 10) * OIL_SELL * hm); state.gold += v; state.oil = 10; G.audio.play('buy'); toast(`The Guild takes the oil: +${v} gold.`, false, 3500); renderHarbour(); }); }
     const sfr = $('sellFruit'); if (sfr) sfr.addEventListener('click', () => { state.gold += fruitVal; toast(`Sold fruit for ${fruitVal} gold.`); state.fruit = {}; G.audio.play('buy'); renderHarbour(); });
     if ($('buyAmmo')) $('buyAmmo').addEventListener('click', () => { if (state.gold < ammoCost) return; state.gold -= ammoCost; state.ammo += 10; G.audio.play('buy'); renderHarbour(); });
     $('openYard').addEventListener('click', () => G.openModal('yard'));

@@ -14,6 +14,8 @@ import { mats } from './psx.js';
 import { mulberry32 } from './util.js';
 
 const NIGHT = (i) => i.tod && i.tod.night > 0.45;
+let DAY = 0;   // the Reef's shoals are laid out again each dawn (main.js sets the day; world.refresh rebuilds the Reef islands)
+export const setDecorDay = (n) => { DAY = n; };
 const ALWAYS = () => true;
 
 /** d: the island; A: its prop builder; extra: its state props; h: { shoreR, terrainHeight } from world.js */
@@ -62,11 +64,13 @@ export function regionDecor(d, A, extra, h) {
     if (spots.length) st(L, NIGHT, mats.glow);
     if (harbour) for (const side of [-12, 14]) { const [x, z] = P(40, side); A.push(x, -0.2, z, way + 0.3); A.box(0, 0, 0, 1.4, 0.6, 7, '#8a4a20', TILE.planks); A.pop(); }   // canoes
   } else if (reg === 'reef') {   // coral heads in white water across the way in, a mast leaning out of the water
-    const n = Math.round(14 * lane), F = mk();
+    const n = Math.round(14 * lane), F = mk(), rd = mulberry32((d.seed || 1) * 31 + DAY * 977 + 5);   // where the heads are today
+    d.coral = [];
     for (let i = 0; i < n; i++) {
-      const out = 8 + ((i * 53) % 60) * lane, side = (i % 2 ? 1 : -1) * (8 + ((i * 37) % 30));
+      const out = 8 + rd() * 60 * lane, side = (rd() < 0.5 ? 1 : -1) * (8 + rd() * 30);
       if (harbour && Math.abs(side) < 10) continue;   // a harbour keeps a channel open
       const [x, z] = P(out, side), r = 1.2 + (i % 3), ht = 2.5 + (i % 4);
+      d.coral.push({ x: d.x + x, z: d.z + z, r });   // world position, for grounding (main.js)
       A.cyl(x, 0.6 - ht / 2, z, r, 0, ht, 5, '#14100e', TILE.stone);
       F.cyl(x, 0.05, z, 3 + (i % 3), 3.6 + (i % 3), 0.3, 10, '#ffffff', TILE.white, true);   // the white water breaking on it (flat white, above the swell)
     }

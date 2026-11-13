@@ -14,6 +14,8 @@ systems/lullaby.js      the Two Players keep the Free Cays quiet; where they are
 systems/lostsailors.js  the sailors who went mad (deep dread)
 systems/edge.js         the Edge sequence
 systems/regionlook.js   each region's own light, blended slowly across borders (called once a frame after sampleStage)
+systems/reef.js         the Reef: coral that hurts, shoals laid out again each dawn, storm wrecks that go at the next low water
+systems/drowned.js      the Drowned: the shoal belt that only opens at low water
 ui/harbour.js           the harbour screens: board, market, tavern, shipwright, greetings, letters, companions, tutorial marks
 ui/shiptrade.js         hailing other ships and trading with them
 ui/shipyard.js          the shipyard turntable (cosmetics)
@@ -28,7 +30,8 @@ core/state.js           the voyage's saved state, built once from the save (+ sa
 core/runtime.js         rt: everything the game tracks while it runs (modal, dread, tNow, started, camera, screens...)
                         G: services and functions main.js lends the modules (world, ship, audio, openModal, toast...)
 core/config.js          URL params, DEV, localStorage (store, keys), the saved voyage, settings, session flags
-feature modules         world.js (+ regiondecor.js: each region's things on the water, built with the island), ship.js, audio.js, objectives.js, ... : below main; given what they need by constructor or
+feature modules         regions.js (each region's rules and numbers: prices, raiders, Crown record and deadlines, bounties, oil, the
+                        Guild's dead lights, the belt, the coinless harbours), world.js (+ regiondecor.js: each region's things on the water, built with the island; planned harbours), ship.js, audio.js, objectives.js, ... : below main; given what they need by constructor or
                         callback (dependency injection), never by importing main.js or a ui/ module
 ```
 

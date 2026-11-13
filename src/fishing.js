@@ -44,12 +44,14 @@ export const HABITAT = {
   bream: { zones: ['harbour'], hours: [16, 21], text: 'Sea bream gather by harbour piers in the evening.', say: 'Bream like the pilings of a pier, evenings, with the cooking smoke on the water.' },
   moonfish: { zones: ['open', 'deep'], hours: [21, 4], text: 'Moonfish rise in open water on dark nights.', say: 'Moonfish? Open water, deep night. They come up for the moon.' },
 };
+const CAYS_DUSK = ['sword', 'cuttle', 'moonfish'];   // regions.js: the Free Cays' fishing grounds
 const inHours = (h, [a, b]) => (a <= b ? h >= a && h < b : h >= a || h < b);
 /** how well a species fits the water the line is in (1 = ideal); a poor fit is never zero, so luck still counts */
 export function habitatFit(id, env) {
   const hb = HABITAT[id]; if (!hb || !env) return 1;
-  let k = hb.zones.some((z) => env.zones.includes(z)) ? 1 : 0.1;
-  if (hb.hours) k *= inHours(env.hour, hb.hours) ? 1.5 : 0.45;
+  const cays = env.region === 'free' && CAYS_DUSK.includes(id);   // the Cays' calm water: the dusk and night fish come into open water, and bite better
+  let k = hb.zones.some((z) => env.zones.includes(z)) || (cays && env.zones.includes('open')) ? 1 : 0.1;
+  if (hb.hours) k *= inHours(env.hour, hb.hours) ? 1.5 * (cays ? 2 : 1) : 0.45;
   if (hb.tide) k *= env.low ? 1.6 : 0.4;
   return k;
 }

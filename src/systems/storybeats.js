@@ -6,6 +6,8 @@ import { setReach, bearingName, nearby } from '../jobs.js';
 import { sectorAt, bumpSectors } from '../sectors.js';
 import { KINDS } from '../traffic.js';
 import { isKnown } from '../clues.js';
+import { BOUNTY, lampBurnMul, lampDead, regionAt } from '../regions.js';
+import { nightKey } from './calendar.js';
 import { maraRemembers } from '../table.js';
 import { gateRadius } from '../objectives.js';
 import { tod } from '../daynight.js';
@@ -144,12 +146,18 @@ export function seaTick(dt, windNow) {
 /** 1 while the ship is in Free Cays waters (their sector), else 0: the night music there is a lone guitar with silences */
 export function freeCaysNow() { return sectorAt(G.ship.pos.x, G.ship.pos.z, state.seed).faction.id === 'free' ? 1 : 0; }
 export function oilCtx() { return { night: tod.night, fog: G.weather.fog, storm: G.weather.storm, dread: rt.dread, rowing: G.ship.rowing }; }
+/** the lamp in the Lantern Guild's waters: half while a lit lighthouse is in sight (within 260), double in the open dark there */
+function lampBurn() {
+  const p = G.ship.pos, reg = regionAt(p.x, p.z, state.seed); if (reg !== 'lantern') return 1;
+  let near = false; for (const isl of G.world.islands.values()) { const a = isl.desc.lampAt; if (a && Math.hypot(a.x - p.x, a.z - p.z) < 260 && !lampDead(state, isl.desc, nightKey())) { near = true; break; } }
+  return lampBurnMul(reg, near);
+}
 export function oilTick(dt) {
   const cap = oilCap(state.upgrades);
   const off = !!state.story.lampOff, needed = lanternLit(oilCtx());   // L puts the lantern out by hand (saves oil, sail by moonlight)
   if (!oilOn()) { state.oil = cap; rt.lampOut = off && needed; return; }
   const lit = needed && !off, before = state.oil;
-  if (lit) state.oil = clamp(state.oil - oilRate(oilCtx()) * dt, 0, cap);
+  if (lit) state.oil = clamp(state.oil - oilRate(oilCtx()) * dt * lampBurn(), 0, cap);   // the Lantern Guild's waters (regions.js)
   rt.lampOut = needed && (off || state.oil <= 0);
   const night = state.dayN * 2 + (state.time > 0.5 ? 1 : 0);   // one warning of each kind per dark spell
   if (lit && before > cap * 0.25 && state.oil <= cap * 0.25 && rt.oilNight !== night && !G.eventQuiet()) { rt.oilNight = night; if (!G.objectives.mate.busy) G.objectives.mate.say('The lamp is getting low, Captain. Oil at any market, or we turn for home.'); else toast('The lamp oil is running low.', false, 4000); }
@@ -198,7 +206,9 @@ export function onHitEnemy(s, dmg) {
   s.sinking = true; s.hostile = false; s.state = 'done'; s.engaged = false;
   const gold = Math.round((45 + Math.random() * 70) * KINDS[s.kind].scale);   // cannonballs are only ever bought, so every volley counts
   state.gold += gold; state.stats.sunk++; life.news(state, 'raider');
-  toast(`Raider sunk! +${gold} gold`, false, 6000);
+  const reef = sectorAt(s.x, s.z, state.seed).faction.id === 'reef';   // the Brotherhood pays for its own raiders' wrecks (regions.js BOUNTY)
+  if (reef) state.story.bounty = (state.story.bounty || 0) + BOUNTY;
+  toast(`Raider sunk! +${gold} gold${reef ? '. Any Reef harbour will pay a bounty for it.' : ''}`, false, 6000);
   if (state.stats.sunk === 1) toast('Unlocked: skull figurehead (see the shipyard).', false, 5000);
 }
 export function sinkPlayer() {

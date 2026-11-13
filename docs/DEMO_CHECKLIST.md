@@ -14,6 +14,7 @@ Build it with `python3 scripts/single.py`, ship `pocket-pirates-demo.html` (with
 - [ ] Beat to windward (tacking), delivery job, passenger (one is always available), charting counter (x/y)
 - [ ] Second harbour Velto reachable inside the first fog
 - [ ] Regions: sailing out of Home Sound the sea and sky shift slowly (Crown cobalt, Free Cays emerald, Reef jade, Lantern amber), no sudden change at a border; buoys, stilt houses, coral heads and lamp floats by the islands; nothing of the Drowned (grey water, roofs in the sea) anywhere in the demo
+- [ ] Regional rules: a Crown harbour's delivery shows a deadline and the book of ticks; Free Cays stalls shut by day, open at night; Reef coral stops the ship and costs hull; Lantern harbours buy oil; each region has a harbour in its Shoals
 - [ ] Tavern: dice game, rumour, crew hire, a bed (optional now, no quest)
 - [ ] Fishing: power meter (short = easy, far = big), bite, the bite ring (green / gold marks, three misses lose it), fisherman's log, "ask the fishers"
 - [ ] Raider: fights are not constant, escape works, start ammo 8, ammo only bought

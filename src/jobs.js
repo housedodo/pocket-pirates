@@ -1,3 +1,4 @@
+import { deadlineFor } from './regions.js';
 import { hash2, mulberry32, pick, smoothstep } from './util.js';
 import { FISH } from './fishing.js';
 import { FRUIT_ORDER, FRUITS, fruitOf, fruitName, plural } from './fruit.js';
@@ -34,7 +35,9 @@ export function makeJob(world, from, serial, maxDist = 750) {
   if (!list.length) return null;
   const { d: to, dist } = list[Math.floor(rng() * list.length) % list.length];
   const dark = rng() < smoothstep(0.35, 0.8, dreadAtDistance(Math.hypot(from.x, from.z)));
+  const timed = from.region === 'crown' ? deadlineFor(Math.hypot(pierOf(to).x - pierOf(from).x, pierOf(to).z - pierOf(from).z)) : null;   // the Crown keeps time (regions.js)
   return {
+    fromRegion: from.region, timed,
     fromId: from.id, fromName: from.name, toId: to.id, toName: to.name, ...pierOf(to),   // x, z: the pier, where the errand is handed in
     reward: Math.round(20 + dist * 0.12 + to.dread * 40), item: pick(rng, dark ? ITEMS_DARK : ITEMS_BRIGHT), dark, dist: (() => { const a = pierOf(from), b = pierOf(to); return Math.round(Math.hypot(b.x - a.x, b.z - a.z)); })(),   // shown: pier to pier
   };

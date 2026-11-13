@@ -1,4 +1,4 @@
-import { sectorAt, lookFactionAt } from './sectors.js';
+import { sectorAt, lookFactionAt, WEDGES } from './sectors.js';
 import { styleOf, shapeOf, STYLE_DEF, SHAPES, stairs, slopeHouses, flagCloth, ruins, landingFlag, laundry } from './villagestyles.js';
 import { pushOut } from './solids.js';
 import { regionDecor } from './regiondecor.js';
@@ -14,6 +14,9 @@ import { arcIdOf, ARCS } from './harbourlife.js';
 
 import { forcedCells, shapeLandmark, cutShore, lmHeight, lmColor, lmDecor, LM_DARK } from './landmarks.js';
 export const CELL = 110;
+let LAMP_DEAD = () => false;
+/** which lighthouses are dark although the night is (the Lantern Guild's dead lights, relit by the captain: main.js) */
+export const setLampRule = (fn) => { LAMP_DEAD = fn; };
 const LOAD_R = 4, UNLOAD_R = 6;
 
 const C = (h) => new THREE.Color(h);
@@ -58,19 +61,46 @@ function rawType(rng) {
   for (const [t, w] of TYPE_TABLE) { if (r < w) return t; r -= w; }
   return 'jungle';
 }
+// ---- planned harbours (2026-11-13, owner; regions.js): each bright region has a village in its Shoals (about 620 out), and the Lantern
+// Guild a second one further out (about 950): before, the Shoals had none and the Lantern waters often none at all. Picked per seed
+// along the region's middle, in that region's own sector, never by a hand-made place or in Tama's waters.
+const PLAN_WANT = [['crown', 620], ['free', 620], ['reef', 620], ['lantern', 620], ['lantern', 950]];
+const PLANNED = new Map();
+export function plannedHarbours(seed) {
+  if (PLANNED.has(seed)) return PLANNED.get(seed);
+  const set = new Set(); PLANNED.set(seed, set);
+  const nearForced = (cx, cz) => { for (let dz = -1; dz <= 1; dz++) for (let dx = -1; dx <= 1; dx++) if (Object.prototype.hasOwnProperty.call(FORCED, `${cx + dx},${cz + dz}`)) return true; return false; };
+  for (const [reg, R] of PLAN_WANT) {
+    const w = WEDGES.find((q) => q.id === reg); let pick = null;
+    for (const strict of [true, false]) for (let dr = 0; dr <= 180 && !pick; dr += 30) for (const sr of [1, -1]) for (let da = 0; da <= w.half && !pick; da += 5) for (const sa of [1, -1]) {
+      if (pick) break;   // first a cell clear of the hand-made places and their neighbours; failing that, one beside them (never on one)
+      const a = (w.a + sa * da) * Math.PI / 180, r = R + sr * dr, cx = Math.round(Math.cos(a) * r / CELL), cz = Math.round(Math.sin(a) * r / CELL), k = `${cx},${cz}`;
+      if (set.has(k) || (strict ? nearForced(cx, cz) : Object.prototype.hasOwnProperty.call(FORCED, k)) || Math.max(Math.abs(cx), Math.abs(cz + 1)) <= 2) continue;
+      if (sectorAt(cx * CELL, cz * CELL, seed).faction.id !== reg) continue;
+      pick = k;
+    }
+    if (pick) set.add(pick);
+  }
+  return set;
+}
+const isPlanned = (cx, cz, seed) => plannedHarbours(seed).has(`${cx},${cz}`);
+
 /** the cell's type before village spacing (same rolls as describeCell) */
 function rawCellType(cx, cz, seed) {
   const key = `${cx},${cz}`;
   if (Object.prototype.hasOwnProperty.call(FORCED, key)) return FORCED[key] ? FORCED[key].type : null;
+  if (isPlanned(cx, cz, seed)) return 'harbour';
   const rng = mulberry32(hash2(cx, cz, seed));
   if (rng() > islandChance(cx, cz, seed)) return null;
   return rawType(rng);
 }
 function harbourWins(cx, cz, seed) {
   if (Math.max(Math.abs(cx), Math.abs(cz + 1)) <= 2) return false;           // Tama's waters
+  if (isPlanned(cx, cz, seed)) return true;                                  // a planned harbour always stands
   const me = hash2(cx, cz, seed + 616);
   for (let dz = -2; dz <= 2; dz++) for (let dx = -2; dx <= 2; dx++) {
     if (!dx && !dz) continue;
+    if (isPlanned(cx + dx, cz + dz, seed)) return false;                       // and the villages round it give way
     const t = rawCellType(cx + dx, cz + dz, seed);
     if (t === 'harbour' && hash2(cx + dx, cz + dz, seed + 616) > me) return false;
   }
@@ -85,8 +115,10 @@ export function describeCell(cx, cz, seed) {
   const forced = Object.prototype.hasOwnProperty.call(FORCED, key) ? FORCED[key] : undefined;
   if (forced === null) return null;
   const roll = rng();
-  if (forced === undefined && roll > islandChance(cx, cz, seed)) return null;
+  const plan = forced === undefined && isPlanned(cx, cz, seed);
+  if (forced === undefined && !plan && roll > islandChance(cx, cz, seed)) return null;
   let type = forced ? forced.type : rawType(rng);
+  if (plan) type = 'harbour';
   // villages are rare and never crowd each other: a harbour only stands if it is the strongest claim
   // within two cells (and never right next to Tama); otherwise the island stays wild
   if (!forced && type === 'harbour' && !harbourWins(cx, cz, seed)) type = 'jungle';
@@ -102,7 +134,7 @@ export function describeCell(cx, cz, seed) {
   let name = makeName(nameRng, type, dread);
   if (key !== '0,-1' && / Tama$/.test(name)) name = name.replace(/Tama$/, 'Tamar');   // only the home harbour is Tama
   const desc = { id: key, type, x, z, r, H, lobes, seed: hash2(cx, cz, seed + 1) & 0xffff, name, dread };
-  desc.region = sectorAt(x, z, seed).faction.id;   // whose waters (regiondecor.js puts that region's things on the water round it)
+  { const sc = sectorAt(x, z, seed); desc.region = sc.sx === 0 && sc.sz === 0 ? 'home' : sc.faction.id; }   // Tama's own sector keeps no region's rules   // whose waters (regiondecor.js puts that region's things on the water round it)
   // rarer island kinds, rolled with their own generator so the rest of the world stays where it was
   if (!forced && Math.max(Math.abs(cx), Math.abs(cz)) > 1) {
     const vr = mulberry32(hash2(cx, cz, seed + 4242)), v = vr();
@@ -693,6 +725,7 @@ function chest(b, x, y, z, ry, open) {
 export function hasLighthouse(d) {
   if (d.id === '0,-1') return true;
   const r = (hash2(d.seed, 17, 5) % 1000) / 1000;
+  if (d.region === 'lantern') return d.type === 'harbour' ? r < 0.85 : d.type === 'rocky' || d.type === 'sandbar' ? r < 0.6 : false;   // the Guild keeps its lights everywhere (regions.js)
   return d.type === 'harbour' ? r < 0.33 : d.type === 'rocky' ? r < 0.22 : false;
 }
 // Six lighthouse designs, picked from the island's seed (Tama always keeps the classic red-and-white one).
@@ -1511,7 +1544,8 @@ export class Island {
     const terrain = buildTerrain(d, rng);
     decorate(d, rng, A, B, D, extra);
     abyssForms(d, D, extra);
-    regionDecor(d, A, extra, { shoreR, terrainHeight });   // the region's own things on the water (buoys, stilt houses, coral, lamps, roofs)
+    regionDecor(d, A, extra, { shoreR, terrainHeight });
+    if (extra.lamp) d.lampAt = { x: d.x + extra.lamp.x, z: d.z + extra.lamp.z };   // where its light is (the Guild's lights, oil burn)   // the region's own things on the water (buoys, stilt houses, coral, lamps, roofs)
 
     const add = (builder, mat, order = 0) => {
       const m = meshOf(builder, mat);
@@ -1629,6 +1663,7 @@ export class Island {
   }
   setLit(on) {
     if (this.alwaysLit) on = true;   // the Keepers' Ledger lamp is lit at noon
+    if (on && LAMP_DEAD(this.desc)) on = false;   // a Lantern Guild light gone out (main.js lampRule)
     this.lit = on;
     if (this.lampOn) this.lampOn.visible = on;
     if (this.lampOff) this.lampOff.visible = !on;
@@ -1723,6 +1758,8 @@ export class World {
       } else if (isl.mood !== dark) { isl.mood = dark; isl.setMood(dark); }
     }
   }
+  /** rebuild the loaded islands that match (the Reef's shoals move each dawn): they are dropped here and built again by update() */
+  refresh(pred) { for (const [k, isl] of this.islands) if (pred(isl.desc)) { this.scene.remove(isl.group); isl.dispose(); this.islands.delete(k); } }
   tick(t, tod) { for (const isl of this.islands.values()) { isl.tod = tod; isl.stare = this.stare; isl.week = this.week; isl.growth = this.growthOf ? this.growthOf(isl.desc.id) : 0; isl.lifeDone = this.lifeDoneOf ? this.lifeDoneOf(isl.desc.id) : false; isl.tide = this.tide; isl.gctx = this.gctx || {}; isl.group.position.y = -this.tide * 0.32; for (const f of isl.anim) f(t, isl); } }   // the sea rises over the beach and falls back
 
   collide(pos, radius) {

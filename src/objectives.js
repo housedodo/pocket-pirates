@@ -302,6 +302,8 @@ export const REMARKS = {
   calm: ['Not a breath of wind. Press G for the oars, Captain. I will steer. You row.'],
   tack: ['Into the wind she crawls. Zig-zag, Captain: keep the little triangle on the gold part of the wind ring, and turn across every so often.'],
   gate: ['That fog is like a wall, Captain. Whatever is out there can wait for us.'],
+  belt: ['The water is running white over the shoals, Captain. Not now. We wait for the tide to go out.'],
+  coral: ['Coral! Where the water breaks white there is rock under it. It was not there yesterday.'],
   gate2: ['The shipwrights say a stronger hull or better sails go further than this, and on a falling tide. Past that, nobody sells charts.'],
   crew: ['A new hand! They do not talk much. Neither do you. You will get along.'],
   oars: ['Oars out! W to pull, S to back water, G to put them away again.'],

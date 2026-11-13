@@ -36,6 +36,8 @@ need to break one, stop and ask the owner. `docs/CANON.md` says what is true in 
     sudden change; the deep's dread palette still wins in the deep; regional waves are a multiplier on the sea, never a fixed height.
 
 ## Sound
+24b. **Regions differ by their rules, never by words** (`src/regions.js` holds every number): a region's rule must be readable from
+    what the player sees there (STYLE 4) and must not explain the story. The demo never gets the Drowned.
 25. **Only cues listed in `CUES.oneShots` (`src/audio.js`) play.** Silence elsewhere is on purpose. Adding a cue means adding it there and to `docs/AUDIO.md`.
 26. **Five dread stages, five loops, same tempo, metre and key** (D family, 6/8, 125 BPM). Horror by removing and bending, never by adding a scare.
 27. **WAV masters stay with the composer; the game ships ogg** (`scripts/studio_ogg.py`). Volumes live in `public/audio/volumes.json`.

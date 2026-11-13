@@ -151,6 +151,7 @@ const trackBtn = (state, id) => (state.tracked === id ? '<small class="tracked">
 const stars = (n) => pxi('star').repeat(n) + pxi('nostar').repeat(3 - n);
 const ent = (title, sub = '', right = '', cls = '', acts = '') => `<div class="ent ${cls}"><b>${title}</b>${right ? `<span class="r">${right}</span>` : ''}${sub ? `<small>${sub}</small>` : ''}${acts ? `<div class="acts">${acts}</div>` : ''}</div>`;   // acts: its buttons, kept inside the row (2026-11-13)
 const h3 = (t) => `<h3>${t}</h3>`;
+const dueClock = (d) => { const h = ((d % 1) + 1) % 1 * 24; return `${String(Math.floor(h)).padStart(2, '0')}:${String(Math.floor((h % 1) * 60)).padStart(2, '0')}`; };   // regions.js clockAt
 const more = (arr, n) => (arr.length > n ? `<div class="ent dim"><small>+ ${arr.length - n} more</small></div>` : '');
 
 export class Logbook {
@@ -240,7 +241,7 @@ export class Logbook {
     if (!this.sec('quests')) {   // deliveries, passengers and commissions: one list
       html += h3('Also in hand');
       const j = state.job, pg = state.passenger, far = (x, z) => { const dx = x - ship.pos.x, dz = z - ship.pos.z; return `${bearingName(dx, dz)} · ${this.d.eta ? this.d.eta(Math.hypot(dx, dz)) : Math.round(Math.hypot(dx, dz))}`; };
-      if (j) html += ent(`${pxi('letter')} ${j.item}`, `to ${j.toName} · ${far(j.x, j.z)}`, `${j.reward}g`, '', trackBtn(state, 'job') + '<button class="mini" data-drop="job">Give it up</button>');
+      if (j) html += ent(`${pxi('letter')} ${j.item}`, `to ${j.toName} · ${far(j.x, j.z)}${j.due != null ? ` · by ${dueClock(j.due)}` : ''}`, `${j.reward}g`, '', trackBtn(state, 'job') + '<button class="mini" data-drop="job">Give it up</button>');
       if (pg) html += ent(`${pxi('talk')} ${pg.name}`, `to ${pg.toName} · ${far(pg.x, pg.z)}`, `${pg.reward}g`, '', trackBtn(state, 'passenger') + '<button class="mini" data-drop="passenger">Give it up</button>');
       for (const q of state.quests) {
         const need = questNeed(q), have = questProgress(q, state), done = have >= need;

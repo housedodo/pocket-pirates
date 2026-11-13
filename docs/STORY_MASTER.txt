@@ -1,7 +1,7 @@
 HOIST (Pocket Pirates): THE MASTER STORY FILE
 ================================================================================================
 This is the main story file for the full game. Edit it, upload it again, and the next session puts every change
-into the game. Built from commit d4f172f on 2026-11-13. 1462 in-game lines carry an ID.
+into the game. Built from commit 5164e62 on 2026-11-13. 1478 in-game lines carry an ID.
 
 CONTENTS
   A   HOW TO USE THIS FILE (IDs, status marks, how to add and remove things)
@@ -569,7 +569,7 @@ Where the story hides in the mechanics, and where its text lives (section J).
 # J  EVERY LINE IN THE GAME
 ################################################################################################
 Pulled from the code. Edit the text after the "|" (see part A). Sources are grouped by file; the CODE in front of every
-line says which file it goes back into. 1462 lines.
+line says which file it goes back into. 1478 lines.
 
 
 
@@ -737,6 +737,10 @@ line says which file it goes back into. 1462 lines.
   OBJ-0166 | Perrin writes: "The Drowned waters have streets, and streets have doors. Go at low water, and count the doors."
   OBJ-0167 | Perrin wants us in the Drowned waters. The chart shows whose waters we are in.
   OBJ-0168 | The shipwrights say a stronger hull or better sails go further than this, and on a falling tide. Past that, nobody sells charts.
+
+### OBJ / ADDED 2026-11-13
+  OBJ-0169 | The water is running white over the shoals, Captain. Not now. We wait for the tide to go out.
+  OBJ-0170 | Coral! Where the water breaks white there is rock under it. It was not there yesterday.
 
 ### OBJ / RETIRED (the text is no longer in the game; these IDs are never used again)
     was OBJ-0012 | [text] Perrin's riddle is in your log (Journal). Find the right shore of Hollow Cay Galen and dig.
@@ -2458,6 +2462,24 @@ line says which file it goes back into. 1462 lines.
 
 ### MAIN / ADDED 2026-11-13
   MAIN-0312 | Rumour: ${t.name}, ${bearingName(t.x - pierOf(d).x, t.z - pierOf(d).z)} of here, ~${Math.round(Math.hypot(t.x - pierOf(d).x, t.z - pierOf(d).z))}. Marked on your map.
+
+### MAIN / ADDED 2026-11-13
+  MAIN-0313 | A customs cutter comes alongside and takes the ${j.item}. A black line in the Crown's book.
+  MAIN-0314 | A customs cutter comes alongside, looks in the hold and stamps your papers. +5 gold.
+  MAIN-0315 | The lamp needs ${RELIGHT_OIL} oil. You have ${Math.floor(state.oil)}.
+  MAIN-0316 | The light is burning again. The keeper pays ${RELIGHT_PAY} gold${k ? ` and marks ${k} island${k > 1 ? 's' : ''} on your chart` : ''}.
+  MAIN-0317 | In by the buoys. The harbourmaster ticks a line in the book.
+  MAIN-0318 | The Brotherhood pays the bounty: +${b} gold.
+  MAIN-0319 | They fill the lamp, fold sailcloth into the locker and mend the hull. They keep ${tk.label}. Nobody says thank you.
+  MAIN-0320 | They fill the lamp, fold sailcloth into the locker and mend the hull. They ask for nothing. That is worse.
+  MAIN-0321 | The Guild takes the oil: +${v} gold.
+
+### MAIN / ADDED 2026-11-13
+  MAIN-0322 | Fruit fetches half again as much here.
+  MAIN-0323 | Fish fetches half again as much here.
+  MAIN-0324 | The night market: fish and fruit fetch more after dark.
+  MAIN-0325 | The stalls are shuttered. The market here opens after dark.
+  MAIN-0326 | Powder and sailcloth are cheap here: off the wrecks.
 
 ### MAIN / RETIRED (the text is no longer in the game; these IDs are never used again)
     was MAIN-0001 | A floating market, with bunting on every line. (Friday)
