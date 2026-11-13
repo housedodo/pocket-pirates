@@ -20,7 +20,7 @@ need to break one, stop and ask the owner. `docs/CANON.md` says what is true in 
 12. **Three bookmarks: Chart, Orders, Ship's book.** New pages become sections of one of them, never a fourth bookmark.
 13. **Nothing is a locked tab.** A section the story has not reached is not printed. A greyed button stays readable and answers a click with one line.
 14. **The slip is always three lines in this order: what, where, which way and how long.** The same on the HUD, on Orders and on the chart.
-15. **Distances are sailing time** ("4 min"), never units or fathoms, wherever the player reads them (`etaText` in `main.js`).
+15. **Distances are units** ("west · 232"), the same plain number everywhere the player reads them: the board, the slip, Orders, the chart (`etaText` in `ui/hud.js`). Not minutes: sailing time made it feel like a fetch game (owner, 2026-11-13).
 16. **The HUD stays wordless.** Gold, time, place, the slip. A new gauge names itself once (`nameMeter`), then is silent.
 17. **Mara's box never covers the ship** or the water ahead of the bow: bottom left at sea, under the book in the log.
 18. **E works under way.** Anything that needs the ship still drops the anchor first and starts by itself (`HEAVE_KINDS`, `anchorTick`). Never ask the player to stop by hand, and never cancel an action because the ship drifted.

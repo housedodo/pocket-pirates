@@ -53,10 +53,9 @@ export function goalTarget() {
   if (g && g.id === 'passenger' && state.passenger) return { x: state.passenger.x, z: state.passenger.z, label: state.passenger.toName };
   return null;
 }
-/** a distance as sailing time: nobody can judge 179 fathoms, everyone can judge four minutes */
+/** a distance as the plain number the harbour board uses (owner, 2026-11-13: minutes made it a fetch game; units feel like sailing) */
 export function etaText(dist) {
-  const v = G.ship.rowing ? 2.6 : 8 * G.ship.mods.speed, m = dist / v / 60;
-  return m < 0.75 ? 'under a minute' : `${Math.max(1, Math.round(m))} min`;
+  return `${Math.round(dist)}`;
 }
 /** the slip: what to do, where, which way and how long. The same three lines on the HUD, in the log (Orders) and (later) on the chart */
 export function slipInfo() {

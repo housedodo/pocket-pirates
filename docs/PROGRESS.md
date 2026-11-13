@@ -1107,3 +1107,6 @@ Trials for the owner to compare; nothing changes without a flag and STYLE.md is 
 - The jib grew without end while paused (its flutter was added every frame): fixed.
 - Pause menu: Controls moved under Settings; "Save and exit to title"; "Save and quit" in the standalone app only.
 - A minimap: the owner decided against it (CANON 2026-11-12). The title music (the sea's band) and the full Done list stay.
+
+## Distances as units (2026-11-13, owner)
+- `etaText` (ui/hud.js) now gives the plain distance, as the harbour board does: the slip, Orders, rumours, riddles and the chart's FOLLOWING line read "west · 232" instead of minutes. RULES 15 and CANON updated.
