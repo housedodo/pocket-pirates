@@ -46,3 +46,15 @@ Before/after prototype shots: `docs/proposals/region_looks.png`.
    word on the Hollow Harbour thread).
 
 Not judged headless: how any of it feels, fight difficulty, music, readability of moving shoals. Needs a real playtest.
+
+## Bolder looks (2026-11-13, prototype)
+The first prototype only nudged the dread palette and the regions still looked alike. The second (`region_looks_bold.png`) gives each
+region a full palette of its own (sky, horizon, fog, deep and shallow water, sun, light, saturation, wave height, view distance) and one
+signature silhouette on the water, all at the same low dread:
+- **Crown**: cobalt water, clean white sky, long view; a red/green buoyed lane, a white signal mast with a pennant string; red and green lamps at night.
+- **Free Cays**: emerald lagoon under a golden haze, calm water; houses on stilts, canoes; coloured lantern strings at night.
+- **Reef**: jade water, grey salt sky, heavy chop; black coral heads in white breakers, a mast leaning out of the water.
+- **Lantern**: near-black water under amber smoke, short view; a route lined with lamps on floats (one burns the wrong colour), a tall dark tower.
+- **Drowned**: lead-grey flat water and fog; roofs to the ridge and chimneys, a leaning belfry (still too faint: needs more contrast).
+Still to do: night palettes per region (the night skies all look alike), real lamp glow sprites, and models in the game's own
+materials instead of flat colour. As dread rises the dread palette should still win, so the deep sea keeps its own horror.
