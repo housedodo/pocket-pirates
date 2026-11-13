@@ -169,6 +169,7 @@ export function renderCard(card, onChoose) {
   const el = document.getElementById('card');
   el.classList.toggle('dark', !!card.dark);
   document.getElementById('cardIcon').innerHTML = `<i class="pxi ico ${card.icon}"></i>`;
+  el.classList.toggle('art', !!card.art); if (card.art) document.getElementById('cardArt').src = card.art;   // a painted still above the card (the Table)
   document.getElementById('cardTitle').textContent = card.title;
   document.getElementById('cardText').textContent = card.text;
   const box = document.getElementById('cardChoices');

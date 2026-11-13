@@ -3,7 +3,7 @@ import { hash2 } from './util.js';
 // MULTIPLE PATHS (Story Bible): the seven threads, the Tide that wakes some of them, and the Marks they leave on the captain.
 // Pure data and two tiny functions, so the log, the title screen and the game can all use it.
 export const THREAD_DEFS = [
-  { id: 'bell', name: 'The Drowned Bell', built: true, note: 'listening for a bell under a wreck' },
+  { id: 'bell', name: 'The Bell Below', built: true, note: 'listening for a bell under a wreck' },
   { id: 'coin', name: "The Ferryman's Coin", built: true, note: 'a passenger who pays with a worn coin' },
   { id: 'colour', name: 'The Colour', built: true, note: 'a stain on the water, bright fish, a spring to seal' },
   { id: 'hollow', name: 'The Hollow Harbour', built: true, note: 'a harbour that is far too friendly' },

@@ -187,8 +187,8 @@ export const MAIN_GOALS = [
   {
     id: 'perrin_crown', ch: 5, title: 'Perrin: the Crown waters', reward: 25, region: 'crown', full: true,
     where: "The Crown Traders' waters",
-    text: 'The Crown keeps better ledgers than I keep charts. Ask to see one. Tell me whose name is at the top.',
-    intro: ['A letter from Perrin came in with the post, Captain.', 'Perrin writes: "The Crown keeps better ledgers than I keep charts. Ask to see one. Tell me whose name is at the top."'],
+    text: 'The Crown writes down every ship that comes in. Ask to see the book. Tell me whose name is at the top.',
+    intro: ['A letter from Perrin came in with the post, Captain.', 'Perrin writes: "The Crown writes down every ship that comes in. Ask to see the book. Tell me whose name is at the top."'],
     outro: [],
     hints: ["Perrin wants us in the Crown Traders' waters. The chart shows whose waters we are in."],
     check: (c) => regionSeen(c.state, 'crown'),
@@ -261,7 +261,7 @@ export const gateRadius = (state, tideFalling) => {
   if (ch < 2) return Math.min(r, GATES[ch]);   // the tutorial: Home Sound only
   if (ch === 2) return Math.max(r, GATES[2]);  // "Working waters" still needs its islands
   if (!(state.hut && state.hut.rolls && state.hut.rolls.length)) return Math.max(r, GATES[Math.min(GATES.length - 1, ch)]);   // until the first throw the story's own goals stay inside the chapter's wall; after it the ship's reach (upgrades) decides
-  return r;
+  return Math.max(r, GATES[GATES.length - 1]);   // after it the sea never shrinks: the furthest chapter reach stays, and only the ship and the clues take you past it
 };
 
 export const SIDE_GOALS = [
@@ -302,7 +302,7 @@ export const REMARKS = {
   calm: ['Not a breath of wind. Press G for the oars, Captain. I will steer. You row.'],
   tack: ['Into the wind she crawls. Zig-zag, Captain: keep the little triangle on the gold part of the wind ring, and turn across every so often.'],
   gate: ['That fog is like a wall, Captain. Whatever is out there can wait for us.'],
-  gate2: ['The shipwrights say a stiffer rudder, a better lamp and a stronger hull go further than this. And a local chart, if anyone will sell you one.'],
+  gate2: ['The shipwrights say a stronger hull or better sails go further than this, and on a falling tide. Past that, nobody sells charts.'],
   crew: ['A new hand! They do not talk much. Neither do you. You will get along.'],
   oars: ['Oars out! W to pull, S to back water, G to put them away again.'],
   redsky: ['Red sky tonight... my gran said that means a blow is coming.'],

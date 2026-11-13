@@ -1110,3 +1110,25 @@ Trials for the owner to compare; nothing changes without a flag and STYLE.md is 
 
 ## Distances as units (2026-11-13, owner)
 - `etaText` (ui/hud.js) now gives the plain distance, as the harbour board does: the slip, Orders, rumours, riddles and the chart's FOLLOWING line read "west · 232" instead of minutes. RULES 15 and CANON updated.
+
+## Playtest review, batch 4 (2026-11-13)
+- **After the hut**: five letters from Perrin, one per region (objectives.js `perrin_*`, `full: true`, never in the demo). Each is done
+  when any clue of that region is seen (`clues.js regionSeen`); the slip points at the nearest landmark in those waters, never at what to find.
+- **No wall**: the chapter fog holds until the first throw at the hut (`gateRadius`); after it the furthest chapter reach stays and only
+  the ship and the clues go past it; at that edge Mara relays what the shipwrights say (hull or sails, a falling tide). Upgrade and chart texts say how far each one takes you.
+- **The Table** is open to every captain who has thrown at the hut (`tableOpen`). Its card shows a painted still (`cavescene.js` scene
+  `table`, `paintStill`); each ending shows the same table under its own sky, writes an epilogue line in the Ship's book, and offers
+  Keep sailing or End the voyage (credits, then the title). The tune ending plays Teo's guitar, then Ilse's violin (`layers.keepTune`),
+  with every other part stepped back; checked by driving the layer mixer headless (both voices at 0.84, nothing else above 0.01).
+- **Teo and Ilse** only on still nights (no storm), in places.js, landmarks.js and the clue dwell.
+- **Threads feed the ledger**: seven clues `CL-T-*`, seen when a thread is first met (`storybeats.threadClues`); the bell thread is a
+  second source for Q5 (Lantern waters).
+- **A wordless tide glass** beside the clock: the water level is the tide, the notch says rising or falling.
+- **Layout**: the quest banner sits at the top edge and the cast meter in the sky above the mast (both were on the ship); Orders rows keep
+  their Follow / Give it up buttons inside the row; the page blots are faded so no text sits on black.
+- **Raiders** break off and run once the water is deep (dread above 0.55).
+- **Ship's book**: the same note found again is one entry with a count; the eight newest, then "+ n more".
+- **Names**: Anselm (the groom), Nilo (the boatbuilder boy), Gus (castaway crewman), "The Bell Below" (the thread); "ledger" kept for three
+  places only (guest book, logbook elsewhere).
+- Drafts for the writer: the letters, the epilogue lines, the thread clue lines, the credits (CANON section 8).
+

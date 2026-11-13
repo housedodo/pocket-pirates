@@ -47,6 +47,12 @@ Nothing here is ever said to the player in these words.
 | 2026-11-13 | **No sighting messages** (dolphins, whales, turtles, the floating market, the regatta): the sea just has them. Mara's one-time lines stay. |
 | 2026-11-13 | **Distances are measured from the pier**, everywhere: the board, the slip, the chart. |
 | 2026-11-13 | **Distances are shown as units** (the plain number, as on the harbour board), never as minutes of sailing: minutes made it a fetch game. |
+| 2026-11-13 | **After the hut, Perrin's letters** send the captain into each region in turn (Crown, Free Cays, Lantern, Reef, Drowned); each is done when any clue of that region has been seen. Full game only; the demo still ends at the hut. |
+| 2026-11-13 | **The Table stands for every captain** who has thrown at the hut once, or has understood three questions. It is a painted scene; across the table there is a shape in the chair, never more. |
+| 2026-11-13 | **An ending can close the voyage**: "Keep sailing" or "End the voyage" (credits, then the title; the save stays where it ended). Each ending writes one line in the Ship's book. "The tune is kept" plays the Two Players' own recordings. |
+| 2026-11-13 | **The chapter fog holds until the first throw at the hut**; after it the sea never shrinks (the furthest chapter reach stays) and only the ship and the clues take you past it. |
+| 2026-11-13 | **Teo and Ilse are found on still nights only** (no storm). The threads feed the clue ledger; the bell thread is a second way into "Why is Tama home". |
+| 2026-11-13 | **Names kept unique**: the groom is Anselm, the boatbuilder boy Nilo, the castaway crewman Gus; the bell thread is "The Bell Below" (the landmark stays the Drowned Bell). "Ledger" is kept for the customs pier, the Keepers' Ledger and the farm page. |
 | 2026-11-12 | **No minimap.** The chart (M) is the map; the HUD stays minimal. The title plays the sea's band. |
 | 2026-11-11 | **The log has three bookmarks** (Chart, Orders, Ship's book) and **one slip** (what, where, which way and how long). |
 | 2026-11-11 | **The chart is an inked portolan on vellum. The type is Pirata One (titles) with Jersey 10 (text).** |
@@ -98,6 +104,7 @@ halves a bad weight; a natural 1 or 20 stands. A captain who saw nothing still h
 
 ## 8. Open (nobody may decide these but the owner)
 - The six ending texts in `src/table.js` are drafts awaiting the writer.
+- Drafts awaiting the writer too: Perrin's five letters after the hut (`src/objectives.js`, `perrin_*`), the six epilogue lines (`EPILOGUE` in `src/table.js`), the seven thread clue lines (`CL-T-*` in `src/clues.js`) and the credits (`#credits` in `index.html`: names to add).
 
 ## 9. Where the detail lives
 | For | Read |

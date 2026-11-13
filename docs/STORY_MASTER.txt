@@ -1,7 +1,7 @@
 HOIST (Pocket Pirates): THE MASTER STORY FILE
 ================================================================================================
 This is the main story file for the full game. Edit it, upload it again, and the next session puts every change
-into the game. Built from commit 8e0a1d7 on 2026-11-13. 1439 in-game lines carry an ID.
+into the game. Built from commit d4f172f on 2026-11-13. 1462 in-game lines carry an ID.
 
 CONTENTS
   A   HOW TO USE THIS FILE (IDs, status marks, how to add and remove things)
@@ -132,7 +132,7 @@ C-005 THE EIGHT RESIDENTS [BUILT] (one per harbour, a four-visit story that chan
   C-005-bakers   Ada the baker              prop: bunting      voice/notes: (empty)
   C-005-dog      Tilda and her dog          prop: dog      voice/notes: (empty)
   C-005-widow    Ines at the lamp           prop: lamp      voice/notes: (empty)
-  C-005-boat     Pim the boatbuilder        prop: boat      voice/notes: (empty)
+  C-005-boat     Nilo the boatbuilder       prop: boat      voice/notes: (empty)
   C-005-keeper   Old Sabe                   prop: chair      voice/notes: (empty)
   C-005-singer   Lune who sings             prop: candles      voice/notes: (empty)
   C-005-bride    Marisol the bride          prop: arch      voice/notes: (empty)
@@ -168,7 +168,7 @@ D1 THE SIX CHAPTERS OF THE DEMO [BUILT] (about one hour)
   III  Working waters       act "Fair winds"   fog radius   820   goals: calm, tack, job, passenger, chart
   IV   Check my chart       act "Loose talk"   fog radius  1250   goals: tavern, perrin, checkchart, riddle2
   V    Strange notes        act "Loose talk"   fog radius  1650   goals: bottles, gossip
-  VI   The table            act "Loose talk"   fog radius  1650   goals: hut
+  VI   The table            act "Loose talk"   fog radius  1650   goals: hut, perrin_crown, perrin_free, perrin_lantern, perrin_reef, perrin_drowned
   The fog wall: each chapter allows a radius from Tama; near it the fog closes in, past it the ship is turned back.
   The demo ends on the first throw at the hut and the diver on the water: at the next harbour someone speaks of your number,
   then the end card. [DECIDED 2026-11-11] Odd jobs, Salvage rights and the raider are optional side goals, not part of the chain.
@@ -247,6 +247,16 @@ to change what a goal asks, pays or leads to. Rewards are gold.
 
   CHAPTER VI: The table
     Q-hut         "Find the hut"   reward 0    [BUILT]
+                  your edit: (empty)
+    Q-perrin_crown "Perrin: the Crown waters"   reward 25    [BUILT]
+                  your edit: (empty)
+    Q-perrin_free "Perrin: the Free Cays"   reward 25    [BUILT]
+                  your edit: (empty)
+    Q-perrin_lantern "Perrin: the Lantern waters"   reward 25    [BUILT]
+                  your edit: (empty)
+    Q-perrin_reef "Perrin: the Reef"   reward 25    [BUILT]
+                  your edit: (empty)
+    Q-perrin_drowned "Perrin: the Drowned waters"   reward 25    [BUILT]
                   your edit: (empty)
 
 E-optional  SIDE GOALS [BUILT]: fish (Dinner at sea), hail (Say hello), bottle (Message received), paint (A touch of style),
@@ -459,7 +469,7 @@ F6 NEW PLACES TO EXPLORE: OPEN SLOTS (fill these in; one per slot, any number of
 ################################################################################################
 
 G1 THE SEVEN DARK THREADS [BUILT in the full game; three of seven are awake per voyage, picked from the seed]
-  T-bell     The Drowned Bell             [BUILT] listening for a bell under a wreck
+  T-bell     The Bell Below               [BUILT] listening for a bell under a wreck
                region it belongs to: (empty)     your notes: (empty)
   T-coin     The Ferryman's Coin          [BUILT] a passenger who pays with a worn coin
                region it belongs to: (empty)     your notes: (empty)
@@ -559,7 +569,7 @@ Where the story hides in the mechanics, and where its text lives (section J).
 # J  EVERY LINE IN THE GAME
 ################################################################################################
 Pulled from the code. Edit the text after the "|" (see part A). Sources are grouped by file; the CODE in front of every
-line says which file it goes back into. 1439 lines.
+line says which file it goes back into. 1462 lines.
 
 
 
@@ -708,6 +718,25 @@ line says which file it goes back into. 1439 lines.
   OBJ-0149 | Remember when the sea was loud? I miss it a little.
   OBJ-0150 | If I start humming, tell me. I do not always notice.
   OBJ-0151 | Raiders, off the bow! Reef Brotherhood. Outrun them, pay them, or fight.
+
+### OBJ / ADDED 2026-11-13
+  OBJ-0152 | The Crown writes down every ship that comes in. Ask to see the book. Tell me whose name is at the top.
+  OBJ-0153 | A letter from Perrin came in with the post, Captain.
+  OBJ-0154 | Perrin writes: "The Crown writes down every ship that comes in. Ask to see the book. Tell me whose name is at the top."
+  OBJ-0155 | Perrin wants us in the Crown Traders' waters. The chart shows whose waters we are in.
+  OBJ-0156 | In the Free Cays they sleep by day and play by night. Go at night. Take nothing but your ears.
+  OBJ-0157 | Perrin writes: "In the Free Cays they sleep by day and play by night. Go at night. Take nothing but your ears."
+  OBJ-0158 | Perrin wants us in the Free Cays. The chart shows whose waters we are in.
+  OBJ-0159 | The Guild's lamps burn a colour I have no name for. You will tell me I am wrong. Go and look.
+  OBJ-0160 | Perrin writes: "The Guild's lamps burn a colour I have no name for. You will tell me I am wrong. Go and look."
+  OBJ-0161 | Perrin wants us in the Lantern Guild's waters. The chart shows whose waters we are in.
+  OBJ-0162 | The Reef counts its wrecks. Count them yourself. I would like a second opinion.
+  OBJ-0163 | Perrin writes: "The Reef counts its wrecks. Count them yourself. I would like a second opinion."
+  OBJ-0164 | Perrin wants us in the Reef Brotherhood's waters. The chart shows whose waters we are in.
+  OBJ-0165 | The Drowned waters have streets, and streets have doors. Go at low water, and count the doors.
+  OBJ-0166 | Perrin writes: "The Drowned waters have streets, and streets have doors. Go at low water, and count the doors."
+  OBJ-0167 | Perrin wants us in the Drowned waters. The chart shows whose waters we are in.
+  OBJ-0168 | The shipwrights say a stronger hull or better sails go further than this, and on a falling tide. Past that, nobody sells charts.
 
 ### OBJ / RETIRED (the text is no longer in the game; these IDs are never used again)
     was OBJ-0012 | [text] Perrin's riddle is in your log (Journal). Find the right shore of Hollow Cay Galen and dig.
@@ -1275,12 +1304,12 @@ line says which file it goes back into. 1439 lines.
 ### TSC / door
   TSC-0001 | [id] The Strange High House
   TSC-0002 | [door] The lamp at the top of the tower is lit in broad daylight. The door stands open. Someone has laid out a second cup.
-  TSC-0003 | Ask to read the ledger of ships
+  TSC-0003 | Ask to read the guest book
   TSC-0004 | [ok] The keeper turns the book around. Ships, in a neat hand, with dates. Some of the dates are next week. Yours is there. You tear nothing out. You only look.
   TSC-0005 | [fail] He closes the book, kindly. "Not today. There is always another day, you will find."
   TSC-0006 | It comes away with a sound like a breath. The keeper does not stop you. He watches the pacts go out of the room like moths.
   TSC-0007 | The stairs are longer going down.
-  TSC-0008 | [offer] The keeper turns the ledger toward you. Three entries, each with a price, each in your handwriting.
+  TSC-0008 | [offer] The keeper turns the guest book toward you. Three entries, each with a price, each in your handwriting.
   TSC-0009 | A borrowed wind (a page of your log)
   TSC-0010 | He opens a window. A fair wind comes in, and sits down, and does not leave for a while.
   TSC-0011 | A longer day (a morning of yours)
@@ -1361,7 +1390,7 @@ line says which file it goes back into. 1439 lines.
   TMOD-0007 | A page of your log is gone.
   TMOD-0008 | It is three hours earlier than it was.
   TMOD-0009 | You may throw again at the hut today.
-  TMOD-0010 | A page from the ledger
+  TMOD-0010 | A page from the guest book
   TMOD-0011 | Ships, in a neat hand. Some of the dates have not happened yet.
 
 ### TMOD / c
@@ -1574,7 +1603,7 @@ line says which file it goes back into. 1439 lines.
   CAV-0025 | [ok] The hook catches the first time. The chest comes across the water like a very heavy duck.
   CAV-0026 | [fail] The hook finds only rock. The tide pulls the line out of your hand. The chest sits there, smug.
   CAV-0027 | You leave. Behind you the water closes the chamber, as if it had never had a chest.
-  CAV-0028 | [chest] Inside: a damp ledger, a heap of coins and a brass lamp. The water is at your knees and rising.
+  CAV-0028 | [chest] Inside: a damp logbook, a heap of coins and a brass lamp. The water is at your knees and rising.
   CAV-0029 | [ok] You take the lot and a wave carries you to the mouth like a cork.
   CAV-0030 | [fail] Too much for two arms. The lamp goes under. You come out with a few coins and a lot of seawater.
   CAV-0031 | Light, quick and dry enough. You are out before the water is at your waist.
@@ -2519,15 +2548,15 @@ line says which file it goes back into. 1439 lines.
   HLF-0044 | The lamp at the end of the pier is cold. Ines's door is open and the beds are made. On the table, two cups, both still warm.
   HLF-0045 | You leave the scarf on the table, next to the cups.
   HLF-0046 | Ines's lamp is dark. Nobody lights it, and nobody takes it down.
-  HLF-0047 | A boy called Pim is building a boat out of driftwood on the beach. It is mostly holes. "I need nails. The smith takes fruit."
-  HLF-0048 | Pim runs off with the fruit and comes back with a fistful of bent nails.
+  HLF-0047 | A boy called Nilo is building a boat out of driftwood on the beach. It is mostly holes. "I need nails. The smith takes fruit."
+  HLF-0048 | Nilo runs off with the fruit and comes back with a fistful of bent nails.
   HLF-0049 | The boat has a bottom now. "Gran says the first fish goes in the hull, for luck. I have never caught a fish."
-  HLF-0050 | Pim nails the fish to the inside of the hull, very seriously.
-  HLF-0051 | Pim is painting a name on the bow in big red letters: MERRY GULL II. "So she knows where she is going."
-  HLF-0052 | Pim stands back and looks at it for a long time.
-  HLF-0053 | Launch day. Pim's boat floats. It leaks, and he bails with one hand and waves with the other all the way round the pier and back.
-  HLF-0054 | The whole pier cheers. Pim pretends not to hear.
-  HLF-0055 | Pim's little boat is out again. It leaks. He bails and waves.
+  HLF-0050 | Nilo nails the fish to the inside of the hull, very seriously.
+  HLF-0051 | Nilo is painting a name on the bow in big red letters: MERRY GULL II. "So she knows where she is going."
+  HLF-0052 | Nilo stands back and looks at it for a long time.
+  HLF-0053 | Launch day. Nilo's boat floats. It leaks, and he bails with one hand and waves with the other all the way round the pier and back.
+  HLF-0054 | The whole pier cheers. Nilo pretends not to hear.
+  HLF-0055 | Nilo's little boat is out again. It leaks. He bails and waves.
   HLF-0056 | Old Sabe keeps the harbour light, though he can barely see it any more. "Oil, captain, if you have it. The light goes on whether I see it or not."
   HLF-0057 | He fills the lamp by feel, not spilling a drop.
   HLF-0058 | "Sail past the light one night," Sabe says. "Close in. I want to hear a ship go by again."
@@ -2546,9 +2575,9 @@ line says which file it goes back into. 1439 lines.
   HLF-0072 | You keep the box somewhere very safe.
   HLF-0073 | Marisol opens the box, laughs, cries, and puts it on the wrong finger. "Come to the wedding. It is on our festival day."
   HLF-0074 | Come back on the festival day.
-  HLF-0075 | A wedding on the festival day: flowers on the pier, a cake on a cart, Teo in a coat that is too big. Marisol throws her bouquet, and the crew catch it.
+  HLF-0075 | A wedding on the festival day: flowers on the pier, a cake on a cart, Anselm in a coat that is too big. Marisol throws her bouquet, and the crew catch it.
   HLF-0076 | You dance badly and are cheered for it.
-  HLF-0077 | Marisol and Teo wave from a blue house above the pier.
+  HLF-0077 | Marisol and Anselm wave from a blue house above the pier.
   HLF-0078 | [counter] Corvo who counts ships
   HLF-0079 | A man called Corvo stands on the pier with a stick of chalk, writing every ship that comes in on the harbour wall. "Name?" He writes MERRY GULL, very neatly.
   HLF-0080 | Corvo nods and turns back to the sea.
@@ -2598,8 +2627,8 @@ line says which file it goes back into. 1439 lines.
   HLF-0116 | Come back after dark.
   HLF-0117 | Lune sings on the quay every evening, but one song always stops halfway. "My mother never taught me the end. Someone in {P} might know it."
   HLF-0118 | An old woman in {P} knows the tune. She sings the last verse very quietly, and makes you say it back twice.
-  HLF-0119 | Marisol is getting married on {H}'s festival day, to Teo from {P}. "He has not sent the ring. Take him this ribbon and ask him why not."
-  HLF-0120 | Teo in {P} goes pale at the ribbon, runs indoors and comes back with a ring in a box. "I was polishing it. For a month. Tell her that."
+  HLF-0119 | Marisol is getting married on {H}'s festival day, to Anselm from {P}. "He has not sent the ring. Take him this ribbon and ask him why not."
+  HLF-0120 | Anselm in {P} goes pale at the ribbon, runs indoors and comes back with a ring in a box. "I was polishing it. For a month. Tell her that."
   HLF-0121 | They say the two bakers in {W} have made it up. Nobody in this town believes it.
   HLF-0122 | Heard you brought a little girl's dog home to {W}. The dog is telling everyone.
   HLF-0123 | That widow in {W} with the lamp. They say the lamp went out. We do not talk about it.
@@ -2719,6 +2748,14 @@ line says which file it goes back into. 1439 lines.
   TBL-0021 | Our street ran down to the water. Down, not along. Odd thing to remember.
   TBL-0022 | The third house. The door was blue.
   TBL-0023 | I have the name of it now. I am not going to say it out loud. Not out here.
+
+### TBL / ADDED 2026-11-13
+  TBL-0024 | Logged: a twenty, at the table by the water. The sea has been quiet since.
+  TBL-0025 | Logged: a middling throw. That night the two of them were heard playing together, for one bar.
+  TBL-0026 | Logged: a low throw. The next page is wet through.
+  TBL-0027 | Logged: no throw. Somebody hummed. A violin answered.
+  TBL-0028 | Logged: a blank line, left blank.
+  TBL-0029 | Logged, in our own hand: the other chair is warm.
 
 
 ####################################################################################################

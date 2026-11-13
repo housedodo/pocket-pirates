@@ -35,7 +35,8 @@ import { Fishing } from './fishing.js';
 import { Combat } from './combat.js';
 import './sectors.js';
 import { markSeen, isKnown, levels as clueLevels, d3Open, tableOpen } from './clues.js';
-import { tableOptions, finalThrow, ENDINGS } from './table.js';
+import { tableOptions, finalThrow, ENDINGS, EPILOGUE } from './table.js';
+import { paintStill } from './cavescene.js';
 import { Objectives, MUSINGS, MAIN_GOALS, unlocked, gateRadius, chapterOf, goalText } from './objectives.js';
 import './customize.js';
 import { Wind } from './wind.js';
@@ -1109,7 +1110,7 @@ function openTable() {
   const opts = tableOptions(state), memory = (state.story.maraMem || 0) >= 4;
   rt.cardBusy = false; rt.cardNext = null; openModal('card'); audio.play('card');
   const done = $('cardDone'), out = (t, next) => { $('cardOut').textContent = t; done.style.display = ''; done.textContent = 'Go on [E]'; cardEl.querySelectorAll('#cardChoices button').forEach((b) => { b.disabled = true; }); rt.cardBusy = 'done'; rt.cardNext = next; };
-  renderCard({ icon: 'pip', title: 'THE TABLE BY THE WATER', dark: true, text: `A table at the water's edge. One chair on this side, one on the other. A die, waiting.${memory ? ' Mara, quietly: "I do not think we are here to throw."' : ''}`,
+  renderCard({ icon: 'pip', art: paintStill('table', 'table'), title: 'THE TABLE BY THE WATER', dark: true, text: `A table at the water's edge. One chair on this side, one on the other. A die, waiting.${memory ? ' Mara, quietly: "I do not think we are here to throw."' : ''}`,
     choices: opts.map((o) => ({ label: o.label, id: o.id })) }, (ch) => {
     if (rt.cardBusy) return; rt.cardBusy = true;
     if (ch.id === 'throw') {
@@ -1132,8 +1133,15 @@ function showEnding(id, roll = null) {
   const el = $('ending'); el.classList.toggle('dark', !!e.dark);
   el.querySelector('h1').textContent = e.title;
   el.querySelector('div').innerHTML = e.lines.map((l) => `<p>${l}</p>`).join('');
+  $('endArt').src = paintStill('table', id);
+  if (EPILOGUE[id]) state.notes.push({ text: EPILOGUE[id], dark: !!e.dark });   // the Ship's book keeps how it ended
+  if (id === 'tune' && audio.layers) audio.layers.keepTune(80);   // the Two Players' own recordings: he starts, she answers
   el.classList.add('show'); audio.play('ending'); autosave();
 }
+$('endTitle').addEventListener('click', () => {   // end the voyage: the credits, then back to the title (the save keeps the voyage where it ended)
+  $('ending').classList.remove('show'); const c = $('credits'); c.classList.add('show');
+  const go = () => { location.href = location.pathname; }; c.addEventListener('click', go, { once: true }); setTimeout(go, 19000);
+});
 $('endGo').addEventListener('click', () => {
   const e = state.story.ending; $('ending').classList.remove('show'); if (!e) return;
   if (e.id === 'rises') { abyss.solo = 'leviathan'; rt.forced = 1; abyss.startEnding(); return; }   // the Eye opens; you wake off Tama

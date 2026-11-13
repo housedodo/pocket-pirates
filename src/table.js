@@ -28,6 +28,15 @@ export function tableOptions(state) {
   if (st.kept || rolls.length <= 1) out.push({ id: 'leave', label: 'Push your chair in and go back to the boat' });
   return out;
 }
+/** what goes into the Ship's book when the voyage ends, in another hand (drafts, 2026-11-13: the owner's to rewrite) */
+export const EPILOGUE = {
+  sleep: 'Logged: a twenty, at the table by the water. The sea has been quiet since.',
+  dreams: 'Logged: a middling throw. That night the two of them were heard playing together, for one bar.',
+  rises: 'Logged: a low throw. The next page is wet through.',
+  tune: 'Logged: no throw. Somebody hummed. A violin answered.',
+  leave: 'Logged: a blank line, left blank.',
+  sit: 'Logged, in our own hand: the other chair is warm.',
+};
 export const ENDINGS = {
   sleep: { title: 'THE LONG SLEEP', lines: ['Twenty.', 'She closes the book. For the first time she looks up, and it is only an old woman, very tired.', 'The sea breathes out. It will be a hundred years.'] },
   dreams: { title: 'GOOD DREAMS', lines: ['She writes the number and blots it.', 'Far across the water two instruments find each other for a bar.', 'The sea stays blue. Mara is already talking about supper.'] },

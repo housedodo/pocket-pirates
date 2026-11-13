@@ -94,12 +94,12 @@ export const ARCS = {
     { at: 'partner', say: 'An old salt in {P} knows the scarf. "The Wren? Came in a month back. Tomas sold her on this quay and walked inland. Said he was getting away from a lamp." He hands the scarf back.', btn: 'Take it back', done: 'You fold the scarf. You are not sure what you will tell her.' },
     { at: 'home', say: 'The lamp at the end of the pier is cold. Ines\'s door is open and the beds are made. On the table, two cups, both still warm.', btn: 'Leave the scarf', done: 'You leave the scarf on the table, next to the cups.', end: true, dark: true },
   ], after: 'Ines\'s lamp is dark. Nobody lights it, and nobody takes it down.' },
-  boat: { who: 'Pim the boatbuilder', prop: 'boat', steps: [
-    { at: 'home', say: 'A boy called Pim is building a boat out of driftwood on the beach. It is mostly holes. "I need nails. The smith takes fruit."', need: 'fruit', btn: 'Give him fruit', done: 'Pim runs off with the fruit and comes back with a fistful of bent nails.' },
-    { at: 'home', say: 'The boat has a bottom now. "Gran says the first fish goes in the hull, for luck. I have never caught a fish."', need: 'fish', btn: 'Give him a fish', done: 'Pim nails the fish to the inside of the hull, very seriously.' },
-    { at: 'home', say: 'Pim is painting a name on the bow in big red letters: MERRY GULL II. "So she knows where she is going."', btn: 'Admire it', done: 'Pim stands back and looks at it for a long time.' },
-    { at: 'home', say: 'Launch day. Pim\'s boat floats. It leaks, and he bails with one hand and waves with the other all the way round the pier and back.', btn: 'Cheer', done: 'The whole pier cheers. Pim pretends not to hear.', end: true },
-  ], after: 'Pim\'s little boat is out again. It leaks. He bails and waves.' },
+  boat: { who: 'Nilo the boatbuilder', prop: 'boat', steps: [
+    { at: 'home', say: 'A boy called Nilo is building a boat out of driftwood on the beach. It is mostly holes. "I need nails. The smith takes fruit."', need: 'fruit', btn: 'Give him fruit', done: 'Nilo runs off with the fruit and comes back with a fistful of bent nails.' },
+    { at: 'home', say: 'The boat has a bottom now. "Gran says the first fish goes in the hull, for luck. I have never caught a fish."', need: 'fish', btn: 'Give him a fish', done: 'Nilo nails the fish to the inside of the hull, very seriously.' },
+    { at: 'home', say: 'Nilo is painting a name on the bow in big red letters: MERRY GULL II. "So she knows where she is going."', btn: 'Admire it', done: 'Nilo stands back and looks at it for a long time.' },
+    { at: 'home', say: 'Launch day. Nilo\'s boat floats. It leaks, and he bails with one hand and waves with the other all the way round the pier and back.', btn: 'Cheer', done: 'The whole pier cheers. Nilo pretends not to hear.', end: true },
+  ], after: 'Nilo\'s little boat is out again. It leaks. He bails and waves.' },
   keeper: { who: 'Old Sabe', prop: 'chair', steps: [
     { at: 'home', say: 'Old Sabe keeps the harbour light, though he can barely see it any more. "Oil, captain, if you have it. The light goes on whether I see it or not."', need: 'oil', btn: 'Give him oil (10)', done: 'He fills the lamp by feel, not spilling a drop.' },
     { at: 'home', say: '"Sail past the light one night," Sabe says. "Close in. I want to hear a ship go by again."', btn: 'Promise', done: 'Come back after dark.' },
@@ -113,11 +113,11 @@ export const ARCS = {
     { at: 'home', say: 'At dusk the whole village sings Lune\'s song, all the way to the end. Lune does not. She says she never knew the words before, and hums something else.', btn: 'Listen', done: 'You find you know all the words.', end: true, dark: true },
   ], after: 'At dusk they sing Lune\'s song to the end. Lune hums something else.' },
   bride: { who: 'Marisol the bride', prop: 'arch', steps: [
-    { at: 'home', say: 'Marisol is getting married on {H}\'s festival day, to Teo from {P}. "He has not sent the ring. Take him this ribbon and ask him why not."', btn: 'Take the ribbon', done: 'The ribbon is blue, with her name sewn on it.' },
-    { at: 'partner', say: 'Teo in {P} goes pale at the ribbon, runs indoors and comes back with a ring in a box. "I was polishing it. For a month. Tell her that."', btn: 'Take the ring', done: 'You keep the box somewhere very safe.' },
+    { at: 'home', say: 'Marisol is getting married on {H}\'s festival day, to Anselm from {P}. "He has not sent the ring. Take him this ribbon and ask him why not."', btn: 'Take the ribbon', done: 'The ribbon is blue, with her name sewn on it.' },
+    { at: 'partner', say: 'Anselm in {P} goes pale at the ribbon, runs indoors and comes back with a ring in a box. "I was polishing it. For a month. Tell her that."', btn: 'Take the ring', done: 'You keep the box somewhere very safe.' },
     { at: 'home', say: 'Marisol opens the box, laughs, cries, and puts it on the wrong finger. "Come to the wedding. It is on our festival day."', btn: 'Promise to come', done: 'Come back on the festival day.', gold: 10 },
-    { at: 'home', need: 'event', say: 'A wedding on the festival day: flowers on the pier, a cake on a cart, Teo in a coat that is too big. Marisol throws her bouquet, and the crew catch it.', btn: 'Dance', done: 'You dance badly and are cheered for it.', end: true },
-  ], after: 'Marisol and Teo wave from a blue house above the pier.' },
+    { at: 'home', need: 'event', say: 'A wedding on the festival day: flowers on the pier, a cake on a cart, Anselm in a coat that is too big. Marisol throws her bouquet, and the crew catch it.', btn: 'Dance', done: 'You dance badly and are cheered for it.', end: true },
+  ], after: 'Marisol and Anselm wave from a blue house above the pier.' },
   counter: { who: 'Corvo who counts ships', prop: 'wall', steps: [
     { at: 'home', say: 'A man called Corvo stands on the pier with a stick of chalk, writing every ship that comes in on the harbour wall. "Name?" He writes MERRY GULL, very neatly.', btn: 'Let him', done: 'Corvo nods and turns back to the sea.' },
     { at: 'home', say: 'Corvo has filled most of the wall. "Busy week," he says, and writes MERRY GULL again.', btn: 'Point it out', done: 'He looks at the wall, then at you. "Twice. Yes."' },

@@ -49,6 +49,44 @@ function hermit(ctx, x, y) { R(ctx, '#e8e0d0', x, y, 18, 30); R(ctx, '#e8b890', 
 /** draws the picture for this room; returns { lamps: [[x, y, r, colour]], water: top row of the water or null } */
 const VIOLET = ['#05040a', '#150a22', '#2a1245', '#52208a', '#a050e0', '#f0c8ff'];
 const SCENES = {
+  // the Table by the Water (2026-11-13): night sand, a still sea, one table, two chairs, the book, the die, a candle. Across the table a
+  // shape in the chair, darker than the dark, never more than that. node: 'table' (arriving) or an ending id, which sets the sky
+  // (sleep: first light; dreams: blue night; tune: blue night, two lights far off; rises: the sea lit from below; leave: the table far
+  // behind you; sit: the chair across is empty, seen from the other side)
+  table(ctx, node) {
+    const sky = { sleep: ['#05040a', '#1a1430', '#4a3a5a', '#a0708a', '#e8b890', '#ffe0b0'], rises: ['#05040a', '#100618', '#2a0a2a', '#4a0a3a', '#7a1a4a', '#c04a6a'] }[node]
+      || ['#05040a', '#0b1020', '#14263a', '#1f3a56', '#3a5a88', '#9fb8e0'];
+    ramp(ctx, (x, y) => (y < 78 ? 0.25 + 0.6 * (y / 78) * (node === 'sleep' ? 1.2 : 0.8) + 0.06 * fbm(x / 14, y / 10, 7) : 0.18 + 0.22 * fbm(x / 5, y / 2, 13) * (1 - (y - 78) / 60)), sky);
+    if (node !== 'sleep') for (let i = 0; i < 40; i++) R(ctx, '#e8f0ff', hash(i, 1, 3) * W, hash(i, 2, 3) * 60, 1, 1);   // stars
+    if (node === 'rises') for (let y = 84; y < 128; y++) for (let x = 0; x < W; x++) if (hash(x, y, 9) < 0.05 * (y - 84) / 44) R(ctx, '#ff70d0', x, y, 1, 1);   // the sea lit from below
+    if (node === 'tune' || node === 'dreams') { R(ctx, '#ffd070', 34, 80, 2, 2); R(ctx, '#ffd070', 290, 81, 2, 2); }   // two lights far off: his, hers
+    for (let x = 0; x < W; x += 9) R(ctx, '#3a5a88', x + (hash(x, 4, 2) * 6 | 0), 80 + (hash(x, 5, 2) * 40 | 0), 4, 1);   // glints
+    ramp(ctx, (x, y) => (y < 124 + Math.sin(x / 30) * 3 ? null : 0.35 + 0.35 * fbm(x / 7, y / 5, 21) + (y - 124) / 120), ['#120a06', '#2a1a0e', '#4a3a28', '#6a5a40', '#8a7a5a', '#b8a880']);
+    if (node === 'leave') {   // far behind you: a small table and a light on the sand
+      R(ctx, '#2a1a0e', 150, 122, 22, 3); R(ctx, '#1a0f08', 152, 125, 2, 6); R(ctx, '#1a0f08', 168, 125, 2, 6); R(ctx, '#ffe88a', 160, 119, 1, 2);
+      for (let i = 0; i < 9; i++) R(ctx, '#2a1a0e', 158 + i * 3 + (i % 2) * 2, 140 + i * 4, 3, 2);   // your steps
+      return { lamps: [[160, 119, 18, '#ffd070']] };
+    }
+    const far = node !== 'sit';
+    // the far chair, and in it (not when you sit there) the shape
+    R(ctx, '#1a0f08', 146, 72, 28, 36); R(ctx, '#2a1a0e', 148, 74, 24, 4);
+    if (far && node !== 'sleep') { R(ctx, '#05040a', 150, 70, 20, 40); R(ctx, '#05040a', 154, 62, 12, 10); R(ctx, '#0b0a12', 146, 96, 6, 14); R(ctx, '#0b0a12', 168, 96, 6, 14); }
+    if (node === 'sleep') { R(ctx, '#3a3040', 152, 76, 16, 32); R(ctx, '#8a8090', 155, 66, 10, 10); R(ctx, '#c8c0c8', 154, 64, 12, 4); }   // only an old woman, very tired
+    // the table
+    R(ctx, '#3a2210', 96, 104, 128, 10); R(ctx, '#5a3418', 92, 100, 136, 6); R(ctx, '#7a4a22', 92, 100, 136, 2);
+    R(ctx, '#2a1a0e', 100, 114, 6, 34); R(ctx, '#2a1a0e', 214, 114, 6, 34);
+    // the book, open, and the pen
+    R(ctx, '#e8dcc0', 128, 94, 30, 7); R(ctx, '#d8ccb0', 158, 94, 30, 7); R(ctx, '#8a7a5a', 157, 94, 2, 7);
+    for (let i = 0; i < 3; i++) { R(ctx, '#5a4a3a', 131, 95 + i * 2, 22 - i * 5, 1); R(ctx, '#5a4a3a', 161, 95 + i * 2, 20 - i * 3, 1); }
+    if (node !== 'rises') R(ctx, '#1a0f08', 184, 90, 1, 8);
+    // the die (none on the table once the tune is kept)
+    if (node !== 'tune') { R(ctx, '#e8e0d0', 112, 95, 7, 6); R(ctx, '#b8b0a0', 112, 100, 7, 1); R(ctx, '#3a2210', 115, 97, 1, 1); }
+    // the candle
+    R(ctx, '#e8e0c8', 204, 90, 4, 10); R(ctx, '#ffe88a', 205, 86, 2, 4);
+    // the near chair: its back to you (or, when you sit, the far one is empty and you look across at Mara's)
+    R(ctx, '#2a1a0e', 140, 132, 40, 6); R(ctx, '#2a1a0e', 142, 138, 4, 30); R(ctx, '#2a1a0e', 174, 138, 4, 30); R(ctx, '#3a2210', 140, 120, 40, 4);
+    return { lamps: [[206, 86, node === 'rises' ? 40 : 64, '#ffd070']] };
+  },
   house(ctx, node) {   // the lamp room: a huge steady lamp, a round desk, a ledger, an hourglass that has stopped
     lantern(ctx, WARM, 160, 70, 150, 105, 12);
     R(ctx, '#ffd23a', 146, 30, 28, 26); R(ctx, '#fff4b0', 150, 34, 20, 18); R(ctx, '#3a2210', 138, 56, 44, 6);
@@ -183,3 +221,8 @@ export class CaveScene {
   stop() { cancelAnimationFrame(this.raf); this.raf = 0; }
 }
 export const caveLook = (kind) => (kind === 'grotto' ? 'passage' : 'lantern');   // the Colour's spring uses the lantern look
+/** a still of a scene (the Table, its endings): painted once, lamps and all, as a data URL for an <img> */
+export function paintStill(kind, node) {
+  const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+  const sc = new CaveScene(cv); sc.show(kind, node); return cv.toDataURL();
+}

@@ -72,7 +72,7 @@ export function houseMod(hub) {
         if (arg === 'throw') { if (hub.state.hut) hub.state.hut.lastDay = -1; api.cool(); tp.pacts.push({ k: 'throw', due: api.state.dayN + 99, paid: true }); return 'You may throw again at the hut today.'; }
       }
       if (n === 'ledger') {
-        tp.page = true; api.keep('page', 'A page from the ledger', 'Ships, in a neat hand. Some of the dates have not happened yet.');
+        tp.page = true; api.keep('page', 'A page from the guest book', 'Ships, in a neat hand. Some of the dates have not happened yet.');
         const c = hub.mod('captain');
         if (c && c.stage() !== 'none') { c.sign(); return 'One entry is signed twice. The second hand is yours, and is not.'; }
         return '';

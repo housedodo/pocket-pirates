@@ -54,7 +54,7 @@ export const CAVES = {
           ok: { text: 'The hook catches the first time. The chest comes across the water like a very heavy duck.', next: 'chest' },
           fail: { text: 'The hook finds only rock. The tide pulls the line out of your hand. The chest sits there, smug.', end: 'lose' } },
         { label: 'Leave while you can', go: { text: 'You leave. Behind you the water closes the chamber, as if it had never had a chest.', end: 'lose' } }] },
-      chest: { text: 'Inside: a damp ledger, a heap of coins and a brass lamp. The water is at your knees and rising.', choices: [
+      chest: { text: 'Inside: a damp logbook, a heap of coins and a brass lamp. The water is at your knees and rising.', choices: [
         { label: 'Grab all of it', check: { label: 'Luck', kind: 'luck', dc: 13 },
           ok: { text: 'You take the lot and a wave carries you to the mouth like a cork.', end: 'win', fx: { gold: 55 } },
           fail: { text: 'Too much for two arms. The lamp goes under. You come out with a few coins and a lot of seawater.', end: 'lose', fx: { gold: 12 } } },

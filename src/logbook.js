@@ -351,7 +351,11 @@ export class Logbook {
     const types = { harbour: 'Harbours', treasure: 'Treasure isles', jungle: 'Jungles', rocky: 'Rocks', sandbar: 'Sandbars', volcano: 'Volcanoes', atoll: 'Atolls', mangrove: 'Mangroves' };
     // letters and bottles first: Perrin's notes are what Mara sends you here for
     let html = h3(`Letters and bottles (${state.notes.length})`);
-    html += state.notes.length ? state.notes.slice(-4).reverse().map((n) => `<div class="ent ${n.dark ? 'dk' : ''}"><small>“${n.text}”</small></div>`).join('') : ent('None yet', '', '', 'dim');
+    {   // the same line found again is one entry with a count, newest first (2026-11-13: echoing notes)
+      const by = new Map(); for (const n of state.notes) { const k = n.text, o = by.get(k); by.delete(k); by.set(k, { n, c: (o ? o.c : 0) + 1 }); }
+      const list = [...by.values()].reverse();
+      html += list.length ? list.slice(0, 8).map(({ n, c }) => `<div class="ent ${n.dark ? 'dk' : ''}"><small>“${n.text}”${c > 1 ? ` <span class="r">×${c}</span>` : ''}</small></div>`).join('') + more(list, 8) : ent('None yet', '', '', 'dim');
+    }
     if (isOpen(state, 'know', 'tally') && state.hut && state.hut.rolls.length) {   // the bells have been counted: the throws, as tick marks
       html += h3('Counted') + state.hut.rolls.slice(-8).map((r) => ent(`Day ${r.day}`, `${'|||| '.repeat(Math.floor(r.n / 5))}${'|'.repeat(r.n % 5)}`)).join('');
     }

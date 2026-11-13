@@ -16,12 +16,12 @@ CAVES.house = {
       { label: 'Not yet', go: { cancel: true } }] },
     hall: { text: (t) => t.mod('house').hallText(), choices: [
       { label: 'Hear the bargains', if: 'house:canpact', go: { text: '', next: 'offer' } },
-      { label: 'Ask to read the ledger of ships', if: 'house:canledger', check: { label: 'Luck', kind: 'luck', dc: 13 },
+      { label: 'Ask to read the guest book', if: 'house:canledger', check: { label: 'Luck', kind: 'luck', dc: 13 },
         ok: { text: 'The keeper turns the book around. Ships, in a neat hand, with dates. Some of the dates are next week. Yours is there. You tear nothing out. You only look.', fx: { event: 'house:ledger' }, next: 'hall' },
         fail: { text: 'He closes the book, kindly. "Not today. There is always another day, you will find."', next: 'hall' } },
       { label: 'Tear out your page', if: 'house:haspage', go: { text: 'It comes away with a sound like a breath. The keeper does not stop you. He watches the pacts go out of the room like moths.', fx: { event: 'house:tear' }, next: 'hall' } },
       { label: 'Go down', go: { text: 'The stairs are longer going down.', end: 'win' } }] },
-    offer: { text: 'The keeper turns the ledger toward you. Three entries, each with a price, each in your handwriting.', choices: [
+    offer: { text: 'The keeper turns the guest book toward you. Three entries, each with a price, each in your handwriting.', choices: [
       { label: 'A borrowed wind (a page of your log)', if: 'house:can:wind', go: { text: 'He opens a window. A fair wind comes in, and sits down, and does not leave for a while.', fx: { event: 'house:take', arg: 'wind' }, next: 'hall' } },
       { label: 'A longer day (a morning of yours)', if: 'house:can:hour', go: { text: 'The sun, outside, thinks better of it and waits. You have the afternoon again.', fx: { event: 'house:take', arg: 'hour' }, next: 'hall' } },
       { label: 'A second throw (a harbour\'s kindness)', if: 'house:can:throw', go: { text: 'He weighs something you cannot see. "She will let you throw again. She always does." Somewhere, a harbour goes a little cooler.', fx: { event: 'house:take', arg: 'throw' }, next: 'hall' } },

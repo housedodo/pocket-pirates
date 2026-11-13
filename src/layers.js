@@ -84,6 +84,9 @@ export class SeaLayers {
   }
   /** start every loaded stem on the same sample so they stay in time */
   start() { const when = this.ctx.currentTime + 0.15; this.t0 = when; for (const s of this.srcs.values()) s.start(when); }
+  /** the Table's tune ending (2026-11-13): for `sec` seconds the Two Players' recordings play wherever you are, the guitar first and the
+   *  violin answering, and every other part steps back */
+  keepTune(sec = 75) { this.kept = sec; const L = sec - 14; this.fc.ep = { kind: 'G>V', clock: 0, end: L, on: [0, 7], off: [L, L] }; this.fc.phase = 'play'; }
 
   /** the next scene: after a full band a line-up of two or three, never one heard lately and sharing at most one player with the last */
   nextScene(on) {
@@ -199,7 +202,7 @@ export class SeaLayers {
     { // the Free Cays night episodes: silence 25-65 s, then guitar alone / violin alone / both / one joins the other (and the first sometimes leaves)
       // The guitar is Teo's and the violin Ilse's (the Two Players, systems/lullaby.js): near them the silences are short and he starts, she finishes.
       const P = s.players, near = P ? P.near : 0;
-      const F = this.fc, ok = fk > 0.6 && nk > 0.5 && FC.every((k) => this.srcs.has(k));
+      const F = this.fc, ok = (this.kept > 0 || (fk > 0.6 && nk > 0.5)) && FC.every((k) => this.srcs.has(k));
       if (!ok) { F.ep = null; F.want = [0, 0]; if (F.phase !== 'rest') F.phase = 'out'; if (F.phase === 'rest') F.t = Math.min(F.t, 14); }
       else if (F.phase === 'rest') {
         F.t -= d; if (near > 0.5) F.t = Math.min(F.t, 12);
@@ -244,7 +247,7 @@ export class SeaLayers {
         const [home, wander, sp] = PLACE[k];
         const drift = home + wander * Math.sin(this.t * sp * 6.283 + st.ph), there = s.players ? (i ? s.players.vPan : s.players.gPan) : drift, nr = s.players ? s.players.near : 0;
         this.pans.get(k).pan.setTargetAtTime(Math.max(-0.9, Math.min(0.9, drift + (there - drift) * nr)), T, 2);   // near them: from where each of them sits
-        out[k] = smooth(F.k[i]) * (1 - 0.16 * smooth(F.k[1 - i])) * nk * fk * Math.max(s.stage ?? 1, s.lull || 0) * (0.4 + 0.6 * this.open);   // a little lower when both play; the Cays' quiet keeps them playing
+        out[k] = smooth(F.k[i]) * (1 - 0.16 * smooth(F.k[1 - i])) * (this.kept > 0 ? 1 : nk * fk * Math.max(s.stage ?? 1, s.lull || 0) * (0.4 + 0.6 * this.open));   // a little lower when both play; the Cays' quiet keeps them playing
         continue;
       }
       if (k === PAD) {   // the night pad, in place of the night band while it holds
@@ -298,6 +301,9 @@ export class SeaLayers {
         this.pans.get(ARP2).pan.setTargetAtTime(Math.max(-0.9, Math.min(0.9, pan)), T, 1);
       }
     }
+    // the tune is kept: the other parts step back while the Two Players play (keepTune), and come back slowly after
+    this.keptK = Math.max(0, Math.min(1, (this.keptK || 0) + (this.kept > 0 ? d / 6 : -d / 12))); if (this.kept > 0) this.kept -= d;
+    if (this.keptK > 0) for (const k in out) if (!FC.includes(k)) out[k] *= 1 - this.keptK;
     return out;
   }
 }
