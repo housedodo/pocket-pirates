@@ -98,6 +98,18 @@ export function clueTick(dt) {
   if (window.__BUILD !== 'demo') { const l = maraRemembers(state, dt, G.laterOK() && !G.objectives.mate.busy && !G.objectives.pending && !rt.modal && !G.eventQuiet() && !G.world.nearest(G.ship.pos.x, G.ship.pos.z, 60)); if (l) G.objectives.mate.say(l); }   // her village comes back to her a piece at a time (table.js); the third piece is the blue door, some time after the Sunken Street
   if (isKnown(state, 'rest') && slow && tod.night > 0.4 && state.story.peakDread > 0) state.story.peakDread = Math.max(0, state.story.peakDread - 0.004 * dt);   // the crew rest on deck (CL-F2-a): the worst you have sailed into fades a little while you lie still at night
   if (dwell('players', slow && tod.night > 0.45 && G.weather.storm < 0.3 && (at('teo', 300) || at('ilse', 300)), 10)) G.seeClue('CL-F1-a');
+  if ((rt.threadClueT = (rt.threadClueT || 0) - dt) <= 0) { rt.threadClueT = 3; threadClues(); }
+}
+/** the threads feed the ledger: the first time the captain has met each one (its saved state says so), one clue (clues.js CL-T-*) */
+const THREAD_MET = {
+  music: (t) => t.nights && t.nights.length > 0, bell: (t) => t.clappers > 0 || t.asked, coin: (t) => t.state && t.state !== 'none',
+  house: (t) => t.visits > 0, captain: (t) => t.stage && t.stage !== 'none', hollow: (t) => t.w > 0 || t.accepted,
+};
+function threadClues() {
+  if (window.__BUILD === 'demo') return;
+  const tp = state.story.tp || {};
+  for (const id in THREAD_MET) if (tp[id] && THREAD_MET[id](tp[id])) G.seeClue('CL-T-' + id);
+  if (state.story.colour && state.story.colour.found) G.seeClue('CL-T-colour');
 }
 export function seaGate(dt) {
   const R = gateRadius(state, tideFalls()), d = Math.hypot(G.ship.pos.x, G.ship.pos.z);

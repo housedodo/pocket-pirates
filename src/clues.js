@@ -31,6 +31,15 @@ export const CLUES = [
   { id: 'CL-X1-berth', region: 'deep', q: [3],    w: 1, cap: null,      line: 'A man on a wreck, waiting for his stop. The ticket is for two.' },
   { id: 'CL-X2-hook',  region: 'deep', q: [3],    w: 1, cap: null,      line: 'A rowboat with a cut line. The old knot, for a bronze hook.' },
   { id: 'CL-X3-hole',  region: 'deep', q: [3],    w: 1, cap: null,      line: 'Somebody still digging. The sand runs back in.' },
+  // the threads, each in its region (THREAD_REGION), seen the first time the captain meets one (storybeats.threadClues; drafts, 2026-11-13).
+  // The bell is the second way into Q5 (Why is Tama home), away from home waters.
+  { id: 'CL-T-music',   region: 'free',    q: [2, 7], w: 1, cap: null, line: 'A tune that never ends. Nobody near it sleeps without it.' },
+  { id: 'CL-T-bell',    region: 'lantern', q: [5, 6], w: 1, cap: null, line: 'A bell under the water rings the hours of Tama, not of this place.' },
+  { id: 'CL-T-coin',    region: 'crown',   q: [1, 4], w: 1, cap: null, line: 'A coin that finds its way back to the purse it left.' },
+  { id: 'CL-T-house',   region: 'crown',   q: [1, 3], w: 1, cap: null, line: 'A house that keeps a book of who stayed. Our name is in it.' },
+  { id: 'CL-T-captain', region: 'reef',    q: [3],    w: 1, cap: null, line: 'A ship like ours in the wrong colours, lower in the water.' },
+  { id: 'CL-T-colour',  region: 'drowned', q: [2],    w: 1, cap: null, line: 'A patch of sea the wrong colour. The fish from it taste of nothing.' },
+  { id: 'CL-T-hollow',  region: 'drowned', q: [1, 6], w: 1, cap: null, line: 'A harbour that knew we were coming, and had a place set.' },
 ];
 export const CLUE = Object.fromEntries(CLUES.map((c) => [c.id, c]));
 

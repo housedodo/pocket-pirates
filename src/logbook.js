@@ -112,7 +112,7 @@ function pixelCover() {
     c.fillStyle = pal[Math.max(0, Math.min(3, Math.round(v * 3 + dith(x, y))))]; c.fillRect(x, y, 1, 1);
   }
   for (let i = 0; i < 40; i++) { const x = r() * W0, y = r() * H0, a = r() * 6.28, l = 2 + r() * 9; pline(c, x, y, x + Math.cos(a) * l, y + Math.sin(a) * l, r() < 0.7 ? '#8a6038' : '#140a06'); } // scratches
-  for (let i = 0; i < 7; i++) pblob(c, r, r() * W0, r() * H0, 2 + r() * 5, 'rgba(14,7,4,0.55)');                                                // stains
+  for (let i = 0; i < 7; i++) pblob(c, r, r() * W0, r() * H0, 2 + r() * 5, 'rgba(14,7,4,0.2)');   // stains: faint, so no text sits on a black blot (2026-11-13)
   c.fillStyle = '#b8954c'; for (let x = 6; x < W0 - 6; x += 3) if (r() > 0.15) { c.fillRect(x, 4, 1, 1); c.fillRect(x, H0 - 5, 1, 1); }          // stitching, a few missing
   for (let y = 6; y < H0 - 6; y += 3) if (r() > 0.15) { c.fillRect(4, y, 1, 1); c.fillRect(W0 - 5, y, 1, 1); }
   const gold = ['#e8cc84', '#b8954c', '#7a5a24', '#4a3410'];
@@ -129,7 +129,7 @@ function pixelPage() {
     c.fillStyle = pal[Math.max(0, Math.min(3, Math.round(v + dith(x, y))))]; c.fillRect(x, y, 1, 1);
   }
   for (let i = 0; i < 18; i++) pblob(c, r, r() * W0, r() * H0, 1 + r() * 2.5, 'rgba(120,80,40,0.35)');                           // foxing
-  for (let i = 0; i < 3; i++) { const x = [6, W0 - 7, 34][i] + r() * 6, y = [5 + r() * 6, H0 - 9, H0 - 6][i]; pblob(c, r, x, y, 2 + r() * 2, '#2a1608'); for (let k = 0; k < 6; k++) c.fillRect(x + (r() - 0.5) * 12, y + (r() - 0.5) * 10, 1, 1); } // ink blots
+  for (let i = 0; i < 3; i++) { const x = [6, W0 - 7, 34][i] + r() * 6, y = [5 + r() * 6, H0 - 9, H0 - 6][i]; pblob(c, r, x, y, 2 + r() * 2, 'rgba(42,22,8,0.3)'); c.fillStyle = 'rgba(42,22,8,0.3)'; for (let k = 0; k < 6; k++) c.fillRect(x + (r() - 0.5) * 12, y + (r() - 0.5) * 10, 1, 1); } // ink blots, faded: text runs over them (2026-11-13)
   { const x = 128, y = 66, rr = 8; c.fillStyle = 'rgba(110,60,20,0.5)'; for (let a = 0.4; a < 5.8; a += 0.08) c.fillRect(Math.round(x + Math.cos(a) * rr), Math.round(y + Math.sin(a) * rr * 0.9), 1, 1); } // coffee ring
   pline(c, 20, 0, 58, H0, 'rgba(255,248,225,0.25)'); pline(c, 21, 0, 59, H0, 'rgba(90,60,30,0.2)');                                   // crease
   for (let i = 0; i < 9; i++) for (let j = 0; j < 9 - i; j++) { c.fillStyle = (i + j) % 2 ? '#b49a62' : '#d2ba84'; c.fillRect(W0 - 1 - i, H0 - 1 - j, 1, 1); } // dog-ear
@@ -149,7 +149,7 @@ function pixelate(c, w, h) {
 }
 const trackBtn = (state, id) => (state.tracked === id ? '<small class="tracked">&gt; following this one</small>' : `<button class="mini" data-track="${id}">Follow</button>`);
 const stars = (n) => pxi('star').repeat(n) + pxi('nostar').repeat(3 - n);
-const ent = (title, sub = '', right = '', cls = '') => `<div class="ent ${cls}"><b>${title}</b>${right ? `<span class="r">${right}</span>` : ''}${sub ? `<small>${sub}</small>` : ''}</div>`;
+const ent = (title, sub = '', right = '', cls = '', acts = '') => `<div class="ent ${cls}"><b>${title}</b>${right ? `<span class="r">${right}</span>` : ''}${sub ? `<small>${sub}</small>` : ''}${acts ? `<div class="acts">${acts}</div>` : ''}</div>`;   // acts: its buttons, kept inside the row (2026-11-13)
 const h3 = (t) => `<h3>${t}</h3>`;
 const more = (arr, n) => (arr.length > n ? `<div class="ent dim"><small>+ ${arr.length - n} more</small></div>` : '');
 
@@ -240,13 +240,13 @@ export class Logbook {
     if (!this.sec('quests')) {   // deliveries, passengers and commissions: one list
       html += h3('Also in hand');
       const j = state.job, pg = state.passenger, far = (x, z) => { const dx = x - ship.pos.x, dz = z - ship.pos.z; return `${bearingName(dx, dz)} · ${this.d.eta ? this.d.eta(Math.hypot(dx, dz)) : Math.round(Math.hypot(dx, dz))}`; };
-      if (j) html += ent(`${pxi('letter')} ${j.item}`, `to ${j.toName} · ${far(j.x, j.z)}`, `${j.reward}g`) + trackBtn(state, 'job') + '<button class="mini" data-drop="job">Give it up</button>';
-      if (pg) html += ent(`${pxi('talk')} ${pg.name}`, `to ${pg.toName} · ${far(pg.x, pg.z)}`, `${pg.reward}g`) + trackBtn(state, 'passenger') + '<button class="mini" data-drop="passenger">Give it up</button>';
+      if (j) html += ent(`${pxi('letter')} ${j.item}`, `to ${j.toName} · ${far(j.x, j.z)}`, `${j.reward}g`, '', trackBtn(state, 'job') + '<button class="mini" data-drop="job">Give it up</button>');
+      if (pg) html += ent(`${pxi('talk')} ${pg.name}`, `to ${pg.toName} · ${far(pg.x, pg.z)}`, `${pg.reward}g`, '', trackBtn(state, 'passenger') + '<button class="mini" data-drop="passenger">Give it up</button>');
       for (const q of state.quests) {
         const need = questNeed(q), have = questProgress(q, state), done = have >= need;
         let where = `for ${q.giverName}`;
         if (q.type === 'crates' && !done) where = `search ${far(q.center.x, q.center.z)}`;
-        html += `<div class="ent ${done ? 'cur' : ''}"><b>${questIcon(q)} ${questTitle(q, dread)}</b><span class="r">${q.reward}g</span><small>${where}${done ? ' · ready to hand in' : ''} · ${have}/${need}</small>${trackBtn(state, q.id)}</div>`;
+        html += `<div class="ent ${done ? 'cur' : ''}"><b>${questIcon(q)} ${questTitle(q, dread)}</b><span class="r">${q.reward}g</span><small>${where}${done ? ' · ready to hand in' : ''} · ${have}/${need}</small><div class="acts">${trackBtn(state, q.id)}</div></div>`;
       }
       if (!j && !pg && !state.quests.length) html += ent('Nothing else', 'Harbour boards post deliveries, passages and errands.', '', 'dim');
     }
@@ -282,10 +282,10 @@ export class Logbook {
     const j = state.job;
     if (j) {
       const dx = j.x - ship.pos.x, dz = j.z - ship.pos.z;
-      html += ent(`${pxi('letter')} ${j.item}`, `to ${j.toName} · ${Math.round(Math.hypot(dx, dz))} ${bearingName(dx, dz)}`, `${j.reward}g`) + trackBtn(state, 'job') + '<button class="mini" data-drop="job">Give it up</button>';
+      html += ent(`${pxi('letter')} ${j.item}`, `to ${j.toName} · ${Math.round(Math.hypot(dx, dz))} ${bearingName(dx, dz)}`, `${j.reward}g`, '', trackBtn(state, 'job') + '<button class="mini" data-drop="job">Give it up</button>');
     } else html += ent('No delivery', 'Take one at a harbour job board.', '', 'dim');
     const pg = state.passenger;
-    if (pg) { const dx = pg.x - ship.pos.x, dz = pg.z - ship.pos.z; html += h3('Passenger') + ent(`${pxi('talk')} ${pg.name}`, `to ${pg.toName} · ${Math.round(Math.hypot(dx, dz))} ${bearingName(dx, dz)}`, `${pg.reward}g`) + trackBtn(state, 'passenger') + '<button class="mini" data-drop="passenger">Give it up</button>'; }
+    if (pg) { const dx = pg.x - ship.pos.x, dz = pg.z - ship.pos.z; html += h3('Passenger') + ent(`${pxi('talk')} ${pg.name}`, `to ${pg.toName} · ${Math.round(Math.hypot(dx, dz))} ${bearingName(dx, dz)}`, `${pg.reward}g`, '', trackBtn(state, 'passenger') + '<button class="mini" data-drop="passenger">Give it up</button>'); }
     html += h3(`Commissions (${state.quests.length}/3)`);
     if (!state.quests.length) html += ent('None taken', 'Harbour boards post errands: fish, fruit, crates, raiders…', '', 'dim');
     for (const q of state.quests) {

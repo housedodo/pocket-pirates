@@ -1505,6 +1505,7 @@ function frame() {
   mixer.update();
   if (studio) studio.update(rawDt, soundSituation());
   $('clockicon').className = `ico ${tod.sunElev > 0 ? 'sun' : 'moon'}`;
+  { const tm = $('tidemark'), lv = Math.round(25 + (tideAt() + 1) * 33); if (tm.dataset.lv !== String(lv)) { tm.dataset.lv = lv; tm.firstChild.style.height = `${lv}%`; tm.className = `tidemark ${tideFalls() ? 'fall' : 'rise'}`; } }   // the tide, wordless
   $('sailfill').style.width = `${Math.round(ship.trim * 100)}%`;
   $('sailbar').classList.toggle('torn', state.sailsTorn); $('sailbar').classList.toggle('strain', rt.sailStrain > SAIL_LIMIT * 0.35);
   drawCompass(wind, ship.heading);

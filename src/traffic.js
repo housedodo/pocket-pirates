@@ -240,7 +240,8 @@ export class Traffic {
         const dx = ship.pos.x - s.x, dz = ship.pos.z - s.z, dd = Math.hypot(dx, dz);
         s.engaged = dd < 85;
         if (dd > 210 && s.age > 20) s.hostile = false;   // they give up the chase when you pull away
-        if (dd < 170) {
+        if (dread > 0.55) { s.hostile = false; s.engaged = false; s.heading = Math.atan2(-dx, dz); s.speed = K.speed[1]; }   // in deep water the raiders want nothing to do with you: they break off and run (2026-11-13)
+        else if (dd < 170) {
           let want = Math.atan2(dx, -dz);
           if (dd < 50) want += s.circle * 1.45;
           s.heading += clamp(angleDiff(s.heading, want), -0.7 * dt, 0.7 * dt);

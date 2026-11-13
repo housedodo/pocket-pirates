@@ -71,6 +71,7 @@
     #logBody .fac { display: inline-block; width: 11px; height: 11px; border: 1px solid #3a2210; vertical-align: -1px; }
     #logBody button.mini { margin: 4px 0 0; padding: 3px 10px; font: 700 12px Georgia, serif; background: #c9a85c; border: 2px solid #6b4a2e; color: #3a2210; cursor: pointer; }
     .ent button.mini { margin: 3px 0 0; padding: 1px 8px; font-size: 11px; opacity: .85; }
+    .ent .acts { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 4px; } .ent .acts button.mini { margin: 0; } .ent .acts small.tracked { display: inline; margin: 0; font-style: italic; }
     #logBody h3.brk { break-before: column; margin-top: 0 !important; }
     /* bookmarks: cloth ribbons slipped between the pages, sticking out of the right-hand side;
        the label is stamped into the cloth (debossed), not stuck on */
@@ -372,7 +373,7 @@
     #mate .face { font-size: 34px; transition: transform .07s; display: inline-block; }
     #matemore { color: #ffd23a; animation: blink .8s steps(2) infinite; align-self: flex-end; }
     #mate .face { font-size: 34px; } #mate b { color: #ffd23a; font-size: 12px; } #mate.dark { border-color: #ff70d0; } #mate.dark b { color: #ff9ae0; }
-    #fishui { position: absolute; left: 50%; bottom: 250px; transform: translateX(-50%); width: min(460px, 92vw); text-align: center; pointer-events: auto; touch-action: none; }
+    #fishui { position: absolute; left: 50%; top: max(150px, 21%); transform: translateX(-50%); width: min(460px, 92vw); text-align: center; pointer-events: auto; touch-action: none; }
     #digui { position: absolute; left: 50%; bottom: 200px; transform: translateX(-50%); width: min(460px, 92vw); text-align: center; pointer-events: auto; touch-action: none; }
     #devbar { position: fixed; top: 6px; left: 50%; transform: translateX(-50%); z-index: 60; display: flex; flex-wrap: wrap; justify-content: center; max-width: 96vw; gap: 6px; align-items: center; padding: 6px 10px; background: rgba(11, 7, 22, .88); box-shadow: 0 0 0 3px #3a3070; font: 16px DotGothic16, monospace; color: #f4ead0; }
     #devbar button, #devbar select { font: 16px DotGothic16, monospace; color: #f4ead0; background: #241c4c; border: 0; padding: 2px 8px; cursor: pointer; }
@@ -431,6 +432,11 @@
     .ico.coin { background: conic-gradient(from 20deg, #ffe680, #d9a82a, #fff2a8, #c8981c, #ffe680, #e0b030); clip-path: polygon(50% 0, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%); }
     .ico.flag { background: conic-gradient(from 30deg, #f0705a, #c03428, #e8503c, #a82a20); clip-path: polygon(14% 0, 26% 0, 26% 22%, 94% 44%, 26% 66%, 26% 100%, 14% 100%); }
     .ico.sun { background: conic-gradient(#ffe36a, #f4b830, #ffe888, #eaa828, #ffe36a, #f4b830, #ffe888, #eaa828); clip-path: polygon(30% 0, 70% 0, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0 70%, 0 30%); }
+    /* the tide, wordless (2026-11-13): a little glass of water beside the clock; its level is the tide, the notch shows which way it goes */
+    .tidemark { display: inline-block; position: relative; width: 7px; height: 14px; margin-left: 7px; vertical-align: -2px; border: 1px solid rgba(232,224,200,0.55); background: rgba(0,0,0,0.25); }
+    .tidemark > i { position: absolute; left: 0; right: 0; bottom: 0; background: #5aa8c8; }
+    .tidemark::after { content: ''; position: absolute; left: 1px; width: 3px; height: 2px; background: #e8e0c8; }
+    .tidemark.fall::after { bottom: -4px; } .tidemark.rise::after { top: -4px; }
     .ico.moon { background: conic-gradient(#e8f0ff, #aebfe6, #f4f8ff, #98a9d4); clip-path: polygon(42% 0, 82% 14%, 56% 34%, 56% 66%, 82% 86%, 42% 100%, 10% 76%, 10% 24%); }
     .ico.hull { background: conic-gradient(from 10deg, #e0584a, #a82a20, #f07a64, #b83a2c); clip-path: polygon(0 8%, 100% 8%, 100% 55%, 50% 100%, 0 55%); }
     .ico.sail { background: conic-gradient(#f4ecd0, #cfc4a0, #fff4d8, #b8ac8a); clip-path: polygon(46% 0, 100% 82%, 46% 82%, 46% 100%, 54% 100%, 54% 86%, 0 86%, 46% 14%); }
@@ -494,7 +500,7 @@
     #demoend.show { display: flex; animation: dfade 3s steps(8) both; } #demoend h1 { font-size: 48px; font-weight: 400; color: #d8b0e8; margin: 0; } #demoend p { font-size: 16px; max-width: 520px; } #demoend small { font-size: 16px; color: #8a7e9a; } #demoend button { font: 16px "DotGothic16", monospace; padding: 8px 24px; margin-top: 16px; color: #fff4d8; background: var(--pxbtn) 0 0 / 32px 32px; image-rendering: pixelated; border: none; box-shadow: 0 -4px 0 #d8b0e8, 0 4px 0 #d8b0e8, -4px 0 0 #d8b0e8, 4px 0 0 #d8b0e8; cursor: pointer; }
     @keyframes dfade { from { opacity: 0; } to { opacity: 1; } }
     /* quest cues (design A): a big QUEST COMPLETE banner, then the NEW QUEST card, a tracker flash and a pulse on the wind ring */
-    #qbanner { position: absolute; left: 50%; top: 27%; transform: translateX(-50%); width: min(720px, 92vw); text-align: center; pointer-events: none; display: none; }
+    #qbanner { position: absolute; left: 50%; top: 14px; transform: translateX(-50%); width: min(720px, 92vw); text-align: center; pointer-events: none; display: none; }
     #qbanner.show, #qbanner.shownew { display: block; }
     #qbanner .qbDone, #qbanner .qbNew { position: absolute; left: 0; right: 0; top: 0; padding: 14px 20px 18px; opacity: 0; background: var(--pxmenu) 0 0 / 32px 32px; image-rendering: pixelated; box-shadow: 0 -4px 0 #ffd23a, 0 4px 0 #ffd23a, -4px 0 0 #ffd23a, 4px 0 0 #ffd23a, 8px 8px 0 4px rgba(0,0,0,.45); }
     #qbanner .qbNew { box-shadow: 0 -4px 0 #c9a85c, 0 4px 0 #c9a85c, -4px 0 0 #c9a85c, 4px 0 0 #c9a85c, 8px 8px 0 4px rgba(0,0,0,.45); }
@@ -697,7 +703,7 @@
   <div id="hud">
     <div id="stats" class="txt">
       <div class="panel" id="gold"><i class="ico coin"></i><b>0</b></div>
-      <div class="panel" id="clock"><i class="ico sun" id="clockicon"></i><b id="clocktxt">08:00</b></div>
+      <div class="panel" id="clock"><i class="ico sun" id="clockicon"></i><b id="clocktxt">08:00</b><i class="tidemark" id="tidemark" title=""><i></i></i></div>
       <div class="panel" id="placeline"></div>
       <div class="panel" id="tracker"></div>
     </div>
