@@ -23,5 +23,6 @@ unexpectedly, into cosmic horror. Everything is procedural: no image or model fi
   `window.__game` hook plus URL flags (`autostart=1&fresh=1&shot=1&nomate=1&dread=&time=&x=&z=`). It runs at about a tenth
   of real speed: wait on game state, not on the clock, and do not judge feel or sound from it.
 - After a change: build, screenshot what changed, commit and push. Say what was verified and what was not.
+- The standalone app (`electron/`, Electron) is built only when the owner asks (RULES 38a).
 - Single-file games (`npx vite build && python3 scripts/single.py`: `pocket-pirates-demo.html` for sharing,
   `pocket-pirates-demo-silent.html`, `pocket-pirates-dev.html` with mixer F8, Sound Studio F9, test tools) only when asked.

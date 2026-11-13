@@ -52,6 +52,7 @@ need to break one, stop and ask the owner. `docs/CANON.md` says what is true in 
 ## Working
 37. **After a change:** build (`npx vite build`), look at it in the headless browser, commit, push. Say what was verified and what was not.
 38. **The single-file games are rebuilt only when asked** (`npx vite build && python3 scripts/single.py`). After a rebuild, open the demo file once and check it starts, the fonts are in, and nothing from rule 29 shows.
+38a. **The standalone app (Electron, `electron/`) is built only when the owner asks** (2026-11-13). Never pack or send a new app on your own, not even after rebuilding the single-file games. How to build it when asked: `electron/README.md`.
 39. **Checks that exist:** `scripts/world_checks.cjs` (the strata walls; needs the dev server and a quiet machine, it is timing-based) and `scripts/art_checks.cjs`.
 40. **The headless browser runs at about a tenth of real speed.** Wait on game state, not on wall-clock time. Never judge feel, latency or sound from it; say so.
 41. **Every change ends in the docs:** `PROGRESS.md` (what landed), and whichever of `CANON.md`, `STYLE.md`, `DESIGN.md`, `AUDIO.md`, `DEMO_CHECKLIST.md` it touches. A doc that is wrong is a bug.
