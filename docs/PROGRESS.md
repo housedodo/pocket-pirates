@@ -1175,3 +1175,10 @@ Trials for the owner to compare; nothing changes without a flag and STYLE.md is 
 - Not judged headless: whether the numbers feel right over a real voyage (deadlines, the belt's wait, the coral), and the bounty and
   the lamp burn rates (code paths not driven by a test).
 
+## The catch book (2026-11-13, owner)
+- `src/fishart.js` paints a pixel portrait of every fish (the ten bright species, the five dark ones and the Colour's nameless catch).
+- The Ship's book's fisherman's log is now the **Catch book**: a card per species. Caught: the portrait, the price, how many, the best,
+  where and when, and what the quay told you. Heard of only: its shadow and the hint. Never met: a faint shadow and "? ? ?". Dark fish
+  get a card only once caught.
+- Checked headless: the sheet of all sixteen portraits, and the book with five caught (one dark), two heard of and the rest unknown.
+

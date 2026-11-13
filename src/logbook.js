@@ -4,6 +4,7 @@ import { UPGRADES, MAX_LEVEL } from './upgrades.js';
 import { friendLevel, bearingName, questProgress, questNeed, questTitle, questIcon, FRUITS, fruitName } from './jobs.js';
 import { mulberry32, hash2 } from './util.js';
 import { MAIN_GOALS, SIDE_GOALS, CHAPTERS, goalText, goalCount } from './objectives.js';
+import { fishArt, fishShadow } from './fishart.js';
 import { FISH, HABITAT } from './fishing.js';
 import { markLines } from './marks.js';
 import { isOpen } from './gates.js';
@@ -325,24 +326,28 @@ export class Logbook {
     }];
   }
 
-  /** the fisherman's log: only what the player has learned (by catching, or by being told). Unheard-of species stay blank. */
+  /** the catch book (2026-11-13): a card per species with its portrait (fishart.js). Caught: the picture, the price, how many, the best,
+   *  where and when. Only heard of at the quay: its shadow and what you were told. Never met: a faint shadow and "? ? ?". The dark ones
+   *  get a card only once caught, and the Colour's catch has no name. */
   fishLogHtml(state) {
     const bright = FISH.filter((f) => !f.dark), seen = (f) => state.fishLog[f.id] || (state.fishHeard && state.fishHeard[f.id]);
-    const got = FISH.filter((f) => state.fishLog[f.id]).length;
-    let html = h3(`Fisherman's log ${got}/${bright.length}`);
+    const got = bright.filter((f) => state.fishLog[f.id]).length;
     const top = (o) => Object.entries(o || {}).sort((a, b) => b[1] - a[1]).slice(0, 2).map((e) => e[0]).join(' and ');
-    let unk = 0;
+    const card = (id, name, lines, price, cls, img) => `<div class="fcard ${cls}"><img src="${img}" alt=""><b>${name}</b>${price ? `<span class="r">${price}</span>` : ''}${lines.map((l) => `<small>${l}</small>`).join('')}</div>`;
+    let html = h3(`Catch book ${got}/${bright.length}`) + '<div class="fishgrid">';
     for (const f of FISH) {
       const l = state.fishLog[f.id], told = state.fishHeard && state.fishHeard[f.id];
       if (f.dark && !l) continue;
-      if (!seen(f)) { unk++; continue; }
-      let sub = '';
-      if (told && HABITAT[f.id]) sub += `Told: ${HABITAT[f.id].text}`;
-      if (l) sub += `${sub ? '<br>' : ''}Caught ${l.count}x, best ${l.best}kg${l.where ? ` \u00b7 ${top(l.where)}` : ''}${l.when ? `, ${top(l.when)}` : ''}`;
-      html += ent(l || told ? f.name : '? ? ?', sub, `${f.price}g/kg`, f.dark ? 'dk' : '');
+      const lines = [];
+      if (l) lines.push(`Caught ${l.count}x, best ${l.best}kg`), (l.where || l.when) && lines.push(`${l.where ? top(l.where) : ''}${l.where && l.when ? ', ' : ''}${l.when ? top(l.when) : ''}`);
+      if (told && HABITAT[f.id]) lines.push(`Told: ${HABITAT[f.id].text}`);
+      if (l) html += card(f.id, f.name, lines, `${f.price}g/kg`, f.dark ? 'dk' : '', fishArt(f.id));
+      else if (seen(f)) html += card(f.id, f.name, lines, `${f.price}g/kg`, 'heard', fishShadow(f.id));
+      else html += card(f.id, '? ? ?', [], '', 'unknown', fishShadow(f.id));
     }
-    { const l = state.fishLog.bright; if (l) html += ent('? ? ? (no name)', `Caught ${l.count}x, best ${l.best}kg \u00b7 the water was the wrong shade`, '', 'dk'); }
-    if (unk) html += ent(`? ? ? (${unk} more)`, got || Object.keys(state.fishHeard || {}).length ? 'Nobody has said where these bite. Try other waters and other hours, and ask at the quay.' : 'Slow down and press C at sea. Ask the fishers at a harbour quay where things bite.', '', 'dim');
+    { const l = state.fishLog.bright; if (l) html += card('bright', '? ? ? (no name)', [`Caught ${l.count}x, best ${l.best}kg`, 'the water was the wrong shade'], '', 'dk', fishArt('bright')); }
+    html += '</div>';
+    if (got < bright.length) html += ent('', got || Object.keys(state.fishHeard || {}).length ? 'Nobody has said where the rest bite. Try other waters and other hours, and ask at the quay.' : 'Slow down and press C at sea. Ask the fishers at a harbour quay where things bite.', '', 'dim');
     return html;
   }
 

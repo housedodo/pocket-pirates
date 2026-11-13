@@ -71,6 +71,13 @@
     #logBody .fac { display: inline-block; width: 11px; height: 11px; border: 1px solid #3a2210; vertical-align: -1px; }
     #logBody button.mini { margin: 4px 0 0; padding: 3px 10px; font: 700 12px Georgia, serif; background: #c9a85c; border: 2px solid #6b4a2e; color: #3a2210; cursor: pointer; }
     .ent button.mini { margin: 3px 0 0; padding: 1px 8px; font-size: 11px; opacity: .85; }
+    /* the catch book (logbook.js, fishart.js): a card per species, the portrait drawn at 2x, pixel-crisp */
+    .fishgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(156px, 1fr)); gap: 6px; margin: 4px 0 8px; }
+    .fcard { position: relative; padding: 4px 6px 6px; background: rgba(255, 248, 220, .38); border-left: 4px solid #8a5a2c; break-inside: avoid; }
+    .fcard img { display: block; width: 144px; height: 72px; margin: 0 auto 2px; image-rendering: pixelated; }
+    .fcard b { display: block; } .fcard .r { position: absolute; right: 6px; top: 6px; font-weight: 800; color: #8a5a10; font-size: 12px; } .fcard small { display: block; line-height: 1.25; }
+    .fcard.heard img { opacity: .7; } .fcard.unknown img { opacity: .18; } .fcard.unknown b { opacity: .55; }
+    .fcard.dk { border-left-color: #5a1a3a; background: rgba(40, 20, 40, .12); }
     .ledgerrow { display: flex; flex-wrap: wrap; gap: 3px; align-items: center; margin: 2px 0 8px 4px; opacity: .9; } .ledgerrow .pxi { width: 14px; height: 14px; } .blackline { display: inline-block; width: 12px; height: 12px; background: #1a0f08; box-shadow: 0 0 0 1px #6a4a2a; }   /* the Crown's book: ticks and black lines (regions.js) */
     .ent .acts { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 4px; } .ent .acts button.mini { margin: 0; } .ent .acts small.tracked { display: inline; margin: 0; font-style: italic; }
     #logBody h3.brk { break-before: column; margin-top: 0 !important; }

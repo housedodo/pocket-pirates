@@ -134,6 +134,11 @@ purple and magenta cosmic horror as dread rises.
   (a gradient a few hundred units wide) and the blend eases in over ~half a minute. The four bright regions give way to the dread
   palette between dread 0.5 and 0.85; the Drowned's grey is the deep's own and stays. The waves are a multiplier on the sea's own
   swell, so wind and storms still move them (a fixed height made the Reef look like the deep).
+- **Fish portraits** (`src/fishart.js`, the catch book in the Ship's book): 72x36 per species, painted in code: a body profile, a dark
+  back dithered to a pale belly, fins with rays, the species' tail and pattern, a dark outline, a big cartoon eye (white, pupil looking
+  forward, one pixel of shine), a small smile. The dark fish are the wrong side of the sea: a ring inside the glass eel, the pike's
+  row of yellow eyes, the key that is a key, the barnacled angler with its lure; the Colour's catch is neon with no pupils. Heard-of
+  fish show as a brown shadow, unknown ones as a faint shadow. Sheet: `docs/proposals/fish_portraits.png`.
 - **Each region's things on the water** (`src/regiondecor.js`), along the way in to its islands (a harbour's pier direction):
   Crown: a lane of red cans and green cones into every harbour, lit red and green at night, and a tall white signal mast with a
   pennant string. Free Cays: thatched houses on stilts beside the approach, canoes, coloured lantern strings at night. Reef: black
