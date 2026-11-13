@@ -32,6 +32,8 @@ need to break one, stop and ask the owner. `docs/CANON.md` says what is true in 
 22. **Two typefaces only:** DotGothic16 for interface text and headings (for now, 2026-11-12), Pirata One for the title logo, harbour names, the chart's harbour labels and the paper's masthead. (The Pirata One + Jersey 10 pairing is switched off, not deleted.) Bundled in `public/fonts`, open licence, no web fonts at run time. Never bold or italic.
 23. **The chart is an inked portolan:** painted means sailed; bare vellum elsewhere; ink sprites, no round badges. The bare paper stays quiet: it is reserved for a drawing in another hand.
 24. **Everything is procedural and pixel-crisp.** No image or model files. Half-resolution canvases shown pixelated; no anti-aliased strokes, no blur on text.
+24a. **Each region keeps its own light and things on the water** (STYLE 4): crossings are slow and smooth, never a line or a
+    sudden change; the deep's dread palette still wins in the deep; regional waves are a multiplier on the sea, never a fixed height.
 
 ## Sound
 25. **Only cues listed in `CUES.oneShots` (`src/audio.js`) play.** Silence elsewhere is on purpose. Adding a cue means adding it there and to `docs/AUDIO.md`.

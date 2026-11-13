@@ -122,6 +122,25 @@ purple and magenta cosmic horror as dread rises.
 - **Locked interface** (gates.js): a sign, button or log tab the story has not reached is grey, dark and half transparent (`.locked`), with no hover; a sign that has just opened pulses teal (`.fresh`) until first opened; the sign/button the current quest needs pulses gold (`.next` / `.hl`).
 - Dread is shown by changing colours, not by adding UI. Five stages: Sunny, Off, Wrong, Eerie, Cosmic
   (`src/palette.js`).
+- **Each region has its own light** (`src/systems/regionlook.js`, 2026-11-13), laid over the dread palette before the time of day:
+  | Region | Sky / haze | Water (deep / shallow) | Light, view | Sea (x the normal swell) |
+  |---|---|---|---|---|
+  | Crown Traders | `#1e5ad0` / `#eaf2ff`, clean white | cobalt `#0a2f8a` / `#3d8fe8` | bright (1.05), saturated, sees far (fog 120-460) | 0.85 |
+  | Free Cays | `#39a6d8` / golden `#ffd890` | emerald `#009a84` / `#8af5c0` | warm, most saturated (1.35) | 0.6, a lagoon |
+  | Reef Brotherhood | salt-grey `#5c6c7e` / `#dde6e0` | jade `#0f6656` / `#b4f6d8` | cool, a little flat | 1.25, the roughest |
+  | Lantern Guild | smoke `#4a3a30` / amber `#f0a860` | near-black `#142424` / `#3e5e48` | dim (0.85), short view (fog 35-200) | 0.9 |
+  | The Drowned | lead `#3e4450` / `#a0a6ac` | `#262e34` / `#56646a` | dull, grey (sat 0.4), low fog | 0.45, flat |
+  Home Sound (within ~400-620 of Tama) keeps the plain bright sea. Crossing is never a line: the nearby sectors blend by distance
+  (a gradient a few hundred units wide) and the blend eases in over ~half a minute. The four bright regions give way to the dread
+  palette between dread 0.5 and 0.85; the Drowned's grey is the deep's own and stays. The waves are a multiplier on the sea's own
+  swell, so wind and storms still move them (a fixed height made the Reef look like the deep).
+- **Each region's things on the water** (`src/regiondecor.js`), along the way in to its islands (a harbour's pier direction):
+  Crown: a lane of red cans and green cones into every harbour, lit red and green at night, and a tall white signal mast with a
+  pennant string. Free Cays: thatched houses on stilts beside the approach, canoes, coloured lantern strings at night. Reef: black
+  coral heads in flat white breakers (a channel kept open at harbours), a mast leaning out of the water. Lantern: two rows of lamps
+  on floats lining the way in, amber day and night, a tall dark tower with a light on top. Drowned: slate roofs to the ridge with
+  chimneys, a leaning belfry (full game only). Lamps use the glow material (additive, never fogged). Home Sound and the hand-made
+  places have none.
 
 ## 5. Interface (HUD and menus)
 - **Typefaces** (2026-11-12, the owner reverted the 2026-11-11 pairing for now: Jersey 10 overlapped in the HUD and the log): **DotGothic16** for all interface text and headings (16 px grid: 16, 32, 48 px), HUD included. **Pirata One** stays for the title logo, the harbour name banner, the chart's harbour labels and the paper's masthead. The Pirata One + Jersey 10 pairing is kept switched off in `src/chartstyles.js` (`UI_FONT = null`, CSS block in index.html) to bring back later.

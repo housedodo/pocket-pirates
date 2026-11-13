@@ -13,6 +13,7 @@ Build it with `python3 scripts/single.py`, ship `pocket-pirates-demo.html` (with
 - [ ] Dead calm: oars dip into the water, wind returns afterwards
 - [ ] Beat to windward (tacking), delivery job, passenger (one is always available), charting counter (x/y)
 - [ ] Second harbour Velto reachable inside the first fog
+- [ ] Regions: sailing out of Home Sound the sea and sky shift slowly (Crown cobalt, Free Cays emerald, Reef jade, Lantern amber), no sudden change at a border; buoys, stilt houses, coral heads and lamp floats by the islands; nothing of the Drowned (grey water, roofs in the sea) anywhere in the demo
 - [ ] Tavern: dice game, rumour, crew hire, a bed (optional now, no quest)
 - [ ] Fishing: power meter (short = easy, far = big), bite, the bite ring (green / gold marks, three misses lose it), fisherman's log, "ask the fishers"
 - [ ] Raider: fights are not constant, escape works, start ammo 8, ammo only bought

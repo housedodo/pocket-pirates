@@ -1150,4 +1150,10 @@ Trials for the owner to compare; nothing changes without a flag and STYLE.md is 
   red/green buoy lamps and the amber floats stayed dark). Reef breakers flat white above the swell; Free Cays lantern strings larger.
   Compared side by side headless: Crown, Free Cays, Reef and Lantern match by day and night. The Drowned matches at night; by day the
   deep's own effects (it is always deep there) make the sky paler than the prototype, which held the dread low.
+- Waves (owner): the regions' wave setting is now a multiplier on the sea's own swell (Crown 0.85, Free Cays 0.6, Reef 1.25, Lantern
+  0.9, Drowned 0.45), so wind and storms still move it. Measured at the same spot and time: the Reef went from 2.11 (deep-sea height,
+  a jagged faceted horizon) to 1.54, against 1.28 in Home Sound, 1.16 in the Crown and 0.81 in the Cays. Water roughness (the choppy
+  wave shape) depends only on dread and storms and is the same in every region.
+- A 35 s demo video (7 s per region) was recorded headless by stepping the game clock 1/30 s per frame (not committed).
+- Docs: STYLE 4 (each region's look, the law), RULES 24a, ARCHITECTURE, AREAS, DESIGN, the proposal (looks built, gameplay proposed).
 

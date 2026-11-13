@@ -10,13 +10,13 @@ import { smoothstep } from '../util.js';
 
 // the five looks (docs/proposals/REGIONS.md, the bolder prototype). Colours replace the palette's at full strength; numbers too.
 const LOOKS = {
-  crown:   { skyTop: '#1e5ad0', skyHorizon: '#eaf2ff', fog: '#e2ecff', deep: '#0a2f8a', shallow: '#3d8fe8', sun: '#ffffff', cloud: '#ffffff', tint: '#eef4ff', light: 1.05, sat: 1.15, fogNear: 120, fogFar: 460, wave: 0.8 },   // cold clear cobalt: you see far, and are seen
-  free:    { skyTop: '#39a6d8', skyHorizon: '#ffd890', fog: '#ffe2a8', deep: '#009a84', shallow: '#8af5c0', sun: '#ffcc60', cloud: '#fff0d8', tint: '#fff0d0', light: 1.1, sat: 1.35, fogNear: 90, fogFar: 330, wave: 0.6 },     // a warm emerald lagoon under golden haze
-  reef:    { skyTop: '#5c6c7e', skyHorizon: '#dde6e0', fog: '#cfdcd4', deep: '#0f6656', shallow: '#b4f6d8', sun: '#f4f8f0', cloud: '#b8c0c4', tint: '#f2fff8', light: 0.95, sat: 0.95, fogNear: 70, fogFar: 280, wave: 1.8 },  // jade shoal water, salt-grey sky, a hard chop
-  lantern: { skyTop: '#4a3a30', skyHorizon: '#f0a860', fog: '#b8784a', deep: '#142424', shallow: '#3e5e48', sun: '#ff9a40', cloud: '#8a6a50', tint: '#ffd8a8', light: 0.85, sat: 1.0, fogNear: 35, fogFar: 200, wave: 0.9 },   // black water under amber smoke: a short view
-  drowned: { skyTop: '#3e4450', skyHorizon: '#a0a6ac', fog: '#8c9298', deep: '#262e34', shallow: '#56646a', sun: '#e0e4e8', cloud: '#7a8088', tint: '#e6eef2', light: 0.8, sat: 0.4, fogNear: 60, fogFar: 260, wave: 0.3 },     // lead-grey, flat, low fog
+  crown:   { skyTop: '#1e5ad0', skyHorizon: '#eaf2ff', fog: '#e2ecff', deep: '#0a2f8a', shallow: '#3d8fe8', sun: '#ffffff', cloud: '#ffffff', tint: '#eef4ff', light: 1.05, sat: 1.15, fogNear: 120, fogFar: 460, waveMul: 0.85 },   // cold clear cobalt: you see far, and are seen
+  free:    { skyTop: '#39a6d8', skyHorizon: '#ffd890', fog: '#ffe2a8', deep: '#009a84', shallow: '#8af5c0', sun: '#ffcc60', cloud: '#fff0d8', tint: '#fff0d0', light: 1.1, sat: 1.35, fogNear: 90, fogFar: 330, waveMul: 0.6 },     // a warm emerald lagoon under golden haze
+  reef:    { skyTop: '#5c6c7e', skyHorizon: '#dde6e0', fog: '#cfdcd4', deep: '#0f6656', shallow: '#b4f6d8', sun: '#f4f8f0', cloud: '#b8c0c4', tint: '#f2fff8', light: 0.95, sat: 0.95, fogNear: 70, fogFar: 280, waveMul: 1.25 },  // jade shoal water, salt-grey sky, a hard chop
+  lantern: { skyTop: '#4a3a30', skyHorizon: '#f0a860', fog: '#b8784a', deep: '#142424', shallow: '#3e5e48', sun: '#ff9a40', cloud: '#8a6a50', tint: '#ffd8a8', light: 0.85, sat: 1.0, fogNear: 35, fogFar: 200, waveMul: 0.9 },   // black water under amber smoke: a short view
+  drowned: { skyTop: '#3e4450', skyHorizon: '#a0a6ac', fog: '#8c9298', deep: '#262e34', shallow: '#56646a', sun: '#e0e4e8', cloud: '#7a8088', tint: '#e6eef2', light: 0.8, sat: 0.4, fogNear: 60, fogFar: 260, waveMul: 0.45 },     // lead-grey, flat, low fog
 };
-const IDS = Object.keys(LOOKS), COLS = ['skyTop', 'skyHorizon', 'fog', 'deep', 'shallow', 'sun', 'cloud', 'tint'], NUMS = ['light', 'sat', 'fogNear', 'fogFar', 'wave'];
+const IDS = Object.keys(LOOKS), COLS = ['skyTop', 'skyHorizon', 'fog', 'deep', 'shallow', 'sun', 'cloud', 'tint'], NUMS = ['light', 'sat', 'fogNear', 'fogFar'];   // the waves are a multiplier on the sea's own (waveMul), so wind and weather still move them
 for (const L of Object.values(LOOKS)) for (const c of COLS) L[c] = new THREE.Color(L[c]);
 
 const SIGMA = 230;     // the spatial blend: how wide the gradient between two sectors is (units)
@@ -48,17 +48,19 @@ export function regionLook(stage, pos, dt, dread, seed) {
   cur.at = { x: pos.x, z: pos.z };
   // the regions' colours give way to the dread palette in the deep (dread 0.5 to 0.85); the Drowned's grey belongs to the deep and stays
   const fade = 1 - smoothstep(0.5, 0.85, dread);   // the mid sea keeps its colours; the deep takes them
-  let k = 0; for (const c of COLS) mix.c[c].setRGB(0, 0, 0); for (const n of NUMS) mix.n[n] = 0;
+  let k = 0, wm = 0; for (const c of COLS) mix.c[c].setRGB(0, 0, 0); for (const n of NUMS) mix.n[n] = 0;
   for (const id of IDS) {
     const f = cur.w[id] * (id === 'drowned' ? (window.__BUILD === 'demo' ? 0 : 1) : fade); if (f < 1e-4) continue;   // the demo has no deep
     const L = LOOKS[id]; k += f;
     for (const c of COLS) mix.c[c].r += L[c].r * f, mix.c[c].g += L[c].g * f, mix.c[c].b += L[c].b * f;
     for (const n of NUMS) mix.n[n] += L[n] * f;
+    wm += L.waveMul * f;
   }
   if (k < 1e-4) return 0;
   const inv = 1 / k, K = Math.min(1, k);
   for (const c of COLS) stage[c].lerp(mix.c[c].multiplyScalar(inv), K);
   for (const n of NUMS) stage[n] += (mix.n[n] * inv - stage[n]) * K;
+  stage.wave *= 1 + (wm * inv - 1) * K;   // Reef 1.25x the sea's own chop, the Cays 0.6x... (2026-11-13: a fixed height made the Reef look like the deep)
   return K;
 }
 /** the current blend, for tests: { crown: 0.8, free: 0.1, ... } */

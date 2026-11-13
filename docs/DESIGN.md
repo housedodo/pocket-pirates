@@ -304,3 +304,10 @@ something to do in each. See PROGRESS.md "Harbour life" for the list.
 | `hook` | a night catch from the second fish on, or the sixth fish | a hook already in its mouth; the fishmonger's line when sold |
 | `predug` | the second treasure beach | one hole there already, over the chest (`digging.js` `predug`) |
 
+## Regions you can tell apart (2026-11-13)
+Each of the five regions has its own light (sky, haze, water, sun, view distance, how rough the sea runs; `systems/regionlook.js`) and
+its own things on the water round its islands (`regiondecor.js`): Crown buoyed lanes and signal masts, Free Cays stilt houses and
+lantern strings, Reef coral heads in breakers, Lantern lamp rows and dark towers, Drowned roofs and a belfry. Crossing between them
+blends slowly in space and time. For now this is the look only: the shapes have no collision and change no rules. The gameplay half
+(regional earning, risks and rhythms that the looks are meant to announce) is proposed in `docs/proposals/REGIONS.md`.
+
