@@ -302,7 +302,7 @@ export function lmDecor(d, rng, A, B, D, extra, h) {
       const F = mk();
       for (let k = 0; k < 3; k++) F.blob(p[0] + 1.4, p[1] + 0.35 + k * 0.5, p[2], 0.55 - k * 0.12, 0.4, 0.55 - k * 0.12, k ? '#ffd060' : '#ff9a30', TILE.glow, 0.15, k + 1);
       if (!teo) F.cyl(p[0] - 1.6, p[1] + 3.5, p[2], 0.3, 0.3, 0.4, 6, '#ffd060', TILE.glow, false);
-      st(F, (i) => i.tod && i.tod.night > 0.45 && i.gctx.calm);
+      st(F, (i) => i.tod && i.tod.night > 0.45 && i.gctx.still);   // their fires burn on any night without a storm (the lullaby's condition)
       break;
     }
     case 'cup': {   // a table laid for two, a cloth on a 3.5 pole to find it by; at high water a pale bar leads in, at low water black reef lies between

@@ -10,6 +10,8 @@ import { state } from '../core/state.js';
 import { rt, G } from '../core/runtime.js';
 import { $, compass, toast } from './dom.js';
 import { pierOf } from '../world.js';
+import { LM } from '../landmarks.js';
+import { sectorAt } from '../sectors.js';
 
 export let trackerEl;   // set by the init function(s) below, at the point in boot where main.js had them
 
@@ -49,6 +51,10 @@ export function goalTarget() {
   const g = G.objectives.current, toTama = g && (g.id === 'perrin' || (g.id === 'dig' && state.story.letterP1 !== 'taken'));
   const cell = g && (toTama ? [0, -1] : ({ harbour: [0, -1], dig: [1, -1] })[g.id]);
   if (cell) { const d = G.world.desc(cell[0], cell[1]); if (d) return { ...(d.type === 'harbour' ? pierOf(d) : { x: d.x, z: d.z }), label: d.name }; }
+  if (g && g.region) {   // Perrin's letter: the nearest landmark in that region's waters (where to look, never what)
+    let best = null; for (const l of LM) { if (sectorAt(l.x, l.z, state.seed).faction.id !== g.region) continue; const d = Math.hypot(l.x - G.ship.pos.x, l.z - G.ship.pos.z); if (!best || d < best.d) best = { d, l }; }
+    if (best) return { x: best.l.x, z: best.l.z, label: g.where };
+  }
   if (g && g.id === 'job' && state.job) return { x: state.job.x, z: state.job.z, label: state.job.toName };
   if (g && g.id === 'passenger' && state.passenger) return { x: state.passenger.x, z: state.passenger.z, label: state.passenger.toName };
   return null;

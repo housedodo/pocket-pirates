@@ -4,7 +4,7 @@
 import * as THREE from 'three';
 import { LANDMARKS, LM, BARRIERS } from './landmarks.js';
 import { clamp, smoothstep } from './util.js';
-import { d3Open } from './clues.js';
+import { tableOpen } from './clues.js';
 
 // what you find ashore. once: the first visit; again: later visits (null = nothing more to take); every: days between repeat gifts
 const VISITS = {
@@ -49,12 +49,12 @@ const VISITS = {
     again: 'The ledger is open. Someone has left a second cup on the desk.',
   },
   teo: {
-    clue: 'CL-F1-a', need: (c) => c.night && c.calm, no: 'A sandbar and a cold fire. He plays at night, when the water is quiet.',
+    clue: 'CL-F1-a', need: (c) => c.night && c.still, no: 'A sandbar and a cold fire. He plays at night, when the water is quiet.',
     once: { text: 'Teo, on the sand, plays eight bars and stops. Across the water a violin takes the tune where he left it. "She answers. We have never met. Forty years. It is manners."', note: 'Teo and Ilse: two players on two islands, forty years, never met.' },
     again: 'Teo plays eight bars and stops. "Never sat at her table. Never will. We play instead." The violin waits.',
   },
   ilse: {
-    clue: 'CL-F1-a', need: (c) => c.night && c.calm, no: 'A rock with a stool on it. She plays at night, when the water is quiet.',
+    clue: 'CL-F1-a', need: (c) => c.night && c.still, no: 'A rock with a stool on it. She plays at night, when the water is quiet.',
     once: { text: 'Ilse, on the rock: "He starts it. I finish it. If one of us goes quiet, the other waits."', note: 'Ilse finishes what Teo starts.' },
     again: 'The violin takes the tune where the guitar left it.',
   },
@@ -176,7 +176,7 @@ export class Places {
   /** go ashore on a landmark. Returns what happened, for main.js to apply */
   visit(lm, state, ctx = {}) {
     const v = VISITS[lm]; if (!v) return null;
-    if (lm === 'table' && !d3Open(state)) return { text: v.bare, nothing: true };   // the table only shows once three questions have reached a second look
+    if (lm === 'table' && !tableOpen(state)) return { text: v.bare, nothing: true };   // the table stands once you have thrown at the hut (or understood three questions)
     if (v.need && !v.need(ctx)) return { text: v.no, nothing: true };               // the sea must be doing the right thing for the clue to be there
     const seen = (state.story.lm = state.story.lm || {});
     const first = seen[lm] === undefined;

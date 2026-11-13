@@ -1,6 +1,6 @@
 import { smoothstep } from './util.js';
 import { STRATA } from './palette.js';
-import { regionsSeen } from './clues.js';
+import { regionsSeen, regionSeen } from './clues.js';
 
 // The first mate (Mara) and the starter goals. A short main chain teaches the game one verb at a time;
 // side goals are optional and complete themselves whenever you happen to do them.
@@ -182,6 +182,53 @@ export const MAIN_GOALS = [
     hints: ['Look at the chart. Was it always there?'],
     check: (c) => !!(c.state.hut && c.state.hut.rolls.length),
   },
+  // ---- after the hut: Perrin's letters, one per region (2026-11-13). Each sends the captain into a region and never says what to find;
+  // it is done when any clue of that region has been seen (clues.js regionSeen). Full game only (`full`). Appended: no index moves (RULES 30).
+  {
+    id: 'perrin_crown', ch: 5, title: 'Perrin: the Crown waters', reward: 25, region: 'crown', full: true,
+    where: "The Crown Traders' waters",
+    text: 'The Crown keeps better ledgers than I keep charts. Ask to see one. Tell me whose name is at the top.',
+    intro: ['A letter from Perrin came in with the post, Captain.', 'Perrin writes: "The Crown keeps better ledgers than I keep charts. Ask to see one. Tell me whose name is at the top."'],
+    outro: [],
+    hints: ["Perrin wants us in the Crown Traders' waters. The chart shows whose waters we are in."],
+    check: (c) => regionSeen(c.state, 'crown'),
+  },
+  {
+    id: 'perrin_free', ch: 5, title: 'Perrin: the Free Cays', reward: 25, region: 'free', full: true,
+    where: "The Free Cays",
+    text: 'In the Free Cays they sleep by day and play by night. Go at night. Take nothing but your ears.',
+    intro: ['A letter from Perrin came in with the post, Captain.', 'Perrin writes: "In the Free Cays they sleep by day and play by night. Go at night. Take nothing but your ears."'],
+    outro: [],
+    hints: ["Perrin wants us in the Free Cays. The chart shows whose waters we are in."],
+    check: (c) => regionSeen(c.state, 'free'),
+  },
+  {
+    id: 'perrin_lantern', ch: 5, title: 'Perrin: the Lantern waters', reward: 25, region: 'lantern', full: true,
+    where: "The Lantern Guild's waters",
+    text: "The Guild's lamps burn a colour I have no name for. You will tell me I am wrong. Go and look.",
+    intro: ['A letter from Perrin came in with the post, Captain.', 'Perrin writes: "The Guild\'s lamps burn a colour I have no name for. You will tell me I am wrong. Go and look."'],
+    outro: [],
+    hints: ["Perrin wants us in the Lantern Guild's waters. The chart shows whose waters we are in."],
+    check: (c) => regionSeen(c.state, 'lantern'),
+  },
+  {
+    id: 'perrin_reef', ch: 5, title: 'Perrin: the Reef', reward: 25, region: 'reef', full: true,
+    where: "The Reef Brotherhood's waters",
+    text: 'The Reef counts its wrecks. Count them yourself. I would like a second opinion.',
+    intro: ['A letter from Perrin came in with the post, Captain.', 'Perrin writes: "The Reef counts its wrecks. Count them yourself. I would like a second opinion."'],
+    outro: [],
+    hints: ["Perrin wants us in the Reef Brotherhood's waters. The chart shows whose waters we are in."],
+    check: (c) => regionSeen(c.state, 'reef'),
+  },
+  {
+    id: 'perrin_drowned', ch: 5, title: 'Perrin: the Drowned waters', reward: 25, region: 'drowned', full: true,
+    where: "The Drowned waters",
+    text: 'The Drowned waters have streets, and streets have doors. Go at low water, and count the doors.',
+    intro: ['A letter from Perrin came in with the post, Captain.', 'Perrin writes: "The Drowned waters have streets, and streets have doors. Go at low water, and count the doors."'],
+    outro: [],
+    hints: ["Perrin wants us in the Drowned waters. The chart shows whose waters we are in."],
+    check: (c) => regionSeen(c.state, 'drowned'),
+  },
 ];
 /** a goal that is a count shows how far along it is, next to its name: " (3/8)" */
 export const goalCount = (g, c) => { if (!g.count) return ''; const [have, need] = g.count(c); return ` <b>(${Math.min(have, need)}/${need})</b>`; };
@@ -212,7 +259,8 @@ export const gateRadius = (state, tideFalling) => {
   const r = strataGate(state, tideFalling);
   const ch = chapterOf(state);
   if (ch < 2) return Math.min(r, GATES[ch]);   // the tutorial: Home Sound only
-  if (ch === 2) return Math.max(r, GATES[2]);  // "Working waters" still needs its islands: the strata rule takes over from chapter IV
+  if (ch === 2) return Math.max(r, GATES[2]);  // "Working waters" still needs its islands
+  if (!(state.hut && state.hut.rolls && state.hut.rolls.length)) return Math.max(r, GATES[Math.min(GATES.length - 1, ch)]);   // until the first throw the story's own goals stay inside the chapter's wall; after it the ship's reach (upgrades) decides
   return r;
 };
 
@@ -254,6 +302,7 @@ export const REMARKS = {
   calm: ['Not a breath of wind. Press G for the oars, Captain. I will steer. You row.'],
   tack: ['Into the wind she crawls. Zig-zag, Captain: keep the little triangle on the gold part of the wind ring, and turn across every so often.'],
   gate: ['That fog is like a wall, Captain. Whatever is out there can wait for us.'],
+  gate2: ['The shipwrights say a stiffer rudder, a better lamp and a stronger hull go further than this. And a local chart, if anyone will sell you one.'],
   crew: ['A new hand! They do not talk much. Neither do you. You will get along.'],
   oars: ['Oars out! W to pull, S to back water, G to put them away again.'],
   redsky: ['Red sky tonight... my gran said that means a blow is coming.'],
@@ -347,7 +396,7 @@ export class Objectives {
     this.stall = 0;        // seconds without progress: Mara nudges after a while
   }
   get state() { return this.d.state; }
-  get current() { return MAIN_GOALS[this.state.goals.i] || null; }
+  get current() { const g = MAIN_GOALS[this.state.goals.i] || null; return g && g.full && typeof window !== 'undefined' && window.__BUILD === 'demo' ? null : g; }   // the demo ends at the hut
 
   start() {
     const g = this.state.goals;

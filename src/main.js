@@ -34,7 +34,7 @@ import { KINDS, boatStatus } from './traffic.js';
 import { Fishing } from './fishing.js';
 import { Combat } from './combat.js';
 import './sectors.js';
-import { markSeen, isKnown, levels as clueLevels, d3Open } from './clues.js';
+import { markSeen, isKnown, levels as clueLevels, d3Open, tableOpen } from './clues.js';
 import { tableOptions, finalThrow, ENDINGS } from './table.js';
 import { Objectives, MUSINGS, MAIN_GOALS, unlocked, gateRadius, chapterOf, goalText } from './objectives.js';
 import './customize.js';
@@ -1084,8 +1084,8 @@ function taleAt(d) {
 function goAshore(tg) {
   const d = tg.isl.desc;
   rt.dig = { key: tg.key, t: 0, label: 'Going ashore...', need: 2.6, done: () => {
-    if (d.lm === 'table' && d3Open(state) && !state.story.ending && window.__BUILD !== 'demo') { places.visit(d.lm, state, {}); openTable(); return; }
-    const r = places.visit(d.lm, state, { night: tod.night > 0.45, calm: weather.calm > 0.5, tide: tideAt(), mara: true }); if (!r) return;
+    if (d.lm === 'table' && tableOpen(state) && !state.story.ending && window.__BUILD !== 'demo') { places.visit(d.lm, state, {}); openTable(); return; }
+    const r = places.visit(d.lm, state, { night: tod.night > 0.45, calm: weather.calm > 0.5, still: weather.storm < 0.3, tide: tideAt(), mara: true });   // still: the Two Players play on any night without a storm if (!r) return;
     if (r.clue) seeClue(r.clue);   // the ledger takes it; no popup (docs/WORLD_REDESIGN.md 6.7)
     const demo = window.__BUILD === 'demo';
     let text = r.dark && demo ? r.text.split('. ')[0] + '.' : r.text;
@@ -1384,7 +1384,7 @@ function frame() {
     for (let i = 0; i < NISL; i++) { const n = near[i]; U.uIsl.value[i].set(n ? n[0] : 1e6, n ? n[1] : 1e6, n ? n[2] : 0); }
   }
   world.hutShown = hutReached();   // no hut on its island before the story gets there
-  world.gctx = { calm: weather.calm > 0.5, up: state.upgrades, seen: state.story.seen || {}, lvl: clueLevels(state), d3: d3Open(state), ship: { x: ship.pos.x, z: ship.pos.z } };   // what the places' state props read (ART_SPEC 8)
+  world.gctx = { calm: weather.calm > 0.5, still: weather.storm < 0.3, up: state.upgrades, seen: state.story.seen || {}, lvl: clueLevels(state), d3: tableOpen(state), ship: { x: ship.pos.x, z: ship.pos.z } };   // what the places' state props read (ART_SPEC 8)
   world.tick(rt.animT, tod);
   places.labelsTick(camera, ship, (state.upgrades.spyglass || 0), state.discovered, window.innerWidth, window.innerHeight, !onbQuiet() && !$('hud').classList.contains('hidden'), { fogFar: scene.fog.far, d3: d3Open(state) });   // far labels: ?, what it looks like, its name; fade with the fog
   ship.place(vdt, waveT, stage.wave, rt.dark, tod.night);

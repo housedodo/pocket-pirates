@@ -61,6 +61,11 @@ export function regionsSeen(state) {
 export const isKnown = (state, cap) => CLUES.some((c) => c.cap === cap && hasSeen(state, c.id));
 /** the table by the water shows on the chart once ANY three questions have reached level 2 */
 export const d3Open = (state) => levels(state).filter((n) => n >= 2).length >= 3;
+/** has any clue of this region been seen? (Perrin's letters after the hut) */
+export const regionSeen = (state, r) => CLUES.some((c) => c.region === r && hasSeen(state, c.id));
+/** the Table by the Water stands for every captain who has thrown at the hut once (CANON 6: a captain who saw nothing still gets a real
+ *  ending), or who has understood three questions; what can be done there still depends on what was understood (table.js) */
+export const tableOpen = (state) => d3Open(state) || !!(state.hut && state.hut.rolls && state.hut.rolls.length);
 
 // ---- tone lint ------------------------------------------------------------------------------------------------
 export const BANNED = /\b(lid|eye|sleeper|lady|kept soft)\b|mara is from/i;

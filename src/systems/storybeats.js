@@ -97,7 +97,7 @@ export function clueTick(dt) {
   if (dwell('bells', slow && Math.hypot(G.ship.pos.x, G.ship.pos.z) < 150 && hour > 11.8 && hour < 12.4 && state.hut && state.hut.rolls.length > 0, 6)) G.seeClue('CL-C3-a');
   if (window.__BUILD !== 'demo') { const l = maraRemembers(state, dt, G.laterOK() && !G.objectives.mate.busy && !G.objectives.pending && !rt.modal && !G.eventQuiet() && !G.world.nearest(G.ship.pos.x, G.ship.pos.z, 60)); if (l) G.objectives.mate.say(l); }   // her village comes back to her a piece at a time (table.js); the third piece is the blue door, some time after the Sunken Street
   if (isKnown(state, 'rest') && slow && tod.night > 0.4 && state.story.peakDread > 0) state.story.peakDread = Math.max(0, state.story.peakDread - 0.004 * dt);   // the crew rest on deck (CL-F2-a): the worst you have sailed into fades a little while you lie still at night
-  if (dwell('players', slow && tod.night > 0.45 && G.weather.calm > 0.5 && (at('teo', 300) || at('ilse', 300)), 10)) G.seeClue('CL-F1-a');
+  if (dwell('players', slow && tod.night > 0.45 && G.weather.storm < 0.3 && (at('teo', 300) || at('ilse', 300)), 10)) G.seeClue('CL-F1-a');
 }
 export function seaGate(dt) {
   const R = gateRadius(state, tideFalls()), d = Math.hypot(G.ship.pos.x, G.ship.pos.z);
@@ -112,7 +112,7 @@ export function seaGate(dt) {
   rt.gateLost = null;
   if (d > R) {   // past the fog wall: lost (fogLost takes the helm and the ship drifts back toward Tama)
     rt.gateLost = { x: -G.ship.pos.x / d, z: -G.ship.pos.z / d };
-    G.objectives.remark('gate', rt.dread);
+    G.objectives.remark('gate', rt.dread); if (state.hut && state.hut.rolls.length) G.objectives.remark('gate2', rt.dread);   // after the hut: where the way through is
     if ((rt.gateToastT -= dt) <= 0) { rt.gateToastT = 25; toast('The fog swallows everything. The helm will not answer; somehow the bow comes round toward home.', false, 5000); }
   }
 }

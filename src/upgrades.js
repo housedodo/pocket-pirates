@@ -12,10 +12,10 @@ export const MAX_LEVEL = 3;
 // the shop card: what you start with, a pixel icon, and what a level opens up (shown as a tag)
 export const UP_CARD = {
   sails: { icon: 'sail', stock: 'Patched canvas' },
-  rudder: { icon: 'rudder', stock: 'A stiff old tiller', opens: { 2: 'Threads the reef gaps' } },
-  lantern: { icon: 'lamp', stock: 'A candle in a jar', opens: { 1: 'Holds more oil', 2: 'Cuts through fog banks' } },
+  rudder: { icon: 'rudder', stock: 'A stiff old tiller', opens: { 2: 'Threads the reef gaps, past the first fog' } },
+  lantern: { icon: 'lamp', stock: 'A candle in a jar', opens: { 1: 'Holds more oil; with a stronger hull, further out', 2: 'Cuts through fog banks' } },
   spyglass: { icon: 'spy', stock: 'Your own two eyes' },
-  hull: { icon: 'hull', stock: 'Old planks: 100 strength', opens: { 2: 'Takes the breakers; storms hurt less' } },
+  hull: { icon: 'hull', stock: 'Old planks: 100 strength', opens: { 2: 'Takes the breakers, further out; storms hurt less' } },
   cannons: { icon: 'ball', stock: 'Two rusty guns' },
   crew: { icon: 'crew', stock: 'Green hands' },
 };

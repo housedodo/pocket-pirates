@@ -124,7 +124,7 @@ export function renderHarbour() {
     const r = findRumour(G.world, d, state);
     if (r) html += `<div class="sec">RUMOURS</div><div class="qrow"><div><b>${pxi('talk')} A sailor talks of buried treasure</b></div><button id="rumourBuy" ${state.gold >= RUMOUR_COST ? '' : 'disabled'}>${RUMOUR_COST}g</button></div>`;
     const chartCost = Math.ceil(30 * G.costMul());
-    if (!state.charts[d.id]) html += `<div class="sec">LOCAL CHART</div><div class="qrow"><div><b>${pxi('flag')} A hand-drawn chart of these waters</b><br><small>the islands around ${d.name}, as the locals know them</small></div><button id="buyChart" ${state.gold >= chartCost ? '' : 'disabled'}>${chartCost}g</button></div>`;
+    if (!state.charts[d.id]) html += `<div class="sec">LOCAL CHART</div><div class="qrow"><div><b>${pxi('flag')} A hand-drawn chart of these waters</b><br><small>the islands around ${d.name}, as the locals know them, and the way through the first fog</small></div><button id="buyChart" ${state.gold >= chartCost ? '' : 'disabled'}>${chartCost}g</button></div>`;
     for (const r of G.threads.harbourRows(d)) html += `<div class="sec">ON THE PIER</div><div class="qrow letter"><div><b>${pxi('talk')} ${r.html}</b></div><button class="thrAct" data-act="${r.id}">${r.btn}</button></div>`;
     const po = petOffer(d); if (po) html += `<div class="sec">ON THE PIER</div><div class="qrow letter"><div><b>${pxi('talk')} ${PETS[po].title}</b><br><small>${PETS[po].sub}</small></div><button id="takePet" data-pet="${po}">${PETS[po].btn}</button></div>`;
     pane.innerHTML = html;
