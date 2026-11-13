@@ -1,6 +1,7 @@
 import { sectorAt, lookFactionAt } from './sectors.js';
 import { styleOf, shapeOf, STYLE_DEF, SHAPES, stairs, slopeHouses, flagCloth, ruins, landingFlag, laundry } from './villagestyles.js';
 import { pushOut } from './solids.js';
+import { regionDecor } from './regiondecor.js';
 import * as THREE from 'three';
 import { Builder, darken } from './builder.js';
 import { TILE } from './textures.js';
@@ -101,6 +102,7 @@ export function describeCell(cx, cz, seed) {
   let name = makeName(nameRng, type, dread);
   if (key !== '0,-1' && / Tama$/.test(name)) name = name.replace(/Tama$/, 'Tamar');   // only the home harbour is Tama
   const desc = { id: key, type, x, z, r, H, lobes, seed: hash2(cx, cz, seed + 1) & 0xffff, name, dread };
+  desc.region = sectorAt(x, z, seed).faction.id;   // whose waters (regiondecor.js puts that region's things on the water round it)
   // rarer island kinds, rolled with their own generator so the rest of the world stays where it was
   if (!forced && Math.max(Math.abs(cx), Math.abs(cz)) > 1) {
     const vr = mulberry32(hash2(cx, cz, seed + 4242)), v = vr();
@@ -1509,6 +1511,7 @@ export class Island {
     const terrain = buildTerrain(d, rng);
     decorate(d, rng, A, B, D, extra);
     abyssForms(d, D, extra);
+    regionDecor(d, A, extra, { shoreR, terrainHeight });   // the region's own things on the water (buoys, stilt houses, coral, lamps, roofs)
 
     const add = (builder, mat, order = 0) => {
       const m = meshOf(builder, mat);

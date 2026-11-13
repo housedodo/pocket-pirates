@@ -1132,3 +1132,17 @@ Trials for the owner to compare; nothing changes without a flag and STYLE.md is 
   places only (guest book, logbook elsewhere).
 - Drafts for the writer: the letters, the epilogue lines, the thread clue lines, the credits (CANON section 8).
 
+## Each region its own light and its own things on the water (2026-11-13, owner)
+- `systems/regionlook.js`: a full palette per region (sky, haze, water, sun, light, saturation, view distance, wave height) laid over
+  the dread palette before the time of day, so nights follow. Crown cobalt and clear; Free Cays emerald under golden haze, calm;
+  Reef jade, salt-grey sky, a hard chop; Lantern black water under amber smoke, a short view; Drowned lead-grey and flat (full game only).
+- **Slow crossings** (owner: smooth and slow): the nearby sectors are blended by distance (a gradient a few hundred units wide, not a line),
+  and that blend eases in over time (22 s time constant). Measured headless, sailing from Crown into the Free Cays: the Crown weight went
+  0.93 → 0.63 and the Free Cays weight 0 → 0.35 over the whole stretch, without a jump. Home Sound stays the plain sea; the regional
+  colours give way to the dread palette from dread 0.35 to 0.72.
+- `regiondecor.js` (built with each island): Crown buoyed lanes into every harbour (lit red and green at night) and a signal mast with
+  pennants; Free Cays houses on stilts beside the harbour approach, lantern strings at night; Reef black coral heads in white breakers, a
+  leaning mast; Lantern lamps on floats, lit day and night; Drowned roofs to the ridge and chimneys, a leaning belfry. Home Sound and the
+  hand-made places are left alone; the approach to every pier stays clear. Purely visual for now (no collision, no gameplay).
+- Not judged headless: how the colours feel over a long sail, and the Lantern lamps at night (small at a distance).
+

@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { clamp, smoothstep, angleDiff, mulberry32, hash2 } from './util.js';
+import { regionLook, regionWeights } from './systems/regionlook.js';
 import { sampleStage, DARK_THRESHOLD, dreadAtDistance, dreadWithPeak, strataIndex } from './palette.js';
 import { U, mats } from './psx.js';
 import { WATER, NISL, waveHeight } from './ocean.js';
@@ -1345,6 +1346,7 @@ function frame() {
   if (rt.glitchT > 0) { rt.glitchT -= rawDt; rt.dread = 1; if (rt.glitchT <= 0) { rt.dread = rt.preGlitch; hutEl.classList.remove('glitching'); } } // the hut's bad throw
   rt.dark = rt.dread > DARK_THRESHOLD;
   const stage = sampleStage(rt.dread);
+  regionLook(stage, ship.pos, rawDt, rt.dread, state.seed);   // each region's own light, blended slowly across borders (systems/regionlook.js)
   nightViewNow();
   applyTimeOfDay(stage, state.time, rt.dread);
   rt.sunScale = stage.sunElev / 0.62;   // how high the sun climbs today (the dig's noon shadow uses it)
@@ -1573,7 +1575,7 @@ function frame() {
 $('oilrow').addEventListener('pointerdown', (e) => { if (rt.started && !rt.modal) { toggleLamp(); e.preventDefault(); } });
 $('oilrow').classList.toggle('off', !!state.story.lampOff);
 installGamepad(() => toast('Controller connected: stick to sail, A to interact, Y for the log, Start to pause.', false, 6000));
-window.__game = { secrets, tideAt: () => tideAt(), lostState: () => ({ lostK: rt.lostK, gateLost: rt.gateLost, placesLost: places.lost, heading: ship.heading, trim: ship.trim }), places, seaplay, glimpse, fishing, sails: () => ({ torn: state.sailsTorn, kits: state.patchKits, strain: rt.sailStrain }), oilState: () => ({ oil: state.oil, lampOut: rt.lampOut }),
+window.__game = { secrets, regionWeights, tideAt: () => tideAt(), lostState: () => ({ lostK: rt.lostK, gateLost: rt.gateLost, placesLost: places.lost, heading: ship.heading, trim: ship.trim }), places, seaplay, glimpse, fishing, sails: () => ({ torn: state.sailsTorn, kits: state.patchKits, strain: rt.sailStrain }), oilState: () => ({ oil: state.oil, lampOut: rt.lampOut }),
   readArch, partnerOf, maraMood, windfx, logbook,
   life, localGames, openHarbour(id, tab = 'board') { const isl = [...world.islands.values()].find((i) => i.desc.id === id); if (!isl) return false; closeModal(true); rt.harbourIsl = isl; rt.hbTab = tab; frameVillage(isl.desc); openModal('harbour'); return true; }, renderHarbour: () => renderHarbour(),
   audio,
