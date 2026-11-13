@@ -1181,4 +1181,7 @@ Trials for the owner to compare; nothing changes without a flag and STYLE.md is 
   where and when, and what the quay told you. Heard of only: its shadow and the hint. Never met: a faint shadow and "? ? ?". Dark fish
   get a card only once caught.
 - Checked headless: the sheet of all sixteen portraits, and the book with five caught (one dark), two heard of and the rest unknown.
-
+- Owner: no big eyes, more detail. The eyes are now small hand-placed stamps (rim, iris, pupil, a dot of light); added scales behind the
+  gill, a lateral line, a gill cover with a lit rim, fin rays with see-through tips, reflected light along the belly and an outline in
+  each fish's own darker colours. (A comment had swallowed the end of the bream's pattern line, so it fell through into the moonfish's
+  spots; fixed.)

@@ -135,8 +135,10 @@ purple and magenta cosmic horror as dread rises.
   palette between dread 0.5 and 0.85; the Drowned's grey is the deep's own and stays. The waves are a multiplier on the sea's own
   swell, so wind and storms still move them (a fixed height made the Reef look like the deep).
 - **Fish portraits** (`src/fishart.js`, the catch book in the Ship's book): 72x36 per species, painted in code: a body profile, a dark
-  back dithered to a pale belly, fins with rays, the species' tail and pattern, a dark outline, a big cartoon eye (white, pupil looking
-  forward, one pixel of shine), a small smile. The dark fish are the wrong side of the sea: a ring inside the glass eel, the pike's
+  back dithered to a pale belly with a band of reflected light underneath, scales (offset crescents, a dark edge and a lit one) behind
+  the gill, a dotted lateral line, a shaded gill cover with a lit rim, fins with rays and lighter see-through tips, an outline taken from
+  the fish's own colours (darker), a short mouth turning down and a nostril. Eyes are small and real, placed by hand (owner, 2026-11-13:
+  no big cartoon eyes): a dark rim, the iris behind, the pupil looking forward, a dot of light; only the deep lanternfish has a big one. The dark fish are the wrong side of the sea: a ring inside the glass eel, the pike's
   row of yellow eyes, the key that is a key, the barnacled angler with its lure; the Colour's catch is neon with no pupils. Heard-of
   fish show as a brown shadow, unknown ones as a faint shadow. Sheet: `docs/proposals/fish_portraits.png`.
 - **Each region's things on the water** (`src/regiondecor.js`), along the way in to its islands (a harbour's pier direction):
