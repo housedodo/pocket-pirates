@@ -1261,3 +1261,16 @@ Trials for the owner to compare; nothing changes without a flag and STYLE.md is 
 - **Verified:** passes on a clean tree (180 s). With R1's guard removed and the demo's `?dread` gate removed it fails three checks
   (the null `clue` error; dread 0.9 in the demo, twice). **Not verified:** feel and sound (never judged headless).
 
+## R5: interaction out of main.js (2026-11-14, task R5 of the guide)
+- `getInteract`, `tryInteract`, `goAshore`, `anchorTick` and `HEAVE_KINDS` moved verbatim to `src/systems/interact.js` (with acorn: only
+  code references to main.js's own things were rewritten to `G.x`; no string was touched). Screens it needs (`openCard`, `openCave`,
+  `showGreeting`, `hailShip`, the pets) come through `G` too, since systems sit below `ui/`. Seventeen getters added to the registry;
+  eleven imports main.js no longer used were pruned. `main.js` went from 138 to 118 KB.
+- The interaction is looked up once a frame (`rt.tg = getInteract()` before the anchor), and the anchor, E and the prompt read that
+  one value (it was two lookups a frame of about ten `world.nearest` scans each). `fishEnv()` runs only while a line is out.
+- `scripts/story_export.py` reads `systems/interact.js` as part of main's text: every MAIN ID is unchanged (the export's diff is only
+  its build stamp).
+- **Verified:** `npx vite build`; `npm run smoke` passes; headless, E pressed at speed 12 off the Grey Tooth: the anchor went down while
+  she still ran at 9.8, she stopped, and the crew went ashore by itself (the visit was recorded); no console errors.
+  **Not verified:** every interaction kind by hand (caves, threads, relighting, hailing, patching); feel and sound.
+

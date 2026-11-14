@@ -9,6 +9,7 @@ main.js                 orchestrator: builds the world, ship, audio and every sy
                         interaction; registers what it lends the modules below in G; window.__game (dev/test hook)
 ui/hud.js               the wind ring and compass, the tracked errand and where it points, the slip, the tracker panel
 ui/encounters.js        sea encounter cards and dice, the pig game, Mara's mood, one-time caves, crew who sign on and their wishes
+systems/interact.js     what E does where the ship is (getInteract, once a frame into rt.tg), doing it (tryInteract), going ashore, the anchor
 systems/storybeats.js   chapter notes, the fog wall and being lost, sea gates, seams and clues, lamp oil, torn sails, tacking, the hull, the demo end
 systems/lullaby.js      the Two Players keep the Free Cays quiet; where they are, for the music
 systems/lostsailors.js  the sailors who went mad (deep dread)
@@ -74,7 +75,6 @@ the same. A new ui/ module with text: add it to `MAIN_PARTS` (or give it its own
 ## Known, not changed
 - One older import cycle among feature modules: `world.js -> harbourlife.js -> jobs.js -> world.js`. It works (functions only at
   call time); untangling it would change their evaluation order, so it is left for a separate, tested change.
-- main.js (about 1,600 lines) still holds the boot (world, ship, audio, every system), the frame loop (`frame()`), going ashore and
-  interaction (`tryInteract`), the hut, the Table, combat helpers, the harbour arrival and `window.__game`. Next candidates, the same
-  way: `systems/interact.js` (getInteract, tryInteract, goAshore, digging), `systems/combat.js` glue, and `frame()` split into
-  update steps.
+- main.js (about 1,480 lines) still holds the boot (world, ship, audio, every system), the frame loop (`frame()`), the hut, the
+  Table, combat helpers, the harbour arrival, the digging callbacks and `window.__game`. Interaction moved to `systems/interact.js`
+  (2026-11-14, task R5). Next candidates, the same way: `systems/combat.js` glue, and `frame()` split into update steps.
