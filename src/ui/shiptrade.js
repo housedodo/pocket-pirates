@@ -1,5 +1,6 @@
 // Hailing other ships at sea: whether they answer (your standing in these waters), what they offer, and the trade screen.
 import { clamp, mulberry32 } from '../util.js';
+import { stageOf } from '../palette.js';
 import { lootFor, bottleNote } from '../lore.js';
 import { makeJob, findRumour, friendLevel, bearingName, nearby, FRUITS } from '../jobs.js';
 import { KINDS } from '../traffic.js';
@@ -86,7 +87,7 @@ export function doOffer(i) {
   const sh = rt.tradeShip, o = shipOffers(sh)[i];
   if (!o || o.used || state.gold < o.cost) return;
   const rng = mulberry32(sh.seed + 77 + i);
-  const idx = Math.min(4, Math.floor(rt.dread * 5));
+  const idx = stageOf(rt.dread);
   if (o.id === 'sellall') {
     const fish = state.catch.reduce((a, f) => a + f.value, 0) * 0.7, fruit = Object.entries(state.fruit).reduce((a, [f, n]) => a + FRUITS[f].price * n, 0) * 0.7, v = Math.round((fish + fruit) * 1.33);
     if (!v) { toast('Nothing in the hold to sell. They are very polite about it.'); return; }

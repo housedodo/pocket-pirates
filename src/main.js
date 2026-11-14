@@ -5,7 +5,7 @@ import { setDecorDay } from './regiondecor.js';
 import { regionAt, nowD, jobPay, crownLine, laneArrival, inLane, SALVAGE_MUL, lampDead, RELIGHT_OIL, RELIGHT_PAY } from './regions.js';
 import { reefTick } from './systems/reef.js';
 import { drownedTick } from './systems/drowned.js';
-import { sampleStage, DARK_THRESHOLD, dreadAtDistance, dreadWithPeak, strataIndex } from './palette.js';
+import { sampleStage, stageOf, DARK_THRESHOLD, dreadAtDistance, dreadWithPeak, strataIndex } from './palette.js';
 import { U, mats } from './psx.js';
 import { WATER, NISL, waveHeight } from './ocean.js';
 import { setLampRule } from './world.js';
@@ -246,7 +246,7 @@ document.body.appendChild(toastsEl);   // messages sit above every menu, so a qu
 
 weather.onThunder = (delay) => setTimeout(() => audio.thunder(0.9), delay * 1000);   // the long distant roll: audio.thunder keeps them from piling up
 sea.onEvent = (e) => {
-  const idx = Math.min(4, Math.floor(rt.dread * 5));
+  const idx = stageOf(rt.dread);
   if (e.type === 'qcrate') {
     const have = questProgress(e.q, state), need = questNeed(e.q);
     toast(have >= need ? `Last crate recovered! Return to ${e.q.giverName}.` : `Crate recovered (${have}/${need}).`, false, 4500);
@@ -260,7 +260,7 @@ sea.onEvent = (e) => {
   } else if (e.type === 'bottle') {
     const cur = objectives.current, hutNote = cur && cur.id === 'bottles' ? HUT_NOTES[(state.stats.bottles - (state.story.b0 || 0)) % HUT_NOTES.length] : null;
     if (hutNote && hutNote.includes('{fate}')) { state.story.fate = state.story.fate || 3 + Math.floor(mulberry32(hash2(state.seed, 20, 20))() * 7); state.story.fateRead = true; }
-    const text = hutNote ? hutNote.replace(/\{fate\}/g, numberWord(state.story.fate)) : bottleNote(mulberry32(hash2(e.o.x | 0, e.o.z | 0, state.seed + 3)), Math.min(4, Math.floor(e.o.dread * 5)));
+    const text = hutNote ? hutNote.replace(/\{fate\}/g, numberWord(state.story.fate)) : bottleNote(mulberry32(hash2(e.o.x | 0, e.o.z | 0, state.seed + 3)), stageOf(e.o.dread));
     state.notes.push({ text, dark: idx >= 2 }); state.stats.bottles++;
     toast(`Message in a bottle: "${text}"`, idx >= 2, 10000);
     audio.play('bottle');
@@ -662,7 +662,7 @@ function devBarRender() {
   rt.devBar.querySelector('.dvt').textContent = `${hh}:${mm}`;
   const sl = rt.devBar.querySelector('#dvDread'), STG = ['Fair', 'Grey', 'Wrong', 'Deep', 'Abyss'];
   if (document.activeElement !== sl) sl.value = String(rt.dread);
-  rt.devBar.querySelector('.dvd').textContent = `${rt.dread.toFixed(2)} ${STG[Math.min(4, Math.floor(rt.dread * 5))]}${rt.forced === null ? ' (auto)' : ''}`;
+  rt.devBar.querySelector('.dvd').textContent = `${rt.dread.toFixed(2)} ${STG[stageOf(rt.dread)]}${rt.forced === null ? ' (auto)' : ''}`;
 }
 if (DEV) {
   rt.devBar = document.createElement('div'); rt.devBar.id = 'devbar';
@@ -956,7 +956,7 @@ function tryInteract() {
     if (state.hp < ship.mods.maxHp) { state.hp = ship.mods.maxHp; toast('The harbour crew patches up your hull for free.', false, 3000); }
     if (state.sailsTorn) setTimeout(() => mendSails('The sailmaker stitches your mainsail whole again.'), 600);
     const rng = mulberry32(hash2(d.seed, Math.floor(rt.tNow / 8), 3));
-    const idx = Math.min(4, Math.floor(rt.dread * 5)), lvl = friendLevel(rep);
+    const idx = stageOf(rt.dread), lvl = friendLevel(rep);
     rt.hbShipLine = shipwrightLine(rng, idx);
     threads.onDock(d);
     // someone on the pier may speak first: always on a first visit or a story beat, otherwise rarely

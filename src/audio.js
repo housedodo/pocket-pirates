@@ -4,13 +4,13 @@
 import { canSynth, synth } from './synth.js';
 import { SeaLayers, LAYERS, Tavern, TAVERN, HutMusic, HUT } from './layers.js';
 import { smoothstep } from './util.js';
+import { stageOf } from './palette.js';
 
 // Master switch for all sound (files in public/audio/, else the synthesised fallback).
 export const AUDIO_ENABLED = !(typeof window !== 'undefined' && window.__SILENT);   // the demo ships with sound too (without the dread-stage cues, see DEMO_SKIP); the silent build sets __SILENT
 // cues the demo never plays (no dread there): left out of the demo file and never loaded, to keep it small and spoiler-free
 const DEMO_SKIP = new Set(['music_3']);
 
-const STAGES = 5;
 export const CUES = {
   loops: [
     'sea', 'rain', 'rain_2', 'rain_storm', 'gulls', 'coast', 'forest',   // wind, the stage ambience amb_1..5, amb_night and oars were removed
@@ -281,7 +281,7 @@ export class AudioBus {
     this.rainBeds(dt, s);
     this.setLoop('gulls', (s.gulls || 0) * 0.9);
     this.driftGulls(dt, s.gulls || 0);
-    const stage = Math.min(STAGES - 1, Math.floor(dread * STAGES));
+    const stage = stageOf(dread);
     if (stage > this.lastStage) this.play('stage_up');
     this.lastStage = stage;
     if (dread > 0.45) { // occasional whispers once things get strange

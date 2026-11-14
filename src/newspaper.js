@@ -4,6 +4,7 @@
 // sounds like a paper. Never explains; it only prints.
 // main.js draws the market row and the open paper; state.life.paper keeps the last copy you bought.
 import { mulberry32, hash2 } from './util.js';
+import { stageOf } from './palette.js';
 import { lifeOf, WEEKDAYS } from './harbourlife.js';
 
 export const PAPER_DAY = 4;   // Friday
@@ -14,7 +15,6 @@ export const onSale = (state) => state.dayN % 7 === PAPER_DAY;
 export const thisWeeks = (state) => { const p = lifeOf(state).paper; return p && p.week === weekOf(state) ? p : null; };
 /** "Friday (in 3 days)" for the market row */
 export function nextLine(state) { const n = (PAPER_DAY - (state.dayN % 7) + 7) % 7 || 7; return `${WEEKDAYS[PAPER_DAY]} (${n === 1 ? 'tomorrow' : `in ${n} days`})`; }
-export const stageOf = (dread) => Math.min(4, Math.floor(dread * 5));
 
 const pick = (rng, a) => a[Math.floor(rng() * a.length)];
 const NAMES = ['Bettany Crale', 'Hamish Vell', 'Rosa Tully', 'Ewan Pike', 'Dorie Albright', 'Mags Fenner', 'Old Jory', 'Nan Ostler', 'Silas Keel', 'Wenna Holt', 'Tobin Marsh', 'Ida Swale'];

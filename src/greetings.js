@@ -4,6 +4,7 @@
 
 // portraits: 16x16 pixel art per speaker (src/faces.js), colours from SPEAKERS (H hair/hat, S skin, C clothes, A accent, beard)
 import { drawFace } from './faces.js';
+import { stageOf } from './palette.js';
 const SPEAKERS = {
   fisher: { name: 'An old fisher', H: '#3a4a5a', S: '#c98e64', C: '#2f6a8a', A: '#e8dcc0', beard: '#8a8478', when: ['dawn', 'day'] },
   netmender: { name: 'A net-mender', H: '#8a8a8a', S: '#e8b88a', C: '#6a4a2a', A: '#c8b078', when: ['dawn', 'day', 'evening'] },
@@ -160,7 +161,7 @@ export function dayPhase(hour) { return hour >= 5 && hour < 8 ? 'dawn' : hour >=
 
 /** a speaker and a line for this visit. ctx: { hour, weather (label), dread 0..1, rnd } */
 export function pickGreeting(ctx) {
-  const r = ctx.rnd, stage = Math.min(4, Math.floor(ctx.dread * 5)), phase = dayPhase(ctx.hour);
+  const r = ctx.rnd, stage = stageOf(ctx.dread), phase = dayPhase(ctx.hour);
   if (ctx.custom === 'silent') {   // nobody here speaks; it is not unfriendly
     const who = Object.keys(SPEAKERS).filter((id) => SPEAKERS[id].when.includes(phase));
     return { speaker: who[Math.floor(r() * who.length)], text: SILENT[Math.floor(r() * SILENT.length)], dark: stage >= 3 };

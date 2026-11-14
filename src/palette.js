@@ -55,9 +55,12 @@ export function sampleStage(dread) {
     for (const n of ['fogNear', 'fogFar']) stage[n] = lerp(at(0.58, n), at(0.66, n), k);
   }
   stage.dread = dread;
-  stage.index = Math.min(4, Math.floor(dread * 5));
+  stage.index = stageOf(dread);
   return stage;
 }
+
+/** the dread stage, 0 Sunny .. 4 Cosmic: fifths of dread. The one definition (palette, sound, harbours, paper, bottles all read it) */
+export const stageOf = (dread) => Math.min(4, Math.floor(dread * 5));
 
 export const DARK_THRESHOLD = 0.5; // above this, islands swap to their "wrong" decor
 

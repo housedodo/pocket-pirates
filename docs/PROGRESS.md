@@ -1234,3 +1234,11 @@ Trials for the owner to compare; nothing changes without a flag and STYLE.md is 
   logged and no clue recorded. The same run in the full game: dread 0.85, the dev bar, seven threads, the Street at 0.74, `CL-BELL-a`
   seen. No console errors in either. **Not verified:** a full demo play-through; the single-file demo was not rebuilt.
 
+## R3: one stage function (2026-11-14, task R3 of the guide)
+- `stageOf(dread)` in `src/palette.js` (fifths, 0 Sunny to 4 Cosmic) replaces the inline copies in `main.js` (four), `ui/shiptrade.js`,
+  `greetings.js`, `audio.js` (its own `STAGES = 5`) and `newspaper.js` (which had its own `stageOf`). `sampleStage` uses it too.
+- Thresholds unchanged. The cuts that are not fifths (Mara's remarks at quarters, the lost sailors at 0.75, decor at 0.5, the abyss,
+  the Edge) are listed for the owner in `docs/AUDIT_2026-11-14.md` section 1.
+- **Verified:** `npx vite build`; in node, `stageOf` and the old formula and `sampleStage(d).index` agree at 0, 0.2, 0.39, 0.4, 0.8 and 1
+  (0, 1, 1, 2, 4, 4). **Not verified:** a run (no behaviour change intended), feel and sound.
+
