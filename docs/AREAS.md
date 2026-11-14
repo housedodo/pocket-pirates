@@ -18,7 +18,7 @@ area only when the task says so or when the change crosses over (then say which 
 ## Audio (sound and music)
 - **Docs:** `docs/AUDIO.md`, `docs/SOUNDTRACK_BRIEF.md`, `public/audio/README.md`.
 - **Code:** `src/audio.js`, `layers.js`, `sfx.js`, `synth.js`, `mixer.js`, `studio.js`, `public/audio/`, `public/audio/volumes.json`.
-- **Rule:** five dread stages = five music loops, same tempo/meter/key (D family, 6/8, 125 BPM); WAV masters stay with the composer, the game ships ogg (`scripts/studio_ogg.py`).
+- **Rule:** the music is stems of one length, tempo and key (16 bars at 99 BPM, 4/4, F minor; RULES 26); WAV masters stay with the composer, the game ships ogg (`scripts/studio_ogg.py`).
 
 ## Shared core (everyone)
 - `src/core/` (config, state, runtime, engine), `src/ui/dom.js`, `src/systems/calendar.js`, `src/systems/storyflags.js`: the layers

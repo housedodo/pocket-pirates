@@ -1206,4 +1206,4 @@ Trials for the owner to compare; nothing changes without a flag and STYLE.md is 
 - **Verified:** `npx vite build` passes; the swallowed guard at `src/main.js:1115`, the `?dev` and `?dread` demo leaks, the Sunken
   Street's forced dread, the silent `bell` cue, `hut.skips` unread and the 21 goals were read in the code. **Not verified:** the
   demo leaks were not run in a demo build; performance findings were not measured; nothing was play-tested; no feel or sound.
-
+- **Decided by the owner the same day:** RULES 26's "five loops, 6/8, 125 BPM" was out of date (the stems are 16 bars at 99 BPM, 4/4, F minor; the rule and AREAS now say so); Tama's bell uses the band's bell sound (`s1_bell`), to be built as task L3.
