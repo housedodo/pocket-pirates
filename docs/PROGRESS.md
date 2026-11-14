@@ -1355,5 +1355,10 @@ Trials for the owner to compare; nothing changes without a flag and STYLE.md is 
   `--ink` already existed as the cream text colour and is kept; the brown ink is `--ink-dark` (the guide is corrected).
   **Verified:** computed styles of every visible element on eleven screens (HUD, the harbour's four posts, the log's three pages, pause,
   shipyard, the Table) before and after: 1,312 elements, the only difference the HUD gold caught mid-flash (G1's count-up), plus the
-  screenshots.
+  screenshots.- Step 2, layers: the page's z-indexes are a named scale in the same `:root` (`--z-hit` 2 up to `--z-dev` 60), each layer keeping its
+  value, except the onboarding HUD (`body.onb-mate #hud`), which was 40 and covered the ending and the credits (30, 31) with Mara's
+  box; it is 29 now. Local stacking inside the book, the tavern games and the HUD keeps plain numbers. (The audit's "toasts above the
+  ending": the toasts are hidden during onboarding and sit at 8 otherwise, so it was Mara's box.) **Verified:** with the onboarding
+  class held on and the ending shown, the point over Mara's box hits the ending now and hit her box before; the eleven screens'
+  computed styles are unchanged (the one difference again the gold's flash).
 

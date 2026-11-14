@@ -8,7 +8,10 @@
   <style>
     :root { --ink: #fff7d6; --shadow: #1a1230; --panel: rgba(18, 14, 40, .62); --edge: rgba(255, 247, 214, .35);
       /* the interface's tokens (P2, 2026-11-14): use these, never the hex. --ink is the cream text colour (kept), --ink-dark the brown ink */
-      --gold: #ffd23a; --gold-dim: #c9a85c; --paper: #f4ead0; --ink-dark: #2a1608; --horror: #ff70d0; --edge-navy: #120c1c; }
+      --gold: #ffd23a; --gold-dim: #c9a85c; --paper: #f4ead0; --ink-dark: #2a1608; --horror: #ff70d0; --edge-navy: #120c1c;
+      /* the page's layers, low to high (P2): the HUD itself has none, so its toasts and Mara's box stack with these */
+      --z-hit: 2; --z-hudtop: 3; --z-modal: 4; --z-scene: 5; --z-fade: 6; --z-panel: 7; --z-toast: 8; --z-notice: 9; --z-tool: 12;
+      --z-onboard: 29; --z-ending: 30; --z-credits: 31; --z-awaken: 40; --z-dev: 60; }
     * { box-sizing: border-box; }
     html, body { margin: 0; height: 100%; background: #0b0820; overflow: hidden; font-family: "Courier New", ui-monospace, monospace; color: var(--ink); -webkit-user-select: none; user-select: none; touch-action: none; }
     canvas#game { position: fixed; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; display: block; }
@@ -36,7 +39,7 @@
     #prompt { position: absolute; left: 50%; bottom: 84px; transform: translateX(-50%); font-size: 16px; text-align: center; display: none; }
     #prompt .bar { height: 8px; margin-top: 6px; background: #0007; border: 2px solid var(--edge); display: none; }
     #prompt .bar i { display: block; height: 100%; width: 0; background: var(--gold); }
-    #toasts { position: fixed; z-index: 8; pointer-events: none; left: 50%; top: 14%; transform: translateX(-50%); width: min(560px, 90vw); display: flex; flex-direction: column; gap: 8px; align-items: center; }
+    #toasts { position: fixed; z-index: var(--z-toast); pointer-events: none; left: 50%; top: 14%; transform: translateX(-50%); width: min(560px, 90vw); display: flex; flex-direction: column; gap: 8px; align-items: center; }
     .toast { padding: 8px 12px; font-size: 15px; text-align: center; animation: pop .25s ease-out; }
     .toast.dark { border-color: var(--horror); color: #ffd8f4; }
     @keyframes pop { from { transform: scale(.85); opacity: 0; } to { transform: none; opacity: 1; } }
@@ -45,7 +48,7 @@
     .onb-off { display: none !important; } .onb-pop { animation: onbpop 3s steps(6) 1; } @keyframes onbpop { 0%, 40% { box-shadow: 0 0 0 4px var(--gold); } 100% { box-shadow: none; } }
     #debug { position: absolute; left: 50%; top: 6px; transform: translateX(-50%); font-size: 12px; display: none; }
 
-    #chart, .modal { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; background: rgba(8, 6, 22, .72); z-index: 4; }
+    #chart, .modal { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; background: rgba(8, 6, 22, .72); z-index: var(--z-modal); }
     #chart.open, .modal.open { display: flex; }
     .bookwrap { position: relative; margin-right: 96px; filter: drop-shadow(0 10px 0 rgba(0,0,0,.45)); }
     .book { position: relative; width: min(1000px, calc(97vw - 110px)); height: min(600px, 90vh); padding: 26px 28px 14px; background: #4a2a12 center / 100% 100% no-repeat; clip-path: polygon(0 14px, 9px 3px, 30% 0, 70% 6px, calc(100% - 12px) 0, 100% 16px, calc(100% - 3px) 45%, 100% calc(100% - 12px), calc(100% - 14px) 100%, 60% calc(100% - 4px), 12px 100%, 0 calc(100% - 10px), 4px 55%); display: flex; flex-direction: column; font-family: "Palatino Linotype", "Book Antiqua", Palatino, Georgia, serif; color: #3a2210; }
@@ -165,14 +168,14 @@
     #chart[data-book="pixel"] .ent { background: rgba(255,248,220,.18); border-left: 4px solid rgba(58,34,16,.55); }
     #chart[data-book="pixel"] .ent.cur { background: rgba(255,210,80,.28); border-left-color: #a8301c; }
     /* tabletop: the d20 check, encounter cards, tavern dice */
-    #roll { position: fixed; inset: 0; z-index: 9; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 6px; background: rgba(8,6,22,.82); color: #fff4d8; text-shadow: 2px 2px 0 var(--edge-navy); }
+    #roll { position: fixed; inset: 0; z-index: var(--z-notice); display: none; flex-direction: column; align-items: center; justify-content: center; gap: 6px; background: rgba(8,6,22,.82); color: #fff4d8; text-shadow: 2px 2px 0 var(--edge-navy); }
     #roll.open { display: flex; }
     #rollCv { width: 224px; height: 224px; image-rendering: pixelated; filter: drop-shadow(4px 8px 0 rgba(0,0,0,.6)); }
     #roll b { font-size: 32px; font-weight: 400; } #roll small { font-size: 16px; color: #c8b890; }
     #rollRes { font-size: 32px; min-height: 40px; } #rollRes.ok { color: #7ee870; } #rollRes.bad { color: #ff6050; }
     /* encounters: the same low box villagers speak in, at the bottom, with the world still visible */
     /* a cave is its own full screen: a dithered picture, a title, and the same blue-and-gold box the villagers speak in */
-    #cave { align-items: flex-end; background: #05040a; z-index: 5; }
+    #cave { align-items: flex-end; background: #05040a; z-index: var(--z-scene); }
     #caveCv { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; transform: translateY(-14%) scale(1.2); }   /* the picture sits above the text box */
     #caveTitle { position: absolute; left: 0; right: 0; top: 18px; text-align: center; color: var(--paper); text-shadow: 3px 3px 0 #000; }
     #caveTitle b { display: block; font: 400 44px 'Pirata One', serif; letter-spacing: 1px; } #caveTitle small { font-size: 16px; color: var(--gold); letter-spacing: 2px; }
@@ -211,7 +214,7 @@
     .pigdie { display: inline-block; width: 64px; height: 64px; line-height: 64px; background: #efe0b8; color: var(--ink-dark); box-shadow: 0 -4px 0 var(--ink-dark), 0 4px 0 var(--ink-dark), -4px 0 0 var(--ink-dark), 4px 0 0 var(--ink-dark), inset -4px -4px 0 #b8a070; }
     body.fogged.eyes #tracker, body.fogged.eyes #compass { filter: none; opacity: 1; }
     /* the sound mixer (dev tool): a panel on the right; the game keeps running behind it */
-    #mixer { position: fixed; right: 12px; top: 12px; bottom: 12px; width: min(460px, 94vw); z-index: 12; display: none; flex-direction: column; background: var(--pxmenu) 0 0 / 32px 32px; image-rendering: pixelated; color: #fff4d8; box-shadow: 0 -4px 0 var(--gold-dim), 0 4px 0 var(--gold-dim), -4px 0 0 var(--gold-dim), 4px 0 0 var(--gold-dim), 8px 8px 0 rgba(0,0,0,.5); font-size: 16px; }
+    #mixer { position: fixed; right: 12px; top: 12px; bottom: 12px; width: min(460px, 94vw); z-index: var(--z-tool); display: none; flex-direction: column; background: var(--pxmenu) 0 0 / 32px 32px; image-rendering: pixelated; color: #fff4d8; box-shadow: 0 -4px 0 var(--gold-dim), 0 4px 0 var(--gold-dim), -4px 0 0 var(--gold-dim), 4px 0 0 var(--gold-dim), 8px 8px 0 rgba(0,0,0,.5); font-size: 16px; }
     #mixer.open { display: flex; }
     .mxhead { padding: 10px 12px; border-bottom: 4px solid #3a2a60; } .mxhead b { color: #ffd84a; font-weight: 400; } .mxhead small { display: block; color: #c8b890; margin: 4px 0 8px; }
     .mxbtns { display: flex; gap: 8px; flex-wrap: wrap; } .mxbtns button { font-size: 16px; padding: 4px 8px; }
@@ -387,7 +390,7 @@
     #mate .face { font-size: 34px; } #mate b { color: var(--gold); font-size: 12px; } #mate.dark { border-color: var(--horror); } #mate.dark b { color: #ff9ae0; }
     #fishui { position: absolute; left: 50%; top: max(150px, 21%); transform: translateX(-50%); width: min(460px, 92vw); text-align: center; pointer-events: auto; touch-action: none; }
     #digui { position: absolute; left: 50%; bottom: 200px; transform: translateX(-50%); width: min(460px, 92vw); text-align: center; pointer-events: auto; touch-action: none; }
-    #devbar { position: fixed; top: 6px; left: 50%; transform: translateX(-50%); z-index: 60; display: flex; flex-wrap: wrap; justify-content: center; max-width: 96vw; gap: 6px; align-items: center; padding: 6px 10px; background: rgba(11, 7, 22, .88); box-shadow: 0 0 0 3px #3a3070; font: 16px DotGothic16, monospace; color: var(--paper); }
+    #devbar { position: fixed; top: 6px; left: 50%; transform: translateX(-50%); z-index: var(--z-dev); display: flex; flex-wrap: wrap; justify-content: center; max-width: 96vw; gap: 6px; align-items: center; padding: 6px 10px; background: rgba(11, 7, 22, .88); box-shadow: 0 0 0 3px #3a3070; font: 16px DotGothic16, monospace; color: var(--paper); }
     #devbar button, #devbar select { font: 16px DotGothic16, monospace; color: var(--paper); background: #241c4c; border: 0; padding: 2px 8px; cursor: pointer; }
     #devbar select { max-width: 260px; } #devbar input[type=range] { width: 120px; accent-color: #ff30c8; } #devbar .dvd { color: var(--horror); min-width: 120px; } #devbar .dvsep { width: 10px; } #devbar .dvq, #devbar .dvt { color: var(--gold); min-width: 44px; }
     #digmsg { font-size: 15px; min-height: 44px; }
@@ -399,11 +402,11 @@
     #fishmark { position: absolute; top: 3px; width: 14px; height: 18px; margin-left: -7px; background: var(--gold); border: 2px solid #000; border-radius: 50% 50% 50% 0; }
     #fishprogwrap { height: 8px; background: #0007; border: 2px solid var(--edge); } #fishprog { height: 100%; background: var(--gold); width: 0; }
     #fishring { display: block; width: 240px; max-width: 70vw; aspect-ratio: 1; margin: 8px auto 0; image-rendering: pixelated; }
-    #hit { position: fixed; inset: 0; pointer-events: none; z-index: 2; }
+    #hit { position: fixed; inset: 0; pointer-events: none; z-index: var(--z-hit); }
     #hit.on { box-shadow: inset 0 0 0 8px #c8402a, inset 0 0 0 16px rgba(200, 64, 42, .5), inset 0 0 0 24px rgba(200, 64, 42, .22); }   /* a hard stepped frame on the pixel grid: no blur, no fade (G1) */
     #gold.pulse b { animation: goldpulse .36s steps(2) 1; }   /* gold changed: two hard flashes while the number counts (G1) */
     @keyframes goldpulse { 0% { color: #fff4d8; } 100% { color: var(--gold); } }
-    #fade { position: fixed; inset: 0; background: #000; opacity: 0; pointer-events: none; transition: opacity 1s; z-index: 6; } #fade.on { opacity: 1; }
+    #fade { position: fixed; inset: 0; background: #000; opacity: 0; pointer-events: none; transition: opacity 1s; z-index: var(--z-fade); } #fade.on { opacity: 1; }
     #yardWide { width: min(560px, 94vw); }
     .yard { background: rgba(8, 6, 22, .25) !important; justify-content: flex-end !important; padding-right: 3vw; }
     .swatches { display: flex; flex-wrap: wrap; gap: 6px; padding: 4px 0 8px; }
@@ -414,7 +417,7 @@
     .yardgrp small { color: var(--ink); opacity: .7; font-weight: 400; }
     /* low-poly icons: faceted shapes from conic gradients + clip-path */
     #placeline { font-size: 13px; border-left-width: 6px; }
-    #farlabels { position: fixed; inset: 0; pointer-events: none; z-index: 4; }
+    #farlabels { position: fixed; inset: 0; pointer-events: none; z-index: var(--z-modal); }
     .farlabel { position: absolute; transform: translate(-50%, -100%); font: 12px 'Pixelify Sans', monospace; color: var(--paper); text-shadow: 2px 2px 0 #1a0f08; white-space: nowrap; letter-spacing: 1px; }
     body.fogged #tracker, body.fogged #compass { filter: blur(2px) contrast(0.6); opacity: 0.55; transition: filter 3s, opacity 3s; }
     #tracker { font-size: 13px; max-width: 280px; padding: 5px 9px; display: none; }
@@ -426,7 +429,7 @@
     #mate.glitch #matetxt { color: #ffc0ec; text-shadow: 2px 0 rgba(0,224,255,.55), -2px 0 rgba(255,0,160,.55); }
     #mate.glitch .face { color: #ff50c8; }
     @keyframes mglitch { 0% { margin-left: 0; filter: none; } 50% { margin-left: 3px; filter: hue-rotate(40deg) contrast(1.3); } }
-    #awaken { position: fixed; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: flex-end; padding-bottom: 18vh; gap: 10px; pointer-events: none; z-index: 40; background: radial-gradient(ellipse at 50% 40%, transparent 35%, rgba(10,0,16,.85)); transition: background 2s; }
+    #awaken { position: fixed; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: flex-end; padding-bottom: 18vh; gap: 10px; pointer-events: none; z-index: var(--z-awaken); background: radial-gradient(ellipse at 50% 40%, transparent 35%, rgba(10,0,16,.85)); transition: background 2s; }
     #awaken.show { display: flex; }
     body.awakening #hud { opacity: 0; transition: opacity 1.5s; }
     #awaken.white { background: #fff6fc; }
@@ -455,17 +458,17 @@
     .ico.hull { background: conic-gradient(from 10deg, #e0584a, #a82a20, #f07a64, #b83a2c); clip-path: polygon(0 8%, 100% 8%, 100% 55%, 50% 100%, 0 55%); }
     .ico.sail { background: conic-gradient(#f4ecd0, #cfc4a0, #fff4d8, #b8ac8a); clip-path: polygon(46% 0, 100% 82%, 46% 82%, 46% 100%, 54% 100%, 54% 86%, 0 86%, 46% 14%); }
     #hbWide { width: min(560px, 94vw); }
-    #tP { position: fixed; top: 12px; left: 50%; margin-left: -24px; width: 48px; height: 40px; display: none; z-index: 3; font: 700 16px monospace; color: var(--ink); background: var(--panel); border: 2px solid var(--edge); }
+    #tP { position: fixed; top: 12px; left: 50%; margin-left: -24px; width: 48px; height: 40px; display: none; z-index: var(--z-hudtop); font: 700 16px monospace; color: var(--ink); background: var(--panel); border: 2px solid var(--edge); }
     @media (pointer: coarse) { #tP { display: block; } }
 
-    #title { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 6vh; background: radial-gradient(ellipse at 50% 45%, rgba(0,0,0,0) 45%, rgba(4,2,8,.55)); text-align: center; z-index: 5; cursor: pointer; }
+    #title { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 6vh; background: radial-gradient(ellipse at 50% 45%, rgba(0,0,0,0) 45%, rgba(4,2,8,.55)); text-align: center; z-index: var(--z-scene); cursor: pointer; }
     #titleLogo { width: min(820px, 92vw); image-rendering: pixelated; }
     #titleMenu { position: absolute; left: max(16px, 5vw); bottom: 10vh; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
     #titleMenu button { all: unset; cursor: pointer; position: relative; padding-left: 28px; font-size: 32px !important; line-height: 48px; letter-spacing: -0.05em !important; color: #b8a47c; text-shadow: 2px 0 0 currentColor, 0 2px 0 currentColor, 2px 2px 0 currentColor, 5px 5px 0 #1a0606, 4px 4px 0 #1a0606; }   /* pixel bold: the face drawn twice, a hair apart */
     #titleMenu button:hover, #titleMenu button:focus { color: var(--paper); outline: none; }
     #titleMenu button:hover::before, #titleMenu button:focus::before { content: ""; position: absolute; left: 0; top: 12px; width: 16px; height: 20px; background: #c8402a; clip-path: polygon(0 0, 100% 50%, 0 100%); filter: drop-shadow(4px 4px 0 #1a0606); }
     #title .blink { position: absolute; bottom: 2vh; left: 50%; right: auto; transform: translateX(-50%); padding: 4px 12px; background: #0e0a20; font-size: 16px !important; color: #e2d4b0; text-shadow: 1px 0 0 currentColor, 3px 3px 0 #1a0606; }   /* on a dark plate: it sat on the bobbing hull */
-    #thPanel { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; background: rgba(8,6,22,.8); z-index: 7; } #thPanel.open { display: flex; }
+    #thPanel { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; background: rgba(8,6,22,.8); z-index: var(--z-panel); } #thPanel.open { display: flex; }
     #thPanel .menu { width: min(560px, 94vw); text-align: left; } #thPanel h2 { text-align: center; } #thPanel .tip { font-size: 14px; color: #c8b890; margin: 0 0 10px; }
     .thmode { display: block; margin: 4px 0; font-size: 16px; color: #fff4d8; cursor: pointer; } .thmode small { color: #b8a8f0; }
     #thList { margin: 8px 0; padding: 6px 10px; background: #17112e; box-shadow: 0 0 0 2px #3a3070; } .throw { display: flex; gap: 10px; align-items: baseline; margin: 5px 0; font-size: 16px; color: #fff4d8; cursor: pointer; } .throw small { color: #b8a8f0; } .throw.off { opacity: .45; cursor: default; } .throw em { font-style: normal; color: var(--gold); font-size: 13px; }
@@ -506,14 +509,14 @@
     .pxi.star, .pxi.nostar, .pxi.pip, .pxi.nopip, .pxi.check, .pxi.open, .pxi.next { width: 14px; height: 14px; vertical-align: -1px; margin-right: 2px; }
     #touch .pxi { width: 28px; height: 28px; margin: 0; vertical-align: middle; }
     /* land ho: a short title card when a new island comes into view */
-    #demoend { position: fixed; inset: 0; z-index: 30; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 12px; background: #06040e; color: #fff4d8; text-align: center; padding: 16px; }
+    #demoend { position: fixed; inset: 0; z-index: var(--z-ending); display: none; flex-direction: column; align-items: center; justify-content: center; gap: 12px; background: #06040e; color: #fff4d8; text-align: center; padding: 16px; }
     /* an ending of the voyage (table.js): the same black card as the demo's end, the lines one under the other */
-    #ending { position: fixed; inset: 0; z-index: 30; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 12px; background: #06040e; color: #fff4d8; text-align: center; padding: 16px; }
+    #ending { position: fixed; inset: 0; z-index: var(--z-ending); display: none; flex-direction: column; align-items: center; justify-content: center; gap: 12px; background: #06040e; color: #fff4d8; text-align: center; padding: 16px; }
     #ending.show { display: flex; animation: dfade 3s steps(8) both; } #ending h1 { font-size: 48px; font-weight: 400; color: var(--gold); margin: 0 0 8px; } #ending.dark h1 { color: var(--horror); }
     #endArt { width: min(640px, 90vw); aspect-ratio: 16 / 9; image-rendering: pixelated; box-shadow: 0 0 0 4px var(--edge-navy); margin-bottom: 8px; }
     #ending .endbtns { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
     #cardArt { display: none; width: 100%; max-height: 40vh; object-fit: cover; image-rendering: pixelated; margin-bottom: 12px; box-shadow: 0 0 0 4px #1a0f08; } #card.art #cardArt { display: block; } #card.art #cardWide { grid-template-columns: 1fr; } #card.art #cardIcon { display: none; } #card.art #cardArt { grid-column: 1 / -1; }
-    #credits { position: fixed; inset: 0; z-index: 31; display: none; overflow: hidden; background: #06040e; color: #fff4d8; text-align: center; cursor: pointer; }
+    #credits { position: fixed; inset: 0; z-index: var(--z-credits); display: none; overflow: hidden; background: #06040e; color: #fff4d8; text-align: center; cursor: pointer; }
     #credits.show { display: block; } #credits .roll { position: absolute; left: 0; right: 0; top: 100%; animation: credroll 16s linear forwards; }
     #credits h1 { font-size: 56px; font-weight: 400; color: var(--gold); margin: 0 0 24px; } #credits p { font-size: 18px; margin: 10px; } #credits small { display: block; margin-top: 40px; font-size: 16px; color: #8a7e9a; }
     @keyframes credroll { to { top: 30%; } }
@@ -533,7 +536,7 @@
     @keyframes qbdone { 0% { opacity: 0; transform: translateY(-24px) scale(1.06); } 10% { opacity: 1; transform: none; } 80% { opacity: 1; } 100% { opacity: 0; } }
     @keyframes qbnew { 0% { opacity: 0; transform: translateY(14px); } 6% { opacity: 1; transform: none; } 88% { opacity: 1; } 100% { opacity: 0; } }
     /* the autosave cue: a little ship sails across a strip of waves, then fades */
-    #saveship { position: fixed; right: 16px; bottom: 16px; z-index: 9; width: 120px; height: 52px; padding: 0; background: #17112e; box-shadow: 0 -3px 0 #3a3070, 0 3px 0 #3a3070, -3px 0 0 #3a3070, 3px 0 0 #3a3070, 4px 4px 0 3px rgba(0,0,0,.4); pointer-events: none; opacity: 0; visibility: hidden; overflow: hidden; }
+    #saveship { position: fixed; right: 16px; bottom: 16px; z-index: var(--z-notice); width: 120px; height: 52px; padding: 0; background: #17112e; box-shadow: 0 -3px 0 #3a3070, 0 3px 0 #3a3070, -3px 0 0 #3a3070, 3px 0 0 #3a3070, 4px 4px 0 3px rgba(0,0,0,.4); pointer-events: none; opacity: 0; visibility: hidden; overflow: hidden; }
     #saveship.show { visibility: visible; animation: ssfade 2.8s steps(14) forwards; }
     #saveship canvas { position: absolute; left: 8px; bottom: 19px; width: 40px; height: 22px; image-rendering: pixelated; }
     #saveship.show canvas { animation: sssail 2.8s steps(14) forwards; }
@@ -662,12 +665,12 @@
     #yardBody .swatches { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; } #yardBody .swatches button { width: 100%; padding: 4px 8px; } #yardBody .swatches button.lock { opacity: .45; }
     .ytry { min-height: 44px; margin: 6px 0; color: var(--gold); } .ytry small { display: block; color: #c8b890; font-size: 14px !important; }
     .yacts { display: flex; gap: 8px; flex-wrap: wrap; } .yacts button { width: auto; margin: 0; }
-    #yardTurn { position: fixed; left: 50%; bottom: 36px; transform: translateX(-62%); display: flex; align-items: center; gap: 12px; z-index: 5; }
+    #yardTurn { position: fixed; left: 50%; bottom: 36px; transform: translateX(-62%); display: flex; align-items: center; gap: 12px; z-index: var(--z-scene); }
     #yardTurn button { width: 56px; height: 56px; padding: 0; font-size: 24px; border: none; cursor: pointer; background: #2c2160; color: #fff4d8; box-shadow: 0 0 0 3px #4a3aa0; } #yardTurn span, #yardTurn small { background: #17112e; padding: 4px 12px; box-shadow: 0 0 0 3px #3a3070; color: var(--paper); }
     #yardmodal:not(.open) #yardTurn { display: none; }
     .halfmark { display: inline-block; padding: 0 6px; margin-left: 4px; background: #7a3a1c; color: var(--paper); font-weight: 400; font-size: 14px; }
     /* Mara stays on screen (bottom left) while the first letters are explained, even ashore or in the log */
-    body.onb-mate #hud { z-index: 40; opacity: 1 !important; }
+    body.onb-mate #hud { z-index: var(--z-onboard); opacity: 1 !important; }   /* above menus, never above an ending or the credits (P2): the toasts live inside #hud */
     body.onb-mate #hud > :not(#mate) { visibility: hidden !important; }
     body.onb-mate #mate { visibility: visible !important; left: 12px; bottom: 12px; top: auto; transform: none; width: min(360px, 30vw); pointer-events: auto; }
     body.onb-mate.ashore #mate { bottom: auto; top: 300px; }
@@ -675,11 +678,11 @@
     body.onb-mate:has(#chart.open) #mate { left: 50%; right: auto; bottom: 4px; transform: translateX(-50%); width: min(420px, 40vw); }
     .ribbons button.hl { animation: hlpulse 1s steps(2) infinite; box-shadow: 0 0 0 4px var(--gold) !important; }
     /* the opening shot */
-    #introbars i { position: fixed; left: 0; right: 0; height: 0; background: #000; z-index: 7; pointer-events: none; transition: height 1.4s ease; } #introbars i:first-child { top: 0; } #introbars i:last-child { bottom: 0; }
+    #introbars i { position: fixed; left: 0; right: 0; height: 0; background: #000; z-index: var(--z-panel); pointer-events: none; transition: height 1.4s ease; } #introbars i:first-child { top: 0; } #introbars i:last-child { bottom: 0; }
     body.intro #introbars i { height: 13vh; transition: height 1s ease; }
     body.intro #hud { opacity: 0 !important; }
     body.edge #introbars i { height: 13vh; transition: height 2s ease; } body.edge #hud, body.edge #toasts, body.edge #mate, body.edge #help { opacity: 0 !important; transition: opacity 1.5s; }   /* the Edge (systems/edge.js): a cinematic, nothing on screen */
-    #introskip { position: fixed; right: 20px; bottom: calc(13vh + 12px); z-index: 8; color: var(--paper); font-size: 16px; opacity: 0; pointer-events: none; text-shadow: 2px 2px 0 #000; }
+    #introskip { position: fixed; right: 20px; bottom: calc(13vh + 12px); z-index: var(--z-toast); color: var(--paper); font-size: 16px; opacity: 0; pointer-events: none; text-shadow: 2px 2px 0 #000; }
     body.intro #introskip { opacity: .8; transition: opacity 1s 2.5s; }
     /* CHART-LOOK START */
     /* The chart's look and the type pairing (src/chartstyles.js sets data-chartstyle="a" and data-uifont="b" on <html>).
