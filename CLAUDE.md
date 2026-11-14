@@ -9,6 +9,8 @@ unexpectedly, into cosmic horror. Everything is procedural: no image or model fi
 3. `docs/AREAS.md`: which docs and files belong to design, gameplay and audio. Load only your area's docs; read another
    area only when the task needs it. Specialist agents live in `.claude/agents/` (`design`, `gameplay`, `audio`): use one when
    a task sits inside one area; the main session coordinates tasks that cross areas.
+4. `ARCHITECTURE_AND_LORE_GUIDE.md` (root): the code map and contracts, the look in numbers, how the lore is carried by the
+   mechanics, the task backlog and the working protocol. It ranks below the three above; its evidence is `docs/AUDIT_2026-11-14.md`.
 
 ## Always
 - Horror is implied, never explained. Keep the HUD wordless and the writing short. Never resolve a storyline casually.

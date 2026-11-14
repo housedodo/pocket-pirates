@@ -1194,3 +1194,16 @@ Trials for the owner to compare; nothing changes without a flag and STYLE.md is 
 - Measured: the fishing boat's berth is now 47 units from the mooring spot at Tama and 18 at the Free Cays harbour (it was 6).
 - A ship already stuck in an old save is freed: the boat is no longer there.
 
+## The standing guide and an audit (2026-11-14, owner)
+- `ARCHITECTURE_AND_LORE_GUIDE.md` (root): a manual to read before every task. Tone guardrails; the code map, the frame order, the
+  dread chain and the patterns a new feature copies; the look in numbers; a table of how each canon fact is carried by the
+  mechanics; 25 tasks (9 refactors, 4 gameplay, 9 lore-systemic, 3 polish) with files and "done when"; the working protocol.
+  It ranks below CANON, RULES and STYLE. `CLAUDE.md` points at it.
+- `docs/AUDIT_2026-11-14.md`: the findings behind it, from four read-only passes (architecture; look, interface and sound; lore;
+  how mechanics carry the lore). No game code was changed.
+- **Open for the owner:** every lore-systemic task (L1 to L9) is a proposal and asserts nothing until approved; the audit lists
+  the demo leaks (R2), the banned words in `src/abyss.js` (P1), the music rule against the code (RULES 26), and the stale doc lines (P3).
+- **Verified:** `npx vite build` passes; the swallowed guard at `src/main.js:1115`, the `?dev` and `?dread` demo leaks, the Sunken
+  Street's forced dread, the silent `bell` cue, `hut.skips` unread and the 21 goals were read in the code. **Not verified:** the
+  demo leaks were not run in a demo build; performance findings were not measured; nothing was play-tested; no feel or sound.
+
