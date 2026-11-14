@@ -405,7 +405,8 @@ export function postBadges(d, rep) {
   const canUp = UPGRADES.some((u) => state.upgrades[u.id] < MAX_LEVEL && state.gold >= upCost(u, state.upgrades[u.id], rep));
   const set = (t, v) => { $('hbTabs').querySelector(`[data-t="${t}"] em`).textContent = v || ''; };
   set('board', due); set('market', goods);
-  if (lettersAt(d).length) $('hbTabs').querySelector('[data-t="board"] em').innerHTML = pxi('letter');   // a little letter on the sign set('tavern', ''); set('wright', canUp ? '!' : ''); set('sail', '');
+  if (lettersAt(d).length) $('hbTabs').querySelector('[data-t="board"] em').innerHTML = pxi('letter');   // a little letter on the sign
+  set('tavern', ''); set('wright', canUp ? '!' : ''); set('sail', '');
 }
 export function showGreeting(d, say) {
   const isl = rt.harbourIsl;

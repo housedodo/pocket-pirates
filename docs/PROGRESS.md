@@ -1207,3 +1207,17 @@ Trials for the owner to compare; nothing changes without a flag and STYLE.md is 
   Street's forced dread, the silent `bell` cue, `hut.skips` unread and the 21 goals were read in the code. **Not verified:** the
   demo leaks were not run in a demo build; performance findings were not measured; nothing was play-tested; no feel or sound.
 - **Decided by the owner the same day:** RULES 26's "five loops, 6/8, 125 BPM" was out of date (the stems are 16 bars at 99 BPM, 4/4, F minor; the rule and AREAS now say so); Tama's bell uses the band's bell sound (`s1_bell`), to be built as task L3.
+
+## R1: the swallowed guard (2026-11-14, task R1 of the guide)
+- `goAshore` (`src/main.js`): `if (!r) return;` was inside the trailing comment after `places.visit(...)`; it is on its own line now,
+  so a landmark with no `VISITS` row can be gone ashore on.
+- A scan of `src/` for code after `//` on one line found two more, both from the first commit and both now on their own lines:
+  `NO_CHILD = d.custom === 'nochildren';` in the harbour builder (`src/world.js`), so a harbour whose custom is "no children" now
+  really builds no children (its greeter already says "Children? No, not here."); and `set('tavern', ''); set('wright', canUp ? '!' : '');
+  set('sail', '');` in `postBadges` (`src/ui/harbour.js`), so the Shipwright post now shows the red "!" badge when an upgrade is
+  affordable, beside the board's and the market's counts. **For the owner:** that badge was never seen in play before; say if it should go.
+- **Verified:** `npx vite build`; headless (full game) with `places.visit` stubbed to return null, E at the Grey Tooth goes ashore with
+  no error, and with the old line put back the same run throws "Cannot read properties of null (reading 'clue')"; the Shipwright badge
+  reads "" with 0 gold and "!" with plenty (state read and screenshot). **Not verified:** the no-children village was not looked at
+  (Little Hal lies inside the chapter fog on a fresh save), only read; the demo build was not run (no story, clue or HUD change).
+

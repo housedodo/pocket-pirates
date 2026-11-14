@@ -1112,7 +1112,8 @@ function goAshore(tg) {
   const d = tg.isl.desc;
   rt.dig = { key: tg.key, t: 0, label: 'Going ashore...', need: 2.6, done: () => {
     if (d.lm === 'table' && tableOpen(state) && !state.story.ending && window.__BUILD !== 'demo') { places.visit(d.lm, state, {}); openTable(); return; }
-    const r = places.visit(d.lm, state, { night: tod.night > 0.45, calm: weather.calm > 0.5, still: weather.storm < 0.3, tide: tideAt(), mara: true });   // still: the Two Players play on any night without a storm if (!r) return;
+    const r = places.visit(d.lm, state, { night: tod.night > 0.45, calm: weather.calm > 0.5, still: weather.storm < 0.3, tide: tideAt(), mara: true });   // still: the Two Players play on any night without a storm
+    if (!r) return;
     if (r.clue) seeClue(r.clue);   // the ledger takes it; no popup (docs/WORLD_REDESIGN.md 6.7)
     const demo = window.__BUILD === 'demo';
     let text = r.dark && demo ? r.text.split('. ')[0] + '.' : r.text;

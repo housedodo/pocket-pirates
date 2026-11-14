@@ -79,7 +79,7 @@ on later visits; whether any ending touches what Mara is; every `[IDEA]` slot in
 
 Three.js 0.186 + Vite 8, native ES modules, no framework, no tests, one bundle (about 1.4 MB). 72 source files, 1.44 MB of
 source. Many lines are several hundred characters long with trailing `//` comments: **never put code after a `//` on the same
-line** (it has already caused two bugs, one still latent: task R1).
+line** (it caused three bugs, fixed 2026-11-14 in task R1).
 
 ### Layers (imports point down only)
 | Layer | Files | Owns |
@@ -262,7 +262,7 @@ before building. Each task ends with the workflow in section 6. Sizes: S under a
 ### Refactors
 | # | Task | Files | Done when |
 |---|---|---|---|
-| R1 | **The swallowed guard.** In `tryInteract`, `if (!r) return;` sits inside a trailing comment after `places.visit(...)`, so the next line throws for any landmark without a `VISITS` entry. Put the guard on its own line. Then search `src/` for other code after `//` on one line. S | `src/main.js` (near line 1115) | The guard runs; a landmark with no `VISITS` row can be gone ashore on without an error; grep finds no other case |
+| R1 | ~~**The swallowed guard.** In `tryInteract`, `if (!r) return;` sits inside a trailing comment after `places.visit(...)`, so the next line throws for any landmark without a `VISITS` entry. Put the guard on its own line. Then search `src/` for other code after `//` on one line.~~ **Done 2026-11-14** (two more found and fixed: `world.js` NO_CHILD, `ui/harbour.js` badges). S | `src/main.js` (near line 1115) | The guard runs; a landmark with no `VISITS` row can be gone ashore on without an error; grep finds no other case |
 | R2 | **Close the demo.** With `__BUILD === 'demo'`: ignore `?dev`, `?dread` and `?threads`; zero a landmark's forced dread in `describeCell` (the Sunken Street sits about 900 out, inside the demo's sea, with `dread: 0.74`); keep the Sunken Street and every post-hut place from being visited or seen; gate `seeClue`, `clueTick` and the `isKnown` effects; gate `sighting` and `abyss.update` on the build, not on dread. M | `src/core/config.js`, `src/main.js`, `src/world.js`, `src/landmarks.js`, `src/systems/storybeats.js`, `src/clues.js`, `docs/DEMO_CHECKLIST.md` | In a headless run with `window.__BUILD = 'demo'` set before load: `?dev=1&dread=0.9&threads=all` changes nothing; at the Sunken Street's position `__game.dread()` is 0 and no clue is recorded; the checklist has the new lines |
 | R3 | **One stage function.** Export `stageOf(dread)` from `src/palette.js` and use it at the four inline copies in `main.js` and wherever else `Math.floor(dread * 5)` appears. Leave thresholds as they are; list the places that use quarters instead of fifths in the audit doc for the owner. S | `src/palette.js`, `src/main.js`, others by grep | One definition; behaviour unchanged at dread 0, 0.2, 0.39, 0.4, 0.8, 1 |
 | R4 | **Goals by name.** Add `goalIdx(id)` and `goalReached(state, id)` to `src/objectives.js`; replace every hardcoded index listed in section 2, contract 3. No goal moves, so no migration. M | `src/objectives.js`, `src/gates.js`, `src/main.js`, `src/oil.js`, `src/ui/harbour.js`, `src/chartstyles.js`, `docs/RULES.md` (rule 30 says the migration is in `main.js`; it is in `core/state.js`) | No bare goal number outside `objectives.js`; every gate opens at the same goal as before (step through with the dev bar or `__game.objectives`) |
