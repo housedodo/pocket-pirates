@@ -20,6 +20,7 @@ import { rt, G } from '../core/runtime.js';
 import { scene } from '../core/engine.js';
 import { $, toast } from '../ui/dom.js';
 import { tideFalls } from './calendar.js';
+import { after } from './later.js';
 
 export let WHITE_MIST, oilOn;   // set by the init function(s) below, at the point in boot where main.js had them
 
@@ -51,13 +52,14 @@ export function hutNod(delay) {
   if (state.hut && state.hut.rolls.length) return;
   const line = state.story.hutFramed ? 'Captain... was that hut always on our chart? I did not draw it. Did you draw it?'
     : 'Captain... look at our chart. There is a hut on it now. I did not draw it. Did you?';   // not looked yet: she points you to it
-  setTimeout(() => G.objectives.mate.say(line, true), delay);
+  if (delay) setTimeout(() => G.objectives.mate.say(line, true), delay);   // said in the log as it opens: a line of that screen (wall clock)
+  else G.objectives.mate.say(line, true);
 }
 export function revealHut() {
   const h = G.world.hutDesc; if (!h) return;
   state.discovered[h.id] = state.discovered[h.id] || 1;
   state.story.hutNod = 'pending';
-  setTimeout(() => hutNod(0), 60000);
+  after(60, () => hutNod(0));
 }
 export function showDemoEnd() { $('demoend').classList.add('show'); G.audio.play('ending'); }
 /** where the fog leaves no current: 0 in or near any fog (the chapter wall, the fog bank), 1 in clear water */
@@ -162,7 +164,7 @@ export function oilTick(dt) {
   const night = state.dayN * 2 + (state.time > 0.5 ? 1 : 0);   // one warning of each kind per dark spell
   if (lit && before > cap * 0.25 && state.oil <= cap * 0.25 && rt.oilNight !== night && !G.eventQuiet()) { rt.oilNight = night; if (!G.objectives.mate.busy) G.objectives.mate.say('The lamp is getting low, Captain. Oil at any market, or we turn for home.'); else toast('The lamp oil is running low.', false, 4000); }
   if (lit && tod.night > 0.6 && !state.story.tellShadow && G.lateTell()) { state.story.tellShadow = 1; toast('The lamp throws one shadow across the deck.', false, 6000); }   // a tell: one shadow
-  if (before > 0 && state.oil <= 0 && lit) { toast('The lantern gutters out. The dark comes right up to the rail.', rt.dread > 0.4, 6000); if (!state.hints.oilOut) { state.hints.oilOut = true; setTimeout(() => G.objectives.mate.say('No light, no line, and I can barely see the bow. Buy oil at a market next time, Captain.'), 3500); } }
+  if (before > 0 && state.oil <= 0 && lit) { toast('The lantern gutters out. The dark comes right up to the rail.', rt.dread > 0.4, 6000); if (!state.hints.oilOut) { state.hints.oilOut = true; after(3.5, () => G.objectives.mate.say('No light, no line, and I can barely see the bow. Buy oil at a market next time, Captain.')); } }
 }
 export const SAIL_LIMIT = 20;   // seconds of full sail in a gale before it tears (longer with better sails, shorter in a storm)
 export function sailTick(dt, windNow) {
@@ -174,7 +176,7 @@ export function sailTick(dt, windNow) {
     if (rt.sailStrain >= SAIL_LIMIT) {
       state.sailsTorn = true; G.ship.setTorn(true); rt.sailStrain = 0; rt.strainWarned = false; rt.shake = Math.max(rt.shake, 0.6);
       toast('RRRIP! The mainsail tears. Two thirds speed until it is patched.', false, 6500);
-      setTimeout(() => G.objectives.mate.say(state.patchKits > 0 ? 'We have a patch kit, Captain. Bring her to a stop and I will see to it (E).' : 'No patch kit aboard, Captain. We need a harbour and a sailmaker.'), 2500);
+      after(2.5, () => G.objectives.mate.say(state.patchKits > 0 ? 'We have a patch kit, Captain. Bring her to a stop and I will see to it (E).' : 'No patch kit aboard, Captain. We need a harbour and a sailmaker.'));
     }
   } else { rt.sailStrain = Math.max(0, rt.sailStrain - dt * 0.8); if (rt.sailStrain < 1) rt.strainWarned = false; }
 }

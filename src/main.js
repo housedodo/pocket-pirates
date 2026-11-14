@@ -87,6 +87,7 @@ import { hailShip, renderShipTrade, initShipTrade } from './ui/shiptrade.js';
 import { renderHarbour, lettersAt, PETS, companions, petOffer, takePet, tabOpened, showGreeting, greetAdvance, buyUpgrade, initHarbour } from './ui/harbour.js';
 import { HUT_NOTES, perrinNote, hutNod, revealHut, showDemoEnd, fogLost, WHITE_MIST, seamTick, clueTick, seaGate, seaTick, oilOn, freeCaysNow, oilTick, SAIL_LIMIT, sailTick, toggleLamp, buyOil, tackTick, hurtPlayer, onHitEnemy, initStoryBeats } from './systems/storybeats.js';
 import { getInteract, tryInteract, anchorTick } from './systems/interact.js';
+import { after, laterTick, laterPending } from './systems/later.js';
 import { trackTarget, etaText, slipInfo, drawCompass, updateTracker, initHud } from './ui/hud.js';
 import { LOCALS, localGames, pig, maraMood, openCard, caveScene, COLOUR_DEEP, COLOUR_SHALLOW, openCave, tabletopTick, signOn, daysLeft, crewLeave, wishDone, initEncounters } from './ui/encounters.js';
 
@@ -222,6 +223,7 @@ function threadChoice() {
 }
 threads.setup(threadChoice());
 threads.bind({
+  after: (s, fn) => after(s, fn),   // story delays on the game's clock (systems/later.js)
   get state() { return state; }, audio, ship, addMark, clearMark, keep,
   toast: (t, dark, ms) => toast(t, dark, ms), say: (t) => { if (!objectives.mate.busy) objectives.mate.say(t); },
   openScene: (kind, id) => openCave({ id, kind }), tide: () => tideAt(), night: () => tod.night, bearing: (dx, dz) => bearingName(dx, dz),
@@ -235,13 +237,13 @@ const combat = new Combat(scene, fauna);
 sea.syncQuests(state.quests.filter((q) => q.id === state.tracked));
 traffic.onEvent = (what) => {
   if (!laterOK()) return;   // market and regatta wait for the tutorial
-  if (what === 'regatta') { if (!state.hints.regattaSeen && laterOK() && !eventQuiet()) { state.hints.regattaSeen = true; setTimeout(() => objectives.mate.say('A regatta! Look at them go. I wonder who they are racing, and who is giving the prize.'), 2500); } }
+  if (what === 'regatta') { if (!state.hints.regattaSeen && laterOK() && !eventQuiet()) { state.hints.regattaSeen = true; after(2.5, () => objectives.mate.say('A regatta! Look at them go. I wonder who they are racing, and who is giving the prize.')); } }
 };
 fauna.onSpot = (what) => {
   if (!laterOK()) return;   // no dolphins or whales for the first goals
   const k = what === 'migration' ? 'whales' : what; state.stats[k] = (state.stats[k] || 0) + 1;
   // no message: the sea just has them (owner, 2026-11-13); they still count for the stats and the sea goals
-  if (what === 'migration' && !state.hints.migrationSeen && laterOK() && !eventQuiet()) { state.hints.migrationSeen = true; setTimeout(() => objectives.mate.say('They are all going the same way, Captain. East. Every one of them. As if they were called.'), 2500); }
+  if (what === 'migration' && !state.hints.migrationSeen && laterOK() && !eventQuiet()) { state.hints.migrationSeen = true; after(2.5, () => objectives.mate.say('They are all going the same way, Captain. East. Every one of them. As if they were called.')); }
 };
 audio.musicOn = !settings.musicOff;
 
@@ -913,7 +915,7 @@ function secretFound(sc) {
     state.collected.add(sc.key);
     const loot = abyss.wrongLoot(lootFor(mulberry32(hash2(Math.round(sc.m.x), Math.round(sc.m.z), 41)), rt.dread), state); loot.value = Math.round(loot.value * 1.4 * ship.mods.lootMul * threads.salvageMul()); loot.name = `From the low water: ${loot.name}`;
     state.gold += loot.value; state.loot.push(loot); state.stats.wrecks++; audio.play('treasure');
-    { const x = threads.onSalvage(); if (x) setTimeout(() => toast(x, true, 6000), 1500); }
+    { const x = threads.onSalvage(); if (x) after(1.5, () => toast(x, true, 6000)); }
     toast(`The tide is out and the wreck is bare. ${loot.name} (+${loot.value} gold). The water is already coming back.`, loot.dark, 7000);
     if (!S.tideNote) { S.tideNote = 1; state.notes.push({ text: 'Some wrecks only show at low water. The tide hides more than it shows.', dark: false }); }
   } else if (sc.kind === 'camp') {
@@ -1028,7 +1030,7 @@ function resolveFalseRumour(d, r) {
   const st = FALSE_STRANGE[v - 1];
   toast(st.text, true, 9000); state.notes.push({ text: st.note, dark: true });
   if (st.loot) state.loot.push({ name: `From ${d.name}: ${st.loot}`, value: 0, dark: true });
-  if (!state.story.strangeRumour) { state.story.strangeRumour = true; setTimeout(() => objectives.mate.say('Captain... that was no treasure. Who goes to this much trouble to make a rumour come true?', true), 2500); }
+  if (!state.story.strangeRumour) { state.story.strangeRumour = true; after(2.5, () => objectives.mate.say('Captain... that was no treasure. Who goes to this much trouble to make a rumour come true?', true)); }
 }
 
 function discover(isl) {
@@ -1038,7 +1040,7 @@ function discover(isl) {
   state.gold += 5;
   const rum = state.rumoured[d.id]; if (rum) rum.found = true;
   if (!onbQuiet() && rt.dread < 0.5) toast(`Charted: ${d.name} (+5 gold)`);   // no gold toasts in the deep dread
-  if (rum && rum.fake !== undefined) setTimeout(() => resolveFalseRumour(d, rum), 1800);
+  if (rum && rum.fake !== undefined) after(1.8, () => resolveFalseRumour(d, rum));
   audio.play('discover');
 }
 
@@ -1109,6 +1111,7 @@ function frame() {
   const ashore = rt.modal === 'harbour' || rt.modal === 'greet' || rt.modal === 'yard';
   const vdt = live || ashore || rt.titleScene ? rawDt : 0;  // ashore the world keeps moving (people, gulls, waves) while the clock stands still
   rt.tNow += dt; rt.animT += vdt;
+  laterTick();   // story delays that have come due (systems/later.js): never inside a menu, and they wait out the quiet
   const stepT = Math.floor(rt.animT * 12) / 12;
 
   // ---- time of day & wind
@@ -1145,7 +1148,7 @@ function frame() {
       rt.glimpseWait += dt;
       if (rt.glimpseWait > 45 && !objectives.mate.busy) { state.story.glimpse = 1; glimpse.start(ship); }
     }
-    if (live && glimpse.update(dt)) { rt.quietUntil = rt.tNow + 30; setTimeout(() => objectives.mate.say('Captain? You went quiet.'), 2500); }
+    if (live && glimpse.update(dt)) { rt.quietUntil = rt.tNow + 30; after(2.5, () => objectives.mate.say('Captain? You went quiet.'), { quiet: false }); }
     audio.hush(Math.max(glimpse.k * 0.97, rt.edgeHush || 0));   // the glimpse, and the Edge (systems/edge.js)
   }
   const windNow = { dir: wind.dir, strength: Math.min(1.4, wind.strength * (1 + 0.25 * weather.storm)) * (1 - 0.92 * weather.calm) * (1 - glimpse.k) };
@@ -1468,6 +1471,7 @@ window.__game = { secrets, regionWeights, tideAt: () => tideAt(), lostState: () 
     this._show = new THREE.Mesh(b.geometry(), mats.props); this._show.position.set(x, 0.4, z); scene.add(this._show);
     ship.pos.set(x + 15, 0, z + 2.5); ship.heading = Math.PI / 2; ship.speed = 0; ship.trim = 1;
   },
+  later: { after, pending: laterPending },   // test hook: story delays on the game's clock
   sectorAt: (x, z) => sectorAt(x, z, state.seed), traffic, abyss, hut, ship, world, state, begin, scene, camera, renderer, wind, weather, fauna, traffic, sea, audio, fishing, combat, objectives, hurtPlayer, openModal, closeModal, buyUpgrade, refreshMods,
 };
 rt.newVoyage = false;   // New voyage reloads straight into the game, no title in between

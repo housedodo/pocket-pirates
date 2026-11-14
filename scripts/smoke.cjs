@@ -1,6 +1,6 @@
 // Smoke test (task R9): `npm run smoke`. Boots the full game and the demo build headless, fails on any console error, sails
 // 60 game seconds, opens and closes the log, runs the clue lint, goes ashore on a landmark with no VISITS row (the R1 guard),
-// and checks the demo is closed (R2: test flags, the later places, the clue ledger). Starts its own Vite dev server.
+// checks the demo is closed (R2: test flags, the later places, the clue ledger) and that story delays wait out the pause menu (R7). Starts its own Vite dev server.
 // Headless runs at about a tenth of real speed: every wait is on game state, never on the clock. Takes a few minutes.
 // Nothing here judges feel or sound.
 const path = require('path');
@@ -50,6 +50,17 @@ async function sailAndLog(who, p) {
   check(who, opened && closed, `the log opens and closes with M (${opened}, ${closed})`);
 }
 
+/** story delays run on the game's clock (R7): a line due in 2 game seconds does not fire while the pause menu is open */
+async function laterWaits(who, p) {
+  await p.evaluate(() => { const g = window.__game; window.__laterAt = null; g.later.after(2, () => { window.__laterAt = { modal: !!document.querySelector('.modal.open') }; }); g.openModal('pause'); });
+  await p.waitForTimeout(6000);
+  const during = await p.evaluate(() => window.__laterAt);
+  await p.evaluate(() => window.__game.closeModal());
+  const fired = await p.waitForFunction(() => window.__laterAt, null, { timeout: WAIT }).then(() => true, () => false);
+  const at = await p.evaluate(() => window.__laterAt);
+  check(who, during === null && fired && at && !at.modal, `a story delay waits out 6 s of pause and fires after it, outside any menu (${JSON.stringify(during)}, ${fired})`);
+}
+
 /** going ashore where places.visit returns nothing (a landmark with no VISITS row) must not throw (R1) */
 async function ashoreWithoutVisit(who, p) {
   await p.evaluate(() => { const g = window.__game; window.__visited = 0; g.places.visit = () => { window.__visited++; return null; }; g.teleport(280, 78, 0); });
@@ -88,6 +99,7 @@ async function run(browser, base, demo) {
     check(who, true, 'boots');
     if (demo) await demoClosed(who, p);
     await sailAndLog(who, p);
+    if (!demo) await laterWaits(who, p);
     if (!demo) await ashoreWithoutVisit(who, p);
   } catch (e) { check(who, false, `threw: ${e.message.split('\n')[0]}`); }
   check(who, errs.length === 0, errs.length ? `console errors: ${errs.slice(0, 5).join(' | ')}` : 'no console errors');

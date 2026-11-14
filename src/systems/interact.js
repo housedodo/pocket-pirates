@@ -4,6 +4,7 @@
 // Everything main.js owns comes through G, read at call time; screens (ui/ other than dom.js) too, since systems sit below them.
 import { markSeen, tableOpen } from '../clues.js';
 import { G, rt } from '../core/runtime.js';
+import { after } from './later.js';
 import { state } from '../core/state.js';
 import { tod } from '../daynight.js';
 import { isOpen } from '../gates.js';
@@ -181,7 +182,7 @@ export function tryInteract() {
           const predug = !first && !state.story.predug && state.stats.treasures >= 1;   // the second chest: one hole is there already, over the chest (once)
           if (predug) state.story.predug = 1;
           G.digGame.start({ cols: 8, rows: 5, beach, sun, noon, predug, digs: Math.round((first ? 13 : 10) + tools - (d.dread > 0.5 ? 1 : 0)), stones: first ? 2 : 3 + (d.dread > 0.4 ? 1 : 0), lie: d.dread > 0.5 ? 0.3 : 0,
-            onDone: () => { const done = rt.dig && rt.dig.done; rt.dig = null; if (done) done(); if (predug && G.digGame.preFound) markSeen(state, 'CL-H3-hole'); if (predug && G.digGame.preFound) setTimeout(() => G.objectives.say('Somebody dug here first, and stopped a spade short. Lucky us.'), 3000); },
+            onDone: () => { const done = rt.dig && rt.dig.done; rt.dig = null; if (done) done(); if (predug && G.digGame.preFound) markSeen(state, 'CL-H3-hole'); if (predug && G.digGame.preFound) after(3, () => G.objectives.say('Somebody dug here first, and stopped a spade short. Lucky us.')); },
             onFail: (why) => { rt.dig = null; rt.digFix = rt.tNow + 6; rt.digFixWhy = why; state.attempts[d.id] = (state.attempts[d.id] || 0) + 1;
               toast(why === 'tide' ? 'The tide comes in and fills every hole. The crew waits for it to go out again.' : why === 'mud' ? 'The light goes and the mud is everywhere. The crew scrapes the shovels clean and tries again.' : 'The shovel breaks on a second stone. The crew fetches the spare.', false, 5500); } });
         }
@@ -207,7 +208,7 @@ export function tryInteract() {
       o.salvaged = true; if (!o.extra) state.collected.add(o.id); state.stats.wrecks++;
       state.gold += loot.value; state.loot.push(loot);
       toast(`Salvaged! ${loot.name} (+${loot.value} gold)`, loot.dark, 7000);
-      { const x = G.threads.onSalvage(); if (x) setTimeout(() => toast(x, true, 6000), 1500); }
+      { const x = G.threads.onSalvage(); if (x) after(1.5, () => toast(x, true, 6000)); }
       G.audio.play('treasure');
     } };
     G.audio.play('dig');

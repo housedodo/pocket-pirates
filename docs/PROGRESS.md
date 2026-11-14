@@ -1287,3 +1287,17 @@ Trials for the owner to compare; nothing changes without a flag and STYLE.md is 
   update, tick or draw function; before-and-after screenshots at day, night, dread 0.6 and in Tama's harbour match (only Mara's
   typewriter line is at another letter). **Not verified:** frame time (not measured; headless is not a fair test), feel and sound.
 
+## R7: story delays on the game's clock (2026-11-14, task R7 of the guide)
+- `after(seconds, fn)` in `src/systems/later.js`, ticked once a frame right after the clock. It counts game seconds (`rt.tNow`, which
+  stands still in every menu), never fires while a menu is open, and by default waits out the quiet window round the hut and the
+  diver. Thread modules get it through their api (`threads.bind({ after })`).
+- Moved to it, the thirteen delays that land at sea: the hut appearing on the chart (60 s), the lamp going out, the torn sail, the
+  regatta, the whales, a tide wreck's thread line, the strange rumour, a false rumour resolving, the glimpse's "Captain? You went
+  quiet." (the one allowed inside the quiet, which it answers), the hole already dug, a salvage's thread line, and the two thread
+  endings (`thread_mods.js`).
+- Left on the wall clock on purpose: animation and transitions (toasts, fades, the hit flash, the dice, the tavern games, thunder),
+  and the lines of a screen that is open (a harbour's own lines over the harbour, the arrival notes, Mara's line as the log opens on the
+  hut). 45 `setTimeout`s remain, none of them a line at sea.
+- **Verified:** `npx vite build`; `npm run smoke` passes, with a new check: a line due in 2 game seconds did not fire during 6 s of the
+  pause menu, and fired after it, outside any menu. **Not verified:** each moved line in its own situation; feel and sound.
+
