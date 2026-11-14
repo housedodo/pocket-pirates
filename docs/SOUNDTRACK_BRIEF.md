@@ -1,5 +1,9 @@
 # Retro Pirate & Sea Shanty Game Audio Reference Guide (FL Studio)
 
+> **Out of date on key, tempo and meter (owner, 2026-11-14; RULES 26):** the game's music is stems from one session, 16 bars at
+> 99 BPM, 4/4, F minor, all the same length. Anything new is written to that. The B minor / D, 125 BPM, 6/8 and "five loops" lines
+> below are the earlier plan, kept as a record.
+
 ## 1. Project & Aesthetic Context
 * **Style:** Rustic, retro game aesthetic (16-bit / PS1 era / classic PC adventure games like *Monkey Island*).
 * **Genre:** Maritime, sea shanty, tavern folk, and epic naval battle music.

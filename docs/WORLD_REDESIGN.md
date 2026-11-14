@@ -241,7 +241,7 @@ Crosses areas: design (`chart.js`, palette), audio (stratum loops). Update `docs
 ## 9. Build status
 
 Built and tested headless (2026-11-10):
-- `src/clues.js`: the clue table (17 clues), `state.story.seen`, derived question levels, `isKnown`, `d3Open` (any three questions at level 2), `clueLint` (0 banned words, 0 early hut words). `gates.js` has the `know` gate kind.
+- `src/clues.js`: the clue table (17 clues when written; 30 today), `state.story.seen`, derived question levels, `isKnown`, `d3Open` (any three questions at level 2), `clueLint` (0 banned words, 0 early hut words). `gates.js` has the `know` gate kind.
 - `src/palette.js`: `STRATA`, piecewise dread, `DREAD_RANGE` 2400, peak hysteresis (`dreadWithPeak`, 85%); +0.05 dread at night from S2 (`main.js` `felt()`).
 - `src/objectives.js`: `strataGate` replaces the chapter fog wall (demo build keeps `GATES`; the tutorial keeps them until chapter IV). Gates: S1 rudder 2 or any bought chart; S2 lantern 1 + hull 2; S3 lantern 2; S4 hull or sails 3 and a falling tide (one-way: once entered stays open); S5 three regions seen.
 - `src/sectors.js`: fixed region wedges (`WEDGES`) with mixed water between; deep sectors renamed ", again" after each trip home (`bumpSectors`).

@@ -564,6 +564,10 @@ The final scene (at the hut, or at the Table by the Water if the player has reac
 The options a player has depend on what they have understood. The die is still the die.
 [DECIDED 2026-11-11 and BUILT in src/table.js: Throw, Hum the tune, Sit, Leave. "Turn the table" is CUT. Ask, Read the ledger aloud and
  Bring someone are not built and not decided. The ending texts in the game are DRAFTS for the writer.]
+[AS BUILT, checked against src/table.js on 2026-11-14, following CANON 2026-11-12 and 2026-11-13; where the table below differs, it is
+ the earlier plan: Throw (always); Hum the tune (needs the `hum` capability: the Two Players heard); Let Mara throw (once; she cannot
+ pick up the die); Ask her who counts (question 1 at level 2, once); Sit (question 3 at level 3); Leave (the die set down once, or no
+ throw after the first). Read the ledger aloud and Bring someone are not built.]
 
   OPTION                          needs understanding                  what it does
   Throw                           (always)                             the last throw; the three outcomes (below)

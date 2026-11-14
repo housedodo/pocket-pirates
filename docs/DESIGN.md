@@ -82,7 +82,7 @@ Other systems: **jobs** (delivery contracts from harbour boards, tracked on the 
 **Sound** is synthesised in `synth.js` (every cue, music included); real files override it per cue.
 
 ## Starter adventure (first mate, fishing, riddles, looks, combat)
-- **First mate and goals** (`objectives.js`): Mara talks you through the main chain of 16 goals in six chapters (sea legs, landfall; the riddle, the first upgrade; dead calm, tacking, a delivery, a passenger, charting; the tavern, Perrin's note, his chart, the second riddle; bottles, gossip; the hut) and reacts to events (dusk, storms, raiders, rising dread; she gets more unsettled as it goes on). Seven optional side goals complete themselves. Y or the pause menu asks for a hint; goals can be skipped in the Goals tab.
+- **First mate and goals** (`objectives.js`): Mara talks you through the main chain of 16 goals in six chapters, then Perrin's five letters after the hut (21 in `MAIN_GOALS`; the demo stops at the hut) (sea legs, landfall; the riddle, the first upgrade; dead calm, tacking, a delivery, a passenger, charting; the tavern, Perrin's note, his chart, the second riddle; bottles, gossip; the hut) and reacts to events (dusk, storms, raiders, rising dread; she gets more unsettled as it goes on). Seven optional side goals complete themselves. Y or the pause menu asks for a hint; goals can be skipped in the Goals tab.
 - **Fishing** (`fishing.js`): C casts (slow down first), wait for a bite, hook it, then hold Space to keep the marker in the green zone. 11 species, harder ones later; dark species appear with dread and at night. Sell at harbours (reputation adds a bonus); fish log in the Journal.
 - **Treasure riddles** (`lore.makePuzzle`, `world.js`): the chest is no longer marked. Each treasure isle's arch carries a riddle (sunrise/sunset/pole star/lone palm) naming the shore where the chest is buried. Study the arch (E), sail to the right shore, dig. Wrong shores cost a few seconds. Riddles also come from Perrin (the starter map) and are kept in the Journal.
 - **Ship looks** (`customize.js`): hull paint, sail colour, pennant and figurehead (parrot, dolphin, mermaid, lion, skull) at harbour shipyards. Some figureheads are earned (catch fish, salvage a wreck, earn 3 stars, sink a raider).
@@ -298,7 +298,7 @@ something to do in each. See PROGRESS.md "Harbour life" for the list.
 - `showEnding` puts the ending on a black card and stores `state.story.ending`. After the Long Sleep, Good Dreams or the tune the ship is set off Tama in the morning with dread cleared; She Rises runs `abyss.startEnding()`.
 - `maraRemembers`: four lines, each at least 90 seconds of sailing after its condition (a bell clue; two regions seen; the Sunken Street; the Table showing). Not in the demo build.
 
-## Four small wrong things before the hut (2026-11-11)
+## Small wrong things before the hut (2026-11-11; four, three since the third oar was cut on 2026-11-12)
 | Flag in `state.story` | When | What |
 |---|---|---|
 | `berths` | the first passenger dropped off | the fare doubles, "two berths", the harbourmaster asks for the other one |

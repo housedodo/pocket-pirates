@@ -1,7 +1,7 @@
 HOIST (Pocket Pirates): THE MASTER STORY FILE
 ================================================================================================
 This is the main story file for the full game. Edit it, upload it again, and the next session puts every change
-into the game. Built from commit 9f4da2b on 2026-11-14. 1477 in-game lines carry an ID.
+into the game. Built from commit 94a285e on 2026-11-14. 1560 in-game lines carry an ID.
 
 CONTENTS
   A   HOW TO USE THIS FILE (IDs, status marks, how to add and remove things)
@@ -110,7 +110,7 @@ C-001 MARA, first mate [BUILT]
   Voice     warm, quick, a little cheeky; one or two short lines at a time; calls you Captain; "She is small, but she is ours."
   Secret    she is from a village that is no longer above water (the Sunken Street). She remembers it slowly: the bell, the street
             that ran down to the water, the blue door, and the name, which she will not say aloud. [DECIDED 2026-11-11, BUILT]
-            What that makes her is still not said anywhere. [OPEN]
+            What she is was decided by the owner on 2026-11-12 (docs/CANON.md); it is never said in the game. [DECIDED]
   Her arc   cheerful -> steady -> rattled (mood from hull, rest and dread) -> breaks (glitching portrait, lines she should not say);
             alongside it, the memory of her village returning in four pieces.
   Lines     OBJ (goals), MAIN (remarks), PAS (banter), THR/TMOD (threads).  Your edits:  (empty)
@@ -142,7 +142,7 @@ C-005 THE EIGHT RESIDENTS [BUILT] (one per harbour, a four-visit story that chan
 
 C-006 WICK, keeper of Wick's Rock [BUILT]   silent lighthouse keeper; walks you up to the gallery; no speech.
 C-007 THE KESTREL [BUILT as absence]   a ship crossed off the list in the tin box on the Grey Tooth; its white posts (daymarks) still stand.
-C-008 THE PAINED RAVEN [PLANNED, working name]   the Gull's opposite, a ghost ship. Seed: inside the hull, "Not the Gull. I left it." Never explain who sails her.
+C-008 THE PAINED RAVEN [DECIDED 2026-11-12, see docs/CANON.md; the game says "the Raven"]   the Gull's opposite, a ghost ship. Seed: inside the hull, "Not the Gull. I left it." Never explain who sails her.
 C-009 THE FACTIONS [BUILT as names and colours]   Crown Traders, Free Cays, Reef Brotherhood, Lantern Guild, The Drowned (see part F).
 C-010 THE HARBOUR FOLK [BUILT]   fishers and dockers at dawn, the fish-stall woman by day, the fiddler and lamplighter in the evening, the night watchman; dark figures with pale eyes from dread stage 2 (they only stare).
 C-011 CREW FOR HIRE [BUILT]   two hired hands max, silent, with a trait (Lucky, Old salt, Silver tongue, Strong rower, Sharp-eyed, Superstitious) and a wish.
@@ -569,7 +569,7 @@ Where the story hides in the mechanics, and where its text lives (section J).
 # J  EVERY LINE IN THE GAME
 ################################################################################################
 Pulled from the code. Edit the text after the "|" (see part A). Sources are grouped by file; the CODE in front of every
-line says which file it goes back into. 1477 lines.
+line says which file it goes back into. 1560 lines.
 
 
 
@@ -2795,6 +2795,110 @@ line says which file it goes back into. 1477 lines.
   LOST-0007 | A sandbar of black sand, where the chart says deep water. A man is digging. The hole is deeper than he is tall. Every spadeful he lifts out, the sand runs back in.
   LOST-0008 | He does not look up. He says, to the hole, "Nearly there." He has been saying it a long time.
   LOST-0009 | The sound of the spade follows you a long way over the water.
+
+
+####################################################################################################
+## SOURCE NEWS   (newspaper.js): the Friday paper
+####################################################################################################
+
+### NEWS / ADDED 2026-11-14
+  NEWS-0001 | News from every quay. Read it twice.
+  NEWS-0002 | The ink is still wet.
+  NEWS-0003 | The ink is still wet. The boy who sold it would not stay.
+  NEWS-0004 | The paper is damp. It smells of the sea.
+  NEWS-0005 | The paper is damp, and warm.
+  NEWS-0006 | We were to write about {N} this week. Nobody here remembers who {N} is. If you do, write to us.
+  NEWS-0007 | This week's face is a captain with a ship called the Merry Gull. The Gull comes in every night after the lamps are out, ties up, and nobody comes ashore. We have kept a place at the table.
+  NEWS-0008 | This week's face is yours. Please hold still.
+  NEWS-0009 | There is nobody left in {H} to write about. There is a table by the water. Someone is sitting at it.
+  NEWS-0010 | Half the harbour is out with shovels. The other half is selling shovels.
+  NEWS-0011 | A visiting captain is thanked. The Reef Brotherhood says nothing, which is not like them.
+  NEWS-0012 | A stranger won the {G}. {W} demands a rematch.
+  NEWS-0013 | Travellers speak well of the Merry Gull. One says the captain hums.
+  NEWS-0014 | Ask anyone on the quay there. They will tell you all of it, twice.
+  NEWS-0015 | Doing all the things a ship does. We have written every one of them down.
+  NEWS-0016 | A penny on every barrel. The quay is not pleased.
+  NEWS-0017 | The keeper says the lamp was lit. The ships say it was not.
+  NEWS-0018 | Won by a canoe with a goat in it. The goat is not allowed to race again.
+  NEWS-0019 | It was there on the old charts. The fishers say it never was.
+  NEWS-0020 | Keep to the channel and a gun loaded.
+  NEWS-0021 | Not robbed. Not wrecked. Empty, and neatly so.
+  NEWS-0022 | Every lamp to be lit an hour earlier this season. No reason given.
+  NEWS-0023 | The guild asks that nobody put them out. For any reason.
+  NEWS-0024 | Fishers are asked to call out their names on the way home.
+  NEWS-0025 | The fishers stopped rowing to listen. Some are still listening.
+  NEWS-0026 | The market ran out of ice by noon.
+  NEWS-0027 | The vote was close. The goat has not yet spoken.
+  NEWS-0028 | It is louder than the old one. Much louder.
+  NEWS-0029 | Children are asked not to ride them.
+  NEWS-0030 | Nobody knows why. Buy now, says the chandler.
+  NEWS-0031 | It waved. Witnesses agree it waved.
+  NEWS-0032 | Nobody saw them go.
+  NEWS-0033 | Only by minutes. The harbourmaster has started keeping a list.
+  NEWS-0034 | He had rowed home in his sleep. He does not remember setting out.
+  NEWS-0035 | It had been painted over, from the inside.
+  NEWS-0036 | It came in on Thursday, twice.
+  NEWS-0037 | All the same song. Parents are asked not to join in.
+  NEWS-0038 | The boats come back. The news does not.
+  NEWS-0039 | There were nineteen fewer. It was a clear night.
+  NEWS-0040 | Nobody is to wake them.
+  NEWS-0041 | LOST: a red mitten, the left one. Reward: the right one.
+  NEWS-0042 | FOR SALE: a rowing boat, one careful owner, one hole.
+  NEWS-0043 | WANTED: a cook who can count past twelve.
+  NEWS-0044 | QUIET HOURS on the quay from dusk. By order.
+  NEWS-0045 | FOUND: a lamp, still lit. Ask at the inn.
+  NEWS-0046 | WANTED: a night watchman. Again.
+  NEWS-0047 | DO NOT answer a knock after midnight. It will knock again.
+  NEWS-0048 | FOUND: twenty dice. One face is worn off every one.
+  NEWS-0049 | WANTED: nobody. Nobody is wanted.
+
+
+####################################################################################################
+## SOURCE CLUE   (clues.js): the clue log lines, in another hand (CL-T-* are drafts)
+####################################################################################################
+
+### CLUE / ADDED 2026-11-14
+  CLUE-0001 | Tama rang fourteen at noon.
+  CLUE-0002 | The ledger at the pier has our name before we came.
+  CLUE-0003 | Two white posts. A ship under them.
+  CLUE-0004 | A schooner with a die that has no seven.
+  CLUE-0005 | A cliff of ship names. The top paint is wet.
+  CLUE-0006 | Small numbers beside the black days.
+  CLUE-0007 | An island where everyone sleeps by day.
+  CLUE-0008 | Two players, forty years, never met.
+  CLUE-0009 | A table laid for two. One cup is ours.
+  CLUE-0010 | The lamps burn a little blue.
+  CLUE-0011 | A date, in a hand that is not ours.
+  CLUE-0012 | A window that looks up through the sea.
+  CLUE-0013 | A street under the water. A blue door.
+  CLUE-0014 | A light in a window, under the water.
+  CLUE-0015 | A chest on the bottom. Somebody expected to come back.
+  CLUE-0016 | Ships come here and stay.
+  CLUE-0017 | Half a house. Half a strongbox.
+  CLUE-0018 | The first fare paid for two berths. One stayed empty.
+  CLUE-0019 | A bronze hook already in the catch. The line cut clean.
+  CLUE-0020 | A hole dug first, a spade short of the chest.
+  CLUE-0021 | A man on a wreck, waiting for his stop. The ticket is for two.
+  CLUE-0022 | A rowboat with a cut line. The old knot, for a bronze hook.
+  CLUE-0023 | Somebody still digging. The sand runs back in.
+  CLUE-0024 | A tune that never ends. Nobody near it sleeps without it.
+  CLUE-0025 | A bell under the water rings the hours of Tama, not of this place.
+  CLUE-0026 | A coin that finds its way back to the purse it left.
+  CLUE-0027 | A house that keeps a book of who stayed. Our name is in it.
+  CLUE-0028 | A ship like ours in the wrong colours, lower in the water.
+  CLUE-0029 | A patch of sea the wrong colour. The fish from it taste of nothing.
+  CLUE-0030 | A harbour that knew we were coming, and had a place set.
+
+
+####################################################################################################
+## SOURCE CARD   (../index.html): the ending card, the credits and the demo end card (index.html)
+####################################################################################################
+
+### CARD / ADDED 2026-11-14
+  CARD-0001 | Thank you for sailing.
+  CARD-0002 | The die is back on the table.
+  CARD-0003 | The die is back on the table. Somewhere, a pen is still writing.
+  CARD-0004 | End of the HOIST demo. Thank you for sailing.
 
 
 

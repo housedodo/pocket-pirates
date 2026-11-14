@@ -10,8 +10,9 @@ A PS1-era, low-poly, **pixelated and slightly dirty** Caribbean world: chunky di
 purple and magenta cosmic horror as dread rises.
 
 ## 2. Pixel grid
-- The 3D world is rendered to a low-res target (about 320x180) and scaled up with nearest-neighbour
-  filtering. **One world pixel is about 4 CSS pixels at 1280x720.** UI pixel art should use the same size.
+- The 3D world is rendered to a low-res target about 270 lines tall (`scale = max(2, round(cssHeight / 270))` in `src/psx.js`:
+  427x240 at 1280x720) and scaled up with nearest-neighbour filtering. **One world pixel is about 3 CSS pixels at 1280x720.**
+  UI pixel art should use the same size. (Corrected 2026-11-14: this said 320x180 and 4 CSS pixels.)
 - Any canvas made for the UI (wind meter, icons, book cover, pages, die) is drawn **small** and shown with
   `image-rendering: pixelated`. Examples: wind meter 36x36 shown at 144px, Mara's anchor 8x8 shown at 32px, villager portraits 16x16 shown at 64px,
   HUD icons 7x7 shown at 21px, book cover 150x90, pages 160x90, the die rendered at 72x72 and shown at 216px.
@@ -171,7 +172,7 @@ purple and magenta cosmic horror as dread rises.
 - **A gauge names itself once:** the first time the sail bar, the wind ring, the hull panel, the cannonball count or the lamp-oil bar appears, a small gold tag with its name (one or two words) points at it for 7 seconds. After that the HUD is wordless again.
 - **The sea chart is an inked portolan on vellum** (`src/chartstyles.js`). Painted means sailed: water within sight of a charted isle or of the ship is a sea-green wash, everything else is bare vellum with the rhumb lines a chartmaker rules from the compass rose, so the fog wall is simply where the paint stops. Coasts are ink, markers are small ink sprites (anchor, cross, question mark, flag, pin), harbours are lettered in red Pirata One (a name that would sit under the ship's marker steps just clear of its ring), and a cartouche top left names the waters over a scale bar. Set pixel by pixel at half resolution, no anti-aliased strokes. The bare vellum is kept quiet on purpose: it is where a drawing in another hand can appear later.
 - **The log has three bookmarks:** Chart (where things are), Orders (what to do), Ship's book (what you have). A section the story has not reached is simply not printed; a bookmark with nothing behind it is not there. No locked tabs.
-- **The slip:** what, where, which way and how far (in units), always those three lines in that order. It is the HUD tracker at sea and the first thing on Orders (cream-gold paper, a red edge, a "Show on chart" button). Distances are sailing time ("4 min"), never fathoms.
+- **The slip:** what, where, which way and how far (in units), always those three lines in that order. It is the HUD tracker at sea and the first thing on Orders (cream-gold paper, a red edge, a "Show on chart" button). Distances are units, the plain number from Tama's pier ("west · 232"), never minutes of sailing (RULES 15, CANON 2026-11-13).
 - **The log's bookmarks never move:** the book hangs from the same top edge on every tab and the wide chart page shifts the row in, so a tab is always where it was. A click beside the book does not close it (Close, M or Esc do).
 - **A letter is shown where it is taken:** a cream paper card on the board with the words and who wrote it; the same text is kept in the log.
 - **Comfort** (2026-11-14, task G4): Pause > Settings has Shake (camera shake, the deep tremor and roll), Wobble (the picture's wobble and

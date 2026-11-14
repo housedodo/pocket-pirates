@@ -42,7 +42,12 @@ CODES = {  # source file -> (ID code, what it holds)
     'harbourlife.js': ('HLF', 'residents, dishes, events, fragments, gossip'),
     'localgames.js': ('LGM', 'tavern games'),
     'systems/lostsailors.js': ('LOST', 'the sailors who went mad: three meetings in deep dread'),
+    'newspaper.js': ('NEWS', 'the Friday paper'),
+    'clues.js': ('CLUE', 'the clue log lines, in another hand (CL-T-* are drafts)'),
+    '../index.html': ('CARD', 'the ending card, the credits and the demo end card (index.html)'),
 }
+# the cards whose words live in index.html, not in a script (read() lifts their text)
+HTML_CARDS = ('id="ending"', 'id="credits"', 'id="demoend"')
 
 
 # main.js's text also lives in the ui/ modules split out of it (2026-11-12): read together, so the MAIN-xxxx IDs stay the same
@@ -51,6 +56,11 @@ MAIN_PARTS = ['main.js', 'systems/interact.js', 'ui/title.js', 'ui/pause.js', 'u
 
 
 def read(name):
+    if name.endswith('.html'):   # only the end cards: their text nodes, handed on as string literals
+        html = (SRC / name).read_text(encoding='utf-8')
+        lines = [l for l in html.splitlines() if any(k in l for k in HTML_CARDS)]
+        texts = [t.strip() for l in lines for t in re.findall(r'>([^<>]+)<', l) if t.strip()]
+        return '\n'.join("'" + t.replace("'", "\\'") + "'" for t in texts)
     if name == 'main.js':
         src = '\n'.join((SRC / f).read_text(encoding='utf-8') for f in MAIN_PARTS if (SRC / f).exists())
         # the split moved main's loose variables into rt (runtime) and its services into G: ${rt.dread} is the old ${dread}
@@ -331,7 +341,7 @@ C-001 MARA, first mate [BUILT]
   Voice     warm, quick, a little cheeky; one or two short lines at a time; calls you Captain; "She is small, but she is ours."
   Secret    she is from a village that is no longer above water (the Sunken Street). She remembers it slowly: the bell, the street
             that ran down to the water, the blue door, and the name, which she will not say aloud. [DECIDED 2026-11-11, BUILT]
-            What that makes her is still not said anywhere. [OPEN]
+            What she is was decided by the owner on 2026-11-12 (docs/CANON.md); it is never said in the game. [DECIDED]
   Her arc   cheerful -> steady -> rattled (mood from hull, rest and dread) -> breaks (glitching portrait, lines she should not say);
             alongside it, the memory of her village returning in four pieces.
   Lines     OBJ (goals), MAIN (remarks), PAS (banter), THR/TMOD (threads).  Your edits:  (empty)
@@ -356,7 +366,7 @@ C-005 THE EIGHT RESIDENTS [BUILT] (one per harbour, a four-visit story that chan
 
 C-006 WICK, keeper of Wick's Rock [BUILT]   silent lighthouse keeper; walks you up to the gallery; no speech.
 C-007 THE KESTREL [BUILT as absence]   a ship crossed off the list in the tin box on the Grey Tooth; its white posts (daymarks) still stand.
-C-008 THE PAINED RAVEN [PLANNED, working name]   the Gull's opposite, a ghost ship. Seed: inside the hull, "Not the Gull. I left it." Never explain who sails her.
+C-008 THE PAINED RAVEN [DECIDED 2026-11-12, see docs/CANON.md; the game says "the Raven"]   the Gull's opposite, a ghost ship. Seed: inside the hull, "Not the Gull. I left it." Never explain who sails her.
 C-009 THE FACTIONS [BUILT as names and colours]   Crown Traders, Free Cays, Reef Brotherhood, Lantern Guild, The Drowned (see part F).
 C-010 THE HARBOUR FOLK [BUILT]   fishers and dockers at dawn, the fish-stall woman by day, the fiddler and lamplighter in the evening, the night watchman; dark figures with pale eyes from dread stage 2 (they only stare).
 C-011 CREW FOR HIRE [BUILT]   two hired hands max, silent, with a trait (Lucky, Old salt, Silver tongue, Strong rower, Sharp-eyed, Superstitious) and a wish.
@@ -641,14 +651,10 @@ PART_K = r'''
 # K  WRITER'S LOG
 ################################################################################################
 K1 OPEN QUESTIONS [fill in; I will ask about every ?? first]
-   - What is Mara (beyond where she is from)?                           (empty)  ??
-   - What is the whole old story the fragments tell?                    (empty)  ??
-   - What does the Lady write if she is asked who counts?               (empty)  ??
-   - May Mara throw in your place at the Table?                         (empty)  ??
-   - Are the Two Players the same two who play at night?                (empty)  ??
-   - Who is the other berth, whose hook, who dug first, who rowed?      (empty)  ??   (the four small wrong things of the demo)
-   - Who sails the Pained Raven?                                        (empty)  ??
-   - Which regions get which threads?                                   (empty)  ??
+   All eight questions that stood here were decided by the owner on 2026-11-12: what Mara is, what the fragments tell, what is
+   written when asked who counts, whether Mara may throw, whether the Two Players are the two who play at night, who the other
+   berth, the hook and the hole were, who sails the Pained Raven, and which regions get which threads. The answers are in
+   docs/CANON.md section 3 (dated); they are not repeated here. What is still open is CANON section 8 and docs/WRITER_TODO.txt.
 K2 DECISIONS (with the date; the short list is docs/CANON.md)
    - 2026-11-11  Mara remembers her village, slowly; she never says its name.
    - 2026-11-11  Humming the Two Players' tune is the only gentle, happy ending, and it needs no throw.
@@ -659,7 +665,7 @@ K3 NEXT TO IMPLEMENT, IN THIS ORDER
    1. The writer rewrites the six ending texts (section J, TBL): they are drafts.
    2. A rumour or a line from Mara that points at the music at night, so the gentle ending can be found.
    3. Something small at the Table for "who counts", "what a throw costs" and "why Tama is home", or the decision that they only colour the story.
-   4. The four small wrong things join the clue list as home-water hints.
+   4. The small wrong things join the clue list as home-water hints. [BUILT: CL-H1-berth, CL-H2-hook, CL-H3-hole; three since the oar was cut]
 K4 SUGGESTION FROM THE ASSISTANT (delete if unwanted)
    Fill part F first: three places per region with a different dread stage each (one near, one middle, one far), so each
    region has a story you can only see by going there. Then link at most one thread to each region.

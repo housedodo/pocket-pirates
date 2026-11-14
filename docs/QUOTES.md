@@ -1,5 +1,8 @@
 # Pocket Pirates: lines and quotes
 
+**Not the live list:** `docs/STORY_MASTER.txt` (rebuilt from the code by `python3 scripts/story_export.py`) is. Lines below marked
+RETIRED were checked against the code on 2026-11-14 and are no longer in the game.
+
 Everything the game says, sorted by where it appears. Section 2 lists the odd demo lines added later; they
 are all in the game now. Pure instructions (tutorial text such as "press E to dig") are left out.
 
@@ -63,9 +66,9 @@ ledger or anything below the sea. Everything should just feel slightly off.
 - **1:** "Funny. The gulls went quiet this morning. All of them, at once." · "Old Perrin's cat will not look at the sea any more. Won't even blink." · "Same tide as yesterday. Exactly the same. Down to the ripple."
 - **2:** "The lighthouse lit itself last night. Perrin was very calm about it. Too calm." · "We ran out of fish. The nets come up full, but we ran out of fish." · "Have you been here before? I could swear I've served you. Tomorrow."
 - **3:** "Don't look at the water after dusk. Not for long. Not at all." · "Everyone left. I stayed to keep the lamps lit. Someone has to. Someone is always watching." · "The stars are wrong. I counted them. There are more every night."
-- **4:** "...you can hear it too, can you not? Under the keel. Humming." · "It is not angry. That is the worst part. It is only very, very patient." · "Welcome home, captain. We saved your seat. It was always your seat."
-- *Chapter V (about the hut):* "The black hut? Out past the {direction} water. Do not sit down. Whatever she offers, do not sit."
-- *Greetings:* "A new face. Welcome!" · "Back again, captain!" · "Our favourite captain! Your usual discount, of course." · *(stage 3+)* "We remember you. We always remember you."
+- **4:** "...you can hear it too, can you not? Under the keel. Humming." · "It is not angry. That is the worst part. It is only very, very patient." · "Welcome home, captain. We saved your seat. It was always your seat." (RETIRED, checked 2026-11-14: these lines are no longer in the game)
+- *Chapter V (about the hut):* "The black hut? Out past the {direction} water. Do not sit down. Whatever she offers, do not sit." (RETIRED, checked 2026-11-14: a line here is no longer in the game)
+- *Greetings:* "A new face. Welcome!" · "Back again, captain!" · "Our favourite captain! Your usual discount, of course." · *(stage 3+)* "We remember you. We always remember you." (RETIRED, checked 2026-11-14: these lines are no longer in the game)
 
 ### Harbour greetings (src/greetings.js)
 All the greeting lines live in `src/greetings.js`: by speaker (fisher, net-mender, fish-stall woman, child,
@@ -81,7 +84,7 @@ dread stage. A few:
 - *Stage 2+, sometimes:* someone on the pier, and only ". . ."
 
 ### After a throw at the hut (the pier knows; src/greetings.js)
-- **2-9:** "Bad luck travels fast, captain. A three, was it?" · "Heard it came up seven. Nobody told me. I just heard." · "You threw a four last night, did you not? The fish knew before we did." · "Six. Hm. Well. Nobody blames you. Not yet." · "The tide came in seven minutes late this morning. Funny number, seven."
+- **2-9:** "Bad luck travels fast, captain. A three, was it?" · "Heard it came up seven. Nobody told me. I just heard." · "You threw a four last night, did you not? The fish knew before we did." · "Six. Hm. Well. Nobody blames you. Not yet." · "The tide came in seven minutes late this morning. Funny number, seven." (RETIRED, checked 2026-11-14: a line here is no longer in the game)
 - **10:** "Ten. Nothing at all. She almost smiled, did she not?" · "A ten, they say. Neither here nor there. Like the rest of us."
 - **11-16:** "Heard you threw a twelve! The whole pier slept well." · "A fourteen, they say. Good. Good. Keep doing that." · "Calm night, thanks to you. Eleven, was it? Lovely number."
 - **17-19:** "Eighteen! The nets came up singing this morning. That was you, was it not?" · "Somebody threw a nineteen and the whole sea went soft. Was that you, captain?"
@@ -117,7 +120,7 @@ dread stage. A few:
 - **1:** "Day 20. The gulls have stopped following the boat. Cook says it's the weather. There is no weather." · "Same sunset three nights running. Everyone agrees. Nobody minds. That bothers me." · "We counted the crew this morning. Eleven. We are ten. Please advise."
 - **2:** "The compass points at the water now, not north. Down. We have stopped looking at it." · "Do not trust the harbour lights after midnight. They know your name already." · "The fish have started to look at us. I want to be clear: they are looking at us."
 - **3:** "I have been writing this note for nine days. It is the same note. I think I am the bottle." · "Dont follow the singing. It is not coming from the water. It is coming from underneath the water." · "The stars are doing something. Please tell me you can see it too."
-- **4:** "y o u  a r e  n e a r l y  h e r e" · "We are not lost. We have always been exactly here. It was the sea that moved." · "Turn back. Or do not. It has already decided and it is not unkind about it."
+- **4:** "y o u  a r e  n e a r l y  h e r e" · "We are not lost. We have always been exactly here. It was the sea that moved." · "Turn back. Or do not. It has already decided and it is not unkind about it." (RETIRED, checked 2026-11-14: a line here is no longer in the game)
 - *Chapter V (the hut notes):* "If you find the black hut, do not sit down. I sat down. - R." · "She has a book. My name is in it now. Twice." · "Third bottle I have thrown. The hut is not where I left it. The hut is exactly where I left it."
 
 ### Old Perrin
@@ -132,7 +135,7 @@ dread stage. A few:
 - *Treasure hint:* "My grandfather swore there was gold buried on {island}, {direction} of here. Mark it, if you like. I never had a boat."
 - *Uneasy (high dread):* "The water is so quiet here. Is it always this quiet?" · "I keep hearing my name from under the hull. Probably just the planks. Probably." · "Please do not stop the ship out here."
 - *Seasick:* "Captain, I think my breakfast wants to go home before I do." · "Is the ship supposed to lean like this? Do not answer that." · "I will pay double if you make it stop. I will pay triple. I have no more money but I will pay it." · *Mara:* "Lean over the downwind side. The OTHER side!"
-- *With Mara:* "Is she always this cheerful?" / "Always! Even in storms. ESPECIALLY in storms." · "Does the captain ever speak?" / "Only in emergencies. And knots. Very expressive knots." · "This ship is smaller than it looked from the dock." / "She is cosy! Cosy is a feature." · "Is that fish hanging from the mast for luck?" / "For lunch. Luck was yesterday's fish." · "How long have you sailed together?" / "Since forever! Well. Since Tuesday. Forever-ish." · "I think a gull just stole my hat." / "He does that. We call him the Quartermaster."
+- *With Mara:* "Is she always this cheerful?" / "Always! Even in storms. ESPECIALLY in storms." · "Does the captain ever speak?" / "Only in emergencies. And knots. Very expressive knots." · "This ship is smaller than it looked from the dock." / "She is cosy! Cosy is a feature." · "Is that fish hanging from the mast for luck?" / "For lunch. Luck was yesterday's fish." · "How long have you sailed together?" / "Since forever! Well. Since Tuesday. Forever-ish." · "I think a gull just stole my hat." / "He does that. We call him the Quartermaster." (RETIRED, checked 2026-11-14: these lines are no longer in the game)
 
 ### The dark hut
 - *Entering:* "A table too big for the hut, one candle, and a chair on the far side, deep in the dark. Something there breathes, slow and patient. A yellowed twenty-sided die waits on the wood."
@@ -140,7 +143,7 @@ dread stage. A few:
 - *Already thrown today:* "The die is gone from the table. She is writing. Come back tomorrow."
 - *Win:* "She pushes something across the table without looking at it." · "A dry little laugh. She pays." · "She nods once, as if this was always going to happen."
 - *10:* "She almost smiles. Nothing happens. That is somehow worse."
-- *Lose:* "The lady in the hut does not say anything. She writes something down." · "She does not say anything. Somewhere under the floor, something turns over." · "The lady does not look up. The candle leans toward you." · "She says nothing. You are sure she said your name."
+- *Lose:* "The lady in the hut does not say anything. She writes something down." · "She does not say anything. Somewhere under the floor, something turns over." · "The lady does not look up. The candle leans toward you." · "She says nothing. You are sure she said your name." (RETIRED, checked 2026-11-14: a line here is no longer in the game)
 - *Trinkets:* a tooth with a tiny ship carved into it · a fishbone needle · a jar of very old sand · a black pearl that is warm · a knot of hair tied in a sailor's hitch
 - *Demo end:* "TO BE CONTINUED. The die is back on the table. Somewhere, a pen is still writing."
 
@@ -162,7 +165,7 @@ dread stage. A few:
 - *Sleep:* "You sleep like a stone. Gulls wake you at dawn." · "Somebody snored all night. Possibly you." · "You dream of warm water and wake up hungry."
 - *Sleep (dark):* "You sleep. Someone sat by your bed all night; the chair is still warm." · "You wake at dawn. Your boots are wet, and full of sand you do not recognise."
 - *Hailing refused:* "The crew glances at you and looks away." · "A sailor waves you off. They are not in the mood." · "The captain pretends not to hear you." · "They hoist a little more sail and leave you behind."
-- *Fog wall:* "The fog is a wall here. Somehow the bow always ends up pointing home."
+- *Fog wall:* "The fog is a wall here. Somehow the bow always ends up pointing home." (RETIRED, checked 2026-11-14: a line here is no longer in the game)
 - *Time loop:* "You have been here before." · "It is this exact moment again."
 
 ### Odd things in the hold
@@ -231,6 +234,6 @@ in `passengers.js`; the cards are in `tabletop.js`.
 - "Your room had two beds. In the morning, both were slept in."
 
 ### Encounter card ideas (story-safe)
-- **A Rowboat, Empty:** "An empty rowboat drifts alongside, oars stowed, a cup of tea still steaming on the seat." Choices: *Take the tea* (Luck: a pleasant warmth / the cup is full again in the morning) · *Push it away* ("It follows you for an hour, then doesn't.")
+- **A Rowboat, Empty:** "An empty rowboat drifts alongside, oars stowed, a cup of tea still steaming on the seat." Choices: *Take the tea* (Luck: a pleasant warmth / the cup is full again in the morning) · *Push it away* ("It follows you for an hour, then doesn't.") (RETIRED, checked 2026-11-14: a line here is no longer in the game)
 - **Singing Buoy:** "A buoy rings with no wind and no waves. It is ringing a tune." Choices: *Sail closer* (Luck: coins tied to its chain / it knocks the hull, politely) · *Ring your own bell back* (it answers, one note wrong)
 - **The Same Gull:** "A gull lands on the rail. It has a tiny brass ring on its leg, engraved with your ship's name." Choices: *Feed it* · *Read the ring closely* (Luck: a treasure rumour / it bites you)

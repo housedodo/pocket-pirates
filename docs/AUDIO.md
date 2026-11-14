@@ -37,11 +37,13 @@ A panel opens on the right while the game keeps running:
   become the game's volumes for everyone (100% = the file as it is, so only changed sounds are listed). Rebuild
   the single files afterwards and `pocket-pirates-dev.html` carries your mix.
 
-## Key and theme (decided)
-- **Home key: D (D minor / D Dorian).** Bass note D, home chord Dm = D F A. The core motif is D - G - B (the B natural is the Dorian lift). Sailor-music feel: a held or repeated D bass, 6/8 or 2/4, accordion, fiddle, tin whistle, ukulele.
+## Key and theme
+**As built (owner, 2026-11-14; RULES 26):** the music is stems from one session, **16 bars at 99 BPM, 4/4, F minor**, all the
+same length (38.79 s). A new stem matches that. The D plan below was the earlier intention and is kept only as a record; it is out of date.
+- (Earlier plan, superseded) **Home key: D (D minor / D Dorian).** Bass note D, home chord Dm = D F A. The core motif is D - G - B (the B natural is the Dorian lift). Sailor-music feel: a held or repeated D bass, 6/8 or 2/4, accordion, fiddle, tin whistle, ukulele.
 - **Every stage loop is written in D** so the cross-fades stay musical: bright stages in D major / D Mixolydian or the same melody over Dm, dark stages stay on the D drone with the third dropped (D - A), a flat 2nd (E flat) or a tritone (A flat) added.
 - Chords (D Dorian): Dm, C, G, Am, F, Bb. Shanty: Dm - C - Dm - C. Dorian: Dm - G - Dm - Am. Longing: Dm - Bb - C - Dm.
-- Tempo is not fixed yet (suggest about 90-100 bpm; if 6/8, about 60-66 dotted-quarter beats). Set it once, then use it for all five loops and note it here.
+- (Superseded) Tempo was not fixed then; it is now 99 BPM in 4/4 (above).
 
 ## Tone: "shanty that slowly forgets how to be a shanty"
 Pick one short, simple melody (8-16 bars). Play it five ways, one per dread stage. The *same* tune
@@ -266,7 +268,7 @@ in `public/audio/volumes.json` (was 0.4).
 
 
 ## Brief: sound for the redesigned world (not built; from docs/WORLD_REDESIGN.md and docs/ART_SPEC.md)
-- **Strata, not just dread stages:** the six strata (S0-S5) change at radii 450/800/1150/1550/1950. Keep five loops (same tempo, meter, key) but cross-fade on stratum edges, and let the Slack (S3, windless) thin the mix to almost nothing before the Dim.
+- **Strata, not just dread stages:** the six strata (S0-S5) change at radii 450/800/1150/1550/1950. Keep the stems (same length, tempo, meter and key: 16 bars, 99 BPM, 4/4, F minor) but cross-fade on stratum edges, and let the Slack (S3, windless) thin the mix to almost nothing before the Dim.
 - **The Slack's current:** a low, steady outward drift tone while the ship is in S3-S4, stronger when sailing home (the way back is 1.6x longer).
 - **The seam:** a 4 s swallowed-fog swell as the helm is lost, then silence, then the west-side bed.
 - **Two Players:** the guitar (Teo) and violin (Ilse) answer each other across 350-450 units on calm nights; the bar they play together at dawn after a night's listening. Near Teo the guitar is louder and stops while he talks.

@@ -63,6 +63,6 @@ need to break one, stop and ask the owner. `docs/CANON.md` says what is true in 
 41. **Every change ends in the docs:** `PROGRESS.md` (what landed), and whichever of `CANON.md`, `STYLE.md`, `DESIGN.md`, `AUDIO.md`, `DEMO_CHECKLIST.md` it touches. A doc that is wrong is a bug.
 
 ## Before shipping the demo
-- The owner plays one fresh voyage to the hut (target: under 45 minutes) and notes which of the four wrong things were noticed.
+- The owner plays one fresh voyage to the hut (target: under 45 minutes) and notes which of the three small wrong things were noticed (the third oar was cut, CANON 2026-11-12).
 - The font licence files are read and kept (Pirata One, Jersey 10, DotGothic16: SIL Open Font License as recorded; not yet opened and checked).
 - `docs/DEMO_CHECKLIST.md` from top to bottom.

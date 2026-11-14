@@ -9,7 +9,7 @@ The demo (Tama, Velto, the first hut throw, no dread) is done and in playtest. T
 | Tutorial, quiet start, intro cinematic, Mara | Built; interface fixes after a UI critique are in; needs a fresh playtest |
 | Harbours, jobs, passengers, crew, shipyard, fishing, dice, encounters | Built |
 | The captain's log (Chart, Orders, Ship's book), the slip, the portolan chart | Built 2026-11-11 |
-| Demo story: Perrin's riddles, four small wrong things, the hut, the first throw, the diver | Built; 16 goals |
+| Demo story: Perrin's riddles, three small wrong things (the oar was cut), the hut, the first throw, the diver | Built; 16 goals in the demo, 21 with Perrin's five letters after the hut |
 | World after the demo: strata, 13 places, 17 clues, capabilities | Built (docs/WORLD_REDESIGN.md) |
 | Dread arc and full-dread effects, the seven threads | Built, hidden in the demo |
 | The ending: the Table by the Water, four actions, six endings | Built 2026-11-11; ending texts are drafts |
@@ -24,7 +24,7 @@ The demo (Tama, Velto, the first hut throw, no dread) is done and in playtest. T
 | Save slots, settings, accessibility | Basic only (gamepad works) |
 
 ## Next, in order
-1. The owner plays one fresh voyage to the hut and notes: minutes to the hut (target under 45), which of the four wrong things were noticed, whether the second riddle trip is a chore.
+1. The owner plays one fresh voyage to the hut and notes: minutes to the hut (target under 45), which of the three small wrong things were noticed, whether the second riddle trip is a chore.
 2. The writer works through `docs/WRITER_TODO.txt`: the ending texts, Perrin's letters, the epilogues, the thread clue lines, the credits.
 2a. A real playtest of the regional rules: are the Crown deadlines fair, is the Drowned belt's wait too long, does the coral read?
 3. Make the gentle ending findable: a rumour or a Mara line that points at the music at night.

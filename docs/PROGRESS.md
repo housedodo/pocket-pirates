@@ -1373,3 +1373,18 @@ Trials for the owner to compare; nothing changes without a flag and STYLE.md is 
   it near the bottom edge; "Harbour Tama" no longer reads "Harbo..ama". **Verified:** screenshot of the chart at Tama. `npm run smoke`
   passes after all five steps. **Not verified:** feel and sound.
 
+## P3, the plain doc corrections (2026-11-14, task P3 of the guide; the owner's two questions stay open)
+- STYLE 2: the target is about 270 lines tall (427x240 at 1280x720, 3 CSS pixels), not 320x180 and 4. STYLE 5: distances are units
+  from Tama's pier, never minutes. RULES, DESIGN, ROADMAP and the demo checklist: three small wrong things (the oar was cut), and 16 goals
+  in the demo, 21 with Perrin's five. CANON's own dated rows are left as decided.
+- AUDIO's "Key and theme" and the soundtrack brief: the old D / 125 BPM / 6/8 / five-loop plan is marked superseded by RULES 26 (16 bars,
+  99 BPM, 4/4, F minor); the brief itself is kept as a record.
+- QUOTES: 23 lines checked as no longer in the game are marked RETIRED; the file now says STORY_MASTER is the live list.
+- The story export now reads the Friday paper (NEWS, 49 lines), the clue log lines (CLUE, all 30) and the ending card, credits and
+  demo end card from `index.html` (CARD, 4). STORY_MASTER's C-001 (what Mara is) and C-008 (the Raven) point at CANON's 2026-11-12
+  decisions instead of calling them open; the writer's own section K is kept as written (it already holds the answers).
+  STORY_EXPLORATION X13 has an "as built" note; WORLD_REDESIGN notes 30 clues.
+- **Verified:** `python3 scripts/story_export.py`: 1,560 lines with an ID (83 added, no existing ID moved), no banned word in the
+  diff (the one flagged line, ABY-0010, was there before: task P1). **Open for the owner:** "fathoms" on the chart's scale, or units;
+  which trials to keep (ocean styles, chart styles, Tama looks, watcher styles).
+
