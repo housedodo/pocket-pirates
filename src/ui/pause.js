@@ -97,6 +97,10 @@ export function initPause1() {
   nightLabels = () => { $('pbNight').textContent = `Night: ${NIGHT_MODES[rt.nightMode]}`; $('pbLamp').textContent = `Lamp: ${LAMPS[NIGHT_SET.lamp].name}`; G.ship.lampK = LAMPS[NIGHT_SET.lamp].k; };
   NIGHT_SET.lamp = params.has('lamp') ? clamp(parseInt(params.get('lamp'), 10) || 0, 0, 3) : settings.lamp2 != null ? settings.lamp2 : 0;   // a candle by default
   nightLabels();
+  // comfort (G4): shake and tremor, the picture's wobble and split, flashes; remembered with the other settings
+  const comfortLabels = () => { const c = settings.comfort, w = (k) => (c[k] ? 'On' : 'Off'); $('pbShake').textContent = `Shake: ${w('shake')}`; $('pbWobble').textContent = `Wobble: ${w('wobble')}`; $('pbFlash').textContent = `Flashes: ${w('flash')}`; document.body.classList.toggle('noflash', !c.flash); };
+  comfortLabels();
+  for (const [id, k] of [['pbShake', 'shake'], ['pbWobble', 'wobble'], ['pbFlash', 'flash']]) $(id).addEventListener('click', () => { settings.comfort[k] = !settings.comfort[k]; store.set(SETTINGS_KEY, settings); comfortLabels(); $(id).focus(); });
   $('pbNight').addEventListener('click', () => { rt.nightMode = (rt.nightMode + 1) % NIGHT_MODES.length; settings.nightMode2 = rt.nightMode; store.set(SETTINGS_KEY, settings); nightLabels(); $('pbNight').focus(); });
   $('pbLamp').addEventListener('click', () => { NIGHT_SET.lamp = (NIGHT_SET.lamp + 1) % LAMPS.length; settings.lamp2 = NIGHT_SET.lamp; store.set(SETTINGS_KEY, settings); nightLabels(); $('pbLamp').focus(); });
   $('pbOcean').addEventListener('click', () => { U.uOcean.value = ((U.uOcean.value | 0) + 1) % OCEAN_STYLES.length; settings.ocean2 = U.uOcean.value; store.set(SETTINGS_KEY, settings); oceanLabel(); $('pbOcean').focus(); });

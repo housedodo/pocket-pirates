@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { fbm, smoothstep, clamp, mulberry32 } from './util.js';
+import { settings } from './core/config.js';
 
 // Rolling weather: overcast -> rain -> storms (with lightning), plus fog banks.
 // Driven by slow noise, scaled by dread (the further out, the nastier it gets).
@@ -148,11 +149,12 @@ export class Weather {
     stage.fogNear = Math.max(8, stage.fogNear * (1 - 0.7 * this.fog));
     if (this.redSky > 0.02) { stage.skyHorizon.lerp(RED_SKY, this.redSky * 0.6); stage.skyTop.lerp(RED_TOP, this.redSky * 0.35); stage.fog.lerp(RED_SKY, this.redSky * 0.3); }
     stage.wave *= 1 - 0.75 * this.calm;
-    if (this.flash > 0) {
-      stage.skyTop.lerp(WHITE, this.flash * 0.75);
-      stage.skyHorizon.lerp(WHITE, this.flash * 0.75);
-      stage.fog.lerp(WHITE, this.flash * 0.5);
-      stage.light += this.flash * 0.8;
+    const fl = this.flash * (settings.comfort.flash ? 1 : 0.12);   // comfort: lightning only brightens the sky a little (G4)
+    if (fl > 0) {
+      stage.skyTop.lerp(WHITE, fl * 0.75);
+      stage.skyHorizon.lerp(WHITE, fl * 0.75);
+      stage.fog.lerp(WHITE, fl * 0.5);
+      stage.light += fl * 0.8;
     }
   }
 }

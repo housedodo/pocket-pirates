@@ -122,11 +122,11 @@ export class PostFX {
         tDiffuse: { value: this.target.texture },
         uRes: { value: new THREE.Vector2(320, 180) },
         uDread: { value: 0 }, uTime: { value: 0 }, uSat: { value: 1 }, uVig: { value: 0.3 },
-        uDither: { value: 1 }, uTint: { value: new THREE.Color(1, 1, 1) },
+        uDither: { value: 1 }, uTint: { value: new THREE.Color(1, 1, 1) }, uWobble: { value: 1 },   // uWobble 0: comfort, no wobble or colour split (G4)
       },
       vertexShader: /* glsl */`varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }`,
       fragmentShader: /* glsl */`
-        uniform sampler2D tDiffuse; uniform vec2 uRes; uniform float uDread, uTime, uSat, uVig, uDither; uniform vec3 uTint;
+        uniform sampler2D tDiffuse; uniform vec2 uRes; uniform float uDread, uTime, uSat, uVig, uDither, uWobble; uniform vec3 uTint;
         varying vec2 vUv;
         float bayer(vec2 p){
           int x = int(mod(p.x, 4.0)); int y = int(mod(p.y, 4.0));
@@ -136,7 +136,7 @@ export class PostFX {
         }
         void main(){
           vec2 uv = vUv;
-          float w = smoothstep(0.7, 1.0, uDread);
+          float w = smoothstep(0.7, 1.0, uDread) * uWobble;
           uv.x += sin(uv.y * 38.0 + uTime * 2.0) * 0.0025 * w;
           uv.y += sin(uv.x * 22.0 + uTime * 1.3) * 0.002 * w;
           vec3 c = texture2D(tDiffuse, uv).rgb;

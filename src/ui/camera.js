@@ -2,7 +2,7 @@
 // the opening cinematic, the shipyard turntable and dev overrides. Its values live in rt (zoom, pitch, camYaw, camHeading...).
 import * as THREE from 'three';
 import { clamp, smoothstep, angleDiff } from '../util.js';
-import { params } from '../core/config.js';
+import { params, settings } from '../core/config.js';
 import { rt, G } from '../core/runtime.js';
 import { canvas, camera } from '../core/engine.js';
 import { $ } from './dom.js';
@@ -31,8 +31,9 @@ export function updateCamera(rawDt, live, ashore) {
   const skyK = clamp((0.3 - pitchNow) / (0.3 - PITCH_MIN), 0, 1);   // below the old limit the camera looks up instead of down
   camLook.set(G.ship.pos.x + fx * rt.zoom * 0.2, 1.5 + rt.camSwell * 0.7 + rt.lookUpK * 9 + skyK * rt.zoom * 0.42, G.ship.pos.z + fz * rt.zoom * 0.2);
   camPos.y = Math.max(camPos.y, 3.2);                                 // never at or under the waterline
-  if (rt.shake > 0) { rt.shake = Math.max(0, rt.shake - rawDt * 1.8); camPos.x += Math.sin(rt.tNow * 70) * rt.shake; camPos.y += Math.cos(rt.tNow * 63) * rt.shake * 0.7; }
-  if (rt.dread > 0.85 && live) { const s = (rt.dread - 0.85) * 0.5; camPos.x += Math.sin(rt.tNow * 31) * s; camPos.y += Math.sin(rt.tNow * 23 + 1) * s; }
+  const still = !settings.comfort.shake;   // comfort: no shake, no tremor, no roll (G4)
+  if (rt.shake > 0) { rt.shake = Math.max(0, rt.shake - rawDt * 1.8); if (!still) { camPos.x += Math.sin(rt.tNow * 70) * rt.shake; camPos.y += Math.cos(rt.tNow * 63) * rt.shake * 0.7; } }
+  if (rt.dread > 0.85 && live && !still) { const s = (rt.dread - 0.85) * 0.5; camPos.x += Math.sin(rt.tNow * 31) * s; camPos.y += Math.sin(rt.tNow * 23 + 1) * s; }
   if (rt.titleScene) G.titleCam(rawDt);
   rt.ashoreK += ((ashore && rt.ashoreCam ? 1 : 0) - rt.ashoreK) * Math.min(1, rawDt * 2.2);
   if (rt.ashoreCam && rt.ashoreK > 0.001) { const k = smoothstep(0, 1, rt.ashoreK); camPos.lerp(rt.ashoreCam.pos, k); camLook.lerp(rt.ashoreCam.look, k); }
@@ -50,7 +51,7 @@ export function updateCamera(rawDt, live, ashore) {
   if (rt.camOverride) { camPos.set(...rt.camOverride.pos); camLook.set(...rt.camOverride.look); }
   camera.position.copy(camPos);
   camera.lookAt(camLook);
-  if ((live || params.get('shot')) && !rt.edge) camera.rotateZ(G.abyss.roll(rt.tNow));   // the Edge's shots stay level
+  if ((live || params.get('shot')) && !rt.edge && !still) camera.rotateZ(G.abyss.roll(rt.tNow));   // the Edge's shots stay level
   camera.updateMatrixWorld();
 }
 

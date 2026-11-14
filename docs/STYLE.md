@@ -174,6 +174,9 @@ purple and magenta cosmic horror as dread rises.
 - **The slip:** what, where, which way and how far (in units), always those three lines in that order. It is the HUD tracker at sea and the first thing on Orders (cream-gold paper, a red edge, a "Show on chart" button). Distances are sailing time ("4 min"), never fathoms.
 - **The log's bookmarks never move:** the book hangs from the same top edge on every tab and the wide chart page shifts the row in, so a tab is always where it was. A click beside the book does not close it (Close, M or Esc do).
 - **A letter is shown where it is taken:** a cream paper card on the board with the words and who wrote it; the same text is kept in the log.
+- **Comfort** (2026-11-14, task G4): Pause > Settings has Shake (camera shake, the deep tremor and roll), Wobble (the picture's wobble and
+  red/blue split at high dread) and Flashes (lightning, the hut's bad-throw burst, the hit frame becomes one faint ring). All three start
+  off when the system asks for reduced motion. A new shake, wobble or flash must honour its switch (`settings.comfort`).
 - **Locked controls are grey but readable** (never invisible) and answer a click with one line.
 - Autosave cue: a 20x11 pixel ship sailing over a dashed wave strip with "Voyage saved", bottom right, on the pixel grid like the other icons.
 - The captain's log: three paper-slip bookmarks along the top edge (labels on cream), the Board is a cork field with pixel paper cards, a red pixel pin each and 4 px strings (red sure, dashed navy doubt). Encounters use the same navy box as villagers, at the bottom.

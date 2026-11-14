@@ -74,6 +74,7 @@ Build it with `python3 scripts/single.py`, ship `pocket-pirates-demo.html` (with
 - [ ] Music: silent until the first quest, then the band builds up one instrument per quest, plays in changing line-ups, the two guitar arps never overlap; muffled tune in taverns; battle layer during a raider fight
 - [ ] Weather: light rain and a storm look and sound clearly different; distant thunder now and then in strong rain
 - [ ] Voice blips are soft enough not to notice after a minute
+- [ ] Pause > Settings: Shake, Wobble and Flashes switch and are remembered after a reload; with reduced motion set in the system they start Off
 - [ ] Sound and Music toggles and the three volume sliders (Music, Sea/rain/gulls, Effects) in Pause > Settings > Sound and music work, and are remembered; first click starts audio in the itch embed
 - [ ] Say "sound on" on the page
 

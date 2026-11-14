@@ -1339,3 +1339,13 @@ Trials for the owner to compare; nothing changes without a flag and STYLE.md is 
   character; the sky, looked at with the camera tilted up, shows bands with dithered seams at day and dusk. **Not verified:** the
   Halved Isle's bank and island mist up close (not screenshotted), feel and sound.
 
+## G4: comfort settings (2026-11-14, task G4 of the guide)
+- Pause > Settings has three switches, saved with the other settings (`settings.comfort` in `core/config.js`): **Shake** (camera shake,
+  the tremor above dread 0.85 and the abyss's roll), **Wobble** (the post pass's wobble and red/blue split, `uWobble`), **Flashes**
+  (lightning brightens the sky only a little, the hut's bad throw no longer jumps the picture to full dread, its menu does not flicker,
+  and the hit frame is one faint ring). With `prefers-reduced-motion: reduce` all three start Off until the player sets them.
+- **Verified** headless: the three buttons read Off after clicking, the setting is stored and survives a reload, and the body takes
+  `noflash`; at dread 1 the camera's frame-to-frame jitter is 0.114 with Shake on and 0.001 off, and the screenshot with Wobble off has
+  no wobble or colour split (it has both with it on); a browser context with reduced motion starts with all three Off. `npm run smoke`
+  passes. **Not verified:** lightning in a real storm, feel and sound.
+

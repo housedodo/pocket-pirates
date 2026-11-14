@@ -1187,7 +1187,7 @@ function frame() {
   const target = rt.forced !== null ? rt.forced : lullDread(clamp(felt() + (window.__BUILD === 'demo' ? 0 : dreamShift()), 0, 1));   // the Cays' night quiet holds it down (systems/lullaby.js)
   rt.dread += (target - rt.dread) * Math.min(1, rawDt * (rt.forced !== null ? 1.2 : 0.4));
   if (params.get('shot')) rt.dread = target;
-  if (rt.glitchT > 0) { rt.glitchT -= rawDt; rt.dread = 1; if (rt.glitchT <= 0) { rt.dread = rt.preGlitch; hutEl.classList.remove('glitching'); } } // the hut's bad throw
+  if (rt.glitchT > 0) { rt.glitchT -= rawDt; rt.dread = settings.comfort.flash ? 1 : rt.preGlitch; if (rt.glitchT <= 0) { rt.dread = rt.preGlitch; hutEl.classList.remove('glitching'); } } // the hut's bad throw
   rt.dark = rt.dread > DARK_THRESHOLD;
   const stage = sampleStage(rt.dread);
   regionLook(stage, ship.pos, rawDt, rt.dread, state.seed);   // each region's own light, blended slowly across borders (systems/regionlook.js)
@@ -1413,7 +1413,7 @@ function frame() {
 
   // ---- render
   const pu = post.material.uniforms;
-  pu.uDread.value = rt.dread; pu.uTime.value = rt.tNow; pu.uSat.value = stage.sat; pu.uVig.value = stage.vig;
+  pu.uDread.value = rt.dread; pu.uWobble.value = settings.comfort.wobble ? 1 : 0; pu.uTime.value = rt.tNow; pu.uSat.value = stage.sat; pu.uVig.value = stage.vig;
   pu.uDither.value = stage.dither; pu.uTint.value.copy(stage.tint);
   if (rt.modal === 'local' && localGames.view) localGames.render(post); else post.render(scene, camera);   // a tavern game shows its own little 3D scene
   requestAnimationFrame(frame);
