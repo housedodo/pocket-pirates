@@ -77,7 +77,7 @@ on later visits; whether any ending touches what Mara is; every `[IDEA]` slot in
 
 ## 2. Codebase map and architectural contracts
 
-Three.js 0.186 + Vite 8, native ES modules, no framework, no tests, one bundle (about 1.4 MB). 72 source files, 1.44 MB of
+Three.js 0.186 + Vite 8, native ES modules, no framework, one smoke test (`npm run smoke`), one bundle (about 1.4 MB). 72 source files, 1.44 MB of
 source. Many lines are several hundred characters long with trailing `//` comments: **never put code after a `//` on the same
 line** (it caused three bugs, fixed 2026-11-14 in task R1).
 
@@ -270,7 +270,7 @@ before building. Each task ends with the workflow in section 6. Sizes: S under a
 | R6 | **A frame that does not allocate.** Reuse module-level `THREE.Color` and arrays for the per-frame cases in `main.js`, `places.js`, `seafeatures.js`, `sky.js`, `float.js`; write gold, clock and bar widths to the DOM only when the value changed; redraw the compass canvas only when its inputs changed; stop splitting cell keys per island per frame in `world.js`. M | those files, `src/ui/hud.js`, `src/ui/dom.js` | No `new THREE.Color` or `new THREE.Vector3` on a per-frame path (grep, then read each hit); screenshots at day, night and dread 0.6 match before and after |
 | R7 | **Story delays on the game's clock.** Add `after(seconds, fn)` on sim time (`rt.tNow`) in a small `src/systems/later.js`, ticked in `frame()`; move the story `setTimeout`s to it (not UI animation timers). Lines must not land in a modal or in the quiet window. M | new `src/systems/later.js`, `src/main.js`, `src/systems/storybeats.js`, `src/ui/*.js` | Pausing for a minute delays a pending Mara line by a minute; no line fires while `rt.modal` is set |
 | R8 | **A save that stays small and honest.** Give `state.story` its defaults in one place in `core/state.js`; cap the unbounded lists (`notes`, `loot`, `jobHistory`, `catch`, `hints` keys by day); do not write the save when `?seed`, `?x`, `?z` or `?time` overrode it; use game days, not `Date.now()`, for `rep.last`. M | `src/core/state.js`, `src/core/config.js`, `src/main.js` | A save from before the change loads and plays; a 30-day scripted run keeps the save under a fixed size; opening `?seed=2` does not alter the stored voyage |
-| R9 | **A smoke test.** `scripts/smoke.cjs`: headless boot of the full game and of the demo (`__BUILD` set before load), fail on any console error, sail 60 game seconds, open and close the log, run `clueLint`, and assert the R2 demo conditions. Add `npm run smoke`. M | new `scripts/smoke.cjs`, `package.json`, `docs/RULES.md` rule 39 | `npm run smoke` passes on a clean tree and fails if R1's guard is removed or a demo gate is deleted |
+| R9 | ~~**A smoke test.** `scripts/smoke.cjs`: headless boot of the full game and of the demo (`__BUILD` set before load), fail on any console error, sail 60 game seconds, open and close the log, run `clueLint`, and assert the R2 demo conditions. Add `npm run smoke`.~~ **Done 2026-11-14**: `npm run smoke` (`scripts/smoke.cjs`), about 3 minutes; fails with R1's guard removed and with the `?dread` demo gate removed. M | new `scripts/smoke.cjs`, `package.json`, `docs/RULES.md` rule 39 | `npm run smoke` passes on a clean tree and fails if R1's guard is removed or a demo gate is deleted |
 
 ### Core gameplay
 | # | Task | Files | Done when |
@@ -318,7 +318,7 @@ before building. Each task ends with the workflow in section 6. Sizes: S under a
 - If you find a bug outside the task, note it under "Found, not fixed" in `docs/AUDIT_2026-11-14.md` rather than fixing it in passing.
 
 ### Verify (and say what was not verified)
-1. `npx vite build` must pass. (Two warnings are known: the chunk size and the dynamic import of `world.js`.)
+1. `npx vite build` must pass. (Two warnings are known: the chunk size and the dynamic import of `world.js`.) Then `npm run smoke` must pass (RULES 39; about 3 minutes; it starts its own server). When a task closes a new hazard, add its check to `scripts/smoke.cjs`.
 2. Dev server: `npx vite --port 5173 --host 127.0.0.1`. Headless Chromium at `/opt/pw-browsers/chromium` with `--use-gl=swiftshader --enable-unsafe-swiftshader --ignore-gpu-blocklist`.
 3. URL flags: `autostart=1&fresh=1&shot=1&nomate=1` plus `dread=`, `x=`, `z=`, `seed=`. **`time=` is a fraction of the day from 0 to 1** (0.5 is noon; 11 or 23 both wrap to midnight). `fresh=1` neither reads nor writes the save.
 4. **Dread 0.9 or more on a fresh save starts the Edge sequence.** To look at deep dread use `dread=0.85`, or set `state.story.edge` first.

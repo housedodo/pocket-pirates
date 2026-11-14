@@ -1251,3 +1251,13 @@ Trials for the owner to compare; nothing changes without a flag and STYLE.md is 
   replaced number equals `goalIdx` of its id; a mistyped id throws. Headless (full and demo): stepping `goals.i` 0 to 21 at Tama, the
   locked harbour posts go 3, 3, 3, 2, 1 ... and none from goal 9 on, as before; no console errors. **Not verified:** feel and sound.
 
+## R9: a smoke test (2026-11-14, task R9 of the guide)
+- `npm run smoke` (`scripts/smoke.cjs`) starts its own Vite dev server and boots the full game and the demo build (`__BUILD` set before
+  load) side by side headless. It fails on any console error; sails 60 game seconds with full sail (waits on `state.time`, not the
+  clock) and checks the ship moved; opens and closes the log with M; runs `clueLint`; in the full game goes ashore on the Grey Tooth
+  with `places.visit` returning nothing (the R1 guard); in the demo, with `?dev=1&dread=0.9&threads=all`, checks dread 0, no dev bar,
+  no thread, the Sunken Street and the Table open water, dread 0 and no label at the Street's position, and no clue recorded ashore at
+  the Drowned Bell (R2). About 3 minutes. RULES 39 and `CLAUDE.md` name it.
+- **Verified:** passes on a clean tree (180 s). With R1's guard removed and the demo's `?dread` gate removed it fails three checks
+  (the null `clue` error; dread 0.9 in the demo, twice). **Not verified:** feel and sound (never judged headless).
+
