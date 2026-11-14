@@ -1301,3 +1301,19 @@ Trials for the owner to compare; nothing changes without a flag and STYLE.md is 
 - **Verified:** `npx vite build`; `npm run smoke` passes, with a new check: a line due in 2 game seconds did not fire during 6 s of the
   pause menu, and fired after it, outside any menu. **Not verified:** each moved line in its own situation; feel and sound.
 
+## R8: a save that stays small and honest (2026-11-14, task R8 of the guide)
+- `state.story`'s containers get their empty shape in one table, `STORY_SHAPE` in `core/state.js` (seen, lm, secrets, marks, keeps,
+  lost, relit, lanes, lh, caves, pets, placeSet, tp, uiSeen, pins, tales). Plain flags still mean "not yet" when absent; `threads` is
+  left out on purpose (absent means "pick this voyage's threads").
+- `trimState()` runs before every save and keeps the newest of the lists that grow with play: letters and notes 400, loot 120, jobs
+  done 60, fish in the hold 200 (all far above what the log shows); the daily `front:<day>` hints older than yesterday go.
+  **For the owner:** the hold limit means a 201st unsold fish pushes out the oldest one; say if the hold should have a real size instead.
+- `?seed`, `?x`, `?z` or `?time` (`PINNED`, `core/config.js`) play the stored voyage but never write it back, so a test link cannot
+  overwrite a voyage.
+- A harbour's "visits" now count in game days (`rep.last`, two minutes of sailing as before); a save from before kept a wall-clock time
+  there, which reads as long ago.
+- **Verified:** `npx vite build`; `npm run smoke` passes. A save made by the code from before this change (run from a git worktree:
+  some gold, a note, a fish, docked at Tama) loads with all of it, gets the story shape, counts one visit and stores `last` in game days.
+  A scripted 30-day voyage (30 notes, 25 fish, 8 loot and 4 jobs a day) levels off: 7.4 KB on day 1, 50.7 KB on day 10, 62.6 KB on day
+  20, 62.7 KB on day 30. `?seed=2` over a stored voyage writes nothing (byte-identical). **Not verified:** a real 30-day play; feel and sound.
+

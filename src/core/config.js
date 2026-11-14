@@ -7,6 +7,8 @@ export const store = {
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* private mode etc. */ } },
 };
 export const saved = params.get('fresh') ? null : store.get(SAVE_KEY);
+/** the URL overrode the voyage (another sea, another place or hour): this session plays it but never writes the save (task R8) */
+export const PINNED = ['seed', 'x', 'z', 'time'].some((k) => params.has(k));
 /** the demo build is a different game (RULES 29): set only by scripts/single.py; undefined under the dev server means the full game */
 export const DEMO = window.__BUILD === 'demo';
 export const DEV = !DEMO && (!!params.get('dev') || window.__BUILD === 'dev');   // ?dev=1: test keys (1-5 dread, 0, [ ], `) and the full-dread effects menu; never in the demo

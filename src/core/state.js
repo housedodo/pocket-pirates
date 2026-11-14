@@ -58,6 +58,19 @@ export const state = {
   life: (saved && saved.life) || null,   // harbour life: residents, dishes, local games, gossip, fragments (harbourlife.js)
   pos: (saved && saved.pos) || { x: 0, z: 0, h: 0 },
 };
+// state.story is a free bag of flags (RULES 31). Its containers get their empty shape here, in one place; a plain flag that is
+// absent means "not yet" and stays absent until it happens. (`threads` is left out: absent means "pick the voyage's threads".)
+const STORY_SHAPE = { seen: {}, lm: {}, secrets: {}, marks: {}, keeps: [], lost: {}, relit: {}, lanes: {}, lh: {}, caves: {}, pets: {}, placeSet: {}, tp: {}, uiSeen: {}, pins: [], tales: {} };
+for (const [k, v] of Object.entries(STORY_SHAPE)) if (state.story[k] == null) state.story[k] = Array.isArray(v) ? [] : {};
+
+// lists that grow with every day at sea are kept to their newest entries when the voyage is saved (task R8); each limit is far above
+// what the interface shows (the log shows the last few loot and jobs; letters echo into one entry with a count)
+const KEEP = { notes: 400, loot: 120, jobHistory: 60, catch: 200 };
+/** trim the growing lists in place before a save: the newest stay. Day-keyed hints ('front:<day>') older than yesterday go. */
+export function trimState() {
+  for (const [k, n] of Object.entries(KEEP)) if (state[k].length > n) state[k].splice(0, state[k].length - n);
+  for (const k of Object.keys(state.hints)) { const m = /^front:(\d+)$/.exec(k); if (m && +m[1] < state.dayN - 1) delete state.hints[k]; }
+}
 if (params.has('x')) state.pos = { x: +params.get('x'), z: +params.get('z') || 0, h: +params.get('h') || 0 };
 if (!state.goals.v) { if (state.goals.i > 15) state.goals.i--; state.goals.v = 2; }
 if (state.goals.v < 3) { const i = state.goals.i; state.goals.i = i - (i > 12 ? 1 : 0) - (i > 13 ? 1 : 0) - (i > 15 ? 1 : 0); state.goals.v = 3; }   // saves from before Odd jobs (12), Salvage rights (13) and the raider (15) became optional side goals   // saves from before "A bed for the night" (goal 15) was dropped: it made you wait for 17:00

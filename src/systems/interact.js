@@ -5,6 +5,8 @@
 import { markSeen, tableOpen } from '../clues.js';
 import { G, rt } from '../core/runtime.js';
 import { after } from './later.js';
+import { DAY_LENGTH } from '../daynight.js';
+const VISIT_GAP = 120 / DAY_LENGTH;   // a second visit counts after two minutes of sailing, as before (in game days)
 import { state } from '../core/state.js';
 import { tod } from '../daynight.js';
 import { isOpen } from '../gates.js';
@@ -101,8 +103,9 @@ export function tryInteract() {
   }
   if (tg.kind === 'harbour') {
     const d = tg.isl.desc, rep = repOf(state, d.id);
-    if (!rep.last || Date.now() - rep.last > 120000) rep.visits++;
-    rep.last = Date.now();
+    const now = state.dayN + state.time;   // game days (task R8); a save from before kept a wall-clock time here, which reads as long ago
+    if (!(rep.last < 1e6) || now - rep.last > VISIT_GAP) rep.visits++;
+    rep.last = now;
     state.stats.harbours++;
     if (state.hp < G.ship.mods.maxHp) { state.hp = G.ship.mods.maxHp; toast('The harbour crew patches up your hull for free.', false, 3000); }
     if (state.sailsTorn) setTimeout(() => mendSails('The sailmaker stitches your mainsail whole again.'), 600);
