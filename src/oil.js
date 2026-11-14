@@ -9,6 +9,10 @@ export const OIL_PRICE = 0.42;                               // gold per unit of
 /** is the lantern lit right now? */
 export const lanternLit = (c) => c.night > 0.35 || c.fog > 0.5 || c.storm > 0.5;
 
+/** the flame, read off the same dread term the burn uses (task L6): { h: its height, 1 upright and full .. 0.45; lean: radians }.
+ *  Upright and steady in home waters; shorter and leaning the further out. Never a meter, never a word. */
+export const flameShape = (dread) => { const k = Math.min(1, Math.max(0, dread || 0)); return { h: 1 - 0.55 * k, lean: 0.75 * k }; };
+
 /** oil burnt per second: a full lamp lasts about a night and a half (a night is ~4 minutes) */
 export function oilRate(c) {
   if (!lanternLit(c)) return 0;

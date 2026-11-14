@@ -235,6 +235,8 @@ Ten effects (the star-eye and ghost ship were cut) that only run at dread >= ~0.
 warns, and sets `lampOut` (ship glow off via `ship.lampOut`, scene fog pulled in and darkened, fishing blocked). The
 Market's LAMP OIL row and Wick's Rock refill it. Tune the burn in `oilRate`, the price in `OIL_PRICE`.
 
+- **The flame** (2026-11-14, L6): while the lantern burns, `flameShape(dread)` (`oil.js`) gives the flame's height and lean from the same dread term as the burn; `oilTick` puts it in `rt.lampFlame`, `ship.js` draws it. No meter, no text; in the demo it is always upright.
+
 ## Torn sails
 `sailTick` in main.js: strain grows only in a real storm (`weather.storm > 0.6 && windNow.strength > 1.0`) with `ship.trim > 0.55`,
 decays otherwise; warning at 35% of `SAIL_LIMIT` (20), tear at 100% (about 12 s at full sail in a full storm). `ship.torn` multiplies the speed target by 0.66. Mending:

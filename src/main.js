@@ -1133,7 +1133,7 @@ function frame() {
   if (dt > 0) { state.buffs.speed = Math.max(0, state.buffs.speed - dt); state.buffs.dig = Math.max(0, state.buffs.dig - dt); }
   ship.buff = (state.buffs.speed > 0 ? 1.15 : 1) * (life.meal(state) === 'pie' ? 1.06 : 1);
   { const m = life.meal(state); ship.trimMul = m === 'bread' ? 1.7 : 1; ship.lampBoost = m === 'tea' ? 1.6 : 1; }   // the house dish you ate (harbourlife.js)
-  ship.lampOut = rt.lampOut; ship.stormLight = weather.heavy || 0;   // the lantern also shows in a storm
+  ship.lampOut = rt.lampOut; ship.flame = rt.lampFlame || null; ship.stormLight = weather.heavy || 0;   // the lantern also shows in a storm
   const sec = sectorAt(ship.pos.x, ship.pos.z, state.seed);
   if (sec.id !== rt.curSector) {
     rt.curSector = sec.id;

@@ -301,6 +301,8 @@ export class Ship {
     const db = new Builder(); db.doubleSided = true;
     db.box(0, -0.1, 0, 0.08, 0.5, 0.08, '#ffffff', TILE.bark);
     db.quad([0, 0.55, 0], [0, -0.2, 0], [0, -0.2, 1.4], [0, 0.55, 1.4], '#ffffff', TILE.skull);
+    { const fl = new Builder(); fl.cyl(0, 0, 0, 0.15, 0, 0.6, 4, '#ffffff', TILE.glow, false);   // the stern lantern's flame (task L6): upright at home, shorter and leaning far out
+      this.flameMesh = meshOf(fl, mats.props); this.flameMesh.position.set(0, 2.95, 2.9); this.flameMesh.visible = false; this.root.add(this.flameMesh); }
     this.flagBright = meshOf(fb, mats.flagP);
     this.flagDark = meshOf(db, mats.props);
     this.flagDark.visible = false;
@@ -515,6 +517,8 @@ export class Ship {
       arm.rotation.x = lerp(0, 0.62, ease) - lift;   // blades well down in the water for the pull (tip ~0.6 under the surface), lifted clear on the way back
     }
 
+    { const f = this.flame, m = this.flameMesh; m.visible = !!f;   // the flame: its height and lean come from oil.js flameShape; it only wavers once it leans
+      if (f) { m.scale.y = f.h; m.rotation.z = f.lean * (1 + 0.12 * Math.sin(t * 5)); } }
     // lantern glow
     const L = this.mods.lantern;
     this.glow.position.set(p.x, 0.8, p.z);

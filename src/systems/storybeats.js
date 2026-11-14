@@ -12,7 +12,7 @@ import { maraRemembers } from '../table.js';
 import { gateRadius, goalReached } from '../objectives.js';
 import { tod } from '../daynight.js';
 import { LM } from '../landmarks.js';
-import { OIL_FROM, oilCap, oilRate, lanternLit, OIL_PRICE } from '../oil.js';
+import { OIL_FROM, oilCap, oilRate, lanternLit, OIL_PRICE, flameShape } from '../oil.js';
 import * as life from '../harbourlife.js';
 import { params, session, SAVE_KEY } from '../core/config.js';
 import { state } from '../core/state.js';
@@ -154,13 +154,15 @@ function lampBurn() {
   let near = false; for (const isl of G.world.islands.values()) { const a = isl.desc.lampAt; if (a && Math.hypot(a.x - p.x, a.z - p.z) < 260 && !lampDead(state, isl.desc, nightKey())) { near = true; break; } }
   return lampBurnMul(reg, near);
 }
+/** the lantern's flame while it burns (ship.js draws it): its shape follows the dread; the demo has none, so there it never changes */
+const flame = (needed) => { rt.lampFlame = needed && !rt.lampOut ? flameShape(window.__BUILD === 'demo' ? 0 : rt.dread) : null; };
 export function oilTick(dt) {
   const cap = oilCap(state.upgrades);
   const off = !!state.story.lampOff, needed = lanternLit(oilCtx());   // L puts the lantern out by hand (saves oil, sail by moonlight)
-  if (!oilOn()) { state.oil = cap; rt.lampOut = off && needed; return; }
+  if (!oilOn()) { state.oil = cap; rt.lampOut = off && needed; flame(needed); return; }
   const lit = needed && !off, before = state.oil;
   if (lit) state.oil = clamp(state.oil - oilRate(oilCtx()) * dt * lampBurn(), 0, cap);   // the Lantern Guild's waters (regions.js)
-  rt.lampOut = needed && (off || state.oil <= 0);
+  rt.lampOut = needed && (off || state.oil <= 0); flame(needed);
   const night = state.dayN * 2 + (state.time > 0.5 ? 1 : 0);   // one warning of each kind per dark spell
   if (lit && before > cap * 0.25 && state.oil <= cap * 0.25 && rt.oilNight !== night && !G.eventQuiet()) { rt.oilNight = night; if (!G.objectives.mate.busy) G.objectives.mate.say('The lamp is getting low, Captain. Oil at any market, or we turn for home.'); else toast('The lamp oil is running low.', false, 4000); }
   if (lit && tod.night > 0.6 && !state.story.tellShadow && G.lateTell()) { state.story.tellShadow = 1; toast('The lamp throws one shadow across the deck.', false, 6000); }   // a tell: one shadow

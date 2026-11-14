@@ -1405,3 +1405,12 @@ Trials for the owner to compare; nothing changes without a flag and STYLE.md is 
 - **Still the owner's ([OWNER] in L3):** whether the strokes should equal the last throw, and what that does to the fixed "fourteen" in
   clue `CL-C3-a`.
 
+## L6: the lamp shows how far from home you are (2026-11-14; owner: go)
+- Embodies the lamp rule already in the game ("later in the game the dark is hungrier", `oil.js`; the matrix row "the dark is hungry
+  for light"). No new fact, no text, no meter.
+- The stern lantern has a flame while it burns. `flameShape(dread)` in `oil.js` reads the same dread term as the burn: full height and
+  upright at dread 0, 0.45 of its height and leaning 0.75 rad at full dread, wavering only once it leans. Gated by the build: in the
+  demo it is always the home flame.
+- **Verified** headless at night: dread 0 gives height 1, lean 0; dread 0.8 gives 0.56 and 0.53 rad; the demo build with dread forced
+  to 0.8 through the test hook still gives 1 and 0; screenshots of both from astern. `npm run smoke` passes. **Not verified:** feel, sound.
+
