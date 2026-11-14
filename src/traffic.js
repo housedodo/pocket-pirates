@@ -197,7 +197,9 @@ export class Traffic {
       if (d.type !== 'harbour' || !d.dock || this.rboats.has(id) || Math.hypot(d.x - ship.pos.x, d.z - ship.pos.z) > 380) continue;
       const parts = this.build('fisher', sectorAt(d.x, d.z, this.seed).faction, false); this.scene.add(parts.root);
       const th = d.dock.th, dx = Math.cos(th), dz = Math.sin(th), px = -dz, pz = dx, R = Math.hypot(d.dock.x, d.dock.z) - 10;
-      this.rboats.set(id, { ...parts, d, th, berth: [d.x + d.dock.x + px * 6, d.z + d.dock.z + pz * 6], spot: [d.x + dx * (R + 85) - px * 28, d.z + dz * (R + 85) - pz * 28], name: `${d.name}'s fishing boat` });
+      const j = d.jetty, jx = j ? Math.cos(j.th) : dx, jz = j ? Math.sin(j.th) : dz, bR = j ? j.z1 - 2 : R + 10, bs = j ? j.side * 3.6 : 6;   // its berth: beside the side jetty, on the far side from the main pier (world.js)
+      const berth = [d.x + jx * bR - jz * bs, d.z + jz * bR + jx * bs];
+      this.rboats.set(id, { ...parts, d, th: j ? j.th : th, berth, spot: [d.x + dx * (R + 85) - px * 28, d.z + dz * (R + 85) - pz * 28], name: `${d.name}'s fishing boat` });
     }
     const h = sc.hour;
     for (const b of this.rboats.values()) {

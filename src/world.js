@@ -1425,13 +1425,22 @@ function decorate(d, rng, A, B, D, extra) {
       }
       A.box(1.35, 0.84, z1 - 0.4, 0.14, 1.8, 0.14, '#6b4a2e', TILE.bark);
       A.box(1.35, 2.6, z1 - 0.4, 0.4, 0.4, 0.4, '#ffffff', TILE.glow);
-      // moored rowboat
-      A.push(3.6, 0, z1 - 4, 0.2);
-      A.box(0, -0.15, 0, 1.6, 0.55, 3.6, '#c0763a', TILE.planks);
-      A.box(0, 0.38, 0, 1.2, 0.05, 3.0, '#6b4a2e', TILE.planks);
-      A.box(0, 0.4, -0.2, 0.1, 2.6, 0.1, '#ffffff', TILE.bark);
       A.pop();
-      A.pop();
+      // a small side jetty for the harbour's own boats (owner, 2026-11-14): the rowboat and the fishing boat moor here, never at the
+      // main pier, so nothing can pin the captain's ship against it. About 40 degrees round the shore from the pier, same side each time.
+      { const jTh = dockTh + (hash2(d.seed, 31, 7) & 1 ? 0.7 : -0.7), jR = shoreR(d, jTh), j0 = jR * 0.8, j1 = jR + 7, side = Math.sign(angleDiff(jTh, dockTh)) || 1;
+        d.jetty = { th: jTh, R: jR, z0: j0, z1: j1, side };   // (local) the fishing boat's berth and the solids read it
+        A.push(0, 0, 0, Math.PI / 2 - jTh);
+        A.box(0, 0.55, (j0 + j1) / 2, 1.8, 0.2, j1 - j0, '#ffffff', TILE.planks);
+        for (let z = j0 + 2; z < j1; z += 3) for (const sx of [-0.9, 0.9]) A.cyl(sx, -1.8, z, 0.14, 0.12, 2.7, 5, '#ffffff', TILE.bark);
+        A.cyl(0.7 * side, 0.75, j1 - 0.6, 0.3, 0.3, 0.6, 6, '#6b4a2e', TILE.bark);   // a bollard
+        // the rowboat, tied up on the jetty's near side (the fishing boat berths on the far side: traffic.js)
+        A.push(2.4 * side, 0, j1 - 3, -0.15 * side);
+        A.box(0, -0.15, 0, 1.6, 0.55, 3.6, '#c0763a', TILE.planks);
+        A.box(0, 0.38, 0, 1.2, 0.05, 3.0, '#6b4a2e', TILE.planks);
+        A.box(0, 0.4, -0.2, 0.1, 2.6, 0.1, '#ffffff', TILE.bark);
+        A.pop();
+        A.pop(); }
       // quayside clutter
       for (let i = 0; i < 6; i++) {
         let th = dockTh + (rng() - 0.5) * 1.1; const rho = shoreR(d, th) * (0.5 + rng() * 0.3);
@@ -1768,10 +1777,12 @@ export class World {
       const d = isl.desc;
       const dx = pos.x - d.x, dz = pos.z - d.z, dist = Math.hypot(dx, dz);
       if (dist > d.r * 1.8 + radius) continue;
-      if (d.dockGeom && dist < d.r * 1.8 + radius) {   // the pier and the rowboat moored beside it are solid
+      if (d.dockGeom && dist < d.r * 1.8 + radius) {   // the pier, and the side jetty with the rowboat tied up at it, are solid
         const { z0, z1 } = d.dockGeom, th = d.dock.th, ax = Math.cos(th), az = Math.sin(th), mid = (z0 + z1) / 2;
-        const row = z1 - 4, lx = Math.sin(th) * 3.6, lz = -Math.cos(th) * 3.6;
-        if (pushOut(pos, radius, [{ x: d.x + ax * mid, z: d.z + az * mid, ax, az, hl: (z1 - z0) / 2, r: 1.6 }, { x: d.x + ax * row + lx, z: d.z + az * row + lz, r: 1.5 }])) hit = true;
+        const sol = [{ x: d.x + ax * mid, z: d.z + az * mid, ax, az, hl: (z1 - z0) / 2, r: 1.6 }];
+        const j = d.jetty; if (j) { const jx = Math.cos(j.th), jz = Math.sin(j.th), jm = (j.z0 + j.z1) / 2, row = j.z1 - 3, px = -jz * -2.4 * j.side, pz = jx * -2.4 * j.side;
+          sol.push({ x: d.x + jx * jm, z: d.z + jz * jm, ax: jx, az: jz, hl: (j.z1 - j.z0) / 2, r: 1.1 }, { x: d.x + jx * row + px, z: d.z + jz * row + pz, r: 1.5 }); }
+        if (pushOut(pos, radius, sol)) hit = true;
       }
       const lim = shoreR(d, Math.atan2(dz, dx)) * 1.03 + radius + (this.tide < -0.45 ? 1.8 : 0);   // at low tide the shallows reach further
       if (dist < lim) {

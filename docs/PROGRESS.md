@@ -1185,3 +1185,12 @@ Trials for the owner to compare; nothing changes without a flag and STYLE.md is 
   gill, a lateral line, a gill cover with a lit rim, fin rays with see-through tips, reflected light along the belly and an outline in
   each fish's own darker colours. (A comment had swallowed the end of the bream's pattern line, so it fell through into the moonfish's
   spots; fixed.)
+
+## Harbour boats on their own jetty (2026-11-14, owner: stuck between the pier and a boat at Haven Calell)
+- Every harbour has a small side jetty about 40 degrees round the shore from the main pier (`world.js`, `d.jetty`). The moored rowboat
+  and the harbour's fishing boat (`traffic.js` routines) tie up there, on either side of it; the main pier has nothing moored beside it.
+  The jetty and the rowboat are solid; the regional things on the water (stilt houses, coral, lamps, roofs, buoys, the signal mast) keep
+  clear of the jetty and the boat's berth (`regiondecor.js clearOf`).
+- Measured: the fishing boat's berth is now 47 units from the mooring spot at Tama and 18 at the Free Cays harbour (it was 6).
+- A ship already stuck in an old save is freed: the boat is no longer there.
+

@@ -141,6 +141,8 @@ purple and magenta cosmic horror as dread rises.
   no big cartoon eyes): a dark rim, the iris behind, the pupil looking forward, a dot of light; only the deep lanternfish has a big one. The dark fish are the wrong side of the sea: a ring inside the glass eel, the pike's
   row of yellow eyes, the key that is a key, the barnacled angler with its lure; the Colour's catch is neon with no pupils. Heard-of
   fish show as a brown shadow, unknown ones as a faint shadow. Sheet: `docs/proposals/fish_portraits.png`.
+- **Harbours have a side jetty** (2026-11-14) for their own boats (the rowboat, the fishing boat), about 40 degrees round the shore from
+  the main pier: the main pier is kept clear for the captain.
 - **Each region's things on the water** (`src/regiondecor.js`), along the way in to its islands (a harbour's pier direction):
   Crown: a lane of red cans and green cones into every harbour, lit red and green at night, and a tall white signal mast with a
   pennant string. Free Cays: thatched houses on stilts beside the approach, canoes, coloured lantern strings at night. Reef: black
