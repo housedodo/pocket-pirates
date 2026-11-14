@@ -2,7 +2,7 @@
 
 The demo (Tama, Velto, the first hut throw, no dread) is done and in playtest. This is the plan for the full game. Tick items off as they land. The story's truth is `docs/CANON.md`; what exists lives in `docs/PROGRESS.md`.
 
-## Where we are (2026-11-11)
+## Where we are (2026-11-14)
 | Area | State |
 |---|---|
 | Sailing, wind, tides, weather, day/night, the anchor | Built, polished |
@@ -14,13 +14,19 @@ The demo (Tama, Velto, the first hut throw, no dread) is done and in playtest. T
 | Dread arc and full-dread effects, the seven threads | Built, hidden in the demo |
 | The ending: the Table by the Water, four actions, six endings | Built 2026-11-11; ending texts are drafts |
 | Mara's memory of her village | Built 2026-11-11 (four pieces) |
+| After the hut: Perrin's five letters, one per region; the Table open to every captain who has thrown; endings with an epilogue, credits and return to title | Built 2026-11-13; letters, epilogues and credits are drafts (`docs/WRITER_TODO.txt`) |
+| Regions you can tell apart: each region's light and things on the water, slow crossings | Built 2026-11-13 (`systems/regionlook.js`, `regiondecor.js`) |
+| Regions that play differently: Crown deadlines and record, Free Cays nights, Reef salvage and coral, Lantern oil and dead lights, Drowned tide belt and coinless harbours; a harbour in every region's Shoals | Built 2026-11-13 (`regions.js`, DESIGN.md); numbers untested in real play |
+| The Catch book: a pixel portrait of every fish and a card per species | Built 2026-11-13 (`fishart.js`) |
+| Harbour boats on a side jetty (no pinning at the main pier) | Built 2026-11-14 |
 | Audio | Stage-1 band, tavern, hut and night stems in; later stages and many effects are stand-ins or silent on purpose |
 | Biomes, walkable islands, harbour mini-quests | Concepts only |
 | Save slots, settings, accessibility | Basic only (gamepad works) |
 
 ## Next, in order
 1. The owner plays one fresh voyage to the hut and notes: minutes to the hut (target under 45), which of the four wrong things were noticed, whether the second riddle trip is a chore.
-2. The writer rewrites the six ending texts (`src/table.js`).
+2. The writer works through `docs/WRITER_TODO.txt`: the ending texts, Perrin's letters, the epilogues, the thread clue lines, the credits.
+2a. A real playtest of the regional rules: are the Crown deadlines fair, is the Drowned belt's wait too long, does the coral read?
 3. Make the gentle ending findable: a rumour or a Mara line that points at the music at night.
 4. Decide the open points in `docs/CANON.md` section 8.
 5. Check every screen in the new typeface (harbour, pause, tavern games, the Table) for text that no longer fits.

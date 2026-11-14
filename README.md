@@ -23,7 +23,7 @@ npm run build      # static build in dist/
 | Y | ask Mara (first mate) for a hint |
 | E | interact: harbour (at the end of its pier), dig for treasure, salvage wrecks, go ashore, hail passing ships. Under way, E drops the anchor first and the action starts by itself |
 | Esc or P | pause menu (resume, controls, log, sound) |
-| M | captain's log, three bookmarks along the top: Chart, Orders, Ship's book (keys 1-3 or arrows; Up/Down turn pages; J opens Orders) |
+| M | captain's log, three bookmarks along the top: Chart, Orders, Ship's book (keys 1-3 or arrows; Up/Down turn pages; J opens Orders); the Ship's book holds the Catch book, a card and a portrait for every fish |
 | mouse drag | tilt (up/down) and orbit around the boat (sideways); Z / X also orbit, V resets, R / F tilt |
 | wheel | zoom |
 | H | hide HUD |

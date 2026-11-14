@@ -54,6 +54,8 @@ Nothing here is ever said to the player in these words.
 | 2026-11-13 | **Teo and Ilse are found on still nights only** (no storm). The threads feed the clue ledger; the bell thread is a second way into "Why is Tama home". |
 | 2026-11-13 | **Each region has its own light and its own things on the water** (docs/proposals/REGIONS.md); crossing from one to the next is slow and smooth, never a line. |
 | 2026-11-13 | **Each region plays differently** (rules in `src/regions.js`): Crown deadlines and a shared record of arrivals, customs; Free Cays safe at night, night market, dusk fishing; Reef salvage 1.5x, bounties, coral, shoals that move at dawn, storm wrecks; Lantern oil trade, dead lights to relight, a lamp that burns by the lights; Drowned shoal belt open only at low water, harbours that take no coin. Every region has a harbour in its Shoals. |
+| 2026-11-13 | **The Catch book**: every fish has a pixel portrait (small real eyes, no big cartoon eyes), one card per species in the Ship's book. |
+| 2026-11-14 | **Harbour boats moor at a side jetty**, never at the main pier: the main pier is kept clear for the captain. |
 | 2026-11-13 | **Names kept unique**: the groom is Anselm, the boatbuilder boy Nilo, the castaway crewman Gus; the bell thread is "The Bell Below" (the landmark stays the Drowned Bell). "Ledger" is kept for the customs pier, the Keepers' Ledger and the farm page. |
 | 2026-11-12 | **No minimap.** The chart (M) is the map; the HUD stays minimal. The title plays the sea's band. |
 | 2026-11-11 | **The log has three bookmarks** (Chart, Orders, Ship's book) and **one slip** (what, where, which way and how long). |

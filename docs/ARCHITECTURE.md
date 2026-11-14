@@ -31,7 +31,8 @@ core/runtime.js         rt: everything the game tracks while it runs (modal, dre
                         G: services and functions main.js lends the modules (world, ship, audio, openModal, toast...)
 core/config.js          URL params, DEV, localStorage (store, keys), the saved voyage, settings, session flags
 feature modules         regions.js (each region's rules and numbers: prices, raiders, Crown record and deadlines, bounties, oil, the
-                        Guild's dead lights, the belt, the coinless harbours), world.js (+ regiondecor.js: each region's things on the water, built with the island; planned harbours), ship.js, audio.js, objectives.js, ... : below main; given what they need by constructor or
+                        Guild's dead lights, the belt, the coinless harbours), world.js (+ regiondecor.js: each region's things on the water, built with the island; planned harbours; the side jetty),
+                        fishart.js (the fish portraits, used by logbook.js), ship.js, audio.js, objectives.js, ... : below main; given what they need by constructor or
                         callback (dependency injection), never by importing main.js or a ui/ module
 ```
 

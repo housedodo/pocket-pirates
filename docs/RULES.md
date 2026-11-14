@@ -38,6 +38,7 @@ need to break one, stop and ask the owner. `docs/CANON.md` says what is true in 
 ## Sound
 24b. **Regions differ by their rules, never by words** (`src/regions.js` holds every number): a region's rule must be readable from
     what the player sees there (STYLE 4) and must not explain the story. The demo never gets the Drowned.
+24c. **The main pier is the captain's** (2026-11-14): nothing is moored at it or placed beside it; a harbour's own boats use its side jetty.
 25. **Only cues listed in `CUES.oneShots` (`src/audio.js`) play.** Silence elsewhere is on purpose. Adding a cue means adding it there and to `docs/AUDIO.md`.
 26. **Five dread stages, five loops, same tempo, metre and key** (D family, 6/8, 125 BPM). Horror by removing and bending, never by adding a scare.
 27. **WAV masters stay with the composer; the game ships ogg** (`scripts/studio_ogg.py`). Volumes live in `public/audio/volumes.json`.

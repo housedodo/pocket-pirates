@@ -1,7 +1,7 @@
 HOIST (Pocket Pirates): THE MASTER STORY FILE
 ================================================================================================
 This is the main story file for the full game. Edit it, upload it again, and the next session puts every change
-into the game. Built from commit 5164e62 on 2026-11-13. 1478 in-game lines carry an ID.
+into the game. Built from commit 9f4da2b on 2026-11-14. 1477 in-game lines carry an ID.
 
 CONTENTS
   A   HOW TO USE THIS FILE (IDs, status marks, how to add and remove things)
@@ -569,7 +569,7 @@ Where the story hides in the mechanics, and where its text lives (section J).
 # J  EVERY LINE IN THE GAME
 ################################################################################################
 Pulled from the code. Edit the text after the "|" (see part A). Sources are grouped by file; the CODE in front of every
-line says which file it goes back into. 1478 lines.
+line says which file it goes back into. 1477 lines.
 
 
 
@@ -1941,11 +1941,7 @@ line says which file it goes back into. 1478 lines.
 ### LOG / pg
   LOG-0005 | Harbour boards post errands: fish, fruit, crates, raiders…
 
-### LOG / html
-  LOG-0006 | Fisherman's log ${got}/${bright.length}
-
 ### LOG / sub
-  LOG-0007 | Nobody has said where these bite. Try other waters and other hours, and ask at the quay.
   LOG-0008 | Slow down and press C at sea. Ask the fishers at a harbour quay where things bite.
 
 ### LOG / html
@@ -1962,8 +1958,13 @@ line says which file it goes back into. 1478 lines.
   LOG-0015 | Letters and bottles (${state.notes.length})
   LOG-0016 | Visit and deliver.
 
+### LOG / ADDED 2026-11-14
+  LOG-0017 | Nobody has said where the rest bite. Try other waters and other hours, and ask at the quay.
+
 ### LOG / RETIRED (the text is no longer in the game; these IDs are never used again)
     was LOG-0003 | The rest of the page is blank.
+    was LOG-0006 | Fisherman's log ${got}/${bright.length}
+    was LOG-0007 | Nobody has said where these bite. Try other waters and other hours, and ask at the quay.
     was LOG-0012 | pencil: click an island to circle it (again: rub out) · drag · wheel
     was LOG-0013 | drag to pan · wheel to zoom · click to pin (again: unpin) ·
 

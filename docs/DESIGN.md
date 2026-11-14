@@ -46,7 +46,8 @@ If the game outgrows the browser, the design, generators and shaders port over; 
 | `tabletop.js` | Dice (one die, d20 checks with advantage/disadvantage, treasure quality throw) and the encounter card deck |
 | `sighting.js` | Rare signs at sea that open an encounter card (optional, never part of a story) |
 | `solids.js` | Round colliders for ships, boats, whales, wrecks, piers; `pushOut` keeps the hull out of them |
-| `fishing.js` | Fishing mini-game, 10 species with habitats (luck + place + time, no visible markers) |
+| `fishing.js` | Fishing mini-game, 10 species with habitats (luck + place + time, no visible markers); the Free Cays' dusk fish |
+| `fishart.js` | The Catch book's pixel portraits of every fish (the Ship's book) |
 | `jobs.js` / `passengers.js` | Delivery jobs, board, passengers; `nearby` respects the fog radius |
 | `fauna.js` / `traffic.js` / `seafeatures.js` / `weather.js` | Wildlife, ships and scheduled events (market, regatta, migration), whirlpools and wrecks, weather fronts |
 | `customize.js` | Shipyard: 360 turntable preview, paint, hull, flags, figureheads, try then buy |
@@ -320,4 +321,14 @@ blends slowly in space and time. For now this is the look only: the shapes have 
 | Lantern Guild | Fish dear; the Guild buys lamp oil; half its lighthouses are dark at night, relight one with 30 oil for pay and the local chart; the lamp burns half near a lit light and double in the open dark | fish 1.5x; oil 0.9g a unit (Tama sells at 0.42); relight 30 oil for 30g; lighthouses on 85% of its harbours, 60% of its rocky isles |
 | The Drowned | A shoal belt (1740-1800 from Tama) only open at low water: at high water it throws you back and scrapes the hull; its harbours take no coin, fill the lamp, the kits and the hull once a day and keep one thing from the hold | belt opens below tide -0.3; 5 hull a scrape (full game only) |
 Every region has a harbour in its Shoals (about 620 out) and the Lantern Guild a second one (about 950), planned per seed (`world.js plannedHarbours`). Crown towns pay 1.5x for fruit.
+
+## The Catch book (2026-11-13, `fishart.js`, `logbook.js fishLogHtml`)
+The Ship's book's fisherman's log is a Catch book: one card per species with a pixel portrait. Caught: the portrait, the price, how many,
+the best, where and when, what the quay told you. Heard of only: its shadow and the hint. Never met: a faint shadow and "? ? ?". The dark
+fish get a card only once caught; the Colour's catch has no name. Header: caught / bright species (10).
+
+## Harbours keep the main pier clear (2026-11-14)
+Every harbour has a small side jetty about 40 degrees round the shore (`world.js d.jetty`). The moored rowboat and the harbour's fishing
+boat tie up there; nothing is moored at the main pier, so the captain's ship cannot be pinned between the pier and a boat. Regional props
+keep clear of the jetty and the boat's berth.
 

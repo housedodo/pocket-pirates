@@ -47,6 +47,9 @@ Build it with `python3 scripts/single.py`, ship `pocket-pirates-demo.html` (with
 - [ ] Hull at 0 hearts: sensible recovery
 - [ ] Fog wall turns you around, no stuck position at the edge
 
+- [ ] Harbours: the main pier has nothing moored at it; the rowboat and the fishing boat are at the side jetty; you can sail in, moor
+  and leave from every side without getting stuck
+
 ## 3. Text and feel
 - [ ] Read every Mara line aloud once: short, charming, no spoilers
 - [ ] Typos pass on harbours, rumours, bottles, encounter cards
@@ -131,4 +134,5 @@ Build it with `python3 scripts/single.py`, ship `pocket-pirates-demo.html` (with
 - [ ] Log: Chart, Orders, Ship's book; at the very start only Chart and Orders; nothing greyed
 - [ ] The tracker and the first entry on Orders say the same three lines: what, where, which way and how long
 - [ ] After taking Perrin's letter, M opens Orders with the riddle on the right page and Mara answers
-
+- [ ] The Catch book (Ship's book): caught fish show their portrait and numbers, heard-of fish a shadow and the hint, unknown ones a faint
+  shadow; no dark fish card before one is caught
