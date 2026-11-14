@@ -237,7 +237,7 @@ export const goalText = (g, c) => (typeof g.text === 'function' ? g.text(c) : g.
 let GOAL_IDX = null;
 export function goalIdx(id) {
   if (!GOAL_IDX) GOAL_IDX = Object.fromEntries(MAIN_GOALS.map((g, i) => [g.id, i]));
-  const i = GOAL_IDX[id]; if (i === undefined) throw new Error(`no main goal '${id}'`);
+  const i = GOAL_IDX[id]; if (i === undefined) throw new Error('goalIdx ' + id);
   return i;
 }
 /** has the chain reached this goal (it is the current goal, or already done)? The one way to ask "how far along" outside this file */
