@@ -28,9 +28,9 @@
     #stats { position: absolute; left: 12px; top: 12px; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; font-size: 15px; }
     #near { color: #bff; min-height: 1.2em; font-size: 13px; }
     #gold b { color: var(--gold); }
-    .windbox { position: absolute; right: 8px; top: 6px; width: 150px; text-align: center; font: italic 700 13px Georgia, serif; color: #f6e6b8; text-shadow: 1px 1px 0 var(--ink-dark), -1px -1px 0 var(--ink-dark), 1px -1px 0 var(--ink-dark), -1px 1px 0 var(--ink-dark); }
+    .windbox { position: absolute; right: 8px; top: 6px; width: 150px; text-align: center; font: 13px var(--pxfont); color: #f6e6b8; text-shadow: 1px 1px 0 var(--ink-dark), -1px -1px 0 var(--ink-dark), 1px -1px 0 var(--ink-dark), -1px 1px 0 var(--ink-dark); }
     .windbox canvas { width: 144px; height: 144px; display: block; margin: 0 auto 0; image-rendering: pixelated; }
-    #sailbar { position: absolute; right: 12px; top: 176px; width: 124px; font-size: 12px; text-align: center; }
+    #sailbar { position: absolute; right: 12px; top: 176px; width: 124px; text-align: center; }
     #sailbar .bar { height: 10px; background: #0007; border: 2px solid var(--edge); margin-top: 3px; }
     #sailbar .fill { height: 100%; width: 70%; background: var(--gold); }
     #sailbar.strain .fill { background: #ff9a3a; animation: blink .6s steps(2) infinite; }   /* too much canvas for this wind */
@@ -43,7 +43,7 @@
     .toast { padding: 8px 12px; font-size: 15px; text-align: center; animation: pop .25s ease-out; }
     .toast.dark { border-color: var(--horror); color: #ffd8f4; }
     @keyframes pop { from { transform: scale(.85); opacity: 0; } to { transform: none; opacity: 1; } }
-    #help { position: absolute; left: 12px; bottom: 12px; font-size: 12px; line-height: 1.5; transition: opacity 1.5s; }
+    #help { position: absolute; left: 12px; bottom: 12px; line-height: 1.5; transition: opacity 1.5s; }
     #help:not(:empty) span { font-size: 18px; }
     .onb-off { display: none !important; } .onb-pop { animation: onbpop 3s steps(6) 1; } @keyframes onbpop { 0%, 40% { box-shadow: 0 0 0 4px var(--gold); } 100% { box-shadow: none; } }
     #debug { position: absolute; left: 50%; top: 6px; transform: translateX(-50%); font-size: 12px; display: none; }
@@ -51,7 +51,7 @@
     #chart, .modal { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; background: rgba(8, 6, 22, .72); z-index: var(--z-modal); }
     #chart.open, .modal.open { display: flex; }
     .bookwrap { position: relative; margin-right: 96px; filter: drop-shadow(0 10px 0 rgba(0,0,0,.45)); }
-    .book { position: relative; width: min(1000px, calc(97vw - 110px)); height: min(600px, 90vh); padding: 26px 28px 14px; background: #4a2a12 center / 100% 100% no-repeat; clip-path: polygon(0 14px, 9px 3px, 30% 0, 70% 6px, calc(100% - 12px) 0, 100% 16px, calc(100% - 3px) 45%, 100% calc(100% - 12px), calc(100% - 14px) 100%, 60% calc(100% - 4px), 12px 100%, 0 calc(100% - 10px), 4px 55%); display: flex; flex-direction: column; font-family: "Palatino Linotype", "Book Antiqua", Palatino, Georgia, serif; color: #3a2210; }
+    .book { position: relative; width: min(1000px, calc(97vw - 110px)); height: min(600px, 90vh); padding: 26px 28px 14px; background: #4a2a12 center / 100% 100% no-repeat; clip-path: polygon(0 14px, 9px 3px, 30% 0, 70% 6px, calc(100% - 12px) 0, 100% 16px, calc(100% - 3px) 45%, 100% calc(100% - 12px), calc(100% - 14px) 100%, 60% calc(100% - 4px), 12px 100%, 0 calc(100% - 10px), 4px 55%); display: flex; flex-direction: column; color: #3a2210; }
     .book .spread { position: relative; flex: 1; min-height: 0; background: linear-gradient(90deg, #ead8a8 0%, #e2cf9a 44%, #c4aa70 49.2%, #8e7444 50%, #c4aa70 50.8%, #e2cf9a 56%, #ead8a8 100%); border: 1px solid #5a3a1a; box-shadow: inset 0 0 40px rgba(110,70,20,.35), 0 0 0 2px #e4d2a2, 2px 3px 0 2px #c8b07a, 4px 5px 0 2px #a8905a, 6px 7px 0 2px #8a7244, -2px 3px 0 2px #c8b07a, -4px 5px 0 2px #a8905a, -6px 7px 0 2px #8a7244; padding: 16px 30px; overflow: hidden; }
     #logBody { height: 100%; }
     #logBody.cols { column-count: 2; column-gap: 56px; column-fill: auto; overflow-x: hidden; overflow-y: hidden; font-weight: 600; font-size: 15px; line-height: 1.35; }
@@ -61,7 +61,7 @@
     .ent { position: relative; padding: 5px 8px; margin: 4px 0; background: rgba(255, 248, 220, .38); border-left: 4px solid #8a5a2c; break-inside: avoid; }
     .ent b { font-weight: 800; font-size: 15px; }
     .ent .r { float: right; font-weight: 800; color: #8a5a10; }
-    .ent small { display: block; font-weight: 600; font-size: 13px; opacity: .85; }
+    .ent small { display: block; font-weight: 600; opacity: .85; }
     .ent.cur { border-left-color: #c0392b; background: rgba(255, 230, 160, .75); }
     .ent.done { opacity: .55; } .ent.dim { opacity: .55; font-style: italic; } .ent.dk, .riddle.dk { color: #7a2a6a; }
     .ent .n { position: absolute; right: 8px; bottom: 3px; font-weight: 800; }
@@ -74,7 +74,7 @@
     #logBody .ok { color: #2a7a3a; font-weight: 800; }
     #logBody .pips { color: #a06a10; letter-spacing: .12em; }
     #logBody .fac { display: inline-block; width: 11px; height: 11px; border: 1px solid #3a2210; vertical-align: -1px; }
-    #logBody button.mini { margin: 4px 0 0; padding: 3px 10px; font: 700 12px Georgia, serif; background: var(--gold-dim); border: 2px solid #6b4a2e; color: #3a2210; cursor: pointer; }
+    #logBody button.mini { margin: 4px 0 0; padding: 3px 10px; font: 12px var(--pxfont); background: var(--gold-dim); border: 2px solid #6b4a2e; color: #3a2210; cursor: pointer; }
     .ent button.mini { margin: 3px 0 0; padding: 1px 8px; font-size: 11px; opacity: .85; }
     /* the catch book (logbook.js, fishart.js): a card per species, the portrait drawn at 2x, pixel-crisp */
     .fishgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(156px, 1fr)); gap: 6px; margin: 4px 0 8px; }
@@ -92,15 +92,15 @@
     .ribbons button { position: relative; width: 156px; height: 34px; margin-left: 0; padding: 0 22px 0 68px; display: flex; align-items: center; border: none; cursor: pointer; background: linear-gradient(176deg, color-mix(in srgb, var(--rb) 82%, #fff) 0 46%, var(--rb) 46% 74%, color-mix(in srgb, var(--rb) 72%, #000) 74%); clip-path: polygon(0 3px, 92% 0, 100% 2px, 86% 50%, 100% calc(100% - 1px), 90% 100%, 0 calc(100% - 2px)); transition: transform .15s; transform: rotate(var(--tilt, 0deg)); }
     .ribbons button::before { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(0deg, rgba(0,0,0,.14) 0 1px, transparent 1px 3px), var(--grain); background-size: auto, 90px 90px; opacity: .7; pointer-events: none; }
     .ribbons button span { display: none; }
-    .ribbons button em { position: relative; font: italic 700 12px Georgia, serif; font-variant: small-caps; letter-spacing: .09em; color: color-mix(in srgb, var(--rb) 45%, #000); text-shadow: 0 1px 0 rgba(255,240,210,.28), 0 -1px 0 rgba(0,0,0,.35); }
+    .ribbons button em { position: relative; font: 12px var(--pxfont); font-variant: small-caps; letter-spacing: .09em; color: color-mix(in srgb, var(--rb) 45%, #000); text-shadow: 0 1px 0 rgba(255,240,210,.28), 0 -1px 0 rgba(0,0,0,.35); }
     .ribbons button:hover { transform: translateX(5px) rotate(var(--tilt, 0deg)); }
     .ribbons button.on { transform: translateX(14px) rotate(var(--tilt, 0deg)); }
     .ribbons button.on em { color: #f2dc9a; text-shadow: 0 1px 0 rgba(0,0,0,.6); }
     .ribbons button:nth-child(8n+1) { --rb: #7a2418; --tilt: -1.5deg; } .ribbons button:nth-child(8n+2) { --rb: #2a4e72; --tilt: 1deg; } .ribbons button:nth-child(8n+3) { --rb: #4e6a26; --tilt: -.5deg; } .ribbons button:nth-child(8n+4) { --rb: #5a3268; --tilt: 1.8deg; }
     .ribbons button:nth-child(8n+5) { --rb: #94541f; --tilt: -1deg; } .ribbons button:nth-child(8n+6) { --rb: #2a6a62; --tilt: .6deg; } .ribbons button:nth-child(8n+7) { --rb: #7a5e1c; --tilt: -1.8deg; } .ribbons button:nth-child(8n+8) { --rb: #6a2440; --tilt: 1.2deg; }
-    .bookbar { display: flex; align-items: center; gap: 10px; margin-top: 8px; color: #f0dca8; font: 700 13px Georgia, serif; }
+    .bookbar { display: flex; align-items: center; gap: 10px; margin-top: 8px; color: #f0dca8; font: 13px var(--pxfont); }
     .bookbar .keys { flex: 1; opacity: .8; text-align: center; font-weight: 600; }
-    .bookbar button { padding: 5px 14px; font: italic 800 14px Georgia, serif; background: linear-gradient(170deg, #e2c47a 0 48%, #b8964c 48%); border: none; color: #4a2e10; text-shadow: 0 1px 0 rgba(255,240,200,.5); cursor: pointer; clip-path: polygon(5px 0, calc(100% - 5px) 0, 100% 5px, 100% calc(100% - 5px), calc(100% - 5px) 100%, 5px 100%, 0 calc(100% - 5px), 0 5px); }
+    .bookbar button { padding: 5px 14px; font: 14px var(--pxfont); background: linear-gradient(170deg, #e2c47a 0 48%, #b8964c 48%); border: none; color: #4a2e10; text-shadow: 0 1px 0 rgba(255,240,200,.5); cursor: pointer; clip-path: polygon(5px 0, calc(100% - 5px) 0, 100% 5px, 100% calc(100% - 5px), calc(100% - 5px) 100%, 5px 100%, 0 calc(100% - 5px), 0 5px); }
     /* handwriting / pixel fonts for the logbook (SIL Open Font License, bundled in public/fonts) */
     @font-face { font-family: "Pirata One"; src: url("/fonts/pirataone.woff2") format("woff2"); font-display: block; }
     @font-face { font-family: "DotGothic16"; src: url("/fonts/dotgothic.woff2") format("woff2"); font-weight: 400; font-display: swap; }
@@ -116,15 +116,15 @@
     .chartgrid .mapctl { position: absolute; right: 8px; bottom: 8px; top: auto; display: flex; flex-direction: column; gap: 4px; }
     .chartgrid .mapctl button { width: 32px; height: 32px; padding: 0; font: 400 20px "DotGothic16", monospace; color: #22180f; background: #efe0bc; border: 2px solid #22180f; box-shadow: 2px 2px 0 #22180f; cursor: pointer; }
     #mapCard { position: absolute; display: none; z-index: 3; pointer-events: none; min-width: 190px; max-width: 280px; padding: 8px 10px; background: #efe0bc; border: 2px solid #22180f; box-shadow: 3px 3px 0 #22180f; font-family: "DotGothic16", monospace; color: #22180f; }
-    #mapCard b { display: block; font: 400 22px "Pirata One", Georgia, serif; line-height: 1; }
+    #mapCard b { display: block; font: 400 22px "Pirata One", serif; line-height: 1; }
     #mapCard small { display: block; color: #6a5a40; font-size: 13px; margin-top: 2px; }
     #mapCard hr { border: none; border-top: 2px dotted #22180f55; margin: 6px 0; }
     .mc-row { display: flex; gap: 6px; align-items: center; font-size: 14px; line-height: 1.25; margin: 3px 0; }
     .mc-ic { flex: none; display: inline-grid; place-items: center; width: 18px; height: 18px; background: var(--c); border: 2px solid #22180f; border-radius: 50%; }
     .mc-ic svg { width: 11px; height: 11px; }
     .chartside { overflow-y: auto; padding: 10px 12px; background: #efe0bc; border: 2px solid #22180f; box-shadow: 3px 3px 0 #22180f; font-family: "DotGothic16", monospace; color: #22180f; }
-    .cs-title { margin: 0; font: 400 30px "Pirata One", Georgia, serif; line-height: 1; }
-    .cs-sub, .cs-none { display: block; color: #6a5a40; font-size: 13px; }
+    .cs-title { margin: 0; font: 400 30px "Pirata One", serif; line-height: 1; }
+    .cs-sub, .cs-none { display: block; color: #6a5a40; }
     .cs-h { margin: 12px 0 5px; font-size: 12px; letter-spacing: .15em; color: #8a5a2a; border-bottom: 2px solid #22180f33; }
     .cs-follow { display: flex; gap: 8px; align-items: center; padding: 6px 8px; background: #f2c96a55; border: 2px solid #22180f; }
     .cs-follow b { display: block; font-weight: 400; font-size: 15px; } .cs-follow small { color: #6a5a40; font-size: 13px; }
@@ -132,7 +132,7 @@
     .cs-row span { flex: 1; } .cs-row em { font-style: normal; color: #6a5a40; font-size: 13px; }
     .cs-row input { display: none; } .cs-box { width: 14px; height: 14px; border: 2px solid #22180f; background: #fff8e6; }
     .cs-row input:checked + .cs-box { background: #22180f; box-shadow: inset 0 0 0 2px #fff8e6; }
-    .cs-ev b { display: block; font-weight: 400; font-size: 15px; } .cs-ev small { color: #6a5a40; font-size: 13px; } .cs-ev { margin: 4px 0 6px; }
+    .cs-ev b { display: block; font-weight: 400; font-size: 15px; } .cs-ev small { color: #6a5a40; } .cs-ev { margin: 4px 0 6px; }
     .cs-line { display: flex; align-items: center; gap: 8px; font-size: 13px; margin: 3px 0; }
     .cs-line i { width: 24px; height: 0; border-top: 3px dashed var(--c); } .cs-line.dot i { border-top: 3px dotted #2a6a8a; }
     .cs-keys { margin-top: 12px; font-size: 12px; color: #8a7a60; }
@@ -283,8 +283,8 @@
     .mapwrap canvas { height: calc(min(600px, 90vh) - 150px); width: auto; max-width: 100%; aspect-ratio: 880 / 470; display: block; margin: 0 auto; border: 3px solid #3a2210; cursor: grab; touch-action: none; }
     #mapTxt { position: absolute !important; left: 0; top: 0; width: 100% !important; height: 100% !important; pointer-events: none; image-rendering: auto !important; border: none !important; margin: 0 !important; }
     .mapctl { position: absolute; right: 10px; top: 10px; display: flex; flex-direction: column; gap: 4px; }
-    .mapctl button { width: 30px; height: 30px; font: 800 17px Georgia, serif; background: #ecdcae; border: 2px solid #3a2210; cursor: pointer; color: #3a2210; }
-    .legend { margin-top: 4px; font: 700 12px Georgia, serif; text-align: center; }
+    .mapctl button { width: 30px; height: 30px; font: 17px var(--pxfont); background: #ecdcae; border: 2px solid #3a2210; cursor: pointer; color: #3a2210; }
+    .legend { margin-top: 4px; font: 12px var(--pxfont); text-align: center; }
     @media (max-width: 760px) { .ribbons { right: -40px; } .ribbons button { width: 80px; padding-left: 30px; } .ribbons button em { font-size: 10px; } #logBody.cols { column-count: 1; } }
     .hbtabs { display: flex; gap: 4px; margin-bottom: 6px; }
     .hbtabs button { margin: 0; padding: 6px 4px; font-size: 14px; }
@@ -301,18 +301,18 @@
        it yellows, stains and the ink runs as the dread rises. The pixel text font stays; only headlines use the title face (hence !important over the global font rule) */
     #hbPane .paper { --pp: #efe0bc; --pi: #22180f; position: relative; background: var(--pp); color: var(--pi); margin: 4px 2px 10px; padding: 12px 14px 14px; box-shadow: 4px 4px 0 #0008; font-size: 16px; line-height: 1.3; }
     #hbPane .paper::before { content: ""; position: absolute; inset: 0; pointer-events: none; background: repeating-conic-gradient(#22180f0d 0 25%, transparent 0 50%) 0 0 / 4px 4px; }   /* newsprint grain */
-    #hbPane .paper .pmast { font-family: var(--pxdisp, "Pirata One", Georgia, serif) !important; font-size: var(--dL, 48px) !important; line-height: 1; letter-spacing: 0 !important; text-align: center; padding: 2px 0 6px; }
+    #hbPane .paper .pmast { font-family: var(--pxdisp, "Pirata One", serif) !important; font-size: var(--dL, 48px) !important; line-height: 1; letter-spacing: 0 !important; text-align: center; padding: 2px 0 6px; }
     #hbPane .paper .ptag { display: flex; align-items: center; gap: 8px; border-top: 4px double var(--pi); padding-top: 4px; text-transform: uppercase; letter-spacing: .12em; text-align: center; }
     #hbPane .paper .ptag::before, #hbPane .paper .ptag::after { content: ""; flex: 1; border-top: 2px solid var(--pi); }
     #hbPane .paper .pfolio { display: flex; justify-content: space-between; gap: 10px; border-top: 2px solid var(--pi); border-bottom: 4px double var(--pi); margin-top: 4px; padding: 2px 0; text-transform: uppercase; letter-spacing: .06em; }
     #hbPane .paper .pprice { white-space: nowrap; }
     #hbPane .paper .plead { padding: 8px 0 8px; border-bottom: 2px solid var(--pi); margin-bottom: 8px; }
-    #hbPane .paper .pH1, #hbPane .paper .pH2 { font-family: var(--pxdisp, "Pirata One", Georgia, serif) !important; line-height: 1; letter-spacing: 0 !important; }
+    #hbPane .paper .pH1, #hbPane .paper .pH2 { font-family: var(--pxdisp, "Pirata One", serif) !important; line-height: 1; letter-spacing: 0 !important; }
     #hbPane .paper .pH1 { font-size: var(--dM, 34px) !important; margin-bottom: 6px; }
     #hbPane .paper .pH2 { font-size: var(--dS, 24px) !important; margin-bottom: 4px; }
     #hbPane .paper p { margin: 0; }
     #hbPane .paper .pdrop { display: flow-root; }   /* contains the drop cap even when the lead is one line */
-    #hbPane .paper .pdrop::first-letter { float: left; font-family: var(--pxdisp, "Pirata One", Georgia, serif) !important; font-size: 52px !important; line-height: .78; padding: 5px 2px 0 0; }
+    #hbPane .paper .pdrop::first-letter { float: left; font-family: var(--pxdisp, "Pirata One", serif) !important; font-size: 52px !important; line-height: .78; padding: 5px 2px 0 0; }
     #hbPane .paper .pcols { display: grid; grid-template-columns: 1.1fr 1fr; gap: 0 14px; }
     #hbPane .paper .pcol + .pcol { border-left: 2px solid var(--pi); padding-left: 14px; }
     #hbPane .paper .pnews { padding-bottom: 8px; margin-bottom: 8px; border-bottom: 2px solid var(--pi); } #hbPane .paper .pnews:last-child { border-bottom: 0; margin-bottom: 0; padding-bottom: 0; }
@@ -346,9 +346,9 @@
     .gauge { display: inline-block; width: 80px; height: 8px; margin-left: 10px; background: var(--edge-navy); box-shadow: 0 0 0 2px #2a2040; vertical-align: 1px; } .gauge i { display: block; height: 100%; background: #ffb43a; }
     .kits { display: inline-flex; gap: 4px; margin-left: 6px; vertical-align: 1px; } .kits i { width: 10px; height: 10px; background: #2a2040; box-shadow: 0 0 0 2px var(--edge-navy); display: block; } .kits i.on { background: var(--paper); }
     @media (max-width: 640px) { .upc { grid-template-columns: 40px 1fr; } .upc .upbuy { grid-column: 1 / -1; flex-direction: row; justify-content: flex-end; } .upc .upi { width: 36px; height: 36px; } }
-    .sec { font-weight: 700; color: var(--gold); font-size: 13px; margin: 8px 0 2px; letter-spacing: .08em; }
+    .sec { font-weight: 700; color: var(--gold); margin: 8px 0 2px; letter-spacing: .08em; }
     .qrow { display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; padding: 6px 0; border-bottom: 1px solid #fff7d622; align-items: center; font-size: 13px; }
-    .qrow button { margin: 0; width: auto; padding: 5px 10px; font-size: 13px; grid-row: 1 / 3; grid-column: 2; }
+    .qrow button { margin: 0; width: auto; padding: 5px 10px; grid-row: 1 / 3; grid-column: 2; }
     .qrow small { opacity: .8; }
     #shWide { width: min(520px, 94vw); }
     .menu { min-width: min(420px, 92vw); max-width: 94vw; max-height: 92vh; overflow: auto; padding: 18px 20px; background: #1d1640; border: 4px solid #fff7d655; box-shadow: 6px 6px 0 rgba(0,0,0,.5); }
@@ -372,7 +372,7 @@
     .up .ds { font-size: 12px; opacity: .85; grid-column: 1; }
     .up button { grid-column: 2; grid-row: 1 / 3; width: 118px; margin: 0; padding: 8px 6px; font-size: 14px; }
     #harbour.dark .menu { border-color: var(--horror); }
-    #combatbox { position: absolute; right: 12px; top: 244px; width: 124px; font-size: 12px; text-align: center; }
+    #combatbox { position: absolute; right: 12px; top: 244px; width: 124px; text-align: center; }
     #combatbox .bar, #ebar .bar { height: 9px; background: #0007; border: 2px solid var(--edge); margin: 3px 0; }
     #combatbox .bar.thin { height: 5px; }
     #oilrow { display: flex; align-items: center; gap: 4px; margin-top: 2px; } #oilrow .bar { flex: 1; } #oilfill { background: #ffb43a !important; } #oilrow.low #oilfill { background: #ff6a4a !important; } #oilrow.low .ico.oil { animation: blink 1s steps(2) infinite; }
@@ -387,7 +387,7 @@
     #mate { cursor: pointer; }
     #mate .face { font-size: 34px; transition: transform .07s; display: inline-block; }
     #matemore { color: var(--gold); animation: blink .8s steps(2) infinite; align-self: flex-end; }
-    #mate .face { font-size: 34px; } #mate b { color: var(--gold); font-size: 12px; } #mate.dark { border-color: var(--horror); } #mate.dark b { color: #ff9ae0; }
+    #mate .face { font-size: 34px; } #mate b { color: var(--gold); } #mate.dark { border-color: var(--horror); } #mate.dark b { color: #ff9ae0; }
     #fishui { position: absolute; left: 50%; top: max(150px, 21%); transform: translateX(-50%); width: min(460px, 92vw); text-align: center; pointer-events: auto; touch-action: none; }
     #digui { position: absolute; left: 50%; bottom: 200px; transform: translateX(-50%); width: min(460px, 92vw); text-align: center; pointer-events: auto; touch-action: none; }
     #devbar { position: fixed; top: 6px; left: 50%; transform: translateX(-50%); z-index: var(--z-dev); display: flex; flex-wrap: wrap; justify-content: center; max-width: 96vw; gap: 6px; align-items: center; padding: 6px 10px; background: rgba(11, 7, 22, .88); box-shadow: 0 0 0 3px #3a3070; font: 16px DotGothic16, monospace; color: var(--paper); }
@@ -410,19 +410,19 @@
     #yardWide { width: min(560px, 94vw); }
     .yard { background: rgba(8, 6, 22, .25) !important; justify-content: flex-end !important; padding-right: 3vw; }
     .swatches { display: flex; flex-wrap: wrap; gap: 6px; padding: 4px 0 8px; }
-    .swatches button { width: auto; margin: 0; padding: 6px 10px; font-size: 13px; display: flex; align-items: center; gap: 6px; }
+    .swatches button { width: auto; margin: 0; padding: 6px 10px; display: flex; align-items: center; gap: 6px; }
     .swatches button.on { outline: 2px solid var(--gold); background: #4a38a0; }
     .swatches .dot { display: inline-block; width: 12px; height: 12px; border: 1px solid #fff8; }
     .yardgrp { font-weight: 700; margin-top: 6px; color: var(--gold); }
     .yardgrp small { color: var(--ink); opacity: .7; font-weight: 400; }
     /* low-poly icons: faceted shapes from conic gradients + clip-path */
-    #placeline { font-size: 13px; border-left-width: 6px; }
+    #placeline { border-left-width: 6px; }
     #farlabels { position: fixed; inset: 0; pointer-events: none; z-index: var(--z-modal); }
-    .farlabel { position: absolute; transform: translate(-50%, -100%); font: 12px 'Pixelify Sans', monospace; color: var(--paper); text-shadow: 2px 2px 0 #1a0f08; white-space: nowrap; letter-spacing: 1px; }
+    .farlabel { position: absolute; transform: translate(-50%, -100%); font: 12px var(--pxfont); color: var(--paper); text-shadow: 2px 2px 0 #1a0f08; white-space: nowrap; letter-spacing: 1px; }
     body.fogged #tracker, body.fogged #compass { filter: blur(2px) contrast(0.6); opacity: 0.55; transition: filter 3s, opacity 3s; }
-    #tracker { font-size: 13px; max-width: 280px; padding: 5px 9px; display: none; }
+    #tracker { max-width: 280px; padding: 5px 9px; display: none; }
     #tracker .trow { padding: 1px 0; } #tracker .trow.main { color: var(--gold); font-weight: 700; }
-    #tracker .thint { font-size: 10px; opacity: .55; text-align: right; }
+    #tracker .thint { opacity: .55; text-align: right; }
     /* full dread */
     #abyssTag { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); display: none; font-size: 12px; color: #ffb0ea; border-color: var(--horror); }
     #mate.glitch { animation: mglitch .22s steps(2) infinite; border-color: var(--horror); }
@@ -433,7 +433,7 @@
     #awaken.show { display: flex; }
     body.awakening #hud { opacity: 0; transition: opacity 1.5s; }
     #awaken.white { background: #fff6fc; }
-    #awaken p { margin: 0; font: italic 700 22px Georgia, serif; color: #ffd8f4; text-shadow: 0 0 12px #ff30c8, 2px 2px 0 #000; animation: awfade 2s ease-out; text-align: center; max-width: 80vw; }
+    #awaken p { margin: 0; font: 22px var(--pxfont); color: #ffd8f4; text-shadow: 0 0 12px #ff30c8, 2px 2px 0 #000; animation: awfade 2s ease-out; text-align: center; max-width: 80vw; }
     #awaken.white p { color: #3a2030; text-shadow: none; }
     #awaken p.big { font-size: 44px; letter-spacing: .2em; font-style: normal; }
     @keyframes awfade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; } }
@@ -446,17 +446,11 @@
     #pauseAbyss .abtog { min-width: 46px; opacity: .55; } #pauseAbyss .abtog.on { opacity: 1; color: #ff9ae0; }
     #pauseAbyss .menu, #pause .menu { max-width: min(620px, 94vw); }
     .ico { display: inline-block; width: 17px; height: 17px; vertical-align: -3px; margin-right: 6px; }
-    .ico.coin { background: conic-gradient(from 20deg, #ffe680, #d9a82a, #fff2a8, #c8981c, #ffe680, #e0b030); clip-path: polygon(50% 0, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%); }
-    .ico.flag { background: conic-gradient(from 30deg, #f0705a, #c03428, #e8503c, #a82a20); clip-path: polygon(14% 0, 26% 0, 26% 22%, 94% 44%, 26% 66%, 26% 100%, 14% 100%); }
-    .ico.sun { background: conic-gradient(#ffe36a, #f4b830, #ffe888, #eaa828, #ffe36a, #f4b830, #ffe888, #eaa828); clip-path: polygon(30% 0, 70% 0, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0 70%, 0 30%); }
     /* the tide, wordless (2026-11-13): a little glass of water beside the clock; its level is the tide, the notch shows which way it goes */
     .tidemark { display: inline-block; position: relative; width: 7px; height: 14px; margin-left: 7px; vertical-align: -2px; border: 1px solid rgba(232,224,200,0.55); background: rgba(0,0,0,0.25); }
     .tidemark > i { position: absolute; left: 0; right: 0; bottom: 0; background: #5aa8c8; }
     .tidemark::after { content: ''; position: absolute; left: 1px; width: 3px; height: 2px; background: #e8e0c8; }
     .tidemark.fall::after { bottom: -4px; } .tidemark.rise::after { top: -4px; }
-    .ico.moon { background: conic-gradient(#e8f0ff, #aebfe6, #f4f8ff, #98a9d4); clip-path: polygon(42% 0, 82% 14%, 56% 34%, 56% 66%, 82% 86%, 42% 100%, 10% 76%, 10% 24%); }
-    .ico.hull { background: conic-gradient(from 10deg, #e0584a, #a82a20, #f07a64, #b83a2c); clip-path: polygon(0 8%, 100% 8%, 100% 55%, 50% 100%, 0 55%); }
-    .ico.sail { background: conic-gradient(#f4ecd0, #cfc4a0, #fff4d8, #b8ac8a); clip-path: polygon(46% 0, 100% 82%, 46% 82%, 46% 100%, 54% 100%, 54% 86%, 0 86%, 46% 14%); }
     #hbWide { width: min(560px, 94vw); }
     #tP { position: fixed; top: 12px; left: 50%; margin-left: -24px; width: 48px; height: 40px; display: none; z-index: var(--z-hudtop); font: 700 16px monospace; color: var(--ink); background: var(--panel); border: 2px solid var(--edge); }
     @media (pointer: coarse) { #tP { display: block; } }
@@ -689,7 +683,7 @@
        Fonts: SIL Open Font License 1.1, bundled in public/fonts (from the @fontsource packages). */
     @font-face { font-family: "Jersey 10"; src: url("/fonts/jersey10.woff2") format("woff2"); font-display: swap; size-adjust: 125%; }   /* drawn on a 10px grid: with this, 16px text lands on 20 (two screen pixels per font pixel), 32px on 40 */
     /* the title face (Pirata One) for every heading and place name, and Jersey 10 as a chunkier text face, HUD included */
-    :root[data-uifont="b"] { --pxdisp: "Pirata One", Georgia, serif; --dS: 24px; --dM: 34px; --dL: 48px; --pxtext: "Jersey 10", "DotGothic16", monospace; --pxfont: "Jersey 10", "DotGothic16", monospace; }
+    :root[data-uifont="b"] { --pxdisp: "Pirata One", serif; --dS: 24px; --dM: 34px; --dL: 48px; --pxtext: "Jersey 10", "DotGothic16", monospace; --pxfont: "Jersey 10", "DotGothic16", monospace; }
     :root[data-uifont="b"] #chart .ribbons button em { font-family: "Jersey 10", "DotGothic16", monospace !important; }
     :root[data-uifont] #logBody h3, :root[data-uifont] .cs-title, :root[data-uifont] #mapCard b, :root[data-uifont] .menu h2, :root[data-uifont] .hbName,
     :root[data-uifont] #landho span, :root[data-uifont] #caveTitle b { font-family: var(--pxdisp) !important; letter-spacing: 0 !important; }

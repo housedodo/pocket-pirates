@@ -1360,5 +1360,10 @@ Trials for the owner to compare; nothing changes without a flag and STYLE.md is 
   box; it is 29 now. Local stacking inside the book, the tavern games and the HUD keeps plain numbers. (The audit's "toasts above the
   ending": the toasts are hidden during onboarding and sit at 8 otherwise, so it was Mara's box.) **Verified:** with the onboarding
   class held on and the ending shown, the point over Mara's box hits the ending now and hit her box before; the eleven screens'
-  computed styles are unchanged (the one difference again the gold's flash).
+  computed styles are unchanged (the one difference again the gold's flash).- Step 3, dead rules: the six gradient icons under the pixel ones (coin, flag, sun, moon, hull, sail: `.ico` forces `clip-path: none`
+  and the pixel image replaces them); every Georgia, Palatino and Pixelify Sans family (the interface font is forced with `!important`,
+  as are normal style and weight, so `italic 700 13px Georgia` was only ever its size); thirteen `font-size` declarations under 14 px
+  that are overridden wherever they appear. **Still under 14 px and live** (left, they change the look): `.windbox 13px`, `.cs-h 12px`, `.cs-row em 13px`, `.cs-line 13px`, `.cs-keys 12px`, `.upc .upnow 12px`, `.upc .upnext 13px`, `.upc .upopen 12px`. 23 more
+  rules under 14 px matched nothing on the eleven screens and were left. **Verified:** computed styles of the eleven screens unchanged
+  (one HUD name tag that shows for 7 seconds was present in one run only).
 
