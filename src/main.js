@@ -1382,7 +1382,7 @@ function frame() {
       $('hpfill').parentNode.style.display = 'none';
     }
   }
-  setText($('ammotxt'), `\u25cf ${state.ammo}`);
+  setText($('ammonum'), state.ammo);   // the number only: the ball is a pixel glyph, and the name tag nameMeter hangs on #ammotxt survives
   document.body.classList.toggle('nooil', !oilOn());
   if (oilOn() && rt.started && !rt.modal) nameOnce('oil', $('oilrow'), 'Lamp oil');
   { const f = state.oil / oilCap(state.upgrades); setWidth($('oilfill'), f * 100); $('oilrow').classList.toggle('low', f < 0.25); }

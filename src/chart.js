@@ -39,7 +39,7 @@ export function renderChart(lb) {
   lb.root.classList.add('mapmode');
   if (CHART_STYLE) lb.root.dataset.chartstyle = CHART_STYLE;
   lb.body.innerHTML = `<div class="chartgrid"><div class="mapwrap"><canvas id="mapCv"></canvas><canvas id="mapTxt"></canvas><div id="mapCard"></div>
-      <div class="mapctl"><button id="mz+">+</button><button id="mz-">&minus;</button><button id="mc" title="Centre on ship">&#9678;</button></div></div>
+      <div class="mapctl"><button id="mz+">+</button><button id="mz-">&minus;</button><button id="mc" title="Centre on ship"><i class="pxi target"></i></button></div></div>
       <aside class="chartside" id="chartSide"></aside></div>`;
   const cv = document.getElementById('mapCv'), wrap = cv.parentElement;
   lb.cv = cv; lb.c = cv.getContext('2d');

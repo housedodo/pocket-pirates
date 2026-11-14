@@ -1365,5 +1365,9 @@ Trials for the owner to compare; nothing changes without a flag and STYLE.md is 
   as are normal style and weight, so `italic 700 13px Georgia` was only ever its size); thirteen `font-size` declarations under 14 px
   that are overridden wherever they appear. **Still under 14 px and live** (left, they change the look): `.windbox 13px`, `.cs-h 12px`, `.cs-row em 13px`, `.cs-line 13px`, `.cs-keys 12px`, `.upc .upnow 12px`, `.upc .upnext 13px`, `.upc .upopen 12px`. 23 more
   rules under 14 px matched nothing on the eleven screens and were left. **Verified:** computed styles of the eleven screens unchanged
-  (one HUD name tag that shows for 7 seconds was present in one run only).
+  (one HUD name tag that shows for 7 seconds was present in one run only).- Step 4, glyphs: the shipyard's turn buttons (◄ ►), the touch pause button ("II"), the chart's centre button (◎) and the HUD's
+  cannonball count (●) use pixel glyphs; four light 7x7 glyphs were added to `pixelui.js` (`pause`, `tleft`, `tright`, `shot`) because
+  the dark ones do not read on navy buttons. The count is its own `<b>`, so the "Cannonballs" name tag that `nameMeter` hangs on the row
+  is no longer wiped every frame (it never showed before). No symbol characters remain in the interface; the block glyphs in
+  `src/abyss.js` (the deep's corrupted text) are left for the owner with task P1. **Verified:** screenshots of the four.
 
