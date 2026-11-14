@@ -1369,5 +1369,7 @@ Trials for the owner to compare; nothing changes without a flag and STYLE.md is 
   cannonball count (●) use pixel glyphs; four light 7x7 glyphs were added to `pixelui.js` (`pause`, `tleft`, `tright`, `shot`) because
   the dark ones do not read on navy buttons. The count is its own `<b>`, so the "Cannonballs" name tag that `nameMeter` hangs on the row
   is no longer wiped every frame (it never showed before). No symbol characters remain in the interface; the block glyphs in
-  `src/abyss.js` (the deep's corrupted text) are left for the owner with task P1. **Verified:** screenshots of the four.
+  `src/abyss.js` (the deep's corrupted text) are left for the owner with task P1. **Verified:** screenshots of the four.- Step 5, the chart: a name that would sit under the ship's marker (drawn last, over the lettering) steps just below its ring, or above
+  it near the bottom edge; "Harbour Tama" no longer reads "Harbo..ama". **Verified:** screenshot of the chart at Tama. `npm run smoke`
+  passes after all five steps. **Not verified:** feel and sound.
 

@@ -314,7 +314,13 @@ export function drawVariant(lb, key) {
     t.clearRect(0, 0, W, H); t.textAlign = 'center'; t.textBaseline = 'middle'; t.lineJoin = 'round';
     const write = (str, x, y, font, col, halo) => { t.font = font; if (halo) { t.lineWidth = 5; t.strokeStyle = halo; t.strokeText(str, Math.round(x), Math.round(y)); } t.fillStyle = col; t.fillText(str, Math.round(x), Math.round(y)); };
     const dfont = (px) => `400 ${px}px ${FONTS.disp}`, bfont = `400 ${FONTS.bpx}px ${FONTS.body}`;
-    for (const L of labels) write(L.t, L.x, L.y, L.big ? dfont(FONTS.dpx) : bfont, L.big ? T.txtRed : L.soft ? T.txtSoft : T.txt, T.halo || (L.gx !== undefined ? groundAt(L.gx, L.gy) : null));
+    // a name under the ship's marker steps just clear of its ring, below it (above it near the bottom edge): the marker is drawn last (P2)
+    const shx = X(ship.pos.x) * 2, shy = Z(ship.pos.z) * 2, RING = 28;
+    for (const L of labels) {
+      t.font = L.big ? dfont(FONTS.dpx) : bfont; const hw = t.measureText(L.t).width / 2 + 4, hh = (L.big ? FONTS.dpx : FONTS.bpx) / 2 + 2;
+      let y = L.y; if (Math.abs(L.x - shx) < hw + RING && Math.abs(y - shy) < hh + RING) y = shy + RING + hh < H - 8 ? shy + RING + hh : shy - RING - hh;
+      write(L.t, L.x, y, L.big ? dfont(FONTS.dpx) : bfont, L.big ? T.txtRed : L.soft ? T.txtSoft : T.txt, T.halo || (L.gx !== undefined ? groundAt(L.gx, L.gy) : null));
+    }
     // the cartouche: fit the name of the waters between its rules
     { let px = FONTS.dbig; t.font = dfont(px); while (px > 14 && t.measureText(waters).width > CW * 2 - 20) { px -= 2; t.font = dfont(px); }
       write(waters, (CX + CW / 2) * 2, (CY + 12) * 2, dfont(px), T.txt, null);
