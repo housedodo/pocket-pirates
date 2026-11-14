@@ -1329,3 +1329,13 @@ Trials for the owner to compare; nothing changes without a flag and STYLE.md is 
   bit off the Grey Tooth. Screenshots of the frame and of going ashore. `npm run smoke` passes. **Not verified:** how any of it feels at
   real speed (headless runs at about a tenth), and sound.
 
+## G2: everything obeys the light (2026-11-14, task G2 of the guide)
+- The wind wisps, the wake and the gust foam move to `psxMaterial`: they snap and darken with the light. The wisps (additive, so the fog
+  cannot colour them) fade out as the fog closes in, from the frame's own fog range. Mist, the Halved Isle's fog bank and the clouds
+  move to `psxMaterial` for the snap but cancel the light, because their colour already comes from the fog or the sky of the hour.
+- The sky dome is seven flat bands with an ordered-dither seam; the sun, its corona and the moon have eight sides. STYLE 4 has the rule.
+- **Verified:** `npx vite build`; `npm run smoke` passes; before-and-after screenshots at day, dusk, night, the fog wall by day and by
+  night, and dread 0.6: at night and in the night fog the wisps no longer streak across the dark, day and dusk are unchanged in
+  character; the sky, looked at with the camera tilted up, shows bands with dithered seams at day and dusk. **Not verified:** the
+  Halved Isle's bank and island mist up close (not screenshotted), feel and sound.
+

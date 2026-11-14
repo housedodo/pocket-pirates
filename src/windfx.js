@@ -1,5 +1,6 @@
 import * as THREE from 'three';
-import { mulberry32 } from './util.js';
+import { mulberry32, smoothstep } from './util.js';
+import { psxMaterial } from './psx.js';
 
 // Wisps of air drifting downwind past the ship: a soft, in-world hint of the wind instead of a number on a gauge. Strength sets how many, how fast and how visible.
 // Each wisp is a few short broken dashes (chunky, never a thin straight line) laid along a lazy curve that wanders with the gusts; it fades in, drifts and fades out, then reappears elsewhere
@@ -17,7 +18,7 @@ export class WindFX {
     g.setAttribute('position', new THREE.BufferAttribute(this.pos, 3));
     g.setAttribute('color', new THREE.BufferAttribute(this.col, 3));
     g.setIndex(idx);
-    this.mat = new THREE.MeshBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.3, fog: false, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide });
+    this.mat = psxMaterial({ vertexColors: true, transparent: true, opacity: 0.3, fog: false, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, key: 'Wf' });   // snaps and dims with the light (G2)
     this.mesh = new THREE.Mesh(g, this.mat);
     this.mesh.frustumCulled = false; this.mesh.renderOrder = 4;
     scene.add(this.mesh);
@@ -32,10 +33,11 @@ export class WindFX {
     q.dl = Array.from({ length: K }, () => 0.6 + r() * 0.5); q.gap = Array.from({ length: K }, () => 0.02 + r() * 0.06);
     return q;
   }
-  update(dt, t, dir, strength, shipPos, night, rain) {
+  update(dt, t, dir, strength, shipPos, night, rain, fogNear = 1e4, fogFar = 2e4) {
     const wx = Math.sin(dir), wz = -Math.cos(dir), sx = -wz, sz = wx;
     const speed = 3 + strength * 7;
-    this.mat.opacity = Math.max(0, (0.16 + 0.24 * Math.min(1, strength)) * (1 - 0.6 * night) * (1 - rain));
+    const seen = 1 - smoothstep(fogNear, fogFar, 34);   // the wisps sit about 34 from the camera: in thick fog they go with everything else (an additive mesh cannot take the fog's colour)
+    this.mat.opacity = Math.max(0, (0.16 + 0.24 * Math.min(1, strength)) * (1 - 0.6 * night) * (1 - rain) * seen);
     this.mesh.visible = this.mat.opacity > 0.01;
     const P = this.pos, C = this.col;
     for (let i = 0; i < N; i++) {

@@ -83,6 +83,11 @@ purple and magenta cosmic horror as dread rises.
 ## 4. Colour and mood
 - The sea is low-poly and faceted: a fine wave mesh with small chop, light banded in ~6 steps by facing to the sun,
   deeper troughs and chunky foam flecks on the crests. It should never read as a flat plane.
+- **Everything obeys the light** (2026-11-14, task G2). Every mesh in the world uses `psxMaterial` (it snaps and darkens with `uLight`):
+  the wind wisps, the wake and the gust foam too, so at night they are never brighter than the foam. Additive things (the wisps) cannot
+  take the fog's colour, so they fade out as the fog closes in (`windfx.js`). Mist, the fog bank and the clouds already take their
+  colour from the fog or the sky of the hour; they snap and do not take the light twice. The sky dome is seven flat bands with an
+  ordered-dither seam between them, never a smooth gradient. The sun, its corona and the moon have eight sides.
 - **Title screen** (the one exception to the single UI font): the game is called **HOIST**. The logo is "Hoist" in
   Pirata One, bone white (`#f4ead0` to `#b8a47c`, dithered) with a dried-blood block shadow (`#5a1612` / `#1a0606`),
   drawn at low resolution and worn. The menu is the game's text face with a red pennant pointer. Behind it the Merry Gull bobs alone on open

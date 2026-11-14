@@ -5,6 +5,7 @@ import * as THREE from 'three';
 import { LANDMARKS, LM, BARRIERS, lmHere } from './landmarks.js';
 const C_WHITE = new THREE.Color('#ffffff'), _lv = new THREE.Vector3();   // made once: these run every frame (task R6)
 import { clamp, smoothstep } from './util.js';
+import { psxMaterial } from './psx.js';
 import { tableOpen } from './clues.js';
 
 // what you find ashore. once: the first visit; again: later visits (null = nothing more to take); every: days between repeat gifts
@@ -118,7 +119,7 @@ export class Places {
     this.toastT = {};
     // the fog bank: a lumpy white dome you can see from a long way off
     const b = LM.broken, R = BARRIERS.broken.R;
-    this.fogMat = new THREE.MeshBasicMaterial({ color: '#dfe6e8', transparent: true, opacity: 0.5, depthWrite: false, side: THREE.DoubleSide, fog: false });
+    this.fogMat = psxMaterial({ color: '#dfe6e8', transparent: true, opacity: 0.5, depthWrite: false, side: THREE.DoubleSide, fog: false, key: 'Lc', fragmentColor: { head: '', body: 'diffuseColor.rgb /= max(uLight, 0.05);' } });   // snaps (G2); its colour follows the fog's, so the light is not applied twice
     this.fogGroup = new THREE.Group(); this.fogGroup.position.set(b.x, 0, b.z);
     const geo = new THREE.IcosahedronGeometry(1, 1);
     for (let i = 0; i < 9; i++) {

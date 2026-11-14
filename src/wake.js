@@ -3,6 +3,7 @@
 // speed. One Wake per ship (the player's and the traffic's). Flat quads riding the waves (the same waveHeight as the water).
 import * as THREE from 'three';
 import { waveHeight } from './ocean.js';
+import { psxMaterial } from './psx.js';
 
 const N = 48;          // trail points kept
 const LIFE = 4.2;      // seconds a point lives
@@ -20,7 +21,7 @@ export class Wake {
     g.setAttribute('position', new THREE.BufferAttribute(this.pos, 3));
     g.setAttribute('color', new THREE.BufferAttribute(this.col, 4));
     g.setIndex(idx);
-    this.mesh = new THREE.Mesh(g, new THREE.MeshBasicMaterial({ vertexColors: true, transparent: true, depthWrite: false, side: THREE.DoubleSide }));
+    this.mesh = new THREE.Mesh(g, psxMaterial({ vertexColors: true, transparent: true, depthWrite: false, side: THREE.DoubleSide, key: 'Wv' }));   // snaps and darkens at night (G2)
     this.mesh.frustumCulled = false; this.mesh.renderOrder = 3;
     scene.add(this.mesh);
   }

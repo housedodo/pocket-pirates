@@ -6,7 +6,7 @@
 import * as THREE from 'three';
 import { mulberry32, clamp, smoothstep } from './util.js';
 import { waveHeight } from './ocean.js';
-import { U } from './psx.js';
+import { U, psxMaterial } from './psx.js';
 
 // three lanes, all well inside the fog: Tama to the Grey Tooth, Velto to Hollowgreen, and the Reef Road out to Glass Lagoon.
 // (There were seven, plus a ring round Tama: too many, and one ran into the fog and trapped the ship.) A current fades out
@@ -61,7 +61,7 @@ export class SeaPlay {
     const idx = []; for (let i = 0; i < n; i++) { const b = i * 4; idx.push(b, b + 1, b + 2, b, b + 2, b + 3); }
     const g = new THREE.BufferGeometry();
     g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('color', new THREE.BufferAttribute(col, 4)); g.setIndex(idx);
-    const m = new THREE.Mesh(g, new THREE.MeshBasicMaterial({ vertexColors: true, transparent: true, depthWrite: false, blending, side: THREE.DoubleSide }));
+    const m = new THREE.Mesh(g, psxMaterial({ vertexColors: true, transparent: true, depthWrite: false, blending, side: THREE.DoubleSide, key: 'Gf' }));   // snaps and darkens at night (G2)
     m.frustumCulled = false; m.renderOrder = 3;
     return m;
   }

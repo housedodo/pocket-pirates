@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { mulberry32, smoothstep, lerp } from './util.js';
-import { U } from './psx.js';
+import { U, psxMaterial } from './psx.js';
 const C_SUN_NIGHT = new THREE.Color(0.3, 0.38, 0.7), C_SUN_DREAD = new THREE.Color(1, 0.4, 0.85);   // made once (task R6)
 
 const R = 900;
@@ -14,7 +14,8 @@ export class Sky {
     this.domeMat = new THREE.ShaderMaterial({
       uniforms: { uTop: { value: new THREE.Color() }, uHorizon: { value: new THREE.Color() } },
       vertexShader: 'varying float vY; void main(){ vY = normalize(position).y; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }',
-      fragmentShader: 'uniform vec3 uTop; uniform vec3 uHorizon; varying float vY; void main(){ float t = pow(clamp(vY,0.0,1.0), 0.5); gl_FragColor = vec4(mix(uHorizon, uTop, t), 1.0); }',
+      // seven bands with an ordered-dither seam between them (STYLE 2: no smooth gradients; G2)
+      fragmentShader: 'uniform vec3 uTop; uniform vec3 uHorizon; varying float vY; float b2(vec2 a){ return fract(dot(a, vec2(0.5, a.y * 0.75))); } float b4(vec2 a){ a = floor(a); return b2(floor(0.5 * a)) * 0.25 + b2(a); } void main(){ float t = pow(clamp(vY,0.0,1.0), 0.5); float b = floor(t * 7.0 + (b4(gl_FragCoord.xy) - 0.5) * 0.4 + 0.5) / 7.0; gl_FragColor = vec4(mix(uHorizon, uTop, clamp(b, 0.0, 1.0)), 1.0); }',
       side: THREE.BackSide, depthWrite: false, depthTest: false, fog: false,
     });
     const dome = new THREE.Mesh(new THREE.SphereGeometry(R, 14, 8), this.domeMat);
@@ -24,10 +25,10 @@ export class Sky {
 
     // sun / black sun with corona
     this.sunMat = new THREE.MeshBasicMaterial({ color: 0xffffff, fog: false, depthWrite: false, depthTest: false });
-    this.sun = new THREE.Mesh(new THREE.CircleGeometry(40, 16), this.sunMat);
+    this.sun = new THREE.Mesh(new THREE.CircleGeometry(40, 8), this.sunMat);   // eight sides, like everything else (G2)
     this.sun.renderOrder = -20;
     this.coronaMat = new THREE.MeshBasicMaterial({ color: 0xff70d0, fog: false, depthWrite: false, depthTest: false, transparent: true, opacity: 0 });
-    this.corona = new THREE.Mesh(new THREE.RingGeometry(46, 66, 20), this.coronaMat);
+    this.corona = new THREE.Mesh(new THREE.RingGeometry(46, 66, 8), this.coronaMat);
     this.corona.renderOrder = -21;
     this.sunHolder = new THREE.Group();
     this.sunHolder.add(this.corona, this.sun);
@@ -75,7 +76,7 @@ export class Sky {
 
     // moon
     this.moonMat = new THREE.MeshBasicMaterial({ color: 0xdfe8ff, fog: false, depthWrite: false, depthTest: false });
-    this.moon = new THREE.Mesh(new THREE.CircleGeometry(26, 14), this.moonMat);
+    this.moon = new THREE.Mesh(new THREE.CircleGeometry(26, 8), this.moonMat);
     this.moon.renderOrder = -20;
     this.group.add(this.moon);
 
@@ -89,7 +90,7 @@ export class Sky {
       for (let k = 0; k < 3; k++) cols.set([v, v, v], (i + k) * 3);
     }
     ico.setAttribute('color', new THREE.BufferAttribute(cols, 3));
-    this.cloudMat = new THREE.MeshBasicMaterial({ vertexColors: true, fog: true });
+    this.cloudMat = psxMaterial({ vertexColors: true, fog: true, key: 'Lc', fragmentColor: { head: '', body: 'diffuseColor.rgb /= max(uLight, 0.05);' } });   // snaps (G2); stage.cloud already darkens them at night
     this.clouds = [];
     for (let i = 0; i < 16; i++) {
       const g = new THREE.Group();

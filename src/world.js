@@ -5,7 +5,7 @@ import { regionDecor } from './regiondecor.js';
 import * as THREE from 'three';
 import { Builder, darken } from './builder.js';
 import { TILE } from './textures.js';
-import { mats } from './psx.js';
+import { mats, psxMaterial } from './psx.js';
 import { hash2, mulberry32, fbm, clamp, angleDiff, smoothstep } from './util.js';
 import { dreadAtDistance } from './palette.js';
 import { makeName, makePuzzle } from './lore.js';
@@ -1537,7 +1537,7 @@ const LAYER_RULES = {
   grow1: (i) => (i.growth || 0) >= 1, grow2: (i) => (i.growth || 0) >= 2, grow3: (i) => (i.growth || 0) >= 3,
 };
 /** the sea mist's colour: main.js sets it to the fog colour each frame */
-export const mistMat = new THREE.MeshBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.22, depthWrite: false, side: THREE.DoubleSide });
+export const mistMat = psxMaterial({ vertexColors: true, transparent: true, opacity: 0.22, depthWrite: false, side: THREE.DoubleSide, key: 'Lc', fragmentColor: { head: '', body: 'diffuseColor.rgb /= max(uLight, 0.05);' } });   // snaps (G2); its colour is the fog's, already dark at night, so the light is not applied twice
 export class Island {
   constructor(d, dug) {
     this.desc = d;
