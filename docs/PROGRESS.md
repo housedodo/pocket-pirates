@@ -1349,3 +1349,11 @@ Trials for the owner to compare; nothing changes without a flag and STYLE.md is 
   no wobble or colour split (it has both with it on); a browser context with reduced motion starts with all three Off. `npm run smoke`
   passes. **Not verified:** lightning in a real storm, feel and sound.
 
+## P2: one set of interface tokens (2026-11-14, task P2 of the guide, in steps)
+- Step 1, tokens: the first `:root` in `index.html` defines `--gold`, `--gold-dim`, `--paper`, `--ink-dark`, `--horror` and
+  `--edge-navy`, and all 139 literals of those six colours in the CSS now read the token (`#ffd23a` alone was written 53 times).
+  `--ink` already existed as the cream text colour and is kept; the brown ink is `--ink-dark` (the guide is corrected).
+  **Verified:** computed styles of every visible element on eleven screens (HUD, the harbour's four posts, the log's three pages, pause,
+  shipyard, the Table) before and after: 1,312 elements, the only difference the HUD gold caught mid-flash (G1's count-up), plus the
+  screenshots.
+
