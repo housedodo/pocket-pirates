@@ -1,28 +1,28 @@
 // The interface opens up with the story. At the start only what the current quest needs can be clicked; every other sign,
-// button and log tab is greyed out and only answers with a short line, and each opens when the quest that first needs it comes up (the number
-// is the index of that main goal in MAIN_GOALS, i.e. how many main goals are done). Once every main goal is done, all is open.
+// button and log tab is greyed out and only answers with a short line, and each opens when the quest that first needs it comes up (the id
+// of that main goal in MAIN_GOALS: it opens once the chain reaches that goal). Once every main goal is done, all is open.
 // Story moments (a letter, a line on the pier, a pet, the grey buyer) are never locked: they only appear when they matter.
-import { MAIN_GOALS } from './objectives.js';
+import { MAIN_GOALS, goalIdx } from './objectives.js';
 import { isKnown } from './clues.js';
 
 const GATE = {
   // harbour signs
-  tab: { board: 0, wright: 3, market: 4, tavern: 9, sail: 0 },
+  tab: { board: 'sail', wright: 'upgrade', market: 'calm', tavern: 'tavern', sail: 'sail' },
   // harbour buttons, by id
   btn: {
-    jobAccept: 6, doDeliver: 6, doDropoff: 6,     // deliveries: "Odd jobs"
-    takePass: 7,                                   // passengers
-    sellFish: 4, sellFruit: 4, askFish: 8,         // the market: fish from "Dead calm" on; the fishers talk once you chart
-    buyChart: 8,                                   // charts with "Chart 8 islands"
-    hireHand: 9, playPig: 9, haggle: 9,            // the tavern and haggling (chapter III)
-    rumourBuy: 10, buyAmmo: 9,                     // rumours with Perrin's note; cannonballs once cannons are yours
-    restBed: 9,                                    // a bed for the night, with the tavern
-    openYard: 7,                                   // paint and figureheads a little after the first upgrade
+    jobAccept: 'job', doDeliver: 'job', doDropoff: 'job',      // deliveries: "Earn your keep"
+    takePass: 'passenger',                                     // passengers
+    sellFish: 'calm', sellFruit: 'calm', askFish: 'chart',     // the market: fish from "Dead calm" on; the fishers talk once you chart
+    buyChart: 'chart',                                         // charts with "Chart the sea"
+    hireHand: 'tavern', playPig: 'tavern', haggle: 'tavern',   // the tavern and haggling (chapter III)
+    rumourBuy: 'perrin', buyAmmo: 'tavern',                    // rumours with Perrin's note; cannonballs once cannons are yours
+    restBed: 'tavern',                                         // a bed for the night, with the tavern
+    openYard: 'passenger',                                     // paint and figureheads a little after the first upgrade
   },
   // harbour buttons, by data attribute (commissions)
-  data: { accept: 9, hand: 9, dismiss: 9 },   // commissions open with the tavern chapter (Odd jobs is an optional goal now)
+  data: { accept: 'tavern', hand: 'tavern', dismiss: 'tavern' },   // commissions open with the tavern chapter (Odd jobs is an optional goal now)
   // captain's log tabs
-  log: { map: 0, goals: 0, journal: 2, riddles: 2, ship: 3, quests: 6, standing: 6 },
+  log: { map: 'sail', goals: 'sail', journal: 'dig', riddles: 'dig', ship: 'upgrade', quests: 'job', standing: 'job' },
 };
 
 /** is this part of the interface open yet? kind: 'tab' | 'btn' | 'data' | 'log', or 'know': a capability the captain has SEEN the
@@ -32,7 +32,7 @@ export function isOpen(state, kind, key) {
   const n = GATE[kind] && GATE[kind][key];
   if (n == null) return true;
   const i = (state.goals && state.goals.i) || 0;
-  return i >= n || i >= MAIN_GOALS.length;
+  return i >= goalIdx(n) || i >= MAIN_GOALS.length;
 }
 
 // a locked control stays readable and still takes a click, so main.js can answer it with one line (it never runs its own handler)

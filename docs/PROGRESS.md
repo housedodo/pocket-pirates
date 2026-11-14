@@ -1242,3 +1242,12 @@ Trials for the owner to compare; nothing changes without a flag and STYLE.md is 
 - **Verified:** `npx vite build`; in node, `stageOf` and the old formula and `sampleStage(d).index` agree at 0, 0.2, 0.39, 0.4, 0.8 and 1
   (0, 1, 1, 2, 4, 4). **Not verified:** a run (no behaviour change intended), feel and sound.
 
+## R4: goals by name (2026-11-14, task R4 of the guide)
+- `goalIdx(id)` and `goalReached(state, id)` in `src/objectives.js`. Every bare goal number outside it is now an id: `GATE` in
+  `gates.js` (harbour posts, buttons, commissions, log tabs), `OIL_FROM = 'calm'`, `onbAll`/`onbQuiet`/`laterOK` and the first
+  harbour visit in `main.js`, the first jobs' reach and the fragments in `ui/harbour.js`, the treasure cross in `chartstyles.js`, and
+  the slow early goals in `objectives.js`. No goal moved, so no migration. RULES 30 now says so (and that the migration is in `core/state.js`).
+- **Verified:** `npx vite build`; in node the old and new `isOpen` agree for every key at every goal 0 to 21 (682 checks); each
+  replaced number equals `goalIdx` of its id; a mistyped id throws. Headless (full and demo): stepping `goals.i` 0 to 21 at Tama, the
+  locked harbour posts go 3, 3, 3, 2, 1 ... and none from goal 9 on, as before; no console errors. **Not verified:** feel and sound.
+

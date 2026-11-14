@@ -9,7 +9,7 @@ import { isKnown } from '../clues.js';
 import { BOUNTY, lampBurnMul, lampDead, regionAt } from '../regions.js';
 import { nightKey } from './calendar.js';
 import { maraRemembers } from '../table.js';
-import { gateRadius } from '../objectives.js';
+import { gateRadius, goalReached } from '../objectives.js';
 import { tod } from '../daynight.js';
 import { LM } from '../landmarks.js';
 import { OIL_FROM, oilCap, oilRate, lanternLit, OIL_PRICE } from '../oil.js';
@@ -244,7 +244,7 @@ export function initStoryBeats() {
   // gusts, currents and the barriers round the hand-made places (seaplay.js, places.js)
   rt.laneShown = null;
   // lamp oil (oil.js): burns while the lantern is lit; empty at night = a dark lantern and a short view
-  oilOn = () => state.goals.i >= OIL_FROM || !!params.get('nomate');
+  oilOn = () => goalReached(state, OIL_FROM) || !!params.get('nomate');
   rt.lampOut = false, rt.oilNight = -1;
   // torn sails: too much canvas in a strong wind for too long and the mainsail rips (two thirds speed, ship.torn) until a patch
   // kit is used at sea (stop, E) or a harbour's sailmaker mends it. Counts from the same chapter as the oil.

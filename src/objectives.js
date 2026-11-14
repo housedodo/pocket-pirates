@@ -233,6 +233,15 @@ export const MAIN_GOALS = [
 /** a goal that is a count shows how far along it is, next to its name: " (3/8)" */
 export const goalCount = (g, c) => { if (!g.count) return ''; const [have, need] = g.count(c); return ` <b>(${Math.min(have, need)}/${need})</b>`; };
 export const goalText = (g, c) => (typeof g.text === 'function' ? g.text(c) : g.text);
+/** a main goal's place in the chain, by its id (throws on a typo, so a renamed goal fails loudly instead of opening at 0) */
+let GOAL_IDX = null;
+export function goalIdx(id) {
+  if (!GOAL_IDX) GOAL_IDX = Object.fromEntries(MAIN_GOALS.map((g, i) => [g.id, i]));
+  const i = GOAL_IDX[id]; if (i === undefined) throw new Error(`no main goal '${id}'`);
+  return i;
+}
+/** has the chain reached this goal (it is the current goal, or already done)? The one way to ask "how far along" outside this file */
+export const goalReached = (state, id) => ((state.goals && state.goals.i) || 0) >= goalIdx(id);
 export const chapterOf = (state) => { const g = MAIN_GOALS[state.goals.i]; return g ? g.ch : CHAPTERS.length; };
 export const unlocked = (state, key) => chapterOf(state) >= UNLOCK[key];
 /** The strata gates (docs/WORLD_REDESIGN.md 5.3): what stops you is the ship and the sea, never the script. Each stratum edge is
@@ -469,7 +478,7 @@ export class Objectives {
       if (cur.onDone) cur.onDone(c);
       g.i++; this.hintI = 0; this.stall = 0;
       const next = this.current;
-      if (next) { this.pending = next; this.gap = g.i < 7 ? 8 : 5;   // early goals come slowly: time to take it in
+      if (next) { this.pending = next; this.gap = g.i < goalIdx('passenger') ? 8 : 5;   // early goals come slowly: time to take it in
          this.newCh = next.ch !== cur.ch; if (next.onStart) next.onStart(this.d); }
       if (this.d.onStep) this.d.onStep(cur, next);
     }

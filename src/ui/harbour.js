@@ -7,7 +7,7 @@ import { Companion } from '../companion.js';
 import { makeJob, findRumour, repOf, friendLevel, discount, bearingName, RUMOUR_COST, commissionsFor, questProgress, questNeed, questTitle, questIcon, FRUITS, fruitName, plural } from '../jobs.js';
 import { makePassenger } from '../passengers.js';
 import { sectorAt } from '../sectors.js';
-import { unlocked } from '../objectives.js';
+import { unlocked, goalReached } from '../objectives.js';
 import { pxi } from '../pixelui.js';
 import { UPGRADES, MAX_LEVEL, UP_CARD } from '../upgrades.js';
 import { TRAITS, crewForHire, rollCheck } from '../tabletop.js';
@@ -103,7 +103,7 @@ export function renderHarbour() {
       html += `<div class="sec">THIS WEEK</div><small>${life.eventLine(d, state)}: ${life.gameOf(d).name} in the tavern pays double.</small>`;
     }
     html += '<div class="sec">DELIVERY</div>';
-    const j = state.job || makeJob(G.world, d, state.serial[d.id] || 0, state.goals.i <= 8 ? 420 : 750);   // the first jobs stay close
+    const j = state.job || makeJob(G.world, d, state.serial[d.id] || 0, !goalReached(state, 'tavern') ? 420 : 750);   // the first jobs stay close
     if (state.job && state.job.toId === d.id) html += '<small>Deliver the one above first.</small>';
     else if (state.job) html += `<div class="qrow"><div><b>${pxi('letter')} ${state.job.item}</b><br><small>to ${state.job.toName} · ${bearingName(state.job.x - d.x, state.job.z - d.z)}</small></div><small>${state.job.reward}g</small></div>`;
     else if (j && j.timed) {   // the Crown keeps time: a deadline, two prices, and the shared book of arrivals (regions.js)
@@ -249,7 +249,7 @@ export function renderHarbour() {
       html += `<div class="sec">THE HOUSE DISH</div><div class="qrow"><div><b>${pxi('fish')} ${dish.name}</b><br><small>${dish.text}, until the dawn after next${cur ? ` · you have eaten: ${Object.values(life.DISHES).find((x) => x.id === cur).name}` : ''}</small></div><button id="eatDish" ${state.gold >= dc && cur !== dish.id ? '' : 'disabled'}>${cur === dish.id ? 'Full' : `${dc}g`}</button></div>`;
       const gm = life.gameOf(d), played = life.playedToday(state, d), ev = life.isEvent(d, state);
       html += `<div class="sec">${ev ? gm.event.toUpperCase() + ' (TODAY)' : 'THE LOCAL GAME'}</div><div class="qrow"><div><b>${pxi('pip')} ${gm.name}</b><br><small>${played ? 'you have played here today' : `${gm.how} · stake 5g · ${ev ? 'double prizes today' : `double on ${life.WEEKDAYS[d.festival]}`}`}</small></div><button id="playLocal" ${!played && state.gold >= 5 ? '' : 'disabled'}>Play</button></div>`;
-      const fr = life.fragmentAt(state, d, state.goals.i >= 12 && !!state.story.hutKnown);   // RULES 6: nothing about her before the hut is known
+      const fr = life.fragmentAt(state, d, goalReached(state, 'riddle2') && !!state.story.hutKnown);   // RULES 6: nothing about her before the hut is known
       if (fr && !fr.locked) html += `<div class="sec">AN OLD STORY</div><div class="qrow letter"><div><b>${pxi('talk')} ${fr.src}</b><br><small>the locals know you now</small></div><button id="takeFrag">Listen</button></div>`;
     }
     { // rooms are let from 17:00, you wake at 06:00 with the hull mended

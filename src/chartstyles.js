@@ -10,6 +10,7 @@ import { hash2 } from './util.js';
 import { LANES } from './seaplay.js';
 import { LM } from './landmarks.js';
 import { isKnown } from './clues.js';
+import { goalReached } from './objectives.js';
 
 export const CHART_STYLE = 'a';   // the key the drawing code branches on; 'b' and 'c' were the trials not taken
 export const UI_FONT = null;   // the Pirata One / Jersey 10 pairing (data-uifont="b", CSS in index.html) is switched off for now: it overlapped in the HUD and the log
@@ -249,7 +250,7 @@ export function drawVariant(lb, key) {
   for (const o of isl) {
     const d = o.d, ix = o.px, iz = o.pz, rpx = Math.max(5, shoreR(d, Math.PI / 2) * k2), rl = Math.max(5, shoreR(d, Math.PI) * k2);
     if (d.type === 'harbour' && show.harbour) spr('anchor', ix - rl - 8, iz + 2, INK, groundAt(ix - rl - 8, iz + 2));
-    if (d.type === 'treasure' && !state.dug.has(d.id) && show.treasure && state.goals && state.goals.i >= 2) spr('cross', ix + rpx + 5, iz - rpx - 3, RED, groundAt(ix + rpx + 5, iz - rpx - 3));
+    if (d.type === 'treasure' && !state.dug.has(d.id) && show.treasure && goalReached(state, 'dig')) spr('cross', ix + rpx + 5, iz - rpx - 3, RED, groundAt(ix + rpx + 5, iz - rpx - 3));
     if (d.type === 'harbour' && hasLighthouse(d) && sc >= 0.55) { const lx = ix + Math.max(5, shoreR(d, 0) * k2) + 4; spr('light', lx, iz - 4, INK, groundAt(lx, iz - 4)); dot(lx - 0.5, iz - 7, GOLD === INK ? RED : GOLD); }
     if (d.hut && state.story && state.story.hutKnown) { const hx = Math.round(ix + 3), hz = Math.round(iz - 3); c.fillStyle = '#120c0e'; c.fillRect(hx - 4, hz - 2, 8, 6); for (let k = 0; k < 7; k++) c.fillRect(hx - 6 + k, hz - 3 - k, 13 - Math.round(k * 1.9), 1); c.fillRect(hx + 2, hz - 10, 3, 1); c.fillStyle = '#c030a0'; c.fillRect(hx + 1, hz, 2, 2); }
     const big = d.type === 'harbour';

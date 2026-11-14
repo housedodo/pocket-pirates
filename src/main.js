@@ -43,7 +43,7 @@ import './sectors.js';
 import { markSeen, isKnown, levels as clueLevels, d3Open, tableOpen } from './clues.js';
 import { tableOptions, finalThrow, ENDINGS, EPILOGUE } from './table.js';
 import { paintStill } from './cavescene.js';
-import { Objectives, MUSINGS, MAIN_GOALS, unlocked, gateRadius, chapterOf, goalText } from './objectives.js';
+import { Objectives, MUSINGS, MAIN_GOALS, unlocked, gateRadius, chapterOf, goalText, goalReached } from './objectives.js';
 import './customize.js';
 import { Wind } from './wind.js';
 import { WindFX } from './windfx.js';
@@ -432,8 +432,8 @@ const keys = new Set();
 // ---- a quiet start: the HUD and Mara's explanations arrive one at a time, each when the player has done the last thing.
 // (Finished tutorials, old saves and test runs show everything at once.)
 const ONB_KEYS = { gold: 'gold', clock: 'clock', place: 'placeline', wind: 'compass', sail: 'sailbar', hull: 'combatbox' };
-const onbAll = () => params.get('nomate') || state.story.onbAll || (state.goals.started && state.goals.i >= 3);
-const onbQuiet = () => !onbAll() && state.goals.i < 2;   // no discovery toasts or "land ho" while the first goals are going
+const onbAll = () => params.get('nomate') || state.story.onbAll || (state.goals.started && goalReached(state, 'upgrade'));
+const onbQuiet = () => !onbAll() && !goalReached(state, 'dig');   // no discovery toasts or "land ho" while the first goals are going
 function onbShow(k) {
   const s = state.story.onb || (state.story.onb = {}); if (s[k]) return; s[k] = 1;
   const el = $(ONB_KEYS[k]); if (!el) return;
@@ -449,7 +449,7 @@ function nameMeter(el, text) {
   setTimeout(() => tag.remove(), 7000);
 }
 function nameOnce(key, el, text) { const s = state.story.named || (state.story.named = {}); if (s[key]) return; s[key] = 1; nameMeter(el, text); }
-const laterOK = () => !!params.get('nomate') || state.goals.i >= 9;   // Mara's chatter, dolphins, sightings, pets and the optional goals wait until the tavern chapter: before that she only talks about the quest in hand
+const laterOK = () => !!params.get('nomate') || goalReached(state, 'tavern');   // Mara's chatter, dolphins, sightings, pets and the optional goals wait until the tavern chapter: before that she only talks about the quest in hand
 rt.onbGold0 = null, rt.onbT0 = null, rt.onbStepT = 0, rt.onbNudged = false;
 function onbTick() {
   if (!rt.started) return;
@@ -822,7 +822,7 @@ function getInteract() {
   const hb = world.nearest(ship.pos.x, ship.pos.z, 38, ['harbour']);
   if (hb) {
     const d = hb.desc, dk = d.dock;
-    if (dk && Math.hypot(ship.pos.x - (d.x + dk.x), ship.pos.z - (d.z + dk.z)) < 22) return (!onbAll() && state.goals.i < 1) ? null : { kind: 'harbour', key: d.id, isl: hb };   // no "visit" at the very start: Mara sends you when it is time
+    if (dk && Math.hypot(ship.pos.x - (d.x + dk.x), ship.pos.z - (d.z + dk.z)) < 22) return (!onbAll() && !goalReached(state, 'harbour')) ? null : { kind: 'harbour', key: d.id, isl: hb };   // no "visit" at the very start: Mara sends you when it is time
     if (world.lastEdge < 16) return { kind: 'harbourfar', key: d.id, isl: hb };
   }
   const sc = secrets.near(ship.pos.x, ship.pos.z, state.collected); if (sc && !(sc.kind === 'camp' && state.story.secrets && state.story.secrets[sc.key + '@'] === state.dayN)) return { kind: 'secret', key: sc.key, sc };
