@@ -412,6 +412,8 @@ export class Ship {
       return;
     }
     this.rowIn = 0;
+    if (input.sail > 0 && !(this.sailIn > 0) && this.trim < 0.98) this.bulge = 0.4;   // sheeting in: the canvas fills with a brief bulge (G1)
+    this.sailIn = input.sail;
     this.trim = clamp(this.trim + input.sail * 0.6 * (this.trimMul || 1) * dt, 0, 1);
 
     // wind
@@ -488,7 +490,8 @@ export class Ship {
     const fill = (1 - 0.65 * luff) * (1 + 1.4 * ((this.gust || 1) - 1));
     this.sailBase = (this.sailBase ?? sgn) + (sgn * fill - (this.sailBase ?? sgn)) * Math.min(1, dt * 2.5);
     const flutter = luff * (Math.sin(t * 19) * 0.22 + Math.sin(t * 31 + 1.3) * 0.12);
-    this.sail.scale.x = this.sailBase + flutter;
+    if (this.bulge > 0) this.bulge = Math.max(0, this.bulge - dt);
+    this.sail.scale.x = (this.sailBase + flutter) * (1 + 0.25 * Math.sin(Math.PI * (this.bulge || 0) / 0.4));
     this.luff = luff;
     this.jibBase = (this.jibBase ?? sgn) + (sgn * (1 - 0.6 * (this.luff || 0)) - (this.jibBase ?? sgn)) * Math.min(1, dt * 2.5);   // the flutter used to be added every frame: paused, it grew without end
     this.jib.scale.x = this.jibBase + (this.luff || 0) * Math.sin(t * 23) * 0.18;

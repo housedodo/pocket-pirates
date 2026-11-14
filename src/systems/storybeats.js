@@ -197,7 +197,8 @@ export function tackTick(dt) {
 }
 export function hurtPlayer(dmg) {
   const d = Math.max(1, Math.round(dmg));
-  state.hp -= d; rt.lastHit = rt.tNow; rt.shake = 0.7; G.audio.play('hit');
+  state.hp -= d; rt.lastHit = rt.tNow; G.audio.play('hit');
+  rt.shake = Math.max(rt.shake, Math.min(1, 0.25 + d * 0.03)); rt.hitstop = Math.max(rt.hitstop || 0, 0.06 + Math.min(0.02, d * 0.001));   // weight by damage: 60 to 80 ms of stillness, a shake
   $('hit').classList.add('on'); setTimeout(() => $('hit').classList.remove('on'), 140);
   if (state.hp / G.ship.mods.maxHp < 0.35) G.objectives.remark('lowhp', rt.dread);
   if (state.hp <= 0) sinkPlayer();

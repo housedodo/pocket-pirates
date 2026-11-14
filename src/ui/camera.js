@@ -22,7 +22,9 @@ export function updateCamera(rawDt, live, ashore) {
   rt.camYaw += (rt.yawT - rt.camYaw) * Math.min(1, rawDt * 7);
   const ch = rt.camHeading + rt.camYaw;
   const fx = Math.sin(ch), fz = -Math.cos(ch);
-  const back = rt.zoom * Math.cos(pitchNow), up = rt.zoom * Math.sin(pitchNow);
+  if (rt.sightPull > 0) rt.sightPull = Math.max(0, rt.sightPull - rawDt);
+  const pull = 1 + 0.15 * Math.sin(Math.PI * (1 - (rt.sightPull || 0) / 2)) * (rt.sightPull > 0 ? 1 : 0);   // first sight of an island: out about 15% and back over two seconds
+  const back = rt.zoom * pull * Math.cos(pitchNow), up = rt.zoom * pull * Math.sin(pitchNow);
   // the camera rises and falls with the slow swell (not with every wave), so on a big swell the ship does not sit in a pit with the water walls above the lens
   rt.camSwell += ((G.ship.float && G.ship.float.y !== undefined ? clamp(G.ship.float.y, -4, 4) * 0.65 : 0) - rt.camSwell) * Math.min(1, rawDt * 1.1);
   camPos.set(G.ship.pos.x - fx * back, up + 1 + rt.camSwell, G.ship.pos.z - fz * back);

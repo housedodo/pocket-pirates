@@ -395,8 +395,10 @@
     #fishmark { position: absolute; top: 3px; width: 14px; height: 18px; margin-left: -7px; background: #ffd23a; border: 2px solid #000; border-radius: 50% 50% 50% 0; }
     #fishprogwrap { height: 8px; background: #0007; border: 2px solid var(--edge); } #fishprog { height: 100%; background: #ffd23a; width: 0; }
     #fishring { display: block; width: 240px; max-width: 70vw; aspect-ratio: 1; margin: 8px auto 0; image-rendering: pixelated; }
-    #hit { position: fixed; inset: 0; pointer-events: none; box-shadow: inset 0 0 120px 30px rgba(230, 40, 30, .0); transition: box-shadow .5s; z-index: 2; }
-    #hit.on { box-shadow: inset 0 0 120px 40px rgba(230, 40, 30, .65); transition: none; }
+    #hit { position: fixed; inset: 0; pointer-events: none; z-index: 2; }
+    #hit.on { box-shadow: inset 0 0 0 8px #c8402a, inset 0 0 0 16px rgba(200, 64, 42, .5), inset 0 0 0 24px rgba(200, 64, 42, .22); }   /* a hard stepped frame on the pixel grid: no blur, no fade (G1) */
+    #gold.pulse b { animation: goldpulse .36s steps(2) 1; }   /* gold changed: two hard flashes while the number counts (G1) */
+    @keyframes goldpulse { 0% { color: #fff4d8; } 100% { color: var(--gold); } }
     #fade { position: fixed; inset: 0; background: #000; opacity: 0; pointer-events: none; transition: opacity 1s; z-index: 6; } #fade.on { opacity: 1; }
     #yardWide { width: min(560px, 94vw); }
     .yard { background: rgba(8, 6, 22, .25) !important; justify-content: flex-end !important; padding-right: 3vw; }

@@ -88,7 +88,7 @@ import { renderHarbour, lettersAt, PETS, companions, petOffer, takePet, tabOpene
 import { HUT_NOTES, perrinNote, hutNod, revealHut, showDemoEnd, fogLost, WHITE_MIST, seamTick, clueTick, seaGate, seaTick, oilOn, freeCaysNow, oilTick, SAIL_LIMIT, sailTick, toggleLamp, buyOil, tackTick, hurtPlayer, onHitEnemy, initStoryBeats } from './systems/storybeats.js';
 import { getInteract, tryInteract, anchorTick } from './systems/interact.js';
 import { after, laterTick, laterPending } from './systems/later.js';
-import { trackTarget, etaText, slipInfo, drawCompass, updateTracker, initHud } from './ui/hud.js';
+import { trackTarget, goldShown, etaText, slipInfo, drawCompass, updateTracker, initHud } from './ui/hud.js';
 import { LOCALS, localGames, pig, maraMood, openCard, caveScene, COLOUR_DEEP, COLOUR_SHALLOW, openCave, tabletopTick, signOn, daysLeft, crewLeave, wishDone, initEncounters } from './ui/encounters.js';
 
 // G-REGISTRY START (generated): what main.js lends the modules under it, read at call time
@@ -372,7 +372,7 @@ const fishing = new Fishing(scene, ship, {
   onStrike: (k) => { if (k === 'miss') audio.playTone(196, { dur: 0.3, vol: 0.06 }); else audio.playTone(k === 'gold' ? 880 : 660, { dur: 0.35, vol: 0.07 }); },   // the bite ring: a soft note per strike
   onStart: () => audio.play('cast'),
   onSplash: () => { audio.play('splash', { vol: 0.4 }); toast('Line cast. Wait for a bite...', false, 2500); },
-  onBite: (f) => { toast(f.dark ? 'Something heavy takes the bait!' : 'A bite!', f.dark, 1500); audio.play('bite'); },
+  onBite: (f) => { toast(f.dark ? 'Something heavy takes the bait!' : 'A bite!', f.dark, 1500); audio.play('bite'); rt.shake = Math.max(rt.shake, 0.15); },
   onCatch: (f) => {
     f = abyss.wrongCatch(f);
     if (f.value && threads.fishBonus() > 1) f = { ...f, value: Math.round(f.value * threads.fishBonus()) };
@@ -733,7 +733,7 @@ rt.dread = rt.forced !== null ? rt.forced : dreadAtDistance(Math.hypot(ship.pos.
 rt.dark = rt.dread > DARK_THRESHOLD;
 rt.dig = null;     // { isl, t }
 rt.digFix = 0, rt.digFixWhy = '';   // after a failed probe: the tide is in, or the crew fetches the spare shovel, until this time
-const digGame = new DigGame({ sound: (k) => { if (k === 'rock') { audio.playTone(1180, { dur: 0.35, vol: 0.09 }); audio.playTone(1530, { dur: 0.25, vol: 0.05 }); } else if (k === 'found') { for (const [f, d] of [[523, 0], [659, 90], [784, 180]]) setTimeout(() => audio.playTone(f, { dur: 0.9, vol: 0.12 }), d); } else audio.play('dig', { vol: 0.35, rate: 1.15 }); } });
+const digGame = new DigGame({ sound: (k) => { if (k === 'rock') { rt.shake = Math.max(rt.shake, 0.12); audio.playTone(1180, { dur: 0.35, vol: 0.09 }); audio.playTone(1530, { dur: 0.25, vol: 0.05 }); } else if (k === 'found') { for (const [f, d] of [[523, 0], [659, 90], [784, 180]]) setTimeout(() => audio.playTone(f, { dur: 0.9, vol: 0.12 }), d); } else audio.play('dig', { vol: 0.35, rate: 1.15 }); } });
 rt.tNow = 0;
 rt.curSector = null;
 const sighted = new Set();
@@ -820,6 +820,7 @@ function landHo(d) {
   el.querySelector('span').textContent = d.name;
   el.querySelector('small').textContent = (d.lm && LM[d.lm].sight) || SIGHT_WORDS[d.type] || 'an island';
   el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
+  rt.sightPull = 2;   // the camera eases out a little to take it in (ui/camera.js)
   if (d.id !== '0,-1') objectives.remark(`sight_${d.type}`, rt.dread);
 }
 rt.placeShown = '', rt.lastSave = 0, rt.lastNear = null, rt.lastHour = Math.floor(state.time * 24);
@@ -1108,7 +1109,8 @@ function frame() {
   rt.lastTs = nowTs;
   if (rt.introT >= 0) { rt.introT += rawDt; if (rt.introT >= INTRO_DUR) endIntro(); }
   const live = rt.started && !rt.modal && rt.introT < 0;
-  const dt = live ? rawDt : 0;           // simulation time: frozen while a menu is open
+  const stop = rt.hitstop > 0; if (stop) rt.hitstop -= rawDt;   // hitstop: the world holds still for a blink after a hit (storybeats.js hurtPlayer)
+  const dt = live && !stop ? rawDt : 0;           // simulation time: frozen while a menu is open
   const ashore = rt.modal === 'harbour' || rt.modal === 'greet' || rt.modal === 'yard';
   const vdt = live || ashore || rt.titleScene ? rawDt : 0;  // ashore the world keeps moving (people, gulls, waves) while the clock stands still
   rt.tNow += dt; rt.animT += vdt;
@@ -1240,6 +1242,7 @@ function frame() {
   world.tick(rt.animT, tod);
   places.labelsTick(camera, ship, (state.upgrades.spyglass || 0), state.discovered, window.innerWidth, window.innerHeight, !onbQuiet() && !$('hud').classList.contains('hidden'), { fogFar: scene.fog.far, d3: d3Open(state) });   // far labels: ?, what it looks like, its name; fade with the fog
   ship.place(vdt, waveT, stage.wave, rt.dark, tod.night);
+  if (rt.anchorBit) { rt.anchorBit = false; fauna.splash(ship.pos.x + Math.sin(ship.heading) * 3.2, ship.pos.z - Math.cos(ship.heading) * 3.2, stage.wave, waveT, 1.1); }   // the anchor bites: a ring of foam at the bow
   secrets.update(vdt, waveT, { ship, time: state.time, dayN: state.dayN, tide: tideAt(), wave: stage.wave, light: Math.min(1, 0.25 + stage.light * 0.9), dread: rt.dread, collected: state.collected, windX: Math.sin(wind.dir), windZ: -Math.cos(wind.dir), heading: ship.heading, fogFar: scene.fog.far });
   shipWake.update(vdt, waveT, stage.wave, { pos: ship.pos, heading: ship.heading, speed: ship.rowing ? ship.speed * 0.6 : ship.speed, max: 11 }, Math.min(1, 0.25 + stage.light * 0.9));
   const lifeCtx = { light: Math.min(1, 0.25 + stage.light * 0.9), freeze: glimpse.k > 0.3 ? 0 : null, ship, dread: rt.dread, wave: stage.wave, audio, wind: windNow, stage, tod, faction: sec.faction.id, sched: { wd: weekday(), hour: state.time * 24, dayN: state.dayN, dread: rt.dread } };
@@ -1352,7 +1355,7 @@ function frame() {
   } else promptEl.style.display = 'none';
 
   // ---- HUD
-  setText(goldEl, abyss.hud('gold', String(state.gold)));
+  setText(goldEl, abyss.hud('gold', String(goldShown(rawDt))));
   setText($('clocktxt'), abyss.hud('clock', tod.clock));
   $('abyssTag').style.display = abyss.solo ? 'block' : 'none';
   if (abyss.solo) $('abyssTag').textContent = `Testing: ${EFFECTS.find((f) => f.id === abyss.solo).name}  \u00b7  0 = stop`;
@@ -1472,7 +1475,7 @@ window.__game = { secrets, regionWeights, tideAt: () => tideAt(), lostState: () 
     this._show = new THREE.Mesh(b.geometry(), mats.props); this._show.position.set(x, 0.4, z); scene.add(this._show);
     ship.pos.set(x + 15, 0, z + 2.5); ship.heading = Math.PI / 2; ship.speed = 0; ship.trim = 1;
   },
-  later: { after, pending: laterPending }, saveNow: () => saveNow(),   // test hooks   // test hook: story delays on the game's clock
+  later: { after, pending: laterPending }, saveNow: () => saveNow(), rt,   // test hooks   // test hook: story delays on the game's clock
   sectorAt: (x, z) => sectorAt(x, z, state.seed), traffic, abyss, hut, ship, world, state, begin, scene, camera, renderer, wind, weather, fauna, traffic, sea, audio, fishing, combat, objectives, hurtPlayer, openModal, closeModal, buyUpgrade, refreshMods,
 };
 rt.newVoyage = false;   // New voyage reloads straight into the game, no title in between

@@ -117,3 +117,19 @@ export function initHud() {
   trackerEl = $('tracker');
   rt.trackerHtml = null;
 }
+
+/** the gold on the HUD counts to the real amount in a few hard steps, and flashes twice when it moves (G1) */
+export function goldShown(dt) {
+  const to = state.gold;
+  if (rt.goldShown === undefined || !rt.started) { rt.goldShown = to; return to; }
+  if (rt.goldShown !== to) {
+    rt.goldStepT = (rt.goldStepT || 0) - dt;
+    if (rt.goldStepT <= 0) {
+      rt.goldStepT = 0.06;
+      const diff = to - rt.goldShown, step = Math.sign(diff) * Math.max(1, Math.ceil(Math.abs(diff) / 6));
+      rt.goldShown = Math.abs(step) >= Math.abs(diff) ? to : rt.goldShown + step;
+      const g = $('gold'); if (!g.classList.contains('pulse')) { g.classList.add('pulse'); setTimeout(() => g.classList.remove('pulse'), 380); }
+    }
+  }
+  return rt.goldShown;
+}

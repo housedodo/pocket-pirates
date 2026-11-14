@@ -187,6 +187,14 @@ purple and magenta cosmic horror as dread rises.
 
 - Things worth finding at sea (bottles) flash a small gold glint, never white (white reads as foam).
 
+- **Feedback stays on the pixel grid** (2026-11-14, task G1). A hit is a hard red frame in three 8 px steps (`#c8402a`, then the
+  same at half and at a fifth), on for 140 ms, no blur and no fade; the world holds still for 60 to 80 ms and the camera shakes by
+  the damage (0.25 + 0.03 per point, at most 1). Gold counts to the new amount in hard steps (one every 60 ms) and its number flashes
+  cream twice (`steps(2)`), never scales. The anchor biting dips the bow and throws a ring of foam at it. Sheeting in fills the sail
+  with a brief bulge (a quarter wider for 0.4 s). A bite or a struck stone gives a small shake (0.15, 0.12). The first sight of an
+  island eases the camera out about 15% and back over two seconds. Effects on 3D may ease; nothing made of pixels is eased or
+  scaled. No new sound comes with any of them (RULES 25).
+
 - **The Friday paper** (`src/newspaper.js`, `.paper` in index.html): newsprint cream with a faint 4 px grain, ink rules, a Pirata One masthead and headlines (24 / 34 / 48 px, headline case), the pixel text font for the body, a lead story with a drop cap, boxed weather and a dashed box for notices. It yellows, stains and the ink runs with dread (stages 2 to 4); it never shows anything but the paper.
 
 ## 6. The captain's log (book)

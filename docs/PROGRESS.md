@@ -1317,3 +1317,15 @@ Trials for the owner to compare; nothing changes without a flag and STYLE.md is 
   A scripted 30-day voyage (30 notes, 25 fish, 8 loot and 4 jobs a day) levels off: 7.4 KB on day 1, 50.7 KB on day 10, 62.6 KB on day
   20, 62.7 KB on day 30. `?seed=2` over a stored voyage writes nothing (byte-identical). **Not verified:** a real 30-day play; feel and sound.
 
+## G1: feedback that stays on the pixel grid (2026-11-14, task G1 of the guide)
+- A hit (`hurtPlayer`): a hard stepped red frame (three 8 px rings, no blur, no fade) for 140 ms, 60 to 80 ms of hitstop (the frame's
+  `dt` is held at 0), and a camera shake scaled by damage. Gold on the HUD counts to the new amount in hard steps and flashes twice
+  (`steps(2)`). The anchor biting dips the bow and throws a foam ring at it (`fauna.splash`). Sheeting in gives the sail a brief bulge.
+  A bite and a struck stone give a small shake. The first sight of an island eases the camera out about 15% for two seconds.
+- No new sound (RULES 25). STYLE 5 has the numbers. `window.__game.rt` is on the test hook now (state reads in tests).
+- **Verified** headless (state reads): the frame's computed shadow has 0 px blur; 20 damage gives shake 0.85 and an 80 ms stop, 5 damage
+  0.40 and 65 ms; +60 gold showed 17 steps from 5 to 65 with the pulse class on; bite 0.15, stone 0.12; camera distance 18 to 20.7 at
+  the middle of the pull; sail scale 1 to 1.25 when sheeting in; the bow's pitch velocity dropped and the foam was thrown when the anchor
+  bit off the Grey Tooth. Screenshots of the frame and of going ashore. `npm run smoke` passes. **Not verified:** how any of it feels at
+  real speed (headless runs at about a tenth), and sound.
+

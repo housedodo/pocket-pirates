@@ -68,7 +68,7 @@ export function anchorTick() {
   }
   G.ship.anchored = !!rt.heave || !!rt.dig || G.fishing.active;
   if (!G.ship.anchored) { rt.anchorAt = null; return; }
-  if (!rt.anchorAt && G.ship.speed < 0.3) rt.anchorAt = { x: G.ship.pos.x, z: G.ship.pos.z };
+  if (!rt.anchorAt && G.ship.speed < 0.3) { rt.anchorAt = { x: G.ship.pos.x, z: G.ship.pos.z }; rt.anchorBit = true; if (G.ship.float) G.ship.float.vp -= 0.35; }   // the anchor bites: the bow dips (main.js adds the foam)
   if (rt.anchorAt) { G.ship.pos.x = rt.anchorAt.x; G.ship.pos.z = rt.anchorAt.z; }   // currents and leeway do not move an anchored ship
 }
 export function tryInteract() {
