@@ -79,10 +79,16 @@ export function slipTo(s, t) {
   if (against) s.note = 'The wind is against you: zig-zag.';
   return s;
 }
+const lastCompass = new Float64Array(7).fill(NaN);
+/** store one compass input (rounded to what 36 px can show); true when it moved */
+function moved(i, v) { const x = v == null ? -9 : Math.round(v * 200); if (lastCompass[i] === x) return false; lastCompass[i] = x; return true; }
 export function drawCompass(w, heading) {
   const jobA = rt.trackNow ? Math.atan2(rt.trackNow.x - G.ship.pos.x, -(rt.trackNow.z - G.ship.pos.z)) : null;
   windView.dir = G.abyss.windDir(w.dir); windView.strength = w.strength; windView.gust = w.gust; windView.floor = G.abyss.windFloor(Math.max(G.ship.mods.floor, G.ship.floorMin || 0)); windView.wedge = G.ship.wedge; windView.wedgeEnd = G.ship.wedgeEnd;
-  drawWind(compass, windView, heading, performance.now() / 1000, jobA);
+  // the 36 px ring is redrawn only when something it shows has moved (task R6): angles to about a tenth of a pixel at its rim
+  const ch = moved(0, windView.dir) | moved(1, windView.strength) | moved(2, windView.floor) | moved(3, windView.wedge) | moved(4, windView.wedgeEnd) | moved(5, heading) | moved(6, jobA);
+  if (!ch) return;
+  drawWind(compass, windView, heading, 0, jobA);
 }
 export function updateTracker() {
   rt.trackNow = trackTarget();

@@ -72,7 +72,7 @@ import { params, store, saved, DEV, DEMO, settings, session, SAVE_KEY, SETTINGS_
 import { state } from './core/state.js';
 import { rt, G } from './core/runtime.js';
 import { renderer, post, scene, camera, ocean, sky } from './core/engine.js';
-import { $, goldEl, promptEl, promptTxt, promptBar, promptFill, toastsEl, debugEl, helpEl, chartEl, harbourEl, pauseEl, shipEl, toast , setToastHold, flushToasts } from './ui/dom.js';
+import { $, goldEl, promptEl, promptTxt, promptBar, promptFill, toastsEl, debugEl, helpEl, chartEl, harbourEl, pauseEl, shipEl, toast , setToastHold, flushToasts, setText, setWidth } from './ui/dom.js';
 import { WEEK, weekday, isMarketDay, isLanternNight, isFestival, tideAt, tideFalls, nightKey } from './systems/calendar.js';
 import { addMark, clearMark, keep } from './systems/storyflags.js';
 import { lullDread, lullabyTick, playersEar } from './systems/lullaby.js';
@@ -1094,6 +1094,9 @@ const logbook = new Logbook({ slip: () => slipInfo(), eta: (d) => etaText(d), ab
 // ---------------------------------------------------------------- main loop
 const GLASS = new THREE.Color('#07030d');
 const _v = new THREE.Vector3();
+// the frame's fixed colours, made once (task R6: nothing is allocated per frame); _tc is scratch for a colour read from data
+const C_WHITE = new THREE.Color(1, 1, 1), C_FOGWALL = new THREE.Color('#b8c0c4'), C_LOSTFOG = new THREE.Color('#c8ced0'), C_BEAM_DREAD = new THREE.Color('#ff50d0'),
+  C_WAKE_NIGHT = new THREE.Color(0.35, 1, 0.9), C_WAKE_DREAD = new THREE.Color(1, 0.4, 0.95), _tc = new THREE.Color();
 initCamera2();   // (ui/camera.js)
 rt.lastTs = performance.now();
 function frame() {
@@ -1188,7 +1191,7 @@ function frame() {
   stage.wave *= 0.7 + 0.5 * wind.strength;
   weather.update(dt, wind.t, rt.dread, wind.dir, wind.strength, camera, tod);
   weather.apply(stage);
-  if (rt.titleScene && rt.titleScene.sc.tint) { const t = rt.titleScene.sc.tint; stage.skyTop.lerp(new THREE.Color(t.top), t.k * 0.6); stage.skyHorizon.lerp(new THREE.Color(t.hor), t.k); stage.fog.lerp(new THREE.Color(t.fog), t.k); }
+  if (rt.titleScene && rt.titleScene.sc.tint) { const t = rt.titleScene.sc.tint; stage.skyTop.lerp(_tc.set(t.top), t.k * 0.6); stage.skyHorizon.lerp(_tc.set(t.hor), t.k); stage.fog.lerp(_tc.set(t.fog), t.k); }
   stage.fogFar += ship.mods.fogBonus; stage.fogNear += ship.mods.fogBonus * 0.5;
   stage.wave *= 1 - 0.85 * glimpse.k;   // the sea goes flat
   rt.seaWave = stage.wave;
@@ -1197,8 +1200,8 @@ function frame() {
     const tea = life.meal(state) === 'tea' ? 0.25 : 0;
     if ((L || tea) && !rt.lampOut && dk > 0.05) { const k = 1 + (0.15 * L + tea) * dk; stage.fogFar *= k; stage.fogNear *= k; } }
   if (rt.lampOut) { stage.fogFar *= 0.32; stage.fogNear *= 0.25; stage.fog.multiplyScalar(1 - 0.6 * tod.night); stage.light *= 1 - 0.35 * tod.night; }   // no lamp: the dark comes in close
-  if (fogK > 0) { stage.fogFar = Math.max(30, stage.fogFar * (1 - 0.85 * fogK)); stage.fogNear = Math.max(4, stage.fogNear * (1 - 0.9 * fogK)); stage.fog.lerp(new THREE.Color('#b8c0c4'), fogK * 0.7); }
-  if (rt.lostK > 0) { stage.fogFar = Math.max(10, stage.fogFar * (1 - 0.7 * rt.lostK)); stage.fogNear = Math.max(1, stage.fogNear * (1 - 0.9 * rt.lostK)); stage.fog.lerp(new THREE.Color('#c8ced0'), rt.lostK * 0.5); }   // lost: you can barely see the bow
+  if (fogK > 0) { stage.fogFar = Math.max(30, stage.fogFar * (1 - 0.85 * fogK)); stage.fogNear = Math.max(4, stage.fogNear * (1 - 0.9 * fogK)); stage.fog.lerp(C_FOGWALL, fogK * 0.7); }
+  if (rt.lostK > 0) { stage.fogFar = Math.max(10, stage.fogFar * (1 - 0.7 * rt.lostK)); stage.fogNear = Math.max(1, stage.fogNear * (1 - 0.9 * rt.lostK)); stage.fog.lerp(C_LOSTFOG, rt.lostK * 0.5); }   // lost: you can barely see the bow
   abyss.update(dt, { dread: DEMO ? 0 : rt.dread, live, camera, camYaw: rt.camYaw, ch: rt.camHeading + rt.camYaw });
   stage.wave *= abyss.waveMul;
   const waveT = abyss.waveTime(stepT);
@@ -1283,12 +1286,12 @@ function frame() {
   U.uDeep.value.copy(stage.deep); U.uShallow.value.copy(stage.shallow);
   if (threads.worldTint > 0.001) { U.uDeep.value.lerp(COLOUR_DEEP, threads.worldTint); U.uShallow.value.lerp(COLOUR_SHALLOW, threads.worldTint * 0.8); scene.fog.color.lerp(COLOUR_SHALLOW, threads.worldTint * 0.25); }   // a sea that is slowly losing a hue
   U.uSnap.value.set(post.internal.w * 0.5 * stage.snap, post.internal.h * 0.5 * stage.snap);
-  mats.shallow.color.copy(stage.shallow).lerp(new THREE.Color(1, 1, 1), 0.25);
+  mats.shallow.color.copy(stage.shallow).lerp(C_WHITE, 0.25);
   mats.foam.color.set(0xffffff).lerp(stage.skyHorizon, 0.25);
   mats.foam.opacity = 0.55 + 0.25 * Math.sin(rt.animT * 1.8);
-  mats.beam.color.set('#ffe080').lerp(new THREE.Color('#ff50d0'), smoothstep(0.5, 0.8, rt.dread));
+  mats.beam.color.set('#ffe080').lerp(C_BEAM_DREAD, smoothstep(0.5, 0.8, rt.dread));
   mats.beam.opacity = 0.1 + 0.3 * tod.night;
-  mats.wake.color.set(0xffffff).lerp(new THREE.Color(0.35, 1, 0.9), tod.night * 0.9).lerp(new THREE.Color(1, 0.4, 0.95), tod.night * smoothstep(0.55, 0.9, rt.dread) * 0.8);
+  mats.wake.color.set(0xffffff).lerp(C_WAKE_NIGHT, tod.night * 0.9).lerp(C_WAKE_DREAD, tod.night * smoothstep(0.55, 0.9, rt.dread) * 0.8);
   sky.update(window.__waterLock ? 0 : dt, camera, stage, wind.dir, tod, { sun2: abyss.sun2, storm: weather.heavy || 0, stormWall: Math.max(weather.frontAhead || 0, (weather.stormAhead || 0) * 0.9, (weather.storm || 0) * 0.7) });
   if (NIGHT_SET.view === 0) sky.moon.visible = false;   // a new moon: no moon in the sky
   ocean.material.opacity = 1 - 0.7 * abyss.seeThrough;
@@ -1345,8 +1348,8 @@ function frame() {
   } else promptEl.style.display = 'none';
 
   // ---- HUD
-  goldEl.textContent = abyss.hud('gold', String(state.gold));
-  $('clocktxt').textContent = abyss.hud('clock', tod.clock);
+  setText(goldEl, abyss.hud('gold', String(state.gold)));
+  setText($('clocktxt'), abyss.hud('clock', tod.clock));
   $('abyssTag').style.display = abyss.solo ? 'block' : 'none';
   if (abyss.solo) $('abyssTag').textContent = `Testing: ${EFFECTS.find((f) => f.id === abyss.solo).name}  \u00b7  0 = stop`;
   updateTracker();
@@ -1354,14 +1357,14 @@ function frame() {
   if (studio) studio.update(rawDt, soundSituation());
   $('clockicon').className = `ico ${tod.sunElev > 0 ? 'sun' : 'moon'}`;
   { const tm = $('tidemark'), lv = Math.round(25 + (tideAt() + 1) * 33); if (tm.dataset.lv !== String(lv)) { tm.dataset.lv = lv; tm.firstChild.style.height = `${lv}%`; tm.className = `tidemark ${tideFalls() ? 'fall' : 'rise'}`; } }   // the tide, wordless
-  $('sailfill').style.width = `${Math.round(ship.trim * 100)}%`;
+  setWidth($('sailfill'), ship.trim * 100);
   $('sailbar').classList.toggle('torn', state.sailsTorn); $('sailbar').classList.toggle('strain', rt.sailStrain > SAIL_LIMIT * 0.35);
   drawCompass(wind, ship.heading);
   onbTick();
   if (onbAll() && rt.tNow > 18 && rt.helpMode !== 'full') helpEl.style.opacity = '0';
-  if (rt.modal === 'harbour') { $('hbGold').textContent = state.gold; }
+  if (rt.modal === 'harbour') { setText($('hbGold'), state.gold); }
   if (rt.modal === 'hut') hut.update(rawDt);
-  if (rt.modal === 'ship') { $('shGold').textContent = state.gold; }
+  if (rt.modal === 'ship') { setText($('shGold'), state.gold); }
   if (debugEl.style.display === 'block') debugEl.textContent = `tris ${renderer.info.render.triangles} calls ${renderer.info.render.calls}  dread ${rt.dread.toFixed(2)} stage ${stage.index + 1} ${rt.forced !== null ? '(forced)' : '(auto)'}  time ${tod.clock}  pos ${ship.pos.x | 0},${ship.pos.z | 0}  spd ${ship.speed.toFixed(1)}  islands ${world.islands.size}`;
 
   { // the hull is five planks: each one is a fifth of its strength; a damaged plank drains, so every hit shows
@@ -1372,12 +1375,12 @@ function frame() {
       $('hpfill').parentNode.style.display = 'none';
     }
   }
-  $('ammotxt').textContent = `\u25cf ${state.ammo}`;
+  setText($('ammotxt'), `\u25cf ${state.ammo}`);
   document.body.classList.toggle('nooil', !oilOn());
   if (oilOn() && rt.started && !rt.modal) nameOnce('oil', $('oilrow'), 'Lamp oil');
-  { const f = state.oil / oilCap(state.upgrades); $('oilfill').style.width = `${Math.round(f * 100)}%`; $('oilrow').classList.toggle('low', f < 0.25); }
+  { const f = state.oil / oilCap(state.upgrades); setWidth($('oilfill'), f * 100); $('oilrow').classList.toggle('low', f < 0.25); }
   { const can = unlocked(state, 'cannons'); traffic.noRaiders = !can; document.body.classList.toggle('nocannons', !can); if (can && rt.started && !rt.modal) nameOnce('ammo', $('ammotxt'), 'Cannonballs'); }
-  $('reloadfill').style.width = `${100 - Math.min(100, (combat.reload / ship.mods.reload) * 100)}%`;
+  setWidth($('reloadfill'), 100 - Math.min(100, (combat.reload / ship.mods.reload) * 100));
   const tgtE = combat.target(ship, traffic, 110);
   const eb = $('ebar');
   if (tgtE && live) {

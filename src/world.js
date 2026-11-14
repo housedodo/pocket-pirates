@@ -1755,12 +1755,12 @@ export class World {
         isl.setMood(dark);
         isl.setLit(this.lit);
         this.scene.add(isl.group);
-        this.islands.set(k, isl);
+        this.islands.set(k, isl); isl.cell = [cx, cz];   // its cell, kept so the unload pass need not parse the key each frame
         built++;
       }
     }
     for (const [k, isl] of this.islands) {
-      const [cx, cz] = k.split(',').map(Number);
+      const cx = isl.cell[0], cz = isl.cell[1];
       if (Math.max(Math.abs(cx - ccx), Math.abs(cz - ccz)) > UNLOAD_R) {
         this.scene.remove(isl.group);
         isl.dispose();

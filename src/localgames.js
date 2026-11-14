@@ -10,6 +10,8 @@ import { mats, U } from './psx.js';
 import { Ocean } from './ocean.js';
 import { villager } from './world.js';
 import { mulberry32 } from './util.js';
+// made once: the arm-wrestle's elbows and scratch, set every frame of the game (task R6)
+const UP = new THREE.Vector3(0, 1, 0), ELBOW_A = new THREE.Vector3(-0.75, 1.15, 0), ELBOW_B = new THREE.Vector3(0.75, 1.15, 0), _F = new THREE.Vector3(), _d = new THREE.Vector3();
 
 const W = 320, H = 180;                 // the HUD's logical space
 const OX = 40000, OZ = 40000;            // the games are staged far out at sea, away from every island
@@ -497,12 +499,12 @@ const GAMES = {
     g.tier = () => (g.p >= 1 ? 2 : g.p > 0 ? 1 : 0);
     g.result = (t) => [`Your knuckles meet the table. The wreckers cheer, for him.`, `Neither of you gives in. He shakes your hand, hard.`, `His arm goes down! The whole beach shouts.`][t];
     // a forearm from the elbow (on the table) up to the clasped fists
-    const place = (m, elbow, fist) => { const d = fist.clone().sub(elbow), len = d.length(); m.position.copy(fist); m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), d.normalize()); m.scale.set(1, len / 1.1, 1); };
+    const place = (m, elbow, fist) => { const d = _d.copy(fist).sub(elbow), len = d.length(); m.position.copy(fist); m.quaternion.setFromUnitVectors(UP, d.normalize()); m.scale.set(1, len / 1.1, 1); };
     g.sync = (T, L) => {
       L.aim(0, 2.5, 4.4, 0, 1.55, 0);
-      const ang = -g.p * 0.85, F = new THREE.Vector3(Math.sin(ang) * 1.05, 1.05 + Math.cos(ang) * 1.05, 0);
+      const ang = -g.p * 0.85, F = _F.set(Math.sin(ang) * 1.05, 1.05 + Math.cos(ang) * 1.05, 0);
       g.fist.position.copy(F);
-      place(g.armA, new THREE.Vector3(-0.75, 1.15, 0), F); place(g.armB, new THREE.Vector3(0.75, 1.15, 0), F);
+      place(g.armA, ELBOW_A, F); place(g.armB, ELBOW_B, F);
       g.crowd.forEach((m, i) => { m.position.y = Math.abs(Math.sin(T * 5 + i)) * (0.05 + g.hit * 0.25); });
     };
     g.hud = (c) => {

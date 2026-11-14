@@ -3,6 +3,7 @@
 // can read. main.js calls tick() each frame, visit() on E, and reads fog for the scene fog.
 import * as THREE from 'three';
 import { LANDMARKS, LM, BARRIERS, lmHere } from './landmarks.js';
+const C_WHITE = new THREE.Color('#ffffff'), _lv = new THREE.Vector3();   // made once: these run every frame (task R6)
 import { clamp, smoothstep } from './util.js';
 import { tableOpen } from './clues.js';
 
@@ -168,7 +169,7 @@ export class Places {
     }
     for (const k of Object.keys(this.toastT)) if (!k.endsWith('ok')) this.toastT[k] -= dt;
     // the dome takes the scene's fog colour, so it is grey at dusk and dark at night; thinner from inside
-    this.fogMat.color.copy(fogColor).lerp(new THREE.Color('#ffffff'), 0.35);
+    this.fogMat.color.copy(fogColor).lerp(C_WHITE, 0.35);
     this.fogMat.opacity = 0.55 * (1 - 0.8 * this.fog);
     return msg;
   }
@@ -187,7 +188,7 @@ export class Places {
 
   /** labels over far landmarks: '?' by eye, what it looks like through a spyglass, its name once you have been */
   labelsTick(camera, ship, spy, discovered, W, H, show, ctx = {}) {   // ctx: { fogFar, d3 } (docs/ART_SPEC.md R14, 8.2)
-    const range = 170 + 110 * spy, v = new THREE.Vector3();
+    const range = 170 + 110 * spy, v = _lv;
     for (const l of LANDMARKS) {
       if ((l.lm === 'table' && !ctx.d3) || !lmHere(l.lm)) { const e = this.labels.get(l.lm); if (e) e.style.display = 'none'; continue; }   // the table has no label until it exists; the demo has no later places
       let el = this.labels.get(l.lm);

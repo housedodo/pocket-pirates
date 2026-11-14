@@ -7,6 +7,8 @@ import { waveHeight } from './ocean.js';
 import { hash2, mulberry32, smoothstep, clamp } from './util.js';
 import { CELL } from './world.js';
 import { dreadAtDistance } from './palette.js';
+// made once: the frame's tints (task R6)
+const C_WHITE = new THREE.Color(1, 1, 1), C_WHIRL_DREAD = new THREE.Color(1, 0.4, 0.9), C_SHOAL_NIGHT = new THREE.Color(0.2, 1, 0.9), C_SHOAL_DREAD = new THREE.Color(0.9, 0.3, 1);
 
 // Things floating or hiding between the islands: salvage barrels, messages in bottles,
 // half-sunk wrecks, whirlpools and glowing shoals.
@@ -181,8 +183,8 @@ export class SeaFeatures {
       if (!this.cells.has(k)) this.cells.set(k, this.makeCell(ccx + dx, ccz + dz));
     }
     // colours
-    this.whirlMat.color.setRGB(1, 1, 1).lerp(new THREE.Color(1, 0.4, 0.9), smoothstep(0.6, 0.9, stage.dread));
-    this.shoalMat.color.copy(stage.shallow).lerp(new THREE.Color(1, 1, 1), 0.3).lerp(new THREE.Color(0.2, 1, 0.9), tod.night * 0.9).lerp(new THREE.Color(0.9, 0.3, 1), tod.night * smoothstep(0.55, 0.9, stage.dread) * 0.8);
+    this.whirlMat.color.setRGB(1, 1, 1).lerp(C_WHIRL_DREAD, smoothstep(0.6, 0.9, stage.dread));
+    this.shoalMat.color.copy(stage.shallow).lerp(C_WHITE, 0.3).lerp(C_SHOAL_NIGHT, tod.night * 0.9).lerp(C_SHOAL_DREAD, tod.night * smoothstep(0.55, 0.9, stage.dread) * 0.8);
 
     for (let i = this.qcrates.length - 1; i >= 0; i--) {
       const k = this.qcrates[i], c = k.c;

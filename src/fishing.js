@@ -4,6 +4,7 @@ import { TILE } from './textures.js';
 import { mats } from './psx.js';
 import { waveHeight } from './ocean.js';
 import { clamp, smoothstep } from './util.js';
+const _base = new THREE.Vector3(), _tip = new THREE.Vector3();   // scratch for the rod, every frame a line is out (task R6)
 
 // The fishing minigame: C starts a swinging power meter and C again casts: a short cast lands by the boat (small, easy
 // fish), a long one far out (bigger, rarer, harder fish, a longer wait). Wait for a bite and hook it in time (C / Space),
@@ -242,12 +243,12 @@ export class Fishing {
     const p = this.pos || s.pos, w = waveHeight(p.x, p.z, t, ctx.wave);   // (no bobber yet while aiming)
     let dip = 0;
     // the rod: butt at the starboard rail, pointing out over the water
-    const rx = Math.cos(s.heading), rz = Math.sin(s.heading), base = new THREE.Vector3(s.pos.x + rx * 1.1, 1.9, s.pos.z + rz * 1.1);
+    const rx = Math.cos(s.heading), rz = Math.sin(s.heading), base = _base.set(s.pos.x + rx * 1.1, 1.9, s.pos.z + rz * 1.1);
     let pitch = 0.55;
     if (this.mode === 'aim') {   // the power meter: a needle swinging from "by the boat" to "far out"
       this.aimT += dt; const ph = (this.aimT / 1.15) % 2; this.power = ph < 1 ? ph : 2 - ph;
       pitch = 0.9 + this.power * 0.9;
-      const out0 = Math.cos(pitch) * this.rodLen; this.rod.position.copy(base); this.rod.lookAt(new THREE.Vector3(base.x + rx * out0, base.y + Math.sin(pitch) * this.rodLen, base.z + rz * out0));
+      const out0 = Math.cos(pitch) * this.rodLen; this.rod.position.copy(base); this.rod.lookAt(_tip.set(base.x + rx * out0, base.y + Math.sin(pitch) * this.rodLen, base.z + rz * out0));
       this.ui.style.display = 'block'; this.bar.style.display = 'block'; this.msg.className = '';
       this.msg.textContent = 'Press C to cast: short = small fish, far = big fish (harder)';
       this.zoneEl.style.left = '0%'; this.zoneEl.style.width = `${this.power * 100}%`; this.zoneEl.style.background = 'rgba(255, 210, 58, .5)';
@@ -258,7 +259,7 @@ export class Fishing {
       this.castT += dt; const c = this.castT;
       pitch = c < 0.3 ? 0.55 + (1.9 - 0.55) * smoothstep(0, 0.3, c) : c < 0.5 ? 1.9 - 1.7 * smoothstep(0.3, 0.5, c) : 0.2 + 0.35 * smoothstep(0.5, 1.0, c);
     } else if (this.mode === 'bite' || this.mode === 'reel') pitch = 0.75 + Math.sin(t * 14) * 0.08;   // bent by the fish
-    const out = Math.cos(pitch) * this.rodLen, tip = new THREE.Vector3(base.x + rx * out, base.y + Math.sin(pitch) * this.rodLen, base.z + rz * out);
+    const out = Math.cos(pitch) * this.rodLen, tip = _tip.set(base.x + rx * out, base.y + Math.sin(pitch) * this.rodLen, base.z + rz * out);
     this.rod.position.copy(base); this.rod.lookAt(tip);
     if (this.mode === 'cast') {
       const k = smoothstep(0.42, 0.95, this.castT);

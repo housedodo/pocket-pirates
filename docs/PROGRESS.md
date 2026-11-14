@@ -1274,3 +1274,16 @@ Trials for the owner to compare; nothing changes without a flag and STYLE.md is 
   she still ran at 9.8, she stopped, and the crew went ashore by itself (the visit was recorded); no console errors.
   **Not verified:** every interaction kind by hand (caves, threads, relighting, hailing, patching); feel and sound.
 
+## R6: a frame that does not allocate (2026-11-14, task R6 of the guide)
+- The fixed colours the frame lerps toward (fog wall, lost-in-fog, shallows, the beam, the wake, the fog bank, whirlpools, shoals, the
+  sun) are made once at module level; the title's tint reads into one scratch colour. `float.js` keeps its sample points, heights and
+  result in module scratch (both callers read the result at once). Found on the way and fixed the same way: the fishing rod (every frame
+  a line is out) and the tavern arm-wrestle.
+- `setText` and `setWidth` (`ui/dom.js`) write gold, clock, cannonballs and the sail, oil and reload bars only when the value changed
+  (bars round to whole percent). The 36 px compass redraws only when wind, heading, floor, wedge or the errand's bearing moved by
+  about a tenth of a pixel at its rim (`drawWind` never used its time argument). Islands keep their cell (`isl.cell`), so the unload
+  pass no longer parses every key every frame.
+- **Verified:** `npx vite build`; `npm run smoke` passes; a whole-tree search finds no `new THREE.Color` / `Vector3` left inside an
+  update, tick or draw function; before-and-after screenshots at day, night, dread 0.6 and in Tama's harbour match (only Mara's
+  typewriter line is at another letter). **Not verified:** frame time (not measured; headless is not a fair test), feel and sound.
+

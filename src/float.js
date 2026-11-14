@@ -10,21 +10,23 @@ import { waveHeight } from './ocean.js';
 
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 
+// made once (task R6): the sample points [along fraction of L, across fraction of B], scratch for their heights, and the result
+const PTS = [[-0.5, 0], [-0.25, 0], [-0.15, 0], [0, 0], [0.15, 0], [0.25, 0], [0.5, 0], [0, -0.5], [0, 0.5], [-0.3, -0.45], [0.3, 0.45]], N = PTS.length;
+const HA = new Float64Array(N), HC = new Float64Array(N), HY = new Float64Array(N), W = { mean: 0, centre: 0, along: 0, across: 0, lo: 0, hi: 0 };
 /** the water under a hull of length L and beam B at (x, z) heading h: { mean, centre (the water right under the middle), along (slope, + is up toward the bow), across (+ up to starboard), lo, hi } */
 export function hullWater(x, z, h, t, wave, L = 7.6, B = 3.8) {   // read over a stretch a little longer than the hull (a ship feels the swell, not every ripple)
   const fx = Math.sin(h), fz = -Math.cos(h), rx = Math.cos(h), rz = Math.sin(h);
-  const pts = [[-0.5, 0], [-0.25, 0], [-0.15, 0], [0, 0], [0.15, 0], [0.25, 0], [0.5, 0], [0, -0.5], [0, 0.5], [-0.3, -0.45], [0.3, 0.45]];   // [along fraction of L, across fraction of B]
-  let sum = 0, sa = 0, sc = 0, saa = 0, scc = 0, lo = 1e9, hi = -1e9;
-  const hs = []; let centre = 0;
-  for (const [a, c] of pts) {
-    const A = a * L, C = c * B;
+  let sum = 0, sa = 0, sc = 0, saa = 0, scc = 0, lo = 1e9, hi = -1e9, centre = 0;
+  for (let i = 0; i < N; i++) {
+    const a = PTS[i][0], c = PTS[i][1], A = a * L, C = c * B;
     const y = waveHeight(x + fx * A + rx * C, z + fz * A + rz * C, t, wave);
     if (c === 0 && Math.abs(a) <= 0.15) centre += (a === 0 ? 0.5 : 0.25) * y;   // the water under the middle, smoothed over a short stretch (no ripples)
-    hs.push([A, C, y]); sum += y; if (y < lo) lo = y; if (y > hi) hi = y;
+    HA[i] = A; HC[i] = C; HY[i] = y; sum += y; if (y < lo) lo = y; if (y > hi) hi = y;
   }
-  const mean = sum / pts.length;
-  for (const [A, C, y] of hs) { sa += A * (y - mean); saa += A * A; sc += C * (y - mean); scc += C * C; }
-  return { mean, centre, along: sa / (saa || 1), across: sc / (scc || 1), lo, hi };
+  const mean = sum / N;
+  for (let i = 0; i < N; i++) { const A = HA[i], C = HC[i], y = HY[i]; sa += A * (y - mean); saa += A * A; sc += C * (y - mean); scc += C * C; }
+  W.mean = mean; W.centre = centre; W.along = sa / (saa || 1); W.across = sc / (scc || 1); W.lo = lo; W.hi = hi;
+  return W;   // one shared result: every caller reads it at once (ship.js, traffic.js) and keeps nothing
 }
 
 /** advance a floating state F = { y, vy, p, vp, r, vr } toward the water w (from hullWater). extra: { pitch, roll, lift } added to the targets */

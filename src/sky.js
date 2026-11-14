@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { mulberry32, smoothstep, lerp } from './util.js';
 import { U } from './psx.js';
+const C_SUN_NIGHT = new THREE.Color(0.3, 0.38, 0.7), C_SUN_DREAD = new THREE.Color(1, 0.4, 0.85);   // made once (task R6)
 
 const R = 900;
 
@@ -173,7 +174,7 @@ export class Sky {
     // the light that makes glints on the water: sun by day, moon by night
     const dayish = smoothstep(-0.05, 0.12, tod.sunElev);
     U.uSunDir.value.copy(moonDir).lerp(this.sunDirV, dayish).normalize();
-    U.uSunColor.value.copy(stage.sun).lerp(new THREE.Color(0.3, 0.38, 0.7), 1 - dayish).lerp(new THREE.Color(1, 0.4, 0.85), smoothstep(0.8, 1, stage.dread) * dayish);
+    U.uSunColor.value.copy(stage.sun).lerp(C_SUN_NIGHT, 1 - dayish).lerp(C_SUN_DREAD, smoothstep(0.8, 1, stage.dread) * dayish);
 
     this.starMat.opacity = Math.max(stage.stars, tod.night * 0.95);
     this.eyeMat.opacity = smoothstep(0.8, 1.0, stage.dread);

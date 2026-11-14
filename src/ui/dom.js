@@ -8,6 +8,9 @@ export const promptEl = $('prompt'), promptTxt = $('prompttxt'), promptBar = pro
 export const toastsEl = $('toasts'), debugEl = $('debug'), helpEl = $('help');
 export const chartEl = $('chart'), harbourEl = $('harbour'), pauseEl = $('pause'), shipEl = $('shipmodal');
 export const compass = $('compassCv').getContext('2d');
+/** HUD writes that touch the page only when the value changed (task R6): the frame calls these every frame */
+export function setText(el, v) { const s = String(v); if (el.textContent !== s) el.textContent = s; }
+export function setWidth(el, pct) { const s = `${Math.round(pct)}%`; if (el.style.width !== s) el.style.width = s; }
 $('compassCv').width = PX; $('compassCv').height = PX;
 if (params.get('hud') === '0') $('hud').classList.add('hidden');
 
