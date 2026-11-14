@@ -2,7 +2,7 @@
 // the fog bank you can see from far off, what you find when you go ashore, and the labels on far shapes that a spyglass
 // can read. main.js calls tick() each frame, visit() on E, and reads fog for the scene fog.
 import * as THREE from 'three';
-import { LANDMARKS, LM, BARRIERS } from './landmarks.js';
+import { LANDMARKS, LM, BARRIERS, lmHere } from './landmarks.js';
 import { clamp, smoothstep } from './util.js';
 import { tableOpen } from './clues.js';
 
@@ -175,7 +175,7 @@ export class Places {
 
   /** go ashore on a landmark. Returns what happened, for main.js to apply */
   visit(lm, state, ctx = {}) {
-    const v = VISITS[lm]; if (!v) return null;
+    const v = VISITS[lm]; if (!v || !lmHere(lm)) return null;
     if (lm === 'table' && !tableOpen(state)) return { text: v.bare, nothing: true };   // the table stands once you have thrown at the hut (or understood three questions)
     if (v.need && !v.need(ctx)) return { text: v.no, nothing: true };               // the sea must be doing the right thing for the clue to be there
     const seen = (state.story.lm = state.story.lm || {});
@@ -189,7 +189,7 @@ export class Places {
   labelsTick(camera, ship, spy, discovered, W, H, show, ctx = {}) {   // ctx: { fogFar, d3 } (docs/ART_SPEC.md R14, 8.2)
     const range = 170 + 110 * spy, v = new THREE.Vector3();
     for (const l of LANDMARKS) {
-      if (l.lm === 'table' && !ctx.d3) { const e = this.labels.get(l.lm); if (e) e.style.display = 'none'; continue; }   // the table has no label until it exists
+      if ((l.lm === 'table' && !ctx.d3) || !lmHere(l.lm)) { const e = this.labels.get(l.lm); if (e) e.style.display = 'none'; continue; }   // the table has no label until it exists; the demo has no later places
       let el = this.labels.get(l.lm);
       const d = Math.hypot(l.x - ship.pos.x, l.z - ship.pos.z);
       const known = discovered[l.key];

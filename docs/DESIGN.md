@@ -111,7 +111,7 @@ Other systems: **jobs** (delivery contracts from harbour boards, tracked on the 
 - **Mara's pacing:** `Mate` holds a line 3.2 s + 0.065 s per character, 1.4 s between lines. Goals have `intro` (array or `function(c)`), `outro`, `waitMate`, `count` ("(x/y)"). Next goal waits a `gap` (8 s early, 5 s later).
 - **Quest cue:** `questCue` shows QUEST COMPLETE at once; `questNew` (called by Objectives when the pending goal is released, i.e. when Mara announces it) shows the NEW QUEST card, tracker entry and compass ping.
 - **Letters:** Perrin's letters are picked up from the Board sign icon (`story.letterP1/P2`), Mara asks about them and marks the log tab (`story.tabMark`).
-- **Demo build:** `__BUILD==='demo'` has no dread, no spoilers, a second harbour (Velto), fog gate radii in `GATES`, and ends at the next harbour after the first hut throw is remarked on; nothing unlocks afterwards.
+- **Demo build:** `__BUILD==='demo'` has no dread, no spoilers, a second harbour (Velto), fog gate radii in `GATES`, and ends at the next harbour after the first hut throw is remarked on; nothing unlocks afterwards. It ignores `?dev`, `?dread` and `?threads`, wakes no thread, keeps no clue ledger (`markSeen` and `isKnown` do nothing), and only the seven early hand-made places exist (`lmHere` in `landmarks.js`; the others are open water).
 - **Docs for the rest:** `docs/PROGRESS.md` has a dated entry per feature; `docs/concept/` holds the design concepts.
 
 ## The interface opens with the story (`src/gates.js`)

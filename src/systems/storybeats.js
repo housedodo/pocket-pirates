@@ -92,7 +92,7 @@ export function seamTick(dt) {
   else if (d < 1000 && rt.wasDeep) { rt.wasDeep = false; state.story.epoch = (state.story.epoch || 0) + 1; bumpSectors(state.story.epoch); }
 }
 export function clueTick(dt) {
-  if (!state.story || G.onbQuiet()) return;
+  if (!state.story || G.onbQuiet() || window.__BUILD === 'demo') return;   // the demo keeps no ledger
   const slow = G.ship.speed < 1.2, hour = state.time * 24;
   const at = (lm, R) => Math.hypot(G.ship.pos.x - LM[lm].x, G.ship.pos.z - LM[lm].z) < R;
   const dwell = (k, on, T) => { rt.clueDwell[k] = on ? (rt.clueDwell[k] || 0) + dt : 0; return rt.clueDwell[k] >= T; };

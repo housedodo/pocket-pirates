@@ -1221,3 +1221,16 @@ Trials for the owner to compare; nothing changes without a flag and STYLE.md is 
   reads "" with 0 gold and "!" with plenty (state read and screenshot). **Not verified:** the no-children village was not looked at
   (Little Hal lies inside the chapter fog on a fresh save), only read; the demo build was not run (no story, clue or HUD change).
 
+## R2: the demo closed (2026-11-14, task R2 of the guide; RULES 29)
+- `core/config.js` has one `DEMO` flag; `DEV` is never on in the demo, so `?dev=1` does nothing there. `?dread` and `?threads` are
+  ignored in the demo, and it wakes no thread.
+- Only the seven early hand-made places exist in the demo (the Grey Tooth, the Drowned Bell, Hollowgreen, Wick's Rock, the Ribs, Glass
+  Lagoon, the Halved Isle): `lmHere(lm)` in `landmarks.js`. The thirteen places of the exploration story (Customs Pier to the Table)
+  are open water there, with no far label and no visit. A landmark's forced dread (the Sunken Street's 0.74) is never used in the demo.
+- The clue ledger is off in the demo: `markSeen` records nothing (so no line in another hand reaches the log; it did at the Drowned
+  Bell), `isKnown` is false, `clueTick` does not run. Sea cards are drawn as at dread 0 and the abyss sees no dread, by the build.
+- **Verified** headless with `window.__BUILD = 'demo'` set before load and `?dev=1&dread=0.9&threads=all`: dread 0, no dev bar,
+  threads `[]`, no cell at the Street or the Table; at the Street's position dread 0 and no label; ashore at the Drowned Bell the note is
+  logged and no clue recorded. The same run in the full game: dread 0.85, the dev bar, seven threads, the Street at 0.74, `CL-BELL-a`
+  seen. No console errors in either. **Not verified:** a full demo play-through; the single-file demo was not rebuilt.
+

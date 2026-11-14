@@ -68,7 +68,7 @@ import * as life from './harbourlife.js';
 import './newspaper.js';
 import './localgames.js';
 // the core layers (config <- state <- engine) and the small shared systems; see docs/ARCHITECTURE.md
-import { params, store, saved, DEV, settings, session, SAVE_KEY, SETTINGS_KEY, THREADS_KEY } from './core/config.js';
+import { params, store, saved, DEV, DEMO, settings, session, SAVE_KEY, SETTINGS_KEY, THREADS_KEY } from './core/config.js';
 import { state } from './core/state.js';
 import { rt, G } from './core/runtime.js';
 import { renderer, post, scene, camera, ocean, sky } from './core/engine.js';
@@ -196,6 +196,7 @@ const caves = new Caves(scene, world, state);
 const threads = new Threads(scene, world, state);
 // the Tide of Threads: which threads this voyage has awake. In the dev build the title screen can choose (or ?threads=colour,bell / all / none)
 function threadChoice() {
+  if (DEMO) return [];   // the demo has no threads: ?threads is ignored and none wake
   const q = params.get('threads');
   if (q) return q === 'all' ? [...THREAD_IDS] : q === 'none' ? [] : q === 'seeded' ? null : q.split(',').filter((id) => THREAD_IDS.includes(id));
   if (DEV) { const c = store.get(THREADS_KEY); if (c && c.mode === 'chosen') return c.ids || []; if (c && c.mode === 'none') return []; }
@@ -518,7 +519,7 @@ initTitle1();   // (ui/title.js)
 
 initPause1();   // (ui/pause.js)
 initTitle2();   // (ui/title.js)
-rt.forced = params.has('dread') ? clamp(parseFloat(params.get('dread')), 0, 1) : null;
+rt.forced = params.has('dread') && !DEMO ? clamp(parseFloat(params.get('dread')), 0, 1) : null;   // ?dread is a test flag: never in the demo
 
 window.addEventListener('pointerdown', () => skipIntro());
 window.addEventListener('keydown', (e) => {
@@ -1390,7 +1391,7 @@ function frame() {
   if (rt.lampOut) { stage.fogFar *= 0.32; stage.fogNear *= 0.25; stage.fog.multiplyScalar(1 - 0.6 * tod.night); stage.light *= 1 - 0.35 * tod.night; }   // no lamp: the dark comes in close
   if (fogK > 0) { stage.fogFar = Math.max(30, stage.fogFar * (1 - 0.85 * fogK)); stage.fogNear = Math.max(4, stage.fogNear * (1 - 0.9 * fogK)); stage.fog.lerp(new THREE.Color('#b8c0c4'), fogK * 0.7); }
   if (rt.lostK > 0) { stage.fogFar = Math.max(10, stage.fogFar * (1 - 0.7 * rt.lostK)); stage.fogNear = Math.max(1, stage.fogNear * (1 - 0.9 * rt.lostK)); stage.fog.lerp(new THREE.Color('#c8ced0'), rt.lostK * 0.5); }   // lost: you can barely see the bow
-  abyss.update(dt, { dread: rt.dread, live, camera, camYaw: rt.camYaw, ch: rt.camHeading + rt.camYaw });
+  abyss.update(dt, { dread: DEMO ? 0 : rt.dread, live, camera, camYaw: rt.camYaw, ch: rt.camHeading + rt.camYaw });
   stage.wave *= abyss.waveMul;
   const waveT = abyss.waveTime(stepT);
   if (glimpse.active) glimpse.fig.position.y = waveHeight(glimpse.fig.position.x, glimpse.fig.position.z, waveT, rt.seaWave);   // the diver stands ON the swell

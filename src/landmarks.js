@@ -34,6 +34,9 @@ export const LANDMARKS = [
   { lm: 'table', key: '13,-18', name: 'The Table by the Water', type: 'sandbar', x: 1377, z: -1966, r: 12, H: 0.8, sight: 'a table at the water\'s edge', dread: 1 },
 ];
 export const LM = Object.fromEntries(LANDMARKS.map((l) => [l.lm, l]));
+/** the demo's hand-made places (chapters I to VI); the rest are the exploration story's (after the hut) and do not exist in the demo build (RULES 29) */
+const DEMO_LMS = new Set(['crag', 'bell', 'grove', 'keeper', 'ribs', 'lagoon', 'broken']);
+export const lmHere = (lm) => typeof window === 'undefined' || window.__BUILD !== 'demo' || DEMO_LMS.has(lm);
 
 /** what keeps the ship out, and which upgrade lets it in (main.js landmarkBarriers) */
 export const BARRIERS = {
@@ -49,7 +52,7 @@ export function forcedCells() {
     const [cx, cz] = l.key.split(',').map(Number);
     for (let dz = -1; dz <= 1; dz++) for (let dx = -1; dx <= 1; dx++) { const k = `${cx + dx},${cz + dz}`; if (!(k in out)) out[k] = null; }
   }
-  for (const l of LANDMARKS) out[l.key] = { type: l.type, x: l.x, z: l.z, r: l.r, lm: l.lm, dread: l.dread };
+  for (const l of LANDMARKS) out[l.key] = lmHere(l.lm) ? { type: l.type, x: l.x, z: l.z, r: l.r, lm: l.lm, dread: l.dread } : null;   // in the demo a later place is open water
   return out;
 }
 

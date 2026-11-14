@@ -43,12 +43,13 @@ export const CLUES = [
 ];
 export const CLUE = Object.fromEntries(CLUES.map((c) => [c.id, c]));
 
+const DEMO_BUILD = () => typeof window !== 'undefined' && window.__BUILD === 'demo';
 const seenOf = (state) => (state.story && state.story.seen) || {};
 export const hasSeen = (state, id) => seenOf(state)[id] !== undefined;
 
 /** set a clue seen (once). Returns the clue the first time, else null. The caller writes the log line. */
 export function markSeen(state, id) {
-  const c = CLUE[id]; if (!c) return null;
+  const c = CLUE[id]; if (!c || DEMO_BUILD()) return null;   // the demo keeps no ledger (RULES 29)
   const s = (state.story.seen = state.story.seen || {});
   if (s[id] !== undefined) return null;
   s[id] = state.dayN || 0;
@@ -67,7 +68,7 @@ export function regionsSeen(state) {
   return new Set(CLUES.filter((c) => hasSeen(state, c.id)).map((c) => c.region)).size;
 }
 /** is a capability known? (gates.js uses this for buttons, routes and chart marks) */
-export const isKnown = (state, cap) => CLUES.some((c) => c.cap === cap && hasSeen(state, c.id));
+export const isKnown = (state, cap) => !DEMO_BUILD() && CLUES.some((c) => c.cap === cap && hasSeen(state, c.id));   // nothing is known in the demo: no capability acts there
 /** the table by the water shows on the chart once ANY three questions have reached level 2 */
 export const d3Open = (state) => levels(state).filter((n) => n >= 2).length >= 3;
 /** has any clue of this region been seen? (Perrin's letters after the hut) */

@@ -55,6 +55,10 @@ Build it with `python3 scripts/single.py`, ship `pocket-pirates-demo.html` (with
 - [ ] Typos pass on harbours, rumours, bottles, encounter cards
 - [ ] HUD text stays minimal; toasts never overlap important text
 - [ ] No test tools: no dev bar, F6-F9 and `?dev=1` do nothing in the demo file
+- [ ] `?dev=1&dread=0.9&threads=all` on the demo file changes nothing: no dev bar, the sea stays sunny, no thread wakes
+- [ ] Only the seven early hand-made places exist (the Grey Tooth, the Drowned Bell, Hollowgreen, Wick's Rock, the Ribs, Glass Lagoon,
+  the Halved Isle); where the Sunken Street, the Customs Pier, the Fort and the rest stand in the full game there is open water
+- [ ] Going ashore at the Drowned Bell, the Ribs, Glass Lagoon or the Halved Isle adds the place's note to the log and no line in another hand
 
 ## 4. Technical
 - [ ] Open the demo html in Chrome, Firefox and Safari (desktop) and on a phone

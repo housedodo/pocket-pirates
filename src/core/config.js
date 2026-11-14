@@ -7,7 +7,9 @@ export const store = {
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* private mode etc. */ } },
 };
 export const saved = params.get('fresh') ? null : store.get(SAVE_KEY);
-export const DEV = !!params.get('dev') || window.__BUILD === 'dev';   // ?dev=1: test keys (1-5 dread, 0, [ ], `) and the full-dread effects menu
+/** the demo build is a different game (RULES 29): set only by scripts/single.py; undefined under the dev server means the full game */
+export const DEMO = window.__BUILD === 'demo';
+export const DEV = !DEMO && (!!params.get('dev') || window.__BUILD === 'dev');   // ?dev=1: test keys (1-5 dread, 0, [ ], `) and the full-dread effects menu; never in the demo
 export const settings = Object.assign({ muted: false, musicOff: false, vol: { music: 1, amb: 1, sfx: 1 }, windStyle: 'dial', hud: 'classic', tracker: true, abyss: {} }, store.get(SETTINGS_KEY) || {});
 export const THREADS_KEY = 'pocket-pirates-threads-v1';
 /** mutable flags of this browser session (not saved) */

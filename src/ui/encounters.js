@@ -111,7 +111,7 @@ export function tabletopTick(dt) {
   if (unlocked(state, 'cards') && !G.sighting.active && G.ship.speed > 2 && rt.dread < 0.95 && G.weather.fog < 0.3 && G.weather.storm < 0.3 && !G.world.nearest(G.ship.pos.x, G.ship.pos.z, 90) && !G.fishing.active) {
     rt.cardT -= dt;
     if (rt.cardT <= 0) {
-      const card = drawCard(rt.dread, state.cardsSeen, SIGHTS);
+      const card = drawCard(window.__BUILD === 'demo' ? 0 : rt.dread, state.cardsSeen, SIGHTS);   // the demo draws only the cosy cards, whatever the dread
       if (card && G.sighting.spawn(card, G.ship, G.world)) { state.cardsSeen.push(card.id); if (state.cardsSeen.length > 5) state.cardsSeen.shift(); rt.cardT = 1500 + Math.random() * 1000; }
       else rt.cardT = 30;
     }
