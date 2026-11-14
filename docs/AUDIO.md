@@ -179,9 +179,14 @@ through HOIST gently (`HoistLayers game_audio/tavern <outdir> tavern` in Chaos_G
 | `coast` | soft coastal breeze, small waves and far-off gulls (32 s). Rises over the last ~110 units before any island shore, full while moored or ashore (harbour, greeting, shipyard). Quieter at night, gone in storms and by dread ~0.4 |
 
 **One-shots**
-Only these effects play. Everything else the game asks for (splash, treasure, discover, harbour, cannon, hit, horn, gull, dolphin, whale, bell, bottle, creak, bump, whisper, stage_up, knock, ending) is **silent on purpose**: not in `CUES.oneShots`, so never loaded and never synthesised. To bring one back, add its name to `CUES.oneShots` in `src/audio.js` and put its file in `public/audio/`.
+Only these effects play. Everything else the game asks for (splash, treasure, discover, harbour, cannon, hit, horn, gull, dolphin, whale, bottle, creak, bump, whisper, stage_up, knock, ending, and the other bells: `villagebell` at noon in the other bell villages, `fogbell` in thick fog, `hourbell` on the title, `deepbell` in the Bell Below thread) is **silent on purpose**: not in `CUES.oneShots`, so never loaded and never synthesised. To bring one back, add its name to `CUES.oneShots` in `src/audio.js` and put its file in `public/audio/`.
 
 A single-file build (`window.__AUDIO` set) never fetches a sound it does not carry: a listed cue with no inlined file is synthesised.
+
+`bell` (owner, 2026-11-14: Tama's bell is the band's bell): one stroke of the band's own bell, cut from `s1_bell.ogg` (the stem strikes
+the same F, with F and A flat partials, every four bars; the stroke at 9.72 s was taken with 5 ms before it, 7 s long, the last 0.8 s faded;
+`ffmpeg -ss 9.715 -t 7.0 -i s1_bell.ogg -af afade=t=out:st=6.2:d=0.8 -c:a libvorbis -q:a 4 bell.ogg`). It plays only for Tama's noon bell, at
+the top of the bell's swing (`src/systems/noonbell.js`; the swing is its silent twin, RULES 28), louder the nearer you are (out to 260).
 
 `oar` (synthesised, no file yet): one soft stroke per pull while rowing, at half volume (PROGRESS: four small wrong things). A recorded `oar.ogg` in `public/audio/` replaces it.
 
@@ -245,7 +250,7 @@ Load your own music and sounds, cut them, and say where each plays. Open the gam
 - "preview in game" on a placement sets the forced situation to that placement's conditions (and the middle of its dread range), so it plays the way it will in the game; press again for live.
 
 ## Mix defaults (`public/audio/volumes.json`)
-`chapter` and `dig` at 40% (they were too loud). Change them in the F8 mixer and save a new volumes.json.
+`chapter` and `dig` at 40% (they were too loud). `bell` is listed at 100% (as cut, the level of the band's own bell stem). Change them in the F8 mixer and save a new volumes.json.
 
 ## The glimpse: silence
 `AudioBus.hush(k)` scales the master gain (0 = normal, 1 = silent) on top of mute and the master level. The glimpse

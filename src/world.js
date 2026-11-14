@@ -30,7 +30,7 @@ const COL = {
 const WALLS = ['#f4dfb0', '#f0b3a0', '#a9d6ee', '#f2e48a', '#c9e6a8', '#e8c0e0'];
 const ROOFS = ['#d2483c', '#3c78c8', '#2f9a8a', '#c86a2a', '#7a4ab0'];
 // a village's custom can repaint every house (whitewash) or keep children indoors; set while a harbour is built
-let PAINT = null, NO_CHILD = false, CUR_FLAG = null, FIN = null;   // FIN: Tama's house finish (the garden harbour), see TAMA_FIN
+let PAINT = null, NO_CHILD = false, CUR_FLAG = null, FIN = null, CUR_EXTRA = null;   // FIN: Tama's house finish (the garden harbour), see TAMA_FIN; CUR_EXTRA: the harbour being built's extra (Tama's bell)
 
 // ---------------------------------------------------------------------------
 // Island description (pure function of seed + cell) and terrain height field
@@ -604,7 +604,10 @@ export function houseKind(A, B, x, y, z, ry, rng, kind) {
       A.box(0, 0, 0, 1.8, 5.2, 1.8, '#d8d0c0', TILE.stone, TILE.stone);
       for (const [sx, sz] of [[-0.75, -0.75], [0.75, -0.75], [-0.75, 0.75], [0.75, 0.75]]) A.box(sx, 5.2, sz, 0.25, 1.4, 0.25, '#c8c0b0', TILE.stone);
       A.cyl(0, 6.6, 0, 1.45, 0, 1.6, 4, roof, TILE.roof, false);
-      A.cyl(0, 5.45, 0, 0.42, 0.22, 0.75, 7, '#c8a040', TILE.glow, true);
+      if (CUR_EXTRA && !CUR_EXTRA.bell) {   // Tama's bell is its own mesh, hung from its crown, so it can swing at noon (task L3; systems/noonbell.js)
+        const bb = new Builder(); bb.cyl(0, -0.75, 0, 0.42, 0.22, 0.75, 7, '#c8a040', TILE.glow, true);
+        CUR_EXTRA.bell = { b: bb, m: A.m.clone().multiply(new THREE.Matrix4().makeTranslation(0, 6.2, 0)) };
+      } else A.cyl(0, 5.45, 0, 0.42, 0.22, 0.75, 7, '#c8a040', TILE.glow, true);
       A.box(0, 0, 0.91, 0.8, 1.5, 0.1, '#5a3a20', TILE.planks);
       if (FIN) { A.box(0, -0.05, 0, 2.1, 0.5, 2.1, FIN.plinth, TILE.stone); A.box(0, 4.95, 0, 2.05, 0.28, 2.05, FIN.trim, TILE.white); doorFrame(A, 0, 0.8, 1.5, 0, 0.9); }
     }
@@ -1382,7 +1385,7 @@ function decorate(d, rng, A, B, D, extra) {
       const n = Math.round((6 + Math.floor(rng() * 3)) * Math.max(1, d.r / 25));
       let placed = 0;
       const housesLog = [], hk = (a, b, x, y, z, ry, r, k) => { housesLog.push([x, z]); return houseKind(a, b, x, y, z, ry, r, k); };
-      CUR_FLAG = d.flag;
+      CUR_FLAG = d.flag; CUR_EXTRA = extra;
       const VS = { d, rng, dockTh, A, B, D, extra, houseKind: hk, flag: d.flag, spot, palm, barrel, crateBox, fishRack, fence, ropeCoil, beachedBoat, shoreR, terrainHeight, angleDiff, paint: SD.paint };
       if (SD.build) SD.build(VS);
       if (d.sh && d.sh.H > 2.6) stairs(VS);                                                  // steps up the ramp from the pier
@@ -1487,7 +1490,7 @@ function decorate(d, rng, A, B, D, extra) {
         if (d.sleepy) for (let i = 0; i < 2; i++) { const [x, z] = at(0.2, 0.5); hammockSleeper(cr.siesta, x, yy, z, rng() * 6.28, rng); }
         weekAndCustoms(d, rng, cr, { yy, R: Rp, dockTh, z1, n, at, dockAt });
       }
-      PAINT = null; NO_CHILD = false; CUR_FLAG = null; FIN = null;
+      PAINT = null; NO_CHILD = false; CUR_FLAG = null; FIN = null; CUR_EXTRA = null;
       if (tamaLook) tamaPolish({ ...VS, R, z0, z1 }, tamaLook, tamaHouses);   // its own rng: nothing after it moves
       const nW = 11;
       for (let i = 0; i < nW; i++) {
@@ -1649,6 +1652,10 @@ export class Island {
       this.lampOff = add(off, mats.props);
     }
 
+    if (extra.bell) {   // the belfry's bell on a pivot at its crown: isl.bell.rotation.x swings it (systems/noonbell.js)
+      const m = add(extra.bell.b, mats.props);
+      if (m) { const piv = new THREE.Group(); piv.applyMatrix4(extra.bell.m); this.group.remove(m); piv.add(m); this.group.add(piv); this.bell = m; }
+    }
     if (extra.beam) {
       const g = new THREE.ConeGeometry(2.6, 46, 6, 1, true);
       g.rotateZ(Math.PI / 2); g.translate(23, 0, 0);

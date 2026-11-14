@@ -25,7 +25,7 @@ area only when the task says so or when the change crosses over (then say which 
   under `main.js`. See `docs/ARCHITECTURE.md`; change them carefully, everything above imports them.
 - Split out of `main.js` (same owners as before): `src/ui/camera.js`, `src/ui/title.js` (design), `src/ui/pause.js` (design; sound
   rows audio), `src/ui/harbour.js`, `src/ui/shiptrade.js` (gameplay), `src/ui/shipyard.js` (design), `src/ui/hud.js` (design), `src/ui/encounters.js` and `src/systems/storybeats.js` (gameplay),
-  `src/systems/lullaby.js` (gameplay; the music placement is audio's), `src/systems/lostsailors.js` (gameplay), `src/systems/interact.js` (gameplay: what E does, going ashore, the anchor), `src/systems/later.js` (gameplay: story delays on the game's clock), `src/systems/edge.js`
+  `src/systems/lullaby.js` (gameplay; the music placement is audio's), `src/systems/lostsailors.js` (gameplay), `src/systems/interact.js` (gameplay: what E does, going ashore, the anchor), `src/systems/later.js` (gameplay: story delays on the game's clock), `src/systems/noonbell.js` (gameplay; the sound is audio's: Tama's noon bell), `src/systems/edge.js`
   (design and gameplay). Their text counts as main.js
   text in the story export (MAIN-xxxx).
 

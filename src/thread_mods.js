@@ -112,10 +112,10 @@ export function bellMod(hub) {
         tp.next -= dt;
         if (tp.next <= 0) { tp.next = 18; queue = Array.from({ length: tp.n }, (_, i) => i * 1.4); }
       }
-      if (queue.length) { queue = queue.map((q) => q - dt); while (queue.length && queue[0] <= 0) { queue.shift(); api.audio.play('bell', { vol: Math.max(0.1, 0.8 * (1 - d / 300)), rate: 0.55, pan: Math.max(-1, Math.min(1, Math.sin(Math.atan2(s.x - ship.pos.x, -(s.z - ship.pos.z)) - ship.heading))) }); } }
+      if (queue.length) { queue = queue.map((q) => q - dt); while (queue.length && queue[0] <= 0) { queue.shift(); api.audio.play('deepbell', { vol: Math.max(0.1, 0.8 * (1 - d / 300)), rate: 0.55, pan: Math.max(-1, Math.min(1, Math.sin(Math.atan2(s.x - ship.pos.x, -(s.z - ship.pos.z)) - ship.heading))) }); } }
       if (tp.ended === 'steal' && api.night() > 0.6) {   // the stolen bell tolls on deck
         tp.deck = (tp.deck || 40) - dt;
-        if (tp.deck <= 0) { tp.deck = 50 + Math.random() * 30; api.audio.play('bell', { vol: 0.35, rate: 0.5 }); }
+        if (tp.deck <= 0) { tp.deck = 50 + Math.random() * 30; api.audio.play('deepbell', { vol: 0.35, rate: 0.5 }); }
       }
     },
     interact({ ship, api }) { if (!tp.ended && api.tide() < -0.15 && D(site(), ship.pos) < 30) return { key: 'bell', prompt: 'E: listen over the side', run: () => api.openScene('bellreef', `bell:${tp.ended || 'x'}`) }; return null; },
@@ -134,7 +134,7 @@ export function bellMod(hub) {
     belfryText: () => `The belfry stands in a ring of weed. The bell is there, black and whole, and its mouth is empty. ${tp.clappers >= 3 ? 'You have the three iron tongues from the wrecks.' : `It needs three clappers. You have ${tp.clappers}. Wrecks keep them.`}`,
     event(n, arg) {
       const api = hub.api;
-      if (n === 'tolls') { for (let i = 0; i < tp.n; i++) setTimeout(() => api.audio.play('bell', { vol: 0.7, rate: 0.55 }), i * 1100); return; }
+      if (n === 'tolls') { for (let i = 0; i < tp.n; i++) setTimeout(() => api.audio.play('deepbell', { vol: 0.7, rate: 0.55 }), i * 1100); return; }
       if (n === 'ring') {
         tp.ended = arg === 'tune' ? 'tune' : 'ring';
         if (arg === 'tune') { api.clearMark('owed'); api.keep('shell', 'The lamplit shell', 'It rings, very faintly, in a tune you know.'); return 'Something owed, somewhere, is quietly marked paid.'; }

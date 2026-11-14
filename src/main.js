@@ -88,6 +88,7 @@ import { renderHarbour, lettersAt, PETS, companions, petOffer, takePet, tabOpene
 import { HUT_NOTES, perrinNote, hutNod, revealHut, showDemoEnd, fogLost, WHITE_MIST, seamTick, clueTick, seaGate, seaTick, oilOn, freeCaysNow, oilTick, SAIL_LIMIT, sailTick, toggleLamp, buyOil, tackTick, hurtPlayer, onHitEnemy, initStoryBeats } from './systems/storybeats.js';
 import { getInteract, tryInteract, anchorTick } from './systems/interact.js';
 import { after, laterTick, laterPending } from './systems/later.js';
+import { ringNoon, noonBellTick, noonPending } from './systems/noonbell.js';
 import { trackTarget, goldShown, etaText, slipInfo, drawCompass, updateTracker, initHud } from './ui/hud.js';
 import { LOCALS, localGames, pig, maraMood, openCard, caveScene, COLOUR_DEEP, COLOUR_SHALLOW, openCave, tabletopTick, signOn, daysLeft, crewLeave, wishDone, initEncounters } from './ui/encounters.js';
 
@@ -406,7 +407,12 @@ const tideWord = () => { const a = tideAt(), b = tideAt(state.time + 0.02); retu
 function dayLine(d) { const ev = isFestival(d) ? 'festival day' : isMarketDay() ? 'market day' : isLanternNight() ? 'lantern night' : ''; return WEEK[weekday()] + (ev ? ` · ${ev}` : '') + ` · ${tideWord()}`; }
 // a harbour grows with your trade there: more boats, then a busier quay, then flags over the pier
 function noonBells() {   // villages that keep the bells ring them at noon; you hear them if you are near
-  for (const isl of world.islands.values()) { const d = isl.desc; if (d.custom !== 'bells') continue; const dist = Math.hypot(d.x - ship.pos.x, d.z - ship.pos.z); if (dist < 260) audio.play('bell', { vol: clamp(1 - dist / 280, 0.15, 0.8) }); }
+  for (const isl of world.islands.values()) {
+    const d = isl.desc; if (d.custom !== 'bells') continue;
+    const dist = Math.hypot(d.x - ship.pos.x, d.z - ship.pos.z), vol = dist < 260 ? clamp(1 - dist / 280, 0.15, 0.8) : 0;
+    if (d.id === '0,-1') ringNoon(isl, 1, vol);   // Tama: its bell swings and sounds with the band's bell, one stroke as before (systems/noonbell.js)
+    else if (vol) audio.play('villagebell', { vol });   // other bell villages: not decided by the owner, so their cue stays unlisted (silent)
+  }
 }
 function weekMorning() {   // Mara mentions the day the first couple of times, then never again
   const k = isMarketDay() ? 'market' : isLanternNight() ? 'lanterns' : null; if (!k || !laterOK() || objectives.pending || eventQuiet()) return;   // Mara only talks about the quest in hand until the tutorial is well under way
@@ -1079,7 +1085,7 @@ function stormAndCalm(dt) {
   document.body.classList.toggle('fogged', thick);
   if (thick) {
     objectives.remark('thickfog', rt.dread);
-    if ((rt.bellT -= dt) <= 0) { rt.bellT = 14 + Math.random() * 8; audio.play('bell', { vol: 0.5 }); }
+    if ((rt.bellT -= dt) <= 0) { rt.bellT = 14 + Math.random() * 8; audio.play('fogbell', { vol: 0.5 }); }   // unlisted, so silent: only Tama's noon bell sounds (owner, 2026-11-14)
   }
 }
 
@@ -1114,6 +1120,7 @@ function frame() {
   const ashore = rt.modal === 'harbour' || rt.modal === 'greet' || rt.modal === 'yard';
   const vdt = live || ashore || rt.titleScene ? rawDt : 0;  // ashore the world keeps moving (people, gulls, waves) while the clock stands still
   rt.tNow += dt; rt.animT += vdt;
+  noonBellTick(vdt);   // Tama's bell swings at noon (world time: it keeps going ashore)
   laterTick();   // story delays that have come due (systems/later.js): never inside a menu, and they wait out the quiet
   const stepT = Math.floor(rt.animT * 12) / 12;
 
@@ -1405,7 +1412,7 @@ function frame() {
   } else if (rt.titleScene) {   // the title: the band of the bright sea, calm and open
     audio.update(rawDt, { dread: 0, speed: 0.2, night: tod.night, freecays: 0, players: null, lull: 0, wind: 0.5, rain: 0, storm: 0, gulls: 0.3, quests: 6, open: 1, battle: false });
     const hour = Math.floor(state.time * 24);
-    if (hour !== rt.lastHour) { rt.lastHour = hour; if (world.nearest(ship.pos.x, ship.pos.z, 80, ['harbour'])) audio.play('bell', { vol: 0.6 }); }
+    if (hour !== rt.lastHour) { rt.lastHour = hour; if (world.nearest(ship.pos.x, ship.pos.z, 80, ['harbour'])) audio.play('hourbell', { vol: 0.6 }); }   // unlisted, so silent
   }
 
   // ---- save (every few seconds, and at once when a quest is finished or you dock; those two also show the little ship)
@@ -1475,7 +1482,7 @@ window.__game = { secrets, regionWeights, tideAt: () => tideAt(), lostState: () 
     this._show = new THREE.Mesh(b.geometry(), mats.props); this._show.position.set(x, 0.4, z); scene.add(this._show);
     ship.pos.set(x + 15, 0, z + 2.5); ship.heading = Math.PI / 2; ship.speed = 0; ship.trim = 1;
   },
-  later: { after, pending: laterPending }, saveNow: () => saveNow(), rt,   // test hooks   // test hook: story delays on the game's clock
+  later: { after, pending: laterPending }, noonPending, ringNoon, saveNow: () => saveNow(), rt,   // test hooks   // test hook: story delays on the game's clock
   sectorAt: (x, z) => sectorAt(x, z, state.seed), traffic, abyss, hut, ship, world, state, begin, scene, camera, renderer, wind, weather, fauna, traffic, sea, audio, fishing, combat, objectives, hurtPlayer, openModal, closeModal, buyUpgrade, refreshMods,
 };
 rt.newVoyage = false;   // New voyage reloads straight into the game, no title in between

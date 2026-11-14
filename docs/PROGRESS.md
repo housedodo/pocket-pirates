@@ -1388,3 +1388,20 @@ Trials for the owner to compare; nothing changes without a flag and STYLE.md is 
   diff (the one flagged line, ABY-0010, was there before: task P1). **Open for the owner:** "fathoms" on the chart's scale, or units;
   which trials to keep (ocean styles, chart styles, Tama looks, watcher styles).
 
+## L3, sound and sight: Tama's bell (2026-11-14; owner's decision the same day: Tama's bell is the band's bell)
+- Embodies: CANON section 2, "Tama is home because it is where the sleeper is kept gentle: the bells ring softly" (questions 4 and 5),
+  and RULES 28 (a sound that carries story has a silent twin). No new fact.
+- `public/audio/bell.ogg` is one stroke of the band's bell, cut from `s1_bell.ogg`: the stem strikes the same bell every four bars (F,
+  with F and A flat partials, so in the band's F minor), each stroke decays to silence long before the next, so one lifts cleanly (the
+  stroke at 9.72 s, 7 s long, faded at the end). `bell` is in `CUES.oneShots`, `volumes.json` (100%) and `docs/AUDIO.md`.
+- Tama's bell is now its own mesh hung from its crown (`world.js`, Tama's belltower only; every other tower is unchanged), and
+  `src/systems/noonbell.js` swings it once per stroke and sounds the stroke at the top of the swing. `noonBells` rings one stroke, as it
+  did. The other places that call a bell (the other bell villages at noon, the fog bell, the title's hourly bell, the Bell Below thread)
+  now call their own unlisted cue names, so they stay silent as before: **for the owner**, whether any of them should sound.
+- **Verified** headless at Tama just before noon: one `bell` play from the real file (its buffer loaded), the bell swings out to 0.34 rad
+  and settles, and with the sound muted the swing is the same; no other bell cue fired; a screenshot of the belfry mid-swing.
+  `npm run smoke` passes. **Not verified:** how it sounds against the band and whether the stroke is recognisably the band's bell to a
+  listener (sound is never judged headless); feel.
+- **Still the owner's ([OWNER] in L3):** whether the strokes should equal the last throw, and what that does to the fixed "fourteen" in
+  clue `CL-C3-a`.
+

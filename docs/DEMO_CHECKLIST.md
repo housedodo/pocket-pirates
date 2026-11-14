@@ -72,6 +72,7 @@ Build it with `python3 scripts/single.py`, ship `pocket-pirates-demo.html` (with
 - [ ] The demo ships with sound (decided). Final mix done in the dev build (F8), `volumes.json` saved, demo rebuilt
 - [ ] Listen through the whole demo once with headphones: loops are seamless, no clipping, gulls/coast/rain are not annoying
 - [ ] Music: silent until the first quest, then the band builds up one instrument per quest, plays in changing line-ups, the two guitar arps never overlap; muffled tune in taverns; battle layer during a raider fight
+- [ ] Noon at Tama: the bell in the belfry swings once and you hear one stroke of the band's bell; no other bell sounds anywhere
 - [ ] Weather: light rain and a storm look and sound clearly different; distant thunder now and then in strong rain
 - [ ] Voice blips are soft enough not to notice after a minute
 - [ ] Pause > Settings: Shake, Wobble and Flashes switch and are remembered after a reload; with reduced motion set in the system they start Off
