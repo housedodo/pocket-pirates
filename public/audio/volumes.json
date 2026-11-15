@@ -16,5 +16,9 @@
   "s1_raiders": 1.4,
   "s3_bass": 1.4,
   "s3_bell": 0.6,
-  "s3_pluck": 1.8
+  "s3_pluck": 1.8,
+  "n2_fiddle": 0.6,
+  "n2_fiddle2": 1,
+  "n2_serum": 0.2,
+  "n2_bell": 1.2
 }

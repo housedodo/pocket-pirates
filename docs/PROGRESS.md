@@ -1564,3 +1564,13 @@ Trials for the owner to compare; nothing changes without a flag and STYLE.md is 
 - The WAV masters stay with the composer (RULES 27); the game's `.ogg` files were already here. RULES 27, AREAS and AUDIO.md say so.
 - **Verified:** built from `tools/hoist` alone (JUCE 8.0.4); re-rendering the stage-3 stems gives byte-identical WAVs to the
   Chaos_Grain build.
+
+## The second night band (2026-11-15, owner's somber_night stems)
+- The four stems through HOIST (`tools/hoist`, set `night2`), as `n2_fiddle`, `n2_fiddle2`, `n2_serum`, `n2_bell`; levels set by
+  measurement (the Serum part was cut about 10 LU hotter than the rest). The night now turns between three: the first band, the pad
+  and this band (`layers.js`: `nm.mode` and a crossfade weight for each). In this band two or three parts play at a time, now and then
+  all four, the line-up changing every 2-4 phrases; each part swells louder and quieter. The two bells never ring together.
+- **Verified:** measured in game (all four -28.5 LUFS against -27.5 for the first band and -27.3 for the pad); headless with the music
+  sped up: 25 night changes, never the same twice in a row, all three options used; 17 line-ups in the second band; the bells never both
+  audible (0 of 859 samples). `npm run smoke` passes. **Not verified:** by ear.
+

@@ -22,10 +22,10 @@ A7  Silent cues (review 16, "not yet"): cannon and hit in fights, a creak at sea
 ================================================================================================================
 B. SOUND: FILES AND EAR
 ================================================================================================================
-B1  The second night band: three of the four files arrived as pure silence (somber_night_Sandbar_fiddle.wav,
-    somber_night_Serum_2_8.wav, somber_night_Bell.wav; only Sandbar_fiddle_2 has sound). Export those three again; then it is rendered
-    through HOIST (the night2 set is ready) and added as a third night option, with turns where only 2 or 3 play.
+B1  Done 2026-11-15: the second night band is in (the night turns between the first band, the pad and it; in it two or three
+    play at a time, swelling louder and quieter). Listen to it at night (see B2).
 B2  Listen through, since nothing about sound can be judged headless:
+    - the second night band and how the night turns between the three (you set its levels by ear in the F8 mixer if needed);
     - stage 3 (your new stems, dread 0.45 to 0.9), and how it hands over from stage 2 and into the silence of the deep;
     - the levels changed from the measured review: coast 60%, storm 70%, forest and sea 200%, plucks 140%, Ilse's violin 130%,
       battle 140%, the hut's pluck 400% (it was 32 dB under the drone: a ghost or a render fault? say which), the tavern from the street;

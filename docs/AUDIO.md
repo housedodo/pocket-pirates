@@ -157,6 +157,19 @@ dread 0.50, mix 0.60-0.65). In from dread 0.45-0.58, out by 0.75-0.9 (then nothi
 20-45 s now and then, so it thins rather than adds. Levels in `volumes.json` (bass 140%, bell 60%, pluck 180%) bring each to about -26 LUFS
 like the stage-2 stems. It is locked to the band, so the battle layer stays on the beat over it. Full game only (`DEMO_SKIP`).
 
+## The second night band (`n2_*`, in `src/layers.js`; 2026-11-15)
+The owner's `somber_night` stems: `Sandbar_fiddle`, `Sandbar_fiddle_2`, `Serum_2_8` and `Bell` (16 bars, 99 BPM, F minor), through
+HOIST with the night's calm settings (`tools/hoist`, set `night2`: fiddles TIDE 0.18, DREAD 0.05, MIX 0.58; Serum 0.22/0.05/0.60; bell
+0.28/0.06/0.65). Levels in `volumes.json` bring each to about -26 LUFS like the first night band (fiddle 60%, fiddle 2 100%, Serum 20%:
+it was cut about 10 LU hotter than the rest, bell 120%).
+- **The night turns between three:** the first night band, the pad and this band, switched on a phrase and never the same twice in a
+  row. On a calm sea the pad is likelier and holds longer; in wind the two bands are. A night still opens with the first band.
+- **Inside this band** only two or three parts play at a time (now and then all four); the line-up changes every 2-4 phrases, never the
+  same twice, each part fading in and out over about 4 s and swelling louder and quieter on its own (55-100%).
+- **Never two bells at once:** each band's bell waits until the other band has gone.
+- Measured in game: all four -28.5 LUFS (the first band -27.5, the pad -27.3); three parts -28.9, two fiddles -31.4. Like the rest of the
+  night it follows the day band's build-up and keeps out of a Free Cays night. F8 mixer: group "Night, the second band".
+
 ## Battle (`s1_raiders`, in `src/layers.js`)
 `Raiders.wav` (4 bars at 99 BPM, **F minor** like the band) is played four times to the band's 16-bar length and rendered through HOIST like the other stems (`Raiders_x4.wav` in Chaos_Grain `game_audio/`; it replaced an earlier take that had to be shifted up from E minor). It joins the main theme while a fight is on: cannons unlocked and a raider engaged
 or within ~110 units (`inBattle()` in main.js). It comes in within a few seconds, the whole band plays for the fight (no small

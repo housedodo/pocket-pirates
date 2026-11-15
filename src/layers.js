@@ -24,6 +24,11 @@ const NIGHT = ['n1_pluck', 'n1_shaperbox', 'n1_strings', 'n1_bell'];
 // the night pad: one big, slow pad for calm seas, long and peaceful. The night switches between the band (it carries the melody)
 // and the pad, crossfading over ~12 s on a phrase; on a calm sea the pad stays longer and comes back sooner, in wind the band does
 const PAD = 'n1_pad';
+// the second night band (the owner's somber_night stems, 2026-11-15): two Sandbar fiddles, a Serum part and a night bell, through HOIST
+// like the first. The night now turns between three: the first band, the pad, and this band. In this band only two or three play at a
+// time (now and then all four), the line-up changes every 2-4 phrases, and each part swells louder and quieter on its own. The two night
+// bells never ring together: one waits until the other band has gone
+const NIGHT2 = ['n2_fiddle', 'n2_fiddle2', 'n2_serum', 'n2_bell'];
 // the Free Cays at night: a somber guitar and a somber violin (through HOIST, calm and wide) in place of the night band and pad. They never
 // loop audibly: each swells in slowly and fades out, and between the episodes there is silence (only the sea). An episode is the guitar
 // alone, the violin alone, both together, or one joining the other (and the first leaving, sometimes); never the same twice in a row
@@ -37,13 +42,14 @@ const STAGE2 = ['s2_bass', 's2_drums', 's2_guitar', 's2_pluck'];
 // dread stage 3 (the owner's stage_3 stems, 2026-11-15, in place of music_3): bass, a bent bell and a pluck, through HOIST between GREY
 // SKIES and THE DEEP. The bass holds; the bell and the pluck take turns resting, so it thins rather than adds (horror by removing)
 const STAGE3 = ['s3_bass', 's3_bell', 's3_pluck'];
-export const LAYERS = [...BAND, ARP2, PLUCK2, PLUCK3, BATTLE, COUNTER, ...NIGHT, PAD, ...FC, ...STAGE2, ...STAGE3];
+export const LAYERS = [...BAND, ARP2, PLUCK2, PLUCK3, BATTLE, COUNTER, ...NIGHT, PAD, ...NIGHT2, ...FC, ...STAGE2, ...STAGE3];
 const FIRST = ['s1_bass', 's1_shaperbox'];   // the first quest brings these two in together
 // [home pan -1..1, how far it wanders, how fast]: bass and drums stay near the middle, the rest spread out
 const PLACE = {
   s1_bass: [0, 0.1, 0.031], s1_shaperbox: [-0.3, 0.32, 0.023], s1_pluck: [0.42, 0.3, 0.037],
   s1_drums: [-0.08, 0.14, 0.019], s1_bell: [0.58, 0.28, 0.027], s1_guitar: [-0.52, 0.28, 0.041], s1_guitar2: [-0.52, 0.28, 0.041], s1_raiders: [0.1, 0.18, 0.033], s1_counter: [0.2, 0.32, 0.017], s1_pluck2: [0.42, 0.3, 0.037], s1_pluck3: [0.42, 0.3, 0.037], n1_pad: [0, 0.14, 0.008],
   s2_bass: [0, 0.1, 0.029], s2_drums: [-0.1, 0.14, 0.02], s2_guitar: [-0.5, 0.3, 0.037], s2_pluck: [0.45, 0.3, 0.031],
+  n2_fiddle: [-0.35, 0.3, 0.019], n2_fiddle2: [0.35, 0.3, 0.023], n2_serum: [0, 0.18, 0.011], n2_bell: [0.55, 0.3, 0.025],
   s3_bass: [0, 0.08, 0.023], s3_bell: [0.5, 0.35, 0.019], s3_pluck: [-0.45, 0.3, 0.027],
   fc_night: [0.22, 0.2, 0.011], fc_violin: [-0.24, 0.2, 0.013], n1_pluck: [0.4, 0.3, 0.021], n1_shaperbox: [-0.35, 0.3, 0.017], n1_strings: [0, 0.2, 0.013], n1_bell: [0.55, 0.3, 0.025],
 };
@@ -67,7 +73,7 @@ export class SeaLayers {
     this.arp = { which: 0, m: [1, 0], hold: (2 + Math.floor(Math.random() * 6)) * PHRASE, armed: -1, min: 2, span: 6 };   // which arp take plays, and how far each is faded in
     this.pl = { which: 0, m: [1, 0, 0], hold: (3 + Math.floor(Math.random() * 5)) * PHRASE, armed: -1, min: 3, span: 6 };   // the same for the two pluck takes (they hold a little longer)
     this.fc = { phase: 'rest', t: 10, k: [0, 0], want: [0, 0], ep: null, last: [], clock: 0 }; this.freecays = 0;   // the Free Cays night guitar: how far in the region (eased), and its slow cycle
-    this.nm = { pad: 0, k: 0, hold: (3 + Math.floor(Math.random() * 3)) * PHRASE };   // the night: band (0) or pad (1), and the crossfade
+    this.nm = { mode: 0, w: [1, 0, 0], hold: (3 + Math.floor(Math.random() * 3)) * PHRASE, set: new Set(NIGHT2.slice(0, 3)), setHold: 0 };   // the night: first band (0), pad (1) or second band (2), each one's crossfade weight; the second band's line-up
     this.scene = new Set(); this.sceneFull = true; this.sceneLeft = 0; this.recent = []; this.lastN = 0; this.t0 = 0; this.phrase = -1; this.smalls = 0;
   }
   get ready() { return this.srcs.size > 0; }
@@ -195,16 +201,30 @@ export class SeaLayers {
       for (let i = 0; i < 3; i++) if (i !== P.which) P.m[i] = Math.max(0, P.m[i] - d / 0.3);
       if (!leaving) P.m[P.which] = Math.min(1, P.m[P.which] + d / 0.5);   // the new take comes in only once the old one is gone
     }
-    { // the night: band or pad, switched on a phrase; calm seas favour the pad (it holds longer and comes back sooner)
-      const N = this.nm, calm = wind < 0.45;
+    { // the night: the first band, the pad or the second band, switched on a phrase; calm seas favour the pad (it holds longer and comes
+      // back sooner), wind the two bands. Never the same twice in a row
+      const N = this.nm, calm = wind < 0.45, has2 = NIGHT2.every((k) => this.srcs.has(k)), hasPad = this.srcs.has(PAD);
       N.hold -= d;
-      if (nk > 0.5 && N.hold <= 0 && this.srcs.has(PAD) && (onPhrase || this.pace !== 1)) {
-        N.pad = 1 - N.pad;
-        const pads = N.pad ? (calm ? 5 + this.rnd() * 5 : 2 + this.rnd() * 3) : (calm ? 2 + this.rnd() * 3 : 4 + this.rnd() * 5);
-        N.hold = Math.floor(pads) * PHRASE;
+      if (nk > 0.5 && N.hold <= 0 && (onPhrase || this.pace !== 1)) {
+        const opts = [0, ...(hasPad ? [1] : []), ...(has2 ? [2] : [])].filter((m) => m !== N.mode);
+        if (opts.length) {
+          const wt = opts.map((m) => (m === 1 ? (calm ? 2 : 0.6) : 1)), sum = wt.reduce((a, b) => a + b, 0);
+          let r = this.rnd() * sum, i = 0; while (i < opts.length - 1 && (r -= wt[i]) > 0) i++;
+          N.mode = opts[i];
+          const len = N.mode === 1 ? (calm ? 5 + this.rnd() * 5 : 2 + this.rnd() * 3) : (calm ? 2 + this.rnd() * 3 : 4 + this.rnd() * 5);
+          N.hold = Math.floor(len) * PHRASE;
+        }
       }
-      if (nk < 0.1) { N.pad = 0; N.hold = Math.min(N.hold, (3 + Math.floor(this.rnd() * 3)) * PHRASE); }   // a night always opens with the band
-      N.k += (N.pad - N.k) * (1 - Math.exp(-d / 5));   // ~12 s to cross over
+      if (nk < 0.1) { N.mode = 0; N.hold = Math.min(N.hold, (3 + Math.floor(this.rnd() * 3)) * PHRASE); }   // a night always opens with the first band
+      for (let i = 0; i < 3; i++) N.w[i] += ((N.mode === i ? 1 : 0) - N.w[i]) * (1 - Math.exp(-d / 5));   // ~12 s to cross over
+      // the second band's line-up: two or three of the four (now and then all four), changing every 2-4 phrases, never the same twice
+      N.setHold -= d;
+      if (N.setHold <= 0 && (onPhrase || this.pace !== 1)) {
+        const r = this.rnd(), size = r < 0.15 ? 4 : r < 0.6 ? 3 : 2, last = [...N.set].sort().join();
+        let pick;
+        for (let tries = 0; tries < 12; tries++) { const pool = [...NIGHT2]; pick = new Set(); while (pick.size < size) pick.add(pool.splice(Math.floor(this.rnd() * pool.length), 1)[0]); if ([...pick].sort().join() !== last) break; }
+        N.set = pick; N.setHold = (2 + Math.floor(this.rnd() * 3)) * PHRASE;
+      }
     }
     { // the Free Cays night episodes: silence 25-65 s, then guitar alone / violin alone / both / one joins the other (and the first sometimes leaves)
       // The guitar is Teo's and the violin Ilse's (the Two Players, systems/lullaby.js): near them the silences are short and he starts, she finishes.
@@ -262,7 +282,19 @@ export class SeaLayers {
       if (k === PAD) {   // the night pad, in place of the night band while it holds
         const [home, wander, sp] = PLACE[k];
         this.pans.get(k).pan.setTargetAtTime(s.steer != null ? s.steer : home + wander * Math.sin(this.t * sp * 6.283 + st.ph), T, s.steer != null ? 0.6 : 2);
-        out[k] = nk * (1 - fk) * smooth(Math.max(0, Math.min(1, this.nm.k))) * 0.95 * (s.stage ?? 1) * (0.4 + 0.6 * this.open) * Math.min(1, this.bg / 0.66);   // as full as the day band is by now
+        out[k] = nk * (1 - fk) * smooth(Math.max(0, Math.min(1, this.nm.w[1]))) * 0.95 * (s.stage ?? 1) * (0.4 + 0.6 * this.open) * Math.min(1, this.bg / 0.66);   // as full as the day band is by now
+        continue;
+      }
+      if (NIGHT2.includes(k)) {   // the second night band: its line-up comes and goes, and each part swells louder and quieter
+        const N = this.nm;
+        st.inScene += ((N.set.has(k) ? 1 : 0) - st.inScene) * (1 - Math.exp(-d / 4));
+        st.next -= d;
+        if (st.next <= 0) { st.swell = 0.55 + 0.45 * this.rnd(); st.next = 8 + this.rnd() * 10; }
+        st.breath += (st.swell - st.breath) * (1 - Math.exp(-d / 5));
+        const [home, wander, sp] = PLACE[k];
+        this.pans.get(k).pan.setTargetAtTime(s.steer != null ? s.steer : Math.max(-0.9, Math.min(0.9, home + wander * Math.sin(this.t * sp * 6.283 + st.ph))), T, s.steer != null ? 0.6 : 1);   // steer: the way out of the fog (L9)
+        const bellWait = k === 'n2_bell' ? 1 - smooth(Math.min(1, N.w[0] * 3)) : 1;   // its bell waits until the first band's bell has gone
+        out[k] = nk * (1 - fk) * smooth(Math.max(0, Math.min(1, N.w[2]))) * st.inScene * st.breath * bellWait * (s.stage ?? 1) * (0.4 + 0.6 * this.open) * Math.min(1, this.bg / 0.66);
         continue;
       }
       if (NIGHT.includes(k)) {   // the night version: all four, breathing gently, while the band rests
@@ -271,7 +303,7 @@ export class SeaLayers {
         st.breath += (st.swell - st.breath) * (1 - Math.exp(-d / 6));
         const [home, wander, sp] = PLACE[k];
         this.pans.get(k).pan.setTargetAtTime(s.steer != null ? s.steer : Math.max(-0.9, Math.min(0.9, home + wander * Math.sin(this.t * sp * 6.283 + st.ph))), T, s.steer != null ? 0.6 : 1);   // steer: the way out of the fog (L9)
-        out[k] = nk * (1 - fk) * st.breath * 1.0 * (s.stage ?? 1) * (0.4 + 0.6 * this.open) * (1 - smooth(Math.max(0, Math.min(1, this.nm.k)))) * Math.min(1, this.bg / 0.66);   // early nights no fuller than early days (review 3)   // as present as the day band (the stems are mastered quieter); steps aside for the pad
+        out[k] = nk * (1 - fk) * st.breath * 1.0 * (s.stage ?? 1) * (0.4 + 0.6 * this.open) * smooth(Math.max(0, Math.min(1, this.nm.w[0]))) * (k === 'n1_bell' ? 1 - smooth(Math.min(1, this.nm.w[2] * 3)) : 1) * Math.min(1, this.bg / 0.66);   // only while the first band holds the night; its bell steps aside for the second band's; early nights no fuller than early days (review 3)   // as present as the day band (the stems are mastered quieter); steps aside for the pad
         continue;
       }
       if (k === COUNTER) {   // rare: rest a long while, fade in over ~12 s on a phrase, play 3-5 phrases, fade out over ~14 s
