@@ -1,0 +1,64 @@
+HOIST: WHAT IS LEFT FOR THE FULL GAME, FROM THE OWNER'S SIDE
+As of 2026-11-15. Everything below waits on you (or the writer, or the composer). Answer by number.
+
+================================================================================================================
+A. DECISIONS ONLY YOU CAN MAKE
+================================================================================================================
+A1  L1, candles at the hut: may the hut show one more lit candle for each low throw? (This also settles WRITER_TODO 2.2:
+    does the hut change on later visits.)
+A2  L3, the noon bell count: should Tama's strokes equal the last throw? If so, what happens to the fixed "fourteen" in clue
+    CL-C3-a ("Tama rang fourteen at noon")? Today the bell rings once.
+A3  The greeter lines that name a low throw's cause ("Somebody threw a ... and the whole sea went soft" and the like): keep or cut.
+    Goes with A5.
+A4  The bells that are still silent: the fog bell (thick fog), the other bell villages at noon, the title screen's hourly bell.
+    Should any of them sound? (Tama's noon bell and the Bell Below's strokes sound now.)
+A5  L2 trial: play with ?landing=1 added to the address. A low throw then lands on one known harbour (its boat stays out, its quay is
+    empty, only its prices rise) instead of costing you everywhere. Keep it (the flag goes, the old cost is deleted) or drop it?
+    Not built: that harbour's dark windows (they are baked into each island's mesh).
+A6  G3: look at the faint extra tick on a Crown harbour's record (it shows once the Customs ledger has been read). Does it read as
+    "already written before you came"? Then: build `forecast` and `bluelamp` too, or not.
+A7  Silent cues (review 16, "not yet"): cannon and hit in fights, a creak at sea, a sound when a quest is done. Say when.
+
+================================================================================================================
+B. SOUND: FILES AND EAR
+================================================================================================================
+B1  The second night band: three of the four files arrived as pure silence (somber_night_Sandbar_fiddle.wav,
+    somber_night_Serum_2_8.wav, somber_night_Bell.wav; only Sandbar_fiddle_2 has sound). Export those three again; then it is rendered
+    through HOIST (the night2 set is ready) and added as a third night option, with turns where only 2 or 3 play.
+B2  Listen through, since nothing about sound can be judged headless:
+    - stage 3 (your new stems, dread 0.45 to 0.9), and how it hands over from stage 2 and into the silence of the deep;
+    - the levels changed from the measured review: coast 60%, storm 70%, forest and sea 200%, plucks 140%, Ilse's violin 130%,
+      battle 140%, the hut's pluck 400% (it was 32 dB under the drone: a ghost or a render fault? say which), the tavern from the street;
+    - Tama's noon bell on the band's beat; the Bell Below's church bell (pitched down, 2 s apart); the fog tune now in F, B flat, D
+      (was D, G, B);
+    - the hut's drone: kept as it is (your call), still the loudest music in the game.
+B3  Composer, optional: a second take for the sea (19 s) and the storm (30 s) loops; they now drift in pitch to hide the repeat.
+B4  The Chaos_Grain changes (the night2 and stage3 sets in Tests/HoistLayers.cpp and the stems under game_audio/) exist only in this
+    session's read-only copy. To keep them in that repository, give write access to it.
+
+================================================================================================================
+C. FOR YOU OR THE WRITER
+================================================================================================================
+C1  docs/WRITER_TODO.txt section 2.5: mark each line KEEP, CUT or a new line. It lists the three "Eye" strings the player reads, the
+    stock-horror lines ("TURN BACK" and others), the glitch characters, the hut's "(+N gold...)", "Come back tomorrow" and
+    "something is disappointed", and two counts that disagree (the crew of nine or ten; Tama's bell: one, two, twelve or fourteen).
+C2  Still drafts (CANON section 8): the six ending texts, the six epilogue lines, Perrin's five letters after the hut, the seven thread
+    clue lines, and the credits (names to add).
+C3  A storm-night line for the Free Cays, if wanted. The market's line now ends "Most nights." and never says why.
+
+================================================================================================================
+D. PLAY AND JUDGE (feel was never verified headless)
+================================================================================================================
+D1  G1 feedback: the hit frame, the stop and the shake, the gold count, the sail bulge, the camera easing out at a new island.
+D2  The lantern flame far out (L6); the swell lying down near Tama at noon (L4); the music and the pennant pointing out of the fog
+    with the tune known (L9); the one shadow on the deck the night the tell fires (L7).
+D3  Pause > Settings: Shake, Wobble and Flashes.
+D4  On the shipwright's Lantern card one line now wraps to two (text raised to 14 px).
+
+================================================================================================================
+E. BEFORE SHIPPING
+================================================================================================================
+E1  One fresh voyage to the hut (target under 45 minutes); note which of the three small wrong things you noticed.
+E2  docs/DEMO_CHECKLIST.md, top to bottom (it has new lines from these sessions).
+E3  Read and keep the font licence files (Pirata One, Jersey 10, DotGothic16).
+E4  Ask for the single-file games and the app to be rebuilt; neither has been rebuilt since this work.
