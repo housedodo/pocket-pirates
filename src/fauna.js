@@ -4,6 +4,7 @@ import { TILE } from './textures.js';
 import { mats, psxMaterial } from './psx.js';
 import { waveHeight } from './ocean.js';
 import { smoothstep, lerp, clamp, mulberry32 } from './util.js';
+import { SeaLife } from './sealife.js';
 
 // Sea life that goes wrong as dread rises:
 //  gulls -> frozen watchers -> backwards-circling crows -> a ring of crows over your ship
@@ -110,6 +111,7 @@ export class Fauna {
     cg.setAttribute('color', new THREE.Float32BufferAttribute(new Float32Array(8 * 4).fill(1), 4));
     this.splashes = Array.from({ length: 14 }, () => { const m = new THREE.Mesh(cg, mats.foam); m.visible = false; m.renderOrder = 2; scene.add(m); return { m, life: 0 }; });
     this.gullTimer = 4; this.nearBird = 1e9;
+    this.life = new SeaLife(scene, world);   // weed, logs, jellyfish on the open sea (sealife.js)
   }
 
   splash(x, z, wave, t, size = 1) {
@@ -307,6 +309,7 @@ export class Fauna {
       s.m.scale.setScalar(s.size * (0.4 + k * 2.4) * Math.max(0, 1 - k * k));
       if (s.life <= 0) s.m.visible = false;
     }
+    this.life.update(dt, t, ctx);
   }
 
   /** the whale is solid while its back is out of the water; a turtle's shell too */

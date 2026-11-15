@@ -1588,3 +1588,19 @@ Trials for the owner to compare; nothing changes without a flag and STYLE.md is 
   at dread 0.6 and 0.85; blind-test pictures for A12/A13 made. `npm run smoke` passes. **Not verified:** the blind test itself (it
   needs a person), how it feels to sail through.
 
+## The sea: smoother by the islands, character, small life (2026-11-15, owner: "more detailed, more character and variety";
+## "yes it should change and no rocks for now, but also the water around the islands should look more smooth")
+- `src/seawater.js` (water shader pieces, wired into `ocean.js`; the region's water set from `systems/regionlook.js`): the swell
+  halves within 40 units of a shore (CPU twin too, so the ship rides what you see), smooth light by the islands, the shallows a fine
+  dithered gradient instead of four hard rings, and the flat pale sheet round each shore dropped (world.js; the hut's murk keeps it).
+  Open sea: deep and shallow patches, current lines; each region's water (Crown, Free Cays, Reef, Lantern, Drowned). The cat's paws
+  were already there. `?sea=0` compares; `?sea=debug` shows the features in flat colours.
+- `src/sealife.js` (run by fauna.js): weed, a log with a bird, jellyfish; each goes quietly wrong with the dread (see STYLE.md).
+  Turtles and flying fish were already in fauna.js and are unchanged.
+- **Verified:** screenshots old against new by Tama, in the Crown, Free Cays and Reef waters, the debug view, and the small life by
+  day, at night, at dread 0.6 and at dread 0.85 at night (bird gone, cold synced jellies at the ship's side); about two things within
+  280 units (mean 2.0, at most 4 over 40 spots); frame rate in the software renderer 9.9 against 10.4 with `?sea=0` (the smooth
+  water is lit by height, not by extra wave samples: a first version with them made the smoke test time out); `npm run smoke` passes.
+  **Not verified:** the Lantern oil and the Drowned lead on screen (the test seed's only Lantern water in reach lies in the Slack,
+  where the deep's palette takes over; no Drowned water was found), how it looks in motion, performance on a real GPU.
+

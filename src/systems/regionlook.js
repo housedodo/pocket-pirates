@@ -7,6 +7,7 @@
 import * as THREE from 'three';
 import { SECTOR, sectorCoord, sectorInfo } from '../sectors.js';
 import { smoothstep } from '../util.js';
+import { setSeaChar } from '../seawater.js';
 
 // the five looks (docs/proposals/REGIONS.md, the bolder prototype). Colours replace the palette's at full strength; numbers too.
 const LOOKS = {
@@ -48,14 +49,16 @@ export function regionLook(stage, pos, dt, dread, seed) {
   cur.at = { x: pos.x, z: pos.z };
   // the regions' colours give way to the dread palette in the deep (dread 0.5 to 0.85); the Drowned's grey belongs to the deep and stays
   const fade = 1 - smoothstep(0.5, 0.85, dread);   // the mid sea keeps its colours; the deep takes them
+  const sw = {};   // the region's water (seawater.js), faded like the colours
   let k = 0, wm = 0; for (const c of COLS) mix.c[c].setRGB(0, 0, 0); for (const n of NUMS) mix.n[n] = 0;
   for (const id of IDS) {
     const f = cur.w[id] * (id === 'drowned' ? (window.__BUILD === 'demo' ? 0 : 1) : fade); if (f < 1e-4) continue;   // the demo has no deep
-    const L = LOOKS[id]; k += f;
+    const L = LOOKS[id]; k += f; sw[id] = f;
     for (const c of COLS) mix.c[c].r += L[c].r * f, mix.c[c].g += L[c].g * f, mix.c[c].b += L[c].b * f;
     for (const n of NUMS) mix.n[n] += L[n] * f;
     wm += L.waveMul * f;
   }
+  setSeaChar(sw);
   if (k < 1e-4) return 0;
   const inv = 1 / k, K = Math.min(1, k);
   for (const c of COLS) stage[c].lerp(mix.c[c].multiplyScalar(inv), K);

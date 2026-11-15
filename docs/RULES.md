@@ -34,6 +34,8 @@ need to break one, stop and ask the owner. `docs/CANON.md` says what is true in 
 24. **Everything is procedural and pixel-crisp.** No image or model files. Half-resolution canvases shown pixelated; no anti-aliased strokes, no blur on text.
 24b. **Island variety never crowds the map** (owner, 2026-11-15): a new island look may change a rolled island's kind, outline or props,
     never add an island, move one, add land (total within +5%) or add props beyond the old kinds' range. `node scripts/isle_checks.cjs` checks it.
+24c. **The sea's small life stays sparse and harmless** (owner, 2026-11-15): about two things within 280 units of the ship, none within 35 of a shore,
+    nothing solid, nothing to pick up; its wrongness with the dread is shown, never explained. No rocks on the open sea until the owner asks.
 24a. **Each region keeps its own light and things on the water** (STYLE 4): crossings are slow and smooth, never a line or a
     sudden change; the deep's dread palette still wins in the deep; regional waves are a multiplier on the sea, never a fixed height.
 

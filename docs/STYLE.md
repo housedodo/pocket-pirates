@@ -95,6 +95,16 @@ purple and magenta cosmic horror as dread rises.
 ## 4. Colour and mood
 - The sea is low-poly and faceted: a fine wave mesh with small chop, light banded in ~6 steps by facing to the sun,
   deeper troughs and chunky foam flecks on the crests. It should never read as a flat plane.
+- **The sea's character** (`src/seawater.js`, 2026-11-15; `?sea=0` the old sea, `?sea=debug` the features in flat colours):
+  by the islands the water lies smooth (half the swell within 40 units of a shore, smooth light out to ~110, the shallows a fine
+  dithered gradient; the flat pale sheet round each shore is gone, the swell cut it into jagged shapes). Out at sea: still patches
+  of darker deep water and pale sandy banks (looks only, they never ground the ship), long thin broken current lines with a glassy
+  band beside them. Each region's water: Crown clean, Free Cays glassy over sand, Reef white water over hidden heads, Lantern oil
+  slicks with a dull rainbow edge, the Drowned flat lead-grey (the deep's palette still wins in the deep).
+- **Small life** (`src/sealife.js`): golden floating weed, a drifting log with a resting booby (it flies off when you come close),
+  a bloom of pink jellyfish breaking the surface (faintly lit at night). As the dread rises: the weed drifts into the wind, the bird
+  stays and turns to watch you, then is gone and the log swings to point at you; the jellyfish pulse together, their light turns cold,
+  and they keep pace off your side. About two within sight; never by a shore.
 - **Everything obeys the light** (2026-11-14, task G2). Every mesh in the world uses `psxMaterial` (it snaps and darkens with `uLight`):
   the wind wisps, the wake and the gust foam too, so at night they are never brighter than the foam. Additive things (the wisps) cannot
   take the fog's colour, so they fade out as the fog closes in (`windfx.js`). Mist, the fog bank and the clouds already take their

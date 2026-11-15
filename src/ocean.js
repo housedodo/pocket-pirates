@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { psxMaterial, U } from './psx.js';
+import { GLSL_CALM, GLSL_SEA_HEAD, GLSL_SEA_BODY, shoreCalm } from './seawater.js';
 
 const CELL = 5, SEG = 150, SIZE = CELL * SEG;
 
@@ -56,7 +57,7 @@ export function waveHeight(x, z, t, amp = 1) {
   // sets: a slow travelling pattern of bigger and smaller waves (about 0.5x to 1.45x), so even a calm sea is never even
   const G = (0.5 + 0.5 * wsin(0.031 * x + 0.017 * z - 0.45 * t)) * (0.6 + 0.4 * wsin(0.013 * x - 0.021 * z + 0.3 * t + 2.0));
   const big = 0.22 * wsin(0.11 * px + 0.07 * pz + 0.6 * W * t) * G;   // a longer swell that rolls through with the big sets
-  const H = amp * ((sw + big) * (1 - r) * (0.5 + 0.95 * G) + h * r) * seaScale(x, z);
+  const H = amp * ((sw + big) * (1 - r) * (0.5 + 0.95 * G) + h * r) * seaScale(x, z) * shoreCalm(shoreAt(x, z));   // the swell lies down by a shore (seawater.js)
   return H / Math.sqrt(1 + (H / SWELL_CAP) * (H / SWELL_CAP));   // the very biggest swells are eased (never above about 9), calm and middle seas are untouched
 }
 
@@ -67,6 +68,7 @@ float landNear(vec2 p){ float s = 0.0; for (int i = 0; i < ${NISL}; i++) { vec3 
 const GLSL_WAVEFN = /* glsl */`
 uniform float uTime; uniform float uWave;
 ${GLSL_SHORE}
+${GLSL_CALM}
 const float WS = 1.2566371; const float WRL = 0.6283185;
 float waveH(vec2 p){
   float t = uTime * ${SWELL_SPEED.toFixed(2)};
@@ -86,7 +88,7 @@ float waveH(vec2 p){
   }
   float G = (0.5 + 0.5 * sin(0.031 * p.x + 0.017 * p.y - 0.45 * t)) * (0.6 + 0.4 * sin(0.013 * p.x - 0.021 * p.y + 0.3 * t + 2.0));   // sets of bigger and smaller waves
   float big = 0.22 * sin(0.11 * q.x + 0.07 * q.y + 0.6 * WS * t) * G;
-  float Hh = uWave * (mix((sw + big) * (0.5 + 0.95 * G), h, uRough)) * (0.35 + 1.35 * ${OPEN_SEA.toFixed(2)} * (1.0 - landNear(p)));   // low by land, big in the open sea
+  float Hh = uWave * (mix((sw + big) * (0.5 + 0.95 * G), h, uRough)) * (0.35 + 1.35 * ${OPEN_SEA.toFixed(2)} * (1.0 - landNear(p))) * shoreCalmF(p);   // low by land, big in the open sea, lying down by a shore
   return Hh * inversesqrt(1.0 + (Hh / ${SWELL_CAP.toFixed(1)}) * (Hh / ${SWELL_CAP.toFixed(1)}));   // the very biggest swells are eased (same as the CPU)
 }`;
 const GLSL_WAVE = GLSL_WAVEFN + '\nvarying vec3 vWP;';
@@ -112,7 +114,8 @@ export class Ocean {
           float bay2(vec2 a) { a = floor(a); return fract(dot(a, vec2(0.5, a.y * 0.75))); }
           float bay4(vec2 a) { return bay2(0.5 * a) * 0.25 + bay2(a); }   // ordered dither, so smooth light still reads as pixels
           float rnd(vec2 q) { return fract(sin(dot(q, vec2(12.9898, 78.233))) * 43758.5453); }
-          float vn(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f); return mix(mix(rnd(i), rnd(i + vec2(1.0, 0.0)), f.x), mix(rnd(i + vec2(0.0, 1.0)), rnd(i + vec2(1.0, 1.0)), f.x), f.y); }`,
+          float vn(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f); return mix(mix(rnd(i), rnd(i + vec2(1.0, 0.0)), f.x), mix(rnd(i + vec2(0.0, 1.0)), rnd(i + vec2(1.0, 1.0)), f.x), f.y); }
+          ${GLSL_SEA_HEAD}`,
         body: `
           vec3 fn = normalize(cross(dFdx(vWP), dFdy(vWP)));
           if (fn.y < 0.0) fn = -fn;
@@ -200,10 +203,12 @@ export class Ocean {
             }
             outc = mix(S, outR, uRough * (1.0 - 0.6 * shore));
           }
+          // the sea's own character: smooth by the islands, patches, current lines, the region's water (seawater.js)
+          ${GLSL_SEA_BODY}
           // near land: lighter, shallower, more turquoise (the same flat banded look)
           vec3 shallowTint = mix(uShallow * 1.12, vec3(0.72, 0.95, 0.82), 0.35) * uLight;
-          float band = floor(shore * 4.0 + 0.5) / 4.0;                                     // banded like everything else
-          outc = mix(outc, shallowTint, band * 0.6);
+          float band = uSeaOn > 0.5 ? floor(shore * 8.0 + bay4(gl_FragCoord.xy)) / 8.0 : floor(shore * 4.0 + 0.5) / 4.0;   // the new sea: a fine dithered gradient, no hard rings
+          outc = mix(outc, shallowTint, band * (uSeaOn > 0.5 ? 0.7 : 0.6));
           // ---- near land: the seabed shows through the shallows, fish shadows drift over it, and waves roll in and break on the shore
           float sd = 1e4;
           for (int i = 0; i < ${NISL}; i++) { vec3 I = uIsl[i]; sd = min(sd, length(vWP.xz - I.xy) - I.z * 1.1); }
