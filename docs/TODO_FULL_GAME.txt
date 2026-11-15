@@ -33,8 +33,8 @@ B2  Listen through, since nothing about sound can be judged headless:
       (was D, G, B);
     - the hut's drone: kept as it is (your call), still the loudest music in the game.
 B3  Composer, optional: a second take for the sea (19 s) and the storm (30 s) loops; they now drift in pitch to hide the repeat.
-B4  The Chaos_Grain changes (the night2 and stage3 sets in Tests/HoistLayers.cpp and the stems under game_audio/) exist only in this
-    session's read-only copy. To keep them in that repository, give write access to it.
+B4  Done: HOIST and its renderer now live in this repository (tools/hoist/). Nothing more is needed from Chaos_Grain. The WAV masters
+    stay with you; when you send new stems they are rendered with tools/hoist and only the .ogg goes into the game.
 
 ================================================================================================================
 C. FOR YOU OR THE WRITER
