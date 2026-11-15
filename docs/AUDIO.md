@@ -1,5 +1,8 @@
 # Audio guide
 
+HOIST and its renderer live in `tools/hoist/` (owner, 2026-11-15; see its README). Mentions of Chaos_Grain below say where things
+came from; the WAV masters stay with the composer (RULES 27).
+
 **Sound is on.** The game loads only the cues listed in `CUES` (`src/audio.js`): the stage-1 band and battle layer, the tavern,
 the dread stems (`s2_*`, `s3_*`), the recorded sea, rain, storm, thunder and forest, the coast and gulls, and thirteen interface effects (still the
 synthesised placeholders). Everything else the game asks for is silent on purpose (see "One-shots" below). To use your own sound,
@@ -80,13 +83,13 @@ getting stranger is scarier than new horror music.
 - Look: PS1 style, so a little lo-fi (bitcrush, 22-32 kHz, faint tape noise) suits it.
 - Workflow: one core theme of 4-8 notes, five seamless loops of 1-2 min in the same key, export stems (melody, pad, bass, percussion) if possible so layers can fade later.
 - Export: `.ogg` (or mp3/wav), loop-tested with no click, about -14 LUFS for music; then balance in the F8 mixer and save `volumes.json`.
-- New music now goes in as stems (16 bars at 99 BPM, F minor, the same length as the rest), rendered through HOIST with `HoistLayers` in the Chaos_Grain repo and encoded to `.ogg` in `public/audio/` (see the sections below for the cue names).
+- New music now goes in as stems (16 bars at 99 BPM, F minor, the same length as the rest), rendered through HOIST with `HoistLayers` (`tools/hoist/`, see its README; it came from the Chaos_Grain repository) and encoded to `.ogg` in `public/audio/` (see the sections below for the cue names).
 
 ## Stage 1 on open sea: one instrument per quest (`src/layers.js`)
 Six stems from one 16-bar loop at **99 BPM, 4/4 (38.79 s)**: `s1_bass`, `s1_shaperbox`, `s1_pluck`, `s1_drums`, `s1_bell`, `s1_guitar`.
 They are stage 1's music (the old placeholder `music_1` is gone).
-- **Rendered through HOIST** at FAIR WEATHER, one stem at a time, as seamless loops of exactly the same length (Chaos_Grain repo:
-  `Tests/HoistLayers.cpp`, `HoistLayers game_audio <outdir>`; less sway on bass and drums, more space on the bell). WAV masters stay in Chaos_Grain `game_audio/`.
+- **Rendered through HOIST** at FAIR WEATHER, one stem at a time, as seamless loops of exactly the same length (`tools/hoist/Tools/HoistLayers.cpp`,
+  `HoistLayers <stemdir> <outdir> stage1`; less sway on bass and drums, more space on the bell). WAV masters stay with the composer.
 - **The game starts silent.** The first main quest brings in bass and shaperbox; every quest after that one more instrument
   (the order of the last four is shuffled once per voyage). A new one fades in over about 30 s. The band grows a little louder as it fills
   (measured in game 2026-11-15: about -35 LUFS with two, -28 with all six; the sea about -36 slow and -28 at speed) but stays in the
@@ -137,7 +140,7 @@ the theme is never heard there again (`state.story.hutMusicDone`, `hutMusicTarge
 
 ## Night (`n1_*`, in `src/layers.js`)
 A calmer version of the song: `n1_pluck`, `n1_shaperbox`, `n1_strings`, `n1_bell` (16 bars at 99 BPM, same length as the band, F minor,
-through HOIST with more space: `HoistLayers game_audio/night <outdir> night`; masters in Chaos_Grain `game_audio/night/`). From dusk
+through HOIST with more space: `HoistLayers <stemdir> <outdir> night`, `tools/hoist/`; WAV masters with the composer). From dusk
 to daybreak it takes over from the stage-1 band (about 15 s cross-fade, all four together, breathing gently, as loud as the day band); the band comes back at
 dawn. Only once the first quest has brought music. They start on the same sample as the band, so the hand-over stays in time. The
 night is 4 minutes now (the day 11.5), about six times through the song. F8 mixer: group "Night".
@@ -149,7 +152,7 @@ night is 4 minutes now (the day 11.5), about six times through the song. F8 mixe
 
 ## Stage 3 (`s3_*`, in `src/layers.js`; 2026-11-15, in place of `music_3`)
 The owner's `stage_3_Bass`, `stage_3_Bell_bent` and `stage_3_Pluck` (16 bars, 99 BPM, F minor, the band's length), through HOIST between
-GREY SKIES and THE DEEP (`HoistLayers game_audio/stage3 <outdir> stage3`: bass tide 0.25, dread 0.45, mix 0.40; bell and pluck tide 0.45,
+GREY SKIES and THE DEEP (`tools/hoist`: `HoistLayers <stemdir> <outdir> stage3`: bass tide 0.25, dread 0.45, mix 0.40; bell and pluck tide 0.45,
 dread 0.50, mix 0.60-0.65). In from dread 0.45-0.58, out by 0.75-0.9 (then nothing). The bass holds; the bell or the pluck rests for
 20-45 s now and then, so it thins rather than adds. Levels in `volumes.json` (bass 140%, bell 60%, pluck 180%) bring each to about -26 LUFS
 like the stage-2 stems. It is locked to the band, so the battle layer stays on the beat over it. Full game only (`DEMO_SKIP`).
@@ -166,7 +169,7 @@ A little higher and brighter than the sea's rumble (Mara ~470 Hz, villagers ~360
 
 ## The tavern (`tav_*`, `Tavern` in `src/layers.js`)
 Four stems from the same session (99 BPM, 38.79 s): `tav_bass`, `tav_shaperbox`, `tav_pluck` (pluck stab), `tav_drums`, rendered
-through HOIST gently (`HoistLayers game_audio/tavern <outdir> tavern` in Chaos_Grain; WAV masters in `game_audio/tavern/`).
+through HOIST gently (`HoistLayers <stemdir> <outdir> tavern`, `tools/hoist/`; WAV masters with the composer).
 - Quiet and **muffled, as if heard through the tavern wall**: two low-passes in a row (24 dB/oct). Inside the tavern (its tab
   in the harbour, or the dice table) about 1.2 kHz; anywhere else in the harbour (other tabs, greeting, shipyard) about 400 Hz
   and fainter, music from down the street. Silent at sea.
@@ -249,7 +252,8 @@ All the music is now the user's own, from one session (F minor, 99 BPM, 16-bar l
 Chaos_Grain repo (`HoistLayers`, masters in `game_audio/`): the stage-1 band and its night version, stage 2, the hut's theme, the
 battle layer, the tavern and the stage-3 stems (since 2026-11-15 every piece is from that session). See the music map above.
 
-## Sound studio (dev, F9)
+## Sound
+
 Load your own music and sounds, cut them, and say where each plays. Open the game with `?dev=1`, press **F9** (or pause menu, "Sound studio").
 - **Load sounds**: wav / ogg / mp3 / flac, by button or drag and drop. They are kept in this browser (IndexedDB), so they survive a reload.
 - **Cut**: drag on the waveform to pick the part you keep, drag an edge to trim, or type start / end. Fade in / out and gain per sound. Preview once or as a loop; "Save trimmed .wav" writes the cut file.
@@ -281,7 +285,7 @@ in `public/audio/volumes.json` (was 0.4).
 - **Episodes of 28-60 s**, never the same kind twice in a row: the guitar alone, the violin alone, both together (one comes in 2-8 s after the other), one joining the other 9-23 s in, or one joining and the first then leaving while the second stays. Simulation: 23 episodes in 40 minutes, all seven kinds; guitar alone 14%, violin alone 14%, both 28%.
 - Each voice swells in over 16-18 s and fades over 20-22 s. When both play each is a little lower (16%). Guitar pans right of centre, violin left, both wander gently.
 - Leaving the Free Cays: both fade away while the band and pad return. By day nothing changes. F8 mixer: group "Free Cays at night".
-- Masters: the Chaos_Grain repo is read-only from the game sessions, so the HoistLayers change is saved as `docs/audio_patches/HoistLayers_freecays.patch` (apply with `git apply` on the `claude/brave-einstein-f3axt8` branch) and `game_audio/freecays/Somber_guitar.wav` and `Somber_violin.wav` should be added there.
+- Rendered with `HoistLayers <stemdir> <outdir> freecays` (`tools/hoist/`; the set was a patch file until 2026-11-15, now it is in the renderer). WAV masters with the composer.
 - More factions: each faction's own instrument (being composed) can follow the same pattern: cues, a faction check in `SeaLayers.update`, an episode pattern (the Free Cays branch is the template).
 
 

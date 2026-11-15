@@ -1558,3 +1558,9 @@ Trials for the owner to compare; nothing changes without a flag and STYLE.md is 
   load and play, stage 2 and the band are out, `music_3` is not loaded; story export unchanged apart from its stamp. **Not verified:**
   any of it by ear.
 
+## HOIST moves into the repository (2026-11-15, owner: everything music-related here; from Chaos_Grain only HOIST)
+- `tools/hoist/`: the HOIST plugin source (with `RetroGfx.h`, which its editor uses), `HoistLayers` (the renderer, now with the
+  `stage3` and `night2` sets, and the `freecays` set, which had only ever been a patch file: `docs/audio_patches/` is gone), a CMake build of its own and a README (how to build, render and bring a stem into the game).
+- The WAV masters stay with the composer (RULES 27); the game's `.ogg` files were already here. RULES 27, AREAS and AUDIO.md say so.
+- **Verified:** built from `tools/hoist` alone (JUCE 8.0.4); re-rendering the stage-3 stems gives byte-identical WAVs to the
+  Chaos_Grain build.
