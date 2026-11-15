@@ -28,7 +28,7 @@
     #stats { position: absolute; left: 12px; top: 12px; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; font-size: 15px; }
     #near { color: #bff; min-height: 1.2em; font-size: 13px; }
     #gold b { color: var(--gold); }
-    .windbox { position: absolute; right: 8px; top: 6px; width: 150px; text-align: center; font: 13px var(--pxfont); color: #f6e6b8; text-shadow: 1px 1px 0 var(--ink-dark), -1px -1px 0 var(--ink-dark), 1px -1px 0 var(--ink-dark), -1px 1px 0 var(--ink-dark); }
+    .windbox { position: absolute; right: 8px; top: 6px; width: 150px; text-align: center; font: 14px var(--pxfont); color: #f6e6b8; text-shadow: 1px 1px 0 var(--ink-dark), -1px -1px 0 var(--ink-dark), 1px -1px 0 var(--ink-dark), -1px 1px 0 var(--ink-dark); }
     .windbox canvas { width: 144px; height: 144px; display: block; margin: 0 auto 0; image-rendering: pixelated; }
     #sailbar { position: absolute; right: 12px; top: 176px; width: 124px; text-align: center; }
     #sailbar .bar { height: 10px; background: #0007; border: 2px solid var(--edge); margin-top: 3px; }
@@ -125,17 +125,17 @@
     .chartside { overflow-y: auto; padding: 10px 12px; background: #efe0bc; border: 2px solid #22180f; box-shadow: 3px 3px 0 #22180f; font-family: "DotGothic16", monospace; color: #22180f; }
     .cs-title { margin: 0; font: 400 30px "Pirata One", serif; line-height: 1; }
     .cs-sub, .cs-none { display: block; color: #6a5a40; }
-    .cs-h { margin: 12px 0 5px; font-size: 12px; letter-spacing: .15em; color: #8a5a2a; border-bottom: 2px solid #22180f33; }
+    .cs-h { margin: 12px 0 5px; font-size: 14px; letter-spacing: .15em; color: #8a5a2a; border-bottom: 2px solid #22180f33; }
     .cs-follow { display: flex; gap: 8px; align-items: center; padding: 6px 8px; background: #f2c96a55; border: 2px solid #22180f; }
     .cs-follow b { display: block; font-weight: 400; font-size: 15px; } .cs-follow small { color: #6a5a40; font-size: 13px; }
     .cs-row { display: flex; align-items: center; gap: 8px; margin: 4px 0; font-size: 15px; cursor: pointer; }
-    .cs-row span { flex: 1; } .cs-row em { font-style: normal; color: #6a5a40; font-size: 13px; }
+    .cs-row span { flex: 1; } .cs-row em { font-style: normal; color: #6a5a40; font-size: 14px; }
     .cs-row input { display: none; } .cs-box { width: 14px; height: 14px; border: 2px solid #22180f; background: #fff8e6; }
     .cs-row input:checked + .cs-box { background: #22180f; box-shadow: inset 0 0 0 2px #fff8e6; }
     .cs-ev b { display: block; font-weight: 400; font-size: 15px; } .cs-ev small { color: #6a5a40; } .cs-ev { margin: 4px 0 6px; }
-    .cs-line { display: flex; align-items: center; gap: 8px; font-size: 13px; margin: 3px 0; }
+    .cs-line { display: flex; align-items: center; gap: 8px; font-size: 14px; margin: 3px 0; }
     .cs-line i { width: 24px; height: 0; border-top: 3px dashed var(--c); } .cs-line.dot i { border-top: 3px dotted #2a6a8a; }
-    .cs-keys { margin-top: 12px; font-size: 12px; color: #8a7a60; }
+    .cs-keys { margin-top: 12px; font-size: 14px; color: #8a7a60; }
     #chart.mapmode .legend { display: none; }
     /* ---- book designs (#chart[data-book]); leather is the base look above */
     #chart:not([data-book="leather"]) .book { background-size: 100% 100%; image-rendering: pixelated; clip-path: polygon(0 8px, 8px 8px, 8px 0, calc(100% - 8px) 0, calc(100% - 8px) 8px, 100% 8px, 100% calc(100% - 8px), calc(100% - 8px) calc(100% - 8px), calc(100% - 8px) 100%, 8px 100%, 8px calc(100% - 8px), 0 calc(100% - 8px)); }
@@ -333,9 +333,9 @@
     .upc .upt { display: flex; align-items: center; gap: 10px; font-size: 15px; }
     .upc .lvp { display: inline-flex; gap: 4px; } .upc .lvp i { width: 12px; height: 12px; background: #2a2040; box-shadow: 0 0 0 2px var(--edge-navy); display: block; } .upc .lvp i.on { background: var(--gold); box-shadow: 0 0 0 2px #6a4a10; }
     .upc .lvp i.pop { animation: pippop .5s steps(4); } @keyframes pippop { 0% { transform: scale(2.2); background: #fff; } 100% { transform: none; } }
-    .upc .upnow { font-size: 12px; opacity: .65; margin-top: 2px; }
-    .upc .upnext { font-size: 13px; color: var(--paper); margin-top: 2px; } .upc .upnext.done { color: var(--gold); }
-    .upc .upopen { font-size: 12px; color: #4fe0d0; margin-top: 3px; } .upc .upopen .pxi { width: 12px; height: 12px; vertical-align: -1px; }
+    .upc .upnow { font-size: 14px; opacity: .65; margin-top: 2px; }
+    .upc .upnext { font-size: 14px; color: var(--paper); margin-top: 2px; } .upc .upnext.done { color: var(--gold); }
+    .upc .upopen { font-size: 14px; color: #4fe0d0; margin-top: 3px; } .upc .upopen .pxi { width: 12px; height: 12px; vertical-align: -1px; }
     .upc .upbuy { display: flex; flex-direction: column; align-items: center; gap: 3px; }
     .upc .upbuy .pxi { width: 16px; height: 16px; vertical-align: -3px; }
     .upc .short { font-size: 11px; color: #ff8a6a; }

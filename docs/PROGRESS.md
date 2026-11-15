@@ -1448,3 +1448,13 @@ Trials for the owner to compare; nothing changes without a flag and STYLE.md is 
   and 0.1 at 700; at noon the hush peaks at 0.99 forty units off Tama in the full game and in the demo, and stays 0 four hundred units
   off. `npm run smoke` passes. **Not verified:** how the swell lying down looks and feels at real speed; sound.
 
+## Small items the owner settled (2026-11-14: "go")
+- The chart's scale bar reads "100 units", not "100 fathoms" (CANON 2026-11-13: distances are units everywhere). The pencil note
+  "12 fathoms" on the chart is a depth scribble and stays.
+- The eight sizes under 14 px that were live are 14 px now (the chart's side panel: headings, counts, the line key, the key hint; the
+  shipwright cards: "Now", the next step, what it opens; the old wind box). Nothing live is under 14 px. The chart panel still fits; on
+  the shipwright's Lantern card the teal "opens" line now wraps to two lines.
+- The Shipwright "!" badge stays (owner). The hold's limit of 200 fish stays. The other bells stay silent.
+- **Verified:** screenshots of the chart panel and the shipwright before and after; the probe finds no live size under 14 px on the
+  eleven screens; story export run (one changed line, no banned word).
+

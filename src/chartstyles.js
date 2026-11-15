@@ -280,7 +280,7 @@ export function drawVariant(lb, key) {
     spr('fleur', cx + 0.5, cz - R - 7, RED, ground); }
   if (warp && warp.since > 2.5 && BAY[0] / 16 < 1) { const a = Math.min(0.75, (warp.since - 2.5) / 3); c.fillStyle = '#7a1a3a'; for (let s = 0; s < 140; s++) { if ((s % 4) / 4 >= a) continue; const th = (s / 140) * Math.PI * 2, x = Math.round(X(ship.pos.x) + Math.cos(th) * 22), y = Math.round(Z(ship.pos.z) + Math.sin(th) * 10); c.fillRect(x, y, 2, 2); } }
 
-  // ---- the cartouche, top left: the name of these waters and a scale of fathoms
+  // ---- the cartouche, top left: the name of these waters and a scale in units (the same number as everywhere else: CANON 2026-11-13)
   const [sx0, sz0] = sectorCoord(ship.pos.x, ship.pos.z), waters = sectorInfo(sx0, sz0, seed).name;
   const unit = [20, 50, 100, 200, 500, 1000, 2000].find((u) => u * k2 >= 34) || 2000, barW = Math.round(unit * k2);
   const CW = Math.max(118, barW + 26), CH = 44, CX = 7, CY = 7;
@@ -324,7 +324,7 @@ export function drawVariant(lb, key) {
     // the cartouche: fit the name of the waters between its rules
     { let px = FONTS.dbig; t.font = dfont(px); while (px > 14 && t.measureText(waters).width > CW * 2 - 20) { px -= 2; t.font = dfont(px); }
       write(waters, (CX + CW / 2) * 2, (CY + 12) * 2, dfont(px), T.txt, null);
-      write(`${unit} fathoms`, (CX + CW / 2) * 2, (CY + 37) * 2 - 1, bfont, T.txtSoft, null); }
+      write(`${unit} units`, (CX + CW / 2) * 2, (CY + 37) * 2 - 1, bfont, T.txtSoft, null); }
     if (warp && warp.since > 2.5) { t.globalAlpha = 1; write('TURN BACK', X(ship.pos.x) * 2, Z(ship.pos.z) * 2 - 60, `400 32px ${FONTS.body}`, '#7a1a3a', null); }
     // cut the letters hard (no soft edges): the same idea as the #crisp filter
     const ti = t.getImageData(0, 0, W, H), td = ti.data;
