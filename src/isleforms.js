@@ -12,8 +12,9 @@
 import { hash2, mulberry32, smoothstep } from './util.js';
 import { STRATA } from './palette.js';
 import { TILE } from './textures.js';
+import { params } from './core/config.js';
 
-export const ISLES = typeof location === 'undefined' || new URLSearchParams(location.search).get('isles') !== '0';
+export const ISLES = params.get('isles') !== '0';
 
 /** which band of distance an island sits in: 0 (S0, near home), 1 (the Shoals), 2 (the Trade Belt and beyond) */
 export function isleBand(d) {

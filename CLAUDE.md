@@ -27,4 +27,5 @@ unexpectedly, into cosmic horror. Everything is procedural: no image or model fi
 - After a change: build, `npm run smoke` (about 3 minutes), screenshot what changed, commit and push. Say what was verified and what was not.
 - The standalone app (`electron/`, Electron) is built only when the owner asks (RULES 38a).
 - Single-file games (`npx vite build && python3 scripts/single.py`: `pocket-pirates-demo.html` for sharing,
-  `pocket-pirates-demo-silent.html`, `pocket-pirates-dev.html` with mixer F8, Sound Studio F9, test tools) only when asked.
+  `pocket-pirates-demo-silent.html`, `pocket-pirates-dev.html` with mixer F8, Sound Studio F9, test tools; `pocket-pirates-full.html` the whole game for playtesting,
+  no test tools, URL flags ignored; `python3 scripts/single.py full` builds just that one) only when asked.

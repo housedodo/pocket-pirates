@@ -1,6 +1,9 @@
 // Boot configuration: URL flags, local storage, the saved voyage (read once), the player's settings.
 // The lowest layer: it imports nothing from the game, and everything may import it.
-export const params = new URLSearchParams(location.search);
+/** the playtest build (scripts/single.py full, 2026-11-15): the whole game with no test tools. Every URL flag is ignored (so no ?dev,
+ *  ?dread, ?seed...), and with them the dev keys, the mixer (F8) and the Sound Studio (F9) */
+export const PLAYTEST = window.__BUILD === 'full';
+export const params = new URLSearchParams(PLAYTEST ? '' : location.search);
 export const SAVE_KEY = 'pocket-pirates-save-v1', SETTINGS_KEY = 'pocket-pirates-settings-v1';
 export const store = {
   get(k) { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } },

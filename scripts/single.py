@@ -1,8 +1,10 @@
 """Build the single-file games from dist/ (run after `npx vite build`):  python3 scripts/single.py
   pocket-pirates-demo.html  for playing and sharing: sound on (without the dread-stage cues), no mixer, no test tools
   pocket-pirates-demo-silent.html  the demo with no sound at all (no files, no synth), small
-  pocket-pirates-dev.html   for working: every sound in public/audio + volumes.json, the mixer (F8) and test tools on"""
-import base64, json, os, re
+  pocket-pirates-dev.html   for working: every sound in public/audio + volumes.json, the mixer (F8) and test tools on
+  pocket-pirates-full.html  for playtesting the whole game: every sound, no mixer, no test tools, URL flags ignored
+With names (demo, silent, dev, full) only those are built, e.g. `python3 scripts/single.py full`."""
+import base64, json, os, re, sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 P = lambda p: os.path.join(ROOT, 'dist', p.lstrip('./'))
@@ -31,7 +33,10 @@ for name, boot in [
     ('pocket-pirates-demo.html', f"<script>window.__BUILD='demo';window.__AUDIO={json.dumps(demo_sounds)};window.__VOLUMES={json.dumps(volumes)};</script>"),
     ('pocket-pirates-demo-silent.html', "<script>window.__BUILD='demo';window.__SILENT=true;window.__AUDIO={};window.__VOLUMES={};</script>"),
     ('pocket-pirates-dev.html', f"<script>window.__BUILD='dev';window.__AUDIO={json.dumps(sounds)};window.__VOLUMES={json.dumps(volumes)};</script>"),
+    ('pocket-pirates-full.html', f"<script>window.__BUILD='full';window.__AUDIO={json.dumps(sounds)};window.__VOLUMES={json.dumps(volumes)};</script>"),
 ]:
+  want = sys.argv[1:]
+  if want and not any(name == f'pocket-pirates-{w}.html' or (w == 'silent' and name.endswith('demo-silent.html')) for w in want): continue
   out = build(boot)
   open(os.path.join(ROOT, name), 'w').write(out)
   print(f'{name}: {len(out) / 1e6:.1f} MB')

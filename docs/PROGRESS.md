@@ -1610,3 +1610,10 @@ Trials for the owner to compare; nothing changes without a flag and STYLE.md is 
   with sea life about: the sea life now hides while the Edge runs (it would float over the drop), checked at 9, 19, 27 and 37 s.
   The jellies' night light dimmed (it read as floating blocks in the deep). `npm run smoke` passes.
 
+## The playtest build (2026-11-15, owner: "a game version, not dev but full game without the dev console for playtesting")
+- `python3 scripts/single.py full` writes `pocket-pirates-full.html`: the whole game in one file with every sound, no mixer (F8), no
+  Sound Studio (F9), no dev keys or bar, and every URL flag ignored (`core/config.js` PLAYTEST: `?dev`, `?dread`, `?seed`, `?sea`...
+  do nothing). `single.py` now takes names (`demo`, `silent`, `dev`, `full`) to build only those; the demo and dev files were not rebuilt.
+- **Verified:** opened as a file with `?dev=1&dread=0.9&autostart=1&threads=all&sea=debug`: the title screen shows, Enter starts a voyage,
+  dread stays at 0.02, no dev bar, F8/F9/5 do nothing, 59 sounds packed, no console errors. **Not verified:** a full playthrough.
+
