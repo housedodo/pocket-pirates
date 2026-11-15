@@ -1478,3 +1478,8 @@ Trials for the owner to compare; nothing changes without a flag and STYLE.md is 
 - **Verified:** `npx vite build`, `npm run smoke`; the chart before and after; six watchers stand on the Grey Tooth with the effect forced
   and the dev menu has no style button; story export (one retired line, the deleted watcher name). **Not verified:** feel and sound.
 
+## The lost sailors from stage 4 (2026-11-15, owner)
+- `LOST_FROM = 0.6` in `src/systems/lostsailors.js` (it was 0.75): CANON 2026-11-12 says "stage 4 and up", and the fourth stage starts
+  at 0.6. They can now be met in the Slack's outer water and the Dim, not only the far Dim. Mara's remarks keep their quarters.
+- **Verified:** build and `npm run smoke`. **Not verified:** a meeting at 0.6 in play.
+

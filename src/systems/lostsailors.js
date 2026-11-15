@@ -26,11 +26,12 @@ export const LOST_CARDS = {
       { label: 'Sail on', go: () => { met('lost_dig', 'CL-X3-hole'); return 'The sound of the spade follows you a long way over the water.'; } }] },
 };
 const ORDER = ['lost_berth', 'lost_hook', 'lost_dig'];
+const LOST_FROM = 0.6;   // "stage 4 and up" (CANON 2026-11-12): the fourth stage starts at 0.6 (palette.js stageOf); it was 0.75 until 2026-11-15
 rt.lostT = 90;   // seconds of deep dread before the next one may show
 
 /** each frame at sea (full game). ctx: { dt, dread, sighting, ship, world, quiet } */
 export function lostTick({ dt, dread, sighting, ship, world, quiet }) {
-  if (dread < 0.75 || quiet || sighting.cur) return;
+  if (dread < LOST_FROM || quiet || sighting.cur) return;
   rt.lostT -= dt; if (rt.lostT > 0) return;
   const lost = state.story.lost || {}, next = ORDER.find((id) => lost[id] === undefined);
   if (!next) return;
