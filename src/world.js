@@ -1604,7 +1604,7 @@ export class Island {
     if (extra.crowd) this.anim.push((t, isl) => {
       const phase = isl.tod ? villagePhase(isl.tod.t * 24, d.sleepy) : 'day';
       isl.phase = phase;
-      for (const [k, m] of Object.entries(isl.crowd)) { const rule = LAYER_RULES[k]; m.visible = !isl.isDark && (rule ? rule(isl, phase, d) : k === phase); }
+      for (const [k, m] of Object.entries(isl.crowd)) { const rule = LAYER_RULES[k]; m.visible = !isl.isDark && !isl.landed && (rule ? rule(isl, phase, d) : k === phase); }   // landed: where a low throw landed, the quay is empty
     });
     this.walkers = [];
     for (const w of extra.walkers || []) {
@@ -1626,7 +1626,7 @@ export class Island {
         w.speed = 0.45 + w.r() * 0.5;            // units per second: a stroll
       }
       this.anim.push((t, isl) => {
-        const show = !isl.isDark && (isl.phase === 'dawn' || isl.phase === 'day' || isl.phase === 'evening' || !isl.phase);
+        const show = !isl.isDark && !isl.landed && (isl.phase === 'dawn' || isl.phase === 'day' || isl.phase === 'evening' || !isl.phase);
         for (const { mesh, w } of isl.walkers) {
           mesh.visible = show;
           const dt = w.last == null ? 0 : Math.min(0.1, Math.max(0, t - w.last)); w.last = t;
@@ -1777,7 +1777,7 @@ export class World {
   }
   /** rebuild the loaded islands that match (the Reef's shoals move each dawn): they are dropped here and built again by update() */
   refresh(pred) { for (const [k, isl] of this.islands) if (pred(isl.desc)) { this.scene.remove(isl.group); isl.dispose(); this.islands.delete(k); } }
-  tick(t, tod) { for (const isl of this.islands.values()) { isl.tod = tod; isl.stare = this.stare; isl.week = this.week; isl.growth = this.growthOf ? this.growthOf(isl.desc.id) : 0; isl.lifeDone = this.lifeDoneOf ? this.lifeDoneOf(isl.desc.id) : false; isl.tide = this.tide; isl.gctx = this.gctx || {}; isl.group.position.y = -this.tide * 0.32; for (const f of isl.anim) f(t, isl); } }   // the sea rises over the beach and falls back
+  tick(t, tod) { for (const isl of this.islands.values()) { isl.tod = tod; isl.stare = this.stare; isl.week = this.week; isl.growth = this.growthOf ? this.growthOf(isl.desc.id) : 0; isl.landed = this.landedOf ? this.landedOf(isl.desc.id) : false; isl.lifeDone = this.lifeDoneOf ? this.lifeDoneOf(isl.desc.id) : false; isl.tide = this.tide; isl.gctx = this.gctx || {}; isl.group.position.y = -this.tide * 0.32; for (const f of isl.anim) f(t, isl); } }   // the sea rises over the beach and falls back
 
   collide(pos, radius) {
     let hit = false;

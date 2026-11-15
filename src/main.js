@@ -90,6 +90,7 @@ import { getInteract, tryInteract, anchorTick } from './systems/interact.js';
 import { after, laterTick, laterPending } from './systems/later.js';
 import { ringNoon, noonBellTick, noonPending } from './systems/noonbell.js';
 import { homeShift, homeTick, homeLook } from './systems/home.js';
+import { LANDING, landThrow, landedAt } from './systems/landing.js';
 import { trackTarget, goldShown, etaText, slipInfo, drawCompass, updateTracker, initHud } from './ui/hud.js';
 import { LOCALS, localGames, pig, maraMood, openCard, caveScene, COLOUR_DEEP, COLOUR_SHALLOW, openCave, tabletopTick, signOn, daysLeft, crewLeave, wishDone, initEncounters } from './ui/encounters.js';
 
@@ -399,7 +400,7 @@ const fishing = new Fishing(scene, ship, {
 rt.glitchT = 0, rt.preGlitch = 0;
 const hut = new Hut({ state,
   onWin: (n) => { if (n === 20) toast('A natural twenty. Somewhere far below, something is disappointed.', true, 5000); },
-  onFail: () => { rt.preGlitch = rt.dread; rt.glitchT = 0.75; hutEl.classList.add('glitching'); rt.shake = 0.4; },
+  onFail: () => { landThrow(state, ship.pos); rt.preGlitch = rt.dread; rt.glitchT = 0.75; hutEl.classList.add('glitching'); rt.shake = 0.4; },
   onClose: () => closeModal() });
 // ---- the week: market day everywhere on Wednesdays, lantern night on Saturdays, and each harbour its own festival day
 const lifeOn = () => isOpen(state, 'tab', 'tavern');   // harbour life opens with the tavern (chapter III)
@@ -423,11 +424,12 @@ function weekMorning() {   // Mara mentions the day the first couple of times, t
 function growthOf(id) { const r = state.rep[id]; if (!r) return 0; const sc = (r.deliveries || 0) * 2 + (r.visits || 0); return sc >= 20 ? 3 : sc >= 10 ? 2 : sc >= 4 ? 1 : 0; }
 // her last throw colours that day and the next: a kinder sea after a good one, a thicker one after a bad one
 function lastThrow() { const h = state.hut, r = h && h.rolls[h.rolls.length - 1]; return r && state.dayN - r.day <= 1 ? r.n : 0; }
-function dreamShift() { const n = lastThrow(); const v = !n || n === 10 ? 0 : n === 20 ? -0.3 : n > 10 ? -0.18 : n === 1 ? 0.15 : 0.1; return v > 0 && isKnown(state, 'lamp') ? v * 0.5 : v; }   // the Kestrel's lamp keeps half the dark back   // bad throws only shade home a little; the real dark comes late
-function dreamCost() { const n = lastThrow(); return n && n < 10 ? 1.15 : n >= 17 ? 0.9 : 1; }   // harbours feel it in their prices
+function dreamShift() { const n = lastThrow(); if (LANDING && n && n < 10) return 0;   // ?landing: a low throw lands on one harbour instead (systems/landing.js)
+  const v = !n || n === 10 ? 0 : n === 20 ? -0.3 : n > 10 ? -0.18 : n === 1 ? 0.15 : 0.1; return v > 0 && isKnown(state, 'lamp') ? v * 0.5 : v; }   // the Kestrel's lamp keeps half the dark back   // bad throws only shade home a little; the real dark comes late
+function dreamCost(id) { const n = lastThrow(); if (LANDING) return landedAt(state, id) ? 1.15 : n >= 17 ? 0.9 : 1; return n && n < 10 ? 1.15 : n >= 17 ? 0.9 : 1; }   // harbours feel it in their prices
 function costMul() {   // today's prices here: the dream, plus a harbour you insulted with a natural 1
   const id = rt.harbourIsl && rt.harbourIsl.desc.id, hg = state.haggle;
-  return dreamCost() * (hg && hg.id === id && hg.day === state.dayN && hg.n === 1 ? 1.1 : 1);
+  return dreamCost(id) * (hg && hg.id === id && hg.day === state.dayN && hg.n === 1 ? 1.1 : 1);
 }
 const MARA_THROW = {
   low: 'Captain... is the water thicker? It looks thicker.', ten: 'Nothing happened. Why does that feel like something happened?',
@@ -1229,7 +1231,7 @@ function frame() {
   const lp = abyss.lightPhase;
   world.setLit(lp === 'stare' || glimpse.k > 0.5 ? true : lp === 'dead' ? false : tod.sunHeight < 0.12 || weather.darkness > 0.6);
   world.stare = lp === 'stare' || glimpse.k > 0.5 ? ship.pos : null;
-  world.week = { wd: weekday(), market: isMarketDay(), lantern: isLanternNight() }; world.growthOf = growthOf; world.lifeDoneOf = (id) => life.arcDone(state, id); world.tide = tideAt();
+  world.week = { wd: weekday(), market: isMarketDay(), lantern: isLanternNight() }; world.growthOf = growthOf; world.landedOf = (id) => landedAt(state, id); world.lifeDoneOf = (id) => life.arcDone(state, id); world.tide = tideAt();
   { // a storm front every sixth afternoon (after chapter III), warned by a red sky the evening before; and the sector's own weather
     const h = state.time * 24, fd = state.dayN % 6 === 5 && unlocked(state, 'passengers'), fa = state.dayN % 6 === 4 && unlocked(state, 'passengers');
     weather.front = fd ? smoothstep(12, 16, h) * (1 - smoothstep(19, 22, h)) * (0.55 + 0.45 * rt.dread) : 0;
@@ -1255,7 +1257,7 @@ function frame() {
   if (rt.anchorBit) { rt.anchorBit = false; fauna.splash(ship.pos.x + Math.sin(ship.heading) * 3.2, ship.pos.z - Math.cos(ship.heading) * 3.2, stage.wave, waveT, 1.1); }   // the anchor bites: a ring of foam at the bow
   secrets.update(vdt, waveT, { ship, time: state.time, dayN: state.dayN, tide: tideAt(), wave: stage.wave, light: Math.min(1, 0.25 + stage.light * 0.9), dread: rt.dread, collected: state.collected, windX: Math.sin(wind.dir), windZ: -Math.cos(wind.dir), heading: ship.heading, fogFar: scene.fog.far });
   shipWake.update(vdt, waveT, stage.wave, { pos: ship.pos, heading: ship.heading, speed: ship.rowing ? ship.speed * 0.6 : ship.speed, max: 11 }, Math.min(1, 0.25 + stage.light * 0.9));
-  const lifeCtx = { light: Math.min(1, 0.25 + stage.light * 0.9), freeze: glimpse.k > 0.3 ? 0 : null, ship, dread: rt.dread, wave: stage.wave, audio, wind: windNow, stage, tod, faction: sec.faction.id, quiet: caysQuiet(rt.lullK, state.time * 24, DEMO), sched: { wd: weekday(), hour: state.time * 24, dayN: state.dayN, dread: rt.dread } };
+  const lifeCtx = { light: Math.min(1, 0.25 + stage.light * 0.9), freeze: glimpse.k > 0.3 ? 0 : null, ship, dread: rt.dread, wave: stage.wave, audio, wind: windNow, stage, tod, faction: sec.faction.id, quiet: caysQuiet(rt.lullK, state.time * 24, DEMO), sched: { wd: weekday(), hour: state.time * 24, dayN: state.dayN, dread: rt.dread, landed: (id) => landedAt(state, id) } };
   if (live) { state.stats.dist += ship.speed * dt; if (ship.rowing) state.stats.rowed = (state.stats.rowed || 0) + ship.speed * dt; }
   { const cg = objectives.current; if (cg && cg.id === 'calm' && state.goals.started) weather.calmHold = Math.max(weather.calmHold, 8); }   // the calm lasts until you have rowed and fished
   windfx.update(vdt, rt.animT, windNow.dir, windNow.strength, ship.pos, tod.night, Math.min(1, weather.rain * 1.5), stage.fogNear, stage.fogFar);
@@ -1485,7 +1487,7 @@ window.__game = { secrets, regionWeights, tideAt: () => tideAt(), lostState: () 
     this._show = new THREE.Mesh(b.geometry(), mats.props); this._show.position.set(x, 0.4, z); scene.add(this._show);
     ship.pos.set(x + 15, 0, z + 2.5); ship.heading = Math.PI / 2; ship.speed = 0; ship.trim = 1;
   },
-  later: { after, pending: laterPending }, noonPending, ringNoon, saveNow: () => saveNow(), rt,   // test hooks   // test hook: story delays on the game's clock
+  later: { after, pending: laterPending }, landedAt: (id) => landedAt(state, id), landThrow: () => landThrow(state, ship.pos), noonPending, ringNoon, saveNow: () => saveNow(), rt,   // test hooks   // test hook: story delays on the game's clock
   sectorAt: (x, z) => sectorAt(x, z, state.seed), traffic, abyss, hut, ship, world, state, begin, scene, camera, renderer, wind, weather, fauna, traffic, sea, audio, fishing, combat, objectives, hurtPlayer, openModal, closeModal, buyUpgrade, refreshMods,
 };
 rt.newVoyage = false;   // New voyage reloads straight into the game, no title in between

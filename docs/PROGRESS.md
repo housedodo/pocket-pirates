@@ -1512,3 +1512,16 @@ Trials for the owner to compare; nothing changes without a flag and STYLE.md is 
   demo, nothing; screenshots from the sailing camera with and without. `npm run smoke` passes. **Not verified:** whether a player notices
   it at real speed; feel and sound.
 
+## L2, a trial: a low throw lands somewhere (2026-11-15; owner: behind a flag, to play first)
+- Embodies CANON section 2 ("Each low throw is a moment it nearly woke; the world pays for it somewhere") and question 4. No text.
+- With `?landing=1` (full game only, RULES 35: a trial behind a URL flag): on a low throw one discovered harbour that is not home and
+  not where the ship is gets written on the throw (`rolls[i].where`). For that day and the next its fishing boat goes out and does not
+  come back, its quay is empty (the crowd and the walkers), and only its prices rise (the harbour's "Prices are up today" note follows).
+  The dread a low throw used to add to the player everywhere, and the price rise everywhere, are off. A good throw is unchanged.
+- **Not built:** the harbour's dark windows: they are baked into each island's one mesh, so one harbour's lights cannot go out without
+  rebuilding it. Old saves load (a throw without `where` lands nowhere). The greeter lines that name the cause are untouched (writer).
+- **Verified** headless with the flag: a throw of 3 landed on Harbour Lorow; there at 17:00 the boat is out (k 1), crowd and walkers
+  hidden, the price note shown; at Velto none of it; dread 700 out 0.234 (0.334 without the flag). Without the flag and in the demo
+  nothing changes. `npm run smoke` passes. **Not verified:** whether a player finds the changed harbour; feel and sound.
+- **To decide after playing:** keep it (then the flag goes and the old global cost is deleted), or drop it (delete `landing.js`).
+

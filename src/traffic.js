@@ -203,7 +203,7 @@ export class Traffic {
     }
     const h = sc.hour;
     for (const b of this.rboats.values()) {
-      const st = boatStatus(b.d, sc.dayN, dread, this.seed);
+      const st = sc.landed && sc.landed(b.d.id) ? { today: 'lost', yesterday: 'lost' } : boatStatus(b.d, sc.dayN, dread, this.seed);   // where a low throw landed: out, and not back (systems/landing.js)
       let k = 0;   // 0 at the berth, 1 at the fishing spot
       if (st.today === 'stayed') k = 0;
       else if (st.yesterday === 'lost' && h < 6.5) k = 1;                     // still out where it spent the night

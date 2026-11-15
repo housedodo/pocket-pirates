@@ -191,7 +191,7 @@ export function renderHarbour() {
       toast(tk ? `They fill the lamp, fold sailcloth into the locker and mend the hull. They keep ${tk.label}. Nobody says thank you.` : 'They fill the lamp, fold sailcloth into the locker and mend the hull. They ask for nothing. That is worse.', true, 7000);
       G.audio.play('buy'); renderHarbour(); });
   } else if (rt.hbTab === 'market') {
-    const hg = state.haggle && state.haggle.id === d.id && state.haggle.day === state.dayN ? state.haggle : null, hm = (hg ? hg.mult : 1) / G.dreamCost() * (isMarketDay() ? 1.25 : 1) * (G.threads.touched(d) ? 1.15 : 1) * G.threads.priceMul(d);
+    const hg = state.haggle && state.haggle.id === d.id && state.haggle.day === state.dayN ? state.haggle : null, hm = (hg ? hg.mult : 1) / G.dreamCost(d.id) * (isMarketDay() ? 1.25 : 1) * (G.threads.touched(d) ? 1.15 : 1) * G.threads.priceMul(d);
     const quiet = caysQuiet(rt.lullK, state.time * 24, window.__BUILD === 'demo'), shut = d.region === 'free' && !quiet;   // are the Cays quiet (somebody plays)? Their stalls open then (regions.js, L5)
     const fishVal = Math.round(state.catch.reduce((a, f) => a + f.value, 0) * 0.7 * (1 + 0.05 * lvl) * hm * (isFestival(d) ? 1.5 : 1) * sellMul(d, 'fish', quiet));
     const fruitList = Object.entries(state.fruit).filter(([, n]) => n > 0);
@@ -469,7 +469,7 @@ export function initHarbour() {
   for (const k of Object.keys(state.story.pets || {})) if (PETS[k]) addCompanion(k);   // companions from an earlier session
   rt.openLetter = null;   // the letter just taken lies open on the board until the captain leaves the harbour
   // one quiet line when the Lady's last throw moved the prices; nobody says why
-  priceNote = () => { const k = G.dreamCost(); return k > 1 ? '<small>Prices are up today. Nobody says why.</small>' : k < 1 ? '<small>Prices are down today. Everyone seems to have slept well.</small>' : ''; };
+  priceNote = () => { const k = G.dreamCost(rt.harbourIsl && rt.harbourIsl.desc.id); return k > 1 ? '<small>Prices are up today. Nobody says why.</small>' : k < 1 ? '<small>Prices are down today. Everyone seems to have slept well.</small>' : ''; };
   rt.harbourLine = '', rt.hbShipLine = '';
   // the greeting: a villager's line types out in a box like Mara's, then the harbour menu comes up
   rt.greetNow = null;
