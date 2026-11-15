@@ -236,4 +236,6 @@ Built and checked in headless screenshots (no console errors):
 
 Also built (second pass): `abyssForms` in `world.js`, the deep bone vocabulary for wild islands in S4 and S5 (dark mood only, own rng so no island moves): rib pairs, a vertebra spine, a throat chimney; in the Lid everything leans at Tama, plus a ribbed arch, one magenta socket and one pale glow pool. Budget about 200 triangles in S4, 420 in S5. The Halved Isle gets three bone spines on its sunken slabs pointing at the half-house table.
 
-Not built: god-ray cones beyond the Tower's shaft, per-stratum tints, wrongness details for crag/bell/grove/keeper/broken/ribs/lagoon beyond their colours, Halved Isle night edge, the checks V1-V17 as scripts (only ad-hoc screenshots so far), a `STYLE.md` rewrite.
+Built 2026-11-15 (`src/isleforms.js`): shape by stratum for rolled islands' loose stone, spires and stacks (5.1), a ground tint per stratum S0-S2 on rolled islands (the sky and sea side is left to the regions' own light), region lean and three forms per kind (A13), and `scripts/isle_checks.cjs` (crowding and V15 budgets for rolled islands, the V17 blind-test pictures).
+
+Not built: god-ray cones beyond the Tower's shaft, a per-stratum sky and sea tint, wrongness details for crag/bell/grove/keeper/broken/ribs/lagoon beyond their colours, Halved Isle night edge, the checks V1-V17 as scripts (only ad-hoc screenshots so far), a `STYLE.md` rewrite.

@@ -45,6 +45,17 @@ purple and magenta cosmic horror as dread rises.
   Every harbour gets a tavern first, then a mix.
 - Island kinds: sandbar, jungle, rocky, treasure, harbour, plus rarer volcano (ash cone, glowing crater, smoke),
   atoll (sand ring around a lagoon) and mangrove (mud flats, stilt-rooted trees, herons).
+- **Island looks** (`src/isleforms.js`, 2026-11-15; rolled islands only, never Tama's waters, the starter cells or the hand-made places):
+  - *Lean by region:* Crown open sand; Free Cays atolls and mangroves, little rock; Reef and Lantern hard rock; Drowned mud and low sand.
+    Only a plain sandbar, jungle or rocky isle changes, and only into a kind no bigger (an atoll from the lean is kept to r 12-15).
+  - *Three forms per kind,* same parts and the same or fewer props: sandbar (round bar, **dune** with one long ridge, **spit** long and
+    thin with a hooked end); jungle (hill, **twin peaks**, **low canopy** of broad flat-crowned trees in place of the palms); rocky (spires,
+    **mesa** a flat table on two treads with no spires, **sea arch** with one foot on the shore and one in the water, in place of most spires and the stacks).
+  - *Shape by distance* (ART_SPEC 5.1): loose stone is rounded near home (S0), long and low in the Shoals (S1), cut blocks from the Trade
+    Belt out (S2+); spires lower and wider in S1, four-sided and blunt from S2; sea stacks four-sided from S2. Ground tint: warm and a little
+    more saturated in S0, bleached in S1, cream and greyer from S2.
+  - `?isles=0` shows the old islands on the same seed. `node scripts/isle_checks.cjs` checks crowding and budgets; `--blind DIR` writes the
+    A12/A13 blind-test pictures (answers in `DIR/key.txt`).
 - **Hand-made places** (`landmarks.js`): each must read from far off as one strong silhouette, and stay in the same
   chunky low-poly kit (6-sided basalt columns, blob canopies, boxes, gables), never a different art style:
   the Grey Tooth (grey basalt, no plants, white guano on ledges, a sea arch), Hollowgreen (dark greens in layered blob

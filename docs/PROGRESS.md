@@ -1574,3 +1574,17 @@ Trials for the owner to compare; nothing changes without a flag and STYLE.md is 
   sped up: 25 night changes, never the same twice in a row, all three options used; 17 line-ups in the second band; the bells never both
   audible (0 of 859 samples). `npm run smoke` passes. **Not verified:** by ear.
 
+## Island looks (2026-11-15, owner: "do it all but make sure the map is not overcrowded")
+- `src/isleforms.js`, wired into `world.js` in a few lines. Rolled islands only. **Lean:** each region turns some plain isles into its
+  own kinds (Crown sand, Free Cays atolls and mangroves, Reef and Lantern rock, Drowned mangrove and sand). **Forms:** dune and spit
+  sandbars, twin-peak and low-canopy jungles, mesa and sea-arch rocky isles, each from the same terrain grid and the same or fewer props.
+  **Distance:** loose stone rounded near home, long and low in the Shoals, blocky from the Trade Belt; a ground tint per band.
+  `?isles=0` compares with the old islands.
+- The regions' things on the water were already on rolled islands (`regiondecor.js`: daymarks, stilt houses, coral, float lamps);
+  nothing was added there, to keep the sea from crowding.
+- **Verified:** `node scripts/isle_checks.cjs` (new): the same 406 islands in the same cells over three seeds, land on the water down
+  4.4%, the new forms at most 3,196 triangles and 11 draw calls (the old rolled isles reach 3,273 / 11; jungles were already over the
+  2,000 budget and still are), the regions' mixes of kinds further apart (0.18 to 0.25). Screenshots of every form by day, at night and
+  at dread 0.6 and 0.85; blind-test pictures for A12/A13 made. `npm run smoke` passes. **Not verified:** the blind test itself (it
+  needs a person), how it feels to sail through.
+

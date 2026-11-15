@@ -2,6 +2,7 @@ import { sectorAt, lookFactionAt, WEDGES } from './sectors.js';
 import { styleOf, shapeOf, STYLE_DEF, SHAPES, stairs, slopeHouses, flagCloth, ruins, landingFlag, laundry } from './villagestyles.js';
 import { pushOut } from './solids.js';
 import { regionDecor } from './regiondecor.js';
+import { lean, form, bandTint, isleBand, shoreK, formHeight, bandRock, bandSpire, broadleaf, seaArch } from './isleforms.js';
 import * as THREE from 'three';
 import { Builder, darken } from './builder.js';
 import { TILE } from './textures.js';
@@ -134,6 +135,7 @@ export function describeCell(cx, cz, seed) {
   let name = makeName(nameRng, type, dread);
   if (key !== '0,-1' && / Tama$/.test(name)) name = name.replace(/Tama$/, 'Tamar');   // only the home harbour is Tama
   const desc = { id: key, type, x, z, r, H, lobes, seed: hash2(cx, cz, seed + 1) & 0xffff, name, dread };
+  if (forced) desc.forced = true;
   { const sc = sectorAt(x, z, seed); desc.region = sc.sx === 0 && sc.sz === 0 ? 'home' : sc.faction.id; }   // Tama's own sector keeps no region's rules   // whose waters (regiondecor.js puts that region's things on the water round it)
   // rarer island kinds, rolled with their own generator so the rest of the world stays where it was
   if (!forced && Math.max(Math.abs(cx), Math.abs(cz)) > 1) {
@@ -143,6 +145,7 @@ export function describeCell(cx, cz, seed) {
     else if (type === 'jungle' && v < 0.25) { desc.type = 'mangrove'; desc.H = 1.3 + vr() * 0.6; }
     if (desc.type !== type) desc.name = makeName(mulberry32(hash2(cx, cz, seed + 4343)), desc.type, dread).replace(/ Tama$/, ' Tamar');
   }
+  lean(desc, cx, cz, seed, type, makeName);   // the region's own kinds (isleforms.js)
   if (type === 'harbour') {
     desc.lively = (hash2(cx, cz, seed + 808) % 1000) / 1000; desc.sleepy = desc.lively < 0.3;
     // every village keeps one custom, and has its own festival day in the week
@@ -164,7 +167,9 @@ export function describeCell(cx, cz, seed) {
     desc.hue = (vr() - 0.5) * 0.06; desc.satK = (vr() - 0.5) * 0.2; desc.lumK = (vr() - 0.5) * 0.08;
     if (!forced && desc.type === 'jungle' && vr() < 0.4) { desc.cliffTh = vr() * 6.283; desc.cliffH = 0.7 + vr() * 0.7; }
     if (!forced && desc.type === 'rocky' && vr() < 0.7) desc.stacks = 2 + Math.floor(vr() * 3);
+    if (!forced) bandTint(desc);
   }
+  form(desc, cx, cz, seed);   // its outline: dune, spit, twin peaks, low canopy, mesa, sea arch (isleforms.js)
   if (type === 'treasure') {
     desc.puzzle = makePuzzle(mulberry32(hash2(cx, cz, seed + 31)), name, dread);
     // some beaches face so that the arch's noon shadow falls across them: there the chest lies under its tip (digging.js)
@@ -177,7 +182,7 @@ export function describeCell(cx, cz, seed) {
 export function pierOf(d) { if (!d || d.dockTh === undefined) return d ? { x: d.x, z: d.z } : null; const r = shoreR(d, d.dockTh) + 10; return { x: d.x + Math.cos(d.dockTh) * r, z: d.z + Math.sin(d.dockTh) * r }; }
 export function shoreR(d, th) {
   const L = d.lobes;
-  const R = d.r * (1 + L[0] * Math.sin(2 * th + L[3]) + L[1] * Math.sin(3 * th + L[4]) + L[2] * Math.sin(5 * th + L[5]));
+  const R = d.r * (1 + L[0] * Math.sin(2 * th + L[3]) + L[1] * Math.sin(3 * th + L[4]) + L[2] * Math.sin(5 * th + L[5])) * (d.elong ? shoreK(d, th) : 1);
   return d.cutTh === undefined ? R : cutShore(d, th, R);
 }
 
@@ -187,6 +192,7 @@ export function terrainHeight(d, lx, lz) {
   const n = fbm((lx + d.x) * 0.1, (lz + d.z) * 0.1, d.seed);
   if (d.lm) { const v = lmHeight(d, t, th, n); if (v !== null) return v; }
   const p = 1 - Math.pow(t, d.type === 'rocky' ? 1.6 : 2.2);
+  if (d.form) { const v = formHeight(d, t, th, n, p, lx, lz); if (v !== null) return v; }
   switch (d.type) {
     case 'sandbar': return d.H * p * (0.6 + n * 0.8);
     case 'jungle': {
@@ -1227,7 +1233,7 @@ function weekAndCustoms(d, rng, cr, g) {
 }
 
 function decorate(d, rng, A, B, D, extra) {
-  const T = d.type;
+  const T = d.type, band = isleBand(d);
   if (d.lm) { lmDecor(d, rng, A, B, D, extra, { terrainHeight, shoreR, spot, palm, fern, flowers, mossRock, houseKind, person, beachedBoat, washing, crateBox, barrel, driftwood, chest, lighthouse }); return; }
   if (d.blight) { blightDecor(d, rng, A); extra.hutB = new Builder(); darkHut(d, rng, extra.hutB); return; }   // the hut in its own mesh: hidden until the story reaches it
   const palms = (n, t0, t1, hMin = 0.8, s0 = 0.9) => {
@@ -1236,7 +1242,7 @@ function decorate(d, rng, A, B, D, extra) {
   const rocks = (n, t0, t1, r = 1.1) => {
     for (let i = 0; i < n; i++) {
       const p = spot(d, rng, t0, t1, 0.3);
-      if (p) A.blob(p[0], p[1] + 0.2, p[2], r * (0.7 + rng() * 0.8), r * (0.6 + rng() * 0.5), r * (0.7 + rng() * 0.8), rng() > 0.5 ? '#cfc9bf' : '#e2dbcc', TILE.stone, 0.25, i + d.seed);
+      if (p) { const sx = r * (0.7 + rng() * 0.8), sy = r * (0.6 + rng() * 0.5), sz = r * (0.7 + rng() * 0.8); bandRock(A, band, p[0], p[1], p[2], sx, sy, sz, rng() > 0.5 ? '#cfc9bf' : '#e2dbcc', TILE.stone, i + d.seed); }   // the band's shape (isleforms.js)
     }
   };
   const cult = (n, tr) => {
@@ -1273,7 +1279,7 @@ function decorate(d, rng, A, B, D, extra) {
   if (T === 'rocky') scatter(4, 0.2, 0.9, 0.3, (p) => mossRock(A, p[0], p[1], p[2], 0.9 + rng() * 0.8, rng));
   if (d.stacks) for (let i = 0; i < d.stacks; i++) {   // sea stacks standing just off the shore, white with spray at the foot
     const th = rng() * 6.283, R = shoreR(d, th) * (1.0 + rng() * 0.08), x = Math.cos(th) * R, z = Math.sin(th) * R, hh = 3 + rng() * 5, w = 0.9 + rng() * 0.8;
-    A.cyl(x, -2, z, w, w * 0.55, hh + 2, 6, rng() > 0.5 ? '#8a8478' : '#7a746c', TILE.stone, true, '#6e8a52');
+    A.cyl(x, -2, z, w, band >= 2 ? w * 0.75 : w * 0.55, hh + 2, band >= 2 ? 4 : 6, rng() > 0.5 ? '#8a8478' : '#7a746c', TILE.stone, true, '#6e8a52');
     A.blob(x, 0.1, z, w * 1.5, 0.18, w * 1.5, '#f2f6f6', TILE.white, 0.3, i);
   }
   switch (T) {
@@ -1321,18 +1327,20 @@ function decorate(d, rng, A, B, D, extra) {
       { const p = spot(d, rng, 0.0, 0.7, 0.3); if (p) { monolith(D, p[0], p[1], p[2], 2.2, 0.6); D.blob(p[0] + 1.5, p[1] + 0.2, p[2], 0.5, 0.3, 0.8, '#ffffff', TILE.bone, 0.2, 1); } }
       break;
     case 'jungle':
-      palms(8 + Math.floor(rng() * 5), 0.15, 0.9, 0.9, 1.0);
+      if (d.form === 'canopy') { const nb = 5 + Math.floor(rng() * 3); for (let i = 0; i < nb; i++) { const p = spot(d, rng, 0.1, 0.85, 0.9); if (p) broadleaf(A, B, p[0], p[1], p[2], 0.9 + rng() * 0.4, i); } }   // fewer, broader trees in place of the palms
+      else palms(8 + Math.floor(rng() * 5), 0.15, 0.9, 0.9, 1.0);
       bushes(5 + Math.floor(rng() * 4));
       rocks(3, 0.5, 1.0);
       shrooms(5 + Math.floor(rng() * 3));
       cult(5, 0.3);
       break;
     case 'rocky': {
-      const n = 3 + Math.floor(rng() * 3);
+      const n = d.form === 'mesa' ? 0 : d.form === 'arch' ? 1 + Math.floor(rng() * 2) : 3 + Math.floor(rng() * 3);   // a mesa is its own feature; the arch takes the place of most spires
       for (let i = 0; i < n; i++) {
         const p = spot(d, rng, 0.0, 0.7, 1.5);
-        if (p) A.cyl(p[0], p[1] - 0.5, p[2], 1.6 + rng() * 1.6, 0, 3.5 + rng() * 4.5, 5 + (i % 2), rng() > 0.4 ? '#d6d0c6' : '#e8e0d0', TILE.stone);
+        if (p) { const [sr, sh, sides, top] = bandSpire(band, 1.6 + rng() * 1.6, 3.5 + rng() * 4.5, i); A.cyl(p[0], p[1] - 0.5, p[2], sr, top, sh, sides, rng() > 0.4 ? '#d6d0c6' : '#e8e0d0', TILE.stone); }
       }
+      if (d.form === 'arch') seaArch(A, d, shoreR(d, d.archTh), (x, z) => terrainHeight(d, x, z));
       rocks(5, 0.3, 1.0, 1.4);
       palms(1, 0.5, 0.9, 0.8, 0.7);
       { const p = spot(d, rng, 0.0, 0.4, 2); if (p) monolith(D, p[0], p[1], p[2], 4.5, 1.1); }
