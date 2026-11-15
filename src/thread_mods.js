@@ -244,7 +244,7 @@ export function hollowMod(hub) {
 export function musicMod(hub) {
   const tp = hub.tp('music', { nights: [], ended: null, changed: false, t: 0, near: 0 });
   const site = () => hub.pick('music', 1000, 1500);
-  const NOTES = [293.66, 392, 493.88];
+  const NOTES = [349.23, 466.16, 587.33];   // F - B flat - D: the old D - G - B lifted into the score's F (the D natural is the same Dorian lift)
   let step = 0;
   return {
     heard: () => tp.nights.length,

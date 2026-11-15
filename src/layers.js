@@ -34,13 +34,17 @@ const PLUCK2 = 's1_pluck2', PLUCK3 = 's1_pluck3';   // three takes of the main m
 // band it plays on open sea (falls back by the shore, steps aside in harbour); all four together, now and then one of the
 // three upper parts rests for a while so it never sits still
 const STAGE2 = ['s2_bass', 's2_drums', 's2_guitar', 's2_pluck'];
-export const LAYERS = [...BAND, ARP2, PLUCK2, PLUCK3, BATTLE, COUNTER, ...NIGHT, PAD, ...FC, ...STAGE2];
+// dread stage 3 (the owner's stage_3 stems, 2026-11-15, in place of music_3): bass, a bent bell and a pluck, through HOIST between GREY
+// SKIES and THE DEEP. The bass holds; the bell and the pluck take turns resting, so it thins rather than adds (horror by removing)
+const STAGE3 = ['s3_bass', 's3_bell', 's3_pluck'];
+export const LAYERS = [...BAND, ARP2, PLUCK2, PLUCK3, BATTLE, COUNTER, ...NIGHT, PAD, ...FC, ...STAGE2, ...STAGE3];
 const FIRST = ['s1_bass', 's1_shaperbox'];   // the first quest brings these two in together
 // [home pan -1..1, how far it wanders, how fast]: bass and drums stay near the middle, the rest spread out
 const PLACE = {
   s1_bass: [0, 0.1, 0.031], s1_shaperbox: [-0.3, 0.32, 0.023], s1_pluck: [0.42, 0.3, 0.037],
   s1_drums: [-0.08, 0.14, 0.019], s1_bell: [0.58, 0.28, 0.027], s1_guitar: [-0.52, 0.28, 0.041], s1_guitar2: [-0.52, 0.28, 0.041], s1_raiders: [0.1, 0.18, 0.033], s1_counter: [0.2, 0.32, 0.017], s1_pluck2: [0.42, 0.3, 0.037], s1_pluck3: [0.42, 0.3, 0.037], n1_pad: [0, 0.14, 0.008],
   s2_bass: [0, 0.1, 0.029], s2_drums: [-0.1, 0.14, 0.02], s2_guitar: [-0.5, 0.3, 0.037], s2_pluck: [0.45, 0.3, 0.031],
+  s3_bass: [0, 0.08, 0.023], s3_bell: [0.5, 0.35, 0.019], s3_pluck: [-0.45, 0.3, 0.027],
   fc_night: [0.22, 0.2, 0.011], fc_violin: [-0.24, 0.2, 0.013], n1_pluck: [0.4, 0.3, 0.021], n1_shaperbox: [-0.35, 0.3, 0.017], n1_strings: [0, 0.2, 0.013], n1_bell: [0.55, 0.3, 0.025],
 };
 const FADE_IN = 30;      // seconds for a new instrument to come all the way in
@@ -58,7 +62,7 @@ export class SeaLayers {
     this.t = 0; this.bg = 0; this.open = 1;
     this.pace = 1;           // test flag (?dev=1&musicpace=4): everything moves this many times faster
     this.rnd = Math.random;
-    this.order = [...BAND]; this.battle = 0; this.night = 0; this.s2rest = null; this.s2next = 30;
+    this.order = [...BAND]; this.battle = 0; this.night = 0; this.s2rest = null; this.s2next = 30; this.s3rest = null; this.s3next = 40;
     this.counter = { k: 0, phase: 'rest', t: 150 + Math.random() * 120, len: 0 };   // the counter melody's own slow cycle
     this.arp = { which: 0, m: [1, 0], hold: (2 + Math.floor(Math.random() * 6)) * PHRASE, armed: -1, min: 2, span: 6 };   // which arp take plays, and how far each is faded in
     this.pl = { which: 0, m: [1, 0, 0], hold: (3 + Math.floor(Math.random() * 5)) * PHRASE, armed: -1, min: 3, span: 6 };   // the same for the two pluck takes (they hold a little longer)
@@ -91,10 +95,10 @@ export class SeaLayers {
   /** the next scene: after a full band a line-up of two or three, never one heard lately and sharing at most one player with the last */
   nextScene(on) {
     const full = new Set(on);
-    if (on.length < 3) return { set: full, full: true, len: 4 };
     // now and then nothing at all for a while (only the sea), or one instrument alone (never the drums on their own); never two
     // quiet stretches in a row
     const wasQuiet = !this.sceneFull && this.scene.size <= 1;
+    if (on.length < 3) return !wasQuiet && on.length && this.rnd() < 0.15 ? { set: new Set(), full: false, len: 1 + Math.floor(this.rnd() * 2) } : { set: full, full: true, len: 4 };   // early on too: the two first stems are not a plain loop (review 12)
     if (!wasQuiet) {
       const r = this.rnd();
       if (r < 0.17) return { set: new Set(), full: false, len: 1 + Math.floor(this.rnd() * 3) };
@@ -148,6 +152,9 @@ export class SeaLayers {
     // stage 2: one of the upper parts rests now and then (never two at once, never the bass)
     this.s2next -= d;
     if (this.s2next <= 0) { if (this.s2rest) { this.s2rest = null; this.s2next = 25 + this.rnd() * 30; } else { this.s2rest = ['s2_drums', 's2_guitar', 's2_pluck'][Math.floor(this.rnd() * 3)]; this.s2next = 15 + this.rnd() * 20; } }
+    // stage 3: the bell or the pluck rests now and then, longer than in stage 2 (the deeper, the emptier)
+    this.s3next -= d;
+    if (this.s3next <= 0) { if (this.s3rest) { this.s3rest = null; this.s3next = 20 + this.rnd() * 25; } else { this.s3rest = ['s3_bell', 's3_pluck'][Math.floor(this.rnd() * 2)]; this.s3next = 20 + this.rnd() * 25; } }
     this.lp.frequency.setTargetAtTime(Math.max(800, (1500 + 1500 * wave) * (1 - 0.35 * wind) * (1 + 0.35 * this.battle)), T, 0.5);
 
     // scenes: a newcomer brings a full-band scene (long enough to hear it arrive); otherwise a new scene when the last has run out,
@@ -231,15 +238,17 @@ export class SeaLayers {
       const st = this.st.get(k);
       if (!st || k === ARP2 || k === PLUCK2 || k === PLUCK3) continue;   // the second arp and second pluck follow their part's slot (below)
       if (on.includes(k)) st.intro = Math.min(1, st.intro + d / FADE_IN);
-      if (STAGE2.includes(k)) {
-        const restT = this.s2rest === k ? 0 : 1;
+      if (STAGE2.includes(k) || STAGE3.includes(k)) {
+        const s3 = STAGE3.includes(k), restT = (s3 ? this.s3rest : this.s2rest) === k ? 0 : 1;
         st.inScene += (restT - st.inScene) * (1 - Math.exp(-d / 3));
         st.next -= d;
         if (st.next <= 0) { st.swell = 0.75 + 0.25 * this.rnd(); st.next = 10 + this.rnd() * 15; }
         st.breath += (st.swell - st.breath) * (1 - Math.exp(-d / 5));
         const [home, wander, sp] = PLACE[k];
         this.pans.get(k).pan.setTargetAtTime(Math.max(-0.9, Math.min(0.9, home + wander * Math.sin(this.t * sp * 6.283 + st.ph))), T, 1);
-        out[k] = (n >= 1 ? 1 : 0) * (s.stage2 || 0) * st.inScene * st.breath * 0.8 * (0.4 + 0.6 * this.open);
+        out[k] = (n >= 1 ? 1 : 0) * ((s3 ? s.stage3 : s.stage2) || 0) * st.inScene * st.breath * 0.8 * (0.4 + 0.6 * this.open)
+          * (1 - nk * fk)   // on a Free Cays night the Two Players have the water to themselves (review 14)
+          * (k === 's2_drums' ? 1 - 0.7 * nk : 1);   // at night the grey skies' drums mostly rest: the dark removes, it does not add (review 15)
         continue;
       }
       if (FC.includes(k)) {   // the Free Cays night: this voice's level follows the episode (see below)
@@ -253,7 +262,7 @@ export class SeaLayers {
       if (k === PAD) {   // the night pad, in place of the night band while it holds
         const [home, wander, sp] = PLACE[k];
         this.pans.get(k).pan.setTargetAtTime(s.steer != null ? s.steer : home + wander * Math.sin(this.t * sp * 6.283 + st.ph), T, s.steer != null ? 0.6 : 2);
-        out[k] = nk * (1 - fk) * smooth(Math.max(0, Math.min(1, this.nm.k))) * 0.95 * (s.stage ?? 1) * (0.4 + 0.6 * this.open);
+        out[k] = nk * (1 - fk) * smooth(Math.max(0, Math.min(1, this.nm.k))) * 0.95 * (s.stage ?? 1) * (0.4 + 0.6 * this.open) * Math.min(1, this.bg / 0.66);   // as full as the day band is by now
         continue;
       }
       if (NIGHT.includes(k)) {   // the night version: all four, breathing gently, while the band rests
@@ -262,7 +271,7 @@ export class SeaLayers {
         st.breath += (st.swell - st.breath) * (1 - Math.exp(-d / 6));
         const [home, wander, sp] = PLACE[k];
         this.pans.get(k).pan.setTargetAtTime(s.steer != null ? s.steer : Math.max(-0.9, Math.min(0.9, home + wander * Math.sin(this.t * sp * 6.283 + st.ph))), T, s.steer != null ? 0.6 : 1);   // steer: the way out of the fog (L9)
-        out[k] = nk * (1 - fk) * st.breath * 1.0 * (s.stage ?? 1) * (0.4 + 0.6 * this.open) * (1 - smooth(Math.max(0, Math.min(1, this.nm.k))));   // as present as the day band (the stems are mastered quieter); steps aside for the pad
+        out[k] = nk * (1 - fk) * st.breath * 1.0 * (s.stage ?? 1) * (0.4 + 0.6 * this.open) * (1 - smooth(Math.max(0, Math.min(1, this.nm.k)))) * Math.min(1, this.bg / 0.66);   // early nights no fuller than early days (review 3)   // as present as the day band (the stems are mastered quieter); steps aside for the pad
         continue;
       }
       if (k === COUNTER) {   // rare: rest a long while, fade in over ~12 s on a phrase, play 3-5 phrases, fade out over ~14 s
@@ -336,7 +345,7 @@ export class Tavern {
     const inside = Math.max(0, (this.k - 0.35) / 0.65), T = this.ctx.currentTime;
     const cut = 380 + 820 * inside;   // about 400 Hz from the street, 1.2 kHz inside: still muffled
     this.lp1.frequency.setTargetAtTime(cut, T, 0.3); this.lp2.frequency.setTargetAtTime(cut * 1.15, T, 0.3);
-    const lv = this.k < 0.01 ? 0 : 0.12 + 0.3 * inside;   // quiet: the room, not a concert
+    const lv = this.k < 0.01 ? 0 : 0.3 + 0.12 * inside;   // quiet: the room, not a concert; heard from the street now (review 6: it was 0.12 + 0.3)
     const out = {}; for (const k of TAVERN) out[k] = this.k > 0.01 ? lv * Math.min(1, this.k / 0.35) : 0;
     return { levels: out, presence: Math.min(1, this.k / 0.35) * (0.6 + 0.4 * inside) };
   }

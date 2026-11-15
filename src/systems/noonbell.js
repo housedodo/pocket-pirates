@@ -18,7 +18,7 @@ export function noonBellTick(dt) {
   for (let i = 0; i < strokes.length; i++) {
     const s = strokes[i]; s.t += dt;
     if (s.t < 0) continue;
-    if (!s.struck && s.t >= SWING / 4) { s.struck = true; if (s.vol > 0) G.audio.play('bell', { vol: s.vol }); }
+    if (!s.struck && s.t >= SWING / 4) { s.struck = true; if (s.vol > 0) G.audio.play('bell', { vol: s.vol, delay: G.audio.toBeat ? G.audio.toBeat() : 0 }); }   // on the band's next beat (at most 0.6 s after the top of the swing), so it never flams against the band's own bell
     const b = s.isl.bell;
     if (b) b.rotation.x = s.t < LIFE ? AMP * Math.exp(-s.t / DECAY) * Math.sin((2 * Math.PI * s.t) / SWING) : 0;
     if (s.t >= LIFE) strokes.splice(i--, 1);

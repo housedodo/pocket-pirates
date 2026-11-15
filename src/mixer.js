@@ -10,8 +10,9 @@ const GROUPS = [
   ['Night (stage 1, dusk to dawn)', CUES.loops.filter((k) => k.startsWith('n1_'))],
   ['Free Cays at night (lone guitar)', CUES.loops.filter((k) => k.startsWith('fc_'))],
   ['Stage 2 (grey skies, open sea)', CUES.loops.filter((k) => k.startsWith('s2_'))],
+  ['Stage 3 (the deeper water, open sea)', CUES.loops.filter((k) => k.startsWith('s3_'))],
   ['The hut (first visit)', CUES.loops.filter((k) => k.startsWith('s4_'))],
-  ['Sea and weather loops', CUES.loops.filter((k) => !k.startsWith('music_') && !k.startsWith('s1_') && !k.startsWith('tav_') && !k.startsWith('n1_') && !k.startsWith('fc_') && !k.startsWith('s2_') && !k.startsWith('s4_'))],
+  ['Sea and weather loops', CUES.loops.filter((k) => !k.startsWith('music_') && !k.startsWith('s1_') && !k.startsWith('tav_') && !k.startsWith('n1_') && !k.startsWith('fc_') && !k.startsWith('s2_') && !k.startsWith('s3_') && !k.startsWith('s4_'))],
   ['Effects', CUES.oneShots],
 ];
 const LABEL = { _master: 'MASTER (everything)', _music: 'MUSIC (all music tracks)' };

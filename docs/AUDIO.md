@@ -1,11 +1,10 @@
 # Audio guide
 
 **Sound is on.** The game loads only the cues listed in `CUES` (`src/audio.js`): the stage-1 band and battle layer, the tavern,
-`music_3`, the recorded sea, rain, storm, thunder and forest, the coast and gulls, and thirteen interface effects (still the
+the dread stems (`s2_*`, `s3_*`), the recorded sea, rain, storm, thunder and forest, the coast and gulls, and thirteen interface effects (still the
 synthesised placeholders). Everything else the game asks for is silent on purpose (see "One-shots" below). To use your own sound,
 overwrite the file with the same name; to bring a sound back, add its name to `CUES` and its file to `public/audio/`.
-`python3 scripts/single.py` builds the single-file games: `pocket-pirates-dev.html` carries every file in `public/audio/` and `volumes.json` (plus the mixer on F8, the sound studio on F9, the dev bar at the top for the hour and the quest, and the test keys 1-4 dawn/noon/dusk/night, , . quest back/forward, F6 weather, F7 finish the quest); `pocket-pirates-demo.html` carries the same sounds without `music_3` (no dread in the demo, see `DEMO_SKIP` in `audio.js` and `scripts/single.py`) and has no mixer; `pocket-pirates-demo-silent.html` has no sound at all. Names must match exactly; `.ogg` preferred (`.mp3`/`.wav` also work).
-and `volumes.json` inside it (plus the mixer on F8); `pocket-pirates-demo.html` carries the same sounds without the dread-stage cues (`music_3..5`, `amb_3..5`, `whisper`, `stage_up`, see `DEMO_SKIP` in `audio.js` and `scripts/single.py`) and has no mixer; it has the pause menu Sound and Music toggles. Names must match exactly; `.ogg` preferred (`.mp3`/`.wav` also work).
+`python3 scripts/single.py` builds the single-file games: `pocket-pirates-dev.html` carries every file in `public/audio/` and `volumes.json` (plus the mixer on F8, the sound studio on F9, the dev bar at the top for the hour and the quest, and the test keys 1-4 dawn/noon/dusk/night, , . quest back/forward, F6 weather, F7 finish the quest); `pocket-pirates-demo.html` carries the same sounds without the dread-stage cues (the `s2_*` and `s3_*` stems and `deepbell`, see `DEMO_SKIP` in `audio.js` and `scripts/single.py`) and has no mixer; `pocket-pirates-demo-silent.html` has no sound at all. Names must match exactly; `.ogg` preferred (`.mp3`/`.wav` also work).
 The pause menu has Sound and Music toggles.
 
 ## Music map (what plays where)
@@ -16,7 +15,7 @@ The pause menu has Sound and Music toggles.
 | Same, dusk to daybreak | the night version `n1_*` |
 | Free Cays waters, dusk to daybreak | the somber guitar `fc_night` and violin `fc_violin` instead of the night band and pad: alone or together, in slow swells with long silences |
 | Stage 2 (dread ~0.25-0.5), open sea | `s2_*` |
-| Dread ~0.5-0.8 | `music_3` ("Dread") |
+| Dread 0.45-0.9 | stage 3: `s3_bass`, `s3_bell` (bent), `s3_pluck` (2026-11-15, in place of `music_3`) |
 | A raider fight (cannons out) | the battle layer `s1_raiders` on top, the whole band |
 | By any shore | the sea music eases down to 40% |
 | In a harbour / in the tavern | the tavern tune `tav_*`, muffled (fainter elsewhere in the harbour); the sea music steps aside |
@@ -90,7 +89,8 @@ They are stage 1's music (the old placeholder `music_1` is gone).
   `Tests/HoistLayers.cpp`, `HoistLayers game_audio <outdir>`; less sway on bass and drums, more space on the bell). WAV masters stay in Chaos_Grain `game_audio/`.
 - **The game starts silent.** The first main quest brings in bass and shaperbox; every quest after that one more instrument
   (the order of the last four is shuffled once per voyage). A new one fades in over about 30 s. The band grows a little louder as it fills
-  (about 12 dB under the sea with two, about 7 dB under with all six) but stays in the background.
+  (measured in game 2026-11-15: about -35 LUFS with two, -28 with all six; the sea about -36 slow and -28 at speed) but stays in the
+  background. The night follows the same build-up: at the first quests it is no fuller than the day.
 - **Never the same twice: scenes.** Once three or more instruments are in, the band plays in scenes that change on a 4-bar phrase
   (9.7 s): the full band (3-5 phrases), then one or two line-ups of only two or three (2-4 phrases each), then the full band again.
   A line-up is never one of the last four and shares at most one player with the one before, so it goes e.g. bass + pluck, then
@@ -116,7 +116,7 @@ They are stage 1's music (the old placeholder `music_1` is gone).
 - **Heard over the waves:** all six share one soft low-pass (about 1.5-3 kHz) that moves with a slow swell, together with a small level
   lift on the crest, and closes further in strong wind.
 - **Open sea:** right by a shore (within about 60 units) they ease down to 40%, slowly. They carry the whole bright half of the
-  sea: full up to dread 0.3 (about 660 units from Tama), then they fade out by 0.5 while `music_3` comes in.
+  sea: full up to dread 0.3 (about 660 units from Tama), then they fade out by 0.32 while stage 2 comes in.
 - All stems start on the same sample (they wait silently until all six have loaded), so they stay locked together; the Music of the Fog
   playback rate applies to them too. The F8 mixer has its own group for them.
 - Test: `?dev=1&musicpace=5` makes the fades and swells five times faster.
@@ -126,7 +126,7 @@ Dread stage 2 (GREY SKIES): `s2_bass`, `s2_drums`, `s2_guitar`, `s2_pluck` (16 b
 HOIST with more swell and a little tape wow: `HoistLayers game_audio/stage2 <outdir> stage2`). Like the band it plays on open sea
 only (falls back by the shore, steps aside in harbours and the tavern). All four together, each swelling gently; now and then one of
 drums / guitar / pluck rests for 15-35 s (never two, never the bass). The order through the dread: stage-1 band (and its night
-version) up to dread ~0.2, stage 2 from 0.2-0.32 to 0.45-0.58, then `music_3` until ~0.8. F8 mixer: group "Stage 2".
+version) up to dread ~0.2, stage 2 from 0.2-0.32 to 0.45-0.58, then stage 3 (`s3_*`) from 0.45-0.58 until 0.75-0.9. F8 mixer: groups "Stage 2" and "Stage 3".
 
 ## The hut, first visit (`s4_*`, `HutMusic` in `src/layers.js`)
 Dread stage 4 (THE DEEP): `s4_pluck`, `s4_drone` (sub drone), `s4_drums`, through HOIST with sub octave, ghost tails and whispers
@@ -146,6 +146,13 @@ night is 4 minutes now (the day 11.5), about six times through the song. F8 mixe
   over in ~12 s on a phrase, never both for long. A night always opens with the band. On a **calm sea** (wind under 0.45) the pad
   holds 5-9 phrases and the band only 2-4; in **wind** it is the other way round (pad 2-4, band 4-8). In an 8-minute simulation:
   calm, pad 65% of the time; windy, band 70%.
+
+## Stage 3 (`s3_*`, in `src/layers.js`; 2026-11-15, in place of `music_3`)
+The owner's `stage_3_Bass`, `stage_3_Bell_bent` and `stage_3_Pluck` (16 bars, 99 BPM, F minor, the band's length), through HOIST between
+GREY SKIES and THE DEEP (`HoistLayers game_audio/stage3 <outdir> stage3`: bass tide 0.25, dread 0.45, mix 0.40; bell and pluck tide 0.45,
+dread 0.50, mix 0.60-0.65). In from dread 0.45-0.58, out by 0.75-0.9 (then nothing). The bass holds; the bell or the pluck rests for
+20-45 s now and then, so it thins rather than adds. Levels in `volumes.json` (bass 140%, bell 60%, pluck 180%) bring each to about -26 LUFS
+like the stage-2 stems. It is locked to the band, so the battle layer stays on the beat over it. Full game only (`DEMO_SKIP`).
 
 ## Battle (`s1_raiders`, in `src/layers.js`)
 `Raiders.wav` (4 bars at 99 BPM, **F minor** like the band) is played four times to the band's 16-bar length and rendered through HOIST like the other stems (`Raiders_x4.wav` in Chaos_Grain `game_audio/`; it replaced an earlier take that had to be shifted up from E minor). It joins the main theme while a fight is on: cannons unlocked and a raider engaged
@@ -174,7 +181,7 @@ through HOIST gently (`HoistLayers game_audio/tavern <outdir> tavern` in Chaos_G
 | `rain`, `rain_2` | **light rain**: two recordings (Cymatics LIFE Rain Light 12 and 2, 39 s / 48 s loops, about -26 LUFS) that cross-fade slowly every 25-65 s so the rain never repeats. Follow rain intensity; they give way to `rain_storm` as it gets heavy |
 | `rain_storm` | **a proper storm**: heavy rain drumming on the deck (Cymatics LIFE Rain on Roof 1, 30 s loop, about -20 LUFS). Fades in with storm 0.25-0.6 or rain above 0.75 |
 | `forest` | forest bed (Cymatics LIFE Forest 2, 28 s loop), very quiet (30%) while you are ashore on a big forest island (`desc.forest`), and now near **Hollowgreen** (the hand-made forest isle): up to 80% of that level within ~40 of its shore (`forestLevel` in main.js) |
-| `music_3` | the user's own "Dread" piece (moved from B minor down a tritone to **F minor**, the band's key, tempo and length unchanged; masters in Chaos_Grain `game_audio/dread/`): the middle of the dread range (dread 0.25-0.75, full at 0.5), after the stage-1 band fades. The placeholder `music_1`, `music_2`, `music_4`, `music_5`, `surf`, `wind`, the stage ambience `amb_1`..`amb_5`, `amb_night` and `oars` were removed: no music below dread 0.3 except the stage-1 layers, and none in the deep stages yet |
+| (`music_3`) | removed 2026-11-15: the stage-3 stems took its place (see "Stage 3" above). Its masters stay in Chaos_Grain `game_audio/dread/`. |
 | `gulls` | recorded gull colony (53 s, mono), **not constant**: it calls for about 5-20 s, then goes quiet for roughly 20-65 s (closer to the gulls: longer calls, shorter gaps), with slow fades (`driftGulls` in audio.js). Silent far off, fades up within ~120 units of the nearest circling gull and gets clearer (low-pass opens) as you close in; quieter at night, in rain and storms, gone by dread 0.35. |
 | `coast` | soft coastal breeze, small waves and far-off gulls (32 s). Rises over the last ~110 units before any island shore, full while moored or ashore (harbour, greeting, shipyard). Quieter at night, gone in storms and by dread ~0.4 |
 
@@ -240,7 +247,7 @@ Audacity, Reaper (free trial), LMMS, BeepBox / Bosca Ceoil (quick chip tunes), j
 ### Custom tracks in
 All the music is now the user's own, from one session (F minor, 99 BPM, 16-bar loops of 38.79 s), rendered through HOIST in the
 Chaos_Grain repo (`HoistLayers`, masters in `game_audio/`): the stage-1 band and its night version, stage 2, the hut's theme, the
-battle layer, the tavern, and `music_3` ("Dread", the one piece not from that session, moved to F minor). See the music map above.
+battle layer, the tavern and the stage-3 stems (since 2026-11-15 every piece is from that session). See the music map above.
 
 ## Sound studio (dev, F9)
 Load your own music and sounds, cut them, and say where each plays. Open the game with `?dev=1`, press **F9** (or pause menu, "Sound studio").

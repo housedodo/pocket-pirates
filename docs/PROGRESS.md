@@ -1539,3 +1539,22 @@ Trials for the owner to compare; nothing changes without a flag and STYLE.md is 
 - Still silent and unlisted: the fog bell, the other bell villages at noon, the title's hourly bell (owner).- The stolen bell's toll on deck at night now has its twin too: the stern lantern's flame ducks to about 40% and comes back with each
   stroke (found by the audio review, finding 21). Verified headless (the flame dipped to 0.38 with the toll); `npm run smoke` passes.
 
+## Stage 3 stems, and the sound review's fixes (2026-11-15, owner: "keep 1, not 16 yet, fix the rest")
+- **Stage 3** (`s3_bass`, `s3_bell` bent, `s3_pluck`): the owner's stage_3 stems through HOIST (a new `stage3` set in Chaos_Grain's
+  `HoistLayers`: between GREY SKIES and THE DEEP), in place of `music_3` (its file and code are gone). In from dread 0.45-0.58, out by
+  0.75-0.9. The bass holds; the bell or the pluck rests 20-45 s now and then. Measured in game: -31.6 LUFS, a little under stage 2
+  (-30.5), thinner when a part rests. Locked to the band, so the battle layer stays on the beat over it. Full game only.
+- **Levels** (`volumes.json`, from the measured review): coast 60%, storm 70%, forest 200%, sea 200%, the three stage-1 plucks 140%,
+  Ilse's violin 130%, the battle layer 140%, the hut's pluck 400% (it was 32 dB under the drone). The hut's drone is kept as it is
+  (owner). The tavern is heard from the street (its floor 0.12 to 0.3).
+- **Code:** the night band and pad follow the day band's build-up (early nights no fuller than early days); grey skies stays out of a
+  Free Cays night and its drums mostly rest at night; a quiet stretch can come even when only the first two stems play; the sea and
+  storm loops drift slowly in pitch; repeated one-shots (buy, cast, bite, catch, card) vary a little in pitch; a safety limiter on the
+  master; the pause blip sounds before the suspend; Tama's noon stroke sounds on the band's next beat (at most 0.6 s after the top of
+  the swing); the Music out of the Fog's three notes are F, B flat, D (were D, G, B: the old key); the dread stems are left out of the
+  demo file. AUDIO.md, RULES 26, the mixer's groups and `single.py` follow.
+- Not done: the silent cues (owner: not yet); the second night band (three of its four files arrived silent; waiting on new ones).
+- **Verified:** build; `npm run smoke`; stage 3 measured against stage 2 with the code's gains; headless at dread 0.65 the three stems
+  load and play, stage 2 and the band are out, `music_3` is not loaded; story export unchanged apart from its stamp. **Not verified:**
+  any of it by ear.
+
