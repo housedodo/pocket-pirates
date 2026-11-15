@@ -1501,3 +1501,14 @@ Trials for the owner to compare; nothing changes without a flag and STYLE.md is 
   the second of each is ordinary, the list is empty after; at 0.6 and in the demo at 0.95 nothing comes back. Unit check of the taking
   in node (fish, then fruit, then the newest treasure). `npm run smoke` passes. **Not verified:** a whole round trip in play; feel, sound.
 
+## L7: one shadow, really (2026-11-15; owner: only the shadow)
+- Embodies CANON 2026-11-12 (nobody sees Mara but the captain; "the lamp throws one shadow" is one of the three tells, each once, after
+  the first throw). No new fact; the toast is unchanged.
+- Nobody is drawn on the Gull's deck, so the tell is shown as light and shadow: on the night it fires, while the lamp burns, the stern
+  lantern lights the main deck warm (an additive pool that ignores the night's darkening) and one long figure's shadow runs forward
+  across it, until the night ends (`rt.shadowNight`, `ship.js` `shadowMesh` and `deckLight`). The ordinary reading: the captain's own
+  shadow. Never again after that night; never in the demo (the tell needs a throw).
+- **Verified** headless: after a throw, at night, the tell fires and both meshes show; at dawn they are gone; with no throw, and in the
+  demo, nothing; screenshots from the sailing camera with and without. `npm run smoke` passes. **Not verified:** whether a player notices
+  it at real speed; feel and sound.
+

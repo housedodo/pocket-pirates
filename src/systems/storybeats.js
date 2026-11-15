@@ -166,7 +166,8 @@ export function oilTick(dt) {
   rt.lampOut = needed && (off || state.oil <= 0); flame(needed);
   const night = state.dayN * 2 + (state.time > 0.5 ? 1 : 0);   // one warning of each kind per dark spell
   if (lit && before > cap * 0.25 && state.oil <= cap * 0.25 && rt.oilNight !== night && !G.eventQuiet()) { rt.oilNight = night; if (!G.objectives.mate.busy) G.objectives.mate.say('The lamp is getting low, Captain. Oil at any market, or we turn for home.'); else toast('The lamp oil is running low.', false, 4000); }
-  if (lit && tod.night > 0.6 && !state.story.tellShadow && G.lateTell()) { state.story.tellShadow = 1; toast('The lamp throws one shadow across the deck.', false, 6000); }   // a tell: one shadow
+  if (lit && tod.night > 0.6 && !state.story.tellShadow && G.lateTell()) { state.story.tellShadow = 1; rt.shadowNight = true; toast('The lamp throws one shadow across the deck.', false, 6000); }   // a tell: one shadow, and it is really on the deck that night (L7)
+  if (rt.shadowNight && tod.night < 0.3) rt.shadowNight = false;   // gone with the dawn, never again
   if (before > 0 && state.oil <= 0 && lit) { toast('The lantern gutters out. The dark comes right up to the rail.', rt.dread > 0.4, 6000); if (!state.hints.oilOut) { state.hints.oilOut = true; after(3.5, () => G.objectives.mate.say('No light, no line, and I can barely see the bow. Buy oil at a market next time, Captain.')); } }
 }
 export const SAIL_LIMIT = 20;   // seconds of full sail in a gale before it tears (longer with better sails, shorter in a storm)

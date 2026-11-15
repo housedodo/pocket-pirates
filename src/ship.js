@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { Builder } from './builder.js';
 import { TILE } from './textures.js';
-import { mats } from './psx.js';
+import { mats, psxMaterial } from './psx.js';
 import { waveHeight } from './ocean.js';
 import { hullWater, rideWaves } from './float.js';
 import { clamp, lerp, smoothstep, angleDiff } from './util.js';
@@ -301,6 +301,14 @@ export class Ship {
     const db = new Builder(); db.doubleSided = true;
     db.box(0, -0.1, 0, 0.08, 0.5, 0.08, '#ffffff', TILE.bark);
     db.quad([0, 0.55, 0], [0, -0.2, 0], [0, -0.2, 1.4], [0, 0.55, 1.4], '#ffffff', TILE.skull);
+    { const sb = new Builder();   // one shadow on the deck (task L7, CANON 2026-11-12): a figure's, long, thrown forward from the stern lantern. Shown the one night the tell fires
+      sb.quad([-0.22, 0.53, 0.95], [0.22, 0.53, 0.95], [0.16, 0.53, -0.7], [-0.16, 0.53, -0.7], '#ffffff', TILE.white);
+      sb.quad([-0.2, 0.53, -0.7], [0.2, 0.53, -0.7], [0.14, 0.53, -1.15], [-0.14, 0.53, -1.15], '#ffffff', TILE.white);
+      this.shadowMesh = new THREE.Mesh(sb.geometry(), psxMaterial({ color: 0x0a0812, vertexColors: true, transparent: true, opacity: 0.6, depthWrite: false, key: 'Sh' }));
+      this.shadowMesh.position.x = 0.45; this.shadowMesh.visible = false; this.root.add(this.shadowMesh);
+      const pb = new Builder(); pb.quad([-0.85, 0.525, 1.0], [0.85, 0.525, 1.0], [0.7, 0.525, -1.7], [-0.7, 0.525, -1.7], '#ffffff', TILE.white);   // the lantern's warm light on the deck, that night only, so the shadow can be seen in it
+      this.deckLight = new THREE.Mesh(pb.geometry(), psxMaterial({ color: 0x8a6020, vertexColors: true, transparent: true, opacity: 0.55, depthWrite: false, blending: THREE.AdditiveBlending, key: 'Dl', fragmentColor: { head: '', body: 'diffuseColor.rgb /= max(uLight, 0.05);' } }));
+      this.deckLight.visible = false; this.root.add(this.deckLight); this.shadowMesh.renderOrder = 2; this.deckLight.renderOrder = 1; }
     { const fl = new Builder(); fl.cyl(0, 0, 0, 0.15, 0, 0.6, 4, '#ffffff', TILE.glow, false);   // the stern lantern's flame (task L6): upright at home, shorter and leaning far out
       this.flameMesh = meshOf(fl, mats.props); this.flameMesh.position.set(0, 2.95, 2.9); this.flameMesh.visible = false; this.root.add(this.flameMesh); }
     this.flagBright = meshOf(fb, mats.flagP);
@@ -518,6 +526,7 @@ export class Ship {
       arm.rotation.x = lerp(0, 0.62, ease) - lift;   // blades well down in the water for the pull (tip ~0.6 under the surface), lifted clear on the way back
     }
 
+    this.shadowMesh.visible = this.deckLight.visible = !!this.oneShadow && !!this.flame;   // only while the lamp burns (L7)
     { const f = this.flame, m = this.flameMesh; m.visible = !!f;   // the flame: its height and lean come from oil.js flameShape; it only wavers once it leans
       if (f) { m.scale.y = f.h; m.rotation.z = f.lean * (1 + 0.12 * Math.sin(t * 5)); } }
     // lantern glow

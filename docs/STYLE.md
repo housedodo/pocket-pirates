@@ -195,6 +195,8 @@ purple and magenta cosmic horror as dread rises.
   stained bone with a blood-dark 1; same carved numbers, same pixel texture. Never a new colour, only age.
 
 - Things worth finding at sea (bottles) flash a small gold glint, never white (white reads as foam).
+- The night the shadow tell fires (once a voyage, after the first throw), the stern lantern lights the main deck warm and one long
+  figure's shadow runs forward across it, until dawn. Nobody is drawn on the deck; the shadow is all (task L7).
 - The stern lantern has a flame while it burns (a four-sided glow cone, 0.6 tall): upright and still in home waters, down to 0.45 of its height and leaning up to 0.75 rad at full dread, wavering only once it leans (task L6). It never changes in the demo.
 
 - **Feedback stays on the pixel grid** (2026-11-14, task G1). A hit is a hard red frame in three 8 px steps (`#c8402a`, then the
