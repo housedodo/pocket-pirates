@@ -252,6 +252,8 @@ scales the currents (seaplay.js) so they never lead into fog.
 
 - **Home is gentle** (2026-11-14, L4, `src/systems/home.js`): `homeShift` removes a low throw's added dread inside Home Sound (450) and gives it back by 600; `homeTick`/`homeLook` lay the swell down to 40% within 260 of Tama while the noon bell swings (in the demo too). No text.
 
+- **`arrivals`** (2026-11-15, G3): once clue `CL-C1-a` (the Customs ledger) is seen, a Crown harbour's record row (`recordMarks`) ends with one more tick, faint: the next line, written before it is earned. No word; nothing shows without the clue or in the demo.
+
 ## Waves and the ship
 Wave height = the swell (several crossing sine waves, crests bent by a slow warp) x the sets (`G`, a slow travelling pattern,
 0.5x to 1.45x, with a longer roller in the big sets) x the land factor (`seaScale` / GLSL `landNear`: 0.35 within ~15 of a

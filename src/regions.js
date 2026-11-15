@@ -85,8 +85,9 @@ export function jobPay(state, j, toRegion) {
   if (j.fromRegion === 'crown' || toRegion === 'crown') pay *= recordMul(crownRec(state));
   return Math.round(pay);
 }
-/** the record as a row of marks, no words: a tick per clean line (up to 8), a dark mark per black one */
-export const recordMarks = (state, pxi) => { const r = crownRec(state); return pxi('check').repeat(Math.min(8, r.clean)) + '<i class="blackline"></i>'.repeat(r.black); };
+/** the record as a row of marks, no words: a tick per clean line (up to 8), a dark mark per black one. ahead (the `arrivals`
+ *  capability, clue CL-C1-a: the ledger had the name before the ship came): the next line is already there, faint, before it is earned */
+export const recordMarks = (state, pxi, ahead = false) => { const r = crownRec(state); return pxi('check').repeat(Math.min(8, r.clean)) + '<i class="blackline"></i>'.repeat(r.black) + (ahead ? `<span class="ahead">${pxi('check')}</span>` : ''); };
 /** a Crown harbour you sail into between its buoys: one clean line a day per harbour (main.js, on docking) */
 export function laneArrival(state, d, came) {
   if (d.region !== 'crown' || !came || came.id !== d.id) return false;

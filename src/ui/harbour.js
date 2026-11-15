@@ -108,7 +108,7 @@ export function renderHarbour() {
     else if (state.job) html += `<div class="qrow"><div><b>${pxi('letter')} ${state.job.item}</b><br><small>to ${state.job.toName} · ${bearingName(state.job.x - d.x, state.job.z - d.z)}</small></div><small>${state.job.reward}g</small></div>`;
     else if (j && j.timed) {   // the Crown keeps time: a deadline, two prices, and the shared book of arrivals (regions.js)
       const due = clockAt(nowD(state) + j.timed / DAY_SECONDS), on = jobPay(state, { ...j, due: Infinity }, 'crown'), late = jobPay(state, { ...j, due: -1 }, 'crown');
-      html += `<div class="qrow"><div><b>${pxi('letter')} ${j.item}</b><br><small>to ${j.toName} · ${bearingName(j.x - pierOf(d).x, j.z - pierOf(d).z)}, ${j.dist} · by ${due}: ${on}g, late ${late}g</small></div><button id="jobAccept">Accept</button></div><div class="ledgerrow">${recordMarks(state, pxi)}</div>`;
+      html += `<div class="qrow"><div><b>${pxi('letter')} ${j.item}</b><br><small>to ${j.toName} · ${bearingName(j.x - pierOf(d).x, j.z - pierOf(d).z)}, ${j.dist} · by ${due}: ${on}g, late ${late}g</small></div><button id="jobAccept">Accept</button></div><div class="ledgerrow">${recordMarks(state, pxi, isOpen(state, 'know', 'arrivals'))}</div>`;
     } else if (j) html += `<div class="qrow"><div><b>${pxi('letter')} ${j.item}</b><br><small>to ${j.toName} · ${bearingName(j.x - pierOf(d).x, j.z - pierOf(d).z)}, ${j.dist} · ${j.reward}g</small></div><button id="jobAccept">Accept</button></div>`;
     else html += '<small>Nothing today.</small>';
     html += `<div class="sec">COMMISSIONS (${state.quests.length}/3)</div>`;

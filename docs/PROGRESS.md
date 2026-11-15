@@ -1483,3 +1483,12 @@ Trials for the owner to compare; nothing changes without a flag and STYLE.md is 
   at 0.6. They can now be met in the Slack's outer water and the Dim, not only the far Dim. Mara's remarks keep their quarters.
 - **Verified:** build and `npm run smoke`. **Not verified:** a meeting at 0.6 in play.
 
+## G3, `arrivals` (2026-11-15; owner: this one only for now)
+- Embodies question 1 (CANON section 4: "Someone has been writing you down since before you arrived") and the design in
+  `docs/WORLD_REDESIGN.md` 6.3. No new fact, no word.
+- Once the Customs ledger has been read (clue `CL-C1-a`, capability `arrivals`), the Crown's record row on a harbour board ends with one
+  more tick, faint: the next line, there before it is earned. `recordMarks(state, pxi, ahead)` in `regions.js`.
+- **Verified** headless at Harbour Perra (Crown) with a record of two clean lines and one black: with the clue seen the row has the
+  faint tick after them (screenshot); with it unseen, and in the demo with the clue forced, it does not. `npm run smoke` passes.
+  **Not verified:** whether a player reads the faint tick as "already written" (that is the thing to look at before `forecast` and `bluelamp`).
+
