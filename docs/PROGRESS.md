@@ -1525,3 +1525,16 @@ Trials for the owner to compare; nothing changes without a flag and STYLE.md is 
   nothing changes. `npm run smoke` passes. **Not verified:** whether a player finds the changed harbour; feel and sound.
 - **To decide after playing:** keep it (then the flag goes and the old global cost is deleted), or drop it (delete `landing.js`).
 
+## A bell in the dread story: the Bell Below (2026-11-15, owner: the church bell, if the story needs one)
+- It does. The Bell Below (the Lantern waters' thread, full game only) asks you to count a sunken bell's strokes ("Slow strokes, one
+  after another, with long gaps. You count them. How many?"), and the strokes were on a cue that did not play: the count could only be
+  guessed. Now `deepbell` is the owner's church bell (one-shot, not through HOIST; AUDIO.md has how it was cut), listed in
+  `CUES.oneShots` at 85%, skipped by the demo.
+- The strokes are 2 s apart (they were 1.1 to 1.4 s; the bell rings about 8 s at the game's lowered pitch, so each strike must stand
+  out). Silent twins (RULES 28): the belfry rocks once per stroke at sea, and the scene's picture dims once per stroke.
+- Embodies CANON 2026-11-12 (Lantern: the Drowned Bell thread) and the thread as written; no new text.
+- **Verified** headless (the thread awake, at low water): at sea three strokes played from the real file and the belfry rocked; in the
+  scene the five strokes of this voyage played and the picture dimmed five times. `npm run smoke` passes. **Not verified:** how it
+  sounds (never judged headless).
+- Still silent and unlisted: the fog bell, the other bell villages at noon, the title's hourly bell (owner).
+

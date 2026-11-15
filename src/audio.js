@@ -9,7 +9,7 @@ import { stageOf } from './palette.js';
 // Master switch for all sound (files in public/audio/, else the synthesised fallback).
 export const AUDIO_ENABLED = !(typeof window !== 'undefined' && window.__SILENT);   // the demo ships with sound too (without the dread-stage cues, see DEMO_SKIP); the silent build sets __SILENT
 // cues the demo never plays (no dread there): left out of the demo file and never loaded, to keep it small and spoiler-free
-const DEMO_SKIP = new Set(['music_3']);
+const DEMO_SKIP = new Set(['music_3', 'deepbell']);   // deepbell: the Bell Below thread, full game only
 
 export const CUES = {
   loops: [
@@ -22,7 +22,7 @@ export const CUES = {
   // only these effects play. Every other effect the game asks for (splash, treasure, cannon, horn ...) is silent on purpose:
   // it is not listed, so it is never loaded and never synthesised. Add a name back here (and its file) to bring one back.
   oneShots: ['ui', 'dig', 'buy', 'pause', 'chapter', 'fail', 'success', 'card', 'roll_d6', 'roll_d20', 'cast', 'bite', 'catch',
-    'thunder', 'oar', 'bell'],   // oar: one soft stroke while rowing (synthesised)   // thunder: the recorded distant roll (with rain)   // bell: Tama's noon bell, one stroke of the band's bell (s1_bell), owner 2026-11-14
+    'thunder', 'oar', 'bell', 'deepbell'],   // oar: one soft stroke while rowing (synthesised)   // thunder: the recorded distant roll (with rain)   // bell: Tama's noon bell, one stroke of the band's bell (s1_bell), owner 2026-11-14   // deepbell: the Bell Below thread's strokes (the owner's church bell, 2026-11-15)
 };
 const tick = () => new Promise((r) => setTimeout(r, 0));
 

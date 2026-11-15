@@ -179,7 +179,7 @@ through HOIST gently (`HoistLayers game_audio/tavern <outdir> tavern` in Chaos_G
 | `coast` | soft coastal breeze, small waves and far-off gulls (32 s). Rises over the last ~110 units before any island shore, full while moored or ashore (harbour, greeting, shipyard). Quieter at night, gone in storms and by dread ~0.4 |
 
 **One-shots**
-Only these effects play. Everything else the game asks for (splash, treasure, discover, harbour, cannon, hit, horn, gull, dolphin, whale, bottle, creak, bump, whisper, stage_up, knock, ending, and the other bells: `villagebell` at noon in the other bell villages, `fogbell` in thick fog, `hourbell` on the title, `deepbell` in the Bell Below thread) is **silent on purpose**: not in `CUES.oneShots`, so never loaded and never synthesised. To bring one back, add its name to `CUES.oneShots` in `src/audio.js` and put its file in `public/audio/`.
+Only these effects play. Everything else the game asks for (splash, treasure, discover, harbour, cannon, hit, horn, gull, dolphin, whale, bottle, creak, bump, whisper, stage_up, knock, ending, and the other bells: `villagebell` at noon in the other bell villages, `fogbell` in thick fog, `hourbell` on the title) is **silent on purpose**: not in `CUES.oneShots`, so never loaded and never synthesised. To bring one back, add its name to `CUES.oneShots` in `src/audio.js` and put its file in `public/audio/`.
 
 A single-file build (`window.__AUDIO` set) never fetches a sound it does not carry: a listed cue with no inlined file is synthesised.
 
@@ -187,6 +187,12 @@ A single-file build (`window.__AUDIO` set) never fetches a sound it does not car
 the same F, with F and A flat partials, every four bars; the stroke at 9.72 s was taken with 5 ms before it, 7 s long, the last 0.8 s faded;
 `ffmpeg -ss 9.715 -t 7.0 -i s1_bell.ogg -af afade=t=out:st=6.2:d=0.8 -c:a libvorbis -q:a 4 bell.ogg`). It plays only for Tama's noon bell, at
 the top of the bell's swing (`src/systems/noonbell.js`; the swing is its silent twin, RULES 28), louder the nearer you are (out to 260).
+
+`deepbell` (owner, 2026-11-15: the church bell, `Church_bell.wav`, 4.8 s, faded over its last 0.5 s, not through HOIST: it is a
+one-shot, and the loop renderer would wrap its tail into its head): the Bell Below thread's strokes, which the story asks you to
+count. Played at rate 0.5 to 0.55 (under water: about 8 s long), 2 s apart. Over the reef at low tide, in the scene, and on deck at night
+if you took the bell. Its silent twins: the belfry rocks once per stroke at sea, and the scene's picture dims once per stroke. 85% in
+`volumes.json` (1.4 dB louder than Tama's `bell` as cut). Full game only (`DEMO_SKIP`).
 
 `oar` (synthesised, no file yet): one soft stroke per pull while rowing, at half volume (PROGRESS: four small wrong things). A recorded `oar.ogg` in `public/audio/` replaces it.
 

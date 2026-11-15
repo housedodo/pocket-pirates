@@ -106,13 +106,14 @@ export function bellMod(hub) {
         b.box(0, -0.6, 0, 1.4, 1.6, 1.4, '#8a6a4a', TILE.planks);
         return mesh(b, hub.scene);
       });
-      if (m) m.position.set(s.x, waveHeight(s.x, s.z, t, amp) + (low ? 0.6 : -2.6), s.z);
+      if (m) { m.position.set(s.x, waveHeight(s.x, s.z, t, amp) + (low ? 0.6 : -2.6), s.z);   // the belfry rocks once per stroke: the strokes can be counted with the sound off (RULES 28)
+        tp.rock = Math.max(0, (tp.rock || 0) - dt); m.rotation.z = 0.12 * Math.sin(Math.PI * Math.min(1, (1.1 - tp.rock) / 1.1)) * (tp.rock > 0 ? 1 : 0); }
       const d = D(s, ship.pos);
       if (!tp.ended && low && d < 280 && api.state.dayN >= 0) {   // the strokes, a few with long gaps
         tp.next -= dt;
-        if (tp.next <= 0) { tp.next = 18; queue = Array.from({ length: tp.n }, (_, i) => i * 1.4); }
+        if (tp.next <= 0) { tp.next = 18; queue = Array.from({ length: tp.n }, (_, i) => i * 2); }   // 2 s apart: the church bell rings long, each strike must stand out
       }
-      if (queue.length) { queue = queue.map((q) => q - dt); while (queue.length && queue[0] <= 0) { queue.shift(); api.audio.play('deepbell', { vol: Math.max(0.1, 0.8 * (1 - d / 300)), rate: 0.55, pan: Math.max(-1, Math.min(1, Math.sin(Math.atan2(s.x - ship.pos.x, -(s.z - ship.pos.z)) - ship.heading))) }); } }
+      if (queue.length) { queue = queue.map((q) => q - dt); while (queue.length && queue[0] <= 0) { queue.shift(); tp.rock = 1.1; api.audio.play('deepbell', { vol: Math.max(0.1, 0.8 * (1 - d / 300)), rate: 0.55, pan: Math.max(-1, Math.min(1, Math.sin(Math.atan2(s.x - ship.pos.x, -(s.z - ship.pos.z)) - ship.heading))) }); } }
       if (tp.ended === 'steal' && api.night() > 0.6) {   // the stolen bell tolls on deck
         tp.deck = (tp.deck || 40) - dt;
         if (tp.deck <= 0) { tp.deck = 50 + Math.random() * 30; api.audio.play('deepbell', { vol: 0.35, rate: 0.5 }); }
@@ -134,7 +135,7 @@ export function bellMod(hub) {
     belfryText: () => `The belfry stands in a ring of weed. The bell is there, black and whole, and its mouth is empty. ${tp.clappers >= 3 ? 'You have the three iron tongues from the wrecks.' : `It needs three clappers. You have ${tp.clappers}. Wrecks keep them.`}`,
     event(n, arg) {
       const api = hub.api;
-      if (n === 'tolls') { for (let i = 0; i < tp.n; i++) setTimeout(() => api.audio.play('deepbell', { vol: 0.7, rate: 0.55 }), i * 1100); return; }
+      if (n === 'tolls') { for (let i = 0; i < tp.n; i++) setTimeout(() => { api.audio.play('deepbell', { vol: 0.7, rate: 0.55 }); const c = document.getElementById('cave'); if (c) { c.classList.remove('toll'); void c.offsetWidth; c.classList.add('toll'); } }, 600 + i * 2000); return; }   // the scene's picture dims once per stroke: its silent twin (RULES 28)
       if (n === 'ring') {
         tp.ended = arg === 'tune' ? 'tune' : 'ring';
         if (arg === 'tune') { api.clearMark('owed'); api.keep('shell', 'The lamplit shell', 'It rings, very faintly, in a tune you know.'); return 'Something owed, somewhere, is quietly marked paid.'; }

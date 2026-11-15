@@ -2,5 +2,6 @@
   "chapter": 0.25,
   "dig": 0.4,
   "buy": 0.3,
-  "bell": 1
+  "bell": 1,
+  "deepbell": 0.85
 }
