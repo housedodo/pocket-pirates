@@ -55,36 +55,13 @@ const pick = (a) => a[Math.floor(Math.random() * a.length)];
 const corrupt = (s, amt) => [...s].map((ch) => (ch !== ' ' && Math.random() < amt ? pick(GLITCH) : ch)).join('');
 const ramp = (t, a, b, len) => clamp(Math.min((t - a) / 2.5, (b - t) / 2.5, 1), 0, 1) * (len > 0 ? 1 : 0); // 0..1 with soft edges
 
-// Watcher looks, from barely-there to properly scary
-export const WATCHER_STYLES = ['far', 'pale', 'tall', 'waders'];
-export const WATCHER_NAMES = { far: 'Distant shapes (subtle)', pale: 'Pale villagers', tall: 'Tall thin ones', waders: 'Waders (scary)' };
-function watcherGeo(style) {
+// The watchers: pale villagers with little glowing eyes (the other three looks tried were deleted, RULES 35, 2026-11-15)
+function watcherGeo() {
   const b = new Builder();
-  if (style === 'far') {          // small dark silhouettes, no faces
-    b.cyl(0, 0, 0, 0.3, 0.2, 1.1, 4, '#2c2632', TILE.white, true);
-    b.blob(0, 1.3, 0, 0.2, 0.24, 0.2, '#2c2632', TILE.white, 0.05, 3);
-  } else if (style === 'pale') {  // pale villagers with little glowing eyes
-    b.cyl(0, 0, 0, 0.34, 0.22, 1.25, 5, '#cfc6dc', TILE.white, true);
-    b.blob(0, 1.5, 0, 0.24, 0.28, 0.24, '#d8d0e4', TILE.bone, 0.05, 3);
-    b.box(-0.09, 1.52, 0.2, 0.08, 0.06, 0.06, '#ffffff', TILE.spore);
-    b.box(0.09, 1.52, 0.2, 0.08, 0.06, 0.06, '#ffffff', TILE.spore);
-  } else if (style === 'tall') {  // far too tall, arms to the knees, head tipped
-    b.cyl(0, 0, 0, 0.12, 0.1, 2.2, 4, '#b8b0c4', TILE.white, true);       // legs
-    b.cyl(0, 2.2, 0, 0.28, 0.18, 1.6, 4, '#a8a0b6', TILE.white, true);    // torso
-    for (const sx of [-1, 1]) { b.push(sx * 0.32, 3.7, 0, 0, 1, 1, 1, 0, sx * 0.08); b.cyl(0, -2.6, 0, 0.06, 0.07, 2.6, 4, '#a8a0b6', TILE.white, true); b.pop(); }
-    b.push(0, 4.1, 0, 0, 1, 1, 1, 0, 0.35);
-    b.blob(0, 0.3, 0, 0.22, 0.36, 0.22, '#e8e2f0', TILE.bone, 0.05, 5);
-    b.box(-0.08, 0.36, 0.18, 0.05, 0.05, 0.05, '#ffffff', TILE.spore); b.box(0.08, 0.36, 0.18, 0.05, 0.05, 0.05, '#ffffff', TILE.spore);
-    b.pop();
-  } else {                        // waders: hunched, half in the sea, eyes and a wide glowing mouth
-    b.cyl(0, -1.2, 0, 0.5, 0.36, 1.9, 5, '#3a2e48', TILE.white, true);
-    b.push(0, 0.55, 0.12, 0, 1, 1, 1, 0.45);
-    b.blob(0, 0.3, 0, 0.42, 0.46, 0.4, '#d8cce8', TILE.bone, 0.08, 7);
-    for (const sx of [-0.18, 0.18]) b.box(sx, 0.42, 0.34, 0.18, 0.14, 0.1, '#ffffff', TILE.spore);
-    b.box(0, 0.08, 0.36, 0.42, 0.12, 0.1, '#ffffff', TILE.spore);
-    b.pop();
-    for (const sx of [-1, 1]) { b.push(sx * 0.48, 0.5, 0.1, 0, 1, 1, 1, 0.5, sx * 0.4); b.cyl(0, -1.6, 0, 0.09, 0.12, 1.6, 4, '#3a2e48', TILE.white, true); b.pop(); }
-  }
+  b.cyl(0, 0, 0, 0.34, 0.22, 1.25, 5, '#cfc6dc', TILE.white, true);
+  b.blob(0, 1.5, 0, 0.24, 0.28, 0.24, '#d8d0e4', TILE.bone, 0.05, 3);
+  b.box(-0.09, 1.52, 0.2, 0.08, 0.06, 0.06, '#ffffff', TILE.spore);
+  b.box(0.09, 1.52, 0.2, 0.08, 0.06, 0.06, '#ffffff', TILE.spore);
   return b.geometry();
 }
 
@@ -121,7 +98,7 @@ export class Abyss {
     this.under = new THREE.Mesh(new THREE.PlaneGeometry(900, 900).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0x05020a, fog: false }));
     this.under.visible = false; scene.add(this.under); // the black below the glass
     // 6 - watchers
-    this.wGeos = {};
+    this.wGeo = null;
     this.watchers = new Map(); // island id -> [{mesh, delay}]
     this.wScan = 0;
     // 12 - leviathan arches + the Eye
@@ -329,10 +306,8 @@ export class Abyss {
   clearWatchers() { for (const list of this.watchers.values()) for (const w of list) this.d.scene.remove(w.mesh); this.watchers.clear(); }
   updateWatchers(dt, c) {
     if (!this.on('watchers')) { if (this.watchers.size) this.clearWatchers(); return; }
-    const { ship, world, scene, settings } = this.d;
-    const style = WATCHER_STYLES.includes(settings.watcherStyle) ? settings.watcherStyle : 'pale';
-    if (style !== this.wStyle) { this.clearWatchers(); this.wStyle = style; this.wScan = 0; }
-    const geo = this.wGeos[style] || (this.wGeos[style] = watcherGeo(style));
+    const { ship, world, scene } = this.d;
+    const geo = this.wGeo || (this.wGeo = watcherGeo());
     const add = (list, x, y, z, sc, i) => {
       const mesh = new THREE.Mesh(geo, mats.props);
       mesh.position.set(x, y, z); mesh.rotation.y = Math.random() * Math.PI * 2; mesh.scale.setScalar(sc);
@@ -349,47 +324,21 @@ export class Abyss {
         keep.add(dsc.id);
         if (this.watchers.has(dsc.id)) continue;
         const list = [];
-        const n = style === 'far' ? 2 + Math.round(dsc.r / 10) : style === 'tall' ? 2 + Math.round(dsc.r / 8) : Math.max(3, Math.round(dsc.r / 2.6));
+        const n = Math.max(3, Math.round(dsc.r / 2.6));
         for (let i = 0; i < n; i++) {
           const th = (i / n) * Math.PI * 2 + Math.random() * 0.3;
-          if (style === 'waders') { // standing in the shallows around the island
-            const rr = shoreR(dsc, th) * (1.12 + Math.random() * 0.25);
-            add(list, dsc.x + Math.cos(th) * rr, -0.35, dsc.z + Math.sin(th) * rr, 1.5 + Math.random() * 0.4, i);
-            continue;
-          }
-          const rr = shoreR(dsc, th) * (style === 'far' ? 0.45 + Math.random() * 0.25 : 0.8 + Math.random() * 0.08);
+          const rr = shoreR(dsc, th) * (0.8 + Math.random() * 0.08);
           const lx = Math.cos(th) * rr, lz = Math.sin(th) * rr, h = Math.max(0.3, terrainHeight(dsc, lx, lz));
-          add(list, dsc.x + lx, h - 0.05, dsc.z + lz, style === 'far' ? 0.9 : style === 'tall' ? 1.1 : 1.3 + Math.random() * 0.4, i);
+          add(list, dsc.x + lx, h - 0.05, dsc.z + lz, 1.3 + Math.random() * 0.4, i);
         }
         this.watchers.set(dsc.id, list);
-      }
-      if (style === 'waders') { // and out in open water, in the cells around you
-        const C = 70, ccx = Math.round(ship.pos.x / C), ccz = Math.round(ship.pos.z / C);
-        for (let dz = -1; dz <= 1; dz++) for (let dx = -1; dx <= 1; dx++) {
-          const k = `sea${ccx + dx},${ccz + dz}`;
-          keep.add(k);
-          if (this.watchers.has(k)) continue;
-          const list = [];
-          if (Math.random() < 0.6) for (let i = 0, m = 1 + Math.floor(Math.random() * 3); i < m; i++) {
-            const x = (ccx + dx) * C + (Math.random() - 0.5) * C, z = (ccz + dz) * C + (Math.random() - 0.5) * C;
-            if (Math.hypot(x - ship.pos.x, z - ship.pos.z) < 25 || world.nearest(x, z, 6)) continue;
-            add(list, x, -0.5, z, 1.6 + Math.random() * 0.4, i);
-          }
-          this.watchers.set(k, list);
-        }
       }
       for (const [id, list] of this.watchers) if (!keep.has(id)) { for (const w of list) scene.remove(w.mesh); this.watchers.delete(id); }
     }
     for (const list of this.watchers.values()) for (const w of list) {
-      if (style === 'waders') { // they bob in the swell, and slip under if you sail right up to them
-        const near = Math.hypot(ship.pos.x - w.mesh.position.x, ship.pos.z - w.mesh.position.z) < 12;
-        w.sink = Math.max(0, Math.min(1, (w.sink || 0) + (near ? dt : -dt * 0.3)));
-        w.mesh.position.y = w.y + Math.sin(this.t * 1.3 + w.ph) * 0.12 - w.sink * 3.5;
-      }
       w.delay -= dt;
       if (w.delay > 0) continue;
       const want = Math.atan2(ship.pos.x - w.mesh.position.x, ship.pos.z - w.mesh.position.z);
-      if (style === 'far') { w.mesh.rotation.y += Math.atan2(Math.sin(want - w.mesh.rotation.y), Math.cos(want - w.mesh.rotation.y)) * Math.min(1, dt * 0.4); continue; }
       w.step -= dt;            // the others turn to face you in sudden little steps, one after another
       if (w.step > 0) continue;
       w.step = 0.9 + Math.random() * 0.8;

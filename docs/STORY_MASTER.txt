@@ -1,7 +1,7 @@
 HOIST (Pocket Pirates): THE MASTER STORY FILE
 ================================================================================================
 This is the main story file for the full game. Edit it, upload it again, and the next session puts every change
-into the game. Built from commit 1a60117 on 2026-11-15. 1560 in-game lines carry an ID.
+into the game. Built from commit a54be96 on 2026-11-15. 1559 in-game lines carry an ID.
 
 CONTENTS
   A   HOW TO USE THIS FILE (IDs, status marks, how to add and remove things)
@@ -569,7 +569,7 @@ Where the story hides in the mechanics, and where its text lives (section J).
 # J  EVERY LINE IN THE GAME
 ################################################################################################
 Pulled from the code. Edit the text after the "|" (see part A). Sources are grouped by file; the CODE in front of every
-line says which file it goes back into. 1560 lines.
+line says which file it goes back into. 1559 lines.
 
 
 
@@ -1693,9 +1693,6 @@ line says which file it goes back into. 1560 lines.
   ABY-0031 | It is the Gull, carved by someone who knew it well.
   ABY-0032 | Underwater. For years.
 
-### ABY / WATCHER_NAMES
-  ABY-0033 | Distant shapes (subtle)
-
 ### ABY / t
   ABY-0034 | Try it: cast a line (C), dig for treasure or salvage a wreck.
 
@@ -1712,6 +1709,9 @@ line says which file it goes back into. 1560 lines.
 ### ABY / ADDED 2026-11-11
   ABY-0041 | Your line brings up memories; chests hold things you already own.
   ABY-0042 | It points at you.
+
+### ABY / RETIRED (the text is no longer in the game; these IDs are never used again)
+    was ABY-0033 | Distant shapes (subtle)
 
 
 ####################################################################################################
@@ -2479,7 +2479,7 @@ line says which file it goes back into. 1560 lines.
   MAIN-0322 | Fruit fetches half again as much here.
   MAIN-0323 | Fish fetches half again as much here.
   MAIN-0324 | The night market: fish and fruit fetch more after dark.
-  MAIN-0325 | The stalls are shuttered. The market here opens after dark.
+  MAIN-0325 | The stalls are shuttered. The market here opens after dark. Most nights.
   MAIN-0326 | Powder and sailcloth are cheap here: off the wrecks.
 
 ### MAIN / RETIRED (the text is no longer in the game; these IDs are never used again)

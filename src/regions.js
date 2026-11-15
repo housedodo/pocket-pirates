@@ -28,7 +28,7 @@ export const buyMul = (d, kind) => (d.region === 'reef' && (kind === 'ammo' || k
 export function marketNote(d, quiet) {
   if (d.region === 'crown') return 'Fruit fetches half again as much here.';
   if (d.region === 'lantern') return 'Fish fetches half again as much here.';
-  if (d.region === 'free') return quiet ? 'The night market: fish and fruit fetch more after dark.' : 'The stalls are shuttered. The market here opens after dark.';
+  if (d.region === 'free') return quiet ? 'The night market: fish and fruit fetch more after dark.' : 'The stalls are shuttered. The market here opens after dark. Most nights.';
   if (d.region === 'reef') return 'Powder and sailcloth are cheap here: off the wrecks.';
   return '';
 }

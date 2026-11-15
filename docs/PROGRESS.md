@@ -1468,3 +1468,13 @@ Trials for the owner to compare; nothing changes without a flag and STYLE.md is 
   the old check never saw them: it reports 5, of which "The Lid" is a stratum's code name that is never shown and "Leviathan & the Eye"
   is in the dev-only test menu), and warns on plural "eyes" (10 lines, innocent on reading), number words (188) and glyphs.
 
+## Trials deleted, and the Cays' market line (2026-11-15, owner)
+- RULES 35: the chart styles b and c are gone from `chartstyles.js` (twelve dead branches folded out with a parser; the chart draws
+  the same, pixel for pixel, in the map area), the three watcher looks that were not chosen and their dev-menu button are gone from
+  `abyss.js` and `ui/pause.js` (the pale villagers stay), and the unused `windStyle` setting is gone. Ocean, Night view and Lamp stay:
+  they are the player's settings.
+- The Cays' shut-stalls line now ends "Most nights." (owner: say that even the night market does not always hold, never why):
+  "The stalls are shuttered. The market here opens after dark. Most nights." The ID is kept (the line was edited in STORY_MASTER).
+- **Verified:** `npx vite build`, `npm run smoke`; the chart before and after; six watchers stand on the Grey Tooth with the effect forced
+  and the dev menu has no style button; story export (one retired line, the deleted watcher name). **Not verified:** feel and sound.
+

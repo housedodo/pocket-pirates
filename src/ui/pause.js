@@ -7,7 +7,7 @@ import { AUDIO_ENABLED } from '../audio.js';
 import { Mixer } from '../mixer.js';
 import { SoundStudio } from '../studio.js';
 import { tod, LAMPS, NIGHT_SET, NIGHT_MODES } from '../daynight.js';
-import { EFFECTS, WATCHER_STYLES, WATCHER_NAMES } from '../abyss.js';
+import { EFFECTS } from '../abyss.js';
 import { params, store, DEV, settings, SETTINGS_KEY } from '../core/config.js';
 import { rt, G } from '../core/runtime.js';
 import { $, pauseEl, shipEl, toast } from './dom.js';
@@ -51,9 +51,7 @@ export function pauseBack() { const from = rt.pausePanel; showPause(PAUSE_PARENT
 // full-dread effects: switch each one on/off, or try one on its own
 export function renderAbyssMenu() {
   const on = (id) => settings.abyss[id] !== false;
-  $('abList').innerHTML = EFFECTS.map((f, i) => `<div class="abrow"><button class="abtog ${on(f.id) ? 'on' : ''}" data-id="${f.id}">${on(f.id) ? 'ON' : 'OFF'}</button><div class="abtxt"><b>${i + 1}. ${f.name}</b><small>${f.desc}</small></div><button class="abtry" data-id="${f.id}">Try</button>${f.id === 'leviathan' ? '<button class="abtry" data-end="1">Ending</button>' : ''}${f.id === 'watchers' ? `<button class="abstyle">${WATCHER_NAMES[settings.watcherStyle || 'pale']}</button>` : ''}</div>`).join('');
-  const st = $('abList').querySelector('.abstyle');
-  if (st) st.addEventListener('click', () => { const i = WATCHER_STYLES.indexOf(settings.watcherStyle || 'pale'); settings.watcherStyle = WATCHER_STYLES[(i + 1) % WATCHER_STYLES.length]; store.set(SETTINGS_KEY, settings); renderAbyssMenu(); $('abList').querySelector('.abstyle').focus(); });
+  $('abList').innerHTML = EFFECTS.map((f, i) => `<div class="abrow"><button class="abtog ${on(f.id) ? 'on' : ''}" data-id="${f.id}">${on(f.id) ? 'ON' : 'OFF'}</button><div class="abtxt"><b>${i + 1}. ${f.name}</b><small>${f.desc}</small></div><button class="abtry" data-id="${f.id}">Try</button>${f.id === 'leviathan' ? '<button class="abtry" data-end="1">Ending</button>' : ''}</div>`).join('');
   $('abList').querySelectorAll('.abtog').forEach((b) => b.addEventListener('click', () => { settings.abyss[b.dataset.id] = !on(b.dataset.id); store.set(SETTINGS_KEY, settings); renderAbyssMenu(); }));
   $('abList').querySelectorAll('.abtry').forEach((b) => b.addEventListener('click', () => {
     rt.forced = 1; rt.dread = 1; G.abyss.k = 1;

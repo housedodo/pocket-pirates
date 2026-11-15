@@ -12,7 +12,7 @@ export const PINNED = ['seed', 'x', 'z', 'time'].some((k) => params.has(k));
 /** the demo build is a different game (RULES 29): set only by scripts/single.py; undefined under the dev server means the full game */
 export const DEMO = window.__BUILD === 'demo';
 export const DEV = !DEMO && (!!params.get('dev') || window.__BUILD === 'dev');   // ?dev=1: test keys (1-5 dread, 0, [ ], `) and the full-dread effects menu; never in the demo
-export const settings = Object.assign({ muted: false, musicOff: false, vol: { music: 1, amb: 1, sfx: 1 }, windStyle: 'dial', hud: 'classic', tracker: true, abyss: {} }, store.get(SETTINGS_KEY) || {});
+export const settings = Object.assign({ muted: false, musicOff: false, vol: { music: 1, amb: 1, sfx: 1 }, hud: 'classic', tracker: true, abyss: {} }, store.get(SETTINGS_KEY) || {});
 /** comfort (task G4): camera shake and tremor, the picture's wobble and colour split, flashes. Off by default when the system asks
  *  for reduced motion; once the player sets one it is remembered like any other setting */
 const REDUCED = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;

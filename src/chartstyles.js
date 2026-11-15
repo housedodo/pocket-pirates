@@ -12,7 +12,7 @@ import { LM } from './landmarks.js';
 import { isKnown } from './clues.js';
 import { goalReached } from './objectives.js';
 
-export const CHART_STYLE = 'a';   // the key the drawing code branches on; 'b' and 'c' were the trials not taken
+export const CHART_STYLE = 'a';   // the inked portolan; the two other styles tried were deleted (RULES 35, 2026-11-15)
 export const UI_FONT = null;   // the Pirata One / Jersey 10 pairing (data-uifont="b", CSS in index.html) is switched off for now: it overlapped in the HUD and the log
 if (typeof document !== 'undefined') { if (UI_FONT) document.documentElement.dataset.uifont = UI_FONT; document.documentElement.dataset.chartstyle = CHART_STYLE; }
 
@@ -117,19 +117,12 @@ export function drawVariant(lb, key) {
       const o = isl[who[i]], d = o.d, ty = d.blight ? 'dark' : d.type, depth = -s / Math.max(3, o.rm);
       let col = ty === 'rocky' ? LAND.rock : ty === 'volcano' || ty === 'dark' ? LAND.dark : LAND.sand;
       const greenish = ty === 'jungle' || ty === 'treasure' || ty === 'harbour' || ty === 'mangrove';
-      if (key !== 'b') {
+      {
         if (greenish && depth > 0.3 + b * 0.16) col = LAND.green;
         if (ty === 'atoll' && depth > 0.45) col = T.lagoon;
         if (ty === 'rocky' && depth > 0.4 && b > 0.5) col = LAND.sand;
         const se = (x + 0.5 - o.px) + (y + 0.5 - o.pz);   // lit from the top left: the lower right shore is in shade
         if (s > -3.2 && se > 0 && b < 0.5 && !(ty === 'atoll' && depth > 0.45)) col = LAND.shade;
-      } else {
-        if (ty === 'atoll' && depth > 0.45) col = T.lagoon;
-        else if (ty === 'sandbar' || ty === 'atoll') { if (((x * 3 + y * 5) % 7) === 0) col = T.soft; }   // sand: dotted
-        else if (o.rm > 5 && (ty === 'rocky' || ty === 'volcano' || ty === 'dark')) {   // hill hachures: short strokes running down from the crown
-          const th = Math.atan2(y + 0.5 - o.pz, x + 0.5 - o.px), spoke = Math.floor(th * 7 + 40) & 1;
-          if (depth > 0.18 && depth < 0.75 && spoke && ((x + y) & 1)) col = ty === 'rocky' ? T.soft : T.ink;
-        }
       }
       put(i, col); continue;
     }
@@ -142,12 +135,6 @@ export function drawVariant(lb, key) {
         if (D > -7 && b < 0.62) col = T.rim;                         // a wash dries darker at its edge
         if (s < 7 && b < 1 - s / 7) col = T.shoal;                   // pale shallows
         if (s >= 1 && s < 5 && ((x * 5 + y * 3) % 7 === 0)) col = T.rim;   // shoal dots hard by the shore
-      } else if (key === 'b') {
-        const band = s < BAND ? Math.floor(s) : -1;                   // the engraver's water lines, wider apart as they leave the shore
-        if (band === 1 || band === 4 || band === 8) col = band === 8 ? ((x + y) & 1 ? T.rim : col) : T.rim;
-        else if (s < 4 && ((x * 3 + y * 7) % 5 === 0)) col = T.soft;  // shoals: stipple
-        else if (s > 12 && (y % 7) === 3 && h01(Math.floor(wx / 26), Math.floor(wz / 9), 3) > 0.87 && ((x >> 1) & 1)) col = T.rim;   // a few ruled wave strokes
-        if (D > -3) col = (x + y) & 1 ? T.rim : col;
       } else {
         if (D > -6 && b < 0.5) col = T.rim;
         if (s < 8 && b < 1 - s / 8) col = T.rim;
@@ -168,11 +155,11 @@ export function drawVariant(lb, key) {
   for (let y = 1; y < h2 - 1; y++) for (let x = 1; x < w2 - 1; x++) {
     const i = y * w2 + x; if (shore[i] >= 0) continue;
     const edge = shore[i - 1] >= 0 || shore[i + 1] >= 0 || shore[i - w2] >= 0 || shore[i + w2] >= 0;
-    if (edge || (key === 'b' && (shore[i + w2 + 1] >= 0 || shore[Math.min(N - 1, i + 2 * w2 + 2)] >= 0))) put(i, T.ink);
+    if (edge) put(i, T.ink);
   }
   // rhumb lines from the wind rose and its ring: principal winds, half winds and quarter winds in their own inks
   { const nodes = [[RHUMB_C[0], RHUMB_C[1], 8]];
-    if (key !== 'b') for (let k = 0; k < 8; k++) nodes.push([RHUMB_C[0] + Math.sin(k * Math.PI / 4) * RHUMB_R, RHUMB_C[1] - Math.cos(k * Math.PI / 4) * RHUMB_R, 8]);
+    for (let k = 0; k < 8; k++) nodes.push([RHUMB_C[0] + Math.sin(k * Math.PI / 4) * RHUMB_R, RHUMB_C[1] - Math.cos(k * Math.PI / 4) * RHUMB_R, 8]);
     for (const [nx, nz, cnt] of nodes) for (let k = 0; k < cnt; k++) {
       const a = (k / cnt) * Math.PI, ux = Math.sin(a), uy = -Math.cos(a), ox = X(nx), oy = Z(nz), cls = cnt === 16 ? (k % 4 === 0 ? 0 : k % 2 === 0 ? 1 : 2) : (k % 2 === 0 ? 0 : k % 4 === 1 ? 1 : 2);
       // clip the endless line to the sheet
@@ -203,16 +190,6 @@ export function drawVariant(lb, key) {
   const ring = (cx, cy, r, col, on = 1, off = 0) => { const steps = Math.max(8, Math.round(r * 6.3)); c.fillStyle = col; for (let s = 0; s < steps; s++) { if (off && (s % (on + off)) >= on) continue; const a = (s / steps) * Math.PI * 2; c.fillRect(Math.round(cx + Math.cos(a) * r), Math.round(cy + Math.sin(a) * r), 1, 1); } };
   const digits = (str, x, y, col) => { c.fillStyle = col; let ox = Math.round(x - (str.length * 4 - 1) / 2); for (const ch of str) { const m = DIG[+ch]; if (m) m.forEach((row, j) => { for (let i = 0; i < 3; i++) if (row[i] === '#') c.fillRect(ox + i, Math.round(y) + j, 1, 1); }); ox += 4; } };
 
-  // soundings (engraved chart): small depth figures in the water you know, deeper away from the land
-  if (key === 'b' && sc >= 0.45) { const gs = 62;
-    for (let gz = Math.floor(WZ(0) / gs); gz <= WZ(h2) / gs; gz++) for (let gx = Math.floor(WX(0) / gs); gx <= WX(w2) / gs; gx++) {
-      const h = hash2(gx, gz, 61) >>> 0; if (h % 5 > 2) continue;
-      const wx = gx * gs + (h % 37), wz = gz * gs + ((h >> 6) % 37), x = Math.round(X(wx)), y = Math.round(Z(wz));
-      if (x < 12 || y < 12 || x > w2 - 12 || y > h2 - 12 || !wet[y * w2 + x] || seenAt(x, y) > -22) continue;
-      let near = 1e9; for (const d of known) near = Math.min(near, Math.hypot(wx - d.x, wz - d.z) - d.r);
-      if (near < 16) continue;
-      digits(String(Math.max(2, Math.min(96, Math.round(near / 7 + (h >> 12) % 4)))), x, y - 2, SOFT);
-    } }
 
   // ---- what stands on the land, drawn in profile as the old charts do: trees, hills, a town
   for (const o of isl) {
@@ -221,7 +198,7 @@ export function drawVariant(lb, key) {
     const many = rp > 14 ? 4 : rp > 10 ? 3 : 2;
     if (d.type === 'harbour') { spr('spire', o.px + 1, o.pz - 3, landCol); spr('house', o.px - 4, o.pz, RED); if (rp > 9) spr('house', o.px + 6, o.pz + 1, RED); if (rp > 13) spr('tree', o.px - 1, o.pz + 6, landCol); }
     else if (d.type === 'jungle' || d.type === 'treasure') { for (let k = 0; k < many; k++) { const [x, y] = at(k, 0.42); spr(k % 2 ? 'palm' : 'tree', x, y, landCol); } if (d.type === 'treasure' && rp > 9) spr('hill', o.px, o.pz - 1, landCol); }
-    else if (d.type === 'rocky' && key !== 'b') { spr('hill', o.px - 1, o.pz, landCol); if (rp > 11) spr('hill', o.px + 5, o.pz + 4, landCol); }
+    else if (d.type === 'rocky') { spr('hill', o.px - 1, o.pz, landCol); if (rp > 11) spr('hill', o.px + 5, o.pz + 4, landCol); }
     else if (d.type === 'volcano') spr('peak', o.px, o.pz - 1, landCol);
     else if (d.type === 'mangrove') for (let k = 0; k < many; k++) { const [x, y] = at(k, 0.45); spr('root', x, y, landCol); }
     else if (d.type === 'sandbar' && rp > 9) spr('palm', o.px, o.pz - 1, landCol);
@@ -268,7 +245,7 @@ export function drawVariant(lb, key) {
     for (const [r, col] of [[12, g], [10, g], [11, edge]]) { const steps = Math.round(r * 6.3); for (let s2 = 0; s2 < steps; s2++) { const a = (s2 / steps) * Math.PI * 2; R(Math.round(sx + Math.cos(a) * r), Math.round(sz + Math.sin(a) * r), 1, 1, col); } }
     const cells = []; for (let t = -5; t <= 8; t += 0.5) { const wd = (8 - t) * 0.34; for (let u = -wd; u <= wd; u += 0.5) if (!(t < -2.5 && Math.abs(u) < (-2.5 - t) * 1.1)) cells.push([Math.round(sx + fx * t - fy * u), Math.round(sz + fy * t + fx * u), t]); }
     for (const [x, y] of cells) R(x - 1, y - 1, 3, 3, INK);
-    for (const [x, y, t] of cells) R(x, y, 1, 1, key === 'c' ? (t > 3 ? RED : '#f4ead0') : RED); };
+    for (const [x, y, t] of cells) R(x, y, 1, 1, RED); };
 
   // ---- the wind rose, bottom left: an eight-point star, dark and light halves, a fleur-de-lis for north
   { const cx = 27, cz = h2 - 30, R = 15, ground = css(T.paper[0]), lite = css(T.paper[0]), dark = INK, edge = INK;
@@ -276,7 +253,7 @@ export function drawVariant(lb, key) {
     ring(cx, cz, R + 3, edge); ring(cx, cz, R + 1, edge, 1, 2);
     const ray = (a, len, wid, red) => { const ux = Math.sin(a), uy = -Math.cos(a); for (let t = 0; t <= len; t += 0.5) { const wd = wid * (1 - t / len); for (let u = -wd; u <= wd; u += 0.5) { const x = Math.round(cx + ux * t - uy * u), y = Math.round(cz + uy * t + ux * u), onEdge = Math.abs(u) > wd - 0.6 || t > len - 1; c.fillStyle = onEdge ? edge : u < 0 ? (red ? RED : dark) : lite; c.fillRect(x, y, 1, 1); } } };
     for (let k = 0; k < 4; k++) ray(Math.PI / 4 + k * Math.PI / 2, R * 0.62, 2.2, false);
-    for (let k = 0; k < 4; k++) ray(k * Math.PI / 2, R, 3, key !== 'b' && k === 0);
+    for (let k = 0; k < 4; k++) ray(k * Math.PI / 2, R, 3, k === 0);
     spr('fleur', cx + 0.5, cz - R - 7, RED, ground); }
   if (warp && warp.since > 2.5 && BAY[0] / 16 < 1) { const a = Math.min(0.75, (warp.since - 2.5) / 3); c.fillStyle = '#7a1a3a'; for (let s = 0; s < 140; s++) { if ((s % 4) / 4 >= a) continue; const th = (s / 140) * Math.PI * 2, x = Math.round(X(ship.pos.x) + Math.cos(th) * 22), y = Math.round(Z(ship.pos.z) + Math.sin(th) * 10); c.fillRect(x, y, 2, 2); } }
 
@@ -290,8 +267,7 @@ export function drawVariant(lb, key) {
     c.fillStyle = edge; c.fillRect(CX, CY, CW, 1); c.fillRect(CX, CY + CH - 1, CW, 1); c.fillRect(CX, CY, 1, CH); c.fillRect(CX + CW - 1, CY, 1, CH);
     c.fillRect(CX + 2, CY + 2, CW - 4, 1); c.fillRect(CX + 2, CY + CH - 3, CW - 4, 1); c.fillRect(CX + 2, CY + 2, 1, CH - 4); c.fillRect(CX + CW - 3, CY + 2, 1, CH - 4);
     for (const [qx, qy] of [[CX, CY], [CX + CW - 3, CY], [CX, CY + CH - 3], [CX + CW - 3, CY + CH - 3]]) { c.fillStyle = RED; c.fillRect(qx, qy, 3, 3); }   // corner studs
-    if (key === 'b') for (let x = CX + 6; x < CX + CW - 6; x += 2) dot(x, CY + 21, INK);                         // a dotted rule under the name
-    else line(CX + 10, CY + 21, CX + CW - 11, CY + 21, RED);
+    line(CX + 10, CY + 21, CX + CW - 11, CY + 21, RED);
     // scale bar: four parts, dark and light in turn, feet at the ends
     const bx = CX + Math.round((CW - barW) / 2), by = CY + 26;
     c.fillStyle = edge; c.fillRect(bx, by, barW + 1, 4);
@@ -300,12 +276,7 @@ export function drawVariant(lb, key) {
   // ---- the neatline: a double rule; the engraved chart has a graduated border, dark and light in turn
   { const edge = INK; c.fillStyle = edge;
     c.fillRect(0, 0, w2, 2); c.fillRect(0, h2 - 2, w2, 2); c.fillRect(0, 0, 2, h2); c.fillRect(w2 - 2, 0, 2, h2);
-    if (key === 'b') { c.fillStyle = css(T.paper[0]); c.fillRect(2, 2, w2 - 4, 2); c.fillRect(2, h2 - 4, w2 - 4, 2); c.fillRect(2, 2, 2, h2 - 4); c.fillRect(w2 - 4, 2, 2, h2 - 4);
-      c.fillStyle = INK; const st = Math.max(6, Math.round(50 * k2)), offx = Math.round(X(0)) % (st * 2), offy = Math.round(Z(0)) % (st * 2);
-      for (let x = offx - st * 2; x < w2; x += st * 2) { c.fillRect(Math.max(2, x), 2, Math.min(st, w2 - 2 - x), 2); c.fillRect(Math.max(2, x), h2 - 4, Math.min(st, w2 - 2 - x), 2); }
-      for (let y = offy - st * 2; y < h2; y += st * 2) { c.fillRect(2, Math.max(2, y), 2, Math.min(st, h2 - 2 - y)); c.fillRect(w2 - 4, Math.max(2, y), 2, Math.min(st, h2 - 2 - y)); }
-      c.fillRect(4, 4, w2 - 8, 1); c.fillRect(4, h2 - 5, w2 - 8, 1); c.fillRect(4, 4, 1, h2 - 8); c.fillRect(w2 - 5, 4, 1, h2 - 8);
-    } else { c.fillRect(3, 3, w2 - 6, 1); c.fillRect(3, h2 - 4, w2 - 6, 1); c.fillRect(3, 3, 1, h2 - 6); c.fillRect(w2 - 4, 3, 1, h2 - 6); } }
+    { c.fillRect(3, 3, w2 - 6, 1); c.fillRect(3, h2 - 4, w2 - 6, 1); c.fillRect(3, 3, 1, h2 - 6); c.fillRect(w2 - 4, 3, 1, h2 - 6); } }
 
   // ---- lettering on the full-resolution layer, cut hard: harbours in the display face (red ink on paper), isles in the text face
   if (isKnown(state, 'date')) labels.push({ t: `Day ${Math.round((state.dayN || 0) + 30)}`, x: W - 70, y: H - 24, big: false, soft: true });   // a date in the margin, in a hand that is not yours
