@@ -1427,3 +1427,14 @@ Trials for the owner to compare; nothing changes without a flag and STYLE.md is 
   there, traffic quiet; storm, lull 0.17, stalls shut, no sell button, traffic not quiet; the demo in a storm, stalls open by the hour.
   `npm run smoke` passes. **Not verified:** a raider actually spawning on a storm night (chance 0.1 per spawn); feel and sound.
 
+## L9: steering by the tune (2026-11-14; owner: go)
+- Embodies CANON 2026-11-12 (the Two Players' song soothes; the `hum` capability, which already halved being lost). No new fact, no text.
+- Lost in fog with the tune known, `fogLost` records the bearing of the way out (`rt.tuneWay`). The night stems pan toward it (`tunePan`,
+  `lullaby.js`; `layers.js` takes it as `steer`) and the pennant points at it, almost still: the pennant is the silent twin (RULES 28).
+  Without the tune neither happens; in the demo nothing is known, so never there.
+- **Verified** headless in the Halved Isle's fog bank at night: with the tune the pennant points at -3.11 for an exit bearing of -3.14,
+  and `n1_pluck`'s pan follows the wanted value within 0.03 over twelve samples with the audio running; without the tune the pennant
+  follows the wind and the pan keeps its own place (off by up to 0.97); in the demo with the clue forced, no steering. `npm run smoke`
+  passes. **Not verified:** whether the lean can be heard and followed by ear; by day the night stems do not play, so then only the
+  pennant shows it; feel.
+

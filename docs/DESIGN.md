@@ -248,6 +248,8 @@ rises to 1: steering and sail input are ignored, heading eases toward the way ou
 speed toward 3.2, and a small outward drift. The scene fog closes to ~10 units. `fogEdge(x, z)` (0 near fog, 1 in clear water)
 scales the currents (seaplay.js) so they never lead into fog.
 
+- **Steering by the tune** (2026-11-14, L9): lost in fog with `hum` known, `fogLost` sets `rt.tuneWay` (the bearing of the way out); the night stems pan to it (`tunePan`) and the pennant points at it. No text.
+
 ## Waves and the ship
 Wave height = the swell (several crossing sine waves, crests bent by a slow warp) x the sets (`G`, a slow travelling pattern,
 0.5x to 1.45x, with a longer roller in the big sets) x the land factor (`seaScale` / GLSL `landNear`: 0.35 within ~15 of a

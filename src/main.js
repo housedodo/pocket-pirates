@@ -75,7 +75,7 @@ import { renderer, post, scene, camera, ocean, sky } from './core/engine.js';
 import { $, goldEl, promptEl, promptTxt, promptBar, promptFill, toastsEl, debugEl, helpEl, chartEl, harbourEl, pauseEl, shipEl, toast , setToastHold, flushToasts, setText, setWidth } from './ui/dom.js';
 import { WEEK, weekday, isMarketDay, isLanternNight, isFestival, tideAt, tideFalls, nightKey } from './systems/calendar.js';
 import { addMark, clearMark, keep } from './systems/storyflags.js';
-import { lullDread, lullabyTick, playersEar } from './systems/lullaby.js';
+import { tunePan, lullDread, lullabyTick, playersEar } from './systems/lullaby.js';
 import { lostTick, LOST_CARDS } from './systems/lostsailors.js';
 import { buildBiome } from './concepts.js';   // dev concept scenes (__game.biome); the Edge builds from it too
 import { edgeTick, startEdge } from './systems/edge.js';
@@ -1133,7 +1133,7 @@ function frame() {
   if (dt > 0) { state.buffs.speed = Math.max(0, state.buffs.speed - dt); state.buffs.dig = Math.max(0, state.buffs.dig - dt); }
   ship.buff = (state.buffs.speed > 0 ? 1.15 : 1) * (life.meal(state) === 'pie' ? 1.06 : 1);
   { const m = life.meal(state); ship.trimMul = m === 'bread' ? 1.7 : 1; ship.lampBoost = m === 'tea' ? 1.6 : 1; }   // the house dish you ate (harbourlife.js)
-  ship.lampOut = rt.lampOut; ship.flame = rt.lampFlame || null; ship.stormLight = weather.heavy || 0;   // the lantern also shows in a storm
+  ship.lampOut = rt.lampOut; ship.tuneWay = rt.tuneWay ?? null; ship.flame = rt.lampFlame || null; ship.stormLight = weather.heavy || 0;   // the lantern also shows in a storm
   const sec = sectorAt(ship.pos.x, ship.pos.z, state.seed);
   if (sec.id !== rt.curSector) {
     rt.curSector = sec.id;
@@ -1407,7 +1407,7 @@ function frame() {
   audio.hutUpdate(rawDt, hutMusicTarget());   // the hut's theme, first visit only
   audio.tavernUpdate(rawDt, rt.modal === 'pig' || (rt.modal === 'harbour' && rt.hbTab === 'tavern') ? 1 : ashore ? 0.35 : 0);   // tavern music through the wall
   if (live) {
-    audio.update(dt, { dread: rt.dread, speed: ship.speed / 11, night: tod.night, freecays: freeCaysNow(), players: window.__BUILD === 'demo' ? null : playersEar(ship), lull: rt.lullK || 0, wind: wind.strength, rain: weather.rain, storm: weather.storm, gulls: gullLevel(tod.night),
+    audio.update(dt, { dread: rt.dread, speed: ship.speed / 11, night: tod.night, freecays: freeCaysNow(), players: window.__BUILD === 'demo' ? null : playersEar(ship), lull: rt.lullK || 0, steer: tunePan(ship.heading, rt.tuneWay), wind: wind.strength, rain: weather.rain, storm: weather.storm, gulls: gullLevel(tod.night),
       quests: state.goals.i, open: openSea(), battle: inBattle() });
   } else if (rt.titleScene) {   // the title: the band of the bright sea, calm and open
     audio.update(rawDt, { dread: 0, speed: 0.2, night: tod.night, freecays: 0, players: null, lull: 0, wind: 0.5, rain: 0, storm: 0, gulls: 0.3, quests: 6, open: 1, battle: false });

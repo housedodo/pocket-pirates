@@ -501,7 +501,8 @@ export class Ship {
     this.topsail.scale.set(this.jib.scale.x, flat, 1);
     this.jib.position.y = (1 - flat) * 0;
     if (this.torn) this.rags.forEach((m, i) => { m.rotation.x = Math.sin(t * (11 + i * 3) + i * 2) * 0.5 * (0.3 + this.trim); m.rotation.z = Math.sin(t * 7 + i) * 0.25; });
-    this.flag.rotation.y = Math.PI - this.rel + Math.sin(t * 9) * 0.18 + (this.wrongSails ? Math.PI : 0);
+    if (this.tuneWay != null) this.flag.rotation.y = Math.PI - angleDiff(this.heading, this.tuneWay) + Math.sin(t * 9) * 0.05;   // lost in fog with the tune known: the pennant points the way out, almost still (L9)
+    else this.flag.rotation.y = Math.PI - this.rel + Math.sin(t * 9) * 0.18 + (this.wrongSails ? Math.PI : 0);
     this.flagBright.visible = !dark;
     this.flagDark.visible = dark;
 

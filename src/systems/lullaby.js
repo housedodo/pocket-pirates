@@ -26,3 +26,10 @@ export function playersEar(ship) {
   const t = at(TEO), i = at(ILSE), d = Math.min(t.d, i.d);
   return { near: Math.max(0, Math.min(1, (HEAR - d) / (HEAR * 0.5))), gPan: t.pan, vPan: i.pan };
 }
+
+/** steering by the tune (task L9): the pan (-0.8 left .. 0.8 right) the night music takes while the ship is lost in fog and the tune is
+ *  known, toward the way out (way: its bearing, storybeats.js fogLost); null when there is nothing to steer by */
+export function tunePan(heading, way) {
+  if (way == null) return null;
+  return Math.sin(way - heading) * 0.8;
+}

@@ -246,13 +246,13 @@ export class SeaLayers {
         const i = FC.indexOf(k), F = this.fc;
         const [home, wander, sp] = PLACE[k];
         const drift = home + wander * Math.sin(this.t * sp * 6.283 + st.ph), there = s.players ? (i ? s.players.vPan : s.players.gPan) : drift, nr = s.players ? s.players.near : 0;
-        this.pans.get(k).pan.setTargetAtTime(Math.max(-0.9, Math.min(0.9, drift + (there - drift) * nr)), T, 2);   // near them: from where each of them sits
+        this.pans.get(k).pan.setTargetAtTime(s.steer != null ? s.steer : Math.max(-0.9, Math.min(0.9, drift + (there - drift) * nr)), T, s.steer != null ? 0.6 : 2);   // near them: from where each of them sits; lost in fog with the tune known: from the way out (L9)
         out[k] = smooth(F.k[i]) * (1 - 0.16 * smooth(F.k[1 - i])) * (this.kept > 0 ? 1 : nk * fk * Math.max(s.stage ?? 1, s.lull || 0) * (0.4 + 0.6 * this.open));   // a little lower when both play; the Cays' quiet keeps them playing
         continue;
       }
       if (k === PAD) {   // the night pad, in place of the night band while it holds
         const [home, wander, sp] = PLACE[k];
-        this.pans.get(k).pan.setTargetAtTime(home + wander * Math.sin(this.t * sp * 6.283 + st.ph), T, 2);
+        this.pans.get(k).pan.setTargetAtTime(s.steer != null ? s.steer : home + wander * Math.sin(this.t * sp * 6.283 + st.ph), T, s.steer != null ? 0.6 : 2);
         out[k] = nk * (1 - fk) * smooth(Math.max(0, Math.min(1, this.nm.k))) * 0.95 * (s.stage ?? 1) * (0.4 + 0.6 * this.open);
         continue;
       }
@@ -261,7 +261,7 @@ export class SeaLayers {
         if (st.next <= 0) { st.swell = 0.7 + 0.3 * this.rnd(); st.next = 12 + this.rnd() * 16; }
         st.breath += (st.swell - st.breath) * (1 - Math.exp(-d / 6));
         const [home, wander, sp] = PLACE[k];
-        this.pans.get(k).pan.setTargetAtTime(Math.max(-0.9, Math.min(0.9, home + wander * Math.sin(this.t * sp * 6.283 + st.ph))), T, 1);
+        this.pans.get(k).pan.setTargetAtTime(s.steer != null ? s.steer : Math.max(-0.9, Math.min(0.9, home + wander * Math.sin(this.t * sp * 6.283 + st.ph))), T, s.steer != null ? 0.6 : 1);   // steer: the way out of the fog (L9)
         out[k] = nk * (1 - fk) * st.breath * 1.0 * (s.stage ?? 1) * (0.4 + 0.6 * this.open) * (1 - smooth(Math.max(0, Math.min(1, this.nm.k))));   // as present as the day band (the stems are mastered quieter); steps aside for the pad
         continue;
       }

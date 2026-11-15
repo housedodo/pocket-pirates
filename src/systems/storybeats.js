@@ -73,9 +73,10 @@ export function fogEdge(x, z) {
 export function fogLost(dt) {
   const out = rt.gateLost || G.places.lost || (rt.seamT > 0 ? { x: 0, z: 0 } : null);
   rt.lostK += ((out ? 1 : 0) - rt.lostK) * Math.min(1, dt * (out ? 1.5 : 0.6));
-  if (!out) return;
+  if (!out) { rt.tuneWay = null; return; }
   rt.lostWob += dt;
   const hum = isKnown(state, 'hum');   // the two players' tune carries through fog: the helm half answers, and the way home is plain
+  rt.tuneWay = hum && (out.x || out.z) ? Math.atan2(out.x, -out.z) : null;   // steering by the tune (task L9): the bearing of the way out; the night stems lean to it and the pennant points there (never in the demo: nothing is known there)
   const want = Math.atan2(out.x, -out.z) + (Math.sin(rt.lostWob * 0.7) * 0.6 + Math.sin(rt.lostWob * 1.9) * 0.25) * (hum ? 0.25 : 1);   // aimless, but always bending outward
   G.ship.heading += angleDiff(G.ship.heading, want) * Math.min(1, dt * (hum ? 1.3 : 0.5));
   G.ship.trim += (0.45 - G.ship.trim) * Math.min(1, dt * 0.8);

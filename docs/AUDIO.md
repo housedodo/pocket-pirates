@@ -272,6 +272,11 @@ in `public/audio/volumes.json` (was 0.4).
 - More factions: each faction's own instrument (being composed) can follow the same pattern: cues, a faction check in `SeaLayers.update`, an episode pattern (the Free Cays branch is the template).
 
 
+## Steering by the tune (2026-11-14, task L9)
+Lost in fog with the tune known (`hum`), the night stems (`n1_*`, the pad, and the Free Cays' guitar and violin) pan to where the way out
+lies from the bow (`tunePan` in `src/systems/lullaby.js`: -0.8 hard left to 0.8 hard right, eased over about 0.6 s). The silent twin is
+the pennant, which points the same way and nearly stops fluttering. Without the tune, or in the demo, neither happens.
+
 ## Brief: sound for the redesigned world (not built; from docs/WORLD_REDESIGN.md and docs/ART_SPEC.md)
 - **Strata, not just dread stages:** the six strata (S0-S5) change at radii 450/800/1150/1550/1950. Keep the stems (same length, tempo, meter and key: 16 bars, 99 BPM, 4/4, F minor) but cross-fade on stratum edges, and let the Slack (S3, windless) thin the mix to almost nothing before the Dim.
 - **The Slack's current:** a low, steady outward drift tone while the ship is in S3-S4, stronger when sailing home (the way back is 1.6x longer).
