@@ -9,6 +9,7 @@ main.js                 orchestrator: builds the world, ship, audio and every sy
                         interaction; registers what it lends the modules below in G; window.__game (dev/test hook)
 ui/hud.js               the wind ring and compass, the tracked errand and where it points, the slip, the tracker panel
 ui/encounters.js        sea encounter cards and dice, the pig game, Mara's mood, one-time caves, crew who sign on and their wishes
+systems/home.js         home is gentle: a low throw is not felt in Home Sound; the swell lies down near Tama at the noon bell
 systems/noonbell.js     Tama's noon bell: it swings once per stroke and sounds the band's bell at the top of the swing
 systems/later.js        story delays on the game's clock: after(seconds, fn), ticked once a frame; never in a menu, waits out the quiet
 systems/interact.js     what E does where the ship is (getInteract, once a frame into rt.tg), doing it (tryInteract), going ashore, the anchor

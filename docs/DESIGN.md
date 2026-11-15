@@ -250,6 +250,8 @@ scales the currents (seaplay.js) so they never lead into fog.
 
 - **Steering by the tune** (2026-11-14, L9): lost in fog with `hum` known, `fogLost` sets `rt.tuneWay` (the bearing of the way out); the night stems pan to it (`tunePan`) and the pennant points at it. No text.
 
+- **Home is gentle** (2026-11-14, L4, `src/systems/home.js`): `homeShift` removes a low throw's added dread inside Home Sound (450) and gives it back by 600; `homeTick`/`homeLook` lay the swell down to 40% within 260 of Tama while the noon bell swings (in the demo too). No text.
+
 ## Waves and the ship
 Wave height = the swell (several crossing sine waves, crests bent by a slow warp) x the sets (`G`, a slow travelling pattern,
 0.5x to 1.45x, with a longer roller in the big sets) x the land factor (`seaScale` / GLSL `landNear`: 0.35 within ~15 of a

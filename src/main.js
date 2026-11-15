@@ -89,6 +89,7 @@ import { HUT_NOTES, perrinNote, hutNod, revealHut, showDemoEnd, fogLost, WHITE_M
 import { getInteract, tryInteract, anchorTick } from './systems/interact.js';
 import { after, laterTick, laterPending } from './systems/later.js';
 import { ringNoon, noonBellTick, noonPending } from './systems/noonbell.js';
+import { homeShift, homeTick, homeLook } from './systems/home.js';
 import { trackTarget, goldShown, etaText, slipInfo, drawCompass, updateTracker, initHud } from './ui/hud.js';
 import { LOCALS, localGames, pig, maraMood, openCard, caveScene, COLOUR_DEEP, COLOUR_SHALLOW, openCave, tabletopTick, signOn, daysLeft, crewLeave, wishDone, initEncounters } from './ui/encounters.js';
 
@@ -1182,6 +1183,7 @@ function frame() {
     clearAhead: () => { const f = [Math.sin(ship.heading), -Math.cos(ship.heading)]; for (const d of [60, 140, 220, 300]) if (world.nearest(ship.pos.x + f[0] * d, ship.pos.z + f[1] * d, 120)) return false; return true; },
     fadeEl: $('fade'), onDone: () => { rt.quietUntil = rt.tNow + 30; } });   // the Edge, once, at the deepest dread
   if (live && dt > 0 && window.__BUILD !== 'demo') lostTick({ dt, dread: rt.dread, sighting, ship, world, quiet: eventQuiet() || !!rt.modal || !!rt.edge });   // the sailors who went mad
+  if (live && dt > 0) { const t0 = world.desc(0, -1); homeTick({ dt, tamaDist: t0 ? Math.hypot(ship.pos.x - t0.x, ship.pos.z - t0.z) : 1e9, ringing: noonPending() > 0 }); }   // home is gentle: the noon hush (demo too)
   if (live && dt > 0 && window.__BUILD !== 'demo') lullabyTick({ dt, free: !!freeCaysNow(), night: tod.night, storm: weather.storm });   // the Two Players keep the Cays quiet
   const solid = [];
   traffic.solids(solid); fauna.solids(solid); sea.solids(solid); sighting.solids(solid); secrets.solids(solid);
@@ -1191,7 +1193,7 @@ function frame() {
   }
 
   // ---- dread + stage palette + time of day
-  const target = rt.forced !== null ? rt.forced : lullDread(clamp(felt() + (window.__BUILD === 'demo' ? 0 : dreamShift()), 0, 1));   // the Cays' night quiet holds it down (systems/lullaby.js)
+  const target = rt.forced !== null ? rt.forced : lullDread(clamp(felt() + (window.__BUILD === 'demo' ? 0 : homeShift(dreamShift(), Math.hypot(ship.pos.x, ship.pos.z))), 0, 1));   // the Cays' night quiet holds it down (systems/lullaby.js)
   rt.dread += (target - rt.dread) * Math.min(1, rawDt * (rt.forced !== null ? 1.2 : 0.4));
   if (params.get('shot')) rt.dread = target;
   if (rt.glitchT > 0) { rt.glitchT -= rawDt; rt.dread = settings.comfort.flash ? 1 : rt.preGlitch; if (rt.glitchT <= 0) { rt.dread = rt.preGlitch; hutEl.classList.remove('glitching'); } } // the hut's bad throw
@@ -1204,6 +1206,7 @@ function frame() {
   stage.wave *= 0.7 + 0.5 * wind.strength;
   weather.update(dt, wind.t, rt.dread, wind.dir, wind.strength, camera, tod);
   weather.apply(stage);
+  homeLook(stage);   // the noon hush near Tama (systems/home.js)
   if (rt.titleScene && rt.titleScene.sc.tint) { const t = rt.titleScene.sc.tint; stage.skyTop.lerp(_tc.set(t.top), t.k * 0.6); stage.skyHorizon.lerp(_tc.set(t.hor), t.k); stage.fog.lerp(_tc.set(t.fog), t.k); }
   stage.fogFar += ship.mods.fogBonus; stage.fogNear += ship.mods.fogBonus * 0.5;
   stage.wave *= 1 - 0.85 * glimpse.k;   // the sea goes flat

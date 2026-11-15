@@ -1438,3 +1438,13 @@ Trials for the owner to compare; nothing changes without a flag and STYLE.md is 
   passes. **Not verified:** whether the lean can be heard and followed by ear; by day the night stems do not play, so then only the
   pennant shows it; feel.
 
+## L4: home is gentle (2026-11-14; owner: go)
+- Embodies CANON section 2 ("Tama is home because it is where the sleeper is kept gentle: the bells ring softly"; question 5). No text.
+- `src/systems/home.js`: `homeShift` composes at the dread target line (the `lullDread` pattern): the dread a low throw adds is not felt
+  inside Home Sound (450) and is whole again by 600 out; a good throw's ease is untouched; the floor from the worst water reached stays.
+  `homeTick` and `homeLook` (after the weather in the look chain) lay the swell down to 40% within 260 of Tama while the noon bell swings,
+  and let it come back slowly. The swell part is in the demo too (it is only cosy); the dread part has nothing to act on there.
+- **Verified** headless: with a 3 thrown today against no throw, the difference in dread is 0 at 0, 300 and 440 from home, 0.037 at 520
+  and 0.1 at 700; at noon the hush peaks at 0.99 forty units off Tama in the full game and in the demo, and stays 0 four hundred units
+  off. `npm run smoke` passes. **Not verified:** how the swell lying down looks and feels at real speed; sound.
+
