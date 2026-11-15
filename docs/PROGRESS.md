@@ -1458,3 +1458,13 @@ Trials for the owner to compare; nothing changes without a flag and STYLE.md is 
 - **Verified:** screenshots of the chart panel and the shipwright before and after; the probe finds no live size under 14 px on the
   eleven screens; story export run (one changed line, no banned word).
 
+## P1, the list and the lint (2026-11-14; owner: go for the list only)
+- `docs/WRITER_TODO.txt` 2.5 lists, for the owner and the writer to mark KEEP, CUT or rewrite: the three "Eye" strings in
+  `src/abyss.js` the player reads; nine stock-horror lines; the glitch block characters, the struck-through "Harbour Tama" and the
+  symbols in the gold lies; the hut's "(+N gold...)", "Come back tomorrow" and "Somewhere far below, something is disappointed"; the
+  greeters that name a throw's cause (with L2); and two pairs of counts that disagree (the crew of nine or ten; Tama's bell).
+  **No line was changed.**
+- The story export's tone check now also reads every short string in the code (the "Eye" strings were too short to be exported, so
+  the old check never saw them: it reports 5, of which "The Lid" is a stratum's code name that is never shown and "Leviathan & the Eye"
+  is in the dev-only test menu), and warns on plural "eyes" (10 lines, innocent on reading), number words (188) and glyphs.
+

@@ -222,6 +222,22 @@ def coded_lines():
     print(f'section J: {total} lines with an ID ({new_n} added, {gone_n} retired in all)')
     flagged = [l for l in out if re.match(r'^  [A-Z]+-\d{4} \| ', l) and re.search(r"\b(lid|eye|sleeper|lady|kept soft)\b|mara is from", l, re.I)]
     print(f'tone check (RULES 6): {len(flagged)} line(s) with a banned word' + ''.join('\n    ' + l.strip()[:110] for l in flagged))
+    # the short strings the export leaves out (a place name, a banner) can carry a banned word too: every string in the code is read
+    short = []
+    for f in sorted(SRC.rglob('*.js')):
+        for t in js_strings(f.read_text(encoding='utf-8')):
+            if len(t) < 60 and (' ' in t or t[:1].isupper()) and re.search(r"\b(lid|eye|sleeper|lady|kept soft)\b|mara is from", t, re.I) and not re.search(r'[{}<>=;]|^\w+$', t):
+                short.append(f'{f.relative_to(SRC)}: {t}')
+    print(f'tone check, short strings in the code: {len(short)}' + ''.join('\n    ' + x[:110] for x in short))
+    # warnings, not errors (task P1): words the banned-word check lets through. Read them; most are innocent. `--warn` lists them all.
+    coded = [l for l in out if re.match(r'^  [A-Z]+-\d{4} \| ', l)]
+    NUM = r'\b(one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty)\b'
+    warn = [('eyes', [l for l in coded if re.search(r'\beyes\b', l, re.I)]), ('number word', [l for l in coded if re.search(NUM, l, re.I)]),
+            ('glitch or symbol glyph', [l for l in coded if re.search('[\u2190-\u21ff\u2500-\u27bf\u0336]', l)])]
+    print('tone warnings: ' + ', '.join(f'{len(ls)} with {k}' for k, ls in warn) + ('' if '--warn' in sys.argv else '  (python3 scripts/story_export.py --warn lists them)'))
+    if '--warn' in sys.argv:
+        for k, ls in warn:
+            for l in ls: print(f'    [{k}] {l.strip()[:120]}')
     return '\n'.join(out), total
 
 

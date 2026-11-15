@@ -176,6 +176,60 @@ PART 2  OPEN STORY DECISIONS (only you decide these; I will not fill them in)
 2.4  General writing rules you want me to keep (words to avoid, running jokes, how long a line may be):
      yours:
 
+2.5  LINES THAT BREAK THE GAME'S OWN TONE RULES (task P1, listed 2026-11-14; nothing is changed until you say so)
+     For each: write KEEP, CUT, or the new line after "yours:". The rules are RULES 1 (never explain), RULES 6 (banned words:
+     lid, eye, sleeper, Lady, "kept soft", "Mara is from") and RULES 9 (no symbol glyphs). All of these are in the full game
+     only; the demo never shows them.
+
+     A. A banned word, read by the player
+        A1  src/abyss.js, the place name on the HUD at full dread (PLACE_LIES):        "THE EYE"                    yours:
+        A2  src/abyss.js, an island's name on the chart at full dread (MAP_NAMES):     "The Eye"                    yours:
+        A3  src/abyss.js, the big line when you linger at full dread (the awakening):  "THE EYE OPENS."             yours:
+            (An older note of yours allowed the word "before the end"; RULES 6 has no such exception. Say which holds.)
+        Not read by the player, so left: ABY-0010 "Leviathan & the Eye ... the Eye awakens (ending)" is the name and note of an
+        effect in the dev-only test menu.
+
+     B. Stock horror (lines any horror game could have; the guide asks for this game's own voice: an ordinary statement,
+        one flat wrong detail, a shrug)
+        B1  PLACE_LIES (HUD place name):   "TURN BACK"                                                        yours:
+        B2  PLACE_LIES:                    "it is behind you"                                                 yours:
+        B3  PLACE_LIES:                    "you were never here"                                              yours:
+        B4  TRACK_LIES (the slip):         "Look behind you"                                                  yours:
+        B5  MAP_NAMES (chart):             "Where you drowned"                                                yours:
+        B6  Mara at full dread (ABY):      "turn back turn back turn back turn back turn back"                yours:
+        B7  Mara at full dread:            "Don't look at the water. It looks back. It looks back. It"        yours:
+        B8  Mara at full dread:            "I see you, Captain. I see you seeing me."                         yours:
+        B9  The chart at the loop seam, in large letters over the ship (src/chartstyles.js, src/logbook.js): "TURN BACK"   yours:
+        For comparison, lines in the same lists that already sound like this game: "the same water", "HOME?",
+        "Tama?", "The stars are not where I left them.", "The crew keeps counting to eleven. We only have nine."
+
+     C. Symbol and glitch glyphs (RULES 9)
+        C1  src/abyss.js GLITCH: letters of HUD and Mara text are replaced at random by block characters at full dread.
+            Options: keep (it is the one place the interface itself breaks); or break the text with the game's own means
+            (letters dropped, words repeated, a line cut off mid-word, as Mara's lines already do).                 yours:
+        C2  PLACE_LIES: "Harbour Tama" with the name struck through (combining strike-through characters).     yours:
+        C3  GOLD_LIES (the gold on the HUD):  "???" and the infinity sign.                                     yours:
+
+     D. The hut reads as a daily gold slot, or explains
+        D1  src/hut.js, after a good throw: the result line ends "(+N gold, and <trinket>)".
+            The gold is a rule of the game; the question is only whether the hut should say it in brackets like a shop.   yours:
+        D2  src/hut.js, when you have thrown today: "The die is gone from the table. She is writing. Come back tomorrow."
+            ("Come back tomorrow" is the game speaking, not the hut.)                                         yours:
+        D3  src/main.js, on a natural twenty: "A natural twenty. Somewhere far below, something is disappointed."
+            (It says there is something below and what it feels: RULES 1.)                                    yours:
+        D4  src/greetings.js, the greeters who name the cause after a throw ("Somebody threw a {w} and the whole sea went
+            soft" and its siblings): keep or cut depends on task L2 (a low throw lands on one harbour).      yours:
+
+     E. Two counts that disagree
+        E1  "The crew keeps counting to eleven. We only have nine." (ABY-0014) beside "Eleven. We are ten" (LORE-0047).
+            On purpose (sources disagree), or one number?                                                     yours:
+        E2  Tama's bell: the classic bell text "TWO STROKES, NEVER THREE" (HLF-0139), a greeter's "Twelve, every day"
+            (GRT-0076), and the clue "Tama rang fourteen at noon." (CL-C3-a). The bell now really rings one stroke at
+            noon (task L3). Which is true, or do they disagree on purpose?                                    yours:
+
+     The export also warns (it does not fail) on plural "eyes" (10 lines, all innocent on reading: "keep your eyes open",
+     "eyes shut") and on number words (188 lines). `python3 scripts/story_export.py --warn` lists them.
+
 
 ================================================================================================================
 PART 3  OPTIONAL (empty slots; the game works without them)
