@@ -1603,4 +1603,10 @@ Trials for the owner to compare; nothing changes without a flag and STYLE.md is 
   water is lit by height, not by extra wave samples: a first version with them made the smoke test time out); `npm run smoke` passes.
   **Not verified:** the Lantern oil and the Drowned lead on screen (the test seed's only Lantern water in reach lies in the Slack,
   where the deep's palette takes over; no Drowned water was found), how it looks in motion, performance on a real GPU.
+- **Whole sea checked (2026-11-15, owner: "check it for the whole game")**: `isle_checks` now rolls 45x45 cells (out past the Lid):
+  1,075 islands in the same places, land down 4.0%, the new forms at most 3,145 triangles (old rolled isles 3,218), regions further
+  apart (0.12 to 0.22). Screenshots in the Slack, the Dim and the Lid at their own dread, day and night, with weed, log and jellyfish
+  placed (the deep's palette and dark props win; the bird is gone from the Dim out; the jellies keep pace, lit cold). The Edge run
+  with sea life about: the sea life now hides while the Edge runs (it would float over the drop), checked at 9, 19, 27 and 37 s.
+  The jellies' night light dimmed (it read as floating blocks in the deep). `npm run smoke` passes.
 

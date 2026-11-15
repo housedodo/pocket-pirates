@@ -21,14 +21,14 @@ async function roll(b, isles) {
     const W = await import('/src/world.js');
     const out = { n: 0, cells: [], area: 0, kinds: {}, forms: {}, tri: [], calls: [] };
     let built = 0;
-    for (const seed of SEEDS) for (let cx = -14; cx <= 14; cx++) for (let cz = -14; cz <= 14; cz++) {
+    for (const seed of SEEDS) for (let cx = -22; cx <= 22; cx++) for (let cz = -22; cz <= 22; cz++) {
       const d = W.describeCell(cx, cz, seed); if (!d) continue;
       out.n++; out.cells.push(`${seed}:${d.id}`);
       let a = 0; for (let k = 0; k < 64; k++) { const R = W.shoreR(d, (k / 64) * Math.PI * 2); a += (R * R) / 2 * (Math.PI * 2 / 64); }
       out.area += a;
       const reg = d.region || 'none'; (out.kinds[reg] = out.kinds[reg] || {})[d.type] = (out.kinds[reg][d.type] || 0) + 1;
       if (d.form) out.forms[`${d.type}:${d.form}`] = (out.forms[`${d.type}:${d.form}`] || 0) + 1;
-      if (!d.lm && !d.blight && d.type !== 'harbour' && d.type !== 'treasure' && built < 260 && (cx + cz) % 2 === 0) {   // a sample of the rolled isles
+      if (!d.lm && !d.blight && d.type !== 'harbour' && d.type !== 'treasure' && built < 420 && (cx + cz) % 2 === 0) {   // a sample of the rolled isles
         built++;
         const isl = new W.Island(d, false); let t = 0, c = 0;
         isl.group.traverse((m) => { if (m.isMesh && m.geometry && m.geometry.attributes.position) { t += m.geometry.attributes.position.count / 3; c++; } });
@@ -75,7 +75,7 @@ async function blind(b, dir) {
   const [old, now] = [await roll(b, 0), await roll(b, 1)];
   if (BLIND) await blind(b, BLIND);
   await b.close();
-  rec(old.n === now.n && old.cells.join() === now.cells.join(), `the same islands in the same cells (${old.n} before, ${now.n} now, ${SEEDS.length} seas of 29x29 cells)`);
+  rec(old.n === now.n && old.cells.join() === now.cells.join(), `the same islands in the same cells (${old.n} before, ${now.n} now, ${SEEDS.length} seas of 45x45 cells, the whole sea out to the Lid)`);
   rec(now.area <= old.area * 1.05, `land on the water: ${Math.round(now.area)} now against ${Math.round(old.area)} before (${(100 * now.area / old.area - 100).toFixed(1)}%)`);
   const max = (l, f) => l.filter(f).reduce((m, x) => Math.max(m, x[1]), 0), maxC = (l, f) => l.filter(f).reduce((m, x) => Math.max(m, x[2]), 0);
   const isNew = (x) => /:/.test(x[0]);

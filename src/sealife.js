@@ -8,7 +8,7 @@
 //              from 0.75 there is no bird, and the log slowly swings round to point at the ship.
 //   jellyfish: each pulses on its own; from 0.5 they pulse together and their night light turns cold; from 0.7 the bloom keeps
 //              pace a little off the ship's side (never touching it, slower than the ship).
-// The demo has no dread, so it only ever shows the first of each. `?sea=0` (seawater.js) turns them off.
+// Nothing shows while the Edge runs (the sea is cut off at its lip). The demo has no dread, so it only ever shows the first of each. `?sea=0` (seawater.js) turns them off.
 import * as THREE from 'three';
 import { Builder } from './builder.js';
 import { TILE } from './textures.js';
@@ -16,6 +16,7 @@ import { mats, psxMaterial } from './psx.js';
 import { waveHeight } from './ocean.js';
 import { hash2, mulberry32, smoothstep } from './util.js';
 import { SEA_ON } from './seawater.js';
+import { rt } from './core/runtime.js';
 
 const CELL = 110, RANGE = 280, CHANCE = 0.12;
 const MIX = {   // what floats where (the region round the ship); the rest of the sea: home
@@ -64,7 +65,7 @@ export class SeaLife {
   constructor(scene, world) {
     this.scene = scene; this.world = world; this.items = new Map(); this.scanT = 0; this.t = 0;
     if (!SEA_ON) return;
-    this.geo = { weed: weedGeo(), log: logGeo(), bird: birdGeo(), jelly: jellyGeo(), warm: jellyLightGeo('#ff8ac0'), cold: jellyLightGeo('#d8e8ff') };
+    this.geo = { weed: weedGeo(), log: logGeo(), bird: birdGeo(), jelly: jellyGeo(), warm: jellyLightGeo('#b05a88'), cold: jellyLightGeo('#6a7890') };
     this.glowMat = psxMaterial({ color: 0xffffff, vertexColors: true, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, fog: false, key: 'Jg' });
   }
 
@@ -120,7 +121,9 @@ export class SeaLife {
     if (this.scanT <= 0) { this.scanT = 1; this.scan(ctx); }
     const { ship, dread, wave } = ctx, sx = ship.pos.x, sz = ship.pos.z;
     const wd = ctx.wind ? ctx.wind.dir : 0, wx = Math.sin(wd), wz = -Math.cos(wd), night = ctx.tod ? ctx.tod.night : 0;
+    const hide = !!rt.edge;   // the Edge cuts the sea off at its lip: nothing may float over the drop
     for (const o of this.items.values()) {
+      o.g.visible = !hide;
       const toShip = Math.atan2(sx - o.x, sz - o.z), dShip = Math.hypot(sx - o.x, sz - o.z);
       if (o.kind === 'weed') {
         const dir = dread >= 0.5 ? -1 : 1;   // from dread 0.5 it drifts up into the wind
