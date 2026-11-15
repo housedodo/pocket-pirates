@@ -191,7 +191,7 @@ the top of the bell's swing (`src/systems/noonbell.js`; the swing is its silent 
 `deepbell` (owner, 2026-11-15: the church bell, `Church_bell.wav`, 4.8 s, faded over its last 0.5 s, not through HOIST: it is a
 one-shot, and the loop renderer would wrap its tail into its head): the Bell Below thread's strokes, which the story asks you to
 count. Played at rate 0.5 to 0.55 (under water: about 8 s long), 2 s apart. Over the reef at low tide, in the scene, and on deck at night
-if you took the bell. Its silent twins: the belfry rocks once per stroke at sea, and the scene's picture dims once per stroke. 85% in
+if you took the bell. Its silent twins: the belfry rocks once per stroke at sea, the scene's picture dims once per stroke, and on deck the stern lantern's flame ducks with each stroke. 85% in
 `volumes.json` (1.4 dB louder than Tama's `bell` as cut). Full game only (`DEMO_SKIP`).
 
 `oar` (synthesised, no file yet): one soft stroke per pull while rowing, at half volume (PROGRESS: four small wrong things). A recorded `oar.ogg` in `public/audio/` replaces it.

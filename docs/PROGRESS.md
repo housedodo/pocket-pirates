@@ -1536,5 +1536,6 @@ Trials for the owner to compare; nothing changes without a flag and STYLE.md is 
 - **Verified** headless (the thread awake, at low water): at sea three strokes played from the real file and the belfry rocked; in the
   scene the five strokes of this voyage played and the picture dimmed five times. `npm run smoke` passes. **Not verified:** how it
   sounds (never judged headless).
-- Still silent and unlisted: the fog bell, the other bell villages at noon, the title's hourly bell (owner).
+- Still silent and unlisted: the fog bell, the other bell villages at noon, the title's hourly bell (owner).- The stolen bell's toll on deck at night now has its twin too: the stern lantern's flame ducks to about 40% and comes back with each
+  stroke (found by the audio review, finding 21). Verified headless (the flame dipped to 0.38 with the toll); `npm run smoke` passes.
 

@@ -528,7 +528,8 @@ export class Ship {
 
     this.shadowMesh.visible = this.deckLight.visible = !!this.oneShadow && !!this.flame;   // only while the lamp burns (L7)
     { const f = this.flame, m = this.flameMesh; m.visible = !!f;   // the flame: its height and lean come from oil.js flameShape; it only wavers once it leans
-      if (f) { m.scale.y = f.h; m.rotation.z = f.lean * (1 + 0.12 * Math.sin(t * 5)); } }
+      if (this.tollT > 0) this.tollT = Math.max(0, this.tollT - dt);
+      if (f) { m.scale.y = f.h * (1 - 0.6 * Math.sin(Math.PI * Math.min(1, (1.2 - (this.tollT || 0)) / 1.2)) * ((this.tollT || 0) > 0 ? 1 : 0)); m.rotation.z = f.lean * (1 + 0.12 * Math.sin(t * 5)); } }   // a stroke of the stolen bell: the flame ducks and comes back
     // lantern glow
     const L = this.mods.lantern;
     this.glow.position.set(p.x, 0.8, p.z);

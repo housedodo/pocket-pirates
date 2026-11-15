@@ -116,7 +116,7 @@ export function bellMod(hub) {
       if (queue.length) { queue = queue.map((q) => q - dt); while (queue.length && queue[0] <= 0) { queue.shift(); tp.rock = 1.1; api.audio.play('deepbell', { vol: Math.max(0.1, 0.8 * (1 - d / 300)), rate: 0.55, pan: Math.max(-1, Math.min(1, Math.sin(Math.atan2(s.x - ship.pos.x, -(s.z - ship.pos.z)) - ship.heading))) }); } }
       if (tp.ended === 'steal' && api.night() > 0.6) {   // the stolen bell tolls on deck
         tp.deck = (tp.deck || 40) - dt;
-        if (tp.deck <= 0) { tp.deck = 50 + Math.random() * 30; api.audio.play('deepbell', { vol: 0.35, rate: 0.5 }); }
+        if (tp.deck <= 0) { tp.deck = 50 + Math.random() * 30; ship.tollT = 1.2; api.audio.play('deepbell', { vol: 0.35, rate: 0.5 }); }   // ship.tollT: the lantern's flame dips with the stroke (its silent twin, RULES 28)
       }
     },
     interact({ ship, api }) { if (!tp.ended && api.tide() < -0.15 && D(site(), ship.pos) < 30) return { key: 'bell', prompt: 'E: listen over the side', run: () => api.openScene('bellreef', `bell:${tp.ended || 'x'}`) }; return null; },
