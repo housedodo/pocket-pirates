@@ -108,7 +108,7 @@ export class Traffic {
     const aim = Math.atan2(ship.pos.x - x + (Math.random() - 0.5) * 200, -(ship.pos.z - z + (Math.random() - 0.5) * 200));
     const parts = this.build(kind, faction, mode === 'ghost');
     this.scene.add(parts.root);
-    const hostile = !this.noRaiders && mode === 'live' && Math.random() < raiderChance(faction.id, this.hour ?? 12) && !this.ships.some((q) => q.hostile && !q.sinking);   // the Reef always; the Cays by day only (regions.js)   // raiders are rare: one at a time, now and then   // no raiders until you have cannons
+    const hostile = !this.noRaiders && mode === 'live' && Math.random() < raiderChance(faction.id, !!this.quiet) && !this.ships.some((q) => q.hostile && !q.sinking);   // the Reef always; the Cays by day only (regions.js)   // raiders are rare: one at a time, now and then   // no raiders until you have cannons
     this.ships.push(armed({
       ...parts, id: this.nextId++, kind, mode, faction, sector, x, z, heading: aim,
       speed: mode === 'live' ? K.speed[0] + Math.random() * (K.speed[1] - K.speed[0]) : mode === 'derelict' ? 1.2 : 3.2,
@@ -228,6 +228,7 @@ export class Traffic {
 
   update(dt, t, ctx) {
     if (ctx.sched) this.hour = ctx.sched.hour;
+    this.quiet = !!ctx.quiet;   // the Cays' night quiet (regions.js caysQuiet)
     const { ship, dread, wave, wind } = ctx;
     this.routines(dt, t, ctx);
     this.timer -= dt;

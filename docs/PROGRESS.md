@@ -1414,3 +1414,16 @@ Trials for the owner to compare; nothing changes without a flag and STYLE.md is 
 - **Verified** headless at night: dread 0 gives height 1, lean 0; dread 0.8 gives 0.56 and 0.53 rad; the demo build with dread forced
   to 0.8 through the test hook still gives 1 and 0; screenshots of both from astern. `npm run smoke` passes. **Not verified:** feel, sound.
 
+## L5: the Cays are quiet while somebody plays (2026-11-14; owner: go)
+- Embodies CANON 2026-11-12 ("The Two Players keep the Free Cays asleep: on a night without storm..."; "In the Cays they say the dark
+  keeps quiet while somebody plays"). No new fact, no new text.
+- `caysQuiet(lull, hour, demo)` in `regions.js` (threshold `CAYS_PLAYING = 0.5` on `rt.lullK`): the Cays' raiders (`raiderChance`) and
+  night market (`sellMul`, the stalls, `marketNote`) follow the music, not the hour. On a storm night nobody plays: raiders can spawn and
+  the stalls are shut. The demo has no players, so there the hour still decides (unchanged). Derelicts already follow the dread, which the
+  music caps.
+- **For the owner/writer:** on a storm night the existing line reads "The stalls are shuttered. The market here opens after dark."
+  while it is dark. I left the line (it is player text); it can pass as storm shutters, or the writer may want a storm line.
+- **Verified:** the rule table in node; headless at a Free Cays harbour (Lorow) at night: still, lull 0.81, stalls open, the sell button
+  there, traffic quiet; storm, lull 0.17, stalls shut, no sell button, traffic not quiet; the demo in a storm, stalls open by the hour.
+  `npm run smoke` passes. **Not verified:** a raider actually spawning on a storm night (chance 0.1 per spawn); feel and sound.
+

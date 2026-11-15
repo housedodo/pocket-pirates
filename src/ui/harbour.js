@@ -18,7 +18,7 @@ import * as paper from '../newspaper.js';
 import { state } from '../core/state.js';
 import { rt, G } from '../core/runtime.js';
 import { markSeen } from '../clues.js';
-import { drownedTake, OIL_SELL, sellMul, buyMul, marketNote, takeJob, clockAt, nowD, jobPay, DAY_SECONDS, recordMarks } from '../regions.js';
+import { drownedTake, OIL_SELL, sellMul, buyMul, marketNote, caysQuiet, takeJob, clockAt, nowD, jobPay, DAY_SECONDS, recordMarks } from '../regions.js';
 import { pierOf } from '../world.js';
 import { $, toast } from './dom.js';
 import { isMarketDay, isFestival } from '../systems/calendar.js';
@@ -192,13 +192,13 @@ export function renderHarbour() {
       G.audio.play('buy'); renderHarbour(); });
   } else if (rt.hbTab === 'market') {
     const hg = state.haggle && state.haggle.id === d.id && state.haggle.day === state.dayN ? state.haggle : null, hm = (hg ? hg.mult : 1) / G.dreamCost() * (isMarketDay() ? 1.25 : 1) * (G.threads.touched(d) ? 1.15 : 1) * G.threads.priceMul(d);
-    const hr = state.time * 24, shut = d.region === 'free' && !(hr >= 19 || hr < 5);   // the Cays' stalls open after dark (regions.js)
-    const fishVal = Math.round(state.catch.reduce((a, f) => a + f.value, 0) * 0.7 * (1 + 0.05 * lvl) * hm * (isFestival(d) ? 1.5 : 1) * sellMul(d, 'fish', hr));
+    const quiet = caysQuiet(rt.lullK, state.time * 24, window.__BUILD === 'demo'), shut = d.region === 'free' && !quiet;   // are the Cays quiet (somebody plays)? Their stalls open then (regions.js, L5)
+    const fishVal = Math.round(state.catch.reduce((a, f) => a + f.value, 0) * 0.7 * (1 + 0.05 * lvl) * hm * (isFestival(d) ? 1.5 : 1) * sellMul(d, 'fish', quiet));
     const fruitList = Object.entries(state.fruit).filter(([, n]) => n > 0);
-    const fruitVal = Math.round(fruitList.reduce((a, [f, n]) => a + FRUITS[f].price * n, 0) * 0.7 * (1 + 0.05 * lvl) * hm * sellMul(d, 'fruit', hr));
+    const fruitVal = Math.round(fruitList.reduce((a, [f, n]) => a + FRUITS[f].price * n, 0) * 0.7 * (1 + 0.05 * lvl) * hm * sellMul(d, 'fruit', quiet));
     const ammoCost = Math.ceil(25 * discount(rep) * G.costMul() * buyMul(d, 'ammo'));
     html += `<div class="sec">STANDING HERE</div><small>${pxi('star').repeat(lvl)}${pxi('nostar').repeat(3 - lvl)}${lvl ? `  (-${lvl * 5}% prices, +${lvl * 5}% for your catch)` : '  (visit and deliver to be remembered)'}</small>`;
-    html += '<div class="sec">SELL</div>' + priceNote() + (marketNote(d, hr) ? `<small>${marketNote(d, hr)}</small>` : '') + (isFestival(d) ? '<small>Festival day: fish fetch half again as much.</small>' : isMarketDay() ? '<small>Market day: everything sells for a quarter more.</small>' : '');
+    html += '<div class="sec">SELL</div>' + priceNote() + (marketNote(d, quiet) ? `<small>${marketNote(d, quiet)}</small>` : '') + (isFestival(d) ? '<small>Festival day: fish fetch half again as much.</small>' : isMarketDay() ? '<small>Market day: everything sells for a quarter more.</small>' : '');
     if (unlocked(state, 'haggle')) html += `<div class="qrow"><div><b>${pxi('coin')} Haggle</b><br><small>${hg ? (hg.mult > 1 ? `they pay ${Math.round((hg.mult - 1) * 100)}% more today` : hg.n === 1 ? 'word got round: 20% less for your catch, everything else 10% dearer' : 'they are offended: 10% less today') : 'a talk roll, once a day: 12 or more'}</small></div>${hg ? '' : '<button id="haggle">Roll</button>'}</div>`;
     html += `<div class="qrow"><div><b>${pxi('fish')} Fish</b><br><small>${state.catch.length ? `${state.catch.length} in the hold` : 'none: slow down and press C at sea'}</small></div>${state.catch.length && !shut ? `<button id="sellFish">+${fishVal}g</button>` : ''}</div>`;
     html += `<div class="qrow"><div><b>${pxi('banana')} Fruit</b><br><small>${fruitList.length ? fruitList.map(([f, n]) => `${n} ${plural(fruitName(f, rt.dread), n)}`).join(', ') : 'none: press E at jungle isles'}</small></div>${fruitList.length && !shut ? `<button id="sellFruit">+${fruitVal}g</button>` : ''}</div>`;

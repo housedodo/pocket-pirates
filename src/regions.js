@@ -9,30 +9,35 @@ export const regionAt = (x, z, seed) => { const s = sectorAt(x, z, seed); return
 
 // ---- what a harbour's market pays and charges (ui/harbour.js market)
 const isNight = (hour) => hour >= 19 || hour < 5;
-/** the sale price of fish or fruit here: each region pays more for what it lacks; the Cays' market is busiest at night */
-export function sellMul(d, kind, hour) {
+/** the Cays are quiet while somebody plays (task L5, CANON 2026-11-12): everything safe about their night follows the music
+ *  (lull: rt.lullK, systems/lullaby.js), not the hour, so on a storm night nobody plays and the night is unprotected. The demo has
+ *  no players: there the hour decides, as it always did. */
+export const CAYS_PLAYING = 0.5;
+export const caysQuiet = (lull, hour, demo) => (demo ? isNight(hour) : lull > CAYS_PLAYING);
+/** the sale price of fish or fruit here: each region pays more for what it lacks; the Cays' market is busiest while they play. quiet: caysQuiet() */
+export function sellMul(d, kind, quiet) {
   const r = d.region;
   if (r === 'crown' && kind === 'fruit') return 1.5;     // the Crown towns grow nothing
   if (r === 'lantern' && kind === 'fish') return 1.5;    // the Guild's people tend lamps, not nets
-  if (r === 'free' && isNight(hour)) return 1.4;         // the night market (the Cays sleep by day)
+  if (r === 'free' && quiet) return 1.4;                 // the night market (the Cays sleep by day)
   return 1;
 }
 /** what is cheap here: the Reef has powder and sailcloth off every wreck */
 export const buyMul = (d, kind) => (d.region === 'reef' && (kind === 'ammo' || kind === 'kit') ? 0.6 : 1);
 /** a short line under the market's SELL heading, or '' */
-export function marketNote(d, hour) {
+export function marketNote(d, quiet) {
   if (d.region === 'crown') return 'Fruit fetches half again as much here.';
   if (d.region === 'lantern') return 'Fish fetches half again as much here.';
-  if (d.region === 'free') return isNight(hour) ? 'The night market: fish and fruit fetch more after dark.' : 'The stalls are shuttered. The market here opens after dark.';
+  if (d.region === 'free') return quiet ? 'The night market: fish and fruit fetch more after dark.' : 'The stalls are shuttered. The market here opens after dark.';
   if (d.region === 'reef') return 'Powder and sailcloth are cheap here: off the wrecks.';
   return '';
 }
 
 // ---- the Free Cays: the dark keeps quiet while somebody plays (traffic.js)
-/** the chance that a spawned ship in these waters is a raider; the Reef always, the Cays only by day */
-export function raiderChance(faction, hour) {
+/** the chance that a spawned ship in these waters is a raider; the Reef always, the Cays only while nobody plays. quiet: caysQuiet() */
+export function raiderChance(faction, quiet) {
   if (faction === 'reef') return 0.22;
-  if (faction === 'free') return isNight(hour) ? 0 : 0.1;
+  if (faction === 'free') return quiet ? 0 : 0.1;
   return 0;
 }
 
