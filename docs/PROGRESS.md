@@ -1492,3 +1492,12 @@ Trials for the owner to compare; nothing changes without a flag and STYLE.md is 
   faint tick after them (screenshot); with it unseen, and in the demo with the clue forced, it does not. `npm run smoke` passes.
   **Not verified:** whether a player reads the faint tick as "already written" (that is the thing to look at before `forecast` and `bluelamp`).
 
+## L8: what they kept comes back (2026-11-15; owner: yes, once per item, no text beyond its name)
+- Embodies CANON 2026-11-13 (the Drowned's harbours take no coin) and the matrix row "the Drowned keep what they take". No new fact.
+- `drownedTake` (`regions.js`) now stores the thing kept (`state.story.drownedKept`, newest 12, shape in `STORY_SHAPE`). In the
+  deepest water (`abyss.k` > 0.2, about dread 0.88) the next catch is a kept fish and the next salvage or chest a kept fruit or treasure:
+  the very one, with its own name, and then it is gone from the list. Nothing appears that was not taken.
+- **Verified** headless: at dread 0.95 with a snapper and a tin cup kept, the first catch is the Snapper and the first loot the tin cup,
+  the second of each is ordinary, the list is empty after; at 0.6 and in the demo at 0.95 nothing comes back. Unit check of the taking
+  in node (fish, then fruit, then the newest treasure). `npm run smoke` passes. **Not verified:** a whole round trip in play; feel, sound.
+

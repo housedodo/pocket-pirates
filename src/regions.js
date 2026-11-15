@@ -114,9 +114,17 @@ export function lampDead(state, d, night) {
 // ---- the Drowned's harbours take no coin: what they keep from the hold (ui/harbour.js). The first thing that comes to hand:
 // a fish, then fruit, then the newest treasure. Null when the hold is empty.
 export function drownedTake(state) {
-  if (state.catch.length) return { label: 'one of your fish', take: () => state.catch.splice(0, 1) };
+  if (state.catch.length) return { label: 'one of your fish', take: () => keep(state, { fish: state.catch.splice(0, 1)[0] }) };
   const fr = Object.entries(state.fruit).find(([, n]) => n > 0);
-  if (fr) return { label: 'some of your fruit', take: () => { state.fruit[fr[0]]--; } };
-  if (state.loot.length) { const l = state.loot[state.loot.length - 1]; return { label: l.name.replace(/^From the [a-z ]+: /, '').toLowerCase(), take: () => state.loot.pop() }; }
+  if (fr) return { label: 'some of your fruit', take: () => { state.fruit[fr[0]]--; keep(state, { fruit: fr[0] }); } };
+  if (state.loot.length) { const l = state.loot[state.loot.length - 1]; return { label: l.name.replace(/^From the [a-z ]+: /, '').toLowerCase(), take: () => keep(state, { loot: state.loot.pop() }) }; }
   return null;
+}
+// what they kept comes back (task L8): the very things, each once, out of the deep (abyss.js wrongCatch, wrongLoot). No word about it.
+export const KEPT_MAX = 12;
+function keep(state, it) { const k = state.story.drownedKept; k.push(it); if (k.length > KEPT_MAX) k.shift(); }
+/** take back the oldest kept thing of a kind ('fish', or 'hold' for fruit and treasure); null when they hold none */
+export function keptBack(state, kind) {
+  const k = state.story.drownedKept || [], i = k.findIndex((it) => (kind === 'fish' ? it.fish : it.fruit || it.loot));
+  return i < 0 ? null : k.splice(i, 1)[0];
 }

@@ -7,6 +7,9 @@ import { shipGeos } from './ship.js';
 import { shoreR, terrainHeight } from './world.js';
 import { hoursPerSecond } from './daynight.js';
 import { smoothstep, clamp } from './util.js';
+import { keptBack } from './regions.js';
+import { FRUITS } from './fruit.js';
+const KEPT_FROM = 0.2;   // how deep (abyss.k, 0 at dread 0.86 .. 1 at 0.97) before the deep gives back what the Drowned kept
 
 // Full dread ("the abyss"): twelve separate effects that only happen in the very worst water.
 // Every effect can be switched on/off in the pause menu and tried on its own, so they can be
@@ -275,12 +278,14 @@ export class Abyss {
 
   /** 11: the line brings up memories */
   wrongCatch(f) {
+    if (this.k > KEPT_FROM) { const it = keptBack(this.d.state, 'fish'); if (it) return it.fish; }   // the deep gives back a fish the Drowned kept: the very one, once (L8)
     if (!this.on('catch')) return f;
     const [name, note] = pick(MEMORIES);
     return { ...f, id: 'memory', name: `${name}. ${note}`, kg: +(0.2 + Math.random()).toFixed(1), value: 1, dark: true };
   }
   /** 11: chests hold things you already own */
   wrongLoot(loot, state) {
+    if (this.k > KEPT_FROM) { const it = keptBack(state, 'hold'); if (it) return it.loot ? it.loot : { name: FRUITS[it.fruit].name, value: FRUITS[it.fruit].price, fruit: it.fruit }; }   // or a thing from the hold they kept (L8)
     if (!this.on('catch') || !state.loot.length) return loot;
     const prev = state.loot[Math.floor(Math.random() * state.loot.length)];
     return { ...loot, name: `${prev.name.replace(/^From the [^:]+: /, '')}... again. It is yours. It was always yours`, dark: true };

@@ -254,6 +254,8 @@ scales the currents (seaplay.js) so they never lead into fog.
 
 - **`arrivals`** (2026-11-15, G3): once clue `CL-C1-a` (the Customs ledger) is seen, a Crown harbour's record row (`recordMarks`) ends with one more tick, faint: the next line, written before it is earned. No word; nothing shows without the clue or in the demo.
 
+- **What they kept comes back** (2026-11-15, L8): `drownedTake` stores what a Drowned harbour keeps in `state.story.drownedKept` (the newest 12). Past dread 0.88 (`abyss.k` 0.2) the next catch returns a kept fish, the next loot a kept fruit or treasure, the very one, once (`keptBack`). Nothing but its own name; never in the demo (no deep).
+
 ## Waves and the ship
 Wave height = the swell (several crossing sine waves, crests bent by a slow warp) x the sets (`G`, a slow travelling pattern,
 0.5x to 1.45x, with a longer roller in the big sets) x the land factor (`seaScale` / GLSL `landNear`: 0.35 within ~15 of a
