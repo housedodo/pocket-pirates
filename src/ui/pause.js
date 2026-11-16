@@ -12,6 +12,7 @@ import { params, store, DEV, settings, SETTINGS_KEY } from '../core/config.js';
 import { rt, G } from '../core/runtime.js';
 import { $, pauseEl, shipEl, toast } from './dom.js';
 import { fullMoon } from '../systems/calendar.js';
+import { KEY_ACTIONS, actionLabel, captureKey, resetKeys, rumble, RUMBLE } from '../input.js';
 
 export let oceanLabel, nightLabels, showPauseMain, mixer, studio;   // set by the init function(s) below, at the point in boot where main.js had them
 
@@ -35,9 +36,9 @@ export function fsChanged() {
 /** tonight's moon: a night runs from 19:00 to 06:00; each one is either a new moon (pitch dark, no moon) or a full moon (moonlit) */
 export function nightViewNow() { NIGHT_SET.view = rt.nightMode ? rt.nightMode - 1 : fullMoon() ? 2 : 0; }
 // pause menu panels: main > settings > (sound, display), main > controls, main > dev tools > full dread. Back / Esc go up one level.
-export const PAUSE_PANELS = { main: 'pauseMain', settings: 'pauseSettings', sound: 'pauseSound', display: 'pauseDisplay', controls: 'pauseControls', dev: 'pauseDev', abyss: 'pauseAbyss' };
-export const PAUSE_PARENT = { settings: 'main', controls: 'settings', dev: 'main', sound: 'settings', display: 'settings', abyss: 'dev' };
-export const PAUSE_OPENER = { settings: 'pbSettings', controls: 'pbControls', dev: 'pbDevTools', sound: 'pbSoundMenu', display: 'pbDisplay', abyss: 'pbAbyss' };
+export const PAUSE_PANELS = { main: 'pauseMain', settings: 'pauseSettings', sound: 'pauseSound', display: 'pauseDisplay', controls: 'pauseControls', keys: 'pauseKeys', dev: 'pauseDev', abyss: 'pauseAbyss' };
+export const PAUSE_PARENT = { settings: 'main', controls: 'settings', keys: 'settings', dev: 'main', sound: 'settings', display: 'settings', abyss: 'dev' };
+export const PAUSE_OPENER = { settings: 'pbSettings', controls: 'pbControls', keys: 'pbKeys', dev: 'pbDevTools', sound: 'pbSoundMenu', display: 'pbDisplay', abyss: 'pbAbyss' };
 export function showPause(name, focus) {
   rt.pausePanel = name;
   for (const [k, id] of Object.entries(PAUSE_PANELS)) $(id).style.display = k === name ? 'block' : 'none';
@@ -45,6 +46,8 @@ export function showPause(name, focus) {
   $('pbSound').textContent = `Sound: ${G.audio.muted ? 'off' : 'on'}`;
   $('pbMusic').textContent = `Music: ${G.audio.musicOn ? 'on' : 'off'}`;
   if (name === 'abyss') renderAbyssMenu();
+  if (name === 'keys') renderKeys();
+  if (name === 'controls') controlKeys();
   const f = focus && $(focus); (f && f.offsetParent ? f : $(PAUSE_PANELS[name]).querySelector('button')).focus();
 }
 export function pauseBack() { const from = rt.pausePanel; showPause(PAUSE_PARENT[from] || 'main', PAUSE_OPENER[from]); }
@@ -61,6 +64,20 @@ export function renderAbyssMenu() {
     if (id === 'map') setTimeout(() => { rt.logTab = 'map'; G.openModal('chart'); }, 150);
   }));
   $('abForce').textContent = rt.forced === 1 ? 'Back to automatic dread' : 'Go to full dread now (all ON effects)';
+}
+// Keys (G-20): one row per action, the same buttons as every other row; press one, then the new key (Esc keeps the old one)
+export function renderKeys(focusId) {
+  $('pkList').innerHTML = KEY_ACTIONS.map(([id, label]) => `<button data-key="${id}">${label}: ${actionLabel(id)}</button>`).join('');
+  $('pkList').querySelectorAll('button').forEach((b) => b.addEventListener('click', () => {
+    const id = b.dataset.key, label = KEY_ACTIONS.find((a) => a[0] === id)[1];
+    b.textContent = `${label}: press a key`;
+    captureKey(id, () => renderKeys(id));
+  }));
+  const f = focusId && $('pkList').querySelector(`[data-key="${focusId}"]`); if (f) f.focus();
+}
+/** the Controls page names the keys as they are now */
+function controlKeys() {
+  for (const td of $('pauseControls').querySelectorAll('td[data-k]')) td.innerHTML = (td.dataset.p || '') + td.dataset.k.split(' ').map(actionLabel).join(' / ') + (td.dataset.x || '');
 }
 /** what is going on right now, as the sound studio's situations (see studio.js) */
 export function soundSituation() {
@@ -96,9 +113,9 @@ export function initPause1() {
   NIGHT_SET.lamp = params.has('lamp') ? clamp(parseInt(params.get('lamp'), 10) || 0, 0, 3) : settings.lamp2 != null ? settings.lamp2 : 0;   // a candle by default
   nightLabels();
   // comfort (G4): shake and tremor, the picture's wobble and split, flashes; remembered with the other settings
-  const comfortLabels = () => { const c = settings.comfort, w = (k) => (c[k] ? 'On' : 'Off'); $('pbShake').textContent = `Shake: ${w('shake')}`; $('pbWobble').textContent = `Wobble: ${w('wobble')}`; $('pbFlash').textContent = `Flashes: ${w('flash')}`; document.body.classList.toggle('noflash', !c.flash); };
+  const comfortLabels = () => { const c = settings.comfort, w = (k) => (c[k] ? 'On' : 'Off'); $('pbShake').textContent = `Shake: ${w('shake')}`; $('pbWobble').textContent = `Wobble: ${w('wobble')}`; $('pbFlash').textContent = `Flashes: ${w('flash')}`; $('pbRumble').textContent = `Rumble: ${w('rumble')}`; document.body.classList.toggle('noflash', !c.flash); };
   comfortLabels();
-  for (const [id, k] of [['pbShake', 'shake'], ['pbWobble', 'wobble'], ['pbFlash', 'flash']]) $(id).addEventListener('click', () => { settings.comfort[k] = !settings.comfort[k]; store.set(SETTINGS_KEY, settings); comfortLabels(); $(id).focus(); });
+  for (const [id, k] of [['pbShake', 'shake'], ['pbWobble', 'wobble'], ['pbFlash', 'flash'], ['pbRumble', 'rumble']]) $(id).addEventListener('click', () => { settings.comfort[k] = !settings.comfort[k]; store.set(SETTINGS_KEY, settings); comfortLabels(); $(id).focus(); if (k === 'rumble') rumble(RUMBLE.catch); });   // switching rumble on gives one short pulse
   $('pbNight').addEventListener('click', () => { rt.nightMode = (rt.nightMode + 1) % NIGHT_MODES.length; settings.nightMode2 = rt.nightMode; store.set(SETTINGS_KEY, settings); nightLabels(); $('pbNight').focus(); });
   $('pbLamp').addEventListener('click', () => { NIGHT_SET.lamp = (NIGHT_SET.lamp + 1) % LAMPS.length; settings.lamp2 = NIGHT_SET.lamp; store.set(SETTINGS_KEY, settings); nightLabels(); $('pbLamp').focus(); });
   $('pbOcean').addEventListener('click', () => { U.uOcean.value = ((U.uOcean.value | 0) + 1) % OCEAN_STYLES.length; settings.ocean2 = U.uOcean.value; store.set(SETTINGS_KEY, settings); oceanLabel(); $('pbOcean').focus(); });
@@ -118,9 +135,10 @@ export function initPause2() {
   }
   rt.pausePanel = 'main';
   showPauseMain = () => showPause('main');
-  for (const [name, btn] of Object.entries({ settings: 'pbSettings', controls: 'pbControls', dev: 'pbDevTools', sound: 'pbSoundMenu', display: 'pbDisplay', abyss: 'pbAbyss' })) $(btn).addEventListener('click', () => showPause(name));
+  for (const [name, btn] of Object.entries({ settings: 'pbSettings', controls: 'pbControls', keys: 'pbKeys', dev: 'pbDevTools', sound: 'pbSoundMenu', display: 'pbDisplay', abyss: 'pbAbyss' })) $(btn).addEventListener('click', () => showPause(name));
   document.querySelectorAll('#pause .pback').forEach((b) => b.addEventListener('click', pauseBack));
   $('pbResume').addEventListener('click', () => G.closeModal());
+  $('pkReset').addEventListener('click', () => { resetKeys(); renderKeys(); $('pkReset').focus(); });
   if (!DEV) { $('pbDevTools').style.display = 'none'; $('pbAbyss').style.display = 'none'; $('pbMixer').style.display = 'none'; $('pbStudio').style.display = 'none'; $('devKeys').style.display = 'none'; settings.abyss = {}; }   // players get every effect, no test menu
   mixer = new Mixer(G.audio, (t, d, ms) => toast(t, d, ms));
   $('pbMixer').addEventListener('click', () => { G.closeModal(); mixer.toggle(true); });

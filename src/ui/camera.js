@@ -10,6 +10,10 @@ import { $ } from './dom.js';
 export let camPos, camLook;   // set by the init function(s) below, at the point in boot where main.js had them
 
 export const PITCH_MIN = 0.06;   // low, almost level with the deck: the view tilts up to the sky instead of dipping under the hull
+/** zoom without a wheel (G-15): - / = and the pad's right stick, x1.6 a second, between ZOOM_MIN and the spyglass's zoomMax */
+export const ZOOM_RATE = 1.6, ZOOM_MIN = 14;
+/** look-ahead (G-16): the look point runs LOOK_REST x zoom ahead at rest, LOOK_FULL x zoom at full speed (11), eased LOOK_EASE a second; anchored it stays at rest */
+export const LOOK_REST = 0.2, LOOK_FULL = 0.32, LOOK_EASE = 1, LOOK_SPEED = 11;
 
 /** the camera: follow the ship (zoom, tilt, orbit, swell), shake, the title shot, ashore, the intro, the yard turntable, overrides */
 export function updateCamera(rawDt, live, ashore) {
@@ -29,7 +33,9 @@ export function updateCamera(rawDt, live, ashore) {
   rt.camSwell += ((G.ship.float && G.ship.float.y !== undefined ? clamp(G.ship.float.y, -4, 4) * 0.65 : 0) - rt.camSwell) * Math.min(1, rawDt * 1.1);
   camPos.set(G.ship.pos.x - fx * back, up + 1 + rt.camSwell, G.ship.pos.z - fz * back);
   const skyK = clamp((0.3 - pitchNow) / (0.3 - PITCH_MIN), 0, 1);   // below the old limit the camera looks up instead of down
-  camLook.set(G.ship.pos.x + fx * rt.zoom * 0.2, 1.5 + rt.camSwell * 0.7 + rt.lookUpK * 9 + skyK * rt.zoom * 0.42, G.ship.pos.z + fz * rt.zoom * 0.2);
+  const lookT = LOOK_REST + (LOOK_FULL - LOOK_REST) * (G.ship.anchored ? 0 : clamp(G.ship.speed / LOOK_SPEED, 0, 1));
+  rt.lookK = rt.lookK == null ? LOOK_REST : rt.lookK + (lookT - rt.lookK) * Math.min(1, rawDt * LOOK_EASE);
+  camLook.set(G.ship.pos.x + fx * rt.zoom * rt.lookK, 1.5 + rt.camSwell * 0.7 + rt.lookUpK * 9 + skyK * rt.zoom * 0.42, G.ship.pos.z + fz * rt.zoom * rt.lookK);
   camPos.y = Math.max(camPos.y, 3.2);                                 // never at or under the waterline
   const still = !settings.comfort.shake;   // comfort: no shake, no tremor, no roll (G4)
   if (rt.shake > 0) { rt.shake = Math.max(0, rt.shake - rawDt * 1.8); if (!still) { camPos.x += Math.sin(rt.tNow * 70) * rt.shake; camPos.y += Math.cos(rt.tNow * 63) * rt.shake * 0.7; } }
@@ -55,11 +61,18 @@ export function updateCamera(rawDt, live, ashore) {
   camera.updateMatrixWorld();
 }
 
+/** zoom by keys and pad (G-15), once a frame with the game's dt (it stops in menus): - out, = in, rt.padZoom from the right stick (down = out) */
+export function camInput(dt, live, keys) {
+  if (!live) return;
+  const z = (keys.has('Minus') || keys.has('NumpadSubtract') ? 1 : 0) - (keys.has('Equal') || keys.has('NumpadAdd') ? 1 : 0) + (rt.padZoom || 0);
+  if (z) rt.zoomT = clamp(rt.zoomT * Math.pow(ZOOM_RATE, z * dt), ZOOM_MIN, G.ship.mods.zoomMax);
+}
+
 /** boot code that ran at this point in main.js; main.js calls it in the same place */
 export function initCamera1() {
   rt.zoom = parseFloat(params.get('zoom') || '24'), rt.zoomT = rt.zoom;
   rt.pitch = parseFloat(params.get('pitch') || '0.72'), rt.pitchT = rt.pitch;
-  canvas.addEventListener('wheel', (e) => { rt.zoomT = clamp(rt.zoomT * (1 + Math.sign(e.deltaY) * 0.1), 14, G.ship.mods.zoomMax); e.preventDefault(); }, { passive: false });
+  canvas.addEventListener('wheel', (e) => { rt.zoomT = clamp(rt.zoomT * (1 + Math.sign(e.deltaY) * 0.1), ZOOM_MIN, G.ship.mods.zoomMax); e.preventDefault(); }, { passive: false });
   rt.drag = null;
   rt.yawT = 0, rt.camYaw = 0, rt.lastCamInput = -99;   // orbit around the boat (drag sideways, Z / X, V resets)
   canvas.addEventListener('pointerdown', (e) => { rt.drag = { x: e.clientX, y: e.clientY, p: rt.pitchT, yaw: rt.yawT }; rt.lastCamInput = rt.tNow; canvas.setPointerCapture(e.pointerId); });

@@ -19,7 +19,7 @@ export const settings = Object.assign({ muted: false, musicOff: false, vol: { mu
 /** comfort (task G4): camera shake and tremor, the picture's wobble and colour split, flashes. Off by default when the system asks
  *  for reduced motion; once the player sets one it is remembered like any other setting */
 const REDUCED = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
-settings.comfort = Object.assign({ shake: !REDUCED, wobble: !REDUCED, flash: !REDUCED }, settings.comfort || {});
+settings.comfort = Object.assign({ shake: !REDUCED, wobble: !REDUCED, flash: !REDUCED, rumble: !REDUCED }, settings.comfort || {});   // rumble: a pad's, G-19
 export const THREADS_KEY = 'pocket-pirates-threads-v1';
 /** mutable flags of this browser session (not saved) */
 export const session = {

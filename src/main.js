@@ -61,6 +61,7 @@ import { LM } from './landmarks.js';
 import { SeaPlay } from './seaplay.js';
 import { Glimpse } from './glimpse.js';
 import { installGamepad } from './gamepad.js';
+import { installInput, helpText, rumbleTick } from './input.js';   // remapping, prompts by device, rumble (G-18 to G-20)
 import { Wake } from './wake.js';
 import { Secrets, TALES } from './secrets.js';
 import { oilCap } from './oil.js';
@@ -79,7 +80,7 @@ import { tunePan, lullDread, lullabyTick, playersEar } from './systems/lullaby.j
 import { lostTick, LOST_CARDS } from './systems/lostsailors.js';
 import { buildBiome } from './concepts.js';   // dev concept scenes (__game.biome); the Edge builds from it too
 import { edgeTick, startEdge } from './systems/edge.js';
-import { PITCH_MIN, updateCamera, initCamera1, initCamera2 } from './ui/camera.js';
+import { PITCH_MIN, updateCamera, initCamera1, initCamera2, camInput } from './ui/camera.js';
 import { titleEl, startTitle, titleCam, titleKey, INTRO_DUR, endIntro, skipIntro, begin, initTitle1, initTitle2 } from './ui/title.js';
 import { fsEl, fsOk, toggleFullscreen, nightViewNow, showPauseMain, pauseBack, mixer, studio, soundSituation, initPause1, initPause2 } from './ui/pause.js';
 import { renderYard, initShipyard } from './ui/shipyard.js';
@@ -484,7 +485,7 @@ rt.onbGold0 = null, rt.onbT0 = null, rt.onbStepT = 0, rt.onbNudged = false;
 function onbTick() {
   if (!rt.started) return;
   const s = state.story.onb || (state.story.onb = {});
-  if (onbAll()) { if (rt.helpMode === 'start') { rt.helpMode = 'legacy'; helpEl.innerHTML = '<span>A/D steer &middot; W/S sails &middot; G oars &middot; E interact<br>M log &middot; Esc pause &middot; drag = tilt &middot; wheel = zoom &middot; H hide HUD &middot; F1 help</span>'; } state.story.onbAll = true; for (const [k, id] of Object.entries(ONB_KEYS)) { const el = $(id); if (el) el.classList.remove('onb-off'); } return; }
+  if (onbAll()) { if (rt.helpMode === 'start') { rt.helpMode = 'legacy'; helpEl.innerHTML = helpText(false); } state.story.onbAll = true; for (const [k, id] of Object.entries(ONB_KEYS)) { const el = $(id); if (el) el.classList.remove('onb-off'); } return; }
   if (rt.onbGold0 === null) { rt.onbGold0 = state.gold; for (const [k, id] of Object.entries(ONB_KEYS)) if (!s[k]) $(id).classList.add('onb-off'); }
   const gi = state.goals.i, intro = MAIN_GOALS[0].intro, step = state.story.onbStep || 0;
   if (rt.onbT0 === null) rt.onbT0 = rt.tNow;
@@ -640,7 +641,7 @@ window.addEventListener('keydown', (e) => {
   if (e.code === 'Enter' || e.code === 'NumpadEnter') objectives.mate.skip();
   if (e.code === 'KeyE') { if (digGame.active) digGame.press(); else tryInteract(); }
   if (e.code === 'KeyH') $('hud').classList.toggle('hidden');
-  if (e.code === 'F1') { e.preventDefault(); rt.helpMode = rt.helpMode === 'full' ? 'off' : 'full'; helpEl.innerHTML = '<span>A/D steer &middot; W/S sails &middot; G oars &middot; E interact &middot; C fish<br>M log &middot; J orders &middot; Q tracker &middot; Esc pause &middot; H hide HUD &middot; F1 this help</span>'; helpEl.style.opacity = rt.helpMode === 'full' ? '1' : '0'; }
+  if (e.code === 'F1') { e.preventDefault(); rt.helpMode = rt.helpMode === 'full' ? 'off' : 'full'; helpEl.innerHTML = helpText(true); helpEl.style.opacity = rt.helpMode === 'full' ? '1' : '0'; }
   if (e.code === 'KeyG' && !rt.modal && rt.started && unlocked(state, 'oars')) { ship.rowing = !ship.rowing; toast(ship.rowing ? 'Oars out' : 'Oars in, sails up', false, 2200); if (ship.rowing) objectives.remark('oars', rt.dread); }
   if (e.code === 'KeyQ' && !rt.modal) { settings.tracker = settings.tracker === false; store.set(SETTINGS_KEY, settings); }
   if (!DEV) return;   // test keys only with ?dev=1
@@ -1168,14 +1169,15 @@ function frame() {
   if (live && wind.shifted() && onbAll()) toast(`The wind is shifting: now from the ${wind.fromName}`, false, 4200);
 
   // ---- ship
-  shipInput.steer = (keys.has('KeyD') || keys.has('ArrowRight') || touch.R ? 1 : 0) - (keys.has('KeyA') || keys.has('ArrowLeft') || touch.L ? 1 : 0);
+  shipInput.steer = (keys.has('KeyD') || keys.has('ArrowRight') || touch.R ? 1 : 0) - (keys.has('KeyA') || keys.has('ArrowLeft') || touch.L ? 1 : 0) || rt.padSteer || 0;   // the pad's stick by its angle (gamepad.js, G-11); keys win
   shipInput.sail = (keys.has('KeyW') || keys.has('ArrowUp') || touch.U ? 1 : 0) - (keys.has('KeyS') || keys.has('ArrowDown') || touch.D ? 1 : 0);
   if (!live || digGame.active || rt.lostK > 0.3 || rt.edgeLock) { shipInput.steer = 0; shipInput.sail = 0; }   // (lost in fog: the helm does not answer)   // (probing the shore: the keys move over the beach)
   if (live && (keys.has('KeyZ') || keys.has('KeyX'))) { rt.yawT += ((keys.has('KeyX') ? 1 : 0) - (keys.has('KeyZ') ? 1 : 0)) * dt * 1.8; rt.lastCamInput = rt.tNow; }
   if (keys.has('KeyV')) { rt.yawT = 0; rt.lastCamInput = rt.tNow; }
   if (!rt.drag && rt.tNow - rt.lastCamInput > 6) rt.yawT += (0 - rt.yawT) * Math.min(1, rawDt * 0.7);   // drifts back behind the boat after a while
   if (live && keys.has('KeyR')) rt.pitchT = clamp(rt.pitchT - dt * 0.8, PITCH_MIN, 1.35);
-  if (live && keys.has('KeyF')) rt.pitchT = clamp(rt.pitchT + dt * 0.8, 0.3, 1.35);
+  if (live && keys.has('KeyF')) rt.pitchT = clamp(rt.pitchT + dt * 0.8, PITCH_MIN, 1.35);
+  camInput(dt, live, keys); if (live) rumbleTick();   // zoom by keys and pad (G-15); rumble for the anchor and the strain (G-19)
   if (live || params.get('autostart')) ship.update(dt, shipInput, windNow, rt.tNow);
   if (live && dt > 0) { stormAndCalm(dt); tabletopTick(dt); seaGate(dt); clueTick(dt); seamTick(dt); tackTick(dt); seaTick(dt, windNow); oilTick(dt); sailTick(dt, windNow); fogLost(dt); }
   rt.tg = getInteract();   // what E would do here: once a frame (systems/interact.js); the anchor, E and the prompt all read it
@@ -1435,6 +1437,7 @@ function frame() {
 $('oilrow').addEventListener('pointerdown', (e) => { if (rt.started && !rt.modal) { toggleLamp(); e.preventDefault(); } });
 $('oilrow').classList.toggle('off', !!state.story.lampOff);
 installGamepad(() => toast('Controller connected: stick to sail, A to interact, Y for the log, Start to pause.', false, 6000));
+installInput(() => { if (rt.helpMode === 'full' || rt.helpMode === 'legacy') helpEl.innerHTML = helpText(rt.helpMode === 'full'); });
 window.__game = { secrets, regionWeights, tideAt: () => tideAt(), lostState: () => ({ lostK: rt.lostK, gateLost: rt.gateLost, placesLost: places.lost, heading: ship.heading, trim: ship.trim }), places, seaplay, glimpse, fishing, sails: () => ({ torn: state.sailsTorn, kits: state.patchKits, strain: rt.sailStrain }), oilState: () => ({ oil: state.oil, lampOut: rt.lampOut }),
   readArch, partnerOf, maraMood, windfx, logbook,
   life, localGames, openHarbour(id, tab = 'board') { const isl = [...world.islands.values()].find((i) => i.desc.id === id); if (!isl) return false; closeModal(true); rt.harbourIsl = isl; rt.hbTab = tab; frameVillage(isl.desc); openModal('harbour'); return true; }, renderHarbour: () => renderHarbour(),

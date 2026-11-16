@@ -770,7 +770,7 @@
       <button id="pbResume">Resume</button><button id="pbLog">Captain's log</button><button id="pbHint">Ask Mara for a hint</button><button id="pbSettings">Settings</button><button id="pbDevTools">Dev tools</button><button id="pbNew">New voyage (erase save)</button><button id="pbExit">Save and exit to title</button><button id="pbQuit" style="display:none">Save and quit</button>
     </div>
     <div id="pauseSettings" style="display:none"><h2>SETTINGS</h2>
-      <button id="pbSoundMenu">Sound and music</button><button id="pbDisplay">Display</button><button id="pbControls">Controls</button><button id="pbFull">Fullscreen: off</button>
+      <button id="pbSoundMenu">Sound and music</button><button id="pbDisplay">Display</button><button id="pbControls">Controls</button><button id="pbKeys">Keys</button><button id="pbFull">Fullscreen: off</button>
       <button class="pback">Back</button>
     </div>
     <div id="pauseDev" style="display:none"><h2>DEV TOOLS</h2>
@@ -782,7 +782,7 @@
       <button class="pback">Back</button>
     </div>
     <div id="pauseDisplay" style="display:none"><h2>DISPLAY</h2>
-      <button id="pbOcean">Ocean: Toon facets</button><button id="pbNight">Night view: Dark</button><button id="pbLamp">Lamp: Lantern</button><button id="pbShake">Shake: On</button><button id="pbWobble">Wobble: On</button><button id="pbFlash">Flashes: On</button>
+      <button id="pbOcean">Ocean: Toon facets</button><button id="pbNight">Night view: Dark</button><button id="pbLamp">Lamp: Lantern</button><button id="pbShake">Shake: On</button><button id="pbRumble">Rumble: On</button><button id="pbWobble">Wobble: On</button><button id="pbFlash">Flashes: On</button>
       <button class="pback">Back</button>
     </div>
     <div id="pauseAbyss" style="display:none"><h2>FULL DREAD</h2>
@@ -791,25 +791,39 @@
       <div id="abList"></div>
       <button class="pback">Back</button>
     </div>
+    <div id="pauseKeys" style="display:none"><h2>KEYS</h2>
+      <div id="pkList"></div><button id="pkReset">Reset all keys</button>
+      <button class="pback">Back</button>
+    </div>
     <div id="pauseControls" style="display:none"><h2>CONTROLS</h2>
       <table>
-        <tr><td>A / D, &larr; &rarr;</td><td>Steer</td></tr>
-        <tr><td>W / S, &uarr; &darr;</td><td>Let the sails out / reef them. With oars out: row forward / back water</td></tr>
-        <tr><td>G</td><td>Oars out / in (row in a dead calm or up to a pier)</td></tr>
-        <tr><td>E</td><td>Go ashore at a pier, dig, pick fruit, salvage, hail a ship (stop the ship first)</td></tr>
-        <tr><td>C</td><td>Fishing: cast, hook the fish, hold Space to reel</td></tr>
-        <tr><td>Space or Enter</td><td>Continue / close Mara's text</td></tr>
-        <tr class="cannonrow"><td>Space</td><td>Fire cannons at an attacking raider (auto-aimed)</td></tr>
+        <tr><td data-k="steerL steerR" data-x=", &larr; &rarr;">A / D, &larr; &rarr;</td><td>Steer</td></tr>
+        <tr><td data-k="sailUp sailDown" data-x=", &uarr; &darr;">W / S, &uarr; &darr;</td><td>Let the sails out / reef them. With oars out: row forward / back water</td></tr>
+        <tr><td data-k="oars">G</td><td>Oars out / in (row in a dead calm or up to a pier)</td></tr>
+        <tr><td data-k="interact">E</td><td>Go ashore at a pier, dig, pick fruit, salvage, hail a ship (stop the ship first)</td></tr>
+        <tr><td data-k="fish">C</td><td>Fishing: cast, hook the fish, hold Space to reel</td></tr>
+        <tr><td data-k="strike" data-x=" or Enter">Space or Enter</td><td>Continue / close Mara's text</td></tr>
+        <tr class="cannonrow"><td data-k="strike">Space</td><td>Fire cannons at an attacking raider (auto-aimed)</td></tr>
         <tr><td>1 / 2</td><td>Choose on an encounter card</td></tr>
         <tr><td>Space / H</td><td>Dice at the tavern: roll / hold. Space also throws the die at the hut</td></tr>
-        <tr><td>M / J</td><td>Captain's log: M = map, J = quests (tabs on the bookmarks)</td></tr>
-        <tr><td>Q</td><td>Show / hide the mission tracker</td></tr>
-        <tr><td>Y</td><td>Ask Mara for a hint</td></tr>
+        <tr><td data-k="log orders">M / J</td><td>Captain's log: M = map, J = quests (tabs on the bookmarks)</td></tr>
+        <tr><td data-k="tracker">Q</td><td>Show / hide the mission tracker</td></tr>
+        <tr><td data-k="hint">Y</td><td>Ask Mara for a hint</td></tr>
         <tr><td>Esc or P</td><td>Pause</td></tr>
-        <tr><td>Mouse drag, R / F</td><td>Tilt camera; drag sideways (or Z / X) to look around the ship, V resets</td></tr>
-        <tr><td>Mouse wheel</td><td>Zoom</td></tr>
-        <tr><td>H</td><td>Hide the HUD</td></tr>
+        <tr><td data-k="tiltDown tiltUp" data-p="Mouse drag, ">Mouse drag, R / F</td><td>Tilt camera; drag sideways to look around the ship</td></tr>
+        <tr><td data-k="camL camR camReset">Z / X / V</td><td>Look left / right / ahead again</td></tr>
+        <tr><td data-k="zoomOut zoomIn" data-p="Mouse wheel, ">Mouse wheel, - / =</td><td>Zoom out / in</td></tr>
+        <tr><td data-k="hud">H</td><td>Hide the HUD</td></tr>
         <tr><td>Touch</td><td>On-screen buttons</td></tr>
+      </table>
+      <table id="pcPad">
+        <tr><td>Left stick</td><td>Steer (as far as you push) and the sails; in a menu, move</td></tr>
+        <tr><td>A / B</td><td>Interact / nothing at sea; in a menu, press / back</td></tr>
+        <tr><td>X / Y</td><td>Fishing / captain's log</td></tr>
+        <tr><td>RT / LT</td><td>Strike, fire, go on / oars</td></tr>
+        <tr><td>LB / RB, right stick</td><td>Look around; right stick up and down zooms. In a menu, LB / RB change the tab</td></tr>
+        <tr><td>View</td><td>Tracker; hold it to ask Mara for a hint</td></tr>
+        <tr><td>Start, left stick press</td><td>Pause, the lamp</td></tr>
       </table>
       <p class="tip">Wind: the ring at the top right is gold where she sails well and red into the wind; the arrow is the wind, the triangle your bow. The wind shifts over time.<br>Treasure: read the riddle in the log, stop at the right shore and press E.<span id="devKeys"><br>Dev: the bar at the top sets the quest, the hour and the dread (auto = by distance again, or 0); 1-4 dawn / noon / dusk / night, [ ] change the hour, , . previous / next quest, F7 finish the quest, F6 weather (clear, light rain, storm, auto), ` info line, F8 sound mixer, F9 sound studio.</span></p>
       <button class="pback">Back</button>
