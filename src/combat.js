@@ -7,6 +7,7 @@ import { KINDS } from './traffic.js';
 // and you can outrun them, pay tribute, or fight. Space auto-aims a broadside at the nearest raider.
 const G = 16, SPEED = 38;
 const WARN = 0.7;   // seconds between a raider's tell and her shot (G-22)
+export const FIRE_BUFFER = 0.25;   // s: Space this close to the end of the reload fires when it ends (SYSTEMS_FEEL G-07; tune by hand)
 const rnd = (a, b) => a + Math.random() * (b - a);
 
 export class Combat {
@@ -52,7 +53,8 @@ export class Combat {
   }
 
   playerFire(ship, traffic, state, mods) {
-    if (this.reload > 0) return 'reload';
+    if (this.reload > 0) { if (this.reload <= FIRE_BUFFER) this.queued = true; return 'reload'; }
+    this.queued = false;
     if (state.ammo <= 0) return 'ammo';
     const tg = this.target(ship, traffic);
     if (!tg) return 'target';
@@ -70,6 +72,7 @@ export class Combat {
   update(dt, t, ctx) {
     const { ship, traffic, wave, onHitEnemy, onHitPlayer } = ctx;
     this.reload = Math.max(0, this.reload - dt);
+    if (this.queued && this.reload <= 0) { this.queued = false; if (ctx.fire && this.target(ship, traffic)) ctx.fire(); }   // the buffered broadside
 
     // raiders shoot back
     for (const s of traffic.ships) {

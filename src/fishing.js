@@ -4,6 +4,13 @@ import { TILE } from './textures.js';
 import { mats } from './psx.js';
 import { waveHeight } from './ocean.js';
 import { clamp, smoothstep } from './util.js';
+import { state } from './core/state.js';
+// how the line forgives (SYSTEMS_FEEL G-05, G-06, G-21; numbers to tune by hand)
+export const FISH_START_SPEED = 2.5;   // the power meter starts once she is this slow; C under way drops the anchor first
+export const FISH_PENDING_MAX = 8;     // s: C under way gives up if she has not slowed by then
+export const STRIKE_TOL = 0.06;        // s: a strike counts if the needle was on a mark this long ago, or will be this soon (never a red snag)
+export const EARLY_HOOK = 0.25;        // s: C in the wait holds this long; a bite inside it is hooked, otherwise the line comes in
+export const RING_TIP_TIMES = 2;       // a water's tip is shown the first times it is met; after that only its name
 const _base = new THREE.Vector3(), _tip = new THREE.Vector3();   // scratch for the rod, every frame a line is out (task R6)
 
 // The fishing minigame: C starts a swinging power meter and C again casts: a short cast lands by the boat (small, easy
@@ -133,16 +140,18 @@ export class Fishing {
 
   /** C or tap: cast / hook / pull the line in */
   press(fromReel = false) {
+    if (this.pending) return null;   // the anchor is already going down for it
     if (this.mode === 'idle') return this.start();
     if (this.mode === 'aim') return this.cast();
     if (this.mode === 'reel') return this.strike();
     if (this.mode === 'bite') return this.hook();
-    if (this.mode === 'wait' && !fromReel) return this.cancel('You reel in the empty line.');
+    if (this.mode === 'wait' && !fromReel) { if (this.early == null) this.early = EARLY_HOOK; return null; }   // a bite inside EARLY_HOOK is hooked
+
     return null;
   }
   start() {
     const s = this.ship;
-    if (s.speed > 2.5) { this.cb.toast('Too fast to fish: reef the sails (S) and let the ship slow down.'); return; }
+    if (s.speed > FISH_START_SPEED) { this.pending = { t: 0 }; return; }   // under way: the anchor goes down (interact.js anchorTick) and the meter starts when she has slowed
     // first the power meter: it swings until C is pressed again
     this.mode = 'aim'; this.aimT = Math.random() * 0.5; this.power = 0;
     this.rod.visible = true; this.bobber.visible = false; this.line.visible = false;
@@ -157,7 +166,7 @@ export class Fishing {
     this.cb.onStart();
   }
   cancel(text) {
-    this.mode = 'idle'; this.bobber.visible = false; this.line.visible = false; this.rod.visible = false; this.ui.style.display = 'none';
+    this.mode = 'idle'; this.pending = null; this.early = null; this.suspended = false; this.bobber.visible = false; this.line.visible = false; this.rod.visible = false; this.ui.style.display = 'none';
     if (text) this.cb.toast(text);
   }
   pick(ctx) {
@@ -170,8 +179,11 @@ export class Fishing {
     for (let i = 0; i < list.length; i++) { r -= ws[i]; if (r <= 0) return list[i]; }
     return list[0];
   }
+  /** a menu opened: the line waits under it (G-01); the clock is stopped, so only the panel is hidden */
+  suspend() { if (this.active || this.pending) { this.suspended = true; this.ui.style.display = 'none'; } }
+  resume() { this.suspended = false; }
   hook() {
-    this.mode = 'reel';
+    this.mode = 'reel'; this.early = null;
     const f = this.fish, df = this.diff = Math.min(0.97, f.diff + (this.power || 0) * 0.12);
     this.a = -Math.PI / 2; this.dir = 1; this.speed = 2.0 + df * 2.3; this.meter = 0.35; this.miss = 0; this.flash = 0; this.stall = 0;
     this.drain = 0.02 + df * 0.02; this.wrong = !!f.dark || (this.cb.getCtx().dread || 0) > 0.5;
@@ -180,7 +192,9 @@ export class Fishing {
     if (this.kind === 'deep') { this.speed *= 0.6; this.drain *= 0.8; }
     for (let i = 0; i < (this.kind === 'deep' ? 2 : df > 0.75 ? 2 : 3); i++) this.addZone();
     if (this.kind === 'snag') for (let i = 0; i < (df > 0.5 ? 2 : 1); i++) this.addSnag();
-    this.say = RING_KINDS[this.kind].name ? `${RING_KINDS[this.kind].name}. ${RING_KINDS[this.kind].tip}` : '';
+    const R = RING_KINDS[this.kind], tk = `tip:ring:${this.kind}`, tell = (state.hints[tk] || 0) < RING_TIP_TIMES;
+    if (tell) state.hints[tk] = (state.hints[tk] || 0) + 1;
+    this.say = tell ? (R.name ? `${R.name}. ${R.tip}` : R.tip) : R.name;
   }
   /** a free place on the ring for an arc of this length, away from the other marks (and the needle) */
   freeSpot(len) {
@@ -197,7 +211,8 @@ export class Fishing {
   /** C / Space while the ring turns */
   strike() {
     if (this.kind === 'deep') { this.hold = true; return; }   // deep water: the fight is a hold, not a tap (reel handles it)
-    const snag = (this.snags || []).find((z) => Math.abs(angDiff(this.a, z.a0 + z.len / 2)) < z.len / 2);
+    const snag = (this.snags || []).find((z) => Math.abs(angDiff(this.a, z.a0 + z.len / 2)) < z.len / 2);   // red is never forgiven
+    const tol = (this.stall > 0 ? 0 : this.speed * (this.surge || 1)) * STRIKE_TOL;   // the needle's travel in STRIKE_TOL, either way
     if (snag) {   // the hook catches on the wreck
       this.miss = Math.min(3, this.miss + 2); this.flash = 0.4; this.flashCol = '#c83a20';
       this.say = this.miss >= 3 ? '' : 'Snagged on the wreck! One strike left.';
@@ -205,9 +220,10 @@ export class Fishing {
       if (this.miss >= 3) this.finish(false, 'snag');
       return;
     }
-    const hit = this.zones.find((z) => Math.abs(angDiff(this.a, z.a0 + z.len / 2)) < z.len / 2);
+    const off = (z) => Math.abs(angDiff(this.a, z.a0 + z.len / 2));
+    const hit = this.zones.find((z) => off(z) < z.len / 2) || this.zones.find((z) => off(z) < z.len / 2 + tol);
     if (hit) {
-      const gold = Math.abs(angDiff(this.a, hit.a0 + hit.len / 2)) < hit.len * 0.18;
+      const gold = off(hit) < hit.len * 0.18 + tol;
       this.meter = Math.min(1, this.meter + (gold ? 0.3 : 0.18)); this.flash = 0.25; this.flashCol = gold ? '#ffd23a' : '#5ec45a';
       this.zones.splice(this.zones.indexOf(hit), 1); this.addZone(); this.dir *= -1;
       if (this.snags && this.snags.length) { const n = this.snags.length; this.snags = []; for (let i = 0; i < n; i++) this.addSnag(); }   // the wreck shifts under you
@@ -236,6 +252,12 @@ export class Fishing {
 
   update(dt, t, ctx) {
     this.lastCtx = ctx; this.t = t;
+    if (this.suspended) return;
+    if (this.pending) {   // C under way: wait for the anchor to slow her
+      this.pending.t += dt;
+      if (this.ship.speed <= FISH_START_SPEED) { this.pending = null; this.start(); }
+      else if (this.pending.t > FISH_PENDING_MAX) this.pending = null;
+    }
     if (this.mode === 'idle') return;
     const s = this.ship;
     if (s.speed > 3.2) { this.cancel('You pull the line in: the ship is moving too fast.'); return; }
@@ -273,7 +295,8 @@ export class Fishing {
       return;
     }
     if (this.mode === 'wait') {
-      if (this.timer >= this.wait) { this.mode = 'bite'; this.timer = 0; this.fish = this.pick(ctx); this.cb.onBite(this.fish); }
+      if (this.timer >= this.wait) { this.mode = 'bite'; this.timer = 0; this.fish = this.pick(ctx); this.cb.onBite(this.fish); if (this.early != null) this.hook(); }   // pressed just before: hooked
+      else if (this.early != null && (this.early -= dt) <= 0) { this.cancel('You reel in the empty line.'); return; }
     } else if (this.mode === 'bite') {
       dip = -0.45 + Math.sin(t * 40) * 0.1;
       if (this.timer > 1.3) { this.cancel(this.fish.dark ? 'Whatever bit has lost interest.' : 'The fish spat the hook.'); return; }
@@ -296,7 +319,7 @@ export class Fishing {
     this.ringCv.style.display = this.mode === 'reel' ? 'block' : 'none';
     this.msg.className = this.mode === 'bite' ? 'blink' : '';
     this.msg.textContent = this.mode === 'wait' ? 'Line in the water... (C pulls it in)' : this.mode === 'bite' ? (this.fish.dark ? 'SOMETHING PULLS BACK! Press C / Space!' : 'BITE! Press C / Space!')
-      : this.say || RING_KINDS[this.kind || 'calm'].tip;
+      : this.say ?? RING_KINDS[this.kind || 'calm'].tip;
     if (this.mode === 'reel') this.drawRing();
   }
 
@@ -331,7 +354,7 @@ export class Fishing {
     this.flash = Math.max(0, this.flash - dt);
     const K = this.kind || 'calm';
     if (this.wrong && this.stall <= 0 && Math.random() < dt * 0.25) this.stall = 0.6;   // the needle stops, and looks back
-    const surge = K === 'swell' ? 0.45 + 1.1 * (0.5 + 0.5 * Math.sin((this.t || 0) * 1.9)) : 1;   // the swell: the needle surges and slows
+    const surge = this.surge = K === 'swell' ? 0.45 + 1.1 * (0.5 + 0.5 * Math.sin((this.t || 0) * 1.9)) : 1;   // the swell: the needle surges and slows
     if (this.stall > 0) this.stall -= dt; else this.a += this.dir * this.speed * surge * dt;
     if (K === 'night') { this.pulse -= dt; if (this.pulse < -1.4) this.pulse = 0.28; }
     if (K === 'reef') for (const z of this.zones) { z.jump -= dt; if (z.jump <= 0) { const i = this.zones.indexOf(z); this.zones.splice(i, 1); z.a0 = this.freeSpot(z.len); z.jump = rnd(1.0, 1.6); this.zones.splice(i, 0, z); } }

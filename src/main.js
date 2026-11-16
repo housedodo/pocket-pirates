@@ -86,7 +86,7 @@ import { renderYard, initShipyard } from './ui/shipyard.js';
 import { hailShip, renderShipTrade, initShipTrade } from './ui/shiptrade.js';
 import { renderHarbour, lettersAt, PETS, companions, petOffer, takePet, tabOpened, showGreeting, greetAdvance, buyUpgrade, initHarbour } from './ui/harbour.js';
 import { HUT_NOTES, perrinNote, hutNod, revealHut, showDemoEnd, fogLost, WHITE_MIST, seamTick, clueTick, seaGate, seaTick, oilOn, freeCaysNow, oilTick, SAIL_LIMIT, sailTick, toggleLamp, buyOil, tackTick, hurtPlayer, onHitEnemy, initStoryBeats } from './systems/storybeats.js';
-import { getInteract, tryInteract, anchorTick } from './systems/interact.js';
+import { getInteract, tryInteract, anchorTick, digLeaveTick } from './systems/interact.js';
 import { econ, econTick, econLine } from './systems/econ.js';   // ?econ=1: gold per hour by source (G-25)
 import { after, laterTick, laterPending } from './systems/later.js';
 import { ringNoon, noonBellTick, noonPending } from './systems/noonbell.js';
@@ -511,8 +511,7 @@ function openModal(name) {
   closeModal(true);
   rt.modal = name;
   keys.clear();
-  if (fishing.active) fishing.cancel();
-  if (digGame.active) { digGame.cancel(); rt.dig = null; }
+  fishing.suspend(); digGame.suspend();   // a menu never ends a line, a dig or a timed action: they wait under it (G-01)
   ({ pause: pauseEl, chart: chartEl, harbour: harbourEl, ship: shipEl, yard: yardEl, hut: hutEl, card: cardEl, pig: pigEl, greet: greetEl, cave: caveEl, local: localGames.el })[name].classList.add('open');
   if (name === 'pause') { showPauseMain(); }
   if (name === 'harbour') rt.openLetter = null;
@@ -541,6 +540,7 @@ function closeModal(silent = false) {
   if (rt.modal === 'cave') { rt.caveRun = null; caveScene.stop(); }
   if (rt.modal === 'yard') { ship.setCustom(state.custom); rt.yardTry = null; }   // anything only tried on is put back
   rt.modal = null; rt.harbourIsl = null;
+  fishing.resume(); digGame.resume();
   if (!silent) rt.lastTs = performance.now();
 }
 
@@ -628,18 +628,18 @@ window.addEventListener('keydown', (e) => {
   if (e.code === 'KeyJ') { rt.logTab = 'orders'; openModal('chart'); return; }
   if (rt.modal) return;
   if (e.code === 'Space') e.preventDefault();
-  if (e.repeat) return;
+  if (e.repeat) { if (MOVE_CODES.has(e.code) && !digGame.active) keys.add(e.code); return; }   // a key held through a menu steers again (G-12); actions never repeat
   if (digGame.active) {   // probing the shore: the arrows / WASD move over the beach, not the ship
     const mv = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1], KeyA: [-1, 0], KeyD: [1, 0], KeyW: [0, -1], KeyS: [0, 1] }[e.code];
     if (mv) { digGame.move(...mv); e.preventDefault(); return; }
   }
   keys.add(e.code);
   if (e.code === 'Space' && digGame.active) { digGame.press(); return; }
-  if (e.code === 'Space') { if (fishing.active) { rt.fishLast = rt.tNow; fishing.hold = true; fishing.press(true); } else if (objectives.mate.cur) objectives.mate.skip(); else if (unlocked(state, 'cannons') && rt.tNow - (rt.fishLast ?? -9) > 1.5) fireCannons(); }   // the strike's Space does not fire the cannons a moment later   // Space (or Enter) moves Mara's text on
+  if (e.code === 'Space') { if (fishing.active) { rt.fishLast = rt.tNow; fishing.hold = true; fishing.press(true); } else if (objectives.mate.cur && !(unlocked(state, 'cannons') && traffic.ships.some((x) => x.hostile && x.engaged && !x.sinking))) objectives.mate.skip(); else if (unlocked(state, 'cannons') && rt.tNow - (rt.fishLast ?? -9) > 1.5) fireCannons(); }   // in a raider fight Space only fires, never skips Mara (G-07); the strike's Space does not fire the cannons a moment later   // Space (or Enter) moves Mara's text on
   if (e.code === 'KeyC' && unlocked(state, 'fish')) { if (rt.lampOut && !fishing.active) { toast('Too dark to see the line. The lamp needs oil.', false, 3500); return; } fishing.press(); }
   if (e.code === 'KeyY' && !abyss.maraHint()) objectives.askHint(rt.dread);
   if (e.code === 'Enter' || e.code === 'NumpadEnter') objectives.mate.skip();
-  if (e.code === 'KeyE') { if (digGame.active) digGame.press(); else tryInteract(); }
+  if (e.code === 'KeyE') { if (digGame.active) { digGame.press(); rt.eDown = rt.tNow; } else tryInteract(); }   // held on the beach: the crew packs up (G-10)
   if (e.code === 'KeyH') $('hud').classList.toggle('hidden');
   if (e.code === 'F1') { e.preventDefault(); rt.helpMode = rt.helpMode === 'full' ? 'off' : 'full'; helpEl.innerHTML = '<span>A/D steer &middot; W/S sails &middot; G oars &middot; E interact &middot; C fish<br>M log &middot; J orders &middot; Q tracker &middot; Esc pause &middot; H hide HUD &middot; F1 this help</span>'; helpEl.style.opacity = rt.helpMode === 'full' ? '1' : '0'; }
   if (e.code === 'KeyG' && !rt.modal && rt.started && unlocked(state, 'oars')) { ship.rowing = !ship.rowing; toast(ship.rowing ? 'Oars out' : 'Oars in, sails up', false, 2200); if (ship.rowing) objectives.remark('oars', rt.dread); }
@@ -835,6 +835,7 @@ function landHo(d) {
 }
 rt.placeShown = '', rt.lastSave = 0, rt.lastNear = null, rt.lastHour = Math.floor(state.time * 24);
 const shipInput = { steer: 0, sail: 0 };
+const MOVE_CODES = new Set(['KeyA', 'KeyD', 'KeyW', 'KeyS', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown']);
 
 function fireCannons() {
   const r = combat.playerFire(ship, traffic, state, ship.mods);
@@ -1264,7 +1265,7 @@ function frame() {
   windfx.update(vdt, rt.animT, windNow.dir, windNow.strength, ship.pos, tod.night, Math.min(1, weather.rain * 1.5), stage.fogNear, stage.fogFar);
   fishing.update(dt, waveT, { wave: stage.wave, dread: rt.dread, night: tod.night, env: fishing.active ? fishEnv() : null });   // the water is read only while a line is out
   setDieWear(clamp(state.dayN / 12 + rt.dread * 0.6, 0, 1));
-  combat.update(dt, waveT, { ship, traffic, wave: stage.wave, onHitEnemy, onHitPlayer: hurtPlayer });
+  combat.update(dt, waveT, { ship, traffic, wave: stage.wave, onHitEnemy, onHitPlayer: hurtPlayer, fire: fireCannons });
   econTick(state, dt);
   { const pork = life.meal(state) === 'pork'; if (live && rt.tNow - rt.lastHit > 12 && (weather.storm < 0.3 || pork) && state.hp < ship.mods.maxHp) state.hp = Math.min(ship.mods.maxHp, state.hp + dt * (pork ? 2 : 1)); }   // no mending in a storm
   { // while Perrin's letter is being read about, Mara stays on screen even ashore or in the log: she is the tutorial
@@ -1342,7 +1343,7 @@ function frame() {
   const tgt = rt.tg;
   if (rt.dig && live) {
     if (!tgt || tgt.key !== rt.dig.key) { rt.dig = null; digGame.cancel(); toast('The crew came back empty-handed.'); }
-    else if (rt.dig.mini) digGame.update(dt);
+    else if (rt.dig.mini) { digGame.update(dt); digLeaveTick(keys.has('KeyE')); }
     else {
       rt.dig.t += dt;
       promptFill.style.width = `${Math.min(100, (rt.dig.t / rt.dig.need) * 100)}%`;
@@ -1351,8 +1352,8 @@ function frame() {
   }
   if (tgt && live) {
     promptEl.style.display = 'block';
-    if (rt.dig) { promptTxt.textContent = rt.dig.label || 'Digging...'; promptBar.style.display = rt.dig.mini ? 'none' : 'block'; }
-    else if (rt.digFix > rt.tNow && tgt.kind === 'treasure') { promptBar.style.display = 'none'; promptTxt.textContent = rt.digFixWhy === 'tide' ? 'The tide is in. Wait for it to go out...' : rt.digFixWhy === 'mud' ? 'Scraping the shovels clean...' : 'Fetching the spare shovel...'; }
+    if (rt.dig) { promptTxt.textContent = rt.dig.label || 'Digging...'; promptBar.style.display = rt.dig.mini && !rt.digLeave ? 'none' : 'block'; }
+    else if (rt.digFix > rt.tNow && tgt.kind === 'treasure') { promptBar.style.display = 'none'; promptTxt.textContent = rt.digFixWhy === 'tide' ? 'The tide is in. Wait for it to go out...' : rt.digFixWhy === 'mud' || rt.digFixWhy === 'leave' ? 'Scraping the shovels clean...' : 'Fetching the spare shovel...'; }
     else {
       promptBar.style.display = 'none';
       promptTxt.textContent = tgt.kind === 'thread' ? tgt.th.prompt : tgt.kind === 'spring' ? '[E] Look into the water' : tgt.kind === 'cave' ? '[E] Look into the cave' : tgt.kind === 'sighting' ? `[E] ${tgt.s.label}` : tgt.kind === 'harbourfar' ? 'Sail to the pier to go ashore' : tgt.kind === 'hut' ? '[E] Knock on the dark hut' : tgt.kind === 'harbour' ? `[E] Visit ${tgt.isl.desc.name}`
