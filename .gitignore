@@ -5,3 +5,4 @@ electron/node_modules
 electron/out
 electron/game
 tools/hoist/build/
+.claude/worktrees
