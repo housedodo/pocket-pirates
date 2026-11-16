@@ -1617,3 +1617,17 @@ Trials for the owner to compare; nothing changes without a flag and STYLE.md is 
 - **Verified:** opened as a file with `?dev=1&dread=0.9&autostart=1&threads=all&sea=debug`: the title screen shows, Enter starts a voyage,
   dread stays at 0.02, no dev bar, F8/F9/5 do nothing, 59 sounds packed, no console errors. **Not verified:** a full playthrough.
 
+
+## Three proposals for review: lore, systems, regions (2026-11-16, owner: "run through all phases; I review the final outputs")
+- Documents only, in `docs/proposals/`. **Nothing here is canon or built**: no code, `CANON.md` or `RULES.md` changed. Each item has
+  an ID so it can be approved, tweaked or cut on its own; CANON section 8 and the STORY_MASTER [IDEA] slots were left alone.
+  - `LORE_BIBLE.md`: loose-ends audit, timeline, in-between lore (L-01 to L-42), regional ties, 40 sample lines (S-01 to S-40).
+  - `SYSTEMS_FEEL.md`: systems inventory with numbers from the code, friction audit (G-01 to G-33, 14 frictions kept on purpose),
+    core control rules, feedback matrix. Six items need the owner (G-26, G-28 to G-32).
+  - `REGIONAL_CATALOGUE.md`: 25 regional mechanics and 28 small puzzles by region, with the curation checklist at the end.
+- **Found on the way, not fixed** (listed in the documents): clue region tags that disagree with the water a place lies in (D-01);
+  hut words readable before the hut through visit texts (D-02); the Table's far label and its landing open on different conditions
+  (D-10); three numberings of the dread stages (D-16); the gamepad cannot press buttons in any menu (G-02); opening the log cancels a
+  dig or a fishing fight (G-01); `audio.playTone` bypasses `CUES.oneShots` in three places (RULES 25).
+- **Verified:** IDs agree between each catalogue body and its checklist (53 items); sample lines searched for the banned words.
+  **Not verified:** nothing was played; every number is read from the code, and feel proposals marked H need the owner's hands.
