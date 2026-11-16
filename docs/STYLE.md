@@ -91,6 +91,14 @@ purple and magenta cosmic horror as dread rises.
   near-black, swell slate, deep navy, reef teal), red snag arcs; beach ground per kind (sand, grey shingle with grey
   stone dots, pale dunes, brown mud with dark sunk squares).
 - **The glimpse figure (the diver):** a rusted deep-sea diver standing upright on the water, once (`src/glimpse.js`, look `a`, 2026-11-12): a dented copper helmet with a cracked front glass and one side pane gone, rust running down a swollen canvas suit, lead boots, both arms hanging limp, the air hose in one run from the back of the helmet down into a loop on the water, cut and open. Scale 0.95 at about 48 off the bow; in view about 11 seconds. Nothing glows on him.
+- **The Edge** (`src/systems/edgeworld.js`, sailed since 2026-11-16): a straight lip of pale foam, white ropes of water down the
+  face, spray falling into flat black (`#07050c`); past it, unfogged and built from the same stone boxes, cylinders and blobs
+  in four greys (`#3c3848`..`#6a6070`), the hooded one with nothing in the hood, a head on its side with one magenta eye
+  (`#ff70d0`, the glow tile), the tower at wrong angles with pin-prick windows, the pillars and the sunk arches. Each stands
+  apart along the lip and comes out of the dark (opacity, never a fog colour) only as the ship draws level; the pillars keep
+  one apparent size from anywhere. The pull is pale thin dashes on the water racing to the lip (thicker and faster close in,
+  the current foam's material). The ends of the stretch close in white sea mist (`#e8eef0`), the same white as the mist
+  that takes the ship over.
 
 ## 4. Colour and mood
 - The sea is low-poly and faceted: a fine wave mesh with small chop, light banded in ~6 steps by facing to the sun,

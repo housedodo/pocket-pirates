@@ -77,8 +77,8 @@ import { WEEK, weekday, isMarketDay, isLanternNight, isFestival, tideAt, tideFal
 import { addMark, clearMark, keep } from './systems/storyflags.js';
 import { tunePan, lullDread, lullabyTick, playersEar } from './systems/lullaby.js';
 import { lostTick, LOST_CARDS } from './systems/lostsailors.js';
-import { buildBiome } from './concepts.js';   // dev concept scenes (__game.biome); the Edge builds from it too
-import { edgeTick, startEdge } from './systems/edge.js';
+import { buildBiome } from './concepts.js';   // dev concept scenes (__game.biome)
+import { edgeTick, startEdge, edgeFog } from './systems/edge.js';
 import { PITCH_MIN, updateCamera, initCamera1, initCamera2 } from './ui/camera.js';
 import { titleEl, startTitle, titleCam, titleKey, INTRO_DUR, endIntro, skipIntro, begin, initTitle1, initTitle2 } from './ui/title.js';
 import { fsEl, fsOk, toggleFullscreen, nightViewNow, showPauseMain, pauseBack, mixer, studio, soundSituation, initPause1, initPause2 } from './ui/pause.js';
@@ -1152,6 +1152,7 @@ function frame() {
       const k = clamp(1 - (dTama - 450) / 150, 0, 1);
       if (g && k > 0) { const target = Math.atan2(g.x - t.x, -(g.z - t.z)) + Math.PI / 2; want = target + angleDiff(target, want) * (1 - 0.75 * k); }
     }
+    if (rt.edge) want = rt.edge.windTo;   // at the Edge the air goes over the lip too (systems/edge.js)
     wind.dir += angleDiff(wind.dir, want) * Math.min(1, dt * 0.45);   // the felt wind swings round over a few seconds
   }
   { // the glimpse: once, a little while after you sail away from your first throw at the hut
@@ -1170,7 +1171,7 @@ function frame() {
   // ---- ship
   shipInput.steer = (keys.has('KeyD') || keys.has('ArrowRight') || touch.R ? 1 : 0) - (keys.has('KeyA') || keys.has('ArrowLeft') || touch.L ? 1 : 0);
   shipInput.sail = (keys.has('KeyW') || keys.has('ArrowUp') || touch.U ? 1 : 0) - (keys.has('KeyS') || keys.has('ArrowDown') || touch.D ? 1 : 0);
-  if (!live || digGame.active || rt.lostK > 0.3 || rt.edgeLock) { shipInput.steer = 0; shipInput.sail = 0; }   // (lost in fog: the helm does not answer)   // (probing the shore: the keys move over the beach)
+  if (!live || digGame.active || rt.lostK > 0.3) { shipInput.steer = 0; shipInput.sail = 0; }   // (lost in fog: the helm does not answer)   // (probing the shore: the keys move over the beach)
   if (live && (keys.has('KeyZ') || keys.has('KeyX'))) { rt.yawT += ((keys.has('KeyX') ? 1 : 0) - (keys.has('KeyZ') ? 1 : 0)) * dt * 1.8; rt.lastCamInput = rt.tNow; }
   if (keys.has('KeyV')) { rt.yawT = 0; rt.lastCamInput = rt.tNow; }
   if (!rt.drag && rt.tNow - rt.lastCamInput > 6) rt.yawT += (0 - rt.yawT) * Math.min(1, rawDt * 0.7);   // drifts back behind the boat after a while
@@ -1181,8 +1182,7 @@ function frame() {
   rt.tg = getInteract();   // what E would do here: once a frame (systems/interact.js); the anchor, E and the prompt all read it
   if (live) { anchorTick(); oarTick(dt); }
   if (live && Math.floor(rt.tNow * 0.7) !== Math.floor((rt.tNow - dt) * 0.7)) flushToasts();   // a held message every 1.4 s, once the quiet is over
-  if (live && dt > 0 && window.__BUILD !== 'demo') edgeTick({ dt, dread: rt.dread, ship, quiet: eventQuiet() || !!rt.modal || rt.lostK > 0 || !!rt.gateLost,
-    clearAhead: () => { const f = [Math.sin(ship.heading), -Math.cos(ship.heading)]; for (const d of [60, 140, 220, 300]) if (world.nearest(ship.pos.x + f[0] * d, ship.pos.z + f[1] * d, 120)) return false; return true; },
+  if (live && dt > 0 && window.__BUILD !== 'demo') edgeTick({ dt, dread: rt.dread, ship, quiet: eventQuiet() || !!rt.modal || rt.lostK > 0.01 || !!rt.gateLost || weather.calm > 0.5, world,
     fadeEl: $('fade'), onDone: () => { rt.quietUntil = rt.tNow + 30; } });   // the Edge, once, at the deepest dread
   if (live && dt > 0 && window.__BUILD !== 'demo') lostTick({ dt, dread: rt.dread, sighting, ship, world, quiet: eventQuiet() || !!rt.modal || !!rt.edge });   // the sailors who went mad
   if (live && dt > 0) { const t0 = world.desc(0, -1); homeTick({ dt, tamaDist: t0 ? Math.hypot(ship.pos.x - t0.x, ship.pos.z - t0.z) : 1e9, ringing: noonPending() > 0 }); }   // home is gentle: the noon hush (demo too)
@@ -1297,7 +1297,7 @@ function frame() {
 
   // ---- global shader state
   scene.fog.color.copy(stage.fog); scene.fog.near = stage.fogNear; scene.fog.far = stage.fogFar;
-  if (rt.edge && rt.edge.t < 37) { scene.fog.near = Math.max(scene.fog.near, 90); scene.fog.far = Math.max(scene.fog.far, 420); }   // the Edge: the ship stays clear while the far shapes stand sharp
+  edgeFog(scene.fog);   // the Edge: the water to the lip stays clear; white mist at the ends of the stretch (systems/edge.js)
   mistMat.color.copy(stage.fog).lerp(WHITE_MIST, 0.25);   // the sea mist round the foot of deep places
   U.uDread.value = rt.dread; U.uTime.value = waveT;
   if (window.__waterLock) { const wl = window.__waterLock; if (wl.t != null) U.uTime.value = Math.floor(wl.t * 12) / 12; if (wl.rough != null) { rt.waterRough = wl.rough; U.uRough.value = WATER.rough = wl.rough; } }   // dev: water previews (docs/concept/water)
@@ -1455,7 +1455,7 @@ window.__game = { secrets, regionWeights, tideAt: () => tideAt(), lostState: () 
   companion(kind = 'cat', slot = '_pet') { if (this[slot]) ship.root.remove(this[slot].m.g); this[slot] = kind ? new Companion(ship, kind) : null; return !!this[slot]; },
   teleport(x, z, h) { ship.pos.set(x, 0, z); ship.heading = h; rt.camHeading = h; ship.vel = null; },
   /** biome concept scenes (dev): kind 'coral' | 'rain' | 'sunken' */
-  async biome(kind, x, z) {   // concepts.js is imported statically (the Edge uses it): a dynamic import here would split the bundle
+  async biome(kind, x, z) {   // concepts.js is imported statically: a dynamic import here would split the bundle
     if (this._biome) scene.remove(this._biome); this._biome = buildBiome(scene, kind, x, z); return true; },
   /** design lineups for screenshots: 'villagers' or 'houses' on a raft at (x, z) */
   showcase(kind, x = 0, z = 60) {
