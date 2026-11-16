@@ -79,9 +79,12 @@ export const clockAt = (d) => { const h = ((d % 1) + 1) % 1 * 24; return `${Stri
 /** take a delivery: a timed one gets its deadline now */
 export function takeJob(state, j) { if (j.timed) j.due = nowD(state) + j.timed / DAY_SECONDS; return j; }
 /** a delivery's pay when it is handed in: a Crown deadline (on time 1.45x, late 0.55x) and the Crown's record for anything to or from it */
+/** a Crown delivery is on time up to 15 game seconds past its deadline (G-33: the formula stays, the grace forgives a last tack) */
+export const DUE_GRACE = 15;
+export const onTime = (state, j) => j.due == null || nowD(state) <= j.due + DUE_GRACE / DAY_SECONDS;
 export function jobPay(state, j, toRegion) {
   let pay = j.reward;
-  if (j.due != null) pay *= nowD(state) <= j.due ? 1.45 : 0.55;
+  if (j.due != null) pay *= onTime(state, j) ? 1.45 : 0.55;
   if (j.fromRegion === 'crown' || toRegion === 'crown') pay *= recordMul(crownRec(state));
   return Math.round(pay);
 }

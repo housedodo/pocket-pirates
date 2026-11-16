@@ -10,7 +10,7 @@ import { stageOf } from './palette.js';
 export const AUDIO_ENABLED = !(typeof window !== 'undefined' && window.__SILENT);   // the demo ships with sound too (without the dread-stage cues, see DEMO_SKIP); the silent build sets __SILENT
 // cues the demo never plays (no dread there): left out of the demo file and never loaded, to keep it small and spoiler-free
 const VARY = new Set(['buy', 'cast', 'bite', 'catch', 'card']);   // one-shots that come in runs: a little pitch drift each time
-const DEMO_SKIP = new Set(['deepbell', 's2_bass', 's2_drums', 's2_guitar', 's2_pluck', 's3_bass', 's3_bell', 's3_pluck']);   // full game only: the Bell Below thread, and the dread stems (the demo has no dread)
+const DEMO_SKIP = new Set(['deepbell', 'fog_note', 's2_bass', 's2_drums', 's2_guitar', 's2_pluck', 's3_bass', 's3_bell', 's3_pluck']);   // full game only: the Bell Below thread, and the dread stems (the demo has no dread)
 
 export const CUES = {
   loops: [
@@ -22,7 +22,18 @@ export const CUES = {
   // only these effects play. Every other effect the game asks for (splash, treasure, cannon, horn ...) is silent on purpose:
   // it is not listed, so it is never loaded and never synthesised. Add a name back here (and its file) to bring one back.
   oneShots: ['ui', 'dig', 'buy', 'pause', 'chapter', 'fail', 'success', 'card', 'roll_d6', 'roll_d20', 'cast', 'bite', 'catch',
-    'thunder', 'oar', 'bell', 'deepbell'],   // oar: one soft stroke while rowing (synthesised)   // thunder: the recorded distant roll (with rain)   // bell: Tama's noon bell, one stroke of the band's bell (s1_bell), owner 2026-11-14   // deepbell: the Bell Below thread's strokes (the owner's church bell, 2026-11-15)
+    'thunder', 'oar', 'bell', 'deepbell',
+    'strike', 'strike_gold', 'strike_miss', 'stone', 'find', 'fog_note'],   // tones (TONES below): synthesised notes, no file   // oar: one soft stroke while rowing (synthesised)   // thunder: the recorded distant roll (with rain)   // bell: Tama's noon bell, one stroke of the band's bell (s1_bell), owner 2026-11-14   // deepbell: the Bell Below thread's strokes (the owner's church bell, 2026-11-15)
+};
+/** the tones: soft bell-like notes made at the moment they play (`chime`), never a file. Each is a cue like any other: listed in
+ *  `CUES.oneShots`, on the mixer's Effects row, and in docs/AUDIO.md. A row is a chord or a run: [freq, dur, vol, delay ms] */
+export const TONES = {
+  strike: [[660, 0.35, 0.07, 0]],                                   // the bite ring: a strike on the mark
+  strike_gold: [[880, 0.35, 0.07, 0]],                              // ... on the gold
+  strike_miss: [[196, 0.3, 0.06, 0]],                               // ... a miss
+  stone: [[1180, 0.35, 0.09, 0], [1530, 0.25, 0.05, 0]],            // the spade on stone (the dig)
+  find: [[523, 0.9, 0.12, 0], [659, 0.9, 0.12, 90], [784, 0.9, 0.12, 180]],   // the dig finds the chest
+  fog_note: [[349.23, 1.6, 0.2, 0]],                                // the Music out of the Fog: one of three notes (`freq` names it; thread_mods.js)
 };
 const tick = () => new Promise((r) => setTimeout(r, 0));
 
@@ -111,6 +122,7 @@ export class AudioBus {
   }
 
   async load(key) {
+    if (TONES[key]) return;   // a tone is made when it plays, never loaded
     const inl = window.__AUDIO && window.__AUDIO[key];   // single-file build: sounds are inlined
     if (inl) { try { this.buffers.set(key, await this.ctx.decodeAudioData(await (await fetch(inl)).arrayBuffer())); return; } catch (e) { /* fall through */ } }
     for (const ext of window.__AUDIO ? [] : ['ogg', 'mp3', 'wav']) {   // a single-file build carries every file it has: a cue that is not inlined is synthesised, never fetched
@@ -191,8 +203,18 @@ export class AudioBus {
     o.connect(lp).connect(g).connect(this.sfxBus || this.master); o.start(t); o.stop(t + 0.09);
   }
 
-  /** a soft bell-like note (for the tune in the fog); `pan` -1..1, `vol` 0..1 */
-  playTone(freq, { dur = 1.8, vol = 0.3, pan = 0 } = {}) {
+  /** a tone cue (TONES): silent unless listed in CUES.oneShots (RULES 25). `vol` scales it like play's; `freq` replaces a
+   *  one-note tone's pitch; `pan` -1..1 */
+  chime(key, { vol = 1, freq = null, pan = 0 } = {}) {
+    const notes = TONES[key]; if (!notes || !CUES.oneShots.includes(key)) return;
+    if (window.__BUILD === 'demo' && DEMO_SKIP.has(key)) return;
+    for (const [f, dur, v, delay] of notes) {
+      const go = () => this._note(freq || f, { dur, vol: v * vol * this.v(key), pan });
+      if (delay) setTimeout(go, delay); else go();
+    }
+  }
+  /** the soft bell-like note under every tone; only `chime` calls it */
+  _note(freq, { dur = 1.8, vol = 0.3, pan = 0 } = {}) {
     if (!this.ctx || this.muted || this.ctx.state !== 'running') return;
     const t = this.ctx.currentTime, g = this.ctx.createGain(), p = this.ctx.createStereoPanner(); p.pan.value = Math.max(-1, Math.min(1, pan));
     g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(Math.max(0.0002, vol), t + 0.03); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
@@ -216,6 +238,7 @@ export class AudioBus {
 
   play(key, { vol = 1, rate = 1, raw = false, pan = null, delay = 0 } = {}) {
     if (!this.ctx) return;
+    if (TONES[key]) { this.chime(key, { vol, pan: pan || 0 }); return; }
     const buf = this.buffers.get(key);
     if (!buf) return;
     const src = this.ctx.createBufferSource();

@@ -202,9 +202,21 @@ through HOIST gently (`HoistLayers <stemdir> <outdir> tavern`, `tools/hoist/`; W
 | `coast` | soft coastal breeze, small waves and far-off gulls (32 s). Rises over the last ~110 units before any island shore, full while moored or ashore (harbour, greeting, shipyard). Quieter at night, gone in storms and by dread ~0.4 |
 
 **One-shots**
-Only these effects play. Everything else the game asks for (splash, treasure, discover, harbour, cannon, hit, horn, gull, dolphin, whale, bottle, creak, bump, whisper, stage_up, knock, ending, and the other bells: `villagebell` at noon in the other bell villages, `fogbell` in thick fog, `hourbell` on the title) is **silent on purpose**: not in `CUES.oneShots`, so never loaded and never synthesised. To bring one back, add its name to `CUES.oneShots` in `src/audio.js` and put its file in `public/audio/`.
+Only these effects (and the tones below) play. Everything else the game asks for (splash, treasure, discover, harbour, cannon, hit, horn, gull, dolphin, whale, bottle, creak, bump, whisper, stage_up, knock, ending, and the other bells: `villagebell` at noon in the other bell villages, `fogbell` in thick fog, `hourbell` on the title) is **silent on purpose**: not in `CUES.oneShots`, so never loaded and never synthesised. To bring one back, add its name to `CUES.oneShots` in `src/audio.js` and put its file in `public/audio/`.
 
 A single-file build (`window.__AUDIO` set) never fetches a sound it does not carry: a listed cue with no inlined file is synthesised.
+
+**Tones** (2026-11-16, audit: these played around the list before, against RULES 25; now they are cues like the rest). Soft
+bell-like notes made when they play (`TONES` and `AudioBus.chime` in `src/audio.js`), never a file and never loaded. Each is listed in
+`CUES.oneShots`, so the mixer's Effects row has it and taking a name out silences it. They sound as they did.
+| Cue | Notes (Hz, length s, level) | Where | Silent twin (RULES 28) |
+|---|---|---|---|
+| `strike` | 660, 0.35, 0.07 | the bite ring: a strike on the mark (`main.js`, fishing `onStrike`) | the needle flash |
+| `strike_gold` | 880, 0.35, 0.07 | the bite ring: a strike on the gold | the gold flash |
+| `strike_miss` | 196, 0.3, 0.06 | the bite ring: a miss | the red flash |
+| `stone` | 1180 + 1530, 0.35 / 0.25, 0.09 / 0.05 | the dig: the spade hits stone (with a small shake) | the grey hole and the crack pip |
+| `find` | 523, 659, 784 a run 90 ms apart, 0.9, 0.12 | the dig finds the chest | the gold box in the hole |
+| `fog_note` | 349.23, 466.16 or 587.33 (F, B flat, D), 1.6, 0.2 x nearness, panned to the house | the Music out of the Fog: one note every 9 s from the house that is not there (`thread_mods.js`); full game only (`DEMO_SKIP`) | the house and its one lit window |
 
 `bell` (owner, 2026-11-14: Tama's bell is the band's bell): one stroke of the band's own bell, cut from `s1_bell.ogg` (the stem strikes
 the same F, with F and A flat partials, every four bars; the stroke at 9.72 s was taken with 5 ms before it, 7 s long, the last 0.8 s faded;

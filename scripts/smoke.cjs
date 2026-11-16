@@ -15,8 +15,11 @@ const check = (who, ok, what) => { console.log(`${ok ? 'ok  ' : 'FAIL'} ${who}: 
 async function lint() {
   globalThis.window = globalThis.window || {};
   const { clueLint } = await import(path.join(ROOT, 'src/clues.js'));
-  const bad = clueLint();
+  const { CLUE_PLACES } = await import(path.join(ROOT, 'src/places.js'));
+  const { regionAt } = await import(path.join(ROOT, 'src/regions.js'));
+  const bad = clueLint({ places: CLUE_PLACES(), regionAt });
   check('lint', bad.length === 0, `clueLint ${bad.length ? 'flags ' + bad.join(', ') : 'passes'}`);
+  for (const w of bad.warnings) console.log(`warn lint: ${w}`);   // a clue's place in another region's water (G-30): the owner's call, never a failure
 }
 
 async function boot(browser, base, demo, flags) {

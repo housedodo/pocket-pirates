@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { clamp, smoothstep, angleDiff, mulberry32, hash2 } from './util.js';
 import { regionLook, regionWeights } from './systems/regionlook.js';
 import { setDecorDay } from './regiondecor.js';
-import { regionAt, caysQuiet, nowD, jobPay, crownLine, inLane, lampDead, RELIGHT_OIL } from './regions.js';
+import { regionAt, caysQuiet, jobPay, onTime, crownLine, inLane, lampDead, RELIGHT_OIL } from './regions.js';
 import { reefTick } from './systems/reef.js';
 import { drownedTick } from './systems/drowned.js';
 import { sampleStage, stageOf, DARK_THRESHOLD, dreadAtDistance, dreadWithPeak, strataIndex } from './palette.js';
@@ -40,7 +40,7 @@ import { KINDS } from './traffic.js';
 import { Fishing } from './fishing.js';
 import { Combat } from './combat.js';
 import './sectors.js';
-import { markSeen, isKnown, levels as clueLevels, d3Open, tableOpen } from './clues.js';
+import { markSeen, isKnown, levels as clueLevels, tableOpen } from './clues.js';
 import { tableOptions, finalThrow, ENDINGS, EPILOGUE } from './table.js';
 import { paintStill } from './cavescene.js';
 import { Objectives, MUSINGS, MAIN_GOALS, unlocked, gateRadius, chapterOf, goalText, goalReached } from './objectives.js';
@@ -87,6 +87,7 @@ import { hailShip, renderShipTrade, initShipTrade } from './ui/shiptrade.js';
 import { renderHarbour, lettersAt, PETS, companions, petOffer, takePet, tabOpened, showGreeting, greetAdvance, buyUpgrade, initHarbour } from './ui/harbour.js';
 import { HUT_NOTES, perrinNote, hutNod, revealHut, showDemoEnd, fogLost, WHITE_MIST, seamTick, clueTick, seaGate, seaTick, oilOn, freeCaysNow, oilTick, SAIL_LIMIT, sailTick, toggleLamp, buyOil, tackTick, hurtPlayer, onHitEnemy, initStoryBeats } from './systems/storybeats.js';
 import { getInteract, tryInteract, anchorTick } from './systems/interact.js';
+import { econ, econTick, econLine } from './systems/econ.js';   // ?econ=1: gold per hour by source (G-25)
 import { after, laterTick, laterPending } from './systems/later.js';
 import { ringNoon, noonBellTick, noonPending } from './systems/noonbell.js';
 import { homeShift, homeTick, homeLook } from './systems/home.js';
@@ -372,7 +373,7 @@ function fishEnv() {
 const fishing = new Fishing(scene, ship, {
   toast: (t) => toast(t),
   getCtx: () => ({ bonus: Math.max(0, ship.mods.lootMul - 1) + (life.meal(state) === 'stew' ? 0.8 : 0), dread: rt.dread }),
-  onStrike: (k) => { if (k === 'miss') audio.playTone(196, { dur: 0.3, vol: 0.06 }); else audio.playTone(k === 'gold' ? 880 : 660, { dur: 0.35, vol: 0.07 }); },   // the bite ring: a soft note per strike
+  onStrike: (k) => audio.chime(k === 'miss' ? 'strike_miss' : k === 'gold' ? 'strike_gold' : 'strike'),   // the bite ring: a soft note per strike
   onStart: () => audio.play('cast'),
   onSplash: () => { audio.play('splash', { vol: 0.4 }); toast('Line cast. Wait for a bite...', false, 2500); },
   onBite: (f) => { toast(f.dark ? 'Something heavy takes the bait!' : 'A bite!', f.dark, 1500); audio.play('bite'); rt.shake = Math.max(rt.shake, 0.15); },
@@ -742,7 +743,7 @@ rt.dread = rt.forced !== null ? rt.forced : dreadAtDistance(Math.hypot(ship.pos.
 rt.dark = rt.dread > DARK_THRESHOLD;
 rt.dig = null;     // { isl, t }
 rt.digFix = 0, rt.digFixWhy = '';   // after a failed probe: the tide is in, or the crew fetches the spare shovel, until this time
-const digGame = new DigGame({ sound: (k) => { if (k === 'rock') { rt.shake = Math.max(rt.shake, 0.12); audio.playTone(1180, { dur: 0.35, vol: 0.09 }); audio.playTone(1530, { dur: 0.25, vol: 0.05 }); } else if (k === 'found') { for (const [f, d] of [[523, 0], [659, 90], [784, 180]]) setTimeout(() => audio.playTone(f, { dur: 0.9, vol: 0.12 }), d); } else audio.play('dig', { vol: 0.35, rate: 1.15 }); } });
+const digGame = new DigGame({ sound: (k) => { if (k === 'rock') { rt.shake = Math.max(rt.shake, 0.12); audio.chime('stone'); } else if (k === 'found') audio.chime('find'); else audio.play('dig', { vol: 0.35, rate: 1.15 }); } });
 rt.tNow = 0;
 rt.curSector = null;
 const sighted = new Set();
@@ -846,7 +847,7 @@ function fireCannons() {
 function completeJobIfHere(d) {
   const j = state.job;
   if (!j || j.toId !== d.id) return;
-  const late = j.due != null && nowD(state) > j.due;
+  const late = !onTime(state, j);   // 15 s of grace past the deadline (regions.js, G-33)
   j.reward = jobPay(state, j, d.region);   // a Crown deadline and the Crown's record (regions.js)
   if (j.due != null) crownLine(state, late ? 'black' : 'clean');
   const wet = weather.storm > 0.35 ? Math.round(j.reward * 0.6) : 0;   // delivered through a storm: they pay extra
@@ -1141,7 +1142,7 @@ function frame() {
   if (sec.id !== rt.curSector) {
     rt.curSector = sec.id;
     if (!state.sectorsSeen.includes(sec.id)) state.sectorsSeen.push(sec.id);
-    if (live && !onbQuiet()) toast(`Entering ${sec.name}: ${sec.faction.name} waters`, sec.dread > 0.5, 5000);
+    // no toast at the line: the place line names the sector and the crossing is slow (G-32, owner 2026-11-16)
   }
   { // early chapters: a gentler wedge into the wind, and around Tama the wind leans across the first routes
     const early = chapterOf(state) < 2;
@@ -1165,7 +1166,7 @@ function frame() {
     audio.hush(Math.max(glimpse.k * 0.97, rt.edgeHush || 0));   // the glimpse, and the Edge (systems/edge.js)
   }
   const windNow = { dir: wind.dir, strength: Math.min(1.4, wind.strength * (1 + 0.25 * weather.storm)) * (1 - 0.92 * weather.calm) * (1 - glimpse.k) };
-  if (live && wind.shifted() && onbAll()) toast(`The wind is shifting: now from the ${wind.fromName}`, false, 4200);
+  // no wind-shift toast: the wind ring shows it (G-32, owner 2026-11-16)
 
   // ---- ship
   shipInput.steer = (keys.has('KeyD') || keys.has('ArrowRight') || touch.R ? 1 : 0) - (keys.has('KeyA') || keys.has('ArrowLeft') || touch.L ? 1 : 0);
@@ -1252,7 +1253,7 @@ function frame() {
   world.hutShown = hutReached();   // no hut on its island before the story gets there
   world.gctx = { calm: weather.calm > 0.5, still: weather.storm < 0.3, up: state.upgrades, seen: state.story.seen || {}, lvl: clueLevels(state), d3: tableOpen(state), ship: { x: ship.pos.x, z: ship.pos.z } };   // what the places' state props read (ART_SPEC 8)
   world.tick(rt.animT, tod);
-  places.labelsTick(camera, ship, (state.upgrades.spyglass || 0), state.discovered, window.innerWidth, window.innerHeight, !onbQuiet() && !$('hud').classList.contains('hidden'), { fogFar: scene.fog.far, d3: d3Open(state) });   // far labels: ?, what it looks like, its name; fade with the fog
+  places.labelsTick(camera, ship, (state.upgrades.spyglass || 0), state.discovered, window.innerWidth, window.innerHeight, !onbQuiet() && !$('hud').classList.contains('hidden'), { fogFar: scene.fog.far, table: tableOpen(state) });   // far labels: ?, what it looks like, its name; fade with the fog
   ship.place(vdt, waveT, stage.wave, rt.dark, tod.night);
   if (rt.anchorBit) { rt.anchorBit = false; fauna.splash(ship.pos.x + Math.sin(ship.heading) * 3.2, ship.pos.z - Math.cos(ship.heading) * 3.2, stage.wave, waveT, 1.1); }   // the anchor bites: a ring of foam at the bow
   secrets.update(vdt, waveT, { ship, time: state.time, dayN: state.dayN, tide: tideAt(), wave: stage.wave, light: Math.min(1, 0.25 + stage.light * 0.9), dread: rt.dread, collected: state.collected, windX: Math.sin(wind.dir), windZ: -Math.cos(wind.dir), heading: ship.heading, fogFar: scene.fog.far });
@@ -1264,6 +1265,7 @@ function frame() {
   fishing.update(dt, waveT, { wave: stage.wave, dread: rt.dread, night: tod.night, env: fishing.active ? fishEnv() : null });   // the water is read only while a line is out
   setDieWear(clamp(state.dayN / 12 + rt.dread * 0.6, 0, 1));
   combat.update(dt, waveT, { ship, traffic, wave: stage.wave, onHitEnemy, onHitPlayer: hurtPlayer });
+  econTick(state, dt);
   { const pork = life.meal(state) === 'pork'; if (live && rt.tNow - rt.lastHit > 12 && (weather.storm < 0.3 || pork) && state.hp < ship.mods.maxHp) state.hp = Math.min(ship.mods.maxHp, state.hp + dt * (pork ? 2 : 1)); }   // no mending in a storm
   { // while Perrin's letter is being read about, Mara stays on screen even ashore or in the log: she is the tutorial
     const st = state.story, on = st.riddleLine === 'wait' || st.noteLine === 'wait' || (st.mateTail && objectives.mate.busy);
@@ -1384,7 +1386,7 @@ function frame() {
   if (rt.modal === 'harbour') { setText($('hbGold'), state.gold); }
   if (rt.modal === 'hut') hut.update(rawDt);
   if (rt.modal === 'ship') { setText($('shGold'), state.gold); }
-  if (debugEl.style.display === 'block') debugEl.textContent = `tris ${renderer.info.render.triangles} calls ${renderer.info.render.calls}  dread ${rt.dread.toFixed(2)} stage ${stage.index + 1} ${rt.forced !== null ? '(forced)' : '(auto)'}  time ${tod.clock}  pos ${ship.pos.x | 0},${ship.pos.z | 0}  spd ${ship.speed.toFixed(1)}  islands ${world.islands.size}`;
+  if (debugEl.style.display === 'block') debugEl.textContent = `tris ${renderer.info.render.triangles} calls ${renderer.info.render.calls}  dread ${rt.dread.toFixed(2)} stage ${stage.index + 1} ${rt.forced !== null ? '(forced)' : '(auto)'}  time ${tod.clock}  pos ${ship.pos.x | 0},${ship.pos.z | 0}  spd ${ship.speed.toFixed(1)}  islands ${world.islands.size}${econLine()}`;
 
   { // the hull is five planks: each one is a fifth of its strength; a damaged plank drains, so every hit shows
     const frac = Math.max(0, state.hp / ship.mods.maxHp), key = Math.round(frac * 100);
@@ -1436,7 +1438,7 @@ $('oilrow').addEventListener('pointerdown', (e) => { if (rt.started && !rt.modal
 $('oilrow').classList.toggle('off', !!state.story.lampOff);
 installGamepad(() => toast('Controller connected: stick to sail, A to interact, Y for the log, Start to pause.', false, 6000));
 window.__game = { secrets, regionWeights, tideAt: () => tideAt(), lostState: () => ({ lostK: rt.lostK, gateLost: rt.gateLost, placesLost: places.lost, heading: ship.heading, trim: ship.trim }), places, seaplay, glimpse, fishing, sails: () => ({ torn: state.sailsTorn, kits: state.patchKits, strain: rt.sailStrain }), oilState: () => ({ oil: state.oil, lampOut: rt.lampOut }),
-  readArch, partnerOf, maraMood, windfx, logbook,
+  readArch, partnerOf, maraMood, windfx, logbook, econ,
   life, localGames, openHarbour(id, tab = 'board') { const isl = [...world.islands.values()].find((i) => i.desc.id === id); if (!isl) return false; closeModal(true); rt.harbourIsl = isl; rt.hbTab = tab; frameVillage(isl.desc); openModal('harbour'); return true; }, renderHarbour: () => renderHarbour(),
   audio,
   objectives, perrinNote, gateRadius: () => gateRadius(state, tideFalls()), trackTarget: () => trackTarget(), digGame,
