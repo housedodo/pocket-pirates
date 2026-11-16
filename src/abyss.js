@@ -9,6 +9,7 @@ import { hoursPerSecond } from './daynight.js';
 import { smoothstep, clamp } from './util.js';
 import { keptBack } from './regions.js';
 import { FRUITS } from './fruit.js';
+import { rt } from './core/runtime.js';
 const KEPT_FROM = 0.2;   // how deep (abyss.k, 0 at dread 0.86 .. 1 at 0.97) before the deep gives back what the Drowned kept
 
 // Full dread ("the abyss"): twelve separate effects that only happen in the very worst water.
@@ -177,7 +178,7 @@ export class Abyss {
     this.k = smoothstep(0.86, 0.97, c.dread);
     const live = c.live;
     // the Eye does not wait for its turn: after long enough in the worst water, the leviathan comes
-    this.fullTime = this.k > 0.9 && live ? this.fullTime + dt : 0;
+    this.fullTime = this.k > 0.9 && live ? this.fullTime + (rt.edge ? 0 : dt) : 0;   // the clock holds while the Edge runs (systems/edge.js)
     if (this.fullTime > (isKnown(this.d.state, 'lookup') ? 200 : 140) && this.cyc.id !== 'leviathan' && !this.solo && !this.ending) { this.cyc.id = 'leviathan'; this.cyc.phase = 'hold'; this.cyc.t = 9999; this.cyc.w = 1; this.begin('leviathan'); }
     this.stepCycle(dt);
 

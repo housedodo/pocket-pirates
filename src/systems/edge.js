@@ -16,14 +16,15 @@ import { U, psxMaterial } from '../psx.js';
 // ---- tuning (game seconds and world units; the ship makes about 9 on a beam reach in a fair wind, 2.6 under oars).
 // These need the owner's hands: the headless browser cannot judge how hard the pull feels.
 export const EDGE = {
-  AHEAD: 240,        // how far ahead the lip is met (about 20 s to the lip under full sail, 80 s drifting with no sail)
+  AHEAD: 240,        // how far ahead the lip is met (about 20 s to the lip under full sail)
   LIP_HALF: 560,     // the stretch along the lip that can be sailed, each way from where it was met (the mist closes beyond);
   LIP_MIN: 300,      // shorter where an island stands on the line of the lip (its end is set short of it), never shorter than this
   PULL_R: 340,       // how far out from the lip the sea pulls at all
   EXIT_D: 390,       // past this the lip has gone back into the mist: out
-  C_FAR: 2.5,        // the broad part of the pull: (1 - (d/PULL_R)^2) of this, so a ship with no sail still drifts in
-  C_EDGE: 8,         // the steep part: (1 - d/PULL_R)^3 of this. In a fair wind a beam reach along the lip holds at ~170 out,
-                     // close-hauled at ~110; oars hold from ~180 and get out from further; closer than ~50 nothing holds.
+  C_FAR: 2.5,        // the broad part of the pull: (1 - d/PULL_R)^2 of this
+  C_EDGE: 8,         // the steep part: (1 - d/PULL_R)^3 of this. In a fair wind a beam reach along the lip holds at ~130 out,
+                     // close-hauled at ~90; stock oars (about 1.5 against it) hold at ~175 and get out from where the lip is
+                     // met; closer than ~50 nothing holds. With no sail and no oars the drift in takes about two and a half minutes.
   HUNGER: 0.8,       // the steep part grows by this much...
   T_HUNGER: [150, 240],   // ...between these times: after about four minutes nobody can stay close
   END_V: 6,          // at the ends of the stretch the water runs back along the lip towards the middle
@@ -53,7 +54,7 @@ const endOf = (e, a) => (a < 0 ? e.ends[0] : e.ends[1]);
 export function edgePull(e, a, d) {
   const u = clamp(d / EDGE.PULL_R, 0, 1), h = 1 + EDGE.HUNGER * smooth(EDGE.T_HUNGER[0], EDGE.T_HUNGER[1], e.t);
   const ramp = smooth(0, EDGE.RAMP, e.t), end = Math.abs(a) - (endOf(e, a) - 150);
-  const v = d <= 0 ? EDGE.C_EDGE * h + EDGE.C_FAR : (EDGE.C_FAR * (1 - u * u) + EDGE.C_EDGE * h * (1 - u) ** 3);
+  const v = d <= 0 ? EDGE.C_EDGE * h + EDGE.C_FAR : (EDGE.C_FAR * (1 - u) ** 2 + EDGE.C_EDGE * h * (1 - u) ** 3);
   const along = end > 0 ? -Math.sign(a) * EDGE.END_V * Math.min(2.5, smooth(0, 200, end) + Math.max(0, end - 200) / 100) : 0;
   return { v: v * ramp, along: along * ramp };
 }
