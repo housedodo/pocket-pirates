@@ -244,8 +244,9 @@ export function goalIdx(id) {
 export const goalReached = (state, id) => ((state.goals && state.goals.i) || 0) >= goalIdx(id);
 export const chapterOf = (state) => { const g = MAIN_GOALS[state.goals.i]; return g ? g.ch : CHAPTERS.length; };
 export const unlocked = (state, key) => chapterOf(state) >= UNLOCK[key];
-/** The strata gates (docs/WORLD_REDESIGN.md 5.3): what stops you is the ship and the sea, never the script. Each stratum edge is
- *  a fog wall until the ship is fitted for what lies beyond it. `tideFalling` lets the Dim be entered; once past it stays open. */
+/** The strata gates (docs/WORLD_REDESIGN.md 5.3): after the first throw at the hut, what stops you is the ship and the sea. Each
+ *  stratum edge is a fog wall until the ship is fitted for what lies beyond it. Before the first throw the wall is the chapter's
+ *  (CANON 2026-11-13, `gateRadius`); the strata only widen it afterwards. `tideFalling` lets the Dim be entered; once past it stays open. */
 export function strataGate(state, tideFalling) {
   const up = state.upgrades || {}, reach = (state.story && state.story.reach) || 0;
   const S = STRATA;
@@ -264,13 +265,11 @@ export function strataGate(state, tideFalling) {
 export const gateRadius = (state, tideFalling) => {
   if (state.story.free) return Infinity;
   if (typeof window !== 'undefined' && window.__BUILD === 'demo') return GATES[Math.min(GATES.length - 1, chapterOf(state))];   // the demo keeps its chapter fog
-  // the first chapters are the tutorial: the wall stays at the edge of Home Sound until the main goals reach the open sea
-  const r = strataGate(state, tideFalling);
   const ch = chapterOf(state);
-  if (ch < 2) return Math.min(r, GATES[ch]);   // the tutorial: Home Sound only
-  if (ch === 2) return Math.max(r, GATES[2]);  // "Working waters" still needs its islands
-  if (!(state.hut && state.hut.rolls && state.hut.rolls.length)) return Math.max(r, GATES[Math.min(GATES.length - 1, ch)]);   // until the first throw the story's own goals stay inside the chapter's wall; after it the ship's reach (upgrades) decides
-  return Math.max(r, GATES[GATES.length - 1]);   // after it the sea never shrinks: the furthest chapter reach stays, and only the ship and the clues take you past it
+  // until the first throw the wall is the chapter's, however well the ship is fitted (CANON 2026-11-13; owner 2026-11-16, G-28).
+  // A save whose ship already lies outside is lost in the fog and drifts back toward Tama like any ship past the wall (seaGate).
+  if (!(state.hut && state.hut.rolls && state.hut.rolls.length)) return GATES[Math.min(GATES.length - 1, ch)];
+  return Math.max(strataGate(state, tideFalling), GATES[GATES.length - 1]);   // after it the sea never shrinks: the furthest chapter reach stays, and only the ship and the clues take you past it
 };
 
 export const SIDE_GOALS = [

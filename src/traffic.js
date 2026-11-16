@@ -248,10 +248,12 @@ export class Traffic {
         s.engaged = dd < 85;
         if (dd > 210 && s.age > 20) s.hostile = false;   // they give up the chase when you pull away
         if (dread > 0.55) { s.hostile = false; s.engaged = false; s.heading = Math.atan2(-dx, dz); s.speed = K.speed[1]; }   // in deep water the raiders want nothing to do with you: they break off and run (2026-11-13)
-        else if (dd < 170) {
+        else if (s.hp < s.maxHp * 0.25) {   // badly hurt she runs (G-22): turns away at her slow speed and stops firing; still yours to sink
+          s.engaged = false; s.heading += clamp(angleDiff(s.heading, Math.atan2(-dx, dz)), -0.7 * dt, 0.7 * dt); s.speed = K.speed[0];
+        } else if (dd < 170) {
           let want = Math.atan2(dx, -dz);
           if (dd < 50) want += s.circle * 1.45;
-          s.heading += clamp(angleDiff(s.heading, want), -0.7 * dt, 0.7 * dt);
+          if (!(s.engaged && s.warned)) s.heading += clamp(angleDiff(s.heading, want), -0.7 * dt, 0.7 * dt);   // she holds her turn between the tell and the shot (combat.js)
           s.speed = K.speed[1] * 0.95;
         } else s.speed = Math.max(s.speed, K.speed[0]);   // never idle in the water
       }
@@ -276,7 +278,8 @@ export class Traffic {
       const F = s.float || (s.float = {});
       rideWaves(F, hullWater(s.x, s.z, s.heading, t, wave, 4.8 * K.scale, 2.4 * K.scale), dt, { lift: 0.4 - 0.08 * sp, pitch: 0.04 * sp, roll: -Math.sin(rel) * 0.12 * (s.mode === 'derelict' ? 0.2 : 1) });
       s.root.position.set(s.x, F.y, s.z);
-      s.root.rotation.set(F.p, -s.heading, F.r);
+      s.list = (s.list || 0) + (((s.hp < s.maxHp * 0.5) ? 0.105 * s.circle : 0) - (s.list || 0)) * Math.min(1, dt * 0.8);   // a hurt raider lists 6 deg (G-22)
+      s.root.rotation.set(F.p, -s.heading, F.r + s.list);
       // and its own wake (only for ships near enough to see it)
       if (dist < 220 && s.mode !== 'ghost' && !s.sinking) {
         if (!s.wake) s.wake = new Wake(this.scene, { len: 4.8 * K.scale, beam: 1.3 * K.scale });

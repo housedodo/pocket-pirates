@@ -148,7 +148,7 @@ export function seaTick(dt, windNow) {
 }
 /** 1 while the ship is in Free Cays waters (their sector), else 0: the night music there is a lone guitar with silences */
 export function freeCaysNow() { return sectorAt(G.ship.pos.x, G.ship.pos.z, state.seed).faction.id === 'free' ? 1 : 0; }
-export function oilCtx() { return { night: tod.night, fog: G.weather.fog, storm: G.weather.storm, dread: rt.dread, rowing: G.ship.rowing }; }
+export function oilCtx() { return { night: tod.night, fog: G.weather.fog, storm: G.weather.storm, dread: rt.dread, rowing: G.ship.rowing, lantern: (state.upgrades && state.upgrades.lantern) || 0 }; }
 /** the lamp in the Lantern Guild's waters: half while a lit lighthouse is in sight (within 260), double in the open dark there */
 function lampBurn() {
   const p = G.ship.pos, reg = regionAt(p.x, p.z, state.seed); if (reg !== 'lantern') return 1;

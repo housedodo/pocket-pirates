@@ -12,7 +12,8 @@ import { hurtPlayer } from './storybeats.js';
 import { waveHeight } from '../ocean.js';
 
 const LOW = -0.3;   // the belt opens below this tide
-let foam = null, hitT = 0, lastR = null;
+let foam = null, hitT = 0, lastR = null, push = 0, pushOut = 1;
+const PUSH = 12;   // the race throws a ship back at 12 units/s, dying over 1 s (G-23): read as water, never a snap
 const N = 48;
 
 function build() {   // white water along the belt near the ship: flat foam patches and black teeth (moved round with the ship)
@@ -50,8 +51,11 @@ export function drownedTick(dt, t, wave) {
   hitT -= dt;
   if (inBelt && !open && !rt.edge && !rt.modal) {
     const out = lastR != null ? Math.sign(lastR - (BELT[0] + BELT[1]) / 2) || 1 : 1;   // which side she came from
-    const tr = out > 0 ? BELT[1] + 3 : BELT[0] - 3;
-    p.x *= tr / r; p.z *= tr / r; G.ship.speed *= 0.2;
+    if (push <= 0) { push = PUSH; pushOut = out; G.ship.speed *= 0.2; }   // each throw takes her way off her
     if (hitT <= 0) { hurtPlayer(5); hitT = 2; G.objectives.remark('belt', rt.dread); }
   } else if (!inBelt) lastR = r;
+  if (push > 0 && !rt.edge && !rt.modal && r > 0) {
+    const k = push * pushOut * dt / r; p.x += p.x * k; p.z += p.z * k;
+    push = Math.max(0, push - PUSH * dt);
+  }
 }
