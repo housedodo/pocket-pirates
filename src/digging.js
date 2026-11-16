@@ -13,6 +13,8 @@
 // top of the beach and throws its real shadow across the sand: from the sun's place in the sky right now (o.sun()), so it is
 // long and slanting in the morning, short at noon, gone at night. On some isles the riddle says the arch points at noon:
 // there the chest lies under the tip of the shadow of its top at noon (o.noon), and only then does the shadow say so.
+import { state } from './core/state.js';
+export const BEACH_TIP_TIMES = 2;   // a beach's rules are told the first times it is met, then the beach speaks for itself (G-21)
 const W = 200, H = 168, CW = 22, CH = 20, OX = 12, OY = 44, ARCH_H = 6;   // ARCH_H: the arch's height in squares (for its shadow)
 const DAMP = ['#3a2412', '#3a2412', '#5e3c1e', '#86602e', '#b08c4c', '#efdcaa'];
 export const BEACHES = {
@@ -64,12 +66,18 @@ export class DigGame {
     this.cells = Array.from({ length: this.cols * this.rows }, () => ({ dug: false, stone: false, sunk: false, lie: Math.random() < (o.lie || 0), t: 0 }));
     for (let s = 0; s < o.stones;) { const i = Math.floor(Math.random() * this.cells.length); if (i !== this.chest[1] * this.cols + this.chest[0] && !this.cells[i].stone) { this.cells[i].stone = true; s++; } }
     this.pre = o.predug ? this.chest[1] * this.cols + this.chest[0] : -1; this.preFound = false;   // a hole somebody left, over the chest
-    const B = BEACHES[this.beach];
-    this.say(B.name ? `${B.name}. ${B.say} ${this.beach === 'mud' ? `${o.digs} digs before dark.` : `The tide comes in after ${o.digs} digs.`}` : `Dig a square (click, or arrows and E). The darker the sand, the closer. The tide comes in after ${o.digs} digs.`);
-    if (this.pre >= 0) this.say(`${this.msg.textContent} One hole is here already.`);
-    this.ui.style.display = 'block'; this.draw();
+    const B = BEACHES[this.beach], tk = `tip:beach:${this.beach}`, tell = (state.hints[tk] || 0) < BEACH_TIP_TIMES;
+    if (tell) state.hints[tk] = (state.hints[tk] || 0) + 1;
+    this.say(!tell ? '' : B.name ? `${B.name}. ${B.say} ${this.beach === 'mud' ? `${o.digs} digs before dark.` : `The tide comes in after ${o.digs} digs.`}` : `Dig a square (click, or arrows and E). The darker the sand, the closer. The tide comes in after ${o.digs} digs.`);
+    if (this.pre >= 0) this.say(`${this.msg.textContent} One hole is here already.`.trim());
+    this.suspended = false; this.ui.style.display = 'block'; this.draw();
   }
-  cancel() { this.active = false; this.ui.style.display = 'none'; }
+  cancel() { this.active = false; this.suspended = false; this.ui.style.display = 'none'; }
+  /** a menu opened: the beach waits under it (G-01); resume() shows it again */
+  suspend() { if (this.active) { this.suspended = true; this.ui.style.display = 'none'; } }
+  resume() { if (this.active && this.suspended) { this.suspended = false; this.ui.style.display = 'block'; this.draw(); } }
+  /** the crew packs up (E held, G-10): counts as a failed dig, so it is never a free new beach */
+  leave() { if (!this.active) return; this.cancel(); this.o.onFail('leave'); }
   /** the beach, painted once: two sand tones dithered, speckles, shells, pebbles and weed by the waterline, grass at the top */
   bakeSand(B) {
     const c = document.createElement('canvas'); c.width = W; c.height = H; const g = c.getContext('2d');

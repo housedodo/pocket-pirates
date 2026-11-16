@@ -22,7 +22,7 @@ import { RELIGHT_OIL, RELIGHT_PAY, SALVAGE_MUL, lampDead, laneArrival, regionAt 
 import { sectorAt } from '../sectors.js';
 import { TREASURE_TIERS, rollCheck } from '../tabletop.js';
 import { boatStatus } from '../traffic.js';
-import { $, harbourEl, toast } from '../ui/dom.js';
+import { $, harbourEl, promptFill, toast } from '../ui/dom.js';
 import { shipwrightLine } from '../upgrades.js';
 import { angleDiff, hash2, mulberry32 } from '../util.js';
 import { isFestival, isLanternNight, isMarketDay, nightKey, tideAt } from './calendar.js';
@@ -36,11 +36,13 @@ export function getInteract() {
   const spr = G.threads.springNear(G.ship.pos.x, G.ship.pos.z); if (spr) return { kind: 'spring', key: 'spring', src: spr };
   const thr = G.threads.interact(G.ship); if (thr) return { kind: 'thread', key: thr.key, th: thr };
   // a harbour is entered at its pier; anywhere else along its shore you only get a hint
+  // the hint "sail to the pier" is kept for last (G-13): it is not an action, so it never hides one
   const hb = G.world.nearest(G.ship.pos.x, G.ship.pos.z, 38, ['harbour']);
+  let far = null;
   if (hb) {
     const d = hb.desc, dk = d.dock;
     if (dk && Math.hypot(G.ship.pos.x - (d.x + dk.x), G.ship.pos.z - (d.z + dk.z)) < 22) return (!G.onbAll() && !goalReached(state, 'harbour')) ? null : { kind: 'harbour', key: d.id, isl: hb };   // no "visit" at the very start: Mara sends you when it is time
-    if (G.world.lastEdge < 16) return { kind: 'harbourfar', key: d.id, isl: hb };
+    if (G.world.lastEdge < 16) far = { kind: 'harbourfar', key: d.id, isl: hb };
   }
   const sc = G.secrets.near(G.ship.pos.x, G.ship.pos.z, state.collected); if (sc && !(sc.kind === 'camp' && state.story.secrets && state.story.secrets[sc.key + '@'] === state.dayN)) return { kind: 'secret', key: sc.key, sc };
   const lmI = G.world.nearest(G.ship.pos.x, G.ship.pos.z, 16);
@@ -48,44 +50,83 @@ export function getInteract() {
   const isl = G.world.nearest(G.ship.pos.x, G.ship.pos.z, 16, ['treasure']);
   if (isl) return { kind: isl.desc.type, key: isl.desc.id, isl };
   if (G.sea.nearWreck) return { kind: 'wreck', key: G.sea.nearWreck.o.id, o: G.sea.nearWreck.o };
+  if (state.sailsTorn && state.patchKits > 0) return { kind: 'patch', key: 'patch' };   // anywhere at sea: patch the sail with a kit (above fruit and hails, G-13)
   const sh = G.traffic.nearestHail(G.ship.pos.x, G.ship.pos.z, 24);
   if (sh) return { kind: 'ship', key: 'ship' + sh.id, s: sh };
   const fi = G.world.nearest(G.ship.pos.x, G.ship.pos.z, 14, ['jungle', 'sandbar']);
   if (fi) return { kind: 'fruit', key: 'fruit' + fi.desc.id, isl: fi };
   { const li = G.world.nearest(G.ship.pos.x, G.ship.pos.z, 45); if (li && G.world.lit && li.desc.lampAt && lampDead(state, li.desc, nightKey())) return { kind: 'relight', key: 'relight:' + li.desc.id, isl: li }; }   // a dead Guild light
-  if (state.sailsTorn && state.patchKits > 0) return { kind: 'patch', key: 'patch' };   // anywhere at sea: patch the sail with a kit
-  return null;
+  return far;
 }
 
 export const HEAVE_KINDS = new Set(['thread', 'spring', 'cave', 'treasure', 'fruit', 'wreck', 'landmark', 'patch']);
+// E forgives (SYSTEMS_FEEL G-03, G-04, G-10; numbers to tune by hand):
+export const E_GRACE_T = 0.6;      // s: the last thing in reach stays E-able this long after it leaves reach...
+export const E_GRACE_D = 6;        // ...while the ship has moved no more than this since it was last in reach (about "its range + 6"; never a harbour)
+export const HEAVE_HOLD = 8;       // while the anchor goes down the target holds over this much more way (from 11 she stops in about 4.2)
+export const HEAVE_GIVE_UP = 8;    // s: the heave gives up if she has not come to rest by then
+export const E_BUFFER = 0.25;      // s: an E with nothing in reach waits this long for something to come in reach
+export const ACTION_LEASH = 8;     // a running action ends only if the ship is moved more than its range + this from where it began (a sinking, a jump)
+export const DIG_LEAVE_HOLD = 0.8; // s: hold E on the beach to pack up (it counts as a failed dig)
+const ACTION_RANGE = { treasure: 16, landmark: 16, fruit: 14, wreck: 22, secret: 18 };   // the ranges in getInteract
 rt.heave = null, rt.anchorAt = null;   // heave: E was pressed under way, the anchor is going down; anchorAt: where she lies while it is down
-/** the anchor: down while going ashore, digging, salvaging, patching or fishing, so the ship cannot drift off the spot */
+rt.tgLast = null, rt.tgRaw = null, rt.eBuf = null, rt.eDown = null, rt.digLeave = 0;
+/** can E do something with this target now? (the pier hint, a secret under way and a plundered isle cannot) */
+function actionable(tg) {
+  if (!tg || tg.kind === 'harbourfar') return false;
+  if (tg.kind === 'secret' && G.ship.speed > 0.6) return false;
+  if (tg.kind === 'treasure' && tg.isl.dug) return false;
+  return true;
+}
+/** once a frame, after getInteract: the target E answers to (grace, a heave and a running action keep theirs), then the anchor */
 export function anchorTick() {
-  if (rt.heave) {
-    const tg = rt.tg;
-    if (!tg || tg.key !== rt.heave.key || rt.tNow - rt.heave.t > 8 || rt.modal) rt.heave = null;
-    else if (G.ship.speed <= 0.3) { rt.heave = null; tryInteract(); }
+  const raw = rt.tg, sx = G.ship.pos.x, sz = G.ship.pos.z;
+  rt.tgRaw = raw;
+  if (actionable(raw)) rt.tgLast = { tg: raw, t: rt.tNow, x: sx, z: sz };
+  else { const L = rt.tgLast; if (L && L.tg.kind !== 'harbour' && rt.tNow - L.t <= E_GRACE_T && Math.hypot(sx - L.x, sz - L.z) <= E_GRACE_D) rt.tg = L.tg; }   // grace (G-04)
+  if (rt.dig && rt.dig.at) {   // a running action keeps its own target (G-03); main.js ends it when rt.tg no longer matches
+    const a = rt.dig.at;
+    rt.tg = Math.hypot(sx - a.x, sz - a.z) > a.r ? null : rt.dig.tg;
   }
-  G.ship.anchored = !!rt.heave || !!rt.dig || G.fishing.active;
+  if (rt.heave) {
+    const h = rt.heave;
+    if (raw && raw.key === h.key) { h.x = sx; h.z = sz; }
+    if (rt.dig || rt.tNow - h.t > HEAVE_GIVE_UP || Math.hypot(sx - h.x, sz - h.z) > HEAVE_HOLD) rt.heave = null;
+    else { rt.tg = h.tg; if (G.ship.speed <= 0.3) { rt.heave = null; tryInteract(); } }
+  }
+  if (rt.eBuf != null) { if (rt.tNow - rt.eBuf > E_BUFFER) rt.eBuf = null; else if (actionable(rt.tg) && !rt.dig && !rt.heave) { rt.eBuf = null; tryInteract(); } }   // an early E (G-04)
+  G.ship.anchored = !!rt.heave || !!rt.dig || G.fishing.active || !!G.fishing.pending;   // C under way drops it too (G-05)
   if (!G.ship.anchored) { rt.anchorAt = null; return; }
   if (!rt.anchorAt && G.ship.speed < 0.3) { rt.anchorAt = { x: G.ship.pos.x, z: G.ship.pos.z }; rt.anchorBit = true; if (G.ship.float) G.ship.float.vp -= 0.35; }   // the anchor bites: the bow dips (main.js adds the foam)
   if (rt.anchorAt) { G.ship.pos.x = rt.anchorAt.x; G.ship.pos.z = rt.anchorAt.z; }   // currents and leeway do not move an anchored ship
 }
+/** probing the shore: E held DIG_LEAVE_HOLD packs the crew up (G-10). held: is E down; the prompt bar fills meanwhile */
+export function digLeaveTick(held) {
+  if (!G.digGame.active || !held || rt.eDown == null) { rt.eDown = held ? rt.eDown : null; rt.digLeave = 0; return; }
+  rt.digLeave = Math.min(1, (rt.tNow - rt.eDown) / DIG_LEAVE_HOLD);
+  promptFill.style.width = `${Math.round(rt.digLeave * 100)}%`;
+  if (rt.digLeave >= 1) { rt.eDown = null; rt.digLeave = 0; G.digGame.leave(); }
+}
 export function tryInteract() {
   if (!rt.started || rt.modal) return;
-  const tg = rt.tg !== undefined ? rt.tg : getInteract();   // this frame's (main.js sets rt.tg once a frame)
-  if (!tg) return;
+  let tg = rt.tg !== undefined ? rt.tg : getInteract();   // this frame's (main.js sets rt.tg once a frame)
+  if (rt.heave && actionable(rt.tgRaw) && rt.tgRaw.key !== rt.heave.key) tg = rt.tgRaw;   // another E elsewhere while the anchor goes down
+  if (rt.dig) return;   // a running action has E until it ends (G-03)
+  if (!actionable(tg)) { rt.eBuf = rt.tNow; return; }   // nothing in reach yet: held a moment (G-04)
+  rt.eBuf = null;
+  doInteract(tg);
+  if (rt.dig && !rt.dig.at) { rt.dig.tg = tg; rt.dig.at = { x: G.ship.pos.x, z: G.ship.pos.z, r: tg.kind === 'patch' ? Infinity : (ACTION_RANGE[tg.kind] || 16) + ACTION_LEASH }; }
+}
+function doInteract(tg) {
   if (tg.kind === 'sighting') { G.openCard(tg.s.card); return; }
   // E under way: the anchor goes down first, and the crew goes ashore as soon as she lies still (no need to stop her by hand)
-  if (HEAVE_KINDS.has(tg.kind) && G.ship.speed > 0.3 && !rt.dig && !(tg.kind === 'treasure' && tg.isl.dug)) { if (!rt.heave) G.audio.play('ui'); rt.heave = { key: tg.key, t: rt.tNow }; return; }
-  if (tg.kind === 'thread') { if (G.ship.speed > 0.35) { toast('Bring the ship to a full stop first (S to reef the sails).', false, 3000); return; } tg.th.run(); return; }
-  if (tg.kind === 'spring') { if (G.ship.speed > 0.35) { toast('Bring the ship to a full stop first (S to reef the sails).', false, 3000); return; } G.openCave({ id: `spring:${G.threads.c.src.id}`, kind: 'colourspring' }); return; }
-  if (tg.kind === 'cave') { if (G.ship.speed > 0.35) { toast('Bring the ship to a full stop first (S to reef the sails).', false, 3000); return; } G.openCave(tg.site); return; }
+  if (HEAVE_KINDS.has(tg.kind) && G.ship.speed > 0.3) { if (!rt.heave || rt.heave.key !== tg.key) G.audio.play('ui'); rt.heave = { key: tg.key, tg, t: rt.tNow, x: G.ship.pos.x, z: G.ship.pos.z }; return; }
+  if (tg.kind === 'thread') { tg.th.run(); return; }
+  if (tg.kind === 'spring') { G.openCave({ id: `spring:${G.threads.c.src.id}`, kind: 'colourspring' }); return; }
+  if (tg.kind === 'cave') { G.openCave(tg.site); return; }
   if (tg.kind === 'hut') { if (!state.story.hutKnown) { G.audio.play('knock'); toast('Nobody answers. Inside, a pen scratches, then stops.', true, 4500); return; } G.openModal('hut'); return; }
-  if ((tg.kind === 'treasure' || tg.kind === 'fruit' || tg.kind === 'wreck' || tg.kind === 'landmark') && G.ship.speed > 0.35) { toast('Bring the ship to a full stop first (S to reef the sails).', false, 3000); return; }
-  if (tg.kind === 'landmark') { if (!rt.dig) goAshore(tg); return; }
-  if (tg.kind === 'secret') {
-    if (G.ship.speed > 0.6) { toast('Bring the ship to a full stop first (S to reef the sails).', false, 3000); return; }
+  if (tg.kind === 'landmark') { goAshore(tg); return; }
+  if (tg.kind === 'secret') {   // (only when she was stopped by hand: actionable() leaves it out under way)
     if (!rt.dig) rt.dig = { key: tg.key, t: 0, label: tg.sc.kind === 'kestrel' ? 'Someone goes down on a rope...' : tg.sc.kind === 'camp' ? 'Going ashore...' : 'Salvaging...', need: tg.sc.kind === 'kestrel' ? 5 : 3.2, done: () => G.secretFound(tg.sc) };
     return;
   }
@@ -97,7 +138,6 @@ export function tryInteract() {
     return;
   }
   if (tg.kind === 'patch') {
-    if (G.ship.speed > 0.6) { toast('Bring the ship to a stop to patch the sail (S, and wait).', false, 3000); return; }
     if (!rt.dig) rt.dig = { key: 'patch', t: 0, label: 'Patching the mainsail...', need: 4.5, done: () => { state.patchKits--; mendSails(`Patched. The sail holds again (${state.patchKits} ${state.patchKits === 1 ? 'kit' : 'kits'} left).`); } };
     return;
   }
@@ -134,6 +174,7 @@ export function tryInteract() {
     if (laneArrival(state, d, rt.lane && rt.tNow - rt.lane.t < 90 ? rt.lane : null)) setTimeout(() => toast('In by the buoys. The harbourmaster ticks a line in the book.', false, 4500), 1400);   // the Crown's record (regions.js)
     if (d.region === 'reef' && state.story.bounty) { const b = state.story.bounty; state.gold += b; state.story.bounty = 0; setTimeout(() => toast(`The Brotherhood pays the bounty: +${b} gold.`, false, 5000), 1600); }   // raiders sunk in Reef waters (regions.js)
     rt.harbourIsl = tg.isl; rt.hbTab = 'board'; G.frameVillage(d); G.autosave();
+    G.ship.speed = 0; G.ship.vel = null; G.ship.trim = 0; rt.heave = null;   // laid alongside: she leaves the harbour at rest, sails in (G-09)
     if (G.lettersAt(d).length) setTimeout(() => toast('A letter waits for you at the harbourmaster\'s board.', false, 6000), 900);
     else if (G.petOffer(d)) setTimeout(() => { const po = G.PETS[G.petOffer(d)]; toast(`${po.title}. ${po.sub[0].toUpperCase()}${po.sub.slice(1)}.`, false, 6000); }, 900);
     for (const c of state.crew) if (c.wish && !c.wish.done && c.wish.kind === 'harbour' && c.wish.id === tg.isl.desc.id) G.wishDone(c);
@@ -187,6 +228,7 @@ export function tryInteract() {
           G.digGame.start({ cols: 8, rows: 5, beach, sun, noon, predug, digs: Math.round((first ? 13 : 10) + tools - (d.dread > 0.5 ? 1 : 0)), stones: first ? 2 : 3 + (d.dread > 0.4 ? 1 : 0), lie: d.dread > 0.5 ? 0.3 : 0,
             onDone: () => { const done = rt.dig && rt.dig.done; rt.dig = null; if (done) done(); if (predug && G.digGame.preFound) markSeen(state, 'CL-H3-hole'); if (predug && G.digGame.preFound) after(3, () => G.objectives.say('Somebody dug here first, and stopped a spade short. Lucky us.')); },
             onFail: (why) => { rt.dig = null; rt.digFix = rt.tNow + 6; rt.digFixWhy = why; state.attempts[d.id] = (state.attempts[d.id] || 0) + 1;
+              if (why === 'leave') return;   // the crew packed up (G-10): a failed dig, without a word
               toast(why === 'tide' ? 'The tide comes in and fills every hole. The crew waits for it to go out again.' : why === 'mud' ? 'The light goes and the mud is everywhere. The crew scrapes the shovels clean and tries again.' : 'The shovel breaks on a second stone. The crew fetches the spare.', false, 5500); } });
         }
       }

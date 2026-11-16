@@ -108,6 +108,19 @@ export function commissionsFor(world, from, serial) {
   return out;
 }
 
+/** what the market may take (G-08): the hold minus what the errands in hand still need (per species and per fruit, up to n) */
+export function sellable(state) {
+  const fishKeep = {}, fruitKeep = {};
+  for (const q of state.quests || []) {
+    if (q.type === 'fish') fishKeep[q.species] = (fishKeep[q.species] || 0) + q.n;
+    if (q.type === 'fruit') fruitKeep[q.fruit] = (fruitKeep[q.fruit] || 0) + q.n;
+  }
+  const keep = [], sell = [];
+  for (const f of [...state.catch].sort((a, b) => a.value - b.value)) { if (fishKeep[f.id] > 0) { fishKeep[f.id]--; keep.push(f); } else sell.push(f); }   // the cheapest are kept back
+  const fruit = {}, fruitLeft = {};
+  for (const [k, n] of Object.entries(state.fruit)) { const kept = Math.min(n, fruitKeep[k] || 0); if (n - kept > 0) fruit[k] = n - kept; if (kept > 0) fruitLeft[k] = kept; }
+  return { fish: sell, fishLeft: state.catch.filter((f) => keep.includes(f)), fruit, fruitLeft };
+}
 export const questNeed = (q) => (q.type === 'crates' ? q.crates.length : q.n);
 export function questProgress(q, state) {
   switch (q.type) {

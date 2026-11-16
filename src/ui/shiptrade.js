@@ -2,7 +2,7 @@
 import { clamp, mulberry32 } from '../util.js';
 import { stageOf } from '../palette.js';
 import { lootFor, bottleNote } from '../lore.js';
-import { makeJob, findRumour, friendLevel, bearingName, nearby, FRUITS } from '../jobs.js';
+import { makeJob, findRumour, friendLevel, bearingName, nearby, FRUITS, sellable } from '../jobs.js';
 import { KINDS } from '../traffic.js';
 import { tod } from '../daynight.js';
 import { state } from '../core/state.js';
@@ -89,9 +89,10 @@ export function doOffer(i) {
   const rng = mulberry32(sh.seed + 77 + i);
   const idx = stageOf(rt.dread);
   if (o.id === 'sellall') {
-    const fish = state.catch.reduce((a, f) => a + f.value, 0) * 0.7, fruit = Object.entries(state.fruit).reduce((a, [f, n]) => a + FRUITS[f].price * n, 0) * 0.7, v = Math.round((fish + fruit) * 1.33);
+    const sale = sellable(state);   // what an errand in hand needs stays aboard (G-08)
+    const fish = sale.fish.reduce((a, f) => a + f.value, 0) * 0.7, fruit = Object.entries(sale.fruit).reduce((a, [f, n]) => a + FRUITS[f].price * n, 0) * 0.7, v = Math.round((fish + fruit) * 1.33);
     if (!v) { toast('Nothing in the hold to sell. They are very polite about it.'); return; }
-    state.gold += v; state.catch = []; state.fruit = {}; toast(`Sold your hold aboard the market for ${v} gold.`); G.audio.play('buy');
+    state.gold += v; state.catch = sale.fishLeft; state.fruit = { ...sale.fruitLeft }; toast(`Sold your hold aboard the market for ${v} gold.`); G.audio.play('buy');
   } else if (o.id === 'mchart') {
     const k = G.revealAround(sh.x, sh.z); toast(k ? `A hand-drawn chart: ${k} island${k > 1 ? 's' : ''} added to your map.` : 'You know these waters already. It is a lovely drawing.', false, 6000);
   } else if (o.id === 'oddment') {
