@@ -93,7 +93,7 @@ import { ringNoon, noonBellTick, noonPending } from './systems/noonbell.js';
 import { homeShift, homeTick, homeLook } from './systems/home.js';
 import { HomeMarks } from './systems/homemarks.js';
 import { lineLate, laneOars, pennantsAt } from './systems/crown.js';
-import { farLightTick, LIGHTS_LINE } from './systems/farlights.js';
+import { farLightTick, LIGHTS_LINE, LAMP_OUT_FAR } from './systems/farlights.js';
 import { raceTick, holdRegatta, raceNow } from './systems/race.js';
 import { LANDING, landThrow, landedAt } from './systems/landing.js';
 import { trackTarget, goldShown, etaText, slipInfo, drawCompass, updateTracker, initHud } from './ui/hud.js';
@@ -1226,7 +1226,7 @@ function frame() {
     const tea = life.meal(state) === 'tea' ? 0.25 : 0;
     if ((L || tea) && !rt.lampOut && dk > 0.05) { const k = 1 + (0.15 * L + tea) * dk; stage.fogFar *= k; stage.fogNear *= k; } }
   if (farLightTick(dt, !!rt.lampOut, tod.night) && freeCaysNow() && tod.night > 0.5 && !state.story.lampLights && laterOK() && !eventQuiet() && !objectives.mate.busy) { state.story.lampLights = 1; objectives.mate.say(LIGHTS_LINE); }   // far lights come up with the lamp out (systems/farlights.js, P-FREE-3)
-  if (rt.lampOut) { stage.fogFar *= 0.32; stage.fogNear *= 0.25; stage.fog.multiplyScalar(1 - 0.6 * tod.night); stage.light *= 1 - 0.35 * tod.night; }   // no lamp: the dark comes in close
+  if (rt.lampOut) { stage.fogFar *= LAMP_OUT_FAR; stage.fogNear *= 0.25; stage.fog.multiplyScalar(1 - 0.6 * tod.night); stage.light *= 1 - 0.35 * tod.night; }   // no lamp: the dark comes in close
   if (fogK > 0) { stage.fogFar = Math.max(30, stage.fogFar * (1 - 0.85 * fogK)); stage.fogNear = Math.max(4, stage.fogNear * (1 - 0.9 * fogK)); stage.fog.lerp(C_FOGWALL, fogK * 0.7); }
   if (rt.lostK > 0) { stage.fogFar = Math.max(10, stage.fogFar * (1 - 0.7 * rt.lostK)); stage.fogNear = Math.max(1, stage.fogNear * (1 - 0.9 * rt.lostK)); stage.fog.lerp(C_LOSTFOG, rt.lostK * 0.5); }   // lost: you can barely see the bow
   abyss.update(dt, { dread: DEMO ? 0 : rt.dread, live, camera, camYaw: rt.camYaw, ch: rt.camHeading + rt.camYaw });
