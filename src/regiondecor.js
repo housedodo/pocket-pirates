@@ -12,6 +12,7 @@
 import { TILE } from './textures.js';
 import { mats } from './psx.js';
 import { mulberry32 } from './util.js';
+import { REEF_SLICK_TIDE, REEF_RING_TIDE } from './regions.js';
 
 const NIGHT = (i) => i.tod && i.tod.night > 0.45;
 let DAY = 0;   // the Reef's shoals are laid out again each dawn (main.js sets the day; world.refresh rebuilds the Reef islands)
@@ -66,18 +67,27 @@ export function regionDecor(d, A, extra, h) {
     if (spots.length) st(L, NIGHT, mats.glow);
     if (harbour) for (const side of [-12, 14]) { const [x, z] = P(40, side); A.push(x, -0.2, z, way + 0.3); A.box(0, 0, 0, 1.4, 0.6, 7, '#8a4a20', TILE.planks); A.pop(); }   // canoes
   } else if (reg === 'reef') {   // coral heads in white water across the way in, a mast leaning out of the water
-    const n = Math.round(14 * lane), F = mk(), rd = mulberry32((d.seed || 1) * 31 + DAY * 977 + 5);   // where the heads are today
+    // M-REEF-1 Teeth under the tide (2026-11-17): the heads bite the same at any tide (reef.js), but how they show follows the water:
+    // at low and middle tide black teeth in white water; above REEF_SLICK_TIDE only their tips, awash in a pale-green slick; above
+    // REEF_RING_TIDE nothing but a faint ripple ring over each head (the floor: there is always a tell)
+    const n = Math.round(14 * lane), F = mk(), S = mk(), R = mk(), T = new A.constructor(), U = new A.constructor(), rd = mulberry32((d.seed || 1) * 31 + DAY * 977 + 5);   // where the heads are today
     d.coral = [];
     for (let i = 0; i < n; i++) {
       const out = 8 + rd() * 60 * lane, side = (rd() < 0.5 ? 1 : -1) * (8 + rd() * 30);
       if (harbour && Math.abs(side) < 10) continue;   // a harbour keeps a channel open
-      const [x, z] = P(out, side), r = 1.2 + (i % 3), ht = 2.5 + (i % 4);
+      const [x, z] = P(out, side), r = 1.2 + (i % 3), ht = 2.5 + (i % 4), fr = 3 + (i % 3);
       if (!clearOf(x, z)) continue;
       d.coral.push({ x: d.x + x, z: d.z + z, r });   // world position, for grounding (main.js)
-      A.cyl(x, 0.6 - ht / 2, z, r, 0, ht, 5, '#14100e', TILE.stone);
-      F.cyl(x, 0.05, z, 3 + (i % 3), 3.6 + (i % 3), 0.3, 10, '#ffffff', TILE.white, true);   // the white water breaking on it (flat white, above the swell)
+      T.cyl(x, 0.6 - ht / 2, z, r, 0, ht, 5, '#14100e', TILE.stone);                                   // the teeth, standing
+      U.cyl(x, -ht + 0.75, z, r, 0, ht, 5, '#14100e', TILE.stone);                                      // only the tips, awash
+      F.cyl(x, 0.05, z, fr, fr + 0.6, 0.3, 10, '#ffffff', TILE.white, true);   // the white water breaking on it (flat white, above the swell)
+      S.cyl(x, 0.2, z, fr - 0.4, fr, 0.3, 10, '#b4e6c6', TILE.white, true);   // a pale-green slick over the head (raised: the island sinks with the tide)
+      R.cyl(x, 0.3, z, fr + 0.4, fr + 0.4, 0.3, 12, '#e4f4ea', TILE.white, false);   // a faint ripple ring (an open band: a line seen from above)
     }
-    st(F, ALWAYS);
+    const tide = (i) => i.tide || 0;
+    st(T, (i) => tide(i) <= REEF_SLICK_TIDE); st(F, (i) => tide(i) <= REEF_SLICK_TIDE);
+    st(U, (i) => tide(i) > REEF_SLICK_TIDE && tide(i) <= REEF_RING_TIDE); st(S, (i) => tide(i) > REEF_SLICK_TIDE && tide(i) <= REEF_RING_TIDE);
+    st(R, (i) => tide(i) > REEF_RING_TIDE);
     if (rng() < 0.8) { const [x, z] = P(48 * lane, 20); A.push(x, -3, z, way, 1, 1, 1, 0, 0.45); A.cyl(0, 0, 0, 0.45, 0.35, 14, 5, '#4a3020', TILE.bark); A.box(0, 11.5, 0, 7, 0.3, 0.3, '#4a3020', TILE.bark); A.pop(); }
   } else if (reg === 'lantern') {   // two rows of lamps on floats lining the way in, lit day and night; a tall dark tower
     const G = mk(), pairs = harbour ? 5 : 3;

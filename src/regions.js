@@ -43,7 +43,9 @@ export function raiderChance(faction, quiet) {
 
 // ---- the Reef: ships come here and stay (main.js salvage, combat)
 export const SALVAGE_MUL = { reef: 1.5 };
-export const BOUNTY = 40;   // gold for a raider sunk in Reef waters (paid at the next Reef harbour)
+export const BOUNTY = 40;
+// M-REEF-1 Teeth under the tide: above this tide the white water over the coral fades to a slick, above the next to a ripple ring (regiondecor.js)
+export const REEF_SLICK_TIDE = 0.4, REEF_RING_TIDE = 0.7;   // gold for a raider sunk in Reef waters (paid at the next Reef harbour)
 
 // ---- the Crown: a clean record (jobs.js, ui/harbour.js)
 /** the pay multiplier from the Crown's shared record: +5% a clean line up to +25%; each black line -15% (never below 0.55) */
