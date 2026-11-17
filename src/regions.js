@@ -44,6 +44,13 @@ export function marketNote(d, quiet) {
   return '';
 }
 
+// ---- the Free Cays live by night (M-FREE-1, owner 2026-11-17; ui/harbour.js): from 07:00 to 17:00 a Cays harbour sleeps. No passengers,
+// no residents, no commissions, no gossip, and the board posts only deliveries out of the Cays. By the hour in both builds. While the
+// main goal in hand needs a harbour's people (CAYS_WAKE_FOR) the Cays stay awake, so the story never waits on the clock.
+export const CAYS_SLEEP = [7, 17];
+export const CAYS_WAKE_FOR = ['job', 'passenger', 'tavern', 'gossip', 'perrin_free'];
+export const caysAsleep = (region, hour, goalId) => region === 'free' && hour >= CAYS_SLEEP[0] && hour < CAYS_SLEEP[1] && !CAYS_WAKE_FOR.includes(goalId);
+
 // ---- the Free Cays: the dark keeps quiet while somebody plays (traffic.js)
 /** the chance that a spawned ship in these waters is a raider; the Reef always, the Cays only while nobody plays. quiet: caysQuiet() */
 export function raiderChance(faction, quiet) {

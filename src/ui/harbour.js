@@ -19,7 +19,7 @@ import { state } from '../core/state.js';
 import { rt, G } from '../core/runtime.js';
 import { markSeen } from '../clues.js';
 import { lineAhead, takeLine } from '../systems/crown.js';
-import { drownedTake, OIL_SELL, sellMul, buyMul, marketNote, caysQuiet, takeJob, clockAt, nowD, jobPay, DAY_SECONDS, recordMarks } from '../regions.js';
+import { drownedTake, caysAsleep, regionAt, OIL_SELL, sellMul, buyMul, marketNote, caysQuiet, takeJob, clockAt, nowD, jobPay, DAY_SECONDS, recordMarks } from '../regions.js';
 import { pierOf } from '../world.js';
 import { $, toast } from './dom.js';
 import { isMarketDay, isFestival } from '../systems/calendar.js';
@@ -76,6 +76,7 @@ export function restAtTavern(cost) {
 export function renderHarbour() {
   if (!isOpen(state, 'tab', rt.hbTab)) rt.hbTab = 'board';   // a sign that has not opened yet: back to the board
   const d = rt.harbourIsl.desc, rep = repOf(state, d.id), lvl = friendLevel(rep);
+  const asleep = caysAsleep(d.region, state.time * 24, G.objectives.current && G.objectives.current.id);   // the Cays sleep by day (regions.js, M-FREE-1)
   $('hbName').textContent = d.name;
   if ($('hbLine').style.display === 'none') $('hbLine').textContent = rt.harbourLine;
   $('hbBannerName').textContent = d.name;
@@ -96,7 +97,7 @@ export function renderHarbour() {
     for (const lt of lettersAt(d)) html += `<div class="sec">A LETTER</div><div class="qrow letter"><div><b>${pxi('letter')} ${lt.title}</b><br><small>${lt.sub}</small></div><button id="takeLetter" data-letter="${lt.key}">Take it</button></div>`;
     if (due.length) html += `<div class="sec">FINISH HERE</div>${due.join('')}`;
     if (G.lifeOn()) {   // the harbour's own person and their story (harbourlife.js), and this harbour's day in the week
-      for (const r of life.residentRows(state, G.world, d, { night: state.time * 24 >= 19 || state.time * 24 < 5 })) {
+      for (const r of asleep ? [] : life.residentRows(state, G.world, d, { night: state.time * 24 >= 19 || state.time * 24 < 5 })) {
         if (r.after) html += `<div class="sec">${r.who.toUpperCase()}</div><small class="${r.dark ? 'darkline' : ''}">${r.after}</small>`;
         else if (r.wait) html += `<div class="sec">${r.who.toUpperCase()}</div><small>${r.text}</small>`;
         else html += `<div class="sec">${r.who.toUpperCase()}</div><div class="qrow letter"><div><b>${pxi('talk')} ${r.text}</b>${r.block ? `<br><small>${r.block}</small>` : ''}</div><button class="lifeStep" data-k="${r.key}" ${r.block ? 'disabled' : ''}>${r.btn}</button></div>`;
@@ -104,7 +105,8 @@ export function renderHarbour() {
       html += `<div class="sec">THIS WEEK</div><small>${life.eventLine(d, state)}: ${life.gameOf(d).name} in the tavern pays double.</small>`;
     }
     html += '<div class="sec">DELIVERY</div>';
-    const j = state.job || makeJob(G.world, d, state.serial[d.id] || 0, !goalReached(state, 'tavern') ? 420 : 750);   // the first jobs stay close
+    const jo = state.job ? null : makeJob(G.world, d, state.serial[d.id] || 0, !goalReached(state, 'tavern') ? 420 : 750);   // the first jobs stay close
+    const j = state.job || (asleep && jo && regionAt(jo.x, jo.z, state.seed) === 'free' ? null : jo);   // by day a Cays board posts only deliveries out of the Cays
     if (state.job && state.job.toId === d.id) html += '<small>Deliver the one above first.</small>';
     else if (state.job) html += `<div class="qrow"><div><b>${pxi('letter')} ${state.job.item}</b><br><small>to ${state.job.toName} · ${bearingName(state.job.x - d.x, state.job.z - d.z)}</small></div><small>${state.job.reward}g</small></div>`;
     else if (j && j.timed) {   // the Crown keeps time: a deadline, two prices, and the shared book of arrivals (regions.js)
@@ -118,15 +120,15 @@ export function renderHarbour() {
       const need = questNeed(q), have = questProgress(q, state);
       if (have < need) html += `<div class="qrow"><div><b>${questIcon(q)} ${questTitle(q, rt.dread)}</b><br><small>${have}/${need} · ${q.reward}g</small></div></div>`;
     }
-    const offers = commissionsFor(G.world, d, state.serial[d.id + '#c'] || 0).filter((o) => !state.quests.some((x) => x.id === o.id));
+    const offers = asleep ? [] : commissionsFor(G.world, d, state.serial[d.id + '#c'] || 0).filter((o) => !state.quests.some((x) => x.id === o.id));
     for (const o of offers) {
       const q = { ...o, base: 0 };
       html += `<div class="qrow"><div><b>${questIcon(o)} ${questTitle(q, rt.dread)}</b><br><small>${o.type === 'crates' ? `lost ${bearingName(o.center.x - d.x, o.center.z - d.z)} of here · ` : ''}${o.reward}g</small></div><button data-accept="${o.id}" ${state.quests.length >= 3 ? 'disabled' : ''}>Accept</button></div>`;
     }
-    if (!mine.length && !offers.length) html += '<small>The board is empty. Come back after you have been out to sea.</small>';
-    const pass = passengerAt(d);
+    if (!mine.length && !offers.length) html += asleep ? '<small>The quay is asleep. Come back after dark.</small>' : '<small>The board is empty. Come back after you have been out to sea.</small>';
+    const pass = asleep ? null : passengerAt(d);
     if (pass) html += `<div class="sec">PASSAGE</div><div class="qrow"><div><b>${pxi('talk')} ${pass.name}, ${pass.who}</b><br><small>wants passage to ${pass.toName} · pays ${pass.reward}g</small></div><button id="takePass">Take aboard</button></div>`;
-    const r = findRumour(G.world, d, state);
+    const r = asleep ? null : findRumour(G.world, d, state);
     if (r) html += `<div class="sec">RUMOURS</div><div class="qrow"><div><b>${pxi('talk')} A sailor talks of buried treasure</b></div><button id="rumourBuy" ${state.gold >= RUMOUR_COST ? '' : 'disabled'}>${RUMOUR_COST}g</button></div>`;
     const chartCost = Math.ceil(30 * G.costMul());
     if (!state.charts[d.id]) html += `<div class="sec">LOCAL CHART</div><div class="qrow"><div><b>${pxi('flag')} A hand-drawn chart of these waters</b><br><small>the islands around ${d.name}, as the locals know them, and the way through the first fog</small></div><button id="buyChart" ${state.gold >= chartCost ? '' : 'disabled'}>${chartCost}g</button></div>`;
@@ -251,7 +253,7 @@ export function renderHarbour() {
       html += `<div class="sec">THE HOUSE DISH</div><div class="qrow"><div><b>${pxi('fish')} ${dish.name}</b><br><small>${dish.text}, until the dawn after next${cur ? ` · you have eaten: ${Object.values(life.DISHES).find((x) => x.id === cur).name}` : ''}</small></div><button id="eatDish" ${state.gold >= dc && cur !== dish.id ? '' : 'disabled'}>${cur === dish.id ? 'Full' : `${dc}g`}</button></div>`;
       const gm = life.gameOf(d), played = life.playedToday(state, d), ev = life.isEvent(d, state);
       html += `<div class="sec">${ev ? gm.event.toUpperCase() + ' (TODAY)' : 'THE LOCAL GAME'}</div><div class="qrow"><div><b>${pxi('pip')} ${gm.name}</b><br><small>${played ? 'you have played here today' : `${gm.how} · stake 5g · ${ev ? 'double prizes today' : `double on ${life.WEEKDAYS[d.festival]}`}`}</small></div><button id="playLocal" ${!played && state.gold >= 5 ? '' : 'disabled'}>Play</button></div>`;
-      const fr = life.fragmentAt(state, d, goalReached(state, 'riddle2') && !!state.story.hutKnown);   // RULES 6: nothing about her before the hut is known
+      const fr = asleep ? null : life.fragmentAt(state, d, goalReached(state, 'riddle2') && !!state.story.hutKnown);   // RULES 6: nothing about her before the hut is known
       if (fr && !fr.locked) html += `<div class="sec">AN OLD STORY</div><div class="qrow letter"><div><b>${pxi('talk')} ${fr.src}</b><br><small>the locals know you now</small></div><button id="takeFrag">Listen</button></div>`;
     }
     { // rooms are let from 17:00, you wake at 06:00 with the hull mended
@@ -262,7 +264,7 @@ export function renderHarbour() {
       const asked = state.fishAsk[d.id] === state.dayN, unheard = FISH.filter((f) => !f.dark && !state.fishHeard[f.id]);
       html += `<div class="sec">AT THE QUAY</div><div class="qrow"><div><b>${pxi('fish')} Ask the fishers</b><br><small>${asked ? 'they have said what they will for today' : unheard.length ? 'where does anything bite?' : 'you have heard it all'}</small></div><button id="askFish" ${asked || !unheard.length ? 'disabled' : ''}>Ask</button></div>`;
     }
-    if (window.__BUILD !== 'demo' && G.laterOK()) { const cl = G.threads.clueLines(); if (cl.length) html += `<div class="sec">OVERHEARD</div><small>${cl[Math.abs(hash2(d.seed, state.dayN, 5)) % cl.length]}</small>`; }
+    if (window.__BUILD !== 'demo' && G.laterOK() && !asleep) { const cl = G.threads.clueLines(); if (cl.length) html += `<div class="sec">OVERHEARD</div><small>${cl[Math.abs(hash2(d.seed, state.dayN, 5)) % cl.length]}</small>`; }
     if (unlocked(state, 'crew')) { // hands for hire, and dice with the locals
       const hand = crewForHire(d, state.dayN, state, G.world);
       html += '<div class="sec">AT THE TABLES</div>';
