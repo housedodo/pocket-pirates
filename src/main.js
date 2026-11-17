@@ -94,6 +94,7 @@ import { homeShift, homeTick, homeLook } from './systems/home.js';
 import { HomeMarks } from './systems/homemarks.js';
 import { lineLate, laneOars, pennantsAt } from './systems/crown.js';
 import { farLightTick, LIGHTS_LINE } from './systems/farlights.js';
+import { raceTick, holdRegatta, raceNow } from './systems/race.js';
 import { LANDING, landThrow, landedAt } from './systems/landing.js';
 import { trackTarget, goldShown, etaText, slipInfo, drawCompass, updateTracker, initHud } from './ui/hud.js';
 import { LOCALS, localGames, pig, maraMood, openCard, caveScene, COLOUR_DEEP, COLOUR_SHALLOW, openCave, tabletopTick, signOn, daysLeft, crewLeave, wishDone, initEncounters } from './ui/encounters.js';
@@ -210,6 +211,7 @@ function eventQuiet() {
 rt.seaWave = 1;
 const fauna = new Fauna(scene, world);
 const traffic = new Traffic(scene, world, state.seed);
+traffic.holdRegatta = () => holdRegatta(world, ship);   // the Sunday race in Home Sound (systems/race.js)
 const homeMarks = new HomeMarks(scene, world, traffic, state.seed, secrets.kestrel);   // three boats on their marks by day (systems/homemarks.js)
 traffic.onCustoms = () => {   // a Crown customs cutter has looked in the hold (regions.js)
   const j = state.job;
@@ -1298,6 +1300,7 @@ function frame() {
   for (const k of ['_pet', '_pet2']) if (window.__game[k]) window.__game[k].update(vdt);
   for (const c of Object.values(companions)) { c.m.g.visible = c.fly > 0 || rt.dread < 0.6; if (c.m.g.visible) c.update(vdt); }
   traffic.update(dt, waveT, lifeCtx);
+  if (live) raceTick(dt, { world, traffic, ship, sched: lifeCtx.sched, ok: laterOK(), wind: windNow });   // the Sunday race (systems/race.js)
   homeMarks.update(waveT, { ship, hour: state.time * 24, wave: stage.wave, dread: rt.dread });   // the fishers' marks in Home Sound (systems/homemarks.js)
   if (live) reefTick(dt);   // the Reef: coral, the shoals that move at dawn, storm wrecks (systems/reef.js)
   if (live) drownedTick(dt, waveT, stage.wave);   // the Drowned: the shoal belt that opens at low water (systems/drowned.js)
@@ -1497,7 +1500,7 @@ window.__game = { secrets, regionWeights, tideAt: () => tideAt(), lostState: () 
     ship.pos.set(x + 15, 0, z + 2.5); ship.heading = Math.PI / 2; ship.speed = 0; ship.trim = 1;
   },
   later: { after, pending: laterPending }, landedAt: (id) => landedAt(state, id), landThrow: () => landThrow(state, ship.pos), noonPending, ringNoon, saveNow: () => saveNow(), rt,   // test hooks   // test hook: story delays on the game's clock
-  sectorAt: (x, z) => sectorAt(x, z, state.seed), homeMarks, pennantsAt, completeJobIfHere, farLight: () => U.uFarLight.value.toArray(), traffic, abyss, hut, ship, world, state, begin, scene, camera, renderer, wind, weather, fauna, traffic, sea, audio, fishing, combat, objectives, hurtPlayer, openModal, closeModal, buyUpgrade, refreshMods,
+  sectorAt: (x, z) => sectorAt(x, z, state.seed), homeMarks, pennantsAt, completeJobIfHere, farLight: () => U.uFarLight.value.toArray(), raceNow, traffic, abyss, hut, ship, world, state, begin, scene, camera, renderer, wind, weather, fauna, traffic, sea, audio, fishing, combat, objectives, hurtPlayer, openModal, closeModal, buyUpgrade, refreshMods,
 };
 rt.newVoyage = false;   // New voyage reloads straight into the game, no title in between
 try { rt.newVoyage = sessionStorage.getItem('hoist-new') === '1'; sessionStorage.removeItem('hoist-new'); } catch (e) { /* storage blocked */ }

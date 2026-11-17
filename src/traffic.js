@@ -168,7 +168,7 @@ export class Traffic {
       }
     }
     if (mk && !marketTime && !mk.leaving) { mk.leaving = true; mk.speed = 4.5; mk.heading += Math.PI * 0.6; }   // the market packs up at dusk and sails on
-    if (sc.wd === 6 && h >= 13 && h < 16 && bright && this.regDay !== sc.dayN) {
+    if (sc.wd === 6 && h >= 13 && h < 16 && bright && this.regDay !== sc.dayN && !(this.holdRegatta && this.holdRegatta())) {   // in Home Sound the regatta races instead (systems/race.js)
       const a = Math.random() * 6.28, x0 = ship.pos.x + Math.cos(a) * 240, z0 = ship.pos.z + Math.sin(a) * 240;
       const px = -Math.sin(a), pz = Math.cos(a);   // pass the player's position at a lateral offset
       const tx = ship.pos.x + px * 55, tz = ship.pos.z + pz * 55, hd = Math.atan2(tx - x0, -(tz - z0));

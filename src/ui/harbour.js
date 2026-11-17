@@ -19,6 +19,7 @@ import { state } from '../core/state.js';
 import { rt, G } from '../core/runtime.js';
 import { markSeen } from '../clues.js';
 import { lineAhead, takeLine } from '../systems/crown.js';
+import { purseAt, takePurse } from '../systems/race.js';
 import { drownedTake, caysAsleep, regionAt, OIL_SELL, sellMul, buyMul, marketNote, caysQuiet, takeJob, clockAt, nowD, jobPay, DAY_SECONDS, recordMarks } from '../regions.js';
 import { pierOf } from '../world.js';
 import { $, toast } from './dom.js';
@@ -92,6 +93,7 @@ export function renderHarbour() {
     const due = [];
     if (state.job && state.job.toId === d.id) due.push(`<div class="qrow"><div><b>${pxi('letter')} Deliver ${state.job.item}</b><br><small>+${state.job.reward}g</small></div><button id="doDeliver">Deliver</button></div>`);
     if (state.passenger && state.passenger.toId === d.id) due.push(`<div class="qrow"><div><b>${pxi('talk')} ${state.passenger.name} goes ashore</b><br><small>+${state.passenger.reward}g fare</small></div><button id="doDropoff">Drop off</button></div>`);
+    if (purseAt(d)) due.push(`<div class="qrow"><div><b>${pxi('coin')} The regatta purse</b><br><small>+${purseAt(d)}g</small></div><button id="takePurse">Collect</button></div>`);   // the Sunday race (systems/race.js)
     for (const q of state.quests.filter((x) => x.giverId === d.id && questProgress(x, state) >= questNeed(x))) due.push(`<div class="qrow"><div><b>${questIcon(q)} ${questTitle(q, rt.dread)}</b><br><small>done · +${q.reward}g</small></div><button data-hand="${q.id}">Finish</button></div>`);
     if (rt.openLetter) html += `<div class="sec">A LETTER</div><div class="letterOpen"><p>${rt.openLetter.text}</p><small>${rt.openLetter.from} · kept in your log</small></div>`;
     for (const lt of lettersAt(d)) html += `<div class="sec">A LETTER</div><div class="qrow letter"><div><b>${pxi('letter')} ${lt.title}</b><br><small>${lt.sub}</small></div><button id="takeLetter" data-letter="${lt.key}">Take it</button></div>`;
@@ -151,6 +153,7 @@ export function renderHarbour() {
       if (r.ended) { G.autosave(); setTimeout(() => toast(`${d.name} will not be quite the same again.`, r.dark, 5000), 2600); }
       renderHarbour(); }));
     const tl = $('takeLetter'); if (tl) tl.addEventListener('click', () => { takeLetter(tl.dataset.letter); renderHarbour(); });
+    const tpu = $('takePurse'); if (tpu) tpu.addEventListener('click', () => { const g = takePurse(); toast(`+${g} gold`, false, 4000); G.audio.play('treasure'); renderHarbour(); });
     const dv = $('doDeliver'); if (dv) dv.addEventListener('click', () => { G.completeJobIfHere(d); renderHarbour(); });
     const dp = $('doDropoff'); if (dp) dp.addEventListener('click', () => {
       const p = state.passenger, two = !state.story.berths && !(state.stats.passengers || 0);   // the first fare is paid for two berths; the harbourmaster looks for the other one (once, never explained)

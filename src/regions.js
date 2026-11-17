@@ -17,6 +17,13 @@ export const SLACK_FROM = 11.5, SLACK_TO = 12.5, SLACK_LANES = 0.5;   // hours; 
 // M-HOME-2 the fishers' marks (systems/homemarks.js, fishing.js)
 export const MARK_R = 12, MARK_WAIT = 0.7, MARK_FISH = ['snapper', 'bream', 'grouper'];
 export const MARK_OUT = 6, MARK_HOME = 15, MARK_SAIL = 1.5;   // the boats lie on their marks from 06:00 to 15:00; an hour and a half each way
+// P-HOME-4 the Sunday race (systems/race.js)
+export const RACE_DAY = 6, RACE_GATHER = 13, RACE_START = 14, RACE_END = 16.5;   // Sunday; they gather at 13:00, the flag drops at 14:00, home by 16:30
+export const RACE_MARK = [150, 220];        // the rolled isle they round lies this far from Tama
+export const RACE_START_OFF = 60;           // the committee boat lies this far off Tama's shore, on the course (never along the main pier)
+export const RACE_SPEEDS = [5.6, 6.2, 6.8, 7.4];   // the four boats' best speeds (the Gull runs at up to 11 with a good wind)
+export const RACE_START_R = 45, RACE_ROUND_R = 40, RACE_FINISH_R = 25;   // start by the committee boat, round behind the isle, finish past it
+export const RACE_PURSE = 30, RACE_PURSE_EACH = 10;   // the purse for beating one boat, and for each other one (30 to 60)
 
 // ---- what a harbour's market pays and charges (ui/harbour.js market)
 const isNight = (hour) => hour >= 19 || hour < 5;
