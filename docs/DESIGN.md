@@ -273,6 +273,21 @@ Ten effects (the star-eye and ghost ship were cut) that only run at dread >= ~0.
   Gusts set `ship.gust` (a speed factor in `Ship.update`). `state.story.lanes` remembers currents met.
 - **Glimpse** (`glimpse.js`): `k` 0..1 over seventeen seconds (the diver is in view about eleven of them, at 0.95 scale); main.js applies it to the wind, `stage.wave`, `audio.hush`,
   `fauna` (`ctx.freeze`) and `world.stare`. Starts once (`state.story.glimpse`) while `demoEnd === 'pending'`, 45 s after you are 150 away from the hut.
+- **The Edge** (`systems/edge.js`, look in `systems/edgeworld.js`; played since 2026-11-16, CANON): once a voyage (`state.story.edge`, the day),
+  full game only, when the dread reaches 0.9 on open water with no calm, no menu, no fog and no island on the lip or in the way
+  (`clearFor`, from the cell descriptors). The lip is met `EDGE.AHEAD` ahead, square to the bow; the sea past it is clipped and
+  islands out there are hidden while it runs. The helm, sail, oars, lamp and camera are the player's throughout. Each frame
+  `edgePull` moves the ship towards the lip (`C_FAR` thinning to nothing at `PULL_R`, plus `C_EDGE·(1-d/PULL_R)³`, growing by
+  `HUNGER` between `T_HUNGER`) and, past `LIP_HALF - 150` along it, back towards the middle; the wind turns to blow over the lip
+  (`rt.edge.windTo`, read in main.js), so getting out is a beat. Read, not told: foam dashes racing to the lip, the wind ring,
+  the lamp's flame leaning to the lip, the sound going (`rt.edgeHush`, 0 at `PULL_R`, `HUSH` at the lip). Each thing in the
+  dark is its own mesh, revealed by how near the ship is along the lip (`REVEAL`); the pillars are scaled with their distance
+  so none gets smaller; each thing, looked at (`LOOK_T`) and then out of sight (`AWAY_T`), is changed once (the hood turned a
+  little to where the ship was, the other eye open, a storey more, a pillar more, an arch fewer). At the ends of the stretch
+  the fog closes white (`edgeFog`). Out: past `EXIT_D` (it has faded with the distance); over: within `OVER_D`, the stepped
+  white `#fade`, then the ship `REWIND` back, heading for Tama, sail slack. `state.story.edgeWay` = 'over' | 'out'
+  (`edgeWay()` reads old saves as 'over'); nothing reads it yet. `state.story.edgeRun` (lip, heading, time, changes) lets a
+  save made mid-way pick it up again. Dev: `__game.edge()`.
 - **Quiet window** (`main.js` `eventQuiet`, `Mate.hush`): no random remark, musing, passenger chatter, thread line, market/regatta/whale comment, lamp or tide warning, or village memory from Mara or anyone else while within ~400 of the hut (about 30 s of sailing), from the first throw until the diver has gone, and for 30 s after the hut or the diver (live time). Quest intros/outros and the throw's own lines are not touched.
 - **Pins**: `state.story.pins` ([{x, z, on}]); `trackTarget` follows the one that is `on`.
 
