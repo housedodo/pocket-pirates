@@ -64,6 +64,8 @@ export function recordMul(rec) {
 }
 /** a Crown delivery's time allowed (game seconds, as on the clock of the voyage): distance / 6 + 60, a good line makes it */
 export const deadlineFor = (dist) => Math.round(dist / 6 + 60);
+export const PENNANTS = 6;      // M-CROWN-1: a signal mast's pennants; one is struck for each game hour gone on a timed run there (systems/crown.js)
+export const TIGHT_DIST = 350;  // P-CROWN-5: the one run whose line is already written is a long one (pier to pier; 118 s allowed)
 
 // ---- the Lantern Guild: the lights must be kept lit (oil.js, ui/harbour.js)
 export const OIL_SELL = 0.9;   // what a Lantern harbour pays a unit of oil (Tama sells at OIL_PRICE)
@@ -101,7 +103,7 @@ export function jobPay(state, j, toRegion) {
 }
 /** the record as a row of marks, no words: a tick per clean line (up to 8), a dark mark per black one. ahead (the `arrivals`
  *  capability, clue CL-C1-a: the ledger had the name before the ship came): the next line is already there, faint, before it is earned */
-export const recordMarks = (state, pxi, ahead = false) => { const r = crownRec(state); return pxi('check').repeat(Math.min(8, r.clean)) + '<i class="blackline"></i>'.repeat(r.black) + (ahead ? `<span class="ahead">${pxi('check')}</span>` : ''); };
+export const recordMarks = (state, pxi, ahead = false, aheadBlack = false) => { const r = crownRec(state); return pxi('check').repeat(Math.min(8, r.clean)) + (state.story.lineStruck ? '<i class="blackline struck"></i>' : '') + '<i class="blackline"></i>'.repeat(r.black) + (ahead ? `<span class="ahead">${aheadBlack ? '<i class="blackline"></i>' : pxi('check')}</span>` : ''); };   // aheadBlack: P-CROWN-5, the line already written (systems/crown.js); struck: it was beaten
 /** a Crown harbour you sail into between its buoys: one clean line a day per harbour (main.js, on docking) */
 export function laneArrival(state, d, came) {
   if (d.region !== 'crown' || !came || came.id !== d.id) return false;

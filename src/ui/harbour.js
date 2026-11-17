@@ -18,6 +18,7 @@ import * as paper from '../newspaper.js';
 import { state } from '../core/state.js';
 import { rt, G } from '../core/runtime.js';
 import { markSeen } from '../clues.js';
+import { lineAhead, takeLine } from '../systems/crown.js';
 import { drownedTake, OIL_SELL, sellMul, buyMul, marketNote, caysQuiet, takeJob, clockAt, nowD, jobPay, DAY_SECONDS, recordMarks } from '../regions.js';
 import { pierOf } from '../world.js';
 import { $, toast } from './dom.js';
@@ -108,7 +109,7 @@ export function renderHarbour() {
     else if (state.job) html += `<div class="qrow"><div><b>${pxi('letter')} ${state.job.item}</b><br><small>to ${state.job.toName} · ${bearingName(state.job.x - d.x, state.job.z - d.z)}</small></div><small>${state.job.reward}g</small></div>`;
     else if (j && j.timed) {   // the Crown keeps time: a deadline, two prices, and the shared book of arrivals (regions.js)
       const due = clockAt(nowD(state) + j.timed / DAY_SECONDS), on = jobPay(state, { ...j, due: Infinity }, 'crown'), late = jobPay(state, { ...j, due: -1 }, 'crown');
-      html += `<div class="qrow"><div><b>${pxi('letter')} ${j.item}</b><br><small>to ${j.toName} · ${bearingName(j.x - pierOf(d).x, j.z - pierOf(d).z)}, ${j.dist} · by ${due}: ${on}g, late ${late}g</small></div><button id="jobAccept">Accept</button></div><div class="ledgerrow">${recordMarks(state, pxi, isOpen(state, 'know', 'arrivals'))}</div>`;
+      html += `<div class="qrow"><div><b>${pxi('letter')} ${j.item}</b><br><small>to ${j.toName} · ${bearingName(j.x - pierOf(d).x, j.z - pierOf(d).z)}, ${j.dist} · by ${due}: ${on}g, late ${late}g</small></div><button id="jobAccept">Accept</button></div><div class="ledgerrow">${recordMarks(state, pxi, isOpen(state, 'know', 'arrivals'), lineAhead(d, j, isOpen(state, 'know', 'arrivals')))}</div>`;
     } else if (j) html += `<div class="qrow"><div><b>${pxi('letter')} ${j.item}</b><br><small>to ${j.toName} · ${bearingName(j.x - pierOf(d).x, j.z - pierOf(d).z)}, ${j.dist} · ${j.reward}g</small></div><button id="jobAccept">Accept</button></div>`;
     else html += '<small>Nothing today.</small>';
     html += `<div class="sec">COMMISSIONS (${state.quests.length}/3)</div>`;
@@ -139,7 +140,7 @@ export function renderHarbour() {
       toast(k ? `A hand-drawn chart of ${d.name}'s waters. ${k} island${k > 1 ? 's' : ''} added to your map.` : `A hand-drawn chart of ${d.name}'s waters. You know them all already. It is a lovely drawing.`, false, 6000);
       G.audio.play('buy'); renderHarbour(); });
     const ja = $('jobAccept');
-    if (ja) ja.addEventListener('click', () => { state.job = takeJob(state, j); toast(j.due != null ? `Delivery taken: ${j.toName}, by ${clockAt(j.due)}.` : `Delivery taken: ${j.toName} (pays ${j.reward}g on arrival)`, j.dark); G.audio.play('buy'); renderHarbour(); });
+    if (ja) ja.addEventListener('click', () => { takeLine(d, j); state.job = takeJob(state, j); toast(j.due != null ? `Delivery taken: ${j.toName}, by ${clockAt(j.due)}.` : `Delivery taken: ${j.toName} (pays ${j.reward}g on arrival)`, j.dark); G.audio.play('buy'); renderHarbour(); });
     pane.querySelectorAll('.thrAct').forEach((b) => b.addEventListener('click', () => { const id = b.dataset.act; G.threads.harbourAct(id, d); if (id === 'hollow') return; renderHarbour(); }));
     const tkp = $('takePet'); if (tkp) tkp.addEventListener('click', () => { takePet(tkp.dataset.pet); renderHarbour(); });
     pane.querySelectorAll('.lifeStep').forEach((b) => b.addEventListener('click', () => {

@@ -92,6 +92,7 @@ import { after, laterTick, laterPending } from './systems/later.js';
 import { ringNoon, noonBellTick, noonPending } from './systems/noonbell.js';
 import { homeShift, homeTick, homeLook } from './systems/home.js';
 import { HomeMarks } from './systems/homemarks.js';
+import { lineLate, laneOars, pennantsAt } from './systems/crown.js';
 import { LANDING, landThrow, landedAt } from './systems/landing.js';
 import { trackTarget, goldShown, etaText, slipInfo, drawCompass, updateTracker, initHud } from './ui/hud.js';
 import { LOCALS, localGames, pig, maraMood, openCard, caveScene, COLOUR_DEEP, COLOUR_SHALLOW, openCave, tabletopTick, signOn, daysLeft, crewLeave, wishDone, initEncounters } from './ui/encounters.js';
@@ -850,7 +851,7 @@ function fireCannons() {
 function completeJobIfHere(d) {
   const j = state.job;
   if (!j || j.toId !== d.id) return;
-  const late = !onTime(state, j);   // 15 s of grace past the deadline (regions.js, G-33)
+  const late = j.written ? lineLate(j) : !onTime(state, j);   // 15 s of grace past the deadline (regions.js, G-33); none for the line already written (systems/crown.js)
   j.reward = jobPay(state, j, d.region);   // a Crown deadline and the Crown's record (regions.js)
   if (j.due != null) crownLine(state, late ? 'black' : 'clean');
   const wet = weather.storm > 0.35 ? Math.round(j.reward * 0.6) : 0;   // delivered through a storm: they pay extra
@@ -1298,7 +1299,7 @@ function frame() {
   homeMarks.update(waveT, { ship, hour: state.time * 24, wave: stage.wave, dread: rt.dread });   // the fishers' marks in Home Sound (systems/homemarks.js)
   if (live) reefTick(dt);   // the Reef: coral, the shoals that move at dawn, storm wrecks (systems/reef.js)
   if (live) drownedTick(dt, waveT, stage.wave);   // the Drowned: the shoal belt that opens at low water (systems/drowned.js)
-  { const ni = world.nearest(ship.pos.x, ship.pos.z, 90, ['harbour']); if (ni && inLane(ni.desc, ship.pos.x, ship.pos.z, shoreR)) rt.lane = { id: ni.desc.id, t: rt.tNow }; }   // the Crown's buoyed lanes (regions.js)
+  { const ni = world.nearest(ship.pos.x, ship.pos.z, 90, ['harbour']); if (ni && inLane(ni.desc, ship.pos.x, ship.pos.z, shoreR)) { rt.lane = { id: ni.desc.id, t: rt.tNow }; if (laterOK() && !eventQuiet() && !objectives.mate.busy) laneOars(ship.rowing, (l) => objectives.mate.say(l)); } }   // the Crown's buoyed lanes (regions.js); rowing up one (systems/crown.js)
   sea.update(dt, waveT, lifeCtx);
 
   // ---- global shader state
@@ -1494,7 +1495,7 @@ window.__game = { secrets, regionWeights, tideAt: () => tideAt(), lostState: () 
     ship.pos.set(x + 15, 0, z + 2.5); ship.heading = Math.PI / 2; ship.speed = 0; ship.trim = 1;
   },
   later: { after, pending: laterPending }, landedAt: (id) => landedAt(state, id), landThrow: () => landThrow(state, ship.pos), noonPending, ringNoon, saveNow: () => saveNow(), rt,   // test hooks   // test hook: story delays on the game's clock
-  sectorAt: (x, z) => sectorAt(x, z, state.seed), homeMarks, traffic, abyss, hut, ship, world, state, begin, scene, camera, renderer, wind, weather, fauna, traffic, sea, audio, fishing, combat, objectives, hurtPlayer, openModal, closeModal, buyUpgrade, refreshMods,
+  sectorAt: (x, z) => sectorAt(x, z, state.seed), homeMarks, pennantsAt, completeJobIfHere, traffic, abyss, hut, ship, world, state, begin, scene, camera, renderer, wind, weather, fauna, traffic, sea, audio, fishing, combat, objectives, hurtPlayer, openModal, closeModal, buyUpgrade, refreshMods,
 };
 rt.newVoyage = false;   // New voyage reloads straight into the game, no title in between
 try { rt.newVoyage = sessionStorage.getItem('hoist-new') === '1'; sessionStorage.removeItem('hoist-new'); } catch (e) { /* storage blocked */ }

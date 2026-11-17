@@ -16,6 +16,8 @@ import { mulberry32 } from './util.js';
 const NIGHT = (i) => i.tod && i.tod.night > 0.45;
 let DAY = 0;   // the Reef's shoals are laid out again each dawn (main.js sets the day; world.refresh rebuilds the Reef islands)
 export const setDecorDay = (n) => { DAY = n; };
+let pennantsOf = () => 6;   // M-CROWN-1: how many pennants a Crown harbour's mast flies (systems/crown.js sets it)
+export const setPennants = (fn) => { pennantsOf = fn; };
 const ALWAYS = () => true;
 
 /** d: the island; A: its prop builder; extra: its state props; h: { shoreR, terrainHeight } from world.js */
@@ -49,7 +51,7 @@ export function regionDecor(d, A, extra, h) {
       let [mx, mz] = P(-2, 20); if (!clearOf(mx, mz)) [mx, mz] = P(-2, -20);
       A.cyl(mx, -1, mz, 0.5, 0.4, 27, 6, '#f2f2ee'); A.box(mx, 21.8, mz, 10, 0.4, 0.4, '#f2f2ee');
       const cols = ['#c8302a', '#f2d020', '#2050c8', '#f2f2ee', '#c8302a', '#2050c8'];
-      cols.forEach((c, i) => { const o = -4.5 + i * 1.8, px = mx + sx * o, pz = mz + sz * o; A.cyl(px, 19.3, pz, 0.0, 0.9, 2.4, 3, c, TILE.flag); });
+      cols.forEach((c, i) => { const o = -4.5 + i * 1.8, px = mx + sx * o, pz = mz + sz * o, Pn = new A.constructor(); Pn.cyl(px, 19.3, pz, 0.0, 0.9, 2.4, 3, c, TILE.flag); st(Pn, (isl) => pennantsOf(isl.desc.id) > i); });   // each its own, struck one by one (M-CROWN-1)
     } else if (rng() < 0.5) {   // a lone daymark off other Crown isles
       const [x, z] = P(14, 0); A.cyl(x, -1, z, 0.9, 0.9, 5, 6, '#c8302a'); A.cyl(x, 1.6, z, 0.92, 0.92, 0.9, 6, '#f2f2ee', TILE.white, false);
     }
