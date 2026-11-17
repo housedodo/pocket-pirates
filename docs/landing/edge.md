@@ -21,11 +21,13 @@
 - Tuning in `EDGE` at the top of `edge.js`: AHEAD 240, LIP_HALF 560 (LIP_MIN 300), PULL_R 340, EXIT_D 390, C_FAR 2.5,
   C_EDGE 8, HUNGER 0.8 over 150-240 s, END_V 6, FADE_IN 8, REVEAL 120-270, OVER_D 4, LOOK_T 4, AWAY_T 2, HUSH 0.85, REWIND 180.
 - Verified headless (scripted runs, dread 0.92, no console errors in any): hands off (carried over in about 12 game seconds at
-  full sail, white mist, then 180 back pointing at Tama); along the lip both ways (each thing revealed in turn, second looks
-  fire, the end mist and the water running back hold the ship near the end); out under sail (beating, about 55 s) and under
+  full sail with the lip first set 180 ahead; not re-timed at 240, expect about 20; white mist, then 180 back pointing at
+  Tama); along the lip both ways (all five things revealed in turn and each changed once on a second look, about 280 game
+  seconds end to end and back; the end mist and the water running back held the ship at most 598 along); out under sail (beating, about 55 s) and under
   oars (about 70 s); pause menu and log freeze it and hand it back; save mid-way and reload (picked up at the same lip and
   time, then carried over; a second reload does not start it again); an old save; the demo (nothing starts, the dev hook
-  refuses). Screenshots in `docs/proposals/edge/`.
+  refuses). Screenshots in `docs/proposals/edge/`. Frame rate headless with another run on the machine: 4.63 fps without the Edge,
+  4.25 with it (draw calls 63 against 56; triangles 57k against 74k looking at the lip).
 - Not verified: feel, how hard the pull is, the pacing in real time and the sound (headless runs at a tenth of speed); how
   often the trigger finds a clear stretch in real deep-dread sailing (islands are dense out there; it retries every 2 s).
 - Open (owner): whether the Eye may awaken during the Edge (now: its clock holds); whether 'over' and 'out' should ever mean
