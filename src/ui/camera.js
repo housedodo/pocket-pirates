@@ -6,6 +6,7 @@ import { params, settings } from '../core/config.js';
 import { rt, G } from '../core/runtime.js';
 import { canvas, camera } from '../core/engine.js';
 import { $ } from './dom.js';
+import { terrainHeight } from '../world.js';
 
 export let camPos, camLook;   // set by the init function(s) below, at the point in boot where main.js had them
 
@@ -13,6 +14,9 @@ export const PITCH_MIN = 0.06;   // low, almost level with the deck: the view ti
 /** zoom without a wheel (G-15): - / = and the pad's right stick, x1.6 a second, between ZOOM_MIN and the spyglass's zoomMax */
 export const ZOOM_RATE = 1.6, ZOOM_MIN = 14;
 /** look-ahead (G-16): the look point runs LOOK_REST x zoom ahead at rest, LOOK_FULL x zoom at full speed (11), eased LOOK_EASE a second; anchored it stays at rest */
+/** a hill between the lens and the deck (G-27; seen in a headless sweep of every harbour: low tilts, stern to a cliff, terraced or hill
+ *  village): the tilt rises up to OCC_LIFT over OCC_TIME seconds while the player's own tilt is blocked, and settles back after */
+export const OCC_LIFT = 0.25, OCC_TIME = 0.5;
 export const LOOK_REST = 0.2, LOOK_FULL = 0.32, LOOK_EASE = 1, LOOK_SPEED = 11;
 
 /** the camera: follow the ship (zoom, tilt, orbit, swell), shake, the title shot, ashore, the intro, the yard turntable, overrides */
@@ -21,7 +25,9 @@ export function updateCamera(rawDt, live, ashore) {
   rt.zoom += (rt.zoomT - rt.zoom) * Math.min(1, rawDt * 5);
   rt.pitch += (rt.pitchT - rt.pitch) * Math.min(1, rawDt * 5);
   rt.lookUpK += ((G.abyss.lookUp ? 1 : 0) - rt.lookUpK) * Math.min(1, rawDt * 0.6);
-  const pitchNow = rt.pitch + (0.3 - rt.pitch) * rt.lookUpK;
+  let pitchNow = rt.pitch + (0.3 - rt.pitch) * rt.lookUpK;
+  rt.occ = (rt.occ || 0) + ((live && !rt.edge && hidden(pitchNow) ? OCC_LIFT : 0) - (rt.occ || 0)) * Math.min(1, rawDt / OCC_TIME);
+  pitchNow += rt.occ;
   rt.camHeading += angleDiff(rt.camHeading, G.ship.heading) * Math.min(1, rawDt * 1.6);
   rt.camYaw += (rt.yawT - rt.camYaw) * Math.min(1, rawDt * 7);
   const ch = rt.camHeading + rt.camYaw;
@@ -61,6 +67,14 @@ export function updateCamera(rawDt, live, ashore) {
   camera.updateMatrixWorld();
 }
 
+/** is the deck hidden by the nearest island's ground from the lens at this tilt (the test always uses the player's tilt, so the lift never hunts) */
+function hidden(pitch) {
+  const s = G.ship, isl = G.world && G.world.nearest(s.pos.x, s.pos.z, 60); if (!isl) return false;
+  const d = isl.desc, ch = rt.camHeading + rt.camYaw, back = rt.zoom * Math.cos(pitch), cy = Math.max(3.2, rt.zoom * Math.sin(pitch) + 1);
+  const cx = s.pos.x - Math.sin(ch) * back, cz = s.pos.z + Math.cos(ch) * back;
+  for (let i = 1; i < 10; i++) { const t = i / 10, x = cx + (s.pos.x - cx) * t, z = cz + (s.pos.z - cz) * t, y = cy + (2 - cy) * t; if (terrainHeight(d, x - d.x, z - d.z) > y + 0.5) return true; }
+  return false;
+}
 /** zoom by keys and pad (G-15), once a frame with the game's dt (it stops in menus): - out, = in, rt.padZoom from the right stick (down = out) */
 export function camInput(dt, live, keys) {
   if (!live) return;
