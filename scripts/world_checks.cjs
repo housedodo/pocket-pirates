@@ -10,6 +10,7 @@ const res = []; const rec = (n, ok, note) => { res.push(ok); console.log(`${ok ?
   // drive the ship outward along a bearing from just inside radius r0 for `secs` seconds; returns the furthest radius reached
   const drive = (r0, ang, secs, setup) => p.evaluate(async ([r0, ang, secs, setup]) => {
     const g = window.__game, st = g.state; Object.assign(st.upgrades, setup.up || {}); st.goals.i = setup.goals ?? 30; st.story.free = false; st.story.reach = setup.reach ?? 0; st.story.seen = setup.seen || {};
+    st.hut = st.hut || { rolls: [] }; st.hut.rolls = setup.rolls || [12];   // the strata walls hold after the first throw; before it the chapter's wall does (G-28)
     if (setup.time !== undefined) g.setTime(setup.time); if (setup.day !== undefined) st.dayN = setup.day; g.setDread(0.3);
     const a = ang * Math.PI / 180; g.ship.pos.x = Math.cos(a) * r0; g.ship.pos.z = Math.sin(a) * r0; g.ship.heading = Math.atan2(Math.cos(a), -Math.sin(a));
     let max = 0; const t0 = performance.now();
@@ -20,15 +21,14 @@ const res = []; const rec = (n, ok, note) => { res.push(ok); console.log(`${ok ?
     const r = await drive(r0, 200, holds ? 9 : 16, setup);   // the ship makes about 8 units/s: long enough to pass the wall by 60 if it lets you
     rec(name, holds ? r.max < wallR + 60 : r.max > wallR + 60, `gate ${r.gate}, furthest ${r.max}`);
   };
-  // the tutorial wall, then each stratum edge shut and open
-  await wall('tutorial holds the ship at Home Sound', 400, 430, { goals: 0 }, true);
-  await wall('S1 wall holds with no rudder and no chart', 420, 450, {}, true);
-  await wall('S1 opens with a broad rudder', 420, 450, { up: { rudder: 2 } }, false);
-  await wall('S2 wall holds without lantern/hull', 770, 800, { up: { rudder: 2 }, reach: 700 }, true);
-  await wall('S2 opens with lantern 1 + hull 2', 770, 800, { up: { rudder: 2, lantern: 1, hull: 2 }, reach: 700 }, false);
-  await wall('S3 wall holds without lens lantern', 1120, 1150, { up: { rudder: 2, lantern: 1, hull: 2 }, reach: 1000 }, true);
-  await wall('S3 opens with lantern 2', 1120, 1150, { up: { rudder: 2, lantern: 2, hull: 2 }, reach: 1000 }, false);
-  await wall('S4 wall holds with hull 2 (no hull/sails 3)', 1520, 1550, { up: { rudder: 2, lantern: 2, hull: 2 }, reach: 1300 }, true);
+  // before the first throw the wall is the chapter's, however the ship is fitted (CANON 2026-11-13, G-28)
+  await wall('tutorial holds the ship at Home Sound', 400, 430, { goals: 0, rolls: [] }, true);
+  await wall('before the first throw, chapter III holds a fitted ship at 820', 790, 820, { goals: 4, up: { rudder: 2, lantern: 2, hull: 3, sails: 3 }, rolls: [] }, true);
+  await wall('before the first throw the chapter wall holds a fitted ship at 1650', 1620, 1650, { up: { rudder: 2, lantern: 2, hull: 3, sails: 3 }, reach: 1300, rolls: [] }, true);
+  // after it the sea never shrinks below the furthest chapter wall (1650); the strata decide beyond it
+  await wall('after the throw an unfitted ship sails past the old S2 edge', 770, 800, {}, false);
+  await wall('after the throw the wall holds at 1650 without hull or sails 3', 1620, 1650, { up: { rudder: 2, lantern: 2, hull: 2 }, reach: 1300 }, true);
+  await wall('after the throw hull 3 opens the Dim', 1620, 1650, { up: { rudder: 2, lantern: 2, hull: 3 }, reach: 1600 }, false);
   await wall('S5 wall holds with no clues seen', 1920, 1950, { up: { rudder: 2, lantern: 2, hull: 3, sails: 3 }, reach: 1600 }, true);
   await wall('S5 opens once three regions are read', 1920, 1950, { up: { rudder: 2, lantern: 2, hull: 3, sails: 3 }, reach: 1600, seen: { 'CL-C3-a': 1, 'CL-C1-a': 1, 'CL-F1-a': 1 } }, false);
   // the way home is longer than the way out (the Slack): time to cross 1300 -> 1500 outward vs inward at the same speed

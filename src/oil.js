@@ -13,8 +13,9 @@ export const lanternLit = (c) => c.night > 0.35 || c.fog > 0.5 || c.storm > 0.5;
  *  Upright and steady in home waters; shorter and leaning the further out. Never a meter, never a word. */
 export const flameShape = (dread) => { const k = Math.min(1, Math.max(0, dread || 0)); return { h: 1 - 0.55 * k, lean: 0.75 * k }; };
 
-/** oil burnt per second: a full lamp lasts about a night and a half (a night is ~4 minutes) */
+/** oil burnt per second: a full lamp lasts about a night and a half (a night is ~4 minutes). The beacon lantern (level 3)
+ *  "keeps the dark back": it burns x0.8, so the dark's hunger reaches it later (G-24) */
 export function oilRate(c) {
   if (!lanternLit(c)) return 0;
-  return 0.26 * (1 + 0.8 * (c.dread || 0)) * (c.rowing ? 0.85 : 1);
+  return 0.26 * (1 + 0.8 * (c.dread || 0)) * (c.rowing ? 0.85 : 1) * ((c.lantern || 0) >= 3 ? 0.8 : 1);
 }

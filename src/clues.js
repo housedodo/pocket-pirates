@@ -80,7 +80,23 @@ export const tableOpen = (state) => d3Open(state) || !!(state.hut && state.hut.r
 // ---- tone lint ------------------------------------------------------------------------------------------------
 export const BANNED = /\b(lid|eye|sleeper|lady|kept soft)\b|mara is from/i;
 export const HUT_WORDS = /\b(she|her|the hut|\d+)\b/i;
-/** returns the ids of clue lines that break the tone rules (empty = pass) */
-export function clueLint() {
-  return CLUES.filter((c) => BANNED.test(c.line) || HUT_WORDS.test(c.line)).map((c) => c.id);
+/** returns the ids of clue lines that break the tone rules (empty = pass). With `where` ({ places: CLUE_PLACES() from places.js,
+ *  regionAt from regions.js }) it also checks each clue's fixed place against its region tag (G-30): a place standing in a sector of
+ *  another region is a warning on `.warnings`, never a failure; the owner picks per clue whether the place moves or the tag changes. */
+export function clueLint(where) {
+  const bad = CLUES.filter((c) => BANNED.test(c.line) || HUT_WORDS.test(c.line)).map((c) => c.id);
+  bad.warnings = where ? clueRegionWarnings(where) : [];
+  return bad;
+}
+/** the sector's region is seeded only in the mixed water between two wedges (sectors.js), so every place is read under `seeds` seeds */
+export function clueRegionWarnings({ places, regionAt, seeds = 32 }) {
+  const out = [];
+  for (const p of places) {
+    const c = CLUE[p.clue]; if (!c || c.region === 'deep') continue;
+    const got = {};
+    for (let s = 1; s <= seeds; s++) { const r = regionAt(p.x, p.z, s * 7919); got[r] = (got[r] || 0) + 1; }
+    const other = Object.keys(got).filter((r) => r !== c.region);
+    if (other.length) out.push(`${c.id} (${c.region}) at ${p.name} (${Math.round(p.x)}, ${Math.round(p.z)}) lies in ${other.map((r) => r + (got[r] < seeds ? ` (${got[r]}/${seeds} seeds)` : '')).join(', ')} water`);
+  }
+  return out;
 }

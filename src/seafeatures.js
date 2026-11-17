@@ -8,6 +8,8 @@ import { hash2, mulberry32, smoothstep, clamp } from './util.js';
 import { CELL } from './world.js';
 import { dreadAtDistance } from './palette.js';
 // made once: the frame's tints (task R6)
+// sail into it to pick it up: distance from the ship's centre (SYSTEMS_FEEL G-17; tune by hand; was barrel 4.8, crate 5.2)
+export const PICK_BARREL = 6.0, PICK_CRATE = 6.0, PICK_BOTTLE = 6.5;
 const C_WHITE = new THREE.Color(1, 1, 1), C_WHIRL_DREAD = new THREE.Color(1, 0.4, 0.9), C_SHOAL_NIGHT = new THREE.Color(0.2, 1, 0.9), C_SHOAL_DREAD = new THREE.Color(0.9, 0.3, 1);
 
 // Things floating or hiding between the islands: salvage barrels, messages in bottles,
@@ -190,7 +192,7 @@ export class SeaFeatures {
       const k = this.qcrates[i], c = k.c;
       k.mesh.position.set(c.x, waveHeight(c.x, c.z, t, wave) + 0.2, c.z);
       k.mesh.rotation.set(Math.sin(t * 1.2 + k.phase) * 0.15, t * 0.15 + k.phase, Math.cos(t * 1.0 + k.phase) * 0.15);
-      if (Math.hypot(c.x - ship.pos.x, c.z - ship.pos.z) < 5.2) {
+      if (Math.hypot(c.x - ship.pos.x, c.z - ship.pos.z) < PICK_CRATE) {
         c.got = true; this.scene.remove(k.mesh); this.qcrates.splice(i, 1);
         if (this.onEvent) this.onEvent({ type: 'qcrate', q: k.q, i: k.i });
       }
@@ -215,7 +217,7 @@ export class SeaFeatures {
               o.glint.visible = k > 0.05; o.glint.position.set(o.x, o.mesh.position.y + 0.9, o.z);
               o.glint.scale.setScalar(k * 1.3); o.glint.rotation.y = t;
             }
-            if (d < (o.type === 'bottle' ? 6.5 : 4.8)) {
+            if (d < (o.type === 'bottle' ? PICK_BOTTLE : PICK_BARREL)) {
               this.scene.remove(o.mesh); if (o.glint) this.scene.remove(o.glint); items.splice(i, 1); this.collected.add(o.id);
               if (this.onEvent) this.onEvent({ type: o.type, o });
             }

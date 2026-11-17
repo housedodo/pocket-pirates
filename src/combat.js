@@ -6,6 +6,8 @@ import { KINDS } from './traffic.js';
 // Simple, strictly optional ship combat. Only raiders (some Reef Brotherhood ships) attack,
 // and you can outrun them, pay tribute, or fight. Space auto-aims a broadside at the nearest raider.
 const G = 16, SPEED = 38;
+const WARN = 0.7;   // seconds between a raider's tell and her shot (G-22)
+export const FIRE_BUFFER = 0.25;   // s: Space this close to the end of the reload fires when it ends (SYSTEMS_FEEL G-07; tune by hand)
 const rnd = (a, b) => a + Math.random() * (b - a);
 
 export class Combat {
@@ -51,7 +53,8 @@ export class Combat {
   }
 
   playerFire(ship, traffic, state, mods) {
-    if (this.reload > 0) return 'reload';
+    if (this.reload > 0) { if (this.reload <= FIRE_BUFFER) this.queued = true; return 'reload'; }
+    this.queued = false;
     if (state.ammo <= 0) return 'ammo';
     const tg = this.target(ship, traffic);
     if (!tg) return 'target';
@@ -69,15 +72,25 @@ export class Combat {
   update(dt, t, ctx) {
     const { ship, traffic, wave, onHitEnemy, onHitPlayer } = ctx;
     this.reload = Math.max(0, this.reload - dt);
+    if (this.queued && this.reload <= 0) { this.queued = false; if (ctx.fire && this.target(ship, traffic)) ctx.fire(); }   // the buffered broadside
 
     // raiders shoot back
     for (const s of traffic.ships) {
-      if (!s.hostile || s.hp <= 0 || s.sinking || !s.engaged) continue;
+      if (!s.hostile || s.hp <= 0 || s.sinking) continue;
+      const sc = KINDS[s.kind].scale;
+      if (s.hp < s.maxHp * 0.5 && (s.smokeT = (s.smokeT || 0) - dt) <= 0) {   // hurt: a thin smoke trails from her deck (G-22; no bars, no numbers)
+        s.smokeT = 0.3; this.puff(s.x - Math.sin(s.heading) * 1.2 * sc, 2.6 * sc, s.z + Math.cos(s.heading) * 1.2 * sc, 0.32);
+      }
+      if (!s.engaged) { s.warned = false; continue; }
+      const rx = Math.cos(s.heading), rz = Math.sin(s.heading);
+      const side = ((ship.pos.x - s.x) * rx + (ship.pos.z - s.z) * rz) >= 0 ? 1 : -1;
       s.fireCd -= dt;
+      if (s.fireCd <= WARN && !s.warned) {   // the tell (G-22): a small puff at her gun side, and she holds her turn (traffic.js) until the shot
+        s.warned = true; s.fireCd = Math.max(s.fireCd, WARN);
+        this.puff(s.x + rx * side * 1.5 * sc, 2, s.z + rz * side * 1.5 * sc, 0.5);
+      }
       if (s.fireCd <= 0) {
-        s.fireCd = rnd(4.6, 7);
-        const rx = Math.cos(s.heading), rz = Math.sin(s.heading);
-        const side = ((ship.pos.x - s.x) * rx + (ship.pos.z - s.z) * rz) >= 0 ? 1 : -1;
+        s.fireCd = rnd(4.6, 7); s.warned = false;
         this.launch(1, s.x + rx * side * 1.5, s.z + rz * side * 1.5, ship.pos.x, ship.pos.z, Math.sin(ship.heading) * ship.speed, -Math.cos(ship.heading) * ship.speed, 7 + Math.random() * 3,
           // they miss a lot: more the faster you sail (a ship running well before the wind is hard to hit), and now and then wildly
           0.3 + 0.5 * Math.min(1, ship.speed / 8) + (Math.random() < 0.4 ? 0.9 : 0));

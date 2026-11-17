@@ -188,10 +188,10 @@ export class Places {
   }
 
   /** labels over far landmarks: '?' by eye, what it looks like through a spyglass, its name once you have been */
-  labelsTick(camera, ship, spy, discovered, W, H, show, ctx = {}) {   // ctx: { fogFar, d3 } (docs/ART_SPEC.md R14, 8.2)
+  labelsTick(camera, ship, spy, discovered, W, H, show, ctx = {}) {   // ctx: { fogFar, table } (docs/ART_SPEC.md R14, 8.2)
     const range = 170 + 110 * spy, v = _lv;
     for (const l of LANDMARKS) {
-      if ((l.lm === 'table' && !ctx.d3) || !lmHere(l.lm)) { const e = this.labels.get(l.lm); if (e) e.style.display = 'none'; continue; }   // the table has no label until it exists; the demo has no later places
+      if ((l.lm === 'table' && !ctx.table) || !lmHere(l.lm)) { const e = this.labels.get(l.lm); if (e) e.style.display = 'none'; continue; }   // the table has no label until it stands (tableOpen, as going ashore: G-26); the demo has no later places
       let el = this.labels.get(l.lm);
       const d = Math.hypot(l.x - ship.pos.x, l.z - ship.pos.z);
       const known = discovered[l.key];
@@ -207,3 +207,6 @@ export class Places {
     }
   }
 }
+
+/** each clue seen ashore at a hand-made place, with where that place stands (for clueLint's region check, clues.js, G-30) */
+export const CLUE_PLACES = () => Object.entries(VISITS).filter(([lm, v]) => v.clue && LM[lm]).map(([lm, v]) => ({ clue: v.clue, name: LM[lm].name, x: LM[lm].x, z: LM[lm].z }));

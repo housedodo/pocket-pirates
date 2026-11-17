@@ -39,7 +39,7 @@ If the game outgrows the browser, the design, generators and shaders port over; 
 | `float.js` | How every hull floats on the swell: plane fit under the hull, buoyant heave that follows the water's speed, limited pitch and roll |
 | `wind.js` | Wandering wind: big heading swings over minutes + gusts, announced when it shifts |
 | `daynight.js` | Day/night layered on the dread palette (11.5 min per day: 7.5 min daylight, 4 min night): sun, moon, stars, dusk colours, light level |
-| `upgrades.js` | 5 ship upgrades x 3 levels (sails, rudder, lantern, spyglass, crew), costs and effects |
+| `upgrades.js` | 7 ship upgrades x 3 levels (sails, rudder, lantern, spyglass, hull, cannons, crew), costs and effects |
 | `lore.js` | Names, harbour gossip and loot that drift from cosy to cosmic |
 | `audio.js` | Optional drop-in audio, cross-faded per dread stage |
 | `objectives.js` | The main goal chain (sail, harbour, dig, ... hut), `Mate` (Mara's text box and pacing), gated side remarks, pending next goal with a gap |
@@ -58,10 +58,10 @@ Every island has a bright decor set and a "wrong" decor set (dead palms, glowing
 They swap at dread 0.5, and terrain colours blend to a second vertex colour set.
 
 ## Systems added after the slice
-- **Upgrades:** buy at any harbour (E). Gold comes from treasure (+ crew bonus) and +15 per newly charted isle. Sails = speed and upwind ability, Rudder = turning, Lantern = night glow, Spyglass = view distance and zoom, Crew = dig speed and loot value.
+- **Upgrades:** buy at any harbour (E). Gold comes from treasure (+ crew bonus) and +15 per newly charted isle. Sails = speed and upwind ability, Rudder = turning, Lantern = night glow, Spyglass = view distance and zoom, Hull = hull strength, Cannons = damage and reload, Crew = dig speed and loot value. Lantern 3 (the beacon) also burns its oil x0.8 (`oilRate`, G-24): "keeps the dark back".
 - **Wind:** direction swings up to ~150 degrees over several minutes, strength gusts 45-125%. Waves scale with it. The wind meter (dial / pennant / rose / windsock, chosen in the pause menu) shows where it blows, a green-yellow-red ring around it shows how well the ship's nose would sail in each direction, a cream marker is the nose, and an orange marker points at the tracked mission.
 - **Day/night:** `DAY_LENGTH` in `daynight.js`. Windows, lanterns, fungus and eyes ignore the light level so they glow at night; the lighthouse beam gets stronger.
-- **Pause menu:** Esc/P (also on tab blur). Simulation, time of day and audio freeze while any menu is open.
+- **Pause menu:** Esc/P (also on tab blur). Simulation, time of day and audio freeze while any menu is open. A menu never ends a dig, a fishing line or a timed action: they wait under it and come back on close (`suspend`/`resume` in `fishing.js` and `digging.js`; G-01). A movement key held through a menu steers again from its first key-repeat (G-12).
 
 ## A living sea (all of it goes wrong with dread)
 | System | Cheerful | Wrong |
@@ -83,27 +83,35 @@ Other systems: **jobs** (delivery contracts from harbour boards, tracked on the 
 
 ## Starter adventure (first mate, fishing, riddles, looks, combat)
 - **First mate and goals** (`objectives.js`): Mara talks you through the main chain of 16 goals in six chapters, then Perrin's five letters after the hut (21 in `MAIN_GOALS`; the demo stops at the hut) (sea legs, landfall; the riddle, the first upgrade; dead calm, tacking, a delivery, a passenger, charting; the tavern, Perrin's note, his chart, the second riddle; bottles, gossip; the hut) and reacts to events (dusk, storms, raiders, rising dread; she gets more unsettled as it goes on). Seven optional side goals complete themselves. Y or the pause menu asks for a hint; goals can be skipped in the Goals tab.
-- **Fishing** (`fishing.js`): C casts (slow down first), wait for a bite, hook it, then hold Space to keep the marker in the green zone. 11 species, harder ones later; dark species appear with dread and at night. Sell at harbours (reputation adds a bonus); fish log in the Journal.
+- **Fishing** (`fishing.js`): C casts (under way the anchor goes down first and the meter starts at speed 2.5, `FISH_START_SPEED`), wait for a bite, hook it, then hold Space to keep the marker in the green zone. 11 species, harder ones later; dark species appear with dread and at night. Sell at harbours (reputation adds a bonus); fish log in the Journal.
 - **Treasure riddles** (`lore.makePuzzle`, `world.js`): the chest is no longer marked. Each treasure isle's arch carries a riddle (sunrise/sunset/pole star/lone palm) naming the shore where the chest is buried. Study the arch (E), sail to the right shore, dig. Wrong shores cost a few seconds. Riddles also come from Perrin (the starter map) and are kept in the Journal.
 - **Ship looks** (`customize.js`): hull paint, sail colour, pennant and figurehead (parrot, dolphin, mermaid, lion, skull) at harbour shipyards. Some figureheads are earned (catch fish, salvage a wreck, earn 3 stars, sink a raider).
-- **Combat** (`combat.js`, strictly optional): only some Reef Brotherhood ships are raiders. They chase when you are close, circle and fire; you can outrun them, parley (pay tribute, bluff) or fight. Space auto-aims a broadside at the nearest raider. Hull strength and cannon upgrades at the shipwright; cannonballs from harbours or wrecks of raiders. If your hull goes, you wake up at the nearest harbour with 25% less gold (no game over).
+- **Combat** (`combat.js`, strictly optional): only some Reef Brotherhood ships are raiders. They chase when you are close, circle and fire; you can outrun them, parley (pay tribute, bluff) or fight. Space auto-aims a broadside at the nearest raider; while a raider is engaged Space only fires (Enter or a click move Mara's line on), and a Space up to 0.25 s before the reload ends fires when it ends (`FIRE_BUFFER`, G-07). Hull strength and cannon upgrades at the shipwright; cannonballs from harbours or wrecks of raiders. If your hull goes, you wake up at the nearest harbour with 25% less gold (no game over). A raider's shot has a tell (G-22): 0.7 s before
+  she fires, a small puff at her gun side, and she holds her turn until the shot. Under half her hull she lists 6 degrees and trails a
+  thin smoke; under a quarter she runs (her slow speed, turned away, no more shots). No bars, no numbers.
 
 ## Commissions, fruit and the log (second pass)
 - **Commissions** (`jobs.commissionsFor`): each harbour board posts a delivery plus two errands, up to 3 held at once: catch specific fish, bring a fruit, recover floating crates from a marked search area, sink raiders, spot dolphins/whales. Hand in at the board (Board tab); rewards also build reputation.
 - **Fruit** (`fruit.js`): jungle and sandbar islands grow one kind each (fruit is visible on the island). E picks 2-4 (once per in-game day per island). Sell at the Market or use for commissions.
 - **Captain's log** is an open book with three bookmarks: Chart, Orders (the slip, errands in hand, riddles, rumours, optional goals, what is done) and Ship's book (journal, fisherman's log, ship, standing); short entries over two pages, page turn with the arrows.
-- **Wind** is shown as a wooden dial with a cloth streamer (gusts make it snap), a word like "Fresh breeze" instead of numbers, and faint wisps drifting across the sea. Gusts add a few degrees of wobble within the prevailing direction.
+- **Wind** (no toast when it shifts: the ring shows it; G-32, owner 2026-11-16; and none at a region's line, where the place line names the sector) is shown as a wooden dial with a cloth streamer (gusts make it snap), a word like "Fresh breeze" instead of numbers, and faint wisps drifting across the sea. Gusts add a few degrees of wobble within the prevailing direction.
 - **Camera** orbits the boat (drag sideways, Z/X) and eases back behind it after a few seconds.
 - **Mara** types her lines out letter by letter with a bobbing portrait; click or Enter skips; the next goal is announced a few seconds after she finishes.
 
 ## Dread stages
-| # | Name | Feel | World signs |
-|---|---|---|---|
-| 1 | Home waters | sunny, saturated | gulls, shanties |
-| 2 | Off | paler, quieter | NPCs repeat themselves |
-| 3 | Wrong | green haze, desaturated | glowing fungus, standing stones, odd names |
-| 4 | Eerie | fog, dusk, black flag | dead palms, lit empty windows, magenta lighthouse beam |
-| 5 | Cosmic | black sun, eye in the stars | chromatic split, screen wobble |
+**Stage n = `stageOf(dread)` + 1** in every doc (owner, 2026-11-16, G-31): `stageOf` (`palette.js`) cuts dread into fifths, 0 to 4,
+so stage 1 is dread under 0.2, stage 2 under 0.4, stage 3 under 0.6, stage 4 under 0.8 and stage 5 from 0.8. The debug line prints the
+same number. Where a rule cuts somewhere else, the doc gives the dread number, not a stage: Mara's moods cut at quarters (0.25, 0.5,
+0.75, 0.95; kept, owner 2026-11-15), the Cays' night quiet holds dread under 0.45 (`lullaby.js`), the lost sailors start at 0.6
+(`lostsailors.js`, stage 4).
+
+| Stage | Dread | Name | Feel | World signs |
+|---|---|---|---|---|
+| 1 | 0 to 0.2 | Home waters | sunny, saturated | gulls, shanties |
+| 2 | 0.2 to 0.4 | Off | paler, quieter | NPCs repeat themselves |
+| 3 | 0.4 to 0.6 | Wrong | green haze, desaturated | glowing fungus, standing stones, odd names |
+| 4 | 0.6 to 0.8 | Eerie | fog, dusk, black flag | dead palms, lit empty windows, magenta lighthouse beam |
+| 5 | 0.8 to 1 | Cosmic | black sun, eye in the stars | chromatic split, screen wobble |
 
 ## Quiet start, intro and quest cue (newest layer)
 - **Intro:** a new voyage plays a 9 s cinematic (`INTRO_DUR`, letterbox bars, camera eases down behind the boat; Esc/click skips). Not for continued saves, `autostart`, `nomate` or `x=`; force with `?intro=1`.
@@ -141,6 +149,9 @@ Chosen from six playable studies (after Dredge and Undertale): the bite ring for
   needle sweeps round a ring: strike (C / Space) on a green mark, better on its gold heart. Each hit pulls the catch meter up and
   flips the needle; dawdle and the fish drags it back down. Harder fish: a faster needle, fewer and smaller marks. Dark fish and
   dread: the marks drift and the needle sometimes stops. Fails: too slow on the bite, three strikes on empty water, the meter runs dry.
+  Forgiveness (G-06): a strike counts if the needle was on a green or gold mark up to 60 ms ago or will be within 60 ms at its
+  speed (`STRIKE_TOL`; never on a red snag); C in the wait holds 0.25 s (`EARLY_HOOK`) and hooks a bite inside it, otherwise the
+  line comes in. A water's tip is shown the first two times (`state.hints['tip:ring:<kind>']`), then only its name (G-21).
 - **The water changes the fight** (`RING_KINDS`): wreck water (red snags), night water (fading marks), heavy swell
   (surging needle), deep water (hold, do not tap; line strain), reef water (darting marks), calm. See PROGRESS.md.
 - **Beaches** (`BEACHES` in digging.js, `o.beach`): sand, shingle (stone counts), dunes (holes fill in), mud (no tide,
@@ -150,6 +161,8 @@ Chosen from six playable studies (after Dredge and Undertale): the bite ring for
   close the chest is, darker and wetter = closer. Hidden stones crack the shovel (two break it) and the tide creeps up with every dig
   (10 digs, 13 for Perrin's first chest, more with shipwright upgrades and the dig buff). Fails: the tide floods the beach, or the
   shovel breaks; the crew needs about 6 s, then a fresh try with the chest somewhere else. Dread: some squares lie about the damp.
+  Holding E 0.8 s on the beach packs the crew up (`DIG_LEAVE_HOLD`, G-10): the prompt bar fills, and it counts as a failed dig
+  (6 s, the chest moves, `attempts` +1). A beach's rules are told the first two times that kind is met (`tip:beach:<kind>`), then nothing (G-21).
 
 ## Quiet start
 Mara's chatter (weather, tide, market days, musings, sightings), dolphins, pets (the cat at Tama) and the optional goals wait until
@@ -162,6 +175,9 @@ once the story reaches it ("Ask around", `hutReached`); Perrin's isle sits a lit
 quest's effects, back rewinds the story flags later quests set and Mara announces the quest), the hour (Dawn / Noon / Dusk / Night,
 keys `1`-`4`, `[` `]`) and the dread (slider 0-1 with the stage name; `auto` or `0` returns to dread by distance). F6 weather,
 F7 finish the quest, F8 sound mixer, F9 sound studio, `` ` `` debug line. None of it exists in the demo.
+`?econ=1` (G-25, `systems/econ.js`): the economy meter. It books every gain of gold to a source (delivery, passenger, commission,
+salvage, bounty, treasure, places, relight, fish, fruit, oil, goal, other), read off what else changed in the same frame, and shows gold
+per hour of game time on the debug line and in `window.__game.econ`. Never in the demo or the full playtest build (its flags are ignored).
 
 ## Tunables
 - `DREAD_RANGE` in `palette.js`: distance (2200 units now, ~3 min) to reach full dread. Raise it for a longer arc.
@@ -222,7 +238,10 @@ Ten effects (the star-eye and ghost ship were cut) that only run at dread >= ~0.
 - **Places** (`places.js`): `BARRIERS` (reef 44, breakers 50, fog 110 from the centre, the upgrade and level that opens
   each). `tick` pushes the ship out and returns a message; `fog` (0..1) thickens the scene fog like the chapter fog wall.
   `visit` returns what is found (`VISITS`: once / again / every N days; gold, ammo, hull, fruit, chart, notes); saved in
-  `state.story.lm` (day of last visit). (`labelsTick` once drew far labels over islands; removed: no text over islands while sailing.)
+  `state.story.lm` (day of last visit). `labelsTick` draws a far label over each hand-made place between 70 and 170 + 110 x spyglass
+  units: "?" by eye, the sight word through a spyglass, the name once visited; it fades with the fog and hides when the HUD does
+  (kept by the owner, 2026-11-16, G-29). The Table's label shows from `tableOpen` (one throw, or three questions), the same test as
+  going ashore there (G-26). Places that are not in this build (`lmHere`) have none.
 - **Sea play** (`seaplay.js`): three `LANES` (`ROUND` is gone), faded out near any fog by `fogEdge`; `currentAt(x, z)` is the drift (used for the ship and the foam).
   Gusts set `ship.gust` (a speed factor in `Ship.update`). `state.story.lanes` remembers currents met.
 - **Glimpse** (`glimpse.js`): `k` 0..1 over seventeen seconds (the diver is in view about eleven of them, at 0.95 scale); main.js applies it to the wind, `stage.wave`, `audio.hush`,
@@ -240,7 +259,7 @@ Market's LAMP OIL row and Wick's Rock refill it. Tune the burn in `oilRate`, the
 ## Torn sails
 `sailTick` in main.js: strain grows only in a real storm (`weather.storm > 0.6 && windNow.strength > 1.0`) with `ship.trim > 0.55`,
 decays otherwise; warning at 35% of `SAIL_LIMIT` (20), tear at 100% (about 12 s at full sail in a full storm). `ship.torn` multiplies the speed target by 0.66. Mending:
-a patch kit (`getInteract` kind `patch`, lowest priority, anywhere at sea) or docking at a harbour (`mendSails`).
+a patch kit (`getInteract` kind `patch`, above fruit and hails, anywhere at sea) or docking at a harbour (`mendSails`).
 
 ## Lost in fog
 `fogLost(dt)` in main.js: when `gateLost` (past `gateRadius`) or `places.lost` (inside an unopened fog bank) is set, `lostK`
@@ -301,6 +320,10 @@ something to do in each. See PROGRESS.md "Harbour life" for the list.
 - **The slip** (`slipInfo` in `main.js`): what, where, which way and how long. Shown as the HUD tracker, as the first entry on Orders and in the chart's side panel. A goal with one place (`goalTarget`: landfall, the first riddle, Perrin's letters, an errand in hand) gives the place, a bearing and a time; any other goal gives its `where` line from `MAIN_GOALS`. One extra line when the course is into the wind.
 - **Sailing time** (`etaText`): distance / (8 x the sail upgrade's speed), or / 2.6 under oars; "under a minute" below 45 seconds. It is an estimate at cruising speed, not the speed at that moment.
 - **The anchor** (`ship.anchored`, `anchorTick` in `src/systems/interact.js`, with `getInteract`, `tryInteract` and `goAshore`; the interaction is computed once a frame into `rt.tg`): E at a shore, wreck, landmark, cave, thread or for a patch (`HEAVE_KINDS`) works under way: the hull stops in a few lengths (speed decays at 2.6 per second, sail comes in) and the action then starts by itself. While a dig, salvage, patch or fishing line is on, the ship is pinned to where it stopped. Secrets (`secrets.js`) are the exception: they only show when you have stopped by yourself.
+- **What E answers to** (2026-11-16, SYSTEMS_FEEL G-03, G-04, G-13, G-14; numbers at the top of `interact.js`): priority is hut > sighting > cave > spring > thread > harbour pier > secret > landmark > treasure > wreck > patch > hail > fruit > dead light > "sail to the pier" (a hint, last). A running action keeps its own target until it ends: another thing coming in reach never cancels it, only the ship being moved more than its range + 8 from where it began (a sinking, a jump). The last thing in reach stays E-able for 0.6 s while the ship has gone no more than 6 further (`E_GRACE_T`, `E_GRACE_D`; never a harbour pier); while the anchor goes down the target holds over 8 more units (`HEAVE_HOLD`); an E with nothing in reach waits 0.25 s for something (`E_BUFFER`). No "bring the ship to a stop" toasts: on a plundered isle or at a secret under way E simply does nothing. C under way drops the anchor like E (G-05).
+- **Docking** (G-09): visiting a harbour lays her alongside: speed 0, sails in; W raises them again.
+- **Selling** (G-08, `sellable` in `jobs.js`): Sell fish / Sell fruit (and the floating market's Sell all) keep back what the errands in hand need, per species and per fruit up to their count (the cheapest fish are kept); the row says "kept for your errands" when nothing else is aboard. The Drowned's keeping is unchanged.
+- **Sailing through things** (G-17, `seafeatures.js`): a barrel or an errand crate is picked up within 6.0 (`PICK_BARREL`, `PICK_CRATE`), a bottle within 6.5.
 
 ## The end of a voyage (2026-11-11, `src/table.js`)
 - The Table by the Water (a landmark at the Lid) shows once three questions have a second source (`d3Open`). Going ashore opens one card with up to four choices (`tableOptions`): throw; hum the tune (`hum` known); sit (question 3 at level 3); leave (`state.story.kept`, or at most one hut throw).
@@ -325,11 +348,11 @@ blends slowly in space and time. For now this is the look only: the shapes have 
 ## Regions that play differently (2026-11-13, `src/regions.js`)
 | Region | How it plays | Numbers |
 |---|---|---|
-| Crown Traders | Deliveries from Crown harbours have a deadline ("by 14:30"); a shared record of arrivals at every Crown harbour (ticks and black lines on the board); customs cutters come alongside once and look in the hold; sailing in between the buoys is a clean arrival | on time 1.45x, late 0.55x; +5% pay per clean line up to +25%, -15% per black line; three clean in a row wipe a black one; clean hold +5g, dark cargo taken and a black line; customs 15% of Crown ships |
+| Crown Traders | Deliveries from Crown harbours have a deadline ("by 14:30"); a shared record of arrivals at every Crown harbour (ticks and black lines on the board); customs cutters come alongside once and look in the hold; sailing in between the buoys is a clean arrival | on time 1.45x (up to 15 s past the deadline still counts: `onTime`, G-33), late 0.55x; deadline distance / 6 + 60 s; +5% pay per clean line up to +25%, -15% per black line; three clean in a row wipe a black one; clean hold +5g, dark cargo taken and a black line; customs 15% of Crown ships |
 | Free Cays | Raiders only by day; the stalls open after dark and pay more; swordfish, cuttlefish and moonfish come into open water at their hours | raiders 10% of spawns by day, 0 at night; night market 1.4x fish and fruit; dusk fish 2x |
 | Reef Brotherhood | Wrecks pay more; a bounty for raiders sunk there, paid at any Reef harbour; coral heads are rock; the shoals are laid out again each dawn; a storm brings a wreck up, gone at the next low water; powder and sailcloth cheap | salvage 1.5x; bounty 40g; coral 6+ hull and the ship stops; ammo and patch kits 0.6x |
 | Lantern Guild | Fish dear; the Guild buys lamp oil; half its lighthouses are dark at night, relight one with 30 oil for pay and the local chart; the lamp burns half near a lit light and double in the open dark | fish 1.5x; oil 0.9g a unit (Tama sells at 0.42); relight 30 oil for 30g; lighthouses on 85% of its harbours, 60% of its rocky isles |
-| The Drowned | A shoal belt (1740-1800 from Tama) only open at low water: at high water it throws you back and scrapes the hull; its harbours take no coin, fill the lamp, the kits and the hull once a day and keep one thing from the hold | belt opens below tide -0.3; 5 hull a scrape (full game only) |
+| The Drowned | A shoal belt (1740-1800 from Tama) only open at low water: at high water it throws you back (an outward push of 12 units/s dying over 1 s, the ship's way cut to x0.2; G-23: water, never a snap) and scrapes the hull; its harbours take no coin, fill the lamp, the kits and the hull once a day and keep one thing from the hold | belt opens below tide -0.3; 5 hull a scrape (full game only) |
 Every region has a harbour in its Shoals (about 620 out) and the Lantern Guild a second one (about 950), planned per seed (`world.js plannedHarbours`). Crown towns pay 1.5x for fruit.
 
 ## The Catch book (2026-11-13, `fishart.js`, `logbook.js fishLogHtml`)

@@ -93,7 +93,7 @@ def chapters():
 
 def landmarks():
     s = read('landmarks.js')
-    return [(a, b, d, e, f, g, h) for a, b, _q, d, e, f, g, h in re.findall(r"\{ lm: '(\w+)',\s+key: '([-\d,]+)',\s+name: ([\"'])(.+?)\3,\s+type: '(\w+)',\s+x: (-?\d+),\s+z: (-?\d+).*?sight: '([^']+)'", s)]
+    return [(a, b, d, e, f, g, h.replace("\\'", "'")) for a, b, _q, d, e, f, g, h in re.findall(r"\{ lm: '(\w+)',\s+key: '([-\d,]+)',\s+name: ([\"'])(.+?)\3,\s+type: '(\w+)',\s+x: (-?\d+),\s+z: (-?\d+).*?sight: '((?:[^'\\]|\\.)+)'", s)]
 
 
 def threads():

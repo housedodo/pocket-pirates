@@ -1,11 +1,11 @@
 // The Two Players keep the Free Cays asleep (CANON 2026-11-12: they sailed, refused to throw, and found that their song soothes the
-// sleeper). In the Free Cays on a night without storm the dread there cannot climb past stage 2 (LULL_CAP). Near Teo's sandbar or
+// sleeper). In the Free Cays on a night without storm the dread there cannot climb past 0.45 (LULL_CAP; CANON's "below stage 3", 2026-11-12). Near Teo's sandbar or
 // Ilse's rock their music carries over the water: the somber guitar is Teo's, the violin Ilse's (the Free Cays night recordings,
 // fc_night and fc_violin in src/layers.js): placed where each of them sits, and nearer, they play more often, he starts and she finishes.
 // Never explained.
 import { rt } from '../core/runtime.js';
 
-export const LULL_CAP = 0.45;                    // just under stage 3 (0.5)
+export const LULL_CAP = 0.45;                    // CANON's "below stage 3": under the wrong decor and Mara's 0.5 remark (stage n = stageOf + 1 puts 0.45 in stage 3; the number stands, owner 2026-11-16)
 const TEO = [495, 70], ILSE = [880, 190];        // landmarks.js: Teo's Sandbar (4,1), Ilse's Rock (8,2)
 const HEAR = 600;                                // how far their playing carries over still water
 

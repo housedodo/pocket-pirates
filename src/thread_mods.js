@@ -262,7 +262,7 @@ export function musicMod(hub) {
       if (tp.ended || nt < 0.55 || d > 360) return;
       tp.t -= dt;
       if (tp.t <= 0) {
-        tp.t = 9; api.audio.playTone(NOTES[step % 3], { dur: 1.6, vol: 0.2 * Math.max(0.15, 1 - d / 380), pan: Math.max(-1, Math.min(1, Math.sin(Math.atan2(s.x - ship.pos.x, -(s.z - ship.pos.z)) - ship.heading))) });
+        tp.t = 9; api.audio.chime('fog_note', { freq: NOTES[step % 3], vol: Math.max(0.15, 1 - d / 380), pan: Math.max(-1, Math.min(1, Math.sin(Math.atan2(s.x - ship.pos.x, -(s.z - ship.pos.z)) - ship.heading))) });
         step++;
       }
       if (d < 130) {
