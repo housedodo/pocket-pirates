@@ -51,6 +51,13 @@ export const CAYS_SLEEP = [7, 17];
 export const CAYS_WAKE_FOR = ['job', 'passenger', 'tavern', 'gossip', 'perrin_free'];
 export const caysAsleep = (region, hour, goalId) => region === 'free' && hour >= CAYS_SLEEP[0] && hour < CAYS_SLEEP[1] && !CAYS_WAKE_FOR.includes(goalId);
 
+// ---- P-FREE-3 lamp out to see the shore (systems/farlights.js, psx.js uFarLight): far lights, by night, everywhere; the Cays are where it pays
+export const FAR_FROM = 150;   // lights further than this from the eye
+export const FAR_LIT = 0.55;   // their brightness while your own lamp burns
+export const FAR_OUT = 1.8;    // and with it out, once the eyes have adjusted
+export const FAR_REACH = 2;    // they carry this much further through the dark and fog
+export const FAR_EYES = 2.5, FAR_EYES_RAMP = 1;   // seconds before the eyes adjust, and how long that takes (3 s in all to the middle)
+
 // ---- the Free Cays: the dark keeps quiet while somebody plays (traffic.js)
 /** the chance that a spawned ship in these waters is a raider; the Reef always, the Cays only while nobody plays. quiet: caysQuiet() */
 export function raiderChance(faction, quiet) {
