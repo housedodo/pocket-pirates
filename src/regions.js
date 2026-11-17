@@ -7,6 +7,17 @@ import { sectorAt } from './sectors.js';
 /** whose waters (x, z) are: 'crown' | 'free' | 'reef' | 'lantern' | 'drowned'; Tama's own sector counts as home */
 export const regionAt = (x, z, seed) => { const s = sectorAt(x, z, seed); return s.sx === 0 && s.sz === 0 ? 'home' : s.faction.id; };
 
+// ---- Home Sound: what is learnt near home is used far out (REGIONAL_CATALOGUE M-HOME-1..3, P-HOME-2, P-HOME-4; owner 2026-11-17)
+export const TAMA_ID = '0,-1';
+export const HOME_SOUND_R = 450;    // Home Sound's reach from Tama (systems/home.js HOME_R)
+export const GULLS_HOME_R = HOME_SOUND_R;   // M-HOME-3: inside it the dusk gulls fly to Tama's harbour (dawn: out from it), not the nearest land (secrets.js)
+export const GULLS_HOME_EDGE = 60;   // and they cross open water from 60 off any shore (120 elsewhere): the Sound is small, the lesson must show
+// M-HOME-1 the noon slack: from 11:30 to 12:30 within the bell's reach the hush holds for the hour (systems/home.js, seaplay.js)
+export const SLACK_FROM = 11.5, SLACK_TO = 12.5, SLACK_LANES = 0.5;   // hours; the Sound's current lanes run at half strength
+// M-HOME-2 the fishers' marks (systems/homemarks.js, fishing.js)
+export const MARK_R = 12, MARK_WAIT = 0.7, MARK_FISH = ['snapper', 'bream', 'grouper'];
+export const MARK_OUT = 6, MARK_HOME = 15, MARK_SAIL = 1.5;   // the boats lie on their marks from 06:00 to 15:00; an hour and a half each way
+
 // ---- what a harbour's market pays and charges (ui/harbour.js market)
 const isNight = (hour) => hour >= 19 || hour < 5;
 /** the Cays are quiet while somebody plays (task L5, CANON 2026-11-12): everything safe about their night follows the music

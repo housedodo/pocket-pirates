@@ -7,7 +7,7 @@
 //  - SMOKE: a few lonely islands have someone on them. Some days a thin column of smoke rises, most days nothing.
 //  - THE WATCHER: in some harbours, at dusk, one person stands at the water's edge, always at the same place, looking out
 //    toward one of these secrets.
-//  - BIRDS: at dusk a few gulls in open water fly home toward the nearest land; at dawn they fly out from it.
+//  - BIRDS: at dusk a few gulls in open water fly home toward the nearest land (in Home Sound: Tama's harbour); at dawn they fly out from it.
 // main.js asks near() for something to interact with and visit() for what happens; nothing here shows text by itself.
 import * as THREE from 'three';
 import { Builder } from './builder.js';
@@ -17,6 +17,7 @@ import { waveHeight } from './ocean.js';
 import { villager, terrainHeight, shoreR, CELL } from './world.js';
 import { hash2, mulberry32, clamp, smoothstep } from './util.js';
 import { LM } from './landmarks.js';
+import { GULLS_HOME_R, GULLS_HOME_EDGE } from './regions.js';
 
 const h01 = (a, b, s) => (Math.abs(hash2(a, b, s)) % 10000) / 10000;
 
@@ -196,8 +197,9 @@ export class Secrets {
       if (this.flockT <= 0) {
         this.flockT = 35 + Math.random() * 70;
         const near = this.world.nearest(ship.pos.x, ship.pos.z, 2000), edge = this.world.lastEdge;
-        if ((dusk || dawn) && near && edge > 120 && edge < 650 && Math.random() < 0.7) {
-          const d = near.desc, toLand = Math.atan2(d.x - ship.pos.x, -(d.z - ship.pos.z));
+        const tama = this.world.desc(0, -1), home = tama && Math.hypot(tama.x - ship.pos.x, tama.z - ship.pos.z) < GULLS_HOME_R;   // M-HOME-3: in Home Sound they go to Tama
+        if ((dusk || dawn) && near && edge > (home ? GULLS_HOME_EDGE : 120) && edge < 650 && Math.random() < 0.7) {
+          const d = home ? tama : near.desc, toLand = Math.atan2(d.x - ship.pos.x, -(d.z - ship.pos.z));
           let dir = dusk ? toLand : toLand + Math.PI;            // home at dusk, out to the fish at dawn
           if (c.dread > 0.55) dir += Math.PI;                    // further out, they fly the wrong way
           dir += (Math.random() - 0.5) * 0.15;

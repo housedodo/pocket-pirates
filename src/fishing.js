@@ -5,6 +5,7 @@ import { mats } from './psx.js';
 import { waveHeight } from './ocean.js';
 import { clamp, smoothstep } from './util.js';
 import { state } from './core/state.js';
+import { MARK_FISH } from './regions.js';
 // how the line forgives (SYSTEMS_FEEL G-05, G-06, G-21; numbers to tune by hand)
 export const FISH_START_SPEED = 2.5;   // the power meter starts once she is this slow; C under way drops the anchor first
 export const FISH_PENDING_MAX = 8;     // s: C under way gives up if she has not slowed by then
@@ -57,6 +58,7 @@ const inHours = (h, [a, b]) => (a <= b ? h >= a && h < b : h >= a || h < b);
 /** how well a species fits the water the line is in (1 = ideal); a poor fit is never zero, so luck still counts */
 export function habitatFit(id, env) {
   const hb = HABITAT[id]; if (!hb || !env) return 1;
+  if (env.mark && MARK_FISH.includes(id)) env = { ...env, zones: hb.zones, hour: hb.hours ? hb.hours[0] : env.hour, low: true };   // a fishers' mark (systems/homemarks.js): their water, at their hour
   const cays = env.region === 'free' && CAYS_DUSK.includes(id);   // the Cays' calm water: the dusk and night fish come into open water, and bite better
   let k = hb.zones.some((z) => env.zones.includes(z)) || (cays && env.zones.includes('open')) ? 1 : 0.1;
   if (hb.hours) k *= inHours(env.hour, hb.hours) ? 1.5 * (cays ? 2 : 1) : 0.45;
@@ -162,7 +164,7 @@ export class Fishing {
     const rx = Math.cos(s.heading), rz = Math.sin(s.heading), fx = Math.sin(s.heading), fz = -Math.cos(s.heading), dist = 3.2 + 7.5 * pw;
     this.pos = { x: s.pos.x + rx * dist + fx * 1.5, z: s.pos.z + rz * dist + fz * 1.5 };
     // swing back, flick forward, the bobber flies out on an arc; then the wait begins (far out the fish take longer to find it)
-    this.mode = 'cast'; this.castT = 0; this.timer = 0; this.wait = rnd(2.5, 7) * (1 - 0.25 * this.cb.getCtx().bonus) + pw * 2.5;
+    this.mode = 'cast'; this.castT = 0; this.timer = 0; this.wait = (rnd(2.5, 7) * (1 - 0.25 * this.cb.getCtx().bonus) + pw * 2.5) * (this.cb.getCtx().waitMul || 1);   // waitMul: a fishers' mark (systems/homemarks.js)
     this.cb.onStart();
   }
   cancel(text) {
