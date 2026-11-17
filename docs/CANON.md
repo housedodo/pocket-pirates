@@ -62,6 +62,7 @@ Nothing here is ever said to the player in these words.
 | 2026-11-12 | **No minimap.** The chart (M) is the map; the HUD stays minimal. The title plays the sea's band. |
 | 2026-11-11 | **The log has three bookmarks** (Chart, Orders, Ship's book) and **one slip** (what, where, which way and how long). |
 | 2026-11-11 | **The chart is an inked portolan on vellum. The type is Pirata One (titles) with Jersey 10 (text).** |
+| 2026-11-17 | **Regional mechanics and puzzles, first set** (owner: build the suggested puzzles; `docs/proposals/REGIONAL_CATALOGUE.md` section 9 and P-HOME-4). Home Sound: the noon hush holds for the hour near Tama (M-HOME-1); three fishers' marks where two tall things line up, a home boat on each by day (M-HOME-2, P-HOME-2); dusk gulls fly to Tama (M-HOME-3); a Sunday race off Tama for a purse (P-HOME-4). Crown: a destination's mast strikes a pennant for each hour of a timed run (M-CROWN-1); rowing up the lane counts (P-CROWN-1); once, full game only, a run whose line is already written black, struck through if beaten (P-CROWN-5). Free Cays: the harbours sleep by day (M-FREE-1); far lights come up with the lamp out (P-FREE-3). Deep: the dusk gulls fly out to sea (P-DEEP-1, as built). No lore ID adopted: none of these needs one (L-07, L-09, L-13, L-30 stay flavour, unapproved). |
 | earlier | The title is HOIST. The Lady never speaks. Dread follows where you are, never time. The demo has no dread. |
 
 ## 4. The seven questions (the whole mystery)
