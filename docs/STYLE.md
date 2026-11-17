@@ -199,6 +199,9 @@ purple and magenta cosmic horror as dread rises.
 - **Comfort** (2026-11-14, task G4): Pause > Settings has Shake (camera shake, the deep tremor and roll), Wobble (the picture's wobble and
   red/blue split at high dread) and Flashes (lightning, the hut's bad-throw burst, the hit frame becomes one faint ring). All three start
   off when the system asks for reduced motion. A new shake, wobble or flash must honour its switch (`settings.comfort`).
+  Rumble (2026-11-16, G-19) sits under Shake in Display, the same kind of row, and starts off with reduced motion too. Pause > Settings >
+  Keys lists one row per action ("Interact: E"), the same buttons as every other row; a row being set reads "press a key". With a pad the
+  focus is the existing gold ring of `.menu button:focus`; no new look.
 - **Locked controls are grey but readable** (never invisible) and answer a click with one line.
 - Autosave cue: a 20x11 pixel ship sailing over a dashed wave strip with "Voyage saved", bottom right, on the pixel grid like the other icons.
 - The captain's log: three paper-slip bookmarks along the top edge (labels on cream), the Board is a cork field with pixel paper cards, a red pixel pin each and 4 px strings (red sure, dashed navy doubt). Encounters use the same navy box as villagers, at the bottom.

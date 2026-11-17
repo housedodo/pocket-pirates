@@ -29,7 +29,9 @@ Build it with `python3 scripts/single.py`, ship `pocket-pirates-demo.html` (with
 - [ ] Reef (Glass Lagoon), breakers (the Ribs) and fog bank (the Halved Isle) keep you out and say which upgrade; Rudder 2 / Hull 2 / Lantern 2 let you in
 - [ ] Gusts appear and give a burst when sailed into; currents carry the ship and show on the chart once ridden
 - [ ] The glimpse happens once on the way back from the hut (silence, flat sea, the figure), then Mara asks why you went quiet
-- [ ] Controller: stick sails, A interacts, B closes, Y opens the log, Start pauses (test with a real pad in Chrome and Firefox)
+- [ ] Controller: the stick steers by how far it is pushed, A interacts, Y opens the log, Start pauses; B does nothing at sea and backs
+  out of a menu; every screen (title, pause, harbour, log, shipyard, cards, the end card) moves its focus by d-pad or stick and A presses;
+  prompts say [A], X, RT once the pad is used (test with a real pad in Chrome and Firefox; feel the stick and the rumble)
 - [ ] Chart pins: click to pin, the compass follows it, it clears when you arrive
 - [ ] Lamp oil: full until the Market opens, then burns at night / fog / storm; Mara warns at a quarter; empty = dark, no fishing; Market refill and Wick refill work
 - [ ] Fishing rings: wreck (snags), night (fading), swell (surging), deep (hold), reef (darting) each show their name and play right

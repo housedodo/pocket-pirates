@@ -82,7 +82,7 @@ Other systems: **jobs** (delivery contracts from harbour boards, tracked on the 
 **Sound** is synthesised in `synth.js` (every cue, music included); real files override it per cue.
 
 ## Starter adventure (first mate, fishing, riddles, looks, combat)
-- **First mate and goals** (`objectives.js`): Mara talks you through the main chain of 16 goals in six chapters, then Perrin's five letters after the hut (21 in `MAIN_GOALS`; the demo stops at the hut) (sea legs, landfall; the riddle, the first upgrade; dead calm, tacking, a delivery, a passenger, charting; the tavern, Perrin's note, his chart, the second riddle; bottles, gossip; the hut) and reacts to events (dusk, storms, raiders, rising dread; she gets more unsettled as it goes on). Seven optional side goals complete themselves. Y or the pause menu asks for a hint; goals can be skipped in the Goals tab.
+- **First mate and goals** (`objectives.js`): Mara talks you through the main chain of 16 goals in six chapters, then Perrin's five letters after the hut (21 in `MAIN_GOALS`; the demo stops at the hut) (sea legs, landfall; the riddle, the first upgrade; dead calm, tacking, a delivery, a passenger, charting; the tavern, Perrin's note, his chart, the second riddle; bottles, gossip; the hut) and reacts to events (dusk, storms, raiders, rising dread; she gets more unsettled as it goes on). Seven optional side goals complete themselves. Y (pad: hold View) or the pause menu asks for a hint; goals can be skipped in the Goals tab.
 - **Fishing** (`fishing.js`): C casts (under way the anchor goes down first and the meter starts at speed 2.5, `FISH_START_SPEED`), wait for a bite, hook it, then hold Space to keep the marker in the green zone. 11 species, harder ones later; dark species appear with dread and at night. Sell at harbours (reputation adds a bonus); fish log in the Journal.
 - **Treasure riddles** (`lore.makePuzzle`, `world.js`): the chest is no longer marked. Each treasure isle's arch carries a riddle (sunrise/sunset/pole star/lone palm) naming the shore where the chest is buried. Study the arch (E), sail to the right shore, dig. Wrong shores cost a few seconds. Riddles also come from Perrin (the starter map) and are kept in the Journal.
 - **Ship looks** (`customize.js`): hull paint, sail colour, pennant and figurehead (parrot, dolphin, mermaid, lion, skull) at harbour shipyards. Some figureheads are earned (catch fish, salvage a wreck, earn 3 stars, sink a raider).
@@ -95,7 +95,34 @@ Other systems: **jobs** (delivery contracts from harbour boards, tracked on the 
 - **Fruit** (`fruit.js`): jungle and sandbar islands grow one kind each (fruit is visible on the island). E picks 2-4 (once per in-game day per island). Sell at the Market or use for commissions.
 - **Captain's log** is an open book with three bookmarks: Chart, Orders (the slip, errands in hand, riddles, rumours, optional goals, what is done) and Ship's book (journal, fisherman's log, ship, standing); short entries over two pages, page turn with the arrows.
 - **Wind** (no toast when it shifts: the ring shows it; G-32, owner 2026-11-16; and none at a region's line, where the place line names the sector) is shown as a wooden dial with a cloth streamer (gusts make it snap), a word like "Fresh breeze" instead of numbers, and faint wisps drifting across the sea. Gusts add a few degrees of wobble within the prevailing direction.
-- **Camera** orbits the boat (drag sideways, Z/X) and eases back behind it after a few seconds.
+- **Camera** orbits the boat (drag sideways, Z/X) and eases back behind it after a few seconds. Zoom by wheel, - / = or the pad's
+  right stick (x1.6 a second, `ZOOM_RATE`, G-15); R / F tilt down to `PITCH_MIN`. The look point runs 0.2 x zoom ahead at rest and
+  0.32 at full speed, eased 1/s, never more when anchored (`LOOK_*`, G-16). When a hill hides the deck from the lens (low tilts, the
+  stern to a hill village) the tilt rises up to 0.25 over 0.5 s and settles back (`OCC_*`, G-27). Constants at the top of `ui/camera.js`.
+- **Input** (`src/input.js`, `src/gamepad.js`, 2026-11-16, G-02, G-11, G-18 to G-20): every action has one remappable key
+  (Pause > Settings > Keys, press-to-set, swaps on conflict; Esc, P, Enter, arrows, digits and F-keys are fixed); a remapped key is
+  turned into the action's default code before the game sees it, so the game reads only defaults. `settings.keys` holds only the moved
+  actions (an old settings file has none). The text the player reads ("[E]", "press C / Space", "(S)") names the player's key, or the pad's
+  button once the pad was the last thing used (a key press switches back). Rumble (Pause > Settings > Display, off under reduced
+  motion): bite, catch, hit, coral, the anchor biting, the sail-strain warning; never for a horror beat (`RUMBLE` in `input.js`).
+  Controller (standard mapping):
+
+  | Pad | At sea | In a screen |
+  |---|---|---|
+  | Left stick | steer by angle (dead zone 0.15, power 1.5), sails past 0.55 | move the focus (a slider: left / right set it) |
+  | D-pad | arrows (steer, sails, the dig grid) | move the focus; at the edge, the screen's own arrows (pages, tabs) |
+  | A | interact (E) | press the focused button |
+  | B | nothing | back one level, then close |
+  | X / Y | fishing (C) / the log (M) | - / the log (M) |
+  | RT / LT | strike, fire, go on (Space) / oars (G) | throw, roll, go on (Space) / - |
+  | LB / RB, right stick X | look around (Z / X) | previous / next tab or bookmark |
+  | Right stick Y | zoom (down = out) | - |
+  | View | tap: tracker (Q); hold 0.6 s: ask Mara (Y) | - |
+  | Start | pause | close the pause |
+  | Left stick press | lamp (L) | - |
+
+  The tavern games read the pad as keys: A or RT play (Space), X / Y bid / let go (1 / 2), B leaves. A button or stick still held from
+  the screen before waits to be let go (the stick at sea steers again at once). Tuning: `PAD_TUNE` in `gamepad.js`.
 - **Mara** types her lines out letter by letter with a bobbing portrait; click or Enter skips; the next goal is announced a few seconds after she finishes.
 
 ## Dread stages
