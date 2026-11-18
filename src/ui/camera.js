@@ -60,6 +60,12 @@ export function updateCamera(rawDt, live, ashore) {
     camPos.set(G.ship.pos.x + Math.sin(a) * r, 3.2 + 2 * rt.yardZoom, G.ship.pos.z - Math.cos(a) * r); camLook.set(G.ship.pos.x, 2.6, G.ship.pos.z);
     $('yAngle').textContent = ['stern', 'port', 'bow', 'starboard'][Math.round((((rt.yardYaw % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2)) / (Math.PI / 2)) % 4];
   }
+  if (rt.camLeave) {   // from a set framing back to the follow camera, eased (Good Dreams' card: endcards.js)
+    const L = rt.camLeave; L.t += rawDt; const k = Math.min(1, L.t / L.dur), e = k * k * (3 - 2 * k);
+    camPos.set(L.pos[0] + (camPos.x - L.pos[0]) * e, L.pos[1] + (camPos.y - L.pos[1]) * e, L.pos[2] + (camPos.z - L.pos[2]) * e);
+    camLook.set(L.look[0] + (camLook.x - L.look[0]) * e, L.look[1] + (camLook.y - L.look[1]) * e, L.look[2] + (camLook.z - L.look[2]) * e);
+    if (k >= 1) rt.camLeave = null;
+  }
   if (rt.camOverride) { camPos.set(...rt.camOverride.pos); camLook.set(...rt.camOverride.look); }
   camera.position.copy(camPos);
   camera.lookAt(camLook);

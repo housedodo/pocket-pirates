@@ -43,7 +43,7 @@ import { Combat } from './combat.js';
 import './sectors.js';
 import { markSeen, isKnown, levels as clueLevels, tableOpen } from './clues.js';
 import { tableOptions, ENDINGS, EPILOGUE, ARRIVAL, EDGE_ASK } from './table.js';
-import { makeCard, unpixelate } from './endcards.js';
+import { cardFor, dreamsSetup, unpixelate } from './endcards.js';
 import { ritualTick, ritualLook, tableGctx, snapshotTable, tableAgain, tableThrow, onEnding, gameOver, initEndgame, guitarTick, guitarDread, unseenTick, unseenDread, bellsStopped, endQuiet, seatPanTick, startSeat } from './systems/endgame.js';
 import { paintStill } from './cavescene.js';
 import { Objectives, MUSINGS, MAIN_GOALS, unlocked, gateRadius, chapterOf, goalText, goalReached } from './objectives.js';
@@ -1009,8 +1009,9 @@ function showEnding(id, roll = null) {
   const el = $('ending'); el.classList.toggle('dark', !!e.dark);
   el.querySelector('h1').textContent = e.title;
   el.querySelector('div').innerHTML = e.lines.map((l) => `<p>${l}</p>`).join('');
-  $('endArt').src = paintStill('table', `${id}|${tableGctx().edge}`);   // the painted still first: the card replaces it in a moment (endcards.js)
-  rt.endCard = null; makeCard(id, (url) => { if (url) { $('endArt').src = url; rt.endCard = url; } });
+  $('endArt').src = paintStill('table', `${id}|${tableGctx().edge}`);   // the painted still, if there is no card
+  rt.endCard = cardFor(id); if (rt.endCard) $('endArt').src = rt.endCard;   // the ending's card (endcards.js)
+  if (id === 'dreams' && rt.endCard && !dreamsSetup()) rt.endCard = null;   // Good Dreams: the Gull where the card shows her
   if (EPILOGUE[id]) state.notes.push({ text: EPILOGUE[id], dark: !!e.dark });   // the Ship's book keeps how it ended
   if (id === 'tune' && audio.layers) audio.layers.keepTune(80);   // the Two Players' own recordings: he starts, she answers
   onEnding(id, roll);   // what it sets going, and which buttons it has (systems/endgame.js)

@@ -2133,3 +2133,25 @@ feels at full speed; a Table approached in real play (the cards were made after 
 ## Open
 - The six short lines are drafts.
 - The game-over screens (She Rises after the Eye, the Unseen Throw's table on the water, Your Seat's newcomer) still use the painted stills.
+
+# The ending cards, painted (2026-11-18, later)
+The owner, on the live-made cards: "more like the Good Dreams ones, more detailed and coloured, not grey and bland; low quality image files
+are fine." The cards are now painted: `tools/endcards/paint.cjs` (codixel) builds all six from the same parts as the Good Dreams
+pictures (dithered skies, the moon or the sun and its road, the swell, far lights, glows, reflections) and the game's own models (the
+Merry Gull from three angles and the guitar, rendered in the game and cut out: `tools/endcards/refs/`); the Table, its chairs, candles,
+book, die and the one in the far chair are drawn in code in the game's colours. They ship as six 320x180 PNGs in `src/endcards_data.js`
+(about 49 KB; RULES 24 has this one exception). The live render-and-pixelate cards are gone; `pixelate` stays for Good Dreams' hand-back.
+- Long Sleep: first light, the sun's road, the Gull lit warm off shore, the candles out, the old woman asleep over the book.
+- Good Dreams: version A (at anchor), as chosen.
+- She Rises: the sea lit magenta from below, a shape under it with an opening, the table small on the sand, the Gull dark.
+- The Tune Is Kept: the milky way, two lights far off, the guitar against your chair, the Gull under sail with her lamp.
+- The Unseen Throw: a grey-violet mist, the table far up the sand with one candle and someone in the far chair, footprints, the Gull waiting.
+- Your Seat: inside, her book open under your hand, the candle, the door on the evening, a green-sailed ship, someone in the door.
+- Good Dreams' hand-back: the Gull is set side on at anchor off the Table at night with the camera at the card's angle and scale; the
+  first two steps draw the live view in the card's own palette, then finer, then the game; the camera eases back behind her over 3 s.
+
+## Verified
+Headless: every ending screen shows its card and line; Good Dreams' four stages (card, card-coloured live view, finer, the game) with the
+Gull in the same place and pose as on the card. **Not verified:** the hand-back at full speed. **Open:** at the Table the deep water's dread
+greys the live world, so after Good Dreams' blue card the game is darker (canon: Good Dreams goes on as it was); the owner may want the
+dread there eased for a while after it.
