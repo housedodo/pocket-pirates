@@ -52,7 +52,11 @@ tide -0.8 with the ship 40 off and goes once she is 80 off; the stake is not pla
 clear of every island in Reef water, gives no E target, a blow with the ship 320 away raises its wreck 7 from the stake (none by the
 ship), it salvages at x1.5, and a saved stake wreck comes back and goes at the next low water with `done` set; the light's lamp
 matched its rhythm in 449 of 449 samples and the chart flag is set within 45; the keeper waves within 120, E gives "[E] Lie to under
-the light", an empty run says Mara's line once and does not use the day, a fish run takes the fish and adds 20 oil. Drowned, demo
-and chart checks: see the report. No console errors in any run.
+the light", an empty run says Mara's line once and does not use the day, a fish run takes the fish and adds 20 oil; the chart inks
+". . -" beside the light (its rhythm 0.3, 0.3, 1); at a Drowned harbour at tide 0.66 the market has no button and says "The planks
+are under water. Nobody comes down." (the pier under its grey film), at tide -0.63 it offers the trade naming "one of your fish", and
+taking it keeps the fish, leaves the treasure aboard and fills the lamp; in the demo build no stake is ever placed, even after a
+throw, in Reef water. No console errors in any run. Shots in `docs/proposals/puzzles/` (none for P-REEF-2, P-LANT-1, P-DROWN-2:
+nothing new to see).
 **Not verified:** feel (tide steps, basket timing, the stake's visibility through Reef haze and fog), lone lighthouse rocks' frequency
 across seeds, sound (none added).
