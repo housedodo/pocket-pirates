@@ -11,7 +11,7 @@
   is afraid it will not come out above nine, and the die shows the same face as before.
 - **The Tune Is Kept** opens an errand: "Something left for you", Tama's quay. Docking there, a bundle in old sailcloth, tied with
   fishing line, no note; Mara: "I did say one of us ought to learn." Aboard, at night it plays wherever the ship is (placeholder: the
-  Free Cays night guitar, `fc_night`, guitar alone) and the night keeps no dread. It lies by the stern rail, with a lamp and a small sway
+  Free Cays night guitar, `fc_night`, guitar alone) and the night keeps no dread. It lies against the rail amidships, with a lamp and a small sway
   while it plays (the sound's silent twin).
 - **The Unseen Throw**: four minutes of ordinary sailing, then for two and a half the world turns wherever the ship is: no new sails,
   Tama's bell stops, the blank line in the Ship's book is filled "in a small neat hand" with a number, Mara asks where everybody went.
