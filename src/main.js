@@ -101,6 +101,7 @@ import { farLightTick, LIGHTS_LINE, LAMP_OUT_FAR } from './systems/farlights.js'
 import { raceTick, holdRegatta, raceNow } from './systems/race.js';
 import { LANDING, landThrow, landedAt } from './systems/landing.js';
 import { trackTarget, goldShown, etaText, slipInfo, drawCompass, updateTracker, initHud, drawTideClock } from './ui/hud.js';
+import { initDevStudio } from './ui/devstudio.js';   // F10 (dev builds only)
 import { LOCALS, localGames, pig, maraMood, openCard, caveScene, COLOUR_DEEP, COLOUR_SHALLOW, openCave, tabletopTick, signOn, daysLeft, crewLeave, wishDone, initEncounters } from './ui/encounters.js';
 
 // G-REGISTRY START (generated): what main.js lends the modules under it, read at call time
@@ -318,8 +319,8 @@ function giveMap(id, from, reveal = false, quiet = false) {
   } else toast(`${from} gave you a riddle. Saved in your orders. Where it points is up to you.`, false, 8000);
 }
 // ---- autosave
-function saveData() {   // the voyage as the save keeps it (also copied aside on arriving at the Table: systems/endgame.js)
-  if (params.get('fresh') || session.noSave || PINNED) return null;   // ?seed, ?x, ?z or ?time: the stored voyage is not this one
+function saveData(raw = false) {   // the voyage as the save keeps it (also copied aside on arriving at the Table: systems/endgame.js); raw: always (the Dev Studio's snapshots)
+  if (!raw && ((params.get('fresh') && !session.sandbox) || session.noSave || PINNED)) return null;   // ?seed, ?x, ?z or ?time: the stored voyage is not this one
   trimState();
   return { seed: state.seed, gold: state.gold, dug: [...state.dug], discovered: state.discovered, loot: state.loot, upgrades: state.upgrades, collected: [...state.collected], notes: state.notes, board: state.board, halves: state.halves, frags: state.frags, rumoured: state.rumoured, rep: state.rep, job: state.job, serial: state.serial, sectorsSeen: state.sectorsSeen, jobHistory: state.jobHistory, buffs: state.buffs, stats: state.stats, quests: state.quests, fruit: state.fruit, harvest: state.harvest, dayN: state.dayN, greet: state.greet, charts: state.charts, hp: state.hp, ammo: state.ammo, oil: state.oil, sailsTorn: state.sailsTorn, patchKits: state.patchKits, custom: state.custom, owned: [...state.owned], riddles: state.riddles, attempts: state.attempts, catch: state.catch, fishLog: state.fishLog, fishHeard: state.fishHeard, fishAsk: state.fishAsk, hut: state.hut, passenger: state.passenger, story: state.story, crew: state.crew, cardsSeen: state.cardsSeen, haggle: state.haggle, tracked: state.tracked, life: state.life, goals: state.goals, hints: state.hints, time: state.time, windT: wind.t, pos: { x: ship.pos.x, z: ship.pos.z, h: ship.heading } };
 }
@@ -1534,6 +1535,7 @@ window.__game = { secrets, regionWeights, tideAt: () => tideAt(), lostState: () 
   later: { after, pending: laterPending }, landedAt: (id) => landedAt(state, id), landThrow: () => landThrow(state, ship.pos), noonPending, ringNoon, saveNow: () => saveNow(), rt, showEnding,   // test hooks   // test hook: story delays on the game's clock
   sectorAt: (x, z) => sectorAt(x, z, state.seed), homeMarks, pennantsAt, completeJobIfHere, farLight: () => U.uFarLight.value.toArray(), raceNow, traffic, abyss, hut, ship, world, state, begin, scene, camera, renderer, wind, weather, fauna, traffic, sea, audio, fishing, combat, objectives, hurtPlayer, openModal, closeModal, buyUpgrade, refreshMods,
 };
+if (DEV) initDevStudio(window.__game, { devQuest, devTime, setCalm, saveData });   // the Dev Studio (ui/devstudio.js)
 rt.newVoyage = false;   // New voyage reloads straight into the game, no title in between
 try { rt.newVoyage = sessionStorage.getItem('hoist-new') === '1'; sessionStorage.removeItem('hoist-new'); } catch (e) { /* storage blocked */ }
 // New voyage reloads the page, and a reload always leaves fullscreen; the browser only allows going back in on a key press

@@ -2035,3 +2035,31 @@ feel and pacing (how often a custom line wins over the greeters) not judged.
 ## Open
 - Whether any of these should become a clue row (L-10 for question 5 above all) is the owner's (RULES 32).
 - The writer's pass over 4.8.
+
+# The Dev Studio (2026-11-18)
+The owner asked for a dev version to go through everything back and forth: pick scenes, missions, change weather and time, add money,
+go to the endings and back. `src/ui/devstudio.js`, F10 or the DEV tab on the left edge; dev builds only (`?dev=1`, the dev single file),
+never the demo or the playtest build. Sections and keys: `docs/DESIGN.md`, "Dev Studio".
+
+## What landed
+- The panel (the mixer's pixel styling): a live readout; money and goods; time, tide, weather, dread and night; the 21 goals back and
+  forth, side goals, the fog wall, the first throw; teleports (Tama, the hut, every hand-made place, one harbour per region, a Lantern
+  keeper rock, the Reef stake); clues seen or not, question levels, threads woken; every scene, the six endings and what they leave
+  behind; five snapshot slots, a sandbox for loaded snapshots, a fresh voyage.
+- Small hooks, no duplicated logic: `saveData(raw)` (main.js), `leaveEdge` (systems/edge.js), `startSeat(credits, from)` and
+  `endgameReset` (systems/endgame.js; Your Seat's page timers now stop when a newer start or a reset comes), `SAVE_KEY` /
+  `DEV_LIVE_KEY` / `session.sandbox` (core/config.js). main.js: one import and one call.
+- Scenes copy the voyage aside and pause the autosave; Undo restores it in place. No story beat or player text changed.
+
+## Verified
+`npx vite build`; headless (dev server, `?dev=1`): F10 opens it, gold, an upgrade, the hold, the hour, low and rising tide, storm and auto
+weather, goals 9 and 16 and back, teleports to Tama, the Drowned Bell and the Reef harbour, the harbour list (all five regions and a keeper
+rock); She Rises card and game over, then Undo (no ending, no closed voyage, the book's note gone); the Edge started and left; a
+snapshot saved, loaded into the sandbox (gold as saved, real save not written); every other scene started and undone with no console
+error. `window.__BUILD` demo and full: no panel, F10 does nothing; dev build without `?dev`: panel works. `npm run smoke` passed (275 s).
+`pocket-pirates-dev.html` rebuilt (23.5 MB) and opened from file:// with the panel. **Not verified:** feel; the Sunday race actually
+lining up at 14:00; a full playthrough of Your Seat's last look into the credits; pad navigation (not built: mouse and keyboard only).
+
+## Open
+- Not reversible in place: the Table's arrival copy (`pocket-pirates-table-v1`) is shared with the real game; chart entries and toasts
+  from teleporting through places (they are restored only by Undo or a snapshot); a loaded snapshot of another seed needs the reload it gets.

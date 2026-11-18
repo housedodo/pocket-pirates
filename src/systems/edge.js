@@ -222,6 +222,8 @@ function hideIslands(e, world) {
   }
 }
 
+/** dev (ui/devstudio.js): leave the Edge at once, quietly, as if sailed out against the current */
+export function leaveEdge(ship, world) { if (!rt.edge) { delete state.story.edgeRun; return false; } finish(ship, world, 'out'); return true; }
 /** end it: 'out' quietly; 'over' behind the white (the mist then lifts by itself) */
 function finish(ship, world, way, behindMist = false) {
   const e = rt.edge; state.story.edgeWay = way;

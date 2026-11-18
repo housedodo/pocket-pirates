@@ -225,8 +225,11 @@ export const bellsStopped = () => rt.unseenK > 0;
 export const endQuiet = () => rt.tableK > 0.15 || rt.unseenK > 0;
 
 // ---------------------------------------------------------------- Your Seat
-/** after the ending card: the book, open, once (every voyage before); then a ship you do not know comes in; credits, title */
-export function startSeat(credits) {
+let seatGen = 0;   // a newer start (or endgameReset) makes the pages' timers of an older one stop
+/** after the ending card: the book, open, once (every voyage before); then a ship you do not know comes in; credits, title.
+ *  from: 'newcomer' or 'pan' starts at that step (the Dev Studio, ui/devstudio.js) */
+export function startSeat(credits, from = 'book') {
+  const gen = ++seatGen, stale = () => gen !== seatGen;
   const st = state.story; st.over = 'sit'; if (G.saveNow) G.saveNow();
   const el = $('ending'), art = $('endArt'), txt = el.querySelector('div'), h1 = el.querySelector('h1');
   el.classList.add('dark'); h1.textContent = ''; txt.innerHTML = '';
@@ -234,22 +237,25 @@ export function startSeat(credits) {
   el.classList.add('show');
   let page = 0;
   const turn = () => {   // the pages go by faster and faster; nothing on them can be read
+    if (stale()) return;
     art.src = paintStill('book', String(page));
     page++;
     if (page < 26) setTimeout(turn, Math.max(140, 1300 - page * 90));
     else setTimeout(newcomer, 1600);
   };
   const newcomer = () => {
+    if (stale()) return;
     art.src = paintStill('table', 'seat');
     let i = 0;
     const next = () => {
+      if (stale()) return;
       if (i < SEAT.length) { const p = document.createElement('p'); p.textContent = SEAT[i++]; txt.appendChild(p); setTimeout(next, 3200); return; }
       const b = BTN.endGo || $('endGo'); b.textContent = OVER.go; b.style.display = '';
-      b.addEventListener('click', (e) => { e.stopImmediatePropagation(); startPan(credits); }, { once: true, capture: true });
+      b.addEventListener('click', (e) => { if (stale()) return; e.stopImmediatePropagation(); startPan(credits); }, { once: true, capture: true });
     };
     setTimeout(next, 1400);
   };
-  turn();
+  if (from === 'pan') startPan(credits); else if (from === 'newcomer') newcomer(); else turn();
 }
 
 // ---------------------------------------------------------------- Your Seat: the pan (owner 2026-11-18)
@@ -276,4 +282,16 @@ export function seatPanTick(rawDt) {
   if (G.ship) { G.ship.speed = 0; G.ship.trim = 0; }
   if (!P.said && P.t > PAN.MARA) { P.said = true; G.objectives.mate.say(SEAT_LEAVE); }
   if (P.t > PAN.END) { P.done = true; rt.seatPan = null; rt.camOverride = null; rt.over = true; P.credits(); }
+}
+
+/** dev (ui/devstudio.js): put back what the endings set going in this session: the table on the water, the last look, the closed
+ *  voyage's lock, the empty sea, the cards. The story flags themselves are the Dev Studio's to restore */
+export function endgameReset() {
+  seatGen++;
+  if (ahead) { if (ahead.parent) ahead.parent.remove(ahead); ahead = null; }
+  rt.seatPan = null; rt.camOverride = null; rt.over = false; rt.unseenK = 0; rt.tableK = 0; rt.tableHush = 0;
+  if (G.traffic) G.traffic.none = false;
+  const m = G.objectives && G.objectives.mate; if (m) m.only = null;
+  const hud = $('hud'); if (hud) hud.classList.remove('hidden');
+  $('ending').classList.remove('show', 'dark'); $('credits').classList.remove('show'); $('fade').classList.remove('on');
 }

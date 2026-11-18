@@ -211,6 +211,29 @@ once the story reaches it ("Ask around", `hutReached`); Perrin's isle sits a lit
 quest's effects, back rewinds the story flags later quests set and Mara announces the quest), the hour (Dawn / Noon / Dusk / Night,
 keys `1`-`4`, `[` `]`) and the dread (slider 0-1 with the stage name; `auto` or `0` returns to dread by distance). F6 weather,
 F7 finish the quest, F8 sound mixer, F9 sound studio, `` ` `` debug line. None of it exists in the demo.
+
+### Dev Studio (F10, `src/ui/devstudio.js`, 2026-11-18)
+F10 or the small DEV tab on the left edge opens a panel (dev builds only; never the demo or the playtest build, RULES 29). It pauses
+nothing. A readout on top: position, region, distance out, dread and stage, tide, hour, weekday, goal id, gold. Sections:
+- **Money and goods:** gold +10 / +100 / +1000 / set; fill the oil, +10 cannonballs, repair the hull, mend the sails; each upgrade 0 to 3;
+  a chosen fish or fruit into the hold, a treasure (paid as found).
+- **Time and sky:** hour slider, weekday back and forth, the next high, low, rising or falling tide, weather (clear, cloud, rain, storm,
+  fog, auto), dead calm or wind back, dread (forced 0 to 1, or auto), the night (moon phases or a fixed night).
+- **Missions:** the 21 main goals, jump to any and back (the dev bar's `devQuest`), finish the current one; the side goals ticked or not;
+  the chapter fog wall on or off (`story.free`); the first throw marked done or undone.
+- **Places:** Tama, the hut, every hand-made place in `landmarks.js` (the Table among them), one harbour of each region (the nearest to
+  Tama), a lone Lantern keeper rock, the Reef stake once placed. Arrives off the pier or the shore facing Tama, bow to the land; the
+  felt dread is set to the place's own, and the fog wall is lifted when going past it (a tick box).
+- **Clues and threads:** every clue ticked seen or not (all / none), the seven question levels, wake, sleep or go to a thread.
+- **Scenes and sequences:** the Edge, the waking, the diver, the three lost sailors, the hut card, any cave or thread scene, the Sunday
+  race (Sunday 13:50 off Tama); arriving at the Table, each of the six endings; She Rises' last waking, its game over and Back to the
+  table, the guitar errand, the Unseen Throw (the turn soon, or the table already ahead), Your Seat (the book, the newcomer, the last
+  look), the credits. A scene copies the voyage aside first and pauses the autosave: **Leave** ends it and keeps what changed, **Undo**
+  ends it and puts the voyage back in place, without a reload. While one runs, Begin again, Go back to the table and End the voyage stay
+  in the session (they would reload and rewrite the save).
+- **Snapshots:** five named slots of the whole voyage (`pocket-pirates-dev-slots-v1`). Loading one reloads the tab into a sandbox
+  (`core/config.js`: the tab reads and saves `pocket-pirates-dev-live`, never the real save) until **Back to the real save**. **Reset to a
+  fresh voyage** starts a new one in the sandbox. **Copy into the real save** is the one way it writes the real save, and it asks first.
 `?econ=1` (G-25, `systems/econ.js`): the economy meter. It books every gain of gold to a source (delivery, passenger, commission,
 salvage, bounty, treasure, places, relight, fish, fruit, oil, goal, other), read off what else changed in the same frame, and shows gold
 per hour of game time on the debug line and in `window.__game.econ`. Never in the demo or the full playtest build (its flags are ignored).
