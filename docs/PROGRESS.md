@@ -2167,4 +2167,4 @@ dread there eased for a while after it.
 `src/ravenship.js` and `__game.raven(x, z, ry)`: the empty Raven built from the game's own parts (design C: a hand above the water, no wake,
 full sail, lanterns lit, the cabin door open on a desk with one page). Pictures: `docs/concept/raven1_approach.png` to `raven5_page.png`
 (the page is the real card UI with the dated rows, the last date blank). **Not built:** boarding, the page as a clue, placement in the world.
-**Open (owner):** the last date, whether Mara speaks aboard, how this meets the Other Captain thread (`captainMod`: its "stranger at the tiller" contradicts the empty Raven).
+**Decided (owner, 2026-11-18, in CANON):** the page is the Raven's captain's; the blank last date means he left before throwing; the ship stays as a warning. **Open (owner):** whether Mara speaks aboard, how this meets the Other Captain thread (`captainMod`: its "stranger at the tiller" contradicts the empty Raven).
