@@ -382,7 +382,7 @@ Nothing here has a marker, a tutorial line or a HUD element; numbers are named c
   Within 45, E (heaves to under way, `HEAVE_KINDS`): "Calling up to the gallery" 2.6 s, then a basket comes down on a line (2.5 s
   each way, 1.2 s at either end). With a fish aboard (the cheapest one no errand needs, `sellable`) it takes it, goes up, and comes
   down with a jar: +20 oil (to the cap). Without one it comes down and goes up empty, and Mara says once "No fish for the keeper,
-  Captain?". Once a day per light after a trade (`state.story.supper[id]`). Lone lighthouse rocks are rare (a few per voyage).
+  Captain?". Once a day per light after a trade (`state.story.supper[id]`). Lone lighthouse rocks are rare (one in the Lantern water scanned on the test seed).
 - **M-DROWN-4 Low-water hours** (`drownedOpen`, `DROWNED_OPEN_TIDE` 0; `ui/harbour.js`, `regiondecor.js`): a Drowned harbour gives
   and keeps only while the tide is below 0 (about 172 s of each 345 s cycle). Above it a film of grey water lies over its pier and
   its market says only "The planks are under water. Nobody comes down." Docking is as anywhere. Full game only.
