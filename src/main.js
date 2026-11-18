@@ -1205,7 +1205,7 @@ function frame() {
   if (live) { anchorTick(); oarTick(dt); }
   if (live && Math.floor(rt.tNow * 0.7) !== Math.floor((rt.tNow - dt) * 0.7)) flushToasts();   // a held message every 1.4 s, once the quiet is over
   if (live && dt > 0 && window.__BUILD !== 'demo') edgeTick({ dt, dread: rt.dread, ship, quiet: eventQuiet() || !!rt.modal || rt.lostK > 0.01 || !!rt.gateLost || weather.calm > 0.5, world,
-    fadeEl: $('fade'), onDone: (way) => { rt.quietUntil = rt.tNow + 30; if (way === 'over') abyss.wake('edge'); } });   // over the lip: you wake off Tama   // the Edge, once, at the deepest dread
+    fadeEl: $('fade'), onDone: (way) => { rt.quietUntil = rt.tNow + 30; if (way === 'over') abyss.wake('edge'); } });   // the Edge, once, at the deepest dread; over the lip, you wake off Tama
   if (live && dt > 0 && window.__BUILD !== 'demo') lostTick({ dt, dread: rt.dread, sighting, ship, world, quiet: eventQuiet() || !!rt.modal || !!rt.edge });   // the sailors who went mad
   if (live && dt > 0) { const t0 = world.desc(0, -1); homeTick({ dt, tamaDist: t0 ? Math.hypot(ship.pos.x - t0.x, ship.pos.z - t0.z) : 1e9, ringing: noonPending() > 0, hour: state.time * 24 }); }   // home is gentle: the noon hush and the noon slack (demo too)
   if (live && dt > 0 && window.__BUILD !== 'demo') lullabyTick({ dt, free: !!freeCaysNow(), night: tod.night, storm: weather.storm });   // the Two Players keep the Cays quiet

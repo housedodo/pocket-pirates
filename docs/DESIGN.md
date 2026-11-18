@@ -146,6 +146,14 @@ same number. Where a rule cuts somewhere else, the doc gives the dread number, n
 - **Mara's pacing:** `Mate` holds a line 3.2 s + 0.065 s per character, 1.4 s between lines. Goals have `intro` (array or `function(c)`), `outro`, `waitMate`, `count` ("(x/y)"). Next goal waits a `gap` (8 s early, 5 s later).
 - **Quest cue:** `questCue` shows QUEST COMPLETE at once; `questNew` (called by Objectives when the pending goal is released, i.e. when Mara announces it) shows the NEW QUEST card, tracker entry and compass ping.
 - **Letters:** Perrin's letters are picked up from the Board sign icon (`story.letterP1/P2`), Mara asks about them and marks the log tab (`story.tabMark`).
+- **Perrin's letters after the hut** (`objectives.js` `perrin_*`, `systems/perrin.js`; CANON 2026-11-18 "Perrin goes strange"): Mara
+  reads each aloud (its lead-in changes as he does); done when any clue of the region is seen (`regionSeen`). Stuck (240 s), her
+  first hint says to tie up at a harbour in those waters and ask around. **Asking around:** the first dock in the letter's region
+  while the letter is open (not while it is still being announced; the Cays are awake for it) gives a pier line (`letterRumour`,
+  in the docking chain in `systems/interact.js`, after the throw's greeting) naming the nearest `CLUE_PLACES` place whose clue
+  counts for that region, with a bearing from the pier; it goes in `state.rumoured['letter:<goal id>']` (`letter` field), so the
+  chart draws the red ring and the log lists it; `letterDone` marks it found when the letter is done. Once a letter
+  (`state.story.letterAsk[goal id]` = the day). Full game only. The slip's pointer (`goalTarget`) aims at the same kind of place.
 - **Demo build:** `__BUILD==='demo'` has no dread, no spoilers, a second harbour (Velto), fog gate radii in `GATES`, and ends at the next harbour after the first hut throw is remarked on; nothing unlocks afterwards. It ignores `?dev`, `?dread` and `?threads`, wakes no thread, keeps no clue ledger (`markSeen` and `isKnown` do nothing), and only the seven early hand-made places exist (`lmHere` in `landmarks.js`; the others are open water).
 - **Docs for the rest:** `docs/PROGRESS.md` has a dated entry per feature; `docs/concept/` holds the design concepts.
 
@@ -285,9 +293,13 @@ Ten effects (the star-eye and ghost ship were cut) that only run at dread >= ~0.
   so none gets smaller; each thing, looked at (`LOOK_T`) and then out of sight (`AWAY_T`), is changed once (the hood turned a
   little to where the ship was, the other eye open, a storey more, a pillar more, an arch fewer). At the ends of the stretch
   the fog closes white (`edgeFog`). Out: past `EXIT_D` (it has faded with the distance); over: within `OVER_D`, the stepped
-  white `#fade`, then the ship `REWIND` back, heading for Tama, sail slack. `state.story.edgeWay` = 'over' | 'out'
-  (`edgeWay()` reads old saves as 'over'); nothing reads it yet. `state.story.edgeRun` (lip, heading, time, changes) lets a
-  save made mid-way pick it up again. Dev: `__game.edge()`.
+  white `#fade`, then (since 2026-11-18, CANON "Over the Edge") `onDone('over')` and main.js calls `abyss.wake('edge')`: the
+  waking from its white step on (no eye), its two lines, and `onEnding('edge')` puts the ship off Tama like the waking (not
+  counted in `stats.awakened`); Mara says `edgeWokeLine()` once (`state.story.edgeWoke`), never again. Out is final for the
+  voyage: `state.story.edge` is set when it starts and never cleared, so it is never met again. `state.story.edgeWay` =
+  'over' | 'out' (`edgeWay()` reads old saves as 'over'); the Table's drawing reads it. The waking clock (`abyss.fullTime`)
+  holds while it runs. `state.story.edgeRun` (lip, heading, time, changes) lets a save made mid-way pick it up again (a save
+  made in the white goes straight to the waking). Dev: `__game.edge()`.
 - **Quiet window** (`main.js` `eventQuiet`, `Mate.hush`): no random remark, musing, passenger chatter, thread line, market/regatta/whale comment, lamp or tide warning, or village memory from Mara or anyone else while within ~400 of the hut (about 30 s of sailing), from the first throw until the diver has gone, and for 30 s after the hut or the diver (live time). Quest intros/outros and the throw's own lines are not touched.
 - **Pins**: `state.story.pins` ([{x, z, on}]); `trackTarget` follows the one that is `on`.
 

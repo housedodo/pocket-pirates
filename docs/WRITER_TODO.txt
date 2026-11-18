@@ -336,3 +336,57 @@ door, "the Lady is never seen") that could be copied by mistake.
 19 of 53 are built. The other 34 wait for your tick (Approve / Tweak / Cut). Several carry a Mara line or a
 board line that would need writing once approved.
 
+
+4.6  DRAFTS FOR PERRIN AND THE EDGE (2026-11-18; from your answers B1, C1, C2; IDs from docs/STORY_MASTER.txt)
+----------------------------------------------------------------------------------------------------------------
+Perrin's five letters, in the order they come (each: Mara's lead-in, then the letter; the Orders page shows the
+letter alone). Smug at first, more lost each time, half to himself by the Reef and the Drowned. Never what to find.
+  Crown     OBJ-0173  A letter from Perrin came in with the post, Captain. (lead-in unchanged)
+            OBJ-0172  The Crown keeps a book of every ship that comes in. Ask to see it. Tell me whose name is
+                      at the top. I have a small wager on it.
+     yours:
+  Free Cays OBJ-0177  Perrin again. He has underlined things.
+            OBJ-0176  In the Free Cays they sleep by day and play by night. Go after dark. Take nothing but your
+                      ears. I wrote the tune down once. The page is blank, and I can still hum it.
+     yours:
+  Lantern   OBJ-0181  From Perrin. He has dated it tomorrow.
+            OBJ-0180  The Guild's lamps burn a colour I have no name for. I had one last week. Go and look. I would
+                      rather you did not write it down.
+     yours:
+  Reef      OBJ-0185  Another from Perrin. The ink has run.
+            OBJ-0184  The Reef counts its wrecks. Count them for me. I counted them from my chair and got one more
+                      than there are. I have not left the chair. Note: stay in the chair.
+     yours:
+  Drowned   OBJ-0189  Perrin. No greeting this time, and no name.
+            OBJ-0188  Drowned waters. Streets. Doors. Go at low water and count them. I keep drawing that street,
+                      and I have never been. If a door is open, leave it.
+     yours:
+  (OBJ-0173, 0178, 0182, 0186, 0190 are the same letters as Mara reads them aloud: 'Perrin writes: "..."'.)
+
+Mara's hint when a letter is stuck (one per letter; a second hint, the same for all, follows):
+     OBJ-0174  Perrin wants us in the Crown Traders' waters. Let us tie up at a harbour there and ask around.
+     OBJ-0179  Perrin wants us in the Free Cays. Let us tie up at a harbour there and ask around.
+     OBJ-0183  Perrin wants us in the Lantern Guild's waters. Let us tie up at a harbour there and ask around.
+     OBJ-0187  Perrin wants us in the Reef Brotherhood's waters. Let us tie up at a harbour there and ask around.
+     OBJ-0191  Perrin wants us in the Drowned waters. Let us tie up at a harbour there and ask around.
+     OBJ-0175  The chart shows whose waters we are in.
+     yours:
+
+Asking around (new): the first time you dock at a harbour in the letter's waters, someone on the pier names the
+nearest place there that holds something for that letter, with a bearing; it goes on the chart as a rumour (the
+red ring) and off again once the letter is done. Once a letter. ${n} is the place, ${w} the way from the pier.
+     MAIN-0332  Old names? Try ${n}, ${w} of here. They write everything down.                     (Crown)
+     MAIN-0338  Try ${n}, ${w} of here. Go after dark, and go quiet.                               (Free Cays)
+     MAIN-0333  Out by ${n}, ${w}. The light there is not like ours.                               (Lantern)
+     MAIN-0339  Wrecks? Try ${n}, ${w} of here. Take your time. They are not going anywhere.       (Reef)
+     MAIN-0337  Doors? Try ${n}, ${w}, at low water. Do not knock.                                 (Drowned)
+     (no ID)    Marked on your chart.                                    (a short message after the line)
+     yours:
+
+Over the Edge (C1): going over the lip now ends in the white and you wake off Tama, with the same two lines as the
+waking ("You wake on the deck..."). Then Mara, once, never again:
+     MAIN-0335  You slept the whole way home, Captain. Kicked like someone falling.
+     yours:
+Beating out (C2): the Edge fades into the mist and does not come back that voyage (it never did; now checked).
+The drawing on the Table (over: a ship falling down a hole; out: the Edge and the red words) is built by the
+Table's own work.
