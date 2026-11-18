@@ -358,7 +358,7 @@ export class Mate {
     this.onBlip = null;   // (dark, guest) a soft voice blip every few letters (main.js plugs in audio.blip)
     this.el.addEventListener('pointerdown', () => this.skip());
   }
-  say(text, dark = false, who = null) { this.queue.push({ text, dark, who }); }
+  say(text, dark = false, who = null) { if (this.only && text !== this.only) return; this.queue.push({ text, dark, who }); }   // only: one line may still be said (Your Seat's pan)
   get busy() { return !!this.cur || this.queue.length > 0; }
   /** click / Enter: finish typing, or move on to the next line */
   skip() {

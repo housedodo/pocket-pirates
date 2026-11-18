@@ -43,7 +43,7 @@ import { Combat } from './combat.js';
 import './sectors.js';
 import { markSeen, isKnown, levels as clueLevels, tableOpen } from './clues.js';
 import { tableOptions, ENDINGS, EPILOGUE, ARRIVAL } from './table.js';
-import { ritualTick, ritualLook, tableGctx, snapshotTable, tableAgain, tableThrow, onEnding, gameOver, initEndgame, guitarTick, guitarDread, unseenTick, unseenDread, bellsStopped, endQuiet, startSeat } from './systems/endgame.js';
+import { ritualTick, ritualLook, tableGctx, snapshotTable, tableAgain, tableThrow, onEnding, gameOver, initEndgame, guitarTick, guitarDread, unseenTick, unseenDread, bellsStopped, endQuiet, seatPanTick, startSeat } from './systems/endgame.js';
 import { paintStill } from './cavescene.js';
 import { Objectives, MUSINGS, MAIN_GOALS, unlocked, gateRadius, chapterOf, goalText, goalReached } from './objectives.js';
 import './customize.js';
@@ -1150,9 +1150,10 @@ function frame() {
   const rawDt = Math.min(0.05, (nowTs - rt.lastTs) / 1000);
   rt.lastTs = nowTs;
   if (rt.introT >= 0) { rt.introT += rawDt; if (rt.introT >= INTRO_DUR) endIntro(); }
+  if (rt.seatPan) seatPanTick(rawDt);   // Your Seat's last look: the world running faster and faster (systems/endgame.js)
   const live = rt.started && !rt.modal && rt.introT < 0 && !rt.over;   // rt.over: a closed voyage (systems/endgame.js)
   const stop = rt.hitstop > 0; if (stop) rt.hitstop -= rawDt;   // hitstop: the world holds still for a blink after a hit (storybeats.js hurtPlayer)
-  const dt = live && !stop ? rawDt : 0;           // simulation time: frozen while a menu is open
+  const dt = (live && !stop ? rawDt : 0) * (rt.seatPan ? rt.seatPan.speed : 1);   // simulation time: frozen while a menu is open; Your Seat's pan runs it fast
   const ashore = rt.modal === 'harbour' || rt.modal === 'greet' || rt.modal === 'yard';
   const vdt = live || ashore || rt.titleScene ? rawDt : 0;  // ashore the world keeps moving (people, gulls, waves) while the clock stands still
   rt.tNow += dt; rt.animT += vdt;
@@ -1204,7 +1205,7 @@ function frame() {
   // ---- ship
   shipInput.steer = (keys.has('KeyD') || keys.has('ArrowRight') || touch.R ? 1 : 0) - (keys.has('KeyA') || keys.has('ArrowLeft') || touch.L ? 1 : 0) || rt.padSteer || 0;   // the pad's stick by its angle (gamepad.js, G-11); keys win
   shipInput.sail = (keys.has('KeyW') || keys.has('ArrowUp') || touch.U ? 1 : 0) - (keys.has('KeyS') || keys.has('ArrowDown') || touch.D ? 1 : 0);
-  if (!live || digGame.active || rt.lostK > 0.3) { shipInput.steer = 0; shipInput.sail = 0; }   // (lost in fog: the helm does not answer)   // (probing the shore: the keys move over the beach)
+  if (!live || digGame.active || rt.lostK > 0.3 || rt.seatPan) { shipInput.steer = 0; shipInput.sail = 0; }   // (lost in fog: the helm does not answer)   // (probing the shore: the keys move over the beach)
   if (live && (keys.has('KeyZ') || keys.has('KeyX'))) { rt.yawT += ((keys.has('KeyX') ? 1 : 0) - (keys.has('KeyZ') ? 1 : 0)) * dt * 1.8; rt.lastCamInput = rt.tNow; }
   if (keys.has('KeyV')) { rt.yawT = 0; rt.lastCamInput = rt.tNow; }
   if (!rt.drag && rt.tNow - rt.lastCamInput > 6) rt.yawT += (0 - rt.yawT) * Math.min(1, rawDt * 0.7);   // drifts back behind the boat after a while

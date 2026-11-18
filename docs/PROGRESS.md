@@ -1939,3 +1939,9 @@ Trials for the owner to compare; nothing changes without a flag and STYLE.md is 
   line once; beating out does not bring the Edge back with the dread held at full. Not verified: feel, timing on a real
   machine, smoke (run after the merge).
 - Open: the writer's words for every line above; whether "Marked on your chart." stays.
+- **Your Seat's last look** (owner, 2026-11-18): after the newcomer's lines, the view rises over the Table's island and circles it while
+  the world runs faster and faster (game time up to 30x over 30 s: a night and a day go by in about 20 s, boats cross), then Mara says
+  "Captain, I think it is time to leave." (draft) and the credits roll. Nothing else Mara would say is let through during it
+  (`Mate.only`). `systems/endgame.js` startPan/seatPanTick; `main.js` scales the simulation step by `rt.seatPan.speed`.
+  Checked headless end to end: the speed ramp, the day passing, the one line, the credits; the view itself was not looked at on a voyage
+  that truly reached the Table (the test voyage sat in fog).

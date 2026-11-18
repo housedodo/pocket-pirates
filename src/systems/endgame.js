@@ -245,9 +245,35 @@ export function startSeat(credits) {
     const next = () => {
       if (i < SEAT.length) { const p = document.createElement('p'); p.textContent = SEAT[i++]; txt.appendChild(p); setTimeout(next, 3200); return; }
       const b = BTN.endGo || $('endGo'); b.textContent = OVER.go; b.style.display = '';
-      b.addEventListener('click', (e) => { e.stopImmediatePropagation(); credits(); }, { once: true, capture: true });
+      b.addEventListener('click', (e) => { e.stopImmediatePropagation(); startPan(credits); }, { once: true, capture: true });
     };
     setTimeout(next, 1400);
   };
   turn();
+}
+
+// ---------------------------------------------------------------- Your Seat: the pan (owner 2026-11-18)
+// After the newcomer, the world goes on without you: the view rises over the Table's island and circles it while time runs faster
+// and faster (days and nights in seconds, boats crossing), until Mara says it is time to leave; then the credits.
+const PAN = { RAMP: 30, TOP: 30, MARA: 34, END: 44, R: 95, H: 42, TURN: 0.05 };   // seconds (real), top speed (x game time), orbit
+export const SEAT_LEAVE = 'Captain, I think it is time to leave.';   // draft (the owner's words)
+function startPan(credits) {
+  const el = $('ending'); el.classList.remove('show', 'dark');
+  const hud = $('hud'); if (hud) hud.classList.add('hidden');
+  const ship = G.ship; if (ship) { ship.speed = 0; ship.trim = 0; }
+  const m = G.objectives.mate; m.queue.length = 0; m.cur = null; m.only = SEAT_LEAVE;   // nothing else is said now
+  if (m.el) m.el.classList.remove('show');
+  rt.seatPan = { t: 0, speed: 1, credits, said: false, done: false };
+  rt.over = false;   // the world runs again (the helm stays locked: seatPanTick)
+}
+/** each frame (real time), before the simulation step: the speed of the world, the view, Mara, the end */
+export function seatPanTick(rawDt) {
+  const P = rt.seatPan; if (!P || P.done) return;
+  P.t += rawDt;
+  P.speed = 1 + (PAN.TOP - 1) * smoothstep(0, PAN.RAMP, P.t);
+  const L = LM.table || { x: 0, z: 0 }, a = P.t * PAN.TURN * (1 + P.speed * 0.15);
+  rt.camOverride = { pos: [L.x + Math.cos(a) * PAN.R, PAN.H, L.z + Math.sin(a) * PAN.R], look: [L.x, 1, L.z] };
+  if (G.ship) { G.ship.speed = 0; G.ship.trim = 0; }
+  if (!P.said && P.t > PAN.MARA) { P.said = true; G.objectives.mate.say(SEAT_LEAVE); }
+  if (P.t > PAN.END) { P.done = true; rt.seatPan = null; rt.camOverride = null; rt.over = true; P.credits(); }
 }
