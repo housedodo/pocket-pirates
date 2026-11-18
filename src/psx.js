@@ -18,6 +18,7 @@ export const U = {
   uMurk: { value: new THREE.Vector3(1e6, 1e6, 0) },
   uOcean: { value: 0 },    // the water's look: 0 toon facets (the original) .. 4 (ocean.js OCEAN_STYLES)
   uWindDir: { value: new THREE.Vector2(0, 1) },
+  uHaze: { value: (() => { try { return new URLSearchParams(location.search).get('haze') === '0' ? 0 : 0.5; } catch (e) { return 0.5; } })() },   // base haze: low things (islands, rocks, hulls) fog sooner than high ones, so far objects sink into the sea's own colour instead of floating on it; ?haze=0 turns it off
   uRain: { value: 0 },     // rain on the water (rings), 0..1
   uFarLight: { value: new THREE.Vector3(150, 1, 1) },   // far lights (x: from this far, y: their brightness, z: how much further they carry through fog): systems/farlights.js (P-FREE-3)
   uGust: { value: Array.from({ length: 4 }, () => new THREE.Vector4(1e6, 1e6, 1, 0)) },   // gust patches on the water (x, z, radius, strength): seaplay.js   // where the wind blows to (foam streaks)   // the hut's island (x, z, radius): the water round it is dark and murky
@@ -26,6 +27,9 @@ export const U = {
 const VERT_HEAD = /* glsl */`
 uniform vec2 uSnap;
 uniform float uDread;
+#ifndef NO_HAZE
+varying float vWY;
+#endif
 #ifdef USE_DARKCOL
 attribute vec3 colorB;
 #endif
@@ -33,6 +37,10 @@ attribute vec3 colorB;
 const FRAG_HEAD = /* glsl */`
 uniform float uLight;
 uniform float uDread;
+uniform float uHaze;
+#ifndef NO_HAZE
+varying float vWY;
+#endif
 uniform float uTide;
 uniform vec3 uFarLight;
 float farLight() { return mix(1.0, uFarLight.y, step(uFarLight.x, 1.0 / gl_FragCoord.w)); }
@@ -49,10 +57,10 @@ export const getGrit = () => grit || (grit = makeGrit());
  *  - global light level multiplies everything except glowing texels (windows, lanterns, eyes)
  */
 export function psxMaterial(opts = {}) {
-  const { dark = false, grime = false, notide = false, vertex, fragmentColor, key = '', ...params } = opts;
+  const { dark = false, grime = false, notide = false, haze = true, vertex, fragmentColor, key = '', ...params } = opts;
   const m = new THREE.MeshBasicMaterial(params);
-  if (dark || grime) m.defines = Object.assign({}, dark ? { USE_DARKCOL: '' } : {}, grime ? { USE_GRIME: '' } : {}, notide ? { NO_TIDE: '' } : {});
-  m.customProgramCacheKey = () => `psx${dark ? 'D' : ''}${grime ? 'G' : ''}${notide ? 'N' : ''}${key}`;
+  if (dark || grime || !haze) m.defines = Object.assign({}, dark ? { USE_DARKCOL: '' } : {}, grime ? { USE_GRIME: '' } : {}, notide ? { NO_TIDE: '' } : {}, haze ? {} : { NO_HAZE: '' });
+  m.customProgramCacheKey = () => `psx${dark ? 'D' : ''}${grime ? 'G' : ''}${notide ? 'N' : ''}${haze ? '' : 'H'}${key}`;
   m.onBeforeCompile = (shader) => {
     Object.assign(shader.uniforms, U);
     let v = shader.vertexShader;
@@ -62,6 +70,13 @@ export function psxMaterial(opts = {}) {
     if (grime) v = v.replace('#include <common>', '#include <common>\nvarying vec3 vGW;');
     v = v.replace('#include <project_vertex>', `#include <project_vertex>
       ${grime ? 'vGW = (modelMatrix * vec4(transformed, 1.0)).xyz;' : ''}
+      #ifndef NO_HAZE
+      { vec4 hp = vec4(transformed, 1.0);
+      #ifdef USE_INSTANCING
+      hp = instanceMatrix * hp;
+      #endif
+      vWY = (modelMatrix * hp).y; }
+      #endif
       gl_Position.xy = floor(gl_Position.xy / gl_Position.w * uSnap + 0.5) / uSnap * gl_Position.w;`);
     shader.vertexShader = v;
 
@@ -105,7 +120,12 @@ export function psxMaterial(opts = {}) {
       #endif
       ${fragmentColor ? fragmentColor.body : ''}`);
     f = f.replace('#include <fog_fragment>', `#if defined( USE_FOG ) && !defined( FOG_EXP2 )
-      gl_FragColor.rgb = mix(gl_FragColor.rgb, fogColor, smoothstep(fogNear, fogFar, vFogDepth / mix(1.0, uFarLight.z, glow)));   // a lit window carries further with the lamp out (P-FREE-3)
+      #ifndef NO_HAZE
+      float HAZE_K = 1.0 + uHaze * (1.0 - smoothstep(0.0, 9.0, vWY)) * smoothstep(40.0, 130.0, vFogDepth);   // low things fog sooner, but only the far ones
+      #else
+      float HAZE_K = 1.0;
+      #endif
+      gl_FragColor.rgb = mix(gl_FragColor.rgb, fogColor, smoothstep(fogNear, fogFar, vFogDepth * HAZE_K / mix(1.0, uFarLight.z, glow)));   // a lit window carries further with the lamp out (P-FREE-3)
       #else
       #include <fog_fragment>
       #endif`);
@@ -123,11 +143,11 @@ export function initMaterials() {
   mats.hull = psxMaterial({ map: a, vertexColors: true, dark: true, grime: true, notide: true, alphaTest: 0.5, side: THREE.DoubleSide });   // ships: no tide band (they float)
   mats.flagP = psxMaterial({ map: a, vertexColors: true, dark: true, alphaTest: 0.5, side: THREE.DoubleSide });
   mats.sail = psxMaterial({ map: a, vertexColors: true, dark: true, grime: true, side: THREE.DoubleSide, key: 'S' });
-  mats.shallow = psxMaterial({ vertexColors: true, transparent: true, depthWrite: false, key: 'A' });
-  mats.foam = psxMaterial({ color: 0xffffff, transparent: true, opacity: 0.5, depthWrite: false, vertexColors: true, key: 'F' });
+  mats.shallow = psxMaterial({ haze: false, vertexColors: true, transparent: true, depthWrite: false, key: 'A' });
+  mats.foam = psxMaterial({ haze: false, color: 0xffffff, transparent: true, opacity: 0.5, depthWrite: false, vertexColors: true, key: 'F' });
   // the hut's island: its shallows are black-green and its foam a dull grey scum (fixed colours, never retinted by the day)
-  mats.murkShallow = psxMaterial({ color: 0x14201c, vertexColors: true, transparent: true, depthWrite: false, key: 'A' });
-  mats.murkFoam = psxMaterial({ color: 0x4a5046, transparent: true, opacity: 0.35, depthWrite: false, vertexColors: true, key: 'F' });
+  mats.murkShallow = psxMaterial({ haze: false, color: 0x14201c, vertexColors: true, transparent: true, depthWrite: false, key: 'A' });
+  mats.murkFoam = psxMaterial({ haze: false, color: 0x4a5046, transparent: true, opacity: 0.35, depthWrite: false, vertexColors: true, key: 'F' });
   mats.beam = psxMaterial({ color: 0xffe080, transparent: true, opacity: 0.16, depthWrite: false, side: THREE.DoubleSide, fog: false, key: 'B', fragmentColor: { head: '', body: 'diffuseColor.rgb /= max(uLight, 0.05);' } });
   mats.wake = psxMaterial({ color: 0xffffff, transparent: true, opacity: 0.5, depthWrite: false, vertexColors: true, key: 'Wk', fragmentColor: { head: '', body: 'diffuseColor.rgb /= mix(1.0, max(uLight, 0.05), 0.45);' } });
   mats.glow = psxMaterial({ color: 0xffc060, vertexColors: true, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, fog: false, key: 'G', fragmentColor: { head: '', body: 'diffuseColor.rgb /= max(uLight, 0.05); diffuseColor.rgb *= farLight();' } });

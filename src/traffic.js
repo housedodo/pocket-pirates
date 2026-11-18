@@ -38,6 +38,24 @@ function getFlagGeo() {
   return (flagGeo = b.geometry());
 }
 
+// the lantern of another ship: a small warm halo (two crossed discs, so it shows from any side) and a pool on the water, with the world's lamp
+// material (mats.glow: additive, carries through the dark, dimmed by your own lamp's glare, brighter with it out). Lit at night and in a storm;
+// derelicts and ghost ships carry none. (owner 2026-11-18: other ships have a lantern so they are slightly visible in the dark)
+function radialGeo(flat) {
+  const pos = [], col = [], segs = 10, rings = 3;
+  const v = (i, r) => { const a = (i / segs) * Math.PI * 2, q = (r / rings); return [Math.cos(a) * q, Math.sin(a) * q, 0, 1, 1, 1, Math.pow(1 - q, 1.4)]; };
+  for (let r = 0; r < rings; r++) for (let i = 0; i < segs; i++) {
+    const a = v(i, r), b = v(i + 1, r), c = v(i + 1, r + 1), d = v(i, r + 1);
+    for (const q of [a, c, b, a, d, c]) { pos.push(q[0], q[1], q[2]); col.push(q[3], q[4], q[5], q[6]); }
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setAttribute('color', new THREE.Float32BufferAttribute(col, 4));
+  if (flat) g.rotateX(-Math.PI / 2);
+  return g;
+}
+let LAMP_GEO = null;
+
 export class Traffic {
   constructor(scene, world, seed) {
     this.scene = scene; this.world = world; this.seed = seed;
@@ -95,7 +113,20 @@ export class Traffic {
     const flag = new THREE.Mesh(getFlagGeo(), ghost ? this.ghostSail : this.flagMats[faction.id]);
     flag.position.set(0, K.canoe ? 3.4 : 6.95 * hy * (K.masts[0] ? K.masts[0].s * 0.93 : 1), K.canoe ? -0.2 : -0.3 * hz);
     root.add(flag);
-    return { root, sails, flag };
+    let lamps = null;
+    if (!ghost) {
+      LAMP_GEO = LAMP_GEO || { halo: radialGeo(false), pool: radialGeo(true) };
+      lamps = new THREE.Group(); lamps.visible = false;
+      const spots = K.canoe ? [[0, 1.6, -0.2, 1]] : [[0, 2.55 * hy, 2.9 * hz, 1], [0, 1.55 * hy, -3.2 * hz, 0.55]];   // the stern lantern, and a smaller one at the bow
+      for (const [x, y, z, k] of spots) {
+        const a = new THREE.Mesh(LAMP_GEO.halo, mats.glow), b = new THREE.Mesh(LAMP_GEO.halo, mats.glow);
+        b.rotation.y = Math.PI / 2;
+        for (const m of [a, b]) { m.position.set(x, y, z); m.scale.setScalar(2.6 * k); m.renderOrder = 3; m.frustumCulled = false; lamps.add(m); }
+      }
+      const pool = new THREE.Mesh(LAMP_GEO.pool, mats.glow); pool.position.set(0, -0.15, 1.2 * hz); pool.scale.set(5.5 * hx, 1, 6.5 * hz); pool.renderOrder = 3; pool.frustumCulled = false; lamps.add(pool);
+      root.add(lamps);
+    }
+    return { root, sails, flag, lamps };
   }
 
   spawn(ship, dread) {
@@ -295,6 +326,7 @@ export class Traffic {
         if (sl.jib) { sl.jib.scale.x = s.sgn; sl.jib.scale.y = flat; }
       }
       s.flag.rotation.y = Math.PI - rel + Math.sin(t * 8 + i) * 0.2;
+      if (s.lamps) s.lamps.visible = s.mode === 'live' && !s.sinking && mats.glow.opacity > 0.3;   // lit at night and in a storm (the world's lamp level)
       if (s.sinking) { s.root.position.y -= s.sinkT * 0.9; s.root.rotation.z += s.sinkT * 0.25; s.root.rotation.x += s.sinkT * 0.1; }
     }
   }

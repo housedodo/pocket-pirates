@@ -90,6 +90,14 @@ purple and magenta cosmic horror as dread rises.
   strongest toward the sun; clouds drift with the wind and wrap round the ship; a few small black birds by day (not at night, in a storm or
   at high dread). Flags: `?day=0` (the old day), `?daymood=0..3`. Cloud shadows on the sea were tried and dropped: at deck height they are
   a degree under the horizon and cannot be seen. Birds were tried and dropped too (they clashed with the built gulls). When it rains or clouds over (weather cover), the day mood steps back: the zenith greys and the sky fills with a low, flat, wide cloud layer.
+- **Other ships carry a lantern at night** (2026-11-18, `traffic.js`): a small warm halo (two crossed discs) at the stern, a smaller one at the bow, and a pool on the
+  water, made of the world's lamp material (`mats.glow`: additive, carries through the dark, dimmed by your own lamp's glare, brighter with it
+  out). Lit at night and in a storm; derelicts and ghost ships carry none. **Lit things carry further at night** (`farlights.js NIGHT_REACH` 2.4):
+  windows, lanterns and lamps are seen through about two and a half times the fog an unlit thing is, lamp lit or not; with the lamp out the old
+  far reach still applies.
+- **Base haze** (2026-11-18, `psx.js uHaze`, `?haze=0` off): things low to the water (below about 9 units) and further than 40 fog sooner than high ones,
+  so far islands, buoys and hulls sink into the sea's own colour instead of floating on it. The foam ring round every island is wider and brighter
+  (0.95 to 1.12 of the shore) with a pale wash outside it (to 1.42). Shallows, foam and mist do not haze (`haze: false`).
 - **Night is dark:** light floor 0.17 of day, near-black navy sky and fog, a short view; what you see by is the lantern's warm
   pool on the water, lit windows, lighthouses and the moon. With the lamp out the dark comes right up to the hull.
   Far lights (2026-11-17, P-FREE-3): with the lamp lit, glowing things further than 150 burn at 0.55; with it out, after about 3 s,

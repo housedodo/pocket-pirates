@@ -1555,7 +1555,7 @@ const LAYER_RULES = {
   grow1: (i) => (i.growth || 0) >= 1, grow2: (i) => (i.growth || 0) >= 2, grow3: (i) => (i.growth || 0) >= 3,
 };
 /** the sea mist's colour: main.js sets it to the fog colour each frame */
-export const mistMat = psxMaterial({ vertexColors: true, transparent: true, opacity: 0.22, depthWrite: false, side: THREE.DoubleSide, key: 'Lc', fragmentColor: { head: '', body: 'diffuseColor.rgb /= max(uLight, 0.05);' } });   // snaps (G2); its colour is the fog's, already dark at night, so the light is not applied twice
+export const mistMat = psxMaterial({ haze: false, vertexColors: true, transparent: true, opacity: 0.22, depthWrite: false, side: THREE.DoubleSide, key: 'Lc', fragmentColor: { head: '', body: 'diffuseColor.rgb /= max(uLight, 0.05);' } });   // snaps (G2); its colour is the fog's, already dark at night, so the light is not applied twice
 export class Island {
   constructor(d, dug) {
     this.desc = d;
@@ -1592,8 +1592,10 @@ export class Island {
       sh.renderOrder = 1; this.group.add(sh); this.geos.push(sh.geometry);
     }
     if (d.type === 'atoll') { const lg = new THREE.Mesh(buildRing(d, 0.0, 0.56, 0.24, 0.9, 0.9, 30, 3), mats.shallow); lg.renderOrder = 1; this.group.add(lg); this.geos.push(lg.geometry); }
-    const fm = new THREE.Mesh(buildRing(d, 0.97, 1.07, 0.3, 0.9, 0.0, 30, 2), d.blight ? mats.murkFoam : mats.foam);
+    const fm = new THREE.Mesh(buildRing(d, 0.95, 1.12, 0.3, 1.0, 0.0, 30, 2), d.blight ? mats.murkFoam : mats.foam);   // the collar of foam where the island meets the sea: wider and brighter, so it reads at a distance
     fm.renderOrder = 2; this.group.add(fm); this.geos.push(fm.geometry);
+    const wash = new THREE.Mesh(buildRing(d, 1.08, 1.42, 0.28, 0.35, 0.0, 30, 2), d.blight ? mats.murkFoam : mats.foam);   // and a thin pale wash outside it, which fades into the water
+    wash.renderOrder = 2; this.group.add(wash); this.geos.push(wash.geometry);
 
     if (d.type === 'treasure' && d.marker) {
       const m = d.marker;
