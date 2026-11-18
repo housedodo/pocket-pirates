@@ -77,17 +77,17 @@ async function ashoreWithoutVisit(who, p) {
 /** the demo is closed (R2): test flags do nothing, the later places are open water, nothing is recorded in the ledger */
 async function demoClosed(who, p) {
   await p.waitForFunction(() => window.__game.state.time > 0, null, { timeout: WAIT });
-  const a = await p.evaluate(() => { const g = window.__game; return { dread: g.dread, devbar: !!document.getElementById('devbar'), threads: g.state.story.threads || [], street: !!g.world.desc(5, 7), table: !!g.world.desc(13, -18), bell: !!g.world.desc(1, 3) }; });
+  const a = await p.evaluate(() => { const g = window.__game; return { dread: g.dread, devbar: !!document.getElementById('devbar'), threads: g.state.story.threads || [], street: !!g.world.desc(13, 9), table: !!g.world.desc(13, -18), bell: !!g.world.desc(1, 2) }; });
   check(who, a.dread === 0, `?dread=0.9 is ignored (dread ${a.dread})`);
   check(who, !a.devbar, '?dev=1 shows no dev bar');
   check(who, a.threads.length === 0, `?threads=all wakes nothing (${JSON.stringify(a.threads)})`);
   check(who, !a.street && !a.table && a.bell, `the Sunken Street and the Table are open water, the Drowned Bell is there (${a.street}, ${a.table}, ${a.bell})`);
-  await p.evaluate(() => { const g = window.__game; g.state.goals.i = 15; g.teleport(516, 707, 0); });
-  await p.waitForFunction(() => Math.hypot(window.__game.ship.pos.x - 516, window.__game.ship.pos.z - 707) < 40, null, { timeout: WAIT });
+  await p.evaluate(() => { const g = window.__game; g.state.goals.i = 15; g.teleport(1450, 1000, 0); });   // the Sunken Street (moved into Drowned water, owner 2026-11-18, D3)
+  await p.waitForFunction(() => Math.hypot(window.__game.ship.pos.x - 1450, window.__game.ship.pos.z - 1000) < 40, null, { timeout: WAIT }).catch(() => {});
   await p.waitForTimeout(3000);
   const s = await p.evaluate(() => ({ dread: window.__game.dread, labels: [...document.querySelectorAll('.farlabel')].filter((e) => e.style.display !== 'none').length }));
   check(who, s.dread === 0 && s.labels === 0, `at the Sunken Street's position dread ${s.dread}, ${s.labels} far labels`);
-  await p.evaluate(() => window.__game.teleport(60, 306, 0));
+  await p.evaluate(() => window.__game.teleport(80, 226, 0));   // just off the Drowned Bell (80, 240)
   await p.waitForFunction(() => /ashore/i.test((document.getElementById('prompt') || {}).textContent || ''), null, { timeout: WAIT }).catch(() => {});
   await p.keyboard.press('e');
   const went = await p.waitForFunction(() => (window.__game.state.story.lm || {}).bell !== undefined, null, { timeout: WAIT * 2 }).then(() => true, () => false);
