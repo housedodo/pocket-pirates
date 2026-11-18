@@ -22,7 +22,7 @@ export const LANDMARKS = [
   { lm: 'bell',    key: '1,2',   name: 'The Drowned Bell', type: 'rocky',   x: 80,   z: 240,  r: 8,  H: 7,  sight: 'a leaning tower' },
   { lm: 'grove',   key: '-3,2',  name: 'Hollowgreen',      type: 'jungle',  x: -300, z: 180,  r: 17, H: 5.5, sight: 'a dark green wood' },
   { lm: 'keeper',  key: '4,-3',  name: "Wick's Rock",      type: 'rocky',   x: 430,  z: -320, r: 10, H: 3.5, sight: 'a lighthouse alone' },
-  { lm: 'ribs',    key: '-3,3',  name: 'The Ribs',         type: 'sandbar', x: -340, z: 340,  r: 15, H: 0.9, sight: 'masts in the surf' },
+  { lm: 'ribs',    key: '-3,3',  name: 'The Ribs',         type: 'sandbar', x: -380, z: 380,  r: 15, H: 0.9, sight: 'masts in the surf' },
   { lm: 'lagoon',  key: '5,3',   name: 'Glass Lagoon',     type: 'atoll',   x: 540,  z: 360,  r: 22, H: 1.1, sight: 'a reef ring' },
   { lm: 'broken', key: '-11,-2', name: 'The Halved Isle', type: 'rocky', x: -1231, z: -217, r: 26, H: 13, sight: 'a white fog bank' },
   { lm: 'customs', key: '1,-5', name: 'Customs Pier', type: 'sandbar', x: 155, z: -580, r: 12, H: 1.5, sight: 'a long grey pier' },
