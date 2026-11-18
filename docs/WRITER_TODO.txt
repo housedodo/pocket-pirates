@@ -433,3 +433,174 @@ Your Seat, the epilogue (after the book: the hut's first words, from your side o
 Buttons after a closed ending (She Rises, the Unseen Throw, Your Seat), on the card and the title:
      table.js OVER  Begin again / Go back to the table / Go on
      yours:
+
+4.8  DRAFTS FROM THE LORE BIBLE (2026-11-18; owner: add the lore proposals; docs/proposals/LORE_BIBLE.md, src/customs.js)
+----------------------------------------------------------------------------------------------------------------
+Every line below is a draft written from the bible's samples (S-01 to S-40) and items L-01 to L-42. Yours to keep, cut or rewrite.
+CUST-0001 to 0034: a villager on docking, once a voyage; 0035 to 0056: seen on the quay (the board); 0057 to 0063: Mara, once
+per region, only while the water is light; 0064 to 0067: the keeper's log, the candle, the oar, the bounty.
+     PLC-0070  Teo tunes up. "Who began it? The violin did, long before me. I only answer."   (Teo, second visit (L-38 C))
+     yours:
+     PLC-0071  Ilse rosins her bow. "Who began it? The guitar did. I only answer it."   (Ilse, second visit (L-38 C))
+     yours:
+     HLF-0141  A man on the pier writes every ship on the wall in chalk. The wall is washed on market day.   (Corvo, after his story (L-33))
+     yours:
+     NEWS-0050  He says he never once reached the bottom of a page.   (paper, Crown (L-08))
+     yours:
+     NEWS-0051  The Guild's books and ours were compared. They did not agree. They never have.   (paper, Crown, full game (L-11))
+     yours:
+     NEWS-0052  Everything but the face. Nobody would.   (paper, Reef)
+     yours:
+     NEWS-0053  The weed line is above it again.   (paper, Drowned (L-23))
+     yours:
+     NEWS-0054  Nobody could name the knot. The rope is on show at the inn.   (paper, full game (L-25))
+     yours:
+     NEWS-0055  THE GUILD COUNTS LIGHTS, NOT SHIPS. Report a dark light at any Guild quay.   (paper notice, Lantern (L-19))
+     yours:
+     NEWS-0056  SET AND PRINTED in the Crown. Comes in with the Friday market. Wet ink is no fault of the printer.   (paper notice (L-12))
+     yours:
+     CUST-0001  We ring it gently here. It carries further that way.
+     yours:
+     CUST-0002  Velto. Nets, gulls, pie. Mind the second step.
+     yours:
+     CUST-0003  In my day you did not go past hearing. Past where the bell carries.
+     yours:
+     CUST-0004  Old wrecks? Ask three people which went down first. You will get four answers.
+     yours:
+     CUST-0005  That wall is older than my grandmother. Older than the lamps, even.
+     yours:
+     CUST-0006  Master says every chart draws the sea the same. It is the coasts that will not sit still.
+     yours:
+     CUST-0007  Gulls carry the news. That is why they shout.
+     yours:
+     CUST-0008  The post! Anything for this quay?
+     yours:
+     CUST-0009  Between the buoys you are in the book, Captain. Outside them you are weather.
+     yours:
+     CUST-0010  Clean lines, calm water. My father said it, and his.
+     yours:
+     CUST-0011  Tama? Your bell is too soft to count by. Ours you can count from the next island.
+     yours:
+     CUST-0012  Out past the lanes? That is off the book, Captain.
+     yours:
+     CUST-0013  On the old charts this quay had another name. The old charts are wrong about a lot.
+     yours:
+     CUST-0014  Fog bell? Ours hangs on the Fort. You can count by it.
+     yours:
+     CUST-0015  Fish after dark, fruit after dark, sleep after breakfast!
+     yours:
+     CUST-0016  Morning, Captain! We are only just up.
+     yours:
+     CUST-0017  Nobody plays, nobody sleeps. Pull up a stool.
+     yours:
+     CUST-0018  Hush now. Somebody is playing. Sleep while they play.
+     yours:
+     CUST-0019  I keep the fire. They keep the tune. Everyone keeps something.
+     yours:
+     CUST-0020  Past the last cay is where nobody plays. We do not fish there.
+     yours:
+     CUST-0021  Bells in the fog? Not here. Not while somebody plays.
+     yours:
+     CUST-0022  A name goes up the day a ship does not come in. Nobody sees the day it sinks.
+     yours:
+     CUST-0023  Salvage at low water. A grave at high. Be quick about the difference.
+     yours:
+     CUST-0024  Out there is the quiet water. Nothing to wreck, nothing to take.
+     yours:
+     CUST-0025  In fog the old wreck rings. Nobody has ever found the wreck.
+     yours:
+     CUST-0026  The stool at the sea end is not for sitting. Ask anyone.
+     yours:
+     CUST-0027  Two long for the Point, one short for the Rock. Count them home.
+     yours:
+     CUST-0028  It comes up. We thank it. We do not go down.
+     yours:
+     CUST-0029  Past the last light the water is anyone's. The Guild does not chart it.
+     yours:
+     CUST-0030  In fog you hear a bell under the water. The Guild says it is the Point's. The Point has no bell.
+     yours:
+     CUST-0031  We call our names on the way in. So the harbour knows who it is getting.
+     yours:
+     CUST-0032  Thank us? No. Nothing was taken. It was kept.
+     yours:
+     CUST-0033  The harbourmaster follows your look out to sea, then points down at the pier. Politely.
+     yours:
+     CUST-0034  On fog nights we stop rowing and listen. Then we row on.
+     yours:
+     CUST-0035  Nets drying, gulls, a pie cart. Nothing else, and nobody minds.
+     yours:
+     CUST-0036  The buoys have been painted again, red and green. The outermost is still wet.
+     yours:
+     CUST-0037  On the clerk's desk at the end of the pier, two cups. He only ever drinks from one.
+     yours:
+     CUST-0038  A clerk has stamped a small twenty in the margin of your papers. For luck, he says.
+     yours:
+     CUST-0039  By the fire, nearest the water, a mat nobody sits on.
+     yours:
+     CUST-0040  The stalls are shuttered at noon. Lanterns are strung for the evening.
+     yours:
+     CUST-0041  Chalked on a plank by the pier: CLAIMED. Named and painted. The Brotherhood.
+     yours:
+     CUST-0042  At the sea end of the wreckers' table, a stool. Nobody sits on it.
+     yours:
+     CUST-0043  A wrecker's oar lies on the planks, a twenty scratched on its loom. For luck.
+     yours:
+     CUST-0044  A Guild notice: THE GUILD COUNTS LIGHTS, NOT SHIPS. Report a dark light at any Guild quay.
+     yours:
+     CUST-0045  No nets on the quay. The fish comes in by boat, and is paid for.
+     yours:
+     CUST-0046  A lamp burns in the window of an empty house, the one nearest the sea.
+     yours:
+     CUST-0047  A tide pole by the pier, painted with rings. The oldest are at the bottom. The weed line is above them all.
+     yours:
+     CUST-0048  At the end of the table nearest the sea, a place is laid. Someone has already eaten from it.
+     yours:
+     CUST-0049  At dusk the boats come in. Each rower calls out a name: their own.
+     yours:
+     CUST-0050  A line on the customs bollard is made fast with an old hitch. The clerks call it that. None of them ties it.
+     yours:
+     CUST-0051  A canoe is tied to the stilts with an old hitch. Its owner shrugs: it came that way.
+     yours:
+     CUST-0052  A salvaged bell rope, still in an old hitch. The wreckers will not untie it.
+     yours:
+     CUST-0053  One lamp-float is moored with an old hitch. The Guild ties a different knot.
+     yours:
+     CUST-0054  Every mooring on this quay is tied in the old hitch.
+     yours:
+     CUST-0055  A stall sign: SHORT DICE. For looking at, not for playing.
+     yours:
+     CUST-0056  Market day. They are washing the chalk off the harbour wall.
+     yours:
+     CUST-0057  Velto again? Good. I like a place that stays where we left it.
+     yours:
+     CUST-0058  Another stamp, Captain. I am starting a collection.
+     yours:
+     CUST-0059  Listen. They are at it again.
+     yours:
+     CUST-0060  That is another wreck by the way in. I have stopped counting them. Nearly.
+     yours:
+     CUST-0061  Long, long, short. That one is the Point. I think.
+     yours:
+     CUST-0062  Everyone is very kind here. I keep checking my pockets.
+     yours:
+     CUST-0063  There. Now the harbour can find us.
+     yours:
+     CUST-0064  The keeper writes in his log: "Relit at dusk by a passing captain. Ships seen: all. Ships expected: all but one."
+     yours:
+     CUST-0065  Someone at the next stall laughs. "Ah. That is a candle. Buy the next round and we will say no more."
+     yours:
+     CUST-0066  A twenty is scratched on the loom of the oar. For luck, the last owner said.
+     yours:
+     CUST-0067  The Brotherhood remembers a debt both ways, Captain.
+     yours:
+Not picked up by the story export (file given):
+     newspaper.js  CLERK RETIRES AFTER FORTY YEARS / RECKONING DAY AT THE FORT / FIGUREHEAD REPAINTED / TIDE POLE RAISED AGAIN /
+                   KNOT CONTEST WON BY A STRANGER   (the headlines over NEWS-0050 to 0054)
+     yours:
+     newspaper.js  {N}, clerk at the Fort. His line is closed. It was a clean one.   (a Crown notice, full game; L-08)
+     yours:
+     customs.js    CROWN CUSTOMS. Vessel: MERRY GULL. Cargo: as declared. Master: ______   (kept in the log after a customs stamp; L-08)
+     yours:
+     LORE-0093, LORE-0094, LORE-0095  three bottle notes: The gulls followed us all morning... / We are the first to sail this far... / Fog all day. We heard
+                   a bell the whole way...   (L-30, L-01, L-29)
+     yours:

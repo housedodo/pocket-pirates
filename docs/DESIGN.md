@@ -468,6 +468,26 @@ Nothing here has a marker, a tutorial line or a HUD element; numbers are named c
 - **P-DROWN-2 A fish for the pier**: built as it was (`drownedTake` keeps a fish first, then fruit, then the newest treasure; the
   market row names what they will keep before you take it); with M-DROWN-4 the trade waits for low water.
 
+## Regional customs (2026-11-18, owner: add the lore proposals; `src/customs.js`, `src/customprops.js`; `docs/proposals/LORE_BIBLE.md`)
+What each region says, keeps and does, as the lore bible proposed (L-01 to L-42). Every line is a draft (`docs/WRITER_TODO.txt` 4.8,
+`CUST-xxxx`). Nothing here raises a question's level, explains, or names her village.
+- **On docking** (`customLine`, called from `systems/interact.js` after gossip, 35% of free docking days below dread 0.6): one villager
+  line from the harbour's region (`regionAt`; Home Sound is `home`), each once a voyage. A line for this moment (by the buoys, a delivery
+  aboard, dusk, a still night, a storm night, fog) or this harbour (Tama, Velto) comes first.
+- **On the quay** (`sightsAt`, the harbourmaster's board, section ON THE QUAY): one thing seen a day, from the region's pool; the old
+  hitch once in each region outside home (`state.story.hitch`); in the Drowned the chalk tally of the last three things they really kept
+  (`state.story.drownedKept`); on market day a SHORT DICE sign in market towns, or the chalk wall being washed.
+- **Mara** (`maraAt`, L-34): one remark per region, each once, said a moment after docking; only while the dread is below `HUSH` for that
+  region (0.3 to 0.45; the Drowned: once, whatever the dread). Her market-day and lantern-night remarks (`weekMorning`) also stop past 0.45.
+- **Elsewhere**: the first light relit puts the keeper's log line in the log (and Mara, below `HUSH`); the bounty toast adds the Brotherhood's
+  debt; after the hut, once each: a low haggle roll is "a candle", a hired hand's oar has a twenty on it; the first customs stamp keeps the
+  slip in the log (full game); a second visit to Teo or Ilse hears who began it (`second` in `places.js` VISITS, `state.story.lm2`).
+- **The paper**: in the light weeks half the region items come from `REGION_MORE`, a notice from `NOTICE_MORE` or the press line; the
+  knot contest (full); the blue-boats face is printed once a voyage (`life.blueSaid`, L-40 C).
+- **Props** (`customProps`, from `regiondecor.js`, harbours only, one each): a Free Cays harbour has a fire on a low sand spit off the
+  way in, lit at night when there is no storm (`gctx.still`); a Drowned harbour has a tide pole by the pier, white rings, the weed band above.
+- **Gates**: `any` (also the demo), `full` (never the demo), `hut` (full game and at least one throw). The demo has no Drowned.
+
 ## The Catch book (2026-11-13, `fishart.js`, `logbook.js fishLogHtml`)
 The Ship's book's fisherman's log is a Catch book: one card per species with a pixel portrait. Caught: the portrait, the price, how many,
 the best, where and when, what the quay told you. Heard of only: its shadow and the hint. Never met: a faint shadow and "? ? ?". The dark
