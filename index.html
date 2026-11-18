@@ -120,7 +120,7 @@
     #mapCard small { display: block; color: #6a5a40; font-size: 13px; margin-top: 2px; }
     #mapCard hr { border: none; border-top: 2px dotted #22180f55; margin: 6px 0; }
     .mc-row { display: flex; gap: 6px; align-items: center; font-size: 14px; line-height: 1.25; margin: 3px 0; }
-    .mc-ic { flex: none; display: inline-grid; place-items: center; width: 18px; height: 18px; background: var(--c); border: 2px solid #22180f; border-radius: 50%; }
+    .mc-ic { flex: none; display: inline-grid; place-items: center; width: 18px; height: 18px; background: var(--c); border: 2px solid #22180f; }
     .mc-ic svg { width: 11px; height: 11px; }
     .chartside { overflow-y: auto; padding: 10px 12px; background: #efe0bc; border: 2px solid #22180f; box-shadow: 3px 3px 0 #22180f; font-family: "DotGothic16", monospace; color: #22180f; }
     .cs-title { margin: 0; font: 400 30px "Pirata One", serif; line-height: 1; }
@@ -207,7 +207,7 @@
     #pigWide { width: min(420px, 92vw); text-align: center; }
     #localgame { background: none !important; display: none; } #localgame.open { display: block; }
     #lgHud { position: fixed; inset: 0; width: 100vw; height: 100vh; }
-    #lgTitle { position: fixed; top: 18px; left: 0; right: 0; text-align: center; margin: 0; font-size: 34px !important; color: var(--gold); text-shadow: 0 3px 0 #241a22, 0 0 12px rgba(0,0,0,.5); pointer-events: none; z-index: 2; }
+    #lgTitle { position: fixed; top: 18px; left: 0; right: 0; text-align: center; margin: 0; font-size: 34px !important; color: var(--gold); text-shadow: 0 3px 0 #241a22; pointer-events: none; z-index: 2; }
     #lgFoot { position: fixed; left: 50%; top: 66px; transform: translateX(-50%); width: min(720px, 94vw); display: flex; gap: 12px; align-items: center; background: rgba(28,20,30,.82); border: 3px solid #241a22; border-radius: 8px; padding: 8px 12px; z-index: 2; }
     #lgFoot p { flex: 1; margin: 0; color: #fff6e4; font-size: 16px; line-height: 1.3; } #lgFoot button { width: auto; margin: 0; white-space: nowrap; }
     body.minigame > :not(#localgame):not(#game):not(script) { visibility: hidden !important; }
@@ -378,7 +378,7 @@
     #combatbox .bar, #ebar .bar { height: 9px; background: #0007; border: 2px solid var(--edge); margin: 3px 0; }
     #combatbox .bar.thin { height: 5px; }
     #oilrow { display: flex; align-items: center; gap: 4px; margin-top: 2px; } #oilrow .bar { flex: 1; } #oilfill { background: #ffb43a !important; } #oilrow.low #oilfill { background: #ff6a4a !important; } #oilrow.low .ico.oil { animation: blink 1s steps(2) infinite; }
-    .ico.oil { width: 10px; height: 14px; background: linear-gradient(#ffe27a, #ff9a2a 60%, #c8502a); clip-path: polygon(50% 0, 85% 45%, 100% 75%, 75% 100%, 25% 100%, 0 75%, 15% 45%); }
+    .ico.oil { width: 10px; height: 14px; background: linear-gradient(#ffe27a 0 30%, #ff9a2a 30% 65%, #c8502a 65%); clip-path: polygon(40% 0, 60% 0, 60% 30%, 80% 30%, 80% 50%, 100% 50%, 100% 80%, 80% 80%, 80% 100%, 20% 100%, 20% 80%, 0 80%, 0 50%, 20% 50%, 20% 30%, 40% 30%); }   /* a pixel flame: hard bands, stepped edge */
     body.nooil #oilrow { display: none; }
     #oilrow { cursor: pointer; pointer-events: auto; } #oilrow.off .ico.oil { filter: grayscale(1) brightness(.5); } #oilrow.off #oilfill { opacity: .45; }
     body.nocannons #ammotxt, body.nocannons #combatbox .bar.thin, body.nocannons #tX, body.nocannons .cannonrow { display: none !important; }   /* cannons come later in the story */
@@ -421,7 +421,7 @@
     #placeline { border-left-width: 6px; }
     #farlabels { position: fixed; inset: 0; pointer-events: none; z-index: var(--z-modal); }
     .farlabel { position: absolute; transform: translate(-50%, -100%); font: 12px var(--pxfont); color: var(--paper); text-shadow: 2px 2px 0 #1a0f08; white-space: nowrap; letter-spacing: 1px; }
-    body.fogged #tracker, body.fogged #compass { filter: blur(2px) contrast(0.6); opacity: 0.55; transition: filter 3s, opacity 3s; }
+    body.fogged #tracker, body.fogged #compass { filter: contrast(0.6); opacity: 0.55; transition: filter 3s, opacity 3s; }
     #tracker { max-width: 280px; padding: 5px 9px; display: none; }
     #tracker .trow { padding: 1px 0; } #tracker .trow.main { color: var(--gold); font-weight: 700; }
     #tracker .thint { opacity: .55; text-align: right; }
@@ -435,7 +435,7 @@
     #awaken.show { display: flex; }
     body.awakening #hud { opacity: 0; transition: opacity 1.5s; }
     #awaken.white { background: #fff6fc; }
-    #awaken p { margin: 0; font: 22px var(--pxfont); color: #ffd8f4; text-shadow: 0 0 12px #ff30c8, 2px 2px 0 #000; animation: awfade 2s ease-out; text-align: center; max-width: 80vw; }
+    #awaken p { margin: 0; font: 22px var(--pxfont); color: #ffd8f4; text-shadow: 2px 2px 0 #000; animation: awfade 2s ease-out; text-align: center; max-width: 80vw; }
     #awaken.white p { color: #3a2030; text-shadow: none; }
     #awaken p.big { font-size: 44px; letter-spacing: .2em; font-style: normal; }
     @keyframes awfade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; } }
@@ -472,7 +472,7 @@
     #title .blink { animation: blink 1.2s steps(2) infinite; }
     @keyframes blink { 50% { opacity: .2; } }
     #touch { position: fixed; inset: auto 0 0 0; height: 40%; pointer-events: none; display: none; }
-    #touch button { pointer-events: auto; position: absolute; width: 64px; height: 64px; border-radius: 12px; font: 700 26px monospace; color: var(--ink); background: var(--panel); border: 2px solid var(--edge); }
+    #touch button { pointer-events: auto; position: absolute; width: 64px; height: 64px; font: 400 26px var(--pxfont); color: var(--ink); background: var(--panel); border: 2px solid var(--edge); }
     @media (pointer: coarse) { #touch { display: block; } #help { display: none; } }
     /* ===== pixel style for the whole interface (textures + icons come from src/pixelui.js) ===== */
     :root { --pxfont: "DotGothic16", "Courier New", monospace; --pxedge: var(--edge-navy); }

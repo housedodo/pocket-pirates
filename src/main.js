@@ -83,7 +83,7 @@ import { addMark, clearMark, keep } from './systems/storyflags.js';
 import { tunePan, lullDread, lullabyTick, playersEar } from './systems/lullaby.js';
 import { lostTick, LOST_CARDS } from './systems/lostsailors.js';
 import { buildBiome } from './concepts.js';
-import { buildRaven } from './ravenship.js';   // dev concept: the Pained Raven (__game.raven)   // dev concept scenes (__game.biome)
+import { buildRaven } from './ravenship.js';   // the Pained Raven (ravenhulk.js builds it live; __game.raven is the test hook)   // dev concept scenes (__game.biome)
 import { edgeTick, startEdge, edgeFog, edgeWokeLine } from './systems/edge.js';
 import { PITCH_MIN, updateCamera, initCamera1, initCamera2, camInput } from './ui/camera.js';
 import { titleEl, startTitle, titleCam, titleKey, INTRO_DUR, endIntro, skipIntro, begin, initTitle1, initTitle2 } from './ui/title.js';

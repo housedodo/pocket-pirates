@@ -2,17 +2,14 @@ import * as THREE from 'three';
 import { Builder } from './builder.js';
 import { TILE } from './textures.js';
 import { mats } from './psx.js';
+import { SECTIONS as GULL } from './ship.js';
 
-// The Pained Raven, concept (dev only: __game.raven(x, z, ry) from a test; design C, docs/CANON.md the Other Captain's ship).
+// The Pained Raven (CANON 2026-11-18; built live by ravenhulk.js, and by __game.raven(x, z, ry) for tests).
 // An ordinary sailor's ship, clean and empty: full sail, lanterns lit, the cabin door open on a desk with one page. It sits a hand
 // above the water and never moves (no wake, no wobble). Built from the game's own parts so it looks like the game.
 
 const S = 2.3;   // the Gull's hull sections, scaled up so a person can walk the deck
-const SECTIONS = [
-  { z: 3.0, w: 0.95, deck: 1.0, keel: -0.05 }, { z: 2.0, w: 1.25, deck: 0.95, keel: -0.3 }, { z: 0.5, w: 1.4, deck: 0.85, keel: -0.45 },
-  { z: -1.0, w: 1.3, deck: 0.85, keel: -0.45 }, { z: -2.2, w: 0.95, deck: 1.0, keel: -0.3 }, { z: -3.2, w: 0.45, deck: 1.35, keel: -0.05 },
-  { z: -3.9, w: 0.05, deck: 1.75, keel: 0.25 },
-].map((s) => ({ z: s.z * S, w: s.w * S, deck: s.deck * S, keel: s.keel * S }));
+const SECTIONS = GULL.map((s) => ({ z: s.z * S, w: s.w * S, deck: s.deck * S, keel: s.keel * S }));   // the Gull's own hull table, scaled
 
 const UP = '#9490c0', LOW = '#6a6698', RIM = '#58547e', DECK = '#b8a28c', TRIM = '#f4ead0', WALL = '#8480b0', ROOF = '#5c5684';
 const FLOOR_Y = 1.35;   // the deck at the cabin
@@ -53,7 +50,7 @@ function cabin(b) {
   const dw = 0.75; b.box(x0 / 2 - dw / 2 + 0.3, FLOOR_Y, zf + t / 2, (x1 - x0) / 2 - dw, h, t, WALL, TILE.planks); b.box(x1 / 2 + dw / 2 - 0.3, FLOOR_Y, zf + t / 2, (x1 - x0) / 2 - dw, h, t, WALL, TILE.planks);
   b.box(0, FLOOR_Y + 2.1, zf + t / 2, dw * 2, h - 2.1, t, WALL, TILE.planks);
   b.box(0, FLOOR_Y + h, (zf + zb) / 2, x1 - x0 + 0.5, 0.2, zb - zf + 0.5, ROOF, TILE.planks);
-  b.box(-1.2, FLOOR_Y + 1.2, zf - 0.02, 0.5, 0.6, 0.06, '#ffffff', TILE.glow); b.box(1.2, FLOOR_Y + 1.2, zf - 0.02, 0.5, 0.6, 0.06, '#ffffff', TILE.glow);   // the shutters' light
+  b.box(0, FLOOR_Y + 2.3, zf - 0.02, 2.4, 0.3, 0.06, '#ffffff', TILE.glow);   // one long transom light over the door (two windows and a door read as a face)
   b.quad([x0 + t, FLOOR_Y, zb - t - 0.01], [x1 - t, FLOOR_Y, zb - t - 0.01], [x1 - t, FLOOR_Y + h, zb - t - 0.01], [x0 + t, FLOOR_Y + h, zb - t - 0.01], '#8a6c3a', TILE.glow);
   b.quad([x0 + t + 0.01, FLOOR_Y, zf + t], [x0 + t + 0.01, FLOOR_Y, zb - t], [x0 + t + 0.01, FLOOR_Y + h, zb - t], [x0 + t + 0.01, FLOOR_Y + h, zf + t], '#6a4e28', TILE.glow);
   b.quad([x1 - t - 0.01, FLOOR_Y, zb - t], [x1 - t - 0.01, FLOOR_Y, zf + t], [x1 - t - 0.01, FLOOR_Y + h, zf + t], [x1 - t - 0.01, FLOOR_Y + h, zb - t], '#6a4e28', TILE.glow);
@@ -104,10 +101,10 @@ export function buildRaven(scene, x, z, ry = 0, lift = 0.55) {
   m1.frustumCulled = m2.frustumCulled = false; g.add(m1, m2);
   // the cabin's light on the deck in front of the door: a warm pool, no flicker
   const lb = new Builder(); lb.quad([-1.6, 1.2, 2.65], [1.6, 1.2, 2.65], [1.0, 1.08, -0.6], [-1.0, 1.08, -0.6], '#ffd070', TILE.white);
-  const pool = new THREE.Mesh(lb.geometry(), mats.foam); pool.renderOrder = 2; g.add(pool);
+  const pool = new THREE.Mesh(lb.geometry(), mats.glow); pool.renderOrder = 2; g.add(pool);
   // soft amber halos round the lamps and shutters (half-clear, so they read through fog)
   const hb2 = new Builder(); hb2.ambient = 1;
   for (const [x, y, z, r] of [[0, 3.9, 6.9, 0.7], [0, 3.0, -8.0, 0.55]]) hb2.blob(x, y, z, r * 1.15, r * 1.15, r * 1.15, '#ffb050', TILE.white, 0.05, 3);
-  const halo = new THREE.Mesh(hb2.geometry(), mats.foam); halo.renderOrder = 3; g.add(halo);
+  const halo = new THREE.Mesh(hb2.geometry(), mats.glow); halo.renderOrder = 3; g.add(halo);
   scene.add(g); return g;
 }

@@ -232,7 +232,7 @@ purple and magenta cosmic horror as dread rises.
   2px pale horizontal bar (`.struck`), never a diagonal (no anti-aliased strokes).
 - **No emoji or symbol glyphs anywhere.** Icons in text use `pxi('name')` (7x7 pixel glyphs in `src/pixelui.js`: fish, fruits, crate, skull, letter, stars, checks, arrows...). Icons are pixel sprites written as character grids in `src/pixelui.js` (coin, sun, moon, flag, heart, sail,
   Mara's anchor and her "eye" when she breaks). New icons go there in the same format.
-- The HUD shows as little text as possible: gold, time, place. Everything else is in the log or the Q tracker.
+- The HUD shows as little text as possible: gold, the clock (with the weekday), place. Everything else is in the log or the Q tracker.
 - **Mara's box sits bottom left while sailing** (above the key hint), never across the ship or the water ahead of the bow. In the log it sits under the book, in the middle, clear of the page arrows and the chart's compass rose.
 - **A gauge names itself once:** the first time the sail bar, the wind ring, the hull panel, the cannonball count or the lamp-oil bar appears, a small gold tag with its name (one or two words) points at it for 7 seconds. After that the HUD is wordless again.
 - **The sea chart is an inked portolan on vellum** (`src/chartstyles.js`). Painted means sailed: water within sight of a charted isle or of the ship is a sea-green wash, everything else is bare vellum with the rhumb lines a chartmaker rules from the compass rose, so the fog wall is simply where the paint stops. Coasts are ink, markers are small ink sprites (anchor, cross, question mark, flag, pin), harbours are lettered in red Pirata One (a name that would sit under the ship's marker steps just clear of its ring), and a cartouche top left names the waters over a scale bar in units. Set pixel by pixel at half resolution, no anti-aliased strokes. The bare vellum is kept quiet on purpose: it is where a drawing in another hand can appear later.
@@ -288,11 +288,10 @@ purple and magenta cosmic horror as dread rises.
 - A battered **pixel tome**: dithered, scratched and stained leather cover with missing stitches and dented
   brass corners; dithered pages with foxing, ink blots in the margins, a coffee ring, a crease and a
   dog-ear. **Edges are torn** (transparent pixels), and the pages sit on a stack of hard pixel shadows.
-- Bookmarks are cloth ribbons sticking out of the right side, with frayed pixel ends, uneven lengths and
+- Bookmarks are paper slips (section 5; three of them, RULES 12), with frayed pixel ends and
   labels in the pixel font. Page text gets the `#roughpx` filter (small displacement + alpha threshold).
-- The chart is rendered at half resolution and posterised with an ordered dither. Islands are
-  **low-poly fans** (~8 rough corners, flat shaded facets). Only thick, rough strokes; labels in the pixel font;
-  folds, stains and pencil notes on the parchment.
+- The chart is an inked portolan on vellum (section 5), rendered at half resolution and posterised with an ordered dither.
+  Only thick, rough strokes; labels in the pixel font; folds and stains on the parchment.
 
 ## 7. Writing
 - Short, warm, a little funny when it is sunny ("She is small, but she is ours"). As dread rises,
@@ -313,3 +312,9 @@ purple and magenta cosmic horror as dread rises.
 - **Kit:** Builder primitives and the existing 16 atlas tiles only (zero new tiles); the dark set (`colorB`, `KIND_DARK`, `LM_DARK`) tires S0-S2 islands, the D builder holds S3+ forms (ribs, vertebra spines, throats, arches, sockets: `abyssForms` in `world.js`).
 - **State props:** things that depend on tide, night, calm, an upgrade or a clue seen are separate meshes shown by `extra.states` (`world.js`), never rebuilt.
 - **Readability:** every place needs a vertical feature >= 3.5 units or a lit source; light classes (steady yellow, flicker orange, steady blue, magenta) are distinct; at most 3 glowing sources on screen in S0-S2 and 2 in S3+. Check with `scripts/art_checks.cjs`.
+
+## The Pained Raven (2026-11-18)
+`src/ravenship.js`: the Gull's own hull table scaled 2.3x, three masts of full sail, built with `Builder` and the atlas like every ship. Palette: pale
+violet-grey hull and sails with a bone trim, the one place the game uses that hull colour (it is the Gull's opposite; owner: clean, empty, untouched by time).
+It stands a hand above the water, never bobs and has no wake. Lights: the stern and bow lanterns and one transom light over the cabin door, glow tile; no
+two windows beside a door (that reads as a face). Inside the cabin the walls and floor are self-lit amber so a lit room reads at night.

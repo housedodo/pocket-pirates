@@ -40,9 +40,9 @@ need to break one, stop and ask the owner. `docs/CANON.md` says what is true in 
     sudden change; the deep's dread palette still wins in the deep; regional waves are a multiplier on the sea, never a fixed height.
 
 ## Sound
-24b. **Regions differ by their rules, never by words** (`src/regions.js` holds every number): a region's rule must be readable from
+24e. **Regions differ by their rules, never by words** (`src/regions.js` holds every number): a region's rule must be readable from
     what the player sees there (STYLE 4) and must not explain the story. The demo never gets the Drowned.
-24c. **The main pier is the captain's** (2026-11-14): nothing is moored at it or placed beside it; a harbour's own boats use its side jetty.
+24f. **The main pier is the captain's** (2026-11-14): nothing is moored at it or placed beside it; a harbour's own boats use its side jetty.
 25. **Only cues listed in `CUES.oneShots` (`src/audio.js`) play.** Silence elsewhere is on purpose. Adding a cue means adding it there and to `docs/AUDIO.md`.
 26. **The music is stems from one session, all the same length, tempo and key** (16 bars at 99 BPM, 4/4, F minor; `src/layers.js`, `docs/AUDIO.md`): the band, then the stage-2 stems, then the stage-3 stems (`s3_*`, in place of `music_3` since 2026-11-15), then nothing in the deepest dread. Horror by removing and bending, never by adding a scare. (The older "five loops, 6/8, 125 BPM" is out of date: owner, 2026-11-14.)
 27. **WAV masters stay with the composer; the game ships ogg** (`scripts/studio_ogg.py`). Everything music-related lives in this repository: the `.ogg` files and HOIST with its renderer (`tools/hoist/`, owner 2026-11-15); from Chaos_Grain only HOIST was taken. Volumes live in `public/audio/volumes.json`.

@@ -2163,8 +2163,8 @@ dread there eased for a while after it.
   walls, the thatch's beams overhead, bone charms on strings, a small window glowing purple with torn grey curtains, the door open on the
   night sea (a ship's light, someone coming up the boards), her book open on the table under the candle, a closed red book, the die.
 
-### The Pained Raven, in-engine concept (2026-11-18, dev only, not canon)
-`src/ravenship.js` and `__game.raven(x, z, ry)`: the empty Raven built from the game's own parts (design C: a hand above the water, no wake,
+### The Pained Raven, in-engine model (2026-11-18)
+`src/ravenship.js` (built live since the boardable version; `__game.raven(x, z, ry)` is the test hook): the empty Raven built from the game's own parts (design C: a hand above the water, no wake,
 full sail, lanterns lit, the cabin door open on a desk with one page). Pictures: `docs/concept/raven1_approach.png` to `raven5_page.png`
 (the page is the real card UI with the dated rows, the last date blank). **Not built:** boarding, the page as a clue, placement in the world.
 **Decided (owner, 2026-11-18, in CANON):** the page is the Raven's captain's; the blank last date means he left before throwing; the ship stays as a warning. **Also decided:** Mara makes one offhand joke aboard ("Hard to sail a boat without crew.", draft); the Other Captain thread stands beside the empty Raven (different captains). **Open:** none for the Raven's concept.
@@ -2178,3 +2178,9 @@ keepsake "A page of dates" in the Ship's book, and 2.5 s later Mara's one offhan
 shows one card, the bare desk. **Verified headless:** not offered before the first throw; offered after; E reads the page; clue and keepsake land; the card closes;
 second visit is the bare desk; no console errors. **Not built:** walking aboard (owner: stays text for now),
 no sound for the Raven, no mention on the chart or in rumours (a bottle or Mara line pointing at it is the next step).
+
+### Design review fixes (2026-11-18, from the design agent's report)
+Done: round badge, glow shadows, blur on the fogged HUD and the touch buttons' round corners and bold monospace removed (`index.html`); the lamp-oil icon is a stepped pixel flame
+with hard bands; the Raven imports the Gull's hull table (`ship.js` now exports `SECTIONS`), has one transom light instead of two windows and a door (read as a face), its halos
+use the glow material; STYLE section 6 (slips, portolan, HUD line) and a Raven entry; RULES' second 24b/24c renamed 24e/24f. **Left for the owner or later:** the tavern mini-games'
+font, bold and full-resolution canvas (`localgames.js`, large); the CANON chart-font row (a dated decision); gradient scrims and vignettes in `index.html`; stale concept images.

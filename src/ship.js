@@ -9,7 +9,7 @@ import { computeMods } from './upgrades.js';
 import { HULLS, SAILS, FLAGS, byId, DEFAULT_CUSTOM } from './customize.js';
 
 export const MAX_SPEED = 11;
-const SECTIONS = [
+export const SECTIONS = [
   { z: 3.0, w: 0.95, deck: 1.0, keel: -0.05 },
   { z: 2.0, w: 1.25, deck: 0.95, keel: -0.3 },
   { z: 0.5, w: 1.4, deck: 0.85, keel: -0.45 },
