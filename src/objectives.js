@@ -2,6 +2,9 @@ import { smoothstep } from './util.js';
 import { STRATA } from './palette.js';
 import { regionsSeen, regionSeen } from './clues.js';
 
+/** a letter is done: the rumour a harbour gave for it (systems/perrin.js) comes off the chart */
+const letterDone = (state, id) => { for (const r of Object.values(state.rumoured || {})) if (r.letter === id) r.found = true; };
+
 // The first mate (Mara) and the starter goals. A short main chain teaches the game one verb at a time;
 // side goals are optional and complete themselves whenever you happen to do them.
 const HOME_ISLE = '1,-1'; // Hollow Cay Galen, the starter treasure isle
@@ -184,50 +187,58 @@ export const MAIN_GOALS = [
   },
   // ---- after the hut: Perrin's letters, one per region (2026-11-13). Each sends the captain into a region and never says what to find;
   // it is done when any clue of that region has been seen (clues.js regionSeen). Full game only (`full`). Appended: no index moves (RULES 30).
+  // The letters are drafts (CANON 2026-11-18 "Perrin goes strange"): dry and a little smug at first, more lost each time; by the Reef
+  // and the Drowned he is half writing to himself. Never what to find. Stuck, Mara says to dock in those waters and ask around
+  // (systems/perrin.js: a harbour there gives a rumour of the nearest place with that region's clue, once a letter).
   {
     id: 'perrin_crown', ch: 5, title: 'Perrin: the Crown waters', reward: 25, region: 'crown', full: true,
     where: "The Crown Traders' waters",
-    text: 'The Crown writes down every ship that comes in. Ask to see the book. Tell me whose name is at the top.',
-    intro: ['A letter from Perrin came in with the post, Captain.', 'Perrin writes: "The Crown writes down every ship that comes in. Ask to see the book. Tell me whose name is at the top."'],
+    text: 'The Crown keeps a book of every ship that comes in. Ask to see it. Tell me whose name is at the top. I have a small wager on it.',
+    intro: ['A letter from Perrin came in with the post, Captain.', 'Perrin writes: "The Crown keeps a book of every ship that comes in. Ask to see it. Tell me whose name is at the top. I have a small wager on it."'],
     outro: [],
-    hints: ["Perrin wants us in the Crown Traders' waters. The chart shows whose waters we are in."],
+    hints: ["Perrin wants us in the Crown Traders' waters. Let us tie up at a harbour there and ask around.", 'The chart shows whose waters we are in.'],
     check: (c) => regionSeen(c.state, 'crown'),
+    onDone: (c) => letterDone(c.state, 'perrin_crown'),
   },
   {
     id: 'perrin_free', ch: 5, title: 'Perrin: the Free Cays', reward: 25, region: 'free', full: true,
     where: "The Free Cays",
-    text: 'In the Free Cays they sleep by day and play by night. Go at night. Take nothing but your ears.',
-    intro: ['A letter from Perrin came in with the post, Captain.', 'Perrin writes: "In the Free Cays they sleep by day and play by night. Go at night. Take nothing but your ears."'],
+    text: 'In the Free Cays they sleep by day and play by night. Go after dark. Take nothing but your ears. I wrote the tune down once. The page is blank, and I can still hum it.',
+    intro: ['Perrin again. He has underlined things.', 'Perrin writes: "In the Free Cays they sleep by day and play by night. Go after dark. Take nothing but your ears. I wrote the tune down once. The page is blank, and I can still hum it."'],
     outro: [],
-    hints: ["Perrin wants us in the Free Cays. The chart shows whose waters we are in."],
+    hints: ['Perrin wants us in the Free Cays. Let us tie up at a harbour there and ask around.', 'The chart shows whose waters we are in.'],
     check: (c) => regionSeen(c.state, 'free'),
+    onDone: (c) => letterDone(c.state, 'perrin_free'),
   },
   {
     id: 'perrin_lantern', ch: 5, title: 'Perrin: the Lantern waters', reward: 25, region: 'lantern', full: true,
     where: "The Lantern Guild's waters",
-    text: "The Guild's lamps burn a colour I have no name for. You will tell me I am wrong. Go and look.",
-    intro: ['A letter from Perrin came in with the post, Captain.', 'Perrin writes: "The Guild\'s lamps burn a colour I have no name for. You will tell me I am wrong. Go and look."'],
+    text: "The Guild's lamps burn a colour I have no name for. I had one last week. Go and look. I would rather you did not write it down.",
+    intro: ['From Perrin. He has dated it tomorrow.', 'Perrin writes: "The Guild\'s lamps burn a colour I have no name for. I had one last week. Go and look. I would rather you did not write it down."'],
     outro: [],
-    hints: ["Perrin wants us in the Lantern Guild's waters. The chart shows whose waters we are in."],
+    hints: ["Perrin wants us in the Lantern Guild's waters. Let us tie up at a harbour there and ask around.", 'The chart shows whose waters we are in.'],
     check: (c) => regionSeen(c.state, 'lantern'),
+    onDone: (c) => letterDone(c.state, 'perrin_lantern'),
   },
   {
     id: 'perrin_reef', ch: 5, title: 'Perrin: the Reef', reward: 25, region: 'reef', full: true,
     where: "The Reef Brotherhood's waters",
-    text: 'The Reef counts its wrecks. Count them yourself. I would like a second opinion.',
-    intro: ['A letter from Perrin came in with the post, Captain.', 'Perrin writes: "The Reef counts its wrecks. Count them yourself. I would like a second opinion."'],
+    text: 'The Reef counts its wrecks. Count them for me. I counted them from my chair and got one more than there are. I have not left the chair. Note: stay in the chair.',
+    intro: ['Another from Perrin. The ink has run.', 'Perrin writes: "The Reef counts its wrecks. Count them for me. I counted them from my chair and got one more than there are. I have not left the chair. Note: stay in the chair."'],
     outro: [],
-    hints: ["Perrin wants us in the Reef Brotherhood's waters. The chart shows whose waters we are in."],
+    hints: ["Perrin wants us in the Reef Brotherhood's waters. Let us tie up at a harbour there and ask around.", 'The chart shows whose waters we are in.'],
     check: (c) => regionSeen(c.state, 'reef'),
+    onDone: (c) => letterDone(c.state, 'perrin_reef'),
   },
   {
     id: 'perrin_drowned', ch: 5, title: 'Perrin: the Drowned waters', reward: 25, region: 'drowned', full: true,
     where: "The Drowned waters",
-    text: 'The Drowned waters have streets, and streets have doors. Go at low water, and count the doors.',
-    intro: ['A letter from Perrin came in with the post, Captain.', 'Perrin writes: "The Drowned waters have streets, and streets have doors. Go at low water, and count the doors."'],
+    text: 'Drowned waters. Streets. Doors. Go at low water and count them. I keep drawing that street, and I have never been. If a door is open, leave it.',
+    intro: ['Perrin. No greeting this time, and no name.', 'Perrin writes: "Drowned waters. Streets. Doors. Go at low water and count them. I keep drawing that street, and I have never been. If a door is open, leave it."'],
     outro: [],
-    hints: ["Perrin wants us in the Drowned waters. The chart shows whose waters we are in."],
+    hints: ['Perrin wants us in the Drowned waters. Let us tie up at a harbour there and ask around.', 'The chart shows whose waters we are in.'],
     check: (c) => regionSeen(c.state, 'drowned'),
+    onDone: (c) => letterDone(c.state, 'perrin_drowned'),
   },
 ];
 /** a goal that is a count shows how far along it is, next to its name: " (3/8)" */

@@ -27,6 +27,7 @@ import { shipwrightLine } from '../upgrades.js';
 import { angleDiff, hash2, mulberry32 } from '../util.js';
 import { isFestival, isLanternNight, isMarketDay, nightKey, tideAt } from './calendar.js';
 import { mendSails, oilOn } from './storybeats.js';
+import { letterRumour } from './perrin.js';
 import { supperTarget, startSupper } from './lantern.js';
 
 export function getInteract() {
@@ -168,6 +169,7 @@ function doInteract(tg) {
       if (told === 0 || ending || Math.random() < 0.5) { say = rollGreeting(h.rolls[h.rolls.length - 1].n, state.time * 24, Math.random); if (ending) say.endsDemo = true; }
     }
     if (!say && ending && h && h.rolls.length) { say = rollGreeting(h.rolls[h.rolls.length - 1].n, state.time * 24, Math.random); say.endsDemo = true; state.story.rollSeen = h.rolls.length; }
+    if (!say && window.__BUILD !== 'demo') say = letterRumour(state, G.objectives.pending ? null : G.objectives.current, d, state.time * 24);   // asking around for Perrin's letter (systems/perrin.js)
     if (!say && free && G.laterOK() && window.__BUILD !== 'demo' && !state.story.lullRumour && sectorAt(d.x, d.z, state.seed).faction.id === 'free') { state.story.lullRumour = 1; say = { speaker: 'oldsalt', text: 'In the Cays they say the dark keeps quiet while somebody plays.', story: true }; }   // points at the Two Players (the gentle ending)
     if (!say && free && !state.story.tellGreet && G.lateTell() && Math.random() < 0.5) { state.story.tellGreet = 1; say = { speaker: 'harbourmaster', text: 'Captain. Just yourself again? I will put you down as one.', story: true }; }   // a tell: they greet only you
     if (!say && free && G.laterOK() && isOpen(state, 'tab', 'tavern') && Math.random() < 0.6) say = life.gossipAt(state, d);
@@ -184,6 +186,7 @@ function doInteract(tg) {
     harbourEl.classList.toggle('dark', idx >= 3);
     $('hbBannerName').textContent = d.name; $('hbSaid').textContent = ''; $('hbLine').style.display = 'none'; $('hbDay').textContent = G.dayLine(d);
     if (say && G.objectives.mate.busy && !say.endsDemo && !say.story) say = null;   // Mara is speaking about the quest: a passing greeting waits for another day
+    if (say && say.rumour) setTimeout(() => toast('Marked on your chart.', false, 4500), 900);
     if (say) { g.day[d.id] = state.dayN; g.lastDay = state.dayN; G.showGreeting(d, say); } else G.openModal('harbour');
     G.audio.play('harbour');
   } else if (tg.kind === 'treasure' && !tg.isl.dug && !rt.dig) {
