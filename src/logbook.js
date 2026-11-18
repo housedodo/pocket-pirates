@@ -11,6 +11,7 @@ import { isOpen } from './gates.js';
 import { GROUPS, byId } from './customize.js';
 import { TRAITS } from './tabletop.js';
 import { pxi } from './pixelui.js';
+import { WEEK, weekday } from './systems/calendar.js';
 import { LANES, ROUND } from './seaplay.js';
 import { renderChart, drawChart } from './chart.js';
 
@@ -271,6 +272,7 @@ export class Logbook {
   /** the Ship's book: what you have. Journal, ship and standing, each printed once the story has reached it */
   renderBook() {
     const parts = [];
+    parts.push([`<div class="dateline">${WEEK[weekday()]} · day ${this.d.state.dayN + 1}</div>`, () => {}]);   // the day, written in the book (owner 2026-11-18)
     if (!this.sec('journal')) parts.push(this.partJournal());
     if (!this.sec('ship')) { const p = this.partShip(); parts.push([p[0].replace('<h3>', '<h3 class="brk">'), p[1]]); }
     if (!this.sec('standing')) { const p = this.partStanding(); parts.push([p[0].replace('<h3>', '<h3 class="brk">'), p[1]]); }

@@ -1384,7 +1384,7 @@ function frame() {
 
   // ---- HUD
   setText(goldEl, abyss.hud('gold', String(goldShown(rawDt))));
-  setText($('clocktxt'), abyss.hud('clock', tod.clock));
+  setText($('clocktxt'), abyss.hud('clock', tod.clock)); setText($('clockday'), WEEK[weekday()].slice(0, 3));   // the weekday beside the clock, shown on hover or under a menu
   $('abyssTag').style.display = abyss.solo ? 'block' : 'none';
   if (abyss.solo) $('abyssTag').textContent = `Testing: ${EFFECTS.find((f) => f.id === abyss.solo).name}  \u00b7  0 = stop`;
   updateTracker();

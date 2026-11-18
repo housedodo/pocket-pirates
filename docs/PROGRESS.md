@@ -1852,3 +1852,10 @@ Trials for the owner to compare; nothing changes without a flag and STYLE.md is 
   (the E press did not land); three direct reproductions (fresh, after the log and the pause, after the 60-second full-sail run at speed 11.8)
   all landed, and the rerun passed: read as a timing flake at very low frame rates, worth watching. The earlier "60-game-second sail"
   timeouts were machine load (five agents' browsers), not code. The owner's guide to all of this is `docs/HOIST_GUIDE.txt`.
+
+## The day, where you can find it (2026-11-18, owner: "use both")
+- The clock panel shows the weekday ("Sun", dimmed) after the time while the pointer is on it or any menu is open; at sea it stays
+  hidden (RULES 16). The Ship's book opens with "Sunday · day 14". Before this the day was only on a harbour's banner, so the
+  Sunday race had no tell at sea. `index.html` (#clockday, .dateline), `main.js` (one line by the clock), `logbook.js` (renderBook).
+- **Verified** (headless): hidden at sea, shown with the log open, the book's first line reads "Sunday · day 14"; no console errors.
+  Smoke: see the commit.
