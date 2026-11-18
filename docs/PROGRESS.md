@@ -1846,3 +1846,9 @@ Trials for the owner to compare; nothing changes without a flag and STYLE.md is 
 - **Open, for the owner:** whether the stake's second look ever feeds Q3 (no clue added); whether the keeper should come out on a
   dead light (now he does not).
 
+
+## Final check of the merged round (2026-11-18)
+- `npm run smoke` on the merged tree, quiet machine: **passed** (264 s). The run before it failed once on "went ashore on the Grey Tooth"
+  (the E press did not land); three direct reproductions (fresh, after the log and the pause, after the 60-second full-sail run at speed 11.8)
+  all landed, and the rerun passed: read as a timing flake at very low frame rates, worth watching. The earlier "60-game-second sail"
+  timeouts were machine load (five agents' browsers), not code. The owner's guide to all of this is `docs/HOIST_GUIDE.txt`.
