@@ -1205,7 +1205,7 @@ function frame() {
   if (!live || digGame.active || rt.lostK > 0.3 || rt.seatPan) { shipInput.steer = 0; shipInput.sail = 0; }   // (lost in fog: the helm does not answer)   // (probing the shore: the keys move over the beach)
   if (live && (keys.has('KeyZ') || keys.has('KeyX'))) { rt.yawT += ((keys.has('KeyX') ? 1 : 0) - (keys.has('KeyZ') ? 1 : 0)) * dt * 1.8; rt.lastCamInput = rt.tNow; }
   if (keys.has('KeyV')) { rt.yawT = 0; rt.lastCamInput = rt.tNow; }
-  if (!rt.drag && rt.tNow - rt.lastCamInput > 6) rt.yawT += (0 - rt.yawT) * Math.min(1, rawDt * 0.7);   // drifts back behind the boat after a while
+  // the camera stays where you put it: it no longer swings back behind the boat by itself (owner 2026-11-18); V resets it
   if (live && keys.has('KeyR')) rt.pitchT = clamp(rt.pitchT - dt * 0.8, PITCH_MIN, 1.35);
   if (live && keys.has('KeyF')) rt.pitchT = clamp(rt.pitchT + dt * 0.8, PITCH_MIN, 1.35);
   camInput(dt, live, keys); if (live) rumbleTick();   // zoom by keys and pad (G-15); rumble for the anchor and the strain (G-19)
