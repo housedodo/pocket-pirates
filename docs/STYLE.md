@@ -89,7 +89,7 @@ purple and magenta cosmic horror as dread rises.
   the horizon keeps the fog's colour, and set how many and how tall the clouds are); a pink dithered glow up the horizon at dawn and dusk,
   strongest toward the sun; clouds drift with the wind and wrap round the ship; a few small black birds by day (not at night, in a storm or
   at high dread). Flags: `?day=0` (the old day), `?daymood=0..3`. Cloud shadows on the sea were tried and dropped: at deck height they are
-  a degree under the horizon and cannot be seen.
+  a degree under the horizon and cannot be seen. Birds were tried and dropped too (they clashed with the built gulls). When it rains or clouds over (weather cover), the day mood steps back: the zenith greys and the sky fills with a low, flat, wide cloud layer.
 - **Night is dark:** light floor 0.17 of day, near-black navy sky and fog, a short view; what you see by is the lantern's warm
   pool on the water, lit windows, lighthouses and the moon. With the lamp out the dark comes right up to the hull.
   Far lights (2026-11-17, P-FREE-3): with the lamp lit, glowing things further than 150 burn at 0.55; with it out, after about 3 s,

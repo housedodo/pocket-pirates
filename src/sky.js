@@ -4,6 +4,7 @@ import { U, psxMaterial } from './psx.js';
 const C_SUN_NIGHT = new THREE.Color(0.3, 0.38, 0.7), C_SUN_DREAD = new THREE.Color(1, 0.4, 0.85);   // made once (task R6)
 
 const R = 900;
+const GREY_TOP = new THREE.Color('#8a98a6');
 
 const STAR_VS = `attribute float aSize; attribute vec3 aColor; attribute float aPhase; attribute float aCross; attribute float aRank; attribute float aBand;
 uniform float uOpacity; uniform float uTime; uniform float uTwinkle; uniform float uDens; uniform float uBandK;
@@ -115,7 +116,7 @@ export class Sky {
     this.group.add(this.sunHolder);
 
     // stars (+ one very wrong constellation: an eye)
-    const rng = mulberry32(99);
+    const rng = mulberry32(99), rng0 = rng;
     const pts = [], eye = [];
     const dir = (az, el, r = R * 0.96) => [Math.sin(az) * Math.cos(el) * r, Math.sin(el) * r, -Math.cos(az) * Math.cos(el) * r];
     for (let i = 0; i < 260; i++) pts.push(...dir(rng() * Math.PI * 2, 0.08 + rng() * 1.4));
@@ -184,7 +185,9 @@ export class Sky {
     ico.setAttribute('color', new THREE.BufferAttribute(cols, 3));
     this.cloudMat = psxMaterial({ vertexColors: true, fog: true, key: 'Lc', fragmentColor: { head: '', body: 'diffuseColor.rgb /= max(uLight, 0.05);' } });   // snaps (G2); stage.cloud already darkens them at night
     this.clouds = [];
-    for (let i = 0; i < 16; i++) {
+    const rc = mulberry32(5);   // the clouds past the first sixteen only come with overcast weather, and use their own dice so nothing else moves
+    for (let i = 0; i < 28; i++) {
+      const rng = i < 16 ? rng0 : rc;
       const g = new THREE.Group();
       const lumps = 3 + Math.floor(rng() * 3);
       for (let k = 0; k < lumps; k++) {
@@ -204,22 +207,6 @@ export class Sky {
     this.dayLook = (() => { try { return new URLSearchParams(location.search).get('day') !== '0'; } catch (e) { return true; } })();   // ?day=0: the old day
     this.dayMoodFlag = (() => { try { const q = new URLSearchParams(location.search).get('daymood'); return q == null ? -1 : (+q || 0) % 4; } catch (e) { return -1; } })();
     this.mood = DAY_MOODS[0]; this.moodSeen = null; this.tallK = 1; this.topK = 0; this.moodTop = new THREE.Color('#2c74e0');
-    // birds: a few small black V's crossing the sky by day
-    this.birdMat = new THREE.MeshBasicMaterial({ color: 0x1c2630, side: THREE.DoubleSide, fog: false });
-    const wing = new THREE.BufferGeometry();
-    wing.setAttribute('position', new THREE.Float32BufferAttribute([0, 0, 0.3, 2.2, 0.25, 0, 0, 0, -0.45], 3));
-    this.birds = [];
-    for (let f = 0; f < 3; f++) {
-      const dirA = rng() * Math.PI * 2, base = new THREE.Vector3(Math.cos(rng() * 6.28) * (90 + rng() * 120), 24 + rng() * 22, Math.sin(rng() * 6.28) * (90 + rng() * 120));
-      const n = 3 + Math.floor(rng() * 3);
-      for (let i = 0; i < n; i++) {
-        const b = new THREE.Group(), a = new THREE.Mesh(wing, this.birdMat), c = new THREE.Mesh(wing, this.birdMat);
-        c.scale.x = -1; b.add(a, c); b.scale.setScalar(3.2);
-        b.userData = { wa: a, wb: c, dir: dirA, ph: rng() * 6.28, rate: 3 + rng() * 1.5, rel: new THREE.Vector3(i * 4 - n * 2 + rng() * 3, (rng() - 0.5) * 3, -Math.abs(i - n / 2) * 3 + rng() * 2), pos: base.clone() };
-        scene.add(b); this.birds.push(b);
-      }
-    }
-
     // a high layer: thin streaks of cirrus far above the puffs, drifting slowly
     this.highMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.55, fog: false, depthWrite: false });
     this.high = [];
@@ -270,45 +257,29 @@ export class Sky {
     this.starU.uTwinkle.value = i < 0 ? 0 : 1;
   }
 
-  /** the day's changes: the zenith mood, the dawn and dusk glow, drifting clouds, birds */
+  /** the day's changes: the zenith mood, the dawn and dusk glow, drifting clouds */
   dayUpdate(dt, cam, stage, windDir, tod, fx) {
     if (fx.night != null && fx.night !== this.moodSeen) { this.moodSeen = fx.night; this.mood = DAY_MOODS[this.dayMoodFlag >= 0 ? this.dayMoodFlag : nightHash(fx.night * 3 + 1) % DAY_MOODS.length]; this.moodTop.set(this.mood.top); }
-    const m = this.mood, fair = tod.day * (1 - stage.dread) * (1 - 0.7 * tod.twilight);
-    this.domeMat.uniforms.uTop.value.lerp(this.moodTop, m.tk * fair * (1 - 0.8 * (fx.storm || 0)));
+    const m = this.mood, cover = Math.min(1, fx.cover || 0), fair = tod.day * (1 - stage.dread) * (1 - 0.7 * tod.twilight) * (1 - cover);   // rain and cloud: the weather's grey sky, not the day's blue
+    this.domeMat.uniforms.uTop.value.lerp(this.moodTop, m.tk * fair).lerp(GREY_TOP, cover * 0.55 * tod.day);   // overcast: the zenith greys over
     // dawn and dusk: a pink band up the horizon, strongest toward the sun, dithered in steps
     const u = this.domeMat.uniforms, sx = Math.sin(tod.sunAz), sz = -Math.cos(tod.sunAz), sl = Math.hypot(sx, sz) || 1;
     u.uSunXZ.value.set(sx / sl, sz / sl);
     u.uGlowK.value = Math.min(1, tod.twilight * 1.1) * (1 - stage.dread) * (1 - 0.5 * (fx.storm || 0));
     // clouds: some days few, some many and tall; they drift with the wind and wrap round you
-    this.tallK += (m.tall - this.tallK) * Math.min(1, dt * 0.25);
+    this.tallK += (m.tall + (1 - m.tall) * cover - this.tallK) * Math.min(1, dt * 0.25);   // overcast: a low, flat layer
     const wx = Math.sin(windDir) * 1.6, wz = -Math.cos(windDir) * 1.6;
     this.clouds.forEach((g, i) => {
-      const want = i < m.clouds ? 1 : 0;
+      const want = i < m.clouds + (28 - m.clouds) * cover ? 1 : 0;   // overcast fills the sky
       g.userData.k += (want - g.userData.k) * Math.min(1, dt * 0.4);
       g.position.x += wx * dt; g.position.z += wz * dt;
       const dx = g.position.x - cam.position.x, dz = g.position.z - cam.position.z;
       if (dx * dx + dz * dz > 440 * 440) { g.position.x = cam.position.x - dx * 0.9; g.position.z = cam.position.z - dz * 0.9; g.userData.k = 0; }
       const b = g.userData.base, k = g.userData.k;
-      g.scale.set(b * k, b * k * this.tallK, b * k); g.visible = k > 0.03;
+      const wide = 1 + 0.8 * cover;   // and the puffs run together
+      g.scale.set(b * k * wide, b * k * this.tallK, b * k * wide); g.visible = k > 0.03;
     });
     this.cirrusK = m.cirrus;
-    // birds
-    const birdOn = tod.day > 0.75 && stage.dread < 0.5 && (fx.storm || 0) < 0.3;
-    this.birdMat.opacity = 1;
-    for (const b of this.birds) {
-      b.visible = birdOn;
-      if (!birdOn) continue;
-      const d = b.userData, ph = this.starT * d.rate + d.ph;
-      d.dir += Math.sin(this.starT * 0.07 + d.ph) * 0.05 * dt;
-      d.pos.x += Math.sin(d.dir) * 9 * dt; d.pos.z += -Math.cos(d.dir) * 9 * dt;
-      const dx = d.pos.x - cam.position.x, dz = d.pos.z - cam.position.z;
-      if (dx * dx + dz * dz > 320 * 320) { d.pos.x = cam.position.x - dx * 0.85; d.pos.z = cam.position.z - dz * 0.85; }
-      const c = Math.cos(d.dir), s2 = Math.sin(d.dir);
-      b.position.set(d.pos.x + d.rel.x * c + d.rel.z * s2, d.pos.y + d.rel.y + Math.sin(ph * 0.3) * 1.5, d.pos.z + d.rel.x * s2 - d.rel.z * c);
-      b.rotation.y = -d.dir;
-      const f = Math.sin(ph) * 0.55;
-      d.wa.rotation.z = f; d.wb.rotation.z = -f;
-    }
   }
 
   update(dt, cam, stage, windDir, tod, fx = {}) {

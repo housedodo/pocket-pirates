@@ -853,11 +853,6 @@ function lighthouseTidbit() {
 const SIGHT_WORDS = { harbour: 'a village', jungle: 'a jungle isle', sandbar: 'a sandbar', rocky: 'a rock', treasure: 'an old arch on the shore', volcano: 'a smoking mountain', atoll: 'a ring of sand', mangrove: 'a mangrove isle' };
 function landHo(d) {
   if (onbQuiet()) return;   // nothing but the first goals for a while
-  const el = $('landho');
-  el.querySelector('b').textContent = d.dread > 0.6 ? 'LAND?' : 'LAND HO!';
-  el.querySelector('span').textContent = d.name;
-  el.querySelector('small').textContent = (d.lm && LM[d.lm].sight) || SIGHT_WORDS[d.type] || 'an island';
-  el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
   rt.sightPull = 2;   // the camera eases out a little to take it in (ui/camera.js)
   if (d.id !== '0,-1') objectives.remark(`sight_${d.type}`, rt.dread);
 }
@@ -1291,7 +1286,7 @@ function frame() {
   world.hutShown = hutReached();   // no hut on its island before the story gets there
   world.gctx = { calm: weather.calm > 0.5, still: weather.storm < 0.3, up: state.upgrades, seen: state.story.seen || {}, lvl: clueLevels(state), d3: tableOpen(state), end: tableGctx(), ship: { x: ship.pos.x, z: ship.pos.z } };   // what the places' state props read (ART_SPEC 8)
   world.tick(rt.animT, tod);
-  places.labelsTick(camera, ship, (state.upgrades.spyglass || 0), state.discovered, window.innerWidth, window.innerHeight, !onbQuiet() && !$('hud').classList.contains('hidden'), { fogFar: scene.fog.far, table: tableOpen(state) });   // far labels: ?, what it looks like, its name; fade with the fog
+  places.labelsTick(camera, ship, (state.upgrades.spyglass || 0), state.discovered, window.innerWidth, window.innerHeight, false /* no names on the water when sailing past (owner 2026-11-18) */, { fogFar: scene.fog.far, table: tableOpen(state) });   // far labels: ?, what it looks like, its name; fade with the fog
   ship.place(vdt, waveT, stage.wave, rt.dark, tod.night);
   if (rt.anchorBit) { rt.anchorBit = false; fauna.splash(ship.pos.x + Math.sin(ship.heading) * 3.2, ship.pos.z - Math.cos(ship.heading) * 3.2, stage.wave, waveT, 1.1); }   // the anchor bites: a ring of foam at the bow
   secrets.update(vdt, waveT, { ship, time: state.time, dayN: state.dayN, tide: tideAt(), wave: stage.wave, light: Math.min(1, 0.25 + stage.light * 0.9), dread: rt.dread, collected: state.collected, windX: Math.sin(wind.dir), windZ: -Math.cos(wind.dir), heading: ship.heading, fogFar: scene.fog.far });
@@ -1354,7 +1349,7 @@ function frame() {
   mats.beam.color.set('#ffe080').lerp(C_BEAM_DREAD, smoothstep(0.5, 0.8, rt.dread));
   mats.beam.opacity = 0.1 + 0.3 * tod.night;
   mats.wake.color.set(0xffffff).lerp(C_WAKE_NIGHT, tod.night * 0.9).lerp(C_WAKE_DREAD, tod.night * smoothstep(0.55, 0.9, rt.dread) * 0.8);
-  sky.update(window.__waterLock ? 0 : dt, camera, stage, wind.dir, tod, { night: nightKey(), sun2: abyss.sun2, storm: weather.heavy || 0, stormWall: Math.max(weather.frontAhead || 0, (weather.stormAhead || 0) * 0.9, (weather.storm || 0) * 0.7) });
+  sky.update(window.__waterLock ? 0 : dt, camera, stage, wind.dir, tod, { night: nightKey(), cover: Math.max(weather.cloud || 0, weather.rain || 0, weather.storm || 0), sun2: abyss.sun2, storm: weather.heavy || 0, stormWall: Math.max(weather.frontAhead || 0, (weather.stormAhead || 0) * 0.9, (weather.storm || 0) * 0.7) });
   if (NIGHT_SET.view === 0) sky.moon.visible = false;   // a new moon: no moon in the sky
   ocean.material.opacity = 1 - 0.7 * abyss.seeThrough;
   if (abyss.seeThrough > 0) { U.uDeep.value.lerp(GLASS, 0.8 * abyss.seeThrough); U.uShallow.value.lerp(GLASS, 0.7 * abyss.seeThrough); }
