@@ -2104,3 +2104,7 @@ whether a stock ship really escapes; the race against a player who sails it; the
   the skill is in `.claude/skills/codixel`; six proposals (Long Sleep, Good Dreams, She Rises, Tune Is Kept, Unseen Throw, Your Seat) in the
   game's own ramps are drawn by `docs/proposals/endcards/make.cjs`. Previews only: nothing in the game changed; the chosen ones are
   ported into `cavescene.js` once the owner picks.
+- **Fix (2026-11-18):** the guitar on deck (The Tune Is Kept) and the table standing on the water (The Unseen Throw) used three.js
+  Lambert materials, which need scene lights; the game lights everything through its own shader, so both drew as flat black. They are now
+  built like every prop (Builder, `mats.props`); the lamp, the pool of light and the candle flame stay unlit glows. Found while rendering
+  the ending cards from in-game shots. (The regatta's line floats had the same fault and were already flat colours.)

@@ -22,6 +22,9 @@ import { smoothstep } from '../util.js';
 import { paintStill } from '../cavescene.js';
 import { finalThrow, AGAIN, OVER, GUITAR, UNSEEN, SEAT } from '../table.js';
 import { $, toast } from '../ui/dom.js';
+import { Builder } from '../builder.js';
+import { TILE } from '../textures.js';
+import { mats } from '../psx.js';
 
 export const TABLE_KEY = 'pocket-pirates-table-v1';   // the voyage as it was on arriving at the Table (not the save: a copy beside it)
 export const UNSEEN_AFTER = 240;   // game seconds of ordinary sailing after the Unseen Throw before the world starts to turn (?unseen=N in tests)
@@ -131,13 +134,11 @@ export function initEndgame() {
 // ---------------------------------------------------------------- The Tune Is Kept: the guitar
 let guitar = null;
 /** the guitar on deck, its silent twin (RULES 28): lying by the stern rail; at night, while it plays, a small warm light and a slow sway */
-function guitarMesh(ship) {
-  const g = new THREE.Group(), m = (c) => new THREE.MeshLambertMaterial({ color: c, flatShading: true });
-  const body = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.1, 0.5), m('#a0602a')); body.position.set(0, 0, 0.18); g.add(body);
-  const waist = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.1, 0.3), m('#a0602a')); waist.position.set(0, 0, -0.18); g.add(waist);
-  const hole = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.11, 0.1), m('#2a1608')); hole.position.set(0, 0.005, -0.02); g.add(hole);
-  const neck = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.06, 0.7), m('#4a2c16')); neck.position.set(0, 0.02, -0.65); g.add(neck);
-  const head = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.06, 0.16), m('#2a1a0e')); head.position.set(0, 0.02, -1.05); g.add(head);
+function guitarMesh(ship) {   // built like every other prop (Builder, the props material, lit by the game's own shader: 2026-11-18, it was unlit black)
+  const g = new THREE.Group(), B = new Builder(), cbox = (x, y, z, w, h, d, c, t = TILE.planks) => B.box(x, y - h / 2, z, w, h, d, c, t);
+  cbox(0, 0, 0.18, 0.42, 0.1, 0.5, '#a0602a'); cbox(0, 0, -0.18, 0.34, 0.1, 0.3, '#a0602a');
+  cbox(0, 0.005, -0.02, 0.1, 0.11, 0.1, '#2a1608'); cbox(0, 0.02, -0.65, 0.08, 0.06, 0.7, '#4a2c16'); cbox(0, 0.02, -1.05, 0.12, 0.06, 0.16, '#2a1a0e');
+  const body = new THREE.Mesh(B.geometry(), mats.props); g.add(body);
   const lamp = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.2, 0.14), new THREE.MeshBasicMaterial({ color: '#ffc060' })); lamp.position.set(0.32, 0.12, 0.5); g.add(lamp);
   const pool = new THREE.Mesh(new THREE.PlaneGeometry(1.4, 1.4), new THREE.MeshBasicMaterial({ color: '#ffb050', transparent: true, opacity: 0.22, depthWrite: false }));
   pool.rotation.x = -Math.PI / 2; pool.position.set(0.15, -0.04, 0.2); g.add(pool);
@@ -177,16 +178,19 @@ export function guitarTarget() {
 
 // ---------------------------------------------------------------- The Unseen Throw
 let ahead = null;
-function tableOnWater() {   // a table standing on the water, laid for two: a candle, the far chair taken, the near one pulled out
-  const g = new THREE.Group(), m = (c) => new THREE.MeshLambertMaterial({ color: c, flatShading: true }), box = (w, h, d, x, y, z, c, ry = 0) => { const b = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), typeof c === 'string' ? m(c) : c); b.position.set(x, y, z); b.rotation.y = ry; g.add(b); return b; };
-  box(3.4, 0.12, 1.6, 0, 1.0, 0, '#e8e2d4');
+function tableOnWater() {   // a table standing on the water, laid for two: a candle, the far chair taken, the near one pulled out (props material: 2026-11-18)
+  const g = new THREE.Group(), B = new Builder(), box = (w, h, d, x, y, z, c, t = TILE.planks) => B.box(x, y - h / 2, z, w, h, d, c, t);
+  box(3.4, 0.12, 1.6, 0, 1.0, 0, '#e8e2d4', TILE.white);
   for (const [x, z] of [[-1.5, -0.6], [1.5, -0.6], [-1.5, 0.6], [1.5, 0.6]]) box(0.14, 1.5, 0.14, x, 0.25, z, '#4a3a2a');
-  box(0.7, 0.08, 0.7, 0, 0.55, -1.3, '#1c1214'); box(0.7, 1.0, 0.08, 0, 1.05, -1.65, '#1c1214');   // the far chair
-  box(0.6, 1.1, 0.5, 0, 1.15, -1.35, '#05040a'); box(0.34, 0.36, 0.34, 0, 1.92, -1.4, '#05040a');   // and someone in it
-  const near = new THREE.Group(); near.position.set(0.9, 0, 1.6); near.rotation.y = 0.7; g.add(near);   // the near chair, pulled out and turned to you
-  for (const [w, h, d, x, y, z] of [[0.7, 0.08, 0.7, 0, 0.55, 0], [0.7, 1.0, 0.08, 0, 1.05, -0.35], [0.08, 0.6, 0.08, -0.3, 0.25, 0.3], [0.08, 0.6, 0.08, 0.3, 0.25, 0.3]]) { const b = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m('#e0d8c8')); b.position.set(x, y, z); near.add(b); }
-  box(0.12, 0.3, 0.12, 1.1, 1.2, -0.3, '#e8e0c8'); box(0.08, 0.14, 0.08, 1.1, 1.42, -0.3, new THREE.MeshBasicMaterial({ color: '#ffe88a' }));
-  box(0.5, 0.04, 0.36, -0.4, 1.08, 0, '#e8dcc0');   // the book
+  box(0.7, 0.08, 0.7, 0, 0.55, -1.3, '#1c1214', TILE.stone); box(0.7, 1.0, 0.08, 0, 1.05, -1.65, '#1c1214', TILE.stone);   // the far chair
+  box(0.6, 1.1, 0.5, 0, 1.15, -1.35, '#05040a', TILE.stone); box(0.34, 0.36, 0.34, 0, 1.92, -1.4, '#05040a', TILE.stone);   // and someone in it
+  B.push(0.9, 0, 1.6, 0.7);   // the near chair, pulled out and turned to you
+  for (const [w, h, d, x, y, z] of [[0.7, 0.08, 0.7, 0, 0.55, 0], [0.7, 1.0, 0.08, 0, 1.05, -0.35], [0.08, 0.6, 0.08, -0.3, 0.25, 0.3], [0.08, 0.6, 0.08, 0.3, 0.25, 0.3]]) box(w, h, d, x, y, z, '#e0d8c8', TILE.white);
+  B.pop();
+  box(0.12, 0.3, 0.12, 1.1, 1.2, -0.3, '#e8e0c8', TILE.white);
+  box(0.5, 0.04, 0.36, -0.4, 1.08, 0, '#e8dcc0', TILE.white);   // the book
+  g.add(new THREE.Mesh(B.geometry(), mats.props));
+  const flame = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.14, 0.08), new THREE.MeshBasicMaterial({ color: '#ffe88a' })); flame.position.set(1.1, 1.42, -0.3); g.add(flame);
   return g;
 }
 /** each frame at sea (game time) */
