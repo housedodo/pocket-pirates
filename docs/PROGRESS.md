@@ -2162,3 +2162,9 @@ dread there eased for a while after it.
   bridge, a dark neck, pegs), leaning on your chair. Your Seat follows the owner's interior reference inside the round hut: curved log
   walls, the thatch's beams overhead, bone charms on strings, a small window glowing purple with torn grey curtains, the door open on the
   night sea (a ship's light, someone coming up the boards), her book open on the table under the candle, a closed red book, the die.
+
+### The Pained Raven, in-engine concept (2026-11-18, dev only, not canon)
+`src/ravenship.js` and `__game.raven(x, z, ry)`: the empty Raven built from the game's own parts (design C: a hand above the water, no wake,
+full sail, lanterns lit, the cabin door open on a desk with one page). Pictures: `docs/concept/raven1_approach.png` to `raven5_page.png`
+(the page is the real card UI with the dated rows, the last date blank). **Not built:** boarding, the page as a clue, placement in the world.
+**Open (owner):** the last date, whether Mara speaks aboard, how this meets the Other Captain thread (`captainMod`: its "stranger at the tiller" contradicts the empty Raven).

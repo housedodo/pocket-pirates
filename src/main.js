@@ -82,7 +82,8 @@ import { WEEK, weekday, isMarketDay, isLanternNight, isFestival, tideAt, tideFal
 import { addMark, clearMark, keep } from './systems/storyflags.js';
 import { tunePan, lullDread, lullabyTick, playersEar } from './systems/lullaby.js';
 import { lostTick, LOST_CARDS } from './systems/lostsailors.js';
-import { buildBiome } from './concepts.js';   // dev concept scenes (__game.biome)
+import { buildBiome } from './concepts.js';
+import { buildRaven } from './ravenship.js';   // dev concept: the Pained Raven (__game.raven)   // dev concept scenes (__game.biome)
 import { edgeTick, startEdge, edgeFog, edgeWokeLine } from './systems/edge.js';
 import { PITCH_MIN, updateCamera, initCamera1, initCamera2, camInput } from './ui/camera.js';
 import { titleEl, startTitle, titleCam, titleKey, INTRO_DUR, endIntro, skipIntro, begin, initTitle1, initTitle2 } from './ui/title.js';
@@ -1503,6 +1504,8 @@ window.__game = { secrets, regionWeights, tideAt: () => tideAt(), lostState: () 
   /** biome concept scenes (dev): kind 'coral' | 'rain' | 'sunken' */
   async biome(kind, x, z) {   // concepts.js is imported statically: a dynamic import here would split the bundle
     if (this._biome) scene.remove(this._biome); this._biome = buildBiome(scene, kind, x, z); return true; },
+  /** the Pained Raven concept (dev): the empty ship at (x, z) heading ry */
+  raven(x, z, ry = 0) { if (this._raven) scene.remove(this._raven); this._raven = buildRaven(scene, x, z, ry); return true; },
   /** design lineups for screenshots: 'villagers' or 'houses' on a raft at (x, z) */
   showcase(kind, x = 0, z = 60) {
     if (this._show) scene.remove(this._show);
