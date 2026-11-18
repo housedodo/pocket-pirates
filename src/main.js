@@ -42,7 +42,8 @@ import { Fishing } from './fishing.js';
 import { Combat } from './combat.js';
 import './sectors.js';
 import { markSeen, isKnown, levels as clueLevels, tableOpen } from './clues.js';
-import { tableOptions, finalThrow, ENDINGS, EPILOGUE } from './table.js';
+import { tableOptions, ENDINGS, EPILOGUE, ARRIVAL } from './table.js';
+import { ritualTick, ritualLook, tableGctx, snapshotTable, tableAgain, tableThrow, onEnding, gameOver, initEndgame, guitarTick, guitarDread, unseenTick, unseenDread, bellsStopped, endQuiet, startSeat } from './systems/endgame.js';
 import { paintStill } from './cavescene.js';
 import { Objectives, MUSINGS, MAIN_GOALS, unlocked, gateRadius, chapterOf, goalText, goalReached } from './objectives.js';
 import './customize.js';
@@ -110,6 +111,7 @@ Object.defineProperties(G, {
   audio: { get: () => audio },
   autosave: { get: () => autosave },
   saveNow: { get: () => saveNow },
+  saveData: { get: () => saveData },
   buyOil: { get: () => buyOil },
   cardEl: { get: () => cardEl },
   caveEl: { get: () => caveEl },
@@ -208,7 +210,7 @@ setToastHold(() => !rt.modal && (glimpse.active || !!rt.edge || (state.story.dem
 function lateTell() { return window.__BUILD !== 'demo' && !!(state.hut && state.hut.rolls.length) && !eventQuiet(); }
 function eventQuiet() {
   const st = state.story;
-  return glimpse.active || (st.demoEnd === 'pending' && !st.glimpse) || rt.tNow < rt.quietUntil;
+  return glimpse.active || (st.demoEnd === 'pending' && !st.glimpse) || rt.tNow < rt.quietUntil || endQuiet();   // and the Table's approach, the turned world (systems/endgame.js)
 }
 rt.seaWave = 1;
 const fauna = new Fauna(scene, world);
@@ -315,11 +317,15 @@ function giveMap(id, from, reveal = false, quiet = false) {
   } else toast(`${from} gave you a riddle. Saved in your orders. Where it points is up to you.`, false, 8000);
 }
 // ---- autosave
-function saveNow() {
-  if (params.get('fresh') || session.noSave || PINNED) return false;   // ?seed, ?x, ?z or ?time: the stored voyage is not this one
-  rt.lastSave = rt.tNow;
+function saveData() {   // the voyage as the save keeps it (also copied aside on arriving at the Table: systems/endgame.js)
+  if (params.get('fresh') || session.noSave || PINNED) return null;   // ?seed, ?x, ?z or ?time: the stored voyage is not this one
   trimState();
-  store.set(SAVE_KEY, { seed: state.seed, gold: state.gold, dug: [...state.dug], discovered: state.discovered, loot: state.loot, upgrades: state.upgrades, collected: [...state.collected], notes: state.notes, board: state.board, halves: state.halves, frags: state.frags, rumoured: state.rumoured, rep: state.rep, job: state.job, serial: state.serial, sectorsSeen: state.sectorsSeen, jobHistory: state.jobHistory, buffs: state.buffs, stats: state.stats, quests: state.quests, fruit: state.fruit, harvest: state.harvest, dayN: state.dayN, greet: state.greet, charts: state.charts, hp: state.hp, ammo: state.ammo, oil: state.oil, sailsTorn: state.sailsTorn, patchKits: state.patchKits, custom: state.custom, owned: [...state.owned], riddles: state.riddles, attempts: state.attempts, catch: state.catch, fishLog: state.fishLog, fishHeard: state.fishHeard, fishAsk: state.fishAsk, hut: state.hut, passenger: state.passenger, story: state.story, crew: state.crew, cardsSeen: state.cardsSeen, haggle: state.haggle, tracked: state.tracked, life: state.life, goals: state.goals, hints: state.hints, time: state.time, windT: wind.t, pos: { x: ship.pos.x, z: ship.pos.z, h: ship.heading } });
+  return { seed: state.seed, gold: state.gold, dug: [...state.dug], discovered: state.discovered, loot: state.loot, upgrades: state.upgrades, collected: [...state.collected], notes: state.notes, board: state.board, halves: state.halves, frags: state.frags, rumoured: state.rumoured, rep: state.rep, job: state.job, serial: state.serial, sectorsSeen: state.sectorsSeen, jobHistory: state.jobHistory, buffs: state.buffs, stats: state.stats, quests: state.quests, fruit: state.fruit, harvest: state.harvest, dayN: state.dayN, greet: state.greet, charts: state.charts, hp: state.hp, ammo: state.ammo, oil: state.oil, sailsTorn: state.sailsTorn, patchKits: state.patchKits, custom: state.custom, owned: [...state.owned], riddles: state.riddles, attempts: state.attempts, catch: state.catch, fishLog: state.fishLog, fishHeard: state.fishHeard, fishAsk: state.fishAsk, hut: state.hut, passenger: state.passenger, story: state.story, crew: state.crew, cardsSeen: state.cardsSeen, haggle: state.haggle, tracked: state.tracked, life: state.life, goals: state.goals, hints: state.hints, time: state.time, windT: wind.t, pos: { x: ship.pos.x, z: ship.pos.z, h: ship.heading } };
+}
+function saveNow() {
+  const data = saveData(); if (!data) return false;
+  rt.lastSave = rt.tNow;
+  store.set(SAVE_KEY, data);
   return true;
 }
 const SS_ART = ['.........FF.........', '.........M..........', '........MSS.........', '........MSSs........', '........MSSSs.......', '........MSSSSs......', '........MSSSSSs.....', '........MSSSSSss....', '........M...........', '..HHHHHHHHHHHHHHH...', '...HhhhhhhhhhhhHH...'];
@@ -362,7 +368,8 @@ const abyss = new Abyss({ scene, ship, world, sky, settings, state, mate: object
     objectives.mate.queue.length = 0;
     const line = from === 'edge' ? edgeWokeLine() : 'Captain? Captain! You were asleep at the wheel. For how long, I... let us just go home.';
     if (line) objectives.mate.say(line);
-  } });
+  },
+  onFinal: () => gameOver('rises') });   // She Rises: nobody wakes (systems/endgame.js)
 // what kind of water the ship is in, for the fish (never shown to the player)
 const ZONE_LABEL = { wreck: 'over a wreck', lagoon: 'in a ring-island lagoon', mangrove: 'by mangroves', harbour: 'by a harbour', reef: 'off a rocky edge', shallows: 'in the shallows', deep: 'in deep water', open: 'in open water', mid: 'between islands' };
 function fishEnv() {
@@ -432,7 +439,7 @@ function noonBells() {   // villages that keep the bells ring them at noon; you 
   for (const isl of world.islands.values()) {
     const d = isl.desc; if (d.custom !== 'bells') continue;
     const dist = Math.hypot(d.x - ship.pos.x, d.z - ship.pos.z), vol = dist < 260 ? clamp(1 - dist / 280, 0.15, 0.8) : 0;
-    if (d.id === '0,-1') ringNoon(isl, 1, vol);   // Tama: its bell swings and sounds with the band's bell, one stroke as before (systems/noonbell.js)
+    if (d.id === '0,-1' && !bellsStopped()) ringNoon(isl, 1, vol);   // Tama: its bell swings and sounds with the band's bell, one stroke as before (systems/noonbell.js)
     else if (vol) audio.play('villagebell', { vol });   // other bell villages: not decided by the owner, so their cue stays unlisted (silent)
   }
 }
@@ -975,15 +982,16 @@ function taleAt(d) {
 
 
 // ---------------------------------------------------------------- the Table by the Water: the end of a voyage (table.js)
-function openTable() {
-  const opts = tableOptions(state), memory = (state.story.maraMem || 0) >= 4;
+function openTable(arrive = false) {
+  if (arrive) snapshotTable();   // the voyage as it is now, kept aside: a closed ending can come back here (systems/endgame.js)
+  const opts = tableOptions(state), memory = (state.story.maraMem || 0) >= 4, again = tableAgain();
   rt.cardBusy = false; rt.cardNext = null; openModal('card'); audio.play('card');
   const done = $('cardDone'), out = (t, next) => { $('cardOut').textContent = t; done.style.display = ''; done.textContent = 'Go on [E]'; cardEl.querySelectorAll('#cardChoices button').forEach((b) => { b.disabled = true; }); rt.cardBusy = 'done'; rt.cardNext = next; };
-  renderCard({ icon: 'pip', art: paintStill('table', 'table'), title: 'THE TABLE BY THE WATER', dark: true, text: `A table at the water's edge. One chair on this side, one on the other. A die, waiting.${memory ? ' Mara, quietly: "I do not think we are here to throw."' : ''}`,
+  renderCard({ icon: 'pip', art: paintStill('table', `table|${tableGctx().edge}`), title: 'THE TABLE BY THE WATER', dark: true, text: `${ARRIVAL}${again.line ? ` ${again.line}` : memory ? ' Mara, quietly: "I do not think we are here to throw."' : ''}`,
     choices: opts.map((o) => ({ label: o.label, id: o.id })) }, (ch) => {
     if (rt.cardBusy) return; rt.cardBusy = true;
     if (ch.id === 'throw') {
-      const r = finalThrow(state, 1 + Math.floor(Math.random() * 20)); audio.play('roll_d20', { rate: 0.8 });
+      const r = tableThrow(); audio.play('roll_d20', { rate: 0.8 });   // after She Rises and a return: the same face again
       state.hut = state.hut || { rolls: [], wins: 0, fails: 0, lastDay: -1, visits: 0 }; state.hut.rolls.push({ n: r.n, day: state.dayN, last: true });
       const words = ['', 'one', 'two', 'three'];
       out(`The die clatters across the table. ${r.n}.${r.w ? ` She turns the book round. It ${r.w > 0 ? 'gives' : 'takes'} ${words[Math.abs(r.w)]}.` : ''}`, () => { closeModal(); showEnding(r.end, r); });
@@ -1002,19 +1010,23 @@ function showEnding(id, roll = null) {
   const el = $('ending'); el.classList.toggle('dark', !!e.dark);
   el.querySelector('h1').textContent = e.title;
   el.querySelector('div').innerHTML = e.lines.map((l) => `<p>${l}</p>`).join('');
-  $('endArt').src = paintStill('table', id);
+  $('endArt').src = paintStill('table', `${id}|${tableGctx().edge}`);   // the drawing on the wood stays (systems/endgame.js)
   if (EPILOGUE[id]) state.notes.push({ text: EPILOGUE[id], dark: !!e.dark });   // the Ship's book keeps how it ended
   if (id === 'tune' && audio.layers) audio.layers.keepTune(80);   // the Two Players' own recordings: he starts, she answers
+  onEnding(id, roll);   // what it sets going, and which buttons it has (systems/endgame.js)
   el.classList.add('show'); audio.play('ending'); autosave();
 }
-$('endTitle').addEventListener('click', () => {   // end the voyage: the credits, then back to the title (the save keeps the voyage where it ended)
+function rollCredits() {   // end the voyage: the credits, then back to the title (the save keeps the voyage where it ended)
   $('ending').classList.remove('show'); const c = $('credits'); c.classList.add('show');
   const go = () => { location.href = location.pathname; }; c.addEventListener('click', go, { once: true }); setTimeout(go, 19000);
-});
+}
+$('endTitle').addEventListener('click', rollCredits);
+initEndgame();   // the closed endings' buttons on this card and the title (systems/endgame.js)
 $('endGo').addEventListener('click', () => {
   const e = state.story.ending; $('ending').classList.remove('show'); if (!e) return;
-  if (e.id === 'rises') { abyss.solo = 'leviathan'; rt.forced = 1; abyss.startEnding(); return; }   // the Eye opens; you wake off Tama
-  if (e.id === 'sleep' || e.id === 'dreams' || e.id === 'tune') {   // the sea is quiet again: morning, off Tama, as if you had only been out for the night
+  if (e.id === 'rises') { abyss.solo = 'leviathan'; rt.forced = 1; abyss.startEnding(true); return; }   // the Eye opens, and nobody wakes: the voyage is over
+  if (e.id === 'sit') { startSeat(rollCredits); return; }   // the book, then a ship you do not know (systems/endgame.js)
+  if (e.id === 'sleep' || e.id === 'tune') {   // the sea is quiet again: morning, off Tama, as if you had only been out for the night (Good Dreams: nothing changes)
     state.story.peakDread = 0; rt.forced = null; rt.dread = 0.02; abyss.k = 0; state.time = 0.3;
     ship.pos.set(0, 0, -25); ship.heading = 0; ship.speed = 0; ship.vel = null; rt.camHeading = 0; rt.yawT = 0; objectives.mate.queue.length = 0;
   }
@@ -1138,7 +1150,7 @@ function frame() {
   const rawDt = Math.min(0.05, (nowTs - rt.lastTs) / 1000);
   rt.lastTs = nowTs;
   if (rt.introT >= 0) { rt.introT += rawDt; if (rt.introT >= INTRO_DUR) endIntro(); }
-  const live = rt.started && !rt.modal && rt.introT < 0;
+  const live = rt.started && !rt.modal && rt.introT < 0 && !rt.over;   // rt.over: a closed voyage (systems/endgame.js)
   const stop = rt.hitstop > 0; if (stop) rt.hitstop -= rawDt;   // hitstop: the world holds still for a blink after a hit (storybeats.js hurtPlayer)
   const dt = live && !stop ? rawDt : 0;           // simulation time: frozen while a menu is open
   const ashore = rt.modal === 'harbour' || rt.modal === 'greet' || rt.modal === 'yard';
@@ -1184,7 +1196,7 @@ function frame() {
       if (rt.glimpseWait > 45 && !objectives.mate.busy) { state.story.glimpse = 1; glimpse.start(ship); }
     }
     if (live && glimpse.update(dt)) { rt.quietUntil = rt.tNow + 30; after(2.5, () => objectives.mate.say('Captain? You went quiet.'), { quiet: false }); }
-    audio.hush(Math.max(glimpse.k * 0.97, rt.edgeHush || 0));   // the glimpse, and the Edge (systems/edge.js)
+    audio.hush(Math.max(glimpse.k * 0.97, rt.edgeHush || 0, rt.tableHush));   // the glimpse, the Edge (systems/edge.js), the Table's approach (systems/endgame.js)
   }
   const windNow = { dir: wind.dir, strength: Math.min(1.4, wind.strength * (1 + 0.25 * weather.storm)) * (1 - 0.92 * weather.calm) * (1 - glimpse.k) };
   // no wind-shift toast: the wind ring shows it (G-32, owner 2026-11-16)
@@ -1209,6 +1221,7 @@ function frame() {
   if (live && dt > 0 && window.__BUILD !== 'demo') lostTick({ dt, dread: rt.dread, sighting, ship, world, quiet: eventQuiet() || !!rt.modal || !!rt.edge });   // the sailors who went mad
   if (live && dt > 0) { const t0 = world.desc(0, -1); homeTick({ dt, tamaDist: t0 ? Math.hypot(ship.pos.x - t0.x, ship.pos.z - t0.z) : 1e9, ringing: noonPending() > 0, hour: state.time * 24 }); }   // home is gentle: the noon hush and the noon slack (demo too)
   if (live && dt > 0 && window.__BUILD !== 'demo') lullabyTick({ dt, free: !!freeCaysNow(), night: tod.night, storm: weather.storm });   // the Two Players keep the Cays quiet
+  if (window.__BUILD !== 'demo') { ritualTick(rawDt, ship); if (live && dt > 0) { guitarTick(dt, ship, tod.night); unseenTick(dt, ship); } }   // what the endings leave behind (systems/endgame.js)
   const solid = [];
   traffic.solids(solid); homeMarks.solids(solid); fauna.solids(solid); sea.solids(solid); sighting.solids(solid); secrets.solids(solid);
   if (world.collide(ship.pos, 2.2) | pushOut(ship.pos, 2.2, solid)) {
@@ -1217,7 +1230,7 @@ function frame() {
   }
 
   // ---- dread + stage palette + time of day
-  const target = rt.forced !== null ? rt.forced : lullDread(clamp(felt() + (window.__BUILD === 'demo' ? 0 : homeShift(dreamShift(), Math.hypot(ship.pos.x, ship.pos.z))), 0, 1));   // the Cays' night quiet holds it down (systems/lullaby.js)
+  const target = rt.forced !== null ? rt.forced : unseenDread(guitarDread(lullDread(clamp(felt() + (window.__BUILD === 'demo' ? 0 : homeShift(dreamShift(), Math.hypot(ship.pos.x, ship.pos.z))), 0, 1))));   // the Cays' night quiet holds it down (systems/lullaby.js); the guitar's night, the Unseen Throw's turn (systems/endgame.js)
   rt.dread += (target - rt.dread) * Math.min(1, rawDt * (rt.forced !== null ? 1.2 : 0.4));
   if (params.get('shot')) rt.dread = target;
   if (rt.glitchT > 0) { rt.glitchT -= rawDt; rt.dread = settings.comfort.flash ? 1 : rt.preGlitch; if (rt.glitchT <= 0) { rt.dread = rt.preGlitch; hutEl.classList.remove('glitching'); } } // the hut's bad throw
@@ -1232,7 +1245,7 @@ function frame() {
   weather.apply(stage);
   homeLook(stage);   // the noon hush near Tama (systems/home.js)
   if (rt.titleScene && rt.titleScene.sc.tint) { const t = rt.titleScene.sc.tint; stage.skyTop.lerp(_tc.set(t.top), t.k * 0.6); stage.skyHorizon.lerp(_tc.set(t.hor), t.k); stage.fog.lerp(_tc.set(t.fog), t.k); }
-  stage.fogFar += ship.mods.fogBonus; stage.fogNear += ship.mods.fogBonus * 0.5;
+  stage.fogFar += ship.mods.fogBonus; stage.fogNear += ship.mods.fogBonus * 0.5; ritualLook(stage);
   stage.wave *= 1 - 0.85 * glimpse.k;   // the sea goes flat
   rt.seaWave = stage.wave;
   const fogK = Math.max(rt.gateFog, places.fog, rt.lostK);   // the fog wall at the edge of the chapter, or the bank round the Halved Isle
@@ -1273,7 +1286,7 @@ function frame() {
     for (let i = 0; i < NISL; i++) { const n = near[i]; U.uIsl.value[i].set(n ? n[0] : 1e6, n ? n[1] : 1e6, n ? n[2] : 0); }
   }
   world.hutShown = hutReached();   // no hut on its island before the story gets there
-  world.gctx = { calm: weather.calm > 0.5, still: weather.storm < 0.3, up: state.upgrades, seen: state.story.seen || {}, lvl: clueLevels(state), d3: tableOpen(state), ship: { x: ship.pos.x, z: ship.pos.z } };   // what the places' state props read (ART_SPEC 8)
+  world.gctx = { calm: weather.calm > 0.5, still: weather.storm < 0.3, up: state.upgrades, seen: state.story.seen || {}, lvl: clueLevels(state), d3: tableOpen(state), end: tableGctx(), ship: { x: ship.pos.x, z: ship.pos.z } };   // what the places' state props read (ART_SPEC 8)
   world.tick(rt.animT, tod);
   places.labelsTick(camera, ship, (state.upgrades.spyglass || 0), state.discovered, window.innerWidth, window.innerHeight, !onbQuiet() && !$('hud').classList.contains('hidden'), { fogFar: scene.fog.far, table: tableOpen(state) });   // far labels: ?, what it looks like, its name; fade with the fog
   ship.place(vdt, waveT, stage.wave, rt.dark, tod.night);
@@ -1440,7 +1453,7 @@ function frame() {
   audio.hutUpdate(rawDt, hutMusicTarget());   // the hut's theme, first visit only
   audio.tavernUpdate(rawDt, rt.modal === 'pig' || (rt.modal === 'harbour' && rt.hbTab === 'tavern') ? 1 : ashore ? 0.35 : 0);   // tavern music through the wall
   if (live) {
-    audio.update(dt, { dread: rt.dread, speed: ship.speed / 11, night: tod.night, freecays: freeCaysNow(), players: window.__BUILD === 'demo' ? null : playersEar(ship), lull: rt.lullK || 0, steer: tunePan(ship.heading, rt.tuneWay), wind: wind.strength, rain: weather.rain, storm: weather.storm, gulls: gullLevel(tod.night),
+    audio.update(dt, { dread: rt.dread, speed: ship.speed / 11, night: tod.night, freecays: freeCaysNow(), players: window.__BUILD === 'demo' ? null : playersEar(ship), lull: rt.lullK || 0, guitar: rt.guitarK, steer: tunePan(ship.heading, rt.tuneWay), wind: wind.strength, rain: weather.rain, storm: weather.storm, gulls: gullLevel(tod.night),
       quests: state.goals.i, open: openSea(), battle: inBattle() });
   } else if (rt.titleScene) {   // the title: the band of the bright sea, calm and open
     audio.update(rawDt, { dread: 0, speed: 0.2, night: tod.night, freecays: 0, players: null, lull: 0, wind: 0.5, rain: 0, storm: 0, gulls: 0.3, quests: 6, open: 1, battle: false });
@@ -1516,7 +1529,7 @@ window.__game = { secrets, regionWeights, tideAt: () => tideAt(), lostState: () 
     this._show = new THREE.Mesh(b.geometry(), mats.props); this._show.position.set(x, 0.4, z); scene.add(this._show);
     ship.pos.set(x + 15, 0, z + 2.5); ship.heading = Math.PI / 2; ship.speed = 0; ship.trim = 1;
   },
-  later: { after, pending: laterPending }, landedAt: (id) => landedAt(state, id), landThrow: () => landThrow(state, ship.pos), noonPending, ringNoon, saveNow: () => saveNow(), rt,   // test hooks   // test hook: story delays on the game's clock
+  later: { after, pending: laterPending }, landedAt: (id) => landedAt(state, id), landThrow: () => landThrow(state, ship.pos), noonPending, ringNoon, saveNow: () => saveNow(), rt, showEnding,   // test hooks   // test hook: story delays on the game's clock
   sectorAt: (x, z) => sectorAt(x, z, state.seed), homeMarks, pennantsAt, completeJobIfHere, farLight: () => U.uFarLight.value.toArray(), raceNow, traffic, abyss, hut, ship, world, state, begin, scene, camera, renderer, wind, weather, fauna, traffic, sea, audio, fishing, combat, objectives, hurtPlayer, openModal, closeModal, buyUpgrade, refreshMods,
 };
 rt.newVoyage = false;   // New voyage reloads straight into the game, no title in between

@@ -1,5 +1,7 @@
 // The HUD that follows the ship: the wind ring and compass, which errand is tracked and where it points, the slip (what, where, how
 // long), and the tracker panel. Drawn every frame from main.js.
+import { guitarTarget } from '../systems/endgame.js';
+import { GUITAR } from '../table.js';
 import { angleDiff } from '../util.js';
 import { bearingName, questProgress, questNeed, questTitle, questIcon } from '../jobs.js';
 import { goalCount } from '../objectives.js';
@@ -32,6 +34,7 @@ export function trackedOne() {
 export function trackTarget() {
   { const pin = state.story.pins && state.story.pins.find((q) => q.on);   // a pin you put on the chart: the compass follows it until you get there
     if (pin) { if (Math.hypot(pin.x - G.ship.pos.x, pin.z - G.ship.pos.z) < 22) { state.story.pins.splice(state.story.pins.indexOf(pin), 1); toast('You reached your pin.', false, 3000); } else return { x: pin.x, z: pin.z, label: 'Your pin' }; } }
+  { const g = guitarTarget(); if (g) return g; }   // after the tune is kept: Tama's quay (systems/endgame.js)
   const tr = trackedOne();
   if (tr === 'job') return { x: state.job.x, z: state.job.z, label: state.job.toName };
   if (tr === 'passenger') return { x: state.passenger.x, z: state.passenger.z, label: state.passenger.toName };
@@ -111,6 +114,7 @@ export function updateTracker() {
   if (tr === 'job') rows.push(`<div class="trow">${pxi('letter')} ${state.job.toName}${state.job.due != null ? ` · ${clockAt(state.job.due)}` : ''}</div>`);
   else if (tr === 'passenger') rows.push(`<div class="trow">${pxi('talk')} ${state.passenger.name} to ${state.passenger.toName}</div>`);
   else { const q = state.quests.find((x) => x.id === tr); if (q) rows.push(`<div class="trow">${questIcon(q)} ${questTitle(q, rt.dread)} <b>${questProgress(q, state)}/${questNeed(q)}</b></div>`); }
+  { const gt = guitarTarget(); if (gt) { const s = slipTo({ what: GUITAR.what }, gt); rows.push(`<div class="trow">${pxi('letter')} ${GUITAR.what}</div><div class="trow where">${s.where}</div><div class="trow way">${s.way}</div>`); } }   // after the tune is kept (systems/endgame.js)
   if (others > 0) rows.push(`<div class="thint">+${others} more in your orders (J)</div>`);
   const html = rows.length ? G.abyss.hud('track', rows.join('')) + '<div class="thint">[Q] hide</div>' : '';
   if (html !== rt.trackerHtml) { rt.trackerHtml = html; trackerEl.innerHTML = html; }

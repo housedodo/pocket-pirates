@@ -43,8 +43,38 @@ export const ENDINGS = {
   rises: { title: 'SHE RISES', dark: true, lines: ['She writes the number. Then she puts the pen down.', 'Under the table, under the sand, under the sea, something that was lying still is not.'] },
   tune: { title: 'THE TUNE IS KEPT', lines: ['You hum the eight bars. Your voice is not good. It does not matter.', 'The die stays where it is. The pen stops.', 'Far off, a violin answers. It always did need two.', 'Nobody throws tonight.'], mara: 'I suppose one of us ought to learn the guitar.' },
   leave: { title: 'THE UNSEEN THROW', lines: ['You push the chair in and walk back down the sand.', 'Nobody calls after you. Behind you a pen starts again, on a new line.', 'There is a blank in the book where your number would be. It will stay there.'] },
-  sit: { title: 'YOUR SEAT', dark: true, lines: ['You walk round the table and sit in the other chair. It is warm.', 'The book is in front of you. The pen is in your hand. You know every name in it.', 'Across the table Mara sits down, slowly. She does not ask.', 'A die waits on the wood.'] },
+  sit: { title: 'YOUR SEAT', dark: true, lines: ['You walk round the table and sit in the other chair. It is warm.', 'The book is in front of you. The pen is in your hand. You know every name in it.', 'Down at the boat, Mara has lit the lamp. She does not call up.', 'A die waits on the wood.'] },
 };
+
+// ---- what the endings leave behind (owner, 2026-11-18; systems/endgame.js runs them). Every line here is a draft for the writer.
+/** arriving at the table: the ritual's card (the old draft: "A table at the water's edge. One chair on this side, one on the other. A die, waiting.") */
+export const ARRIVAL = 'Every candle on the table is lit. In the far chair someone sits very still, and waits. Your chair has been pulled out for you. The book lies open at a clean line, and the die waits on the wood beside a drawing in red. Whatever you do here will be written down.';
+/** back at the table after She Rises, once: Mara knows how it comes out (the throw then gives the same face as before) */
+export const AGAIN = 'Mara, very quietly: "I am afraid it will not come out above nine."';
+/** the game-over screen (She Rises, the Unseen Throw, Your Seat): no going on, only these two */
+export const OVER = { again: 'Begin again', back: 'Go back to the table', go: 'Go on' };
+/** The Tune Is Kept: the guitar waits on Tama's quay, wrapped, no note */
+export const GUITAR = {
+  what: 'Something left for you',
+  where: "Tama's quay",
+  found: 'On the quay, a long bundle in old sailcloth, tied with fishing line. No note. Nobody saw it come.',
+  mara: 'Well, Captain. I did say one of us ought to learn.',
+};
+/** the Unseen Throw, a few minutes on: the world turns, wherever the ship is. Horror by taking away */
+export const UNSEEN = {
+  book: (n) => `Logged, on the blank line, in a small neat hand: ${n}.`,
+  bookToast: 'The ship\'s book has fallen open at the blank line. It is not blank any more.',
+  mara: 'Captain. Where has everybody gone?',
+  end: ['The table is waiting on the water, a candle lit.', 'Your chair has been pulled out for you.', 'You sit down. Somebody has already thrown.'],
+};
+/** Your Seat: after the book, a ship you do not know comes in. The hut's first words (hut.js), from the other side of the table */
+export const SEAT = [
+  'A ship you have never seen comes in on the evening tide. Green sails, new paint.',
+  'Someone ducks in at the door and stops. A table too big for the hut, one candle.',
+  'They look a long while at the chair on your side, deep in the dark. You breathe, slow and patient.',
+  '"Is it one throw a day?" they ask, too brightly. "I only heard about it at the last harbour."',
+  'A yellowed twenty-sided die waits on the wood. You push it across.',
+];
 
 // ---- Mara's village: it comes back to her in four pieces, each some time after the thing that stirred it (never at once)
 export const MARA_MEMORY = [

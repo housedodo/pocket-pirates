@@ -381,9 +381,10 @@ export class Abyss {
     if (this.ending) this.updateEnding(dt, c);
   }
 
-  startEnding() {
+  /** final: She Rises (systems/endgame.js): nobody wakes; the white goes to the end of the voyage (d.onFinal) */
+  startEnding(final = false) {
     if (this.ending) return;
-    this.ending = { t: 0, step: 0 };
+    this.ending = { t: 0, step: 0, final: final === true };
     this.overlay.className = 'show';
     this.overlay.innerHTML = '';
     document.body.classList.add('awakening');
@@ -412,6 +413,7 @@ export class Abyss {
     if (e.step === 1 && e.t > 8.5) { e.step = 2; say('It has watched you since the first harbour.'); }
     if (e.step === 2 && e.t > 11.5) { e.step = 3; say('It knows your name now.'); }
     if (e.step === 3 && e.t > 14) { e.step = 4; this.overlay.classList.add('white'); }
+    if (e.step === 4 && e.t > 16 && e.final) { e.step = 6; this.overlay.className = ''; this.overlay.innerHTML = ''; document.body.classList.remove('awakening'); this.ending = null; this.solo = null; this.fullTime = 0; if (this.d.onFinal) this.d.onFinal(); return; }
     if (e.step === 4 && e.t > 16) { e.step = 5; this.overlay.innerHTML = ''; this.d.onEnding(e.from); say('You wake on the deck. Harbour Tama is in sight and the sea is blue.'); say('Nobody remembers the way back. Nobody asks.'); }
     if (e.step === 5 && e.t > 23) { e.step = 6; this.overlay.className = ''; this.overlay.innerHTML = ''; document.body.classList.remove('awakening'); this.ending = null; this.fullTime = 0; this.solo = null; this.cyc = { id: null, phase: 'rest', t: 30 + Math.random() * 60, len: 1, w: 0, last: 'leviathan' }; }
   }

@@ -388,6 +388,24 @@ export function lmDecor(d, rng, A, B, D, extra, h) {
       T.push(p[0] + 2.1, p[1], p[2], 0, 1, 1, 1, 0, 0.1); T.box(0, 0.5, 0, 0.7, 0.08, 0.7, '#1c1214', TILE.stone); T.box(0.3, 0.5, 0, 0.08, 0.9, 0.7, '#e0d8c8', TILE.white); T.pop();
       st(T, (i) => !!i.gctx.d3);
       const Gp = mk(); Gp.cyl(p[0], p[1] + 0.05, p[2], 4.5, 4.5, 0.02, 10, '#3a1030', TILE.white, false); st(Gp, (i) => !!i.gctx.d3, mats.glow);   // a pale pool of light on the water
+      // seen at last (CANON 2026-11-18): someone in the far chair, darker than the dark, leaning to the book (gone once you take the chair)
+      const top = p[1] + 1.0, E = (i) => i.gctx.end || {};
+      const F = mk(); F.box(p[0] + 2.2, p[1] + 0.58, p[2], 0.5, 1.0, 0.62, '#06050a', TILE.stone); F.box(p[0] + 2.12, p[1] + 1.58, p[2], 0.34, 0.38, 0.32, '#06050a', TILE.stone);
+      F.box(p[0] + 1.75, top - 0.08, p[2] - 0.22, 0.5, 0.1, 0.1, '#06050a', TILE.stone); F.box(p[0] + 1.75, top - 0.08, p[2] + 0.22, 0.5, 0.1, 0.1, '#06050a', TILE.stone);
+      st(F, (i) => !!i.gctx.d3 && E(i).sat !== 'sit');
+      // the candles: one lights for every few lengths nearer you come (the arrival, systems/endgame.js); after an ending they stay lit
+      const CB = mk(), CX = [[-1.45, -0.55], [-0.9, 0.6], [-0.2, -0.6], [0.5, 0.58], [1.05, -0.5], [1.5, 0.55]];
+      for (const [cx, cz] of CX) CB.box(p[0] + cx, top, p[2] + cz, 0.08, 0.26, 0.08, '#e8e0c8', TILE.white);
+      st(CB, (i) => !!i.gctx.d3);
+      CX.forEach(([cx, cz], n) => { const Fl = mk(); Fl.box(p[0] + cx, top + 0.26, p[2] + cz, 0.07, 0.12, 0.07, '#ffd060', TILE.glow); st(Fl, (i) => !!i.gctx.d3 && (E(i).k > (n + 1) / (CX.length + 1) || !!E(i).sat)); });
+      // the drawing on the wood: a ship going down a hole if the Edge was gone over; else the Edge alone and red scrawl under it
+      const Dw = mk(), Do = mk(), px = p[0] - 0.55, pz = p[2] + 0.2, red = '#b01414';
+      for (const D of [Dw, Do]) D.box(px, top, pz, 1.1, 0.01, 0.7, '#c8bc9a', TILE.white);
+      Do.box(px, top + 0.01, pz + 0.05, 0.5, 0.008, 0.3, '#140806', TILE.white); Do.box(px, top + 0.012, pz - 0.14, 0.56, 0.008, 0.03, red, TILE.white); Do.box(px, top + 0.012, pz + 0.24, 0.56, 0.008, 0.03, red, TILE.white);
+      Do.box(px - 0.1, top + 0.016, pz - 0.05, 0.22, 0.008, 0.06, red, TILE.white); Do.box(px - 0.05, top + 0.016, pz - 0.12, 0.03, 0.008, 0.1, red, TILE.white);
+      Dw.box(px - 0.15, top + 0.012, pz - 0.22, 0.7, 0.008, 0.025, red, TILE.white); Dw.box(px + 0.2, top + 0.012, pz - 0.16, 0.025, 0.008, 0.14, red, TILE.white);
+      for (let r = 0; r < 3; r++) for (let w = 0; w < 5 - r; w++) Dw.box(px - 0.42 + w * 0.17, top + 0.012, pz + r * 0.12, 0.12, 0.008, 0.035, red, TILE.white);
+      st(Dw, (i) => !!i.gctx.d3 && E(i).edge !== 'over'); st(Do, (i) => !!i.gctx.d3 && E(i).edge === 'over');
       break;
     }
     // ---- the gates read as blockers before they block, and differently once open (R1, R2)

@@ -390,3 +390,46 @@ waking ("You wake on the deck..."). Then Mara, once, never again:
 Beating out (C2): the Edge fades into the mist and does not come back that voyage (it never did; now checked).
 The drawing on the Table (over: a ship falling down a hole; out: the Edge and the red words) is built by the
 Table's own work.
+
+4.5  DRAFTS FOR THE ENDINGS (2026-11-18; what each ending does is your decision of 2026-11-18, the words are drafts)
+----------------------------------------------------------------------------------------------------------------
+Arriving at the Table (replaces MAIN-0289 "A table at the water's edge. One chair on this side..."):
+     TBL-0031  Every candle on the table is lit. In the far chair someone sits very still, and waits. Your chair has
+               been pulled out for you. The book lies open at a clean line, and the die waits on the wood beside a
+               drawing in red. Whatever you do here will be written down.
+     yours:
+Back at the table after She Rises (once; the die then shows the same face as before):
+     TBL-0032  Mara, very quietly: "I am afraid it will not come out above nine."
+     yours:
+Your Seat, third line (replaces TBL-0018 "Across the table Mara sits down, slowly. She does not ask.": it put her in the
+newcomer's chair and read as knowing; A5 says she stays a mystery):
+     TBL-0030  Down at the boat, Mara has lit the lamp. She does not call up.
+     yours:
+The Tune Is Kept: the guitar errand at Tama:
+     TBL-0033  On the quay, a long bundle in old sailcloth, tied with fishing line. No note. Nobody saw it come.
+     yours:
+     TBL-0034  Well, Captain. I did say one of us ought to learn.            (Mara, once it is aboard)
+     yours:
+     table.js GUITAR  Something left for you / Tama's quay                  (the slip while it waits)
+     yours:
+The Unseen Throw, a few minutes on (the world turns wherever the ship is):
+     TBL-0036  The ship's book has fallen open at the blank line. It is not blank any more.   (message)
+     yours:
+     TBL-0035  Logged, on the blank line, in a small neat hand: {a number from 1 to 9}.     (the Ship's book)
+     yours:
+     TBL-0037  Captain. Where has everybody gone?                            (Mara)
+     yours:
+     TBL-0038  The table is waiting on the water, a candle lit.              (the last screen)
+     TBL-0039  Your chair has been pulled out for you.
+     TBL-0040  You sit down. Somebody has already thrown.
+     yours:
+Your Seat, the epilogue (after the book: the hut's first words, from your side of the table):
+     TBL-0041  A ship you have never seen comes in on the evening tide. Green sails, new paint.
+     TBL-0042  Someone ducks in at the door and stops. A table too big for the hut, one candle.
+     TBL-0043  They look a long while at the chair on your side, deep in the dark. You breathe, slow and patient.
+     TBL-0044  "Is it one throw a day?" they ask, too brightly. "I only heard about it at the last harbour."
+     TBL-0045  A yellowed twenty-sided die waits on the wood. You push it across.
+     yours:
+Buttons after a closed ending (She Rises, the Unseen Throw, Your Seat), on the card and the title:
+     table.js OVER  Begin again / Go back to the table / Go on
+     yours:
