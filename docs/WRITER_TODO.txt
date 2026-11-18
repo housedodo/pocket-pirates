@@ -289,8 +289,8 @@ Mara, once each:
 Prompts and boards (not picked up by the story export yet; file and line given):
      MAIN-0330  Calling up to the gallery...                          (the keeper's supper, while the basket comes down)
      yours:
-     lantern.js 121   [E] Lie to under the light                       (prompt at a keeper's rock)
-     yours:
+     lantern.js 131   [E] Call up to the keeper                        (prompt at a keeper's rock; was "[E] Lie to under the light")
+     yours: owner's choice, 2026-11-18: "[E] Call up to the keeper" (built)
      harbour.js 130   The quay is asleep. Come back after dark.        (a Free Cays board by day)
      yours:
      harbour.js 96    The regatta purse                                (Tama's board after the Sunday race)
