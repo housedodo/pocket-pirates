@@ -188,10 +188,12 @@ purple and magenta cosmic horror as dread rises.
   coral heads in flat white breakers (a channel kept open at harbours), a mast leaning out of the water. Lantern: two rows of lamps
   on floats lining the way in, amber day and night, a tall dark tower with a light on top. Drowned: slate roofs to the ridge with
   chimneys, a leaning belfry (full game only). Lamps use the glow material (additive, never fogged). Home Sound and the hand-made
-  places have none.
+  places have none. **Scale (owner 2026-11-18, "too big, does not fit the realism"):** a lamp on a buoy, a float or a lantern
+  string is a 0.55 to 0.8 cube, never bigger than the thing it sits on; buoys about 0.6 across and 2.5 high; a coral head's white
+  water is a tight collar (head + 0.9) fading through a pale-aqua ring (`#9ed8c2`, head + 2.2) into the sea, never a wide flat disc.
 - **What the tide and the dusk change** (2026-11-17, regional puzzles; numbers in `src/regions.js`): Reef coral shows by the tide:
-  black teeth in white water up to tide 0.4, then only their tips awash in a pale-green slick (`#b4e6c6`), above 0.7 nothing but a
-  faint pale ripple ring (`#e4f4ea`) over each head, always some tell. A Drowned harbour's pier lies under a film of grey water
+  black teeth in white water up to tide 0.4, then only their tips awash in a pale-green slick (`#a6dcc4`, head + 1.4), above 0.7 nothing but a
+  faint pale ripple ring (`#cfeadf`, head + 1.2) over each head, always some tell. A Drowned harbour's pier lies under a film of grey water
   (`#6a8088`, broken white at the edges) while the tide is above 0. Guild lighthouses at night flash their own rhythm (lamp room and
   beam on only during a flash); the chart inks it beside the light in dots and dashes. At dusk a lone Guild rock's keeper stands on
   the gallery (dark coat, cap, an amber lantern) and lowers a plank basket on a pale line. Once a voyage after the first throw, a lone

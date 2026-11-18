@@ -13,6 +13,8 @@ import { pierOf } from '../world.js';
 import { LM } from '../landmarks.js';
 import { clockAt } from '../regions.js';
 import { sectorAt } from '../sectors.js';
+import { CLUE_PLACES } from '../places.js';
+import { CLUES } from '../clues.js';
 
 export let trackerEl;   // set by the init function(s) below, at the point in boot where main.js had them
 
@@ -52,8 +54,13 @@ export function goalTarget() {
   const g = G.objectives.current, toTama = g && (g.id === 'perrin' || (g.id === 'dig' && state.story.letterP1 !== 'taken'));
   const cell = g && (toTama ? [0, -1] : ({ harbour: [0, -1], dig: [1, -1] })[g.id]);
   if (cell) { const d = G.world.desc(cell[0], cell[1]); if (d) return { ...(d.type === 'harbour' ? pierOf(d) : { x: d.x, z: d.z }), label: d.name }; }
-  if (g && g.region) {   // Perrin's letter: the nearest landmark in that region's waters (where to look, never what)
-    let best = null; for (const l of Object.values(LM)) { if (sectorAt(l.x, l.z, state.seed).faction.id !== g.region) continue; const d = Math.hypot(l.x - G.ship.pos.x, l.z - G.ship.pos.z); if (!best || d < best.d) best = { d, l }; }
+  if (g && g.region) {   // Perrin's letter: the nearest place whose clue counts for that region (where to look, never what)
+    // it used to be the nearest landmark in the region's water, which could be a place with no clue of that region (Wick's Rock for
+    // the Crown letter, owner 2026-11-18: "the pointer only goes to Wick's Rock and nothing happens"); the water is the fallback
+    const reg = Object.fromEntries(CLUES.map((c) => [c.id, c.region]));
+    const pick = (list) => { let b = null; for (const l of list) { const d = Math.hypot(l.x - G.ship.pos.x, l.z - G.ship.pos.z); if (!b || d < b.d) b = { d, l }; } return b; };
+    let best = pick(CLUE_PLACES().filter((p) => reg[p.clue] === g.region));
+    if (!best) best = pick(Object.values(LM).filter((l) => sectorAt(l.x, l.z, state.seed).faction.id === g.region));
     if (best) return { x: best.l.x, z: best.l.z, label: g.where };
   }
   if (g && g.id === 'job' && state.job) return { x: state.job.x, z: state.job.z, label: state.job.toName };

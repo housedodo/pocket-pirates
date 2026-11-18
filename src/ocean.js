@@ -123,7 +123,11 @@ export class Ocean {
           float lit = dot(fn, uSunDir);
           float shore = shoreF(vWP.xz);
           // calm: toon facets, three flat tones by how a facet faces the sun, small foam caps, glints
-          float tone = lit > 0.88 ? 1.0 : lit > 0.78 ? 0.62 : 0.28;
+          // the three tones are read against flat water (so a low sun does not flip whole swell faces) and dithered across a band, never a
+          // hard line: on the big open-sea swell a hard step drew straight-edged sheets with corners where two swells crossed (owner 2026-11-18)
+          float flatLit = max(uSunDir.y, 0.0), litR = 0.83 + (lit - flatLit) * mix(0.35, 1.0, flatLit);
+          float tq = bay4(gl_FragCoord.xy) * 0.8 - 0.5;
+          float tone = mix(0.28, mix(0.62, 1.0, step(0.5, clamp((litR - 0.88) / 0.06 + 0.5 + tq, 0.0, 1.0))), step(0.5, clamp((litR - 0.78) / 0.06 + 0.5 + tq, 0.0, 1.0)));
           tone = mix(tone, max(tone, 0.55), shore * 0.7);                                  // the shallows lose their dark facets
           vec3 calm = mix(uDeep * 0.62, uShallow * 0.92, tone) * (0.68 + 0.4 * crest);
           vec2 blk = floor(vWP.xz * 1.7);
@@ -207,7 +211,7 @@ export class Ocean {
           ${GLSL_SEA_BODY}
           // near land: lighter, shallower, more turquoise (the same flat banded look)
           vec3 shallowTint = mix(uShallow * 1.12, vec3(0.72, 0.95, 0.82), 0.35) * uLight;
-          float band = uSeaOn > 0.5 ? floor(shore * 8.0 + bay4(gl_FragCoord.xy)) / 8.0 : floor(shore * 4.0 + 0.5) / 4.0;   // the new sea: a fine dithered gradient, no hard rings
+          float band = uSeaOn > 0.5 ? floor(shore * 16.0 + bay4(gl_FragCoord.xy)) / 16.0 : floor(shore * 4.0 + 0.5) / 4.0;   // the new sea: a fine dithered gradient, no hard rings
           outc = mix(outc, shallowTint, band * (uSeaOn > 0.5 ? 0.7 : 0.6));
           // ---- near land: the seabed shows through the shallows, fish shadows drift over it, and waves roll in and break on the shore
           float sd = 1e4;

@@ -43,9 +43,9 @@ export function regionDecor(d, A, extra, h) {
       const L = mk();
       for (let i = 0; i < 5; i++) {
         const out = 12 + i * 11, [rx, rz] = P(out, 9), [gx, gz] = P(out, -9); if (!clearOf(rx, rz) || !clearOf(gx, gz)) continue;
-        A.cyl(rx, -1, rz, 1.1, 1.1, 3.2, 6, '#c8302a'); A.cyl(rx, 1.3, rz, 1.12, 1.12, 0.5, 6, '#f2f2ee', TILE.white, false);   // red can, white band
-        A.cyl(gx, -1, gz, 1.3, 0.0, 3.6, 6, '#1f9a48');                                                                          // green cone
-        L.box(rx, 2.6, rz, 1.5, 1.5, 1.5, '#ff3a30'); L.box(gx, 2.8, gz, 1.5, 1.5, 1.5, '#30ff70');
+        A.cyl(rx, -1, rz, 0.6, 0.6, 2.4, 6, '#c8302a'); A.cyl(rx, 0.7, rz, 0.62, 0.62, 0.35, 6, '#f2f2ee', TILE.white, false);   // red can, white band (smaller: owner 2026-11-18)
+        A.cyl(gx, -1, gz, 0.75, 0.0, 2.7, 6, '#1f9a48');                                                                          // green cone
+        L.box(rx, 1.65, rz, 0.55, 0.55, 0.55, '#ff3a30'); L.box(gx, 1.9, gz, 0.55, 0.55, 0.55, '#30ff70');   // small lamps on the buoys
       }
       st(L, NIGHT, mats.glow);
       // the signal mast at the water's edge beside the lane: tall, white, a yard with a string of pennants
@@ -64,7 +64,7 @@ export function regionDecor(d, A, extra, h) {
       for (const [ox, oz] of [[-3, -3], [3, -3], [-3, 3], [3, 3]]) A.cyl(x + ox * s, -1.5 * s, z + oz * s, 0.25, 0.25, 6 * s, 4, '#5a3a1c', TILE.bark, false);
       A.box(x, 3 * s, z, 7 * s, 3 * s, 7 * s, '#c89a5a', TILE.wall);
       A.cyl(x, 6 * s, z, 6.5 * s, 0, 4 * s, 4, '#e0c070', TILE.roof);
-      for (let k = 0; k < 7; k++) { const o = -6 * s + k * 2 * s, y = 6.6 * s - Math.sin(k / 6 * Math.PI) * 1.2 * s; L.box(x + sx * o - fx * 3.8 * s, y, z + sz * o - fz * 3.8 * s, 1.8, 1.8, 1.8, ['#ffd060', '#ff7040', '#60d0ff', '#ff60c0', '#90ff60', '#ffd060', '#ff7040'][k]); }
+      for (let k = 0; k < 7; k++) { const o = -6 * s + k * 2 * s, y = 6.6 * s - Math.sin(k / 6 * Math.PI) * 1.2 * s; L.box(x + sx * o - fx * 3.8 * s, y, z + sz * o - fz * 3.8 * s, 0.7, 0.7, 0.7, ['#ffd060', '#ff7040', '#60d0ff', '#ff60c0', '#90ff60', '#ffd060', '#ff7040'][k]); }
     }
     if (spots.length) st(L, NIGHT, mats.glow);
     if (harbour) for (const side of [-12, 14]) { const [x, z] = P(40, side); A.push(x, -0.2, z, way + 0.3); A.box(0, 0, 0, 1.4, 0.6, 7, '#8a4a20', TILE.planks); A.pop(); }   // canoes
@@ -77,14 +77,17 @@ export function regionDecor(d, A, extra, h) {
     for (let i = 0; i < n; i++) {
       const out = 8 + rd() * 60 * lane, side = (rd() < 0.5 ? 1 : -1) * (8 + rd() * 30);
       if (harbour && Math.abs(side) < 10) continue;   // a harbour keeps a channel open
-      const [x, z] = P(out, side), r = 1.2 + (i % 3), ht = 2.5 + (i % 4), fr = 3 + (i % 3);
+      const [x, z] = P(out, side), r = 1.2 + (i % 3), ht = 2.5 + (i % 4);
       if (!clearOf(x, z)) continue;
       d.coral.push({ x: d.x + x, z: d.z + z, r });   // world position, for grounding (main.js)
       T.cyl(x, 0.6 - ht / 2, z, r, 0, ht, 5, '#14100e', TILE.stone);                                   // the teeth, standing
       U.cyl(x, -ht + 0.75, z, r, 0, ht, 5, '#14100e', TILE.stone);                                      // only the tips, awash
-      F.cyl(x, 0.05, z, fr, fr + 0.6, 0.3, 10, '#ffffff', TILE.white, true);   // the white water breaking on it (flat white, above the swell)
-      S.cyl(x, 0.2, z, fr - 0.4, fr, 0.3, 10, '#b4e6c6', TILE.white, true);   // a pale-green slick over the head (raised: the island sinks with the tide)
-      R.cyl(x, 0.3, z, fr + 0.4, fr + 0.4, 0.3, 12, '#e4f4ea', TILE.white, false);   // a faint ripple ring (an open band: a line seen from above)
+      // the white water breaking on it: a tight collar round the head, then a pale-aqua ring that fades it into the sea (owner 2026-11-18:
+      // the wide flat white discs read as plates with a hard edge)
+      F.cyl(x, 0.08, z, r + 0.5, r + 0.9, 0.3, 10, '#eef8f2', TILE.white, true);
+      F.cyl(x, 0.0, z, r + 0.9, r + 2.2, 0.3, 10, '#9ed8c2', TILE.white, true);
+      S.cyl(x, 0.2, z, r + 0.4, r + 1.4, 0.3, 10, '#a6dcc4', TILE.white, true);   // a pale-green slick over the head (raised: the island sinks with the tide)
+      R.cyl(x, 0.3, z, r + 1.2, r + 1.2, 0.3, 12, '#cfeadf', TILE.white, false);   // a faint ripple ring (an open band: a line seen from above)
     }
     const tide = (i) => i.tide || 0;
     st(T, (i) => tide(i) <= REEF_SLICK_TIDE); st(F, (i) => tide(i) <= REEF_SLICK_TIDE);
@@ -95,8 +98,8 @@ export function regionDecor(d, A, extra, h) {
     const G = mk(), pairs = harbour ? 5 : 3;
     for (let i = 0; i < pairs; i++) for (const side of [-11, 11]) {
       const [x, z] = P(8 + i * 16, side); if (!clearOf(x, z)) continue;
-      A.cyl(x, -0.2, z, 1.4, 1.6, 0.8, 6, '#2a2018', TILE.planks); A.cyl(x, 0.2, z, 0.2, 0.2, 6, 4, '#1a1410', TILE.white, false);
-      G.box(x, 5.6, z, 2.0, 2.0, 2.0, '#ffb040'); A.box(x, 7.7, z, 2.2, 0.3, 2.2, '#1a1410');
+      A.cyl(x, -0.2, z, 0.9, 1.0, 0.6, 6, '#2a2018', TILE.planks); A.cyl(x, 0.2, z, 0.14, 0.14, 3.4, 4, '#1a1410', TILE.white, false);   // smaller floats (owner 2026-11-18)
+      G.box(x, 3.4, z, 0.8, 0.8, 0.8, '#ffb040'); A.box(x, 4.0, z, 1.0, 0.2, 1.0, '#1a1410');
     }
     st(G, ALWAYS, mats.glow);
     if (harbour || rng() < 0.3) {

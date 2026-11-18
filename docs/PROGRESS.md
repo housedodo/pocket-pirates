@@ -1859,3 +1859,20 @@ Trials for the owner to compare; nothing changes without a flag and STYLE.md is 
   Sunday race had no tell at sea. `index.html` (#clockday, .dateline), `main.js` (one line by the clock), `logbook.js` (renderBook).
 - **Verified** (headless): hidden at sea, shown with the log open, the book's first line reads "Sunday · day 14"; no console errors.
   Smoke: see the commit.
+
+## Playtest fixes (2026-11-18, owner, from the full playtest build)
+- **"A sharp change in the sea where I am":** at dawn far out, the calm sea's three facet tones (by how a face meets the sun) flipped
+  whole swell faces of the big open-sea swell at once: flat sheets with straight edges and corners where two swells crossed. The tones
+  are now read against flat water (a low sun no longer exaggerates them) and dithered across a band (`ocean.js`). The sea's broad
+  blends (smooth water by islands, deep and bank patches, glassy lines, Reef white water, oil, the shallows) fade in 16 dithered steps
+  instead of 3 or 4 (`seawater.js`, `ocean.js`), so no blend edge reads as a line in rough water.
+- **"Perrin: the Crown waters" pointed at Wick's Rock and nothing happened:** a Perrin letter is done by a clue of its region, but its
+  pointer went to the nearest landmark in that region's water (Wick's Rock carries no clue). It now goes to the nearest place whose clue
+  counts for the region (Customs Pier or the Governor's Fort for the Crown), the water as a fallback (`ui/hud.js goalTarget`).
+- **Lanterns and buoys at harbour entrances were too big:** Crown buoy lamps 1.5 to 0.55, buoys about half size; Cays string lanterns
+  1.8 to 0.7; Lantern Guild float lamps 2.0 to 0.8 on shorter poles (`regiondecor.js`; STYLE 4).
+- **Reef water:** the wide flat white discs round each coral head are now a tight foam collar fading through a pale-aqua ring into the
+  sea; the high-tide slick and ring follow the head's size.
+- **Verified** (headless): old against new shader on a frozen frame at dawn in open water (the swell's tones blend instead of flipping
+  in sheets); the Crown letter's pointer lands on the Customs Pier (155, -580); screenshots of a Reef, Crown, Lantern and Cays entrance.
+  **Not verified:** your exact spot (the seed differs), and how it looks at full speed on a real screen.
