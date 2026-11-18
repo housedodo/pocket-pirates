@@ -1,0 +1,111 @@
+HOIST: OPEN QUESTIONS FOR THE WRITER
+Made 2026-11-18. Only the questions, each with a little context. Answer in any order; short answers are fine.
+The long version with every draft line is docs/WRITER_TODO.txt.
+
+
+A. THE END OF THE GAME
+------------------------------------------------------------------
+A1. What does the player read on arriving at the Table by the Water?
+    - Today: a draft card under a painted picture (night sand, a table, two chairs, the book).
+
+A2. What do the six endings say?
+    - Today: drafts. The six: The Long Sleep (throw 20), Good Dreams (10 to 19), She Rises (1 to 9),
+      The Tune Is Kept (hum the tune), Your Seat (sit in the other chair), The Unseen Throw (go back to the boat).
+    - Only The Tune Is Kept may feel happy.
+
+A3. What is the one line in another hand left in the Ship's book after each ending?
+    - Today: six draft epilogue lines.
+
+A4. What does her book say at the very end, if anything?
+    - Every throw is kept with its day. Does the player ever read it?
+
+A5. Does Mara's nature come up at the end, or stay unsaid forever?
+    - Truth: the sleeper made her; her village came from an earlier dream. The game never says it.
+
+A6. Which wording of what Mara is stands?
+    - One place in the canon says "someone who survived something".
+    - Another says "the sleeper made her".
+
+A7. The credits: which names go in?
+
+
+B. THE STORY AFTER THE HUT
+------------------------------------------------------------------
+B1. What do Perrin's five letters say? (Crown, Free Cays, Lantern, Reef, Drowned)
+    - Today: drafts. A letter never says what to find.
+
+B2. What is the line written in the log the first time each of the seven threads is met?
+    - Today: drafts. A fact in another hand, never a conclusion.
+
+B3. Does the hut change on later visits?
+    - Ideas: more candles, a second chair, your ship drawn on an open page, empty after a natural 1. Or nothing.
+
+
+C. THINGS ADDED THIS ROUND
+------------------------------------------------------------------
+C1. The Edge now has two ways out: over the lip, or beating back out against the current.
+    - The game remembers which. Should it ever matter?
+
+C2. May the thing that wakes at full dread wake during the Edge?
+    - Today: no, its clock pauses.
+
+C3. The stake with no wreck (Reef, once, after the hut): a lone stake, and the next storm raises a wreck beside it.
+    - Should it count as a clue for "Who sat before you?"
+    - Today: it counts for nothing.
+
+C4. The lighthouse keeper who trades oil for a fish at dusk: does he come out when his light is dead?
+    - Today: no.
+
+C5. Nine new draft lines were written by the build team (three Mara lines, prompts, harbour board lines).
+    - Keep, or rewrite? (List in WRITER_TODO part 4.1.)
+
+
+D. THINGS THAT DISAGREE
+------------------------------------------------------------------
+D1. Tama's bell: how many strokes?
+    - The texts say "two strokes, never three", "twelve, every day" and "Tama rang fourteen at noon".
+    - The bell rings once.
+    - One true number, or do they disagree on purpose?
+
+D2. The crew count: "we only have nine" and "we are ten" (both say eleven are counted).
+    - On purpose, or one number?
+
+D3. Five clue places sit in another region's water.
+    - The Ribs (a Reef clue in Lantern water).
+    - The Sunken Street (a Drowned clue in Cays water).
+    - The Drowned Bell, the Name Wall, the Throwers' Wreck (between regions, depends on the voyage).
+    - For each: change which region the clue counts for, or move the place?
+
+
+E. LINES THAT BREAK THE GAME'S OWN RULES (full game only, at full dread)
+------------------------------------------------------------------
+E1. "THE EYE", "The Eye", "THE EYE OPENS." use a banned word.
+    - Allowed at the very end, or never?
+
+E2. Stock horror lines: "TURN BACK", "it is behind you", "you were never here", "Look behind you",
+    "Where you drowned", and Mara's "turn back turn back...", "It looks back", "I see you seeing me".
+    - Keep, cut, or rewrite in the game's own flat voice?
+
+E3. At full dread, text is broken with block characters.
+    - Keep (the one place the interface breaks), or break it with dropped letters and cut-off words instead?
+
+E4. The hut talks like a shop: "(+N gold, and a trinket)" and "Come back tomorrow".
+    - Keep, or say it another way?
+
+E5. "A natural twenty. Somewhere far below, something is disappointed."
+    - It explains. Keep, rewrite, or cut?
+
+E6. Greeters who say "Somebody threw a low number and the whole sea went soft".
+    - Keep or cut?
+
+
+F. YOUR RULES AND THE BIG MENUS
+------------------------------------------------------------------
+F1. Any general writing rules to add?
+    - Words to avoid, running jokes, longest allowed line.
+
+F2. The 42 lore proposals (docs/proposals/LORE_BIBLE.md, section 1): which do you want?
+
+F3. The 34 unbuilt puzzles (docs/proposals/REGIONAL_CATALOGUE.md, section 10): approve, tweak or cut?
+
+F4. Optional: new places, side stories, small harbour quests, voice notes for the cast (WRITER_TODO part 3).
