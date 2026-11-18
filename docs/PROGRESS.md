@@ -6,6 +6,7 @@ was built, oldest first; the newest entries are at the bottom. A short state of 
 ## State of the game (2026-11-11)
 - **Playable from Tama to an ending.** The demo (chapters I to VI, 16 goals) ends on the first throw at the hut and the diver. After it the sea is open: six strata, 13 hand-made places, 17 clues feeding seven questions, and the Table by the Water with four actions and six endings.
 - **Decided this round:** Mara remembers her village slowly; the tune is the only gentle ending; "Turn the table" and the Lady's errands are cut; odd jobs, salvage and the raider are optional.
+- **Sky (2026-11-18):** the night sky is four colour moods of one theme (field, milky way, moon ring, no constellations), one a night, each with its own richness (some nights nearly bare); the day has four moods, a dawn and dusk glow, drifting clouds (they used to stand still at the start) and small birds. Look in STYLE; `?sky`, `?rich`, `?day`, `?daymood`. Checked in stills only, not in motion.
 - **Interface:** three bookmarks (Chart, Orders, Ship's book), one slip (what, where, how long), sailing time for distances, the anchor on E, letters shown where taken, greyed controls that answer, gauges that name themselves once.
 - **Look:** an inked portolan chart; Pirata One with Jersey 10.
 - **Story file:** `docs/STORY_MASTER.txt` is generated from the code with stable IDs (1415 lines).

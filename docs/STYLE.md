@@ -81,6 +81,15 @@ purple and magenta cosmic horror as dread rises.
   opens, coin price button; a purchase flashes gold. Keep shop text short: one effect line, one tag.
 - **Glints:** sun and moon sparkle only in a soft path toward the light, single cells twinkling in place; never a pattern that
   slides with the camera.
+- **The night sky** (2026-11-18, `sky.js`): a thin field of stars in tiers (size 2, 3, and a pixel-cross at 9), a tilted milky way with a dark dust
+  lane, an eight-sided ring round the moon. Four colour moods (Calm, Amber, Teal, Violet), one a night in turn, only slightly different;
+  and a richness chosen by the night, apart from the colour (`RICHNESS`): from about a tenth of the stars and no band to a full band, so the sky is
+  never always full. Stars flicker in three stepped levels, never a smooth fade. No drawn constellations. The eye of the full dread stays.
+  Flags: `?sky=0..4`, `?rich=0..9`. **The day** (same date): four day moods, one a day (Clear, Hazy, Bright, Towering: they tint only the zenith,
+  the horizon keeps the fog's colour, and set how many and how tall the clouds are); a pink dithered glow up the horizon at dawn and dusk,
+  strongest toward the sun; clouds drift with the wind and wrap round the ship; a few small black birds by day (not at night, in a storm or
+  at high dread). Flags: `?day=0` (the old day), `?daymood=0..3`. Cloud shadows on the sea were tried and dropped: at deck height they are
+  a degree under the horizon and cannot be seen.
 - **Night is dark:** light floor 0.17 of day, near-black navy sky and fog, a short view; what you see by is the lantern's warm
   pool on the water, lit windows, lighthouses and the moon. With the lamp out the dark comes right up to the hull.
   Far lights (2026-11-17, P-FREE-3): with the lamp lit, glowing things further than 150 burn at 0.55; with it out, after about 3 s,
