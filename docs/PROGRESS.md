@@ -2168,3 +2168,13 @@ dread there eased for a while after it.
 full sail, lanterns lit, the cabin door open on a desk with one page). Pictures: `docs/concept/raven1_approach.png` to `raven5_page.png`
 (the page is the real card UI with the dated rows, the last date blank). **Not built:** boarding, the page as a clue, placement in the world.
 **Decided (owner, 2026-11-18, in CANON):** the page is the Raven's captain's; the blank last date means he left before throwing; the ship stays as a warning. **Also decided:** Mara makes one offhand joke aboard ("Hard to sail a boat without crew.", draft); the Other Captain thread stands beside the empty Raven (different captains). **Open:** none for the Raven's concept.
+
+### The empty Raven, boardable (2026-11-18)
+`src/ravenhulk.js` (a set piece beside the threads, wired in `threads.js` `hulk()`; not one of the seven, no Tide, no marks). Full game only, and only
+once the die is known (a first throw at the hut). One fixed spot per voyage in Reef water, 1,500 to 2,000 from Tama (`pick('raven')`), the model of
+`ravenship.js` standing still a hand above the sea (no bob, no wake). E within 40: "E: come alongside" (the anchor goes down first, as for any thread);
+the card shows the page (the game's own card, dated rows, last date blank); reading it once adds the clue `CL-RAV-a` (Reef; Q3 and Q4, weight 1), the
+keepsake "A page of dates" in the Ship's book, and 2.5 s later Mara's one offhand line ("Hard to sail a boat without crew, Captain.", draft). A second visit
+shows a bare desk. **Verified headless:** not offered before the first throw; offered after; E reads the page; clue and keepsake land; the card closes;
+second visit is the bare desk; no console errors. **Not built:** the camera does not go aboard (no on-foot mode exists yet; the shore slice comes first),
+no sound for the Raven, no mention on the chart or in rumours (a bottle or Mara line pointing at it is the next step).

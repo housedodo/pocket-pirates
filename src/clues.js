@@ -39,6 +39,7 @@ export const CLUES = [
   { id: 'CL-T-house',   region: 'crown',   q: [1, 3], w: 1, cap: null, line: 'A house that keeps a book of who stayed. Our name is in it.' },
   { id: 'CL-T-captain', region: 'reef',    q: [3],    w: 1, cap: null, line: 'A ship like ours in the wrong colours, lower in the water.' },
   { id: 'CL-T-colour',  region: 'drowned', q: [2],    w: 1, cap: null, line: 'A patch of sea the wrong colour. The fish from it taste of nothing.' },
+  { id: 'CL-RAV-a',    region: 'reef',    q: [3, 4], w: 1, cap: null, line: 'A page of dates, a figure by each. The last has none.' },   // the empty Raven (ravenhulk.js, CANON 2026-11-18)
   { id: 'CL-T-hollow',  region: 'drowned', q: [1, 6], w: 1, cap: null, line: 'A harbour that knew we were coming, and had a place set.' },
 ];
 export const CLUE = Object.fromEntries(CLUES.map((c) => [c.id, c]));

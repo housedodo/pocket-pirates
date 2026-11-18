@@ -5,8 +5,9 @@ import { hash2 } from './util.js';
 import { THREAD_IDS, pickAwake } from './marks.js';
 import { sectorAt } from './sectors.js';
 // each thread belongs to a region (owner's mapping, CANON 2026-11-12); its site is looked for there first, then anywhere as before
-export const THREAD_REGION = { music: 'free', bell: 'lantern', coin: 'crown', house: 'crown', captain: 'reef', colour: 'drowned', hollow: 'drowned' };
+export const THREAD_REGION = { raven: 'reef', music: 'free', bell: 'lantern', coin: 'crown', house: 'crown', captain: 'reef', colour: 'drowned', hollow: 'drowned' };
 import { MODS } from './thread_mods.js';
+import { ravenHulk } from './ravenhulk.js';   // the empty Raven: a set piece beside the threads, not one of them
 import './threadscenes.js';   // registers the scenes in CAVES
 
 // MULTIPLE PATHS (Story Bible): optional dark threads built on old horror tales. This file is the first one, as a prototype:
@@ -65,6 +66,8 @@ export class Threads {
     return (tp.site = { x: h.x + max, z: h.z });
   }
   /** the module of an awake thread (the Colour has none: it lives in this file) */
+  /** the empty Raven (ravenhulk.js): always there in the full game once the die is known, never part of the Tide */
+  hulk() { return this._hulk || (this._hulk = ravenHulk(this)); }
   mod(id) { if (!this.awake(id) || !MODS[id]) return null; return this.modules[id] || (this.modules[id] = MODS[id](this)); }
   each(fn) { for (const id of this.state.story.threads || []) { const m = this.mod(id); if (m) fn(m, id); } }
   flag(spec) { const [id, name, arg] = spec.split(':'); const m = this.mod(id); return !!(m && m.flag && m.flag(name, arg)); }
@@ -73,7 +76,7 @@ export class Threads {
     return m && m.event ? m.event(name, arg == null ? a2 : arg, site) : '';
   }
   /** a thread-made place or thing near the ship that E can open */
-  interact(ship) { if (!this.on || !this.api) return null; let r = null; this.each((m) => { if (!r && m.interact) r = m.interact({ ship, api: this.api }); }); return r; }
+  interact(ship) { if (!this.on || !this.api) return null; let r = null; this.each((m) => { if (!r && m.interact) r = m.interact({ ship, api: this.api }); }); return r || this.hulk().interact({ ship, api: this.api }); }
   /** a row on the harbour board: a passenger asking for passage, a harbourmaster waiting */
   harbourRows(d) { const rows = []; if (this.on) this.each((m) => { const r = m.harbourRow && m.harbourRow(d); if (r) rows.push(r); }); return rows; }
   harbourAct(id, d) { this.each((m) => { if (m.act) m.act(id, d); }); }
@@ -132,7 +135,7 @@ export class Threads {
   /** called every frame in the full game; `on` is false in the demo and during the quiet opening */
   update(dt, ship, on, t, amp, say) {
     this.on = on;
-    if (on && this.api) this.each((m) => m.update && m.update({ ship, t, amp, dt, api: this.api }));
+    if (on && this.api) { this.each((m) => m.update && m.update({ ship, t, amp, dt, api: this.api })); this.hulk().update({ ship, api: this.api }); }
     else if (this.live.size) { for (const [k, m] of this.live) this.scene.remove(m); this.live.clear(); }
     const c = on ? this.ensure() : null;
     if (!c) { for (const [id, m] of this.meshes) { this.scene.remove(m); this.meshes.delete(id); } this.tint += (0 - this.tint) * Math.min(1, dt); return; }

@@ -1,7 +1,7 @@
 HOIST (Pocket Pirates): THE MASTER STORY FILE
 ================================================================================================
 This is the main story file for the full game. Edit it, upload it again, and the next session puts every change
-into the game. Built from commit 97b30e9 on 2026-11-18. 1658 in-game lines carry an ID.
+into the game. Built from commit e995d90 on 2026-11-18. 1659 in-game lines carry an ID.
 
 CONTENTS
   A   HOW TO USE THIS FILE (IDs, status marks, how to add and remove things)
@@ -569,7 +569,7 @@ Where the story hides in the mechanics, and where its text lives (section J).
 # J  EVERY LINE IN THE GAME
 ################################################################################################
 Pulled from the code. Edit the text after the "|" (see part A). Sources are grouped by file; the CODE in front of every
-line says which file it goes back into. 1658 lines.
+line says which file it goes back into. 1659 lines.
 
 
 
@@ -2998,6 +2998,9 @@ line says which file it goes back into. 1658 lines.
   CLUE-0028 | A ship like ours in the wrong colours, lower in the water.
   CLUE-0029 | A patch of sea the wrong colour. The fish from it taste of nothing.
   CLUE-0030 | A harbour that knew we were coming, and had a place set.
+
+### CLUE / ADDED 2026-11-18
+  CLUE-0031 | A page of dates, a figure by each. The last has none.
 
 
 ####################################################################################################

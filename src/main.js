@@ -242,6 +242,7 @@ function threadChoice() {
 threads.setup(threadChoice());
 threads.bind({
   after: (s, fn) => after(s, fn),   // story delays on the game's clock (systems/later.js)
+  openCard: (c) => openCard(c), seeClue: (id) => seeClue(id),
   get state() { return state; }, audio, ship, addMark, clearMark, keep,
   toast: (t, dark, ms) => toast(t, dark, ms), say: (t) => { if (!objectives.mate.busy) objectives.mate.say(t); },
   openScene: (kind, id) => openCave({ id, kind }), tide: () => tideAt(), night: () => tod.night, bearing: (dx, dz) => bearingName(dx, dz),
