@@ -1,7 +1,7 @@
 HOIST (Pocket Pirates): THE MASTER STORY FILE
 ================================================================================================
 This is the main story file for the full game. Edit it, upload it again, and the next session puts every change
-into the game. Built from commit a54be96 on 2026-11-15. 1559 in-game lines carry an ID.
+into the game. Built from commit 202d23f on 2026-11-18. 1556 in-game lines carry an ID.
 
 CONTENTS
   A   HOW TO USE THIS FILE (IDs, status marks, how to add and remove things)
@@ -426,7 +426,7 @@ F4 THE HAND-MADE PLACES [BUILT] (always at the same spot in every voyage; what i
                your edits: (empty)
   P-street   The Sunken Street  sandbar  at (516, 737), 899 from Tama   seen from far: "roof peaks"
                your edits: (empty)
-  P-table    The Table by the Water sandbar  at (1377, -1966), 2400 from Tama   seen from far: "a table at the water\"
+  P-table    The Table by the Water sandbar  at (1377, -1966), 2400 from Tama   seen from far: "a table at the water's edge"
                your edits: (empty)
   P-hut      The dark hut (one island 4-6 cells from home, out of sight of the start): crooked black hut on stilts, a purple window,
              bones on poles, a dead tree, a ring of pale stones. Inside: the Lady and the die. One throw per day. Text: HUT, TAB.
@@ -569,7 +569,7 @@ Where the story hides in the mechanics, and where its text lives (section J).
 # J  EVERY LINE IN THE GAME
 ################################################################################################
 Pulled from the code. Edit the text after the "|" (see part A). Sources are grouped by file; the CODE in front of every
-line says which file it goes back into. 1559 lines.
+line says which file it goes back into. 1556 lines.
 
 
 
@@ -650,7 +650,6 @@ line says which file it goes back into. 1559 lines.
   OBJ-0088 | [hints] Look at the chart. Was it always there?
 
 ### OBJ / SIDE_GOALS
-  OBJ-0089 | Reef the sails (S) until you slow down, then press C to cast a line.
   OBJ-0090 | Hail a passing ship with E. Not every ship will want to talk.
   OBJ-0091 | Pick up a message in a bottle by sailing into it.
   OBJ-0092 | Buy something at a shipyard: paint, sails, a pennant, a figurehead.
@@ -742,6 +741,9 @@ line says which file it goes back into. 1559 lines.
   OBJ-0169 | The water is running white over the shoals, Captain. Not now. We wait for the tide to go out.
   OBJ-0170 | Coral! Where the water breaks white there is rock under it. It was not there yesterday.
 
+### OBJ / ADDED 2026-11-18
+  OBJ-0171 | Press C to cast a line. Under way, the anchor goes down first.
+
 ### OBJ / RETIRED (the text is no longer in the game; these IDs are never used again)
     was OBJ-0012 | [text] Perrin's riddle is in your log (Journal). Find the right shore of Hollow Cay Galen and dig.
     was OBJ-0013 | [intro] Now to find the shore that riddle means. Stop the ship there and press E to dig.
@@ -761,6 +763,7 @@ line says which file it goes back into. 1559 lines.
     was OBJ-0077 | [outro] Splendid! They will think twice. For a day or two.
     was OBJ-0078 | [hints] Raiders only fire when they are close. Turn so they are beside you and press Space.
     was OBJ-0079 | [hints] Harbours repair the hull for free, and sell cannonballs.
+    was OBJ-0089 | Reef the sails (S) until you slow down, then press C to cast a line.
     was OBJ-0114 | [raider] Raiders, off the bow! They are Reef Brotherhood. You can outrun them, pay tribute, or fight with Space.
     was OBJ-0117 | [notarget] No raider in range. Space only fires at raiders that are attacking us.
     was OBJ-0129 | That is everything we set out to do, Captain. Sail where you like inside the fog: deliveries, errands, treasure and the side goals in your log (Goals tab) are all still there.
@@ -1772,9 +1775,6 @@ line says which file it goes back into. 1559 lines.
 ### FSH / r
   FSH-0028 | You reel in the empty line.
 
-### FSH / s
-  FSH-0029 | Too fast to fish: reef the sails (S) and let the ship slow down.
-
 ### FSH / snag
   FSH-0030 | Snagged on the wreck! One strike left.
 
@@ -1807,6 +1807,9 @@ line says which file it goes back into. 1559 lines.
   FSH-0046 | Empty water. ${3 - this.miss} left.
   FSH-0047 | Press C to cast: short = small fish, far = big fish (harder)
   FSH-0048 | The line screams. Let go off the mark! ${3 - this.miss} left.
+
+### FSH / RETIRED (the text is no longer in the game; these IDs are never used again)
+    was FSH-0029 | Too fast to fish: reef the sails (S) and let the ship slow down.
 
 
 ####################################################################################################
@@ -2056,9 +2059,6 @@ line says which file it goes back into. 1559 lines.
   MAIN-0043 | who did not want to get off
   MAIN-0044 | wants to see a fire mountain
 
-### MAIN / sf
-  MAIN-0045 | Sold ${state.catch.length} fish for ${fishVal} gold.
-
 ### MAIN / cb
   MAIN-0046 | +${v} gold. He does not weigh it. He lifts it once, nods, and is not on the quay when you look again.
 
@@ -2129,14 +2129,8 @@ line says which file it goes back into. 1559 lines.
   MAIN-0092 | Out of cannonballs! Buy more at a harbour.
 
 ### MAIN / tg
-  MAIN-0093 | Bring the ship to a full stop first (S to reef the sails).
-  MAIN-0094 | Bring the ship to a full stop first (S to reef the sails).
-  MAIN-0095 | Bring the ship to a full stop first (S to reef the sails).
   MAIN-0096 | Nobody answers. Inside, a pen scratches, then stops.
-  MAIN-0097 | Bring the ship to a full stop first (S to reef the sails).
-  MAIN-0098 | Bring the ship to a full stop first (S to reef the sails).
   MAIN-0099 | Someone goes down on a rope...
-  MAIN-0100 | Bring the ship to a stop to patch the sail (S, and wait).
   MAIN-0101 | Patching the mainsail...
 
 ### MAIN / d
@@ -2482,6 +2476,13 @@ line says which file it goes back into. 1559 lines.
   MAIN-0325 | The stalls are shuttered. The market here opens after dark. Most nights.
   MAIN-0326 | Powder and sailcloth are cheap here: off the wrecks.
 
+### MAIN / ADDED 2026-11-18
+  MAIN-0327 | Sold ${sale.fish.length} fish for ${fishVal} gold.
+  MAIN-0328 | Oars, Captain? In front of the whole town?
+  MAIN-0329 | Lamp out a moment. There. Lights.
+  MAIN-0330 | Calling up to the gallery...
+  MAIN-0331 | No fish for the keeper, Captain?
+
 ### MAIN / RETIRED (the text is no longer in the game; these IDs are never used again)
     was MAIN-0001 | A floating market, with bunting on every line. (Friday)
     was MAIN-0002 | A regatta! Five boats, racing.
@@ -2490,8 +2491,15 @@ line says which file it goes back into. 1559 lines.
     was MAIN-0006 | A whale surfaces in the distance!
     was MAIN-0011 | ${from} gave you a treasure riddle for ${d.name}. Saved in your log: Riddles tab.
     was MAIN-0012 | ${from} gave you a riddle. Saved in your log: Riddles tab. Where it points is up to you.
+    was MAIN-0045 | Sold ${state.catch.length} fish for ${fishVal} gold.
     was MAIN-0061 | Open your log with M and look under the Riddles tab.
     was MAIN-0062 | Another letter from Perrin? Open your log with M: it is at the top of the Journal tab.
+    was MAIN-0093 | Bring the ship to a full stop first (S to reef the sails).
+    was MAIN-0094 | Bring the ship to a full stop first (S to reef the sails).
+    was MAIN-0095 | Bring the ship to a full stop first (S to reef the sails).
+    was MAIN-0097 | Bring the ship to a full stop first (S to reef the sails).
+    was MAIN-0098 | Bring the ship to a full stop first (S to reef the sails).
+    was MAIN-0100 | Bring the ship to a stop to patch the sail (S, and wait).
     was MAIN-0108 | Nothing here but sand. Reread the riddle in your log (Journal) and try another shore.
     was MAIN-0121 | Down in the green dark: a ship on her side, KESTREL on the stern. Her strongbox comes up, and her bell, still ringing. (+180 gold)
     was MAIN-0213 | The harbourmaster hands you a folded note from Old Perrin. (Journal)

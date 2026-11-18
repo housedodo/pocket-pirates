@@ -1631,3 +1631,218 @@ Trials for the owner to compare; nothing changes without a flag and STYLE.md is 
   dig or a fishing fight (G-01); `audio.playTone` bypasses `CUES.oneShots` in three places (RULES 25).
 - **Verified:** IDs agree between each catalogue body and its checklist (53 items); sample lines searched for the banned words.
   **Not verified:** nothing was played; every number is read from the code, and feel proposals marked H need the owner's hands.
+
+## World, combat readability, economy and the six rule-level items (2026-11-16, owner: "do the changes proposed", docs/proposals/SYSTEMS_FEEL.md)
+- **The fog wall before the first throw is the chapter's (G-28, CANON 2026-11-13).** `gateRadius` returns `GATES[chapter]` until the
+  first throw at the hut, however the ship is fitted; after it the strata decide, never under 1650. The comment on `strataGate` said the
+  opposite and is corrected. A save whose ship already lies outside the wall is lost in the fog and drifts back toward Tama like any ship
+  past it; an errand bound beyond it is let go as before. `scripts/world_checks.cjs` rewritten for this (its S1 to S4 cases could not
+  hold since "the sea never shrinks" set a 1650 floor: they were stale before this change).
+- **The Table's far label follows `tableOpen` (G-26),** the same test as going ashore. **The far labels stay (G-29);** DESIGN.md said
+  they were removed and now says what `labelsTick` does.
+- **No toast at a region's line or on a wind shift (G-32).** The place line and the wind ring show both. Every other word listed stays.
+- **A raider's shot has a tell (G-22):** 0.7 s before she fires, a small puff (size 0.5) at her gun side, and she holds her turn until
+  the shot. Under half her hull she lists 6 degrees and trails a thin smoke (the cannon puff at 0.32, every 0.3 s); under a quarter she
+  runs at her slow speed, turned away, and fires no more (still yours to sink). No bars, no numbers.
+- **The Drowned belt at high water pushes, never snaps (G-23):** an outward push of 12 units/s dying over 1 s, the ship's way cut to x0.2
+  once per push, the scrape as before (5 hull every 2 s). Full game only.
+- **Lantern 3 keeps the dark back (G-24):** the beacon lantern burns its oil x0.8 (`oilRate`). The card's words did not change.
+- **Crown deadlines forgive 15 s (G-33):** `onTime` in `regions.js` (pay and the record's clean line). The formula stays distance / 6 + 60.
+- **The economy meter (G-25):** `?econ=1` (`src/systems/econ.js`; never in the demo or the playtest build) books every gain of gold to a
+  source by what else changed that frame (delivery, passenger, commission, salvage, bounty, treasure, places, relight, fish, fruit, oil,
+  goal, other) and shows gold per hour of game time on the debug line and in `__game.econ`. No numbers yet: they wait for an owner run.
+- **The tones are cues (RULES 25):** the fishing strike notes, the dig's stone and find, and the Music out of the Fog's notes played
+  around `CUES.oneShots`. They are now listed there (`strike`, `strike_gold`, `strike_miss`, `stone`, `find`, `fog_note`), made by
+  `AudioBus.chime` from `TONES`, never loaded, on the mixer's Effects row, rows in AUDIO.md. Same notes, same levels.
+- **clueLint checks each clue's place against its region (G-30), as a warning only;** nothing retagged or moved (the owner picks per
+  clue). It reports: CL-RIBS-a (reef) at the Ribs in Lantern water; CL-D1-a (drowned) at the Sunken Street in Free Cays water;
+  CL-BELL-a (home) at the Drowned Bell in Free Cays or Reef water (seeded, just outside Tama's sector); CL-R1-a (reef) at the Name Wall
+  and CL-R2-a (reef) at the Throwers' Wreck in Free Cays water on about half the seeds (mixed water between wedges).
+- **Docs:** stage n = `stageOf` + 1 written into DESIGN's dread table with the dread numbers (G-31); CANON gives the dread number beside
+  its two stage mentions (0.45 for the Cays, 0.6 for the lost sailors) and the main chain's count today (21) beside the 16; DESIGN
+  lists seven upgrades; `story_export.py` no longer cuts the Table's "seen from far" line at its apostrophe. RULES 24b and 24c stay
+  numbered twice: the second pair is cited by number elsewhere (ARCHITECTURE_AND_LORE_GUIDE.md, the proposals).
+- **Verified (headless, a tenth of real speed):** gate 1650 before a throw and 820 in chapter III with a fully fitted ship, 1950 after it;
+  a ship placed at 1800 before a throw is lost and drifts in; the Table's label hidden before a throw, shown after one; at high water the
+  belt never moves the ship more than 0.4 units a frame, holds her at 1740 and scrapes 5; the raider's puff comes, her heading holds
+  exactly, then the shot (screenshot: the puff beside her hull); a hurt raider smokes and leans, a badly hurt one runs at speed 7 and
+  stops firing; no "Entering" or wind toast while crossing a sector line with the wind swung; lantern 3 burns 0.8 of lantern 2;
+  15 s late is on time, 20 s is not; the meter runs. Smoke: see the commit.
+  **Not verified:** how the tell, the list and the push feel in play, and whether 0.7 s is enough (RULES 40); the tones by ear; the
+  smoke's look (design may restyle it: it is the cannon puff, small); economy numbers (need an owner run with `?econ=1`).
+
+## Actions, interaction and harbour flow (2026-11-16, owner: "build the changes proposed", SYSTEMS_FEEL package 1)
+- **A menu never ends what you were doing** (G-01): Esc, the log, a card, alt-tab: a dig, a fishing line (any stage) and a timed action
+  wait under the menu and come back on close (`suspend`/`resume` in `fishing.js`, `digging.js`; the heave survives a menu too).
+  A movement key held through a menu steers again from its first key-repeat; actions never repeat (G-12).
+- **E forgives** (G-03, G-04, G-13, G-14; numbers at the top of `src/systems/interact.js`): a running action keeps its target until it
+  ends (a passing boat or a torn sail no longer cancels a pick); the last thing in reach stays E-able 0.6 s and 6 units; the anchor's
+  target holds over 8 more units, so E at the edge of reach at full speed still lands; an E pressed 0.25 s early fires. New order:
+  the patch sits above fruit and hails, "sail to the pier" is last. The "bring the ship to a full stop" toasts are gone (six lines
+  retired); a plundered isle or a secret under way simply does nothing (the dug-isle bug).
+- **C works under way** (G-05): the anchor goes down and the power meter starts at speed 2.5; "Too fast to fish" is retired.
+  **The strike forgives 60 ms** either side of a green or gold mark, never a red snag; **C just before the bite hooks it** (0.25 s)
+  (G-06). A water's tip is shown twice, then only its name; a beach's rules twice, then nothing (G-21).
+- **Space in a raider fight only fires** and never skips Mara; a Space 0.25 s before the reload ends fires when it ends (G-07).
+- **Selling keeps what an errand needs** (G-08, `sellable` in `jobs.js`): Sell fish, Sell fruit and the floating market's Sell all.
+  One new line, "kept for your errands", when nothing else is aboard.
+- **A harbour visit lays her alongside** (G-09): speed 0, sails in. **Hold E 0.8 s on the beach** to pack up (G-10): the prompt bar
+  fills; it counts as a failed dig (6 s, the chest moves). **Barrels and crates** are picked up within 6.0 (G-17).
+- **Verified** (headless, a throwaway Playwright script on `window.__game` and the runtime modules): each item above in logic: the line
+  and the beach survive pause and the log and show again; early hook, both strike-tolerance edges and the snag; C at speed 8 starts
+  the meter at 2.2 with the anchor down; a pick survives a torn sail coming in reach and E then patches; E 12.5 off at speed 11
+  heading out lands the pick at rest 16.7 off; the 0.25 s buffer fires and runs out; the grace at 15.5 off; hold-E leaves as a fail
+  and a tap digs one square; ring and beach tips twice then quiet; W repeats after a menu; Space fires with a raider engaged and Mara
+  speaking, and the reload buffer; selling keeps two snapper and three mangoes; docking at speed 8 leaves her at 0. No console errors.
+  **Not verified:** feel (60 ms, 0.25 s, 0.6 s, 0.8 s, the docking's tidiness, the 6.0 pick-up: all H, all named constants);
+  a held pad direction through a menu (the pad sends one keydown, no repeats: `gamepad.js` belongs to the controller package);
+  the touch E button cannot hold to leave a beach.
+
+## Controller, camera and accessibility (2026-11-16, owner: "build the changes proposed", SYSTEMS_FEEL package: controller)
+- **A pad reaches every screen** (G-02, `src/gamepad.js`): in the title, pause (every panel), harbour, log, shipyard, cards, caves,
+  the hut, the tavern dice and the end cards the d-pad or stick moves a focus between the screen's buttons (spatially; a volume slider
+  takes left / right), A presses, B backs out one level then closes, LB / RB change the tab or bookmark. At sea B does nothing and Start
+  pauses. A button or stick still held from the screen before waits to be let go, so the Start that opened the pause does not close it.
+  The tavern games read the pad as keys (A / RT play, X / Y bid, B leaves).
+- **The stick steers by its angle** (G-11): dead zone 0.15, power 1.5, keys win (`rt.padSteer`; `PAD_TUNE` in `gamepad.js`).
+- **Prompts follow the device** (G-18, `src/input.js`): "[E]", "press C / Space", "(S)", "Esc" read "[A]", "X / RT", "(stick down)",
+  "Start" once the pad was last used, and the player's own key after a remap. One pass over the shown text; the code keeps one line.
+- **Rumble** (G-19): Pause > Settings > Display > Rumble, off under reduced motion; bite, catch, hit, coral, the anchor biting, the
+  sail-strain warning (`RUMBLE` in `input.js`); never for a horror beat, never at the Edge.
+- **Keys** (G-20): Pause > Settings > Keys, one row per action, press-to-set, swaps on conflict, Reset all keys; the Controls page and the
+  F1 line name the keys as they are. Saved in `settings.keys` (only the moved actions; an old settings file loads as before).
+- **Zoom without a wheel** (G-15): - / = and the right stick, x1.6 a second. **F** no longer snaps a low tilt up to 0.3.
+- **Look-ahead** (G-16): 0.2 x zoom at rest to 0.32 at full speed, eased 1/s, at rest when anchored.
+- **The ship behind a hill** (G-27): real, measured: in a sweep of 37 harbours (16 headings x 3 zooms x 2 tilts) the ground stood
+  between lens and deck in 32 of 3552 views, all at tilt 0.3, none at the default 0.72. While the player's tilt is blocked the tilt
+  rises up to 0.25 over 0.5 s and settles back after (`OCC_*` in `ui/camera.js`).
+- Docs: DESIGN (Camera, Input with the pad table; the hint is "Y, pad: hold View"), STYLE (Comfort), DEMO_CHECKLIST (the controller row:
+  B does not close at sea).
+- **Verified** (headless, fake `navigator.getGamepads`, full game and demo): title focus and Set sail by pad; Start opens the pause and
+  the same press does not close it; d-pad and A through Settings > Display (Rumble toggles and pulses) and Keys; press-to-set gives
+  Interact K, then E does nothing, K opens the harbour and the prompt reads [K] (keyboard) or [A] (pad); A presses a harbour button
+  without closing it, B closes; Y opens the log, RB turns the bookmark, B closes; a card chosen and closed by d-pad and A; the shipyard's
+  Done by A; stick 0.1 -> 0, 0.5 -> 0.264, 1 -> 1, rudder follows; right stick and = zoom; F from tilt 0.1 rises smoothly; look-ahead 0.31
+  at speed 11; View tap Q, hold Y; the bite cue rumbles once; no console errors. The occlusion lift starts at a blocked pier.
+- **Not verified:** feel of the stick curve, the look-ahead, the lift and rumble strength (RULES 40); a real pad in Chrome and Firefox;
+  RB in a harbour with more than the Board open (a fresh voyage has only the Board); how the pad focus looks on buttons outside
+  `.menu` (the log's bookmarks and page arrows, the harbour's signposts, the shipyard's turn buttons) may need design's eye.
+
+## The Edge, sailed (2026-11-16)
+- Owner: "a playable sequence instead of a short non playable sequence" (CANON 2026-11-16). `src/systems/edge.js` is rewritten;
+  its look moved from `concepts.js` (buildEdge, removed there) to `src/systems/edgeworld.js`. Same place, same things.
+- The helm answers throughout: no camera override, no letterbox, no locked keys (`rt.edgeLock` and `body.edge` are gone). The
+  sea pulls: `edgePull` moves the ship towards the lip (broad and gentle far out, steep close in, growing after about two and
+  a half minutes) and back along it at the ends of the stretch; the wind turns to blow over the lip, so getting out is a beat.
+  Read on the water, not told: foam dashes racing to the lip, the wind ring, the lamp's flame leaning to the lip, the sound
+  going as the lip nears and coming back as you leave.
+- Along the lip each thing comes out of the dark as the ship draws level (the hooded one where the lip is met; the head and
+  the arches one way, the tower and the pillars the other). The pillars are scaled with their distance from the ship, so none
+  ever gets smaller. Each thing, once looked at and then out of sight, is changed once: the hood turned a little to where the
+  ship was, the other eye open, a storey more, a pillar more, an arch fewer. The ends of the stretch close in white mist.
+- Two ways out: over the lip (stepped white mist as before, the ship 180 back, heading for Tama, sail slack) or out past 390
+  from the lip (the lip goes back into the mist; nothing marks it). `state.story.edgeWay` = 'over' | 'out'; `edgeWay()` reads
+  saves without it as 'over' (the watched sequence always went over). Nothing reads it yet.
+- Still once a voyage (`story.edge`). `story.edgeRun` (lip, heading, ends, time, changes) picks the Edge up again after a
+  reload mid-way. The trigger now looks at the cell descriptors: the stretch ends short of any island on the line of the lip
+  (at least 300 each way), and needs the ship's way to the lip clear; islands out in the dark are hidden while it runs.
+- Fixes on the way: the trigger's `rt.lostK > 0` (which held the Edge off for a very long time after any spell lost in fog,
+  since lostK only decays) is now `> 0.01`; the full-dread clock in `abyss.js` (the Eye awakening) holds while the Edge runs.
+- Tuning in `EDGE` at the top of `edge.js`: AHEAD 240, LIP_HALF 560 (LIP_MIN 300), PULL_R 340, EXIT_D 390, C_FAR 2.5,
+  C_EDGE 8, HUNGER 0.8 over 150-240 s, END_V 6, FADE_IN 8, REVEAL 120-270, OVER_D 4, LOOK_T 4, AWAY_T 2, HUSH 0.85, REWIND 180.
+- Verified headless (scripted runs, dread 0.92, no console errors in any): hands off (carried over in about 12 game seconds at
+  full sail with the lip first set 180 ahead; not re-timed at 240, expect about 20; white mist, then 180 back pointing at
+  Tama); along the lip both ways (all five things revealed in turn and each changed once on a second look, about 280 game
+  seconds end to end and back; the end mist and the water running back held the ship at most 598 along); out under sail (beating, about 55 s) and under
+  oars (about 70 s); pause menu and log freeze it and hand it back; save mid-way and reload (picked up at the same lip and
+  time, then carried over; a second reload does not start it again); an old save; the demo (nothing starts, the dev hook
+  refuses). Screenshots in `docs/proposals/edge/`. Frame rate headless with another run on the machine: 4.63 fps without the Edge,
+  4.25 with it (draw calls 63 against 56; triangles 57k against 74k looking at the lip).
+- Not verified: feel, how hard the pull is, the pacing in real time and the sound (headless runs at a tenth of speed); how
+  often the trigger finds a clear stretch in real deep-dread sailing (islands are dense out there; it retries every 2 s).
+- Open (owner): whether the Eye may awaken during the Edge (now: its clock holds); whether 'over' and 'out' should ever mean
+  anything (the flag is kept, unused); the tuning numbers above.
+
+## Regional mechanics and puzzles, first set: Home, Crown, Free Cays, Deep (2026-11-17, owner: "build the suggested puzzles", REGIONAL_CATALOGUE section 9 and P-HOME-4)
+- **Noon slack** (M-HOME-1, demo too; `systems/home.js`): from 11:30 to 12:30 within 260 of Tama the noon hush holds for the hour (it no
+  longer rests on the bell's one stroke, so B-12 can be decided freely): the swell lies down, no new gust patch forms, the Sound's
+  current lanes run at half strength and their foam fades with them. The seabed showing in the shallows is not built (design's,
+  `seawater.js`).
+- **Fishers' marks and the empty mark** (M-HOME-2, P-HOME-2, demo too; `systems/homemarks.js`): three marks a seed, each on the line
+  through two tall things (Tama's light, Wick's light, the Grey Tooth, the Drowned Bell, Hollowgreen), past the nearer one, at the most
+  open water in the Sound, never on the Kestrel's lines and never by a harbour. A Tama or Velto boat lies at anchor on each from 06:00 to
+  15:00 (out from 04:30, in by 16:30). Within 12 of a mark the bite wait is x0.7 and snapper, bream and grouper bite as in their own
+  water and hour. On this seed all three marks have Tama's light as the near thing (the shuffle per seed decides which pairs fit).
+- **Gulls go home** (M-HOME-3, demo too; `secrets.js`): in Home Sound the dusk gulls fly to Tama's harbour, at dawn out from it, and fly
+  60 off a shore (120 elsewhere: the Sound is too crowded for the lesson to show otherwise).
+- **The Sunday race** (P-HOME-4, demo too; `systems/race.js`): on a Sunday with the ship in Home Sound the passing regatta stays away and
+  its five hulls gather off Tama instead: four boats hove-to beside a committee boat with a large flag, on a course that never leaves along
+  the main pier (126 from the pier head on this seed). At 14:00 the flag comes down and they make sail together, round a rolled isle 150 to
+  220 out and come back. Start by the committee boat, round behind the isle, pass it again ahead of at least one boat: one row on Tama's
+  board, "The regatta purse", 30 to 60. The risk is contained by taking the regatta's own hulls (no extra boats), a start offshore, and
+  nothing said; AI is a simple polar (x0.5 close to the wind) with four fixed speeds.
+- **Pennants come down** (M-CROWN-1, demo too; `systems/crown.js`, `regiondecor.js`): the destination's signal mast flies one pennant per
+  game hour left on a timed run (four for a 110 s run) and strikes one each hour.
+- **Rowing the lane** (P-CROWN-1, demo too): it already worked (`inLane` is where, not how); the first time, Mara: "Oars, Captain? In front
+  of the whole town?"
+- **The line already written** (P-CROWN-5, full game only; `systems/crown.js`): once a voyage, after `arrivals`, the first timed Crown run
+  of 350 or more offered shows its faint next line black. Taken, no grace: on time, a clean tick and a faint black mark struck through
+  kept in the row (`state.story.lineStruck`); late, the usual black line. One flag (`state.story.lineAhead`), never in the log.
+- **Turned-round day** (M-FREE-1, demo too; `regions.js caysAsleep`, `ui/harbour.js`): 07:00 to 17:00 a Cays harbour sleeps: no passengers,
+  residents, commissions, rumours, old stories or overheard lines; only deliveries out of the Cays; an empty board reads "The quay is
+  asleep. Come back after dark." While the main goal in hand needs a harbour's people (Earn your keep, Passage, Meet the locals, Ask
+  around, Perrin's Cays letter) the Cays stay awake. The sleeping figures on the quay are not built (design's).
+- **Lamp out to see the shore** (P-FREE-3, demo too; `systems/farlights.js`, `psx.js uFarLight`): at night lights further than 150 burn at
+  0.55 with the lamp lit; with it out, after 2.5 s and over 1 s more, they burn at x1.8 and carry twice as far as with the lamp lit. First
+  time in Cays water at night, Mara: "Lamp out a moment. There. Lights." Fixed on the way: the ship's lantern pool shared `mats.glow`
+  with every lantern string and float lamp and dimmed it to 0.05 with the lamp out, so they all went out with your lamp; the pool now
+  has `mats.shipGlow` and the shared material keeps the level it had with the lamp lit.
+- **Against the gulls** (P-DEEP-1, full game: the demo has no dread): nothing new; checked that past dread 0.55 the dusk gulls fly away
+  from land.
+- **Numbers:** all in `src/regions.js` (Home Sound, Crown, Cays and far-light blocks) except the marks' placement rules (top of
+  `systems/homemarks.js`) and the race's waypoint radius, pier avoidance and line spacing (top of `systems/race.js`). DESIGN.md has the
+  table. CANON 2026-11-17. No lore ID adopted.
+- **Verified** (headless, the built game through `vite preview`, `window.__game`): slack: homeSlack and homeCalm reach 1 at 11:45 near Tama,
+  no gust patch born in the slack, a ship at rest in the Tooth Run drifts 1.52 units/s against 2.98 after 13:00, it lets go beyond the
+  bell's reach and after 12:30; marks: three on the seed, all inside the Sound, the boat on its mark at 10:00 and gone at 16:48 with the
+  ship away, waitMul 0.7 on the mark and 1 at 20 off, snapper and grouper x33 and x133 fit on the mark at 15:36, tuna unchanged, the same
+  in the demo; gulls: home dusk to Tama (0.15 rad), home dawn out from it (0.10), elsewhere to the nearest land, deep dusk away from it
+  (3.04); race: five hulls and no passing regatta, none within 126 of the main pier head, flag down at 14:00, all four move, the start,
+  the rounding, a finish ahead of all four gives 60, the row on Tama's board pays once, the same in the demo; pennants 4, 3, 0 over a 110 s
+  run and 6 elsewhere; rowing in the buoys sets the lane and the oars flag (it waits out the story quiet near the hut, as it should); the
+  line already written: black on a 699 run, on time gives a clean tick and the struck mark, never again on 40 later offers, never in the
+  demo; Cays boards at 10:00 over 12 serials: no passage, commissions or residents and no Cays-bound delivery, at 21:00 all of them; no
+  gossip by day; the Passage goal keeps them awake; same in the demo; far lights 0.55 lit, 1.8 and twice the lit reach out, 1 by day,
+  Mara's line once. No console errors in any run. Screenshots in `docs/proposals/puzzles/`.
+  **Not verified:** feel (the slack's calm, the race's fairness and pace, the 350 "tight" run, the 3 s eye adjustment: all H, all named
+  constants); whether the far lights read at full resolution on a real screen; a race sailed start to finish in real time (the boats were
+  watched to start and move; the captain's legs were placed by teleport); the board strings ("The quay is asleep...", "The regatta purse")
+  are not picked up by `story_export.py`, like the board line they sit beside.
+- **Touches other areas:** design: `psx.js` (one uniform, the far-light lines in the shared shader, `mats.shipGlow`), `ship.js` (the pool's
+  material), `regiondecor.js` (each pennant its own state prop), `index.html` (`.ledgerrow .struck`); STYLE.md updated. Story export:
+  `scripts/story_export.py` reads `systems/crown.js`, `farlights.js`, `race.js` as main.js text.
+
+
+## Regional mechanics and puzzles: Reef, Lantern, Drowned (2026-11-17, owner: "build the suggested puzzles", REGIONAL_CATALOGUE.md 9)
+- **M-REEF-1 Teeth under the tide** (`regiondecor.js`; `REEF_SLICK_TIDE` 0.4, `REEF_RING_TIDE` 0.7 in `regions.js`): the coral shows by
+  the tide: black teeth in white water, then only the tips awash in a pale-green slick, above 0.7 a faint ripple ring over each head.
+  It bites the same at any tide. Three tide states per head, so the look steps at each threshold.
+- **P-REEF-2 Before the tide takes it** (`reef.js`): built as it was; `STORM_WRECK_LOW` -0.5 and `STORM_WRECK_WAIT` 60 are named.
+- **P-REEF-4 The stake with no wreck** (`reef.js`, full game only, after the first throw, once a voyage, `state.story.reefStake`): a
+  stake with a white rag in open Reef water; E finds nothing; the next blow raises its wreck beside it; low water takes the wreck, the
+  stake stays. L-16 adopted for this; one stake on the water allowed against RULES 24c (nothing solid). Never explained, no clue.
+- **P-LANT-1 Keep in sight of a light**: built as it was (nothing new).
+- **M-LANT-1 Every light its rhythm** (new `systems/lantern.js`; `lightRhythm`, `rhythmOn`, `RHYTHM_*` in `regions.js`; chart ink in
+  `chartstyles.js`): each lit Guild lighthouse flashes its own pattern; once within 45, the chart inks it in dots and dashes.
+- **P-LANT-3 The keeper's supper** (`systems/lantern.js`, `SUPPER_*`; interact kind `supper` after `relight`): at dusk a lone Guild
+  light's keeper swings his lantern; anchor under it and a basket trades a fish for 20 oil. One Mara line, once, when the basket
+  comes down empty.
+- **M-DROWN-4 Low-water hours** (`drownedOpen`, `DROWNED_OPEN_TIDE` 0 in `regions.js`; `ui/harbour.js`; the awash pier in
+  `regiondecor.js`): a Drowned harbour gives and keeps only below tide 0; above it the pier lies under a film of water and the market
+  says "The planks are under water. Nobody comes down."
+- **P-DROWN-2 A fish for the pier**: built as it was; with M-DROWN-4 it waits for low water.
+- Small hooks: `main.js` (import, `lanternTick` call, a generic `tgt.prompt`), `interact.js` (target, `HEAVE_KINDS`, range),
+  `core/state.js` (`rhythm`, `supper` in `STORY_SHAPE`), `world.js` (`lampAt.y`), `story_export.py` (lantern.js in MAIN_PARTS).
+- **Open, for the owner:** whether the stake's second look ever feeds Q3 (no clue added); whether the keeper should come out on a
+  dead light (now he does not).
+
