@@ -2155,3 +2155,10 @@ Headless: every ending screen shows its card and line; Good Dreams' four stages 
 Gull in the same place and pose as on the card. **Not verified:** the hand-back at full speed. **Open:** at the Table the deep water's dread
 greys the live world, so after Good Dreams' blue card the game is darker (canon: Good Dreams goes on as it was); the owner may want the
 dread there eased for a while after it.
+- **Cards, second pass (same day, owner's references):** the Table is now drawn after the owner's reference pictures: a long farmhouse
+  table seen at an angle, a whitewashed plank top worn to grey wood (colours measured off the reference), a deep apron, four square chipped
+  legs, slatted chairs at the ends, the one in the far chair seated and bent to the book (the old woman asleep on her arm in the Long Sleep).
+  The guitar in the Tune is drawn after the reference's dreadnought (tan top darker to the edge, the dark side, a ringed soundhole, a low
+  bridge, a dark neck, pegs), leaning on your chair. Your Seat follows the owner's interior reference inside the round hut: curved log
+  walls, the thatch's beams overhead, bone charms on strings, a small window glowing purple with torn grey curtains, the door open on the
+  night sea (a ship's light, someone coming up the boards), her book open on the table under the candle, a closed red book, the die.
