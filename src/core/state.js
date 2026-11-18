@@ -3,6 +3,7 @@
 import { params, saved } from './config.js';
 import { DEFAULT_CUSTOM } from '../customize.js';
 import { installPixelUI } from '../pixelui.js';
+import { LANDMARKS, LM_BEFORE, forcedCells } from '../landmarks.js';
 
 installPixelUI();   // the pixel-UI textures and icons (CSS); kept here so it runs before the state, as it always has
 export const state = {
@@ -72,6 +73,20 @@ export function trimState() {
   for (const k of Object.keys(state.hints)) { const m = /^front:(\d+)$/.exec(k); if (m && +m[1] < state.dayN - 1) delete state.hints[k]; }
 }
 if (params.has('x')) state.pos = { x: +params.get('x'), z: +params.get('z') || 0, h: +params.get('h') || 0 };
+// D3 (2026-11-18): five clue places moved to their own region's water (landmarks.js LM_BEFORE). An old save's chart follows them
+// (the charts change); islands now under their open water leave the chart, and an errand to a harbour that is gone is dropped.
+if (!state.story.lmMoved) {
+  const now = forcedCells(), was = forcedCells(true), gone = new Set(Object.keys(now).filter((k) => !(k in was) || (was[k] && (!now[k] || now[k].lm !== was[k].lm))));
+  const moved = [];   // [book, key, entry]: a moved place's chart entry, taken out and put back at its new cell after the clearing
+  for (const l of LANDMARKS) { const o = LM_BEFORE[l.lm]; if (!o) continue;
+    for (const book of [state.discovered, state.rumoured]) for (const [k, e] of Object.entries(book)) if (e && e.name === l.name && e.x === o.x && e.z === o.z) {
+      delete book[k]; moved.push([book, k === o.key ? l.key : k, { ...e, x: l.x, z: l.z }]); }
+  }
+  for (const k of gone) { delete state.discovered[k]; delete state.rumoured[k]; }
+  for (const [book, k, e] of moved) book[k] = e;
+  for (const f of ['job', 'passenger']) { const e = state[f]; if (e && (gone.has(e.toId) || gone.has(e.fromId))) state[f] = null; }
+  state.story.lmMoved = 1;
+}
 if (!state.goals.v) { if (state.goals.i > 15) state.goals.i--; state.goals.v = 2; }
 if (state.goals.v < 3) { const i = state.goals.i; state.goals.i = i - (i > 12 ? 1 : 0) - (i > 13 ? 1 : 0) - (i > 15 ? 1 : 0); state.goals.v = 3; }   // saves from before Odd jobs (12), Salvage rights (13) and the raider (15) became optional side goals   // saves from before "A bed for the night" (goal 15) was dropped: it made you wait for 17:00
 

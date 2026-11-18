@@ -48,7 +48,13 @@ const FORCED = {
   '-1,0': { type: 'sandbar', x: -112, z: 30 },
 };
 // the hand-made places (landmarks.js) and the open water round them; the starter cells above win
+// BEFORE: the same cells as they were before the clue places moved (D3, 2026-11-18; landmarks.js LM_BEFORE). The rolls that decide
+// where the villages and the hut stand read BEFORE, so on every seed they stand where they always did; only the moved places'
+// own cells (and the open water round them) differ.
+const BEFORE = { ...FORCED };
+for (const [k, v] of Object.entries(forcedCells(true))) if (!(k in BEFORE)) BEFORE[k] = v;
 for (const [k, v] of Object.entries(forcedCells())) if (!(k in FORCED)) FORCED[k] = v;
+const has = (F, k) => Object.prototype.hasOwnProperty.call(F, k);
 const TYPE_TABLE = [['sandbar', 0.28], ['jungle', 0.28], ['rocky', 0.2], ['treasure', 0.12], ['harbour', 0.12]];
 
 // The sea is mostly open: island chance follows a slow noise field, so there are archipelagos and long
@@ -71,13 +77,13 @@ const PLANNED = new Map();
 export function plannedHarbours(seed) {
   if (PLANNED.has(seed)) return PLANNED.get(seed);
   const set = new Set(); PLANNED.set(seed, set);
-  const nearForced = (cx, cz) => { for (let dz = -1; dz <= 1; dz++) for (let dx = -1; dx <= 1; dx++) if (Object.prototype.hasOwnProperty.call(FORCED, `${cx + dx},${cz + dz}`)) return true; return false; };
+  const nearForced = (cx, cz) => { for (let dz = -1; dz <= 1; dz++) for (let dx = -1; dx <= 1; dx++) if (has(BEFORE, `${cx + dx},${cz + dz}`)) return true; return false; };
   for (const [reg, R] of PLAN_WANT) {
     const w = WEDGES.find((q) => q.id === reg); let pick = null;
     for (const strict of [true, false]) for (let dr = 0; dr <= 180 && !pick; dr += 30) for (const sr of [1, -1]) for (let da = 0; da <= w.half && !pick; da += 5) for (const sa of [1, -1]) {
       if (pick) break;   // first a cell clear of the hand-made places and their neighbours; failing that, one beside them (never on one)
       const a = (w.a + sa * da) * Math.PI / 180, r = R + sr * dr, cx = Math.round(Math.cos(a) * r / CELL), cz = Math.round(Math.sin(a) * r / CELL), k = `${cx},${cz}`;
-      if (set.has(k) || (strict ? nearForced(cx, cz) : Object.prototype.hasOwnProperty.call(FORCED, k)) || Math.max(Math.abs(cx), Math.abs(cz + 1)) <= 2) continue;
+      if (set.has(k) || (strict ? nearForced(cx, cz) : has(BEFORE, k)) || Math.max(Math.abs(cx), Math.abs(cz + 1)) <= 2) continue;
       if (sectorAt(cx * CELL, cz * CELL, seed).faction.id !== reg) continue;
       pick = k;
     }
@@ -90,7 +96,7 @@ const isPlanned = (cx, cz, seed) => plannedHarbours(seed).has(`${cx},${cz}`);
 /** the cell's type before village spacing (same rolls as describeCell) */
 function rawCellType(cx, cz, seed) {
   const key = `${cx},${cz}`;
-  if (Object.prototype.hasOwnProperty.call(FORCED, key)) return FORCED[key] ? FORCED[key].type : null;
+  if (has(BEFORE, key)) return BEFORE[key] ? BEFORE[key].type : null;   // as the world was rolled before D3 (see BEFORE)
   if (isPlanned(cx, cz, seed)) return 'harbour';
   const rng = mulberry32(hash2(cx, cz, seed));
   if (rng() > islandChance(cx, cz, seed)) return null;
@@ -111,10 +117,10 @@ function harbourWins(cx, cz, seed) {
 
 // village customs: things you can see, never explained (see docs/PROGRESS.md, Villages with character)
 export const CUSTOMS = ['whitewash', 'lanterns', 'nochildren', 'choir', 'nightboats', 'kites', 'bells', 'laundry', 'statues', 'silent'];
-export function describeCell(cx, cz, seed) {
+export function describeCell(cx, cz, seed, F = FORCED) {
   const key = `${cx},${cz}`;
   const rng = mulberry32(hash2(cx, cz, seed));
-  const forced = Object.prototype.hasOwnProperty.call(FORCED, key) ? FORCED[key] : undefined;
+  const forced = has(F, key) ? F[key] : undefined;
   if (forced === null) return null;
   const roll = rng();
   const plan = forced === undefined && isPlanned(cx, cz, seed);
@@ -1727,17 +1733,20 @@ export class World {
     this.tide = 0;   // -1 low .. +1 high, set by the game from the clock
     // the dark hut: one island 5-7 cells out (well past the fog from where you start), the loneliest one there is: the one
     // whose nearest neighbour is furthest away, so it is not found by accident on the way to somewhere else
+    // (read on the world as rolled before the clue places moved, BEFORE above: the hut stays on the island it always had)
+    const was = new Map(), wasDesc = (cx, cz) => { const k = `${cx},${cz}`; if (!was.has(k)) was.set(k, describeCell(cx, cz, seed, BEFORE)); return was.get(k); };
     let best = null, bs = -Infinity;
     for (let cz = -7; cz <= 7; cz++) for (let cx = -7; cx <= 7; cx++) {
       const ring = Math.max(Math.abs(cx), Math.abs(cz));
       if (ring < 5) continue;
-      const d = this.desc(cx, cz);
+      const d = wasDesc(cx, cz);
       if (!d || d.lm || (d.type !== 'jungle' && d.type !== 'rocky')) continue;
       let near = Infinity;
-      for (let dz = -3; dz <= 3; dz++) for (let dx = -3; dx <= 3; dx++) { if (!dx && !dz) continue; const o = this.desc(cx + dx, cz + dz); if (o) near = Math.min(near, Math.hypot(o.x - d.x, o.z - d.z) - o.r); }
+      for (let dz = -3; dz <= 3; dz++) for (let dx = -3; dx <= 3; dx++) { if (!dx && !dz) continue; const o = wasDesc(cx + dx, cz + dz); if (o) near = Math.min(near, Math.hypot(o.x - d.x, o.z - d.z) - o.r); }
       const score = Math.min(near, 400) + (hash2(cx, cz, seed + 77) % 1000) / 1000;   // lonely first; the hash only breaks ties
       if (score > bs) { bs = score; best = d; }
     }
+    if (best) best = this.desc(...best.id.split(',').map(Number));   // the island itself (the same roll; a moved place's water never covers rings 5 to 7)
     if (best) {
       best.hut = true; this.hutId = best.id;
       // a land of its own: bigger, a ragged outline, dark ground (faceColor) and dead growth (blightDecor) instead of the bright jungle
