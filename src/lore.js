@@ -96,6 +96,7 @@ const NOTES = [
     'The Grey Tooth keeps a tin box on its top. Bring a pencil.',
     'If you find this at low tide, look around. The sea is generous when it is out.',
     'To my sister in Velto: I am fine. The captain is a fool. The food is good. Burn this.',
+    'The gulls followed us all morning. Cook says they carry the news. They were very loud about it.',   // L-30 (the lore bible, a draft)
   ],
   [ // off
     'Day 20. The gulls have stopped following the boat. Cook says it\'s the weather. There is no weather.',
@@ -106,6 +107,8 @@ const NOTES = [
     'The birds fly home at dusk and we follow them. Tonight they flew the other way.',
     'Somebody keeps leaving the lantern on the stern lit. Nobody admits it. It is always lit.',
     'The man on the empty island waved. When we came back, there was no island.',
+    'We are the first to sail this far, I am sure of it. The wreck we passed must be newer than it looks.',   // L-01: nobody agrees who came first
+    'Fog all day. We heard a bell the whole way. There is no bell out here.',   // L-29
   ],
   [ // wrong
     'The compass points at the water now, not north. Down. We have stopped looking at it.',
