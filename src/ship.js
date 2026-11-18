@@ -354,7 +354,7 @@ export class Ship {
     const gg = new THREE.BufferGeometry();
     gg.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
     gg.setAttribute('color', new THREE.Float32BufferAttribute(col, 4));
-    this.glow = new THREE.Mesh(gg, mats.glow);
+    this.glow = new THREE.Mesh(gg, mats.shipGlow);   // its own material: the lamp going out must not put out every other light (P-FREE-3)
     this.glow.renderOrder = 3;
     this.glow.frustumCulled = false;
     scene.add(this.glow);
@@ -536,7 +536,8 @@ export class Ship {
     const lk = (this.lampK || 1) * (this.lampBoost || 1);   // lamp strength setting (daynight.js LAMPS)
     night = Math.max(night, 0.7 * (this.stormLight || 0));   // in a storm the lantern is lit and shows like at night
     this.glow.scale.setScalar((5 + 3 * L + 4 * night) * (0.55 + 0.45 * lk));   // at night the lantern is the light you sail by: a wide warm pool on the water
-    mats.glow.opacity = Math.min(0.95, (0.12 + 0.6 * night * (0.7 + 0.15 * L)) * (L === 0 ? 0.75 : 1) * (0.6 + 0.4 * lk)) * (this.lampOut ? 0.05 : 1);   // no oil: the lantern is out
+    mats.glow.opacity = Math.min(0.95, (0.12 + 0.6 * night * (0.7 + 0.15 * L)) * (L === 0 ? 0.75 : 1) * (0.6 + 0.4 * lk));   // the world's lamps keep the level they always had
+    mats.shipGlow.opacity = mats.glow.opacity * (this.lampOut ? 0.05 : 1);   // no oil: the lantern is out
 
     // wake
     this.puffTimer -= dt;

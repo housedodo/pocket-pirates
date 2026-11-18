@@ -7,6 +7,24 @@ import { sectorAt } from './sectors.js';
 /** whose waters (x, z) are: 'crown' | 'free' | 'reef' | 'lantern' | 'drowned'; Tama's own sector counts as home */
 export const regionAt = (x, z, seed) => { const s = sectorAt(x, z, seed); return s.sx === 0 && s.sz === 0 ? 'home' : s.faction.id; };
 
+// ---- Home Sound: what is learnt near home is used far out (REGIONAL_CATALOGUE M-HOME-1..3, P-HOME-2, P-HOME-4; owner 2026-11-17)
+export const TAMA_ID = '0,-1';
+export const HOME_SOUND_R = 450;    // Home Sound's reach from Tama (systems/home.js HOME_R)
+export const GULLS_HOME_R = HOME_SOUND_R;   // M-HOME-3: inside it the dusk gulls fly to Tama's harbour (dawn: out from it), not the nearest land (secrets.js)
+export const GULLS_HOME_EDGE = 60;   // and they cross open water from 60 off any shore (120 elsewhere): the Sound is small, the lesson must show
+// M-HOME-1 the noon slack: from 11:30 to 12:30 within the bell's reach the hush holds for the hour (systems/home.js, seaplay.js)
+export const SLACK_FROM = 11.5, SLACK_TO = 12.5, SLACK_LANES = 0.5;   // hours; the Sound's current lanes run at half strength
+// M-HOME-2 the fishers' marks (systems/homemarks.js, fishing.js)
+export const MARK_R = 12, MARK_WAIT = 0.7, MARK_FISH = ['snapper', 'bream', 'grouper'];
+export const MARK_OUT = 6, MARK_HOME = 15, MARK_SAIL = 1.5;   // the boats lie on their marks from 06:00 to 15:00; an hour and a half each way
+// P-HOME-4 the Sunday race (systems/race.js)
+export const RACE_DAY = 6, RACE_GATHER = 13, RACE_START = 14, RACE_END = 16.5;   // Sunday; they gather at 13:00, the flag drops at 14:00, home by 16:30
+export const RACE_MARK = [150, 220];        // the rolled isle they round lies this far from Tama
+export const RACE_START_OFF = 60;           // the committee boat lies this far off Tama's shore, on the course (never along the main pier)
+export const RACE_SPEEDS = [5.6, 6.2, 6.8, 7.4];   // the four boats' best speeds (the Gull runs at up to 11 with a good wind)
+export const RACE_START_R = 45, RACE_ROUND_R = 40, RACE_FINISH_R = 25;   // start by the committee boat, round behind the isle, finish past it
+export const RACE_PURSE = 30, RACE_PURSE_EACH = 10;   // the purse for beating one boat, and for each other one (30 to 60)
+
 // ---- what a harbour's market pays and charges (ui/harbour.js market)
 const isNight = (hour) => hour >= 19 || hour < 5;
 /** the Cays are quiet while somebody plays (task L5, CANON 2026-11-12): everything safe about their night follows the music
@@ -33,6 +51,20 @@ export function marketNote(d, quiet) {
   return '';
 }
 
+// ---- the Free Cays live by night (M-FREE-1, owner 2026-11-17; ui/harbour.js): from 07:00 to 17:00 a Cays harbour sleeps. No passengers,
+// no residents, no commissions, no gossip, and the board posts only deliveries out of the Cays. By the hour in both builds. While the
+// main goal in hand needs a harbour's people (CAYS_WAKE_FOR) the Cays stay awake, so the story never waits on the clock.
+export const CAYS_SLEEP = [7, 17];
+export const CAYS_WAKE_FOR = ['job', 'passenger', 'tavern', 'gossip', 'perrin_free'];
+export const caysAsleep = (region, hour, goalId) => region === 'free' && hour >= CAYS_SLEEP[0] && hour < CAYS_SLEEP[1] && !CAYS_WAKE_FOR.includes(goalId);
+
+// ---- P-FREE-3 lamp out to see the shore (systems/farlights.js, psx.js uFarLight): far lights, by night, everywhere; the Cays are where it pays
+export const FAR_FROM = 150;   // lights further than this from the eye
+export const FAR_LIT = 0.55;   // their brightness while your own lamp burns
+export const FAR_OUT = 1.8;    // and with it out, once the eyes have adjusted
+export const FAR_REACH = 2;    // they carry this much further through the dark and fog
+export const FAR_EYES = 2.5, FAR_EYES_RAMP = 1;   // seconds before the eyes adjust, and how long that takes (3 s in all to the middle)
+
 // ---- the Free Cays: the dark keeps quiet while somebody plays (traffic.js)
 /** the chance that a spawned ship in these waters is a raider; the Reef always, the Cays only while nobody plays. quiet: caysQuiet() */
 export function raiderChance(faction, quiet) {
@@ -53,6 +85,8 @@ export function recordMul(rec) {
 }
 /** a Crown delivery's time allowed (game seconds, as on the clock of the voyage): distance / 6 + 60, a good line makes it */
 export const deadlineFor = (dist) => Math.round(dist / 6 + 60);
+export const PENNANTS = 6;      // M-CROWN-1: a signal mast's pennants; one is struck for each game hour gone on a timed run there (systems/crown.js)
+export const TIGHT_DIST = 350;  // P-CROWN-5: the one run whose line is already written is a long one (pier to pier; 118 s allowed)
 
 // ---- the Lantern Guild: the lights must be kept lit (oil.js, ui/harbour.js)
 export const OIL_SELL = 0.9;   // what a Lantern harbour pays a unit of oil (Tama sells at OIL_PRICE)
@@ -90,7 +124,7 @@ export function jobPay(state, j, toRegion) {
 }
 /** the record as a row of marks, no words: a tick per clean line (up to 8), a dark mark per black one. ahead (the `arrivals`
  *  capability, clue CL-C1-a: the ledger had the name before the ship came): the next line is already there, faint, before it is earned */
-export const recordMarks = (state, pxi, ahead = false) => { const r = crownRec(state); return pxi('check').repeat(Math.min(8, r.clean)) + '<i class="blackline"></i>'.repeat(r.black) + (ahead ? `<span class="ahead">${pxi('check')}</span>` : ''); };
+export const recordMarks = (state, pxi, ahead = false, aheadBlack = false) => { const r = crownRec(state); return pxi('check').repeat(Math.min(8, r.clean)) + (state.story.lineStruck ? '<i class="blackline struck"></i>' : '') + '<i class="blackline"></i>'.repeat(r.black) + (ahead ? `<span class="ahead">${aheadBlack ? '<i class="blackline"></i>' : pxi('check')}</span>` : ''); };   // aheadBlack: P-CROWN-5, the line already written (systems/crown.js); struck: it was beaten
 /** a Crown harbour you sail into between its buoys: one clean line a day per harbour (main.js, on docking) */
 export function laneArrival(state, d, came) {
   if (d.region !== 'crown' || !came || came.id !== d.id) return false;

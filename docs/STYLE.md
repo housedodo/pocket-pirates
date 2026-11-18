@@ -83,6 +83,9 @@ purple and magenta cosmic horror as dread rises.
   slides with the camera.
 - **Night is dark:** light floor 0.17 of day, near-black navy sky and fog, a short view; what you see by is the lantern's warm
   pool on the water, lit windows, lighthouses and the moon. With the lamp out the dark comes right up to the hull.
+  Far lights (2026-11-17, P-FREE-3): with the lamp lit, glowing things further than 150 burn at 0.55; with it out, after about 3 s,
+  they burn at 1.8 and carry twice as far through the fog. Only the ship's own pool goes out with the lamp (`mats.shipGlow`); the
+  world's lamps keep their level (`psx.js uFarLight`, `systems/farlights.js`).
 - **Torn sail:** dark holes you can see through, long thin rips, the clew corner gone, three loose rags flapping; the sail
   bar blinks orange while the canvas strains, red while torn.
 - **Lamp oil HUD:** a small pixel flame and an amber bar in the hull panel; below a quarter the bar turns red and the
@@ -180,7 +183,8 @@ purple and magenta cosmic horror as dread rises.
   the main pier: the main pier is kept clear for the captain.
 - **Each region's things on the water** (`src/regiondecor.js`), along the way in to its islands (a harbour's pier direction):
   Crown: a lane of red cans and green cones into every harbour, lit red and green at night, and a tall white signal mast with a
-  pennant string. Free Cays: thatched houses on stilts beside the approach, canoes, coloured lantern strings at night. Reef: black
+  pennant string; carrying a timed delivery to that harbour, the mast flies one pennant per game hour left and strikes one an hour
+  (M-CROWN-1, 2026-11-17). Free Cays: thatched houses on stilts beside the approach, canoes, coloured lantern strings at night. Reef: black
   coral heads in flat white breakers (a channel kept open at harbours), a mast leaning out of the water. Lantern: two rows of lamps
   on floats lining the way in, amber day and night, a tall dark tower with a light on top. Drowned: slate roofs to the ridge with
   chimneys, a leaning belfry (full game only). Lamps use the glow material (additive, never fogged). Home Sound and the hand-made
@@ -194,6 +198,9 @@ purple and magenta cosmic horror as dread rises.
 - Menus (`.menu`): the same idea with a gold inner ring and a dark outer ring. Buttons have dithered
   tiles, stepped borders and a gold border on hover/focus.
 - Bars: hard fills with a 4px stripe pattern, stepped dark border.
+- **The Crown's record row** (`.ledgerrow`): green ticks, black squares for black lines, the next line faint at 0.4. The line already
+  written (P-CROWN-5, 2026-11-17) is a faint black square in that place; beaten, it stays as a faint black square struck through by a
+  2px pale horizontal bar (`.struck`), never a diagonal (no anti-aliased strokes).
 - **No emoji or symbol glyphs anywhere.** Icons in text use `pxi('name')` (7x7 pixel glyphs in `src/pixelui.js`: fish, fruits, crate, skull, letter, stars, checks, arrows...). Icons are pixel sprites written as character grids in `src/pixelui.js` (coin, sun, moon, flag, heart, sail,
   Mara's anchor and her "eye" when she breaks). New icons go there in the same format.
 - The HUD shows as little text as possible: gold, time, place. Everything else is in the log or the Q tracker.

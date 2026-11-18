@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { clamp, smoothstep, angleDiff, mulberry32, hash2 } from './util.js';
 import { regionLook, regionWeights } from './systems/regionlook.js';
 import { setDecorDay } from './regiondecor.js';
-import { regionAt, caysQuiet, jobPay, onTime, crownLine, inLane, lampDead, RELIGHT_OIL } from './regions.js';
+import { regionAt, caysQuiet, jobPay, onTime, crownLine, inLane, lampDead, RELIGHT_OIL, MARK_WAIT } from './regions.js';
 import { reefTick } from './systems/reef.js';
 import { drownedTick } from './systems/drowned.js';
 import { sampleStage, stageOf, DARK_THRESHOLD, dreadAtDistance, dreadWithPeak, strataIndex } from './palette.js';
@@ -92,6 +92,10 @@ import { econ, econTick, econLine } from './systems/econ.js';   // ?econ=1: gold
 import { after, laterTick, laterPending } from './systems/later.js';
 import { ringNoon, noonBellTick, noonPending } from './systems/noonbell.js';
 import { homeShift, homeTick, homeLook } from './systems/home.js';
+import { HomeMarks } from './systems/homemarks.js';
+import { lineLate, laneOars, pennantsAt } from './systems/crown.js';
+import { farLightTick, LIGHTS_LINE, LAMP_OUT_FAR } from './systems/farlights.js';
+import { raceTick, holdRegatta, raceNow } from './systems/race.js';
 import { LANDING, landThrow, landedAt } from './systems/landing.js';
 import { trackTarget, goldShown, etaText, slipInfo, drawCompass, updateTracker, initHud } from './ui/hud.js';
 import { LOCALS, localGames, pig, maraMood, openCard, caveScene, COLOUR_DEEP, COLOUR_SHALLOW, openCave, tabletopTick, signOn, daysLeft, crewLeave, wishDone, initEncounters } from './ui/encounters.js';
@@ -208,6 +212,8 @@ function eventQuiet() {
 rt.seaWave = 1;
 const fauna = new Fauna(scene, world);
 const traffic = new Traffic(scene, world, state.seed);
+traffic.holdRegatta = () => holdRegatta(world, ship);   // the Sunday race in Home Sound (systems/race.js)
+const homeMarks = new HomeMarks(scene, world, traffic, state.seed, secrets.kestrel);   // three boats on their marks by day (systems/homemarks.js)
 traffic.onCustoms = () => {   // a Crown customs cutter has looked in the hold (regions.js)
   const j = state.job;
   if (j && j.dark) { state.job = null; crownLine(state, 'black'); toast(`A customs cutter comes alongside and takes the ${j.item}. A black line in the Crown's book.`, true, 7000); }
@@ -369,11 +375,11 @@ function fishEnv() {
   if (edge < 40) zones.push('shallows');
   if (edge > 230) zones.push('deep'); else if (edge > 110) zones.push('open');
   if (!zones.length) zones.push('mid');
-  return { zones, label: ZONE_LABEL[zones[0]], hour: state.time * 24, low: tideAt() < -0.3, rough: weather.storm > 0.3 || weather.rain > 0.55, colour: !!threads.patchAt(x, z, 1), region: regionAt(x, z, state.seed) };
+  return { zones, mark: !!homeMarks.atMark(x, z), label: ZONE_LABEL[zones[0]], hour: state.time * 24, low: tideAt() < -0.3, rough: weather.storm > 0.3 || weather.rain > 0.55, colour: !!threads.patchAt(x, z, 1), region: regionAt(x, z, state.seed) };
 }
 const fishing = new Fishing(scene, ship, {
   toast: (t) => toast(t),
-  getCtx: () => ({ bonus: Math.max(0, ship.mods.lootMul - 1) + (life.meal(state) === 'stew' ? 0.8 : 0), dread: rt.dread }),
+  getCtx: () => ({ bonus: Math.max(0, ship.mods.lootMul - 1) + (life.meal(state) === 'stew' ? 0.8 : 0), dread: rt.dread, waitMul: homeMarks.atMark(ship.pos.x, ship.pos.z) ? MARK_WAIT : 1 }),
   onStrike: (k) => audio.chime(k === 'miss' ? 'strike_miss' : k === 'gold' ? 'strike_gold' : 'strike'),   // the bite ring: a soft note per strike
   onStart: () => audio.play('cast'),
   onSplash: () => { audio.play('splash', { vol: 0.4 }); toast('Line cast. Wait for a bite...', false, 2500); },
@@ -849,7 +855,7 @@ function fireCannons() {
 function completeJobIfHere(d) {
   const j = state.job;
   if (!j || j.toId !== d.id) return;
-  const late = !onTime(state, j);   // 15 s of grace past the deadline (regions.js, G-33)
+  const late = j.written ? lineLate(j) : !onTime(state, j);   // 15 s of grace past the deadline (regions.js, G-33); none for the line already written (systems/crown.js)
   j.reward = jobPay(state, j, d.region);   // a Crown deadline and the Crown's record (regions.js)
   if (j.due != null) crownLine(state, late ? 'black' : 'clean');
   const wet = weather.storm > 0.35 ? Math.round(j.reward * 0.6) : 0;   // delivered through a storm: they pay extra
@@ -1189,10 +1195,10 @@ function frame() {
   if (live && dt > 0 && window.__BUILD !== 'demo') edgeTick({ dt, dread: rt.dread, ship, quiet: eventQuiet() || !!rt.modal || rt.lostK > 0.01 || !!rt.gateLost || weather.calm > 0.5, world,
     fadeEl: $('fade'), onDone: () => { rt.quietUntil = rt.tNow + 30; } });   // the Edge, once, at the deepest dread
   if (live && dt > 0 && window.__BUILD !== 'demo') lostTick({ dt, dread: rt.dread, sighting, ship, world, quiet: eventQuiet() || !!rt.modal || !!rt.edge });   // the sailors who went mad
-  if (live && dt > 0) { const t0 = world.desc(0, -1); homeTick({ dt, tamaDist: t0 ? Math.hypot(ship.pos.x - t0.x, ship.pos.z - t0.z) : 1e9, ringing: noonPending() > 0 }); }   // home is gentle: the noon hush (demo too)
+  if (live && dt > 0) { const t0 = world.desc(0, -1); homeTick({ dt, tamaDist: t0 ? Math.hypot(ship.pos.x - t0.x, ship.pos.z - t0.z) : 1e9, ringing: noonPending() > 0, hour: state.time * 24 }); }   // home is gentle: the noon hush and the noon slack (demo too)
   if (live && dt > 0 && window.__BUILD !== 'demo') lullabyTick({ dt, free: !!freeCaysNow(), night: tod.night, storm: weather.storm });   // the Two Players keep the Cays quiet
   const solid = [];
-  traffic.solids(solid); fauna.solids(solid); sea.solids(solid); sighting.solids(solid); secrets.solids(solid);
+  traffic.solids(solid); homeMarks.solids(solid); fauna.solids(solid); sea.solids(solid); sighting.solids(solid); secrets.solids(solid);
   if (world.collide(ship.pos, 2.2) | pushOut(ship.pos, 2.2, solid)) {
     if (ship.speed > 3 && dt > 0) audio.play('bump', { vol: clamp(ship.speed / 10, 0.3, 1) });
     ship.speed *= 0.9; ship.blockT = 0.8;
@@ -1221,7 +1227,8 @@ function frame() {
   { const L = state.upgrades.lantern || 0, dk = Math.max(tod.night, weather.fog || 0, (weather.heavy || 0) * 0.7);   // a lit lantern lets you see further in the dark and in fog: +15% a level
     const tea = life.meal(state) === 'tea' ? 0.25 : 0;
     if ((L || tea) && !rt.lampOut && dk > 0.05) { const k = 1 + (0.15 * L + tea) * dk; stage.fogFar *= k; stage.fogNear *= k; } }
-  if (rt.lampOut) { stage.fogFar *= 0.32; stage.fogNear *= 0.25; stage.fog.multiplyScalar(1 - 0.6 * tod.night); stage.light *= 1 - 0.35 * tod.night; }   // no lamp: the dark comes in close
+  if (farLightTick(dt, !!rt.lampOut, tod.night) && freeCaysNow() && tod.night > 0.5 && !state.story.lampLights && laterOK() && !eventQuiet() && !objectives.mate.busy) { state.story.lampLights = 1; objectives.mate.say(LIGHTS_LINE); }   // far lights come up with the lamp out (systems/farlights.js, P-FREE-3)
+  if (rt.lampOut) { stage.fogFar *= LAMP_OUT_FAR; stage.fogNear *= 0.25; stage.fog.multiplyScalar(1 - 0.6 * tod.night); stage.light *= 1 - 0.35 * tod.night; }   // no lamp: the dark comes in close
   if (fogK > 0) { stage.fogFar = Math.max(30, stage.fogFar * (1 - 0.85 * fogK)); stage.fogNear = Math.max(4, stage.fogNear * (1 - 0.9 * fogK)); stage.fog.lerp(C_FOGWALL, fogK * 0.7); }
   if (rt.lostK > 0) { stage.fogFar = Math.max(10, stage.fogFar * (1 - 0.7 * rt.lostK)); stage.fogNear = Math.max(1, stage.fogNear * (1 - 0.9 * rt.lostK)); stage.fog.lerp(C_LOSTFOG, rt.lostK * 0.5); }   // lost: you can barely see the bow
   abyss.update(dt, { dread: DEMO ? 0 : rt.dread, live, camera, camYaw: rt.camYaw, ch: rt.camHeading + rt.camYaw });
@@ -1295,9 +1302,11 @@ function frame() {
   for (const k of ['_pet', '_pet2']) if (window.__game[k]) window.__game[k].update(vdt);
   for (const c of Object.values(companions)) { c.m.g.visible = c.fly > 0 || rt.dread < 0.6; if (c.m.g.visible) c.update(vdt); }
   traffic.update(dt, waveT, lifeCtx);
+  if (live) raceTick(dt, { world, traffic, ship, sched: lifeCtx.sched, ok: laterOK(), wind: windNow });   // the Sunday race (systems/race.js)
+  homeMarks.update(waveT, { ship, hour: state.time * 24, wave: stage.wave, dread: rt.dread });   // the fishers' marks in Home Sound (systems/homemarks.js)
   if (live) reefTick(dt);   // the Reef: coral, the shoals that move at dawn, storm wrecks (systems/reef.js)
   if (live) drownedTick(dt, waveT, stage.wave);   // the Drowned: the shoal belt that opens at low water (systems/drowned.js)
-  { const ni = world.nearest(ship.pos.x, ship.pos.z, 90, ['harbour']); if (ni && inLane(ni.desc, ship.pos.x, ship.pos.z, shoreR)) rt.lane = { id: ni.desc.id, t: rt.tNow }; }   // the Crown's buoyed lanes (regions.js)
+  { const ni = world.nearest(ship.pos.x, ship.pos.z, 90, ['harbour']); if (ni && inLane(ni.desc, ship.pos.x, ship.pos.z, shoreR)) { rt.lane = { id: ni.desc.id, t: rt.tNow }; if (laterOK() && !eventQuiet() && !objectives.mate.busy) laneOars(ship.rowing, (l) => objectives.mate.say(l)); } }   // the Crown's buoyed lanes (regions.js); rowing up one (systems/crown.js)
   sea.update(dt, waveT, lifeCtx);
 
   // ---- global shader state
@@ -1494,7 +1503,7 @@ window.__game = { secrets, regionWeights, tideAt: () => tideAt(), lostState: () 
     ship.pos.set(x + 15, 0, z + 2.5); ship.heading = Math.PI / 2; ship.speed = 0; ship.trim = 1;
   },
   later: { after, pending: laterPending }, landedAt: (id) => landedAt(state, id), landThrow: () => landThrow(state, ship.pos), noonPending, ringNoon, saveNow: () => saveNow(), rt,   // test hooks   // test hook: story delays on the game's clock
-  sectorAt: (x, z) => sectorAt(x, z, state.seed), traffic, abyss, hut, ship, world, state, begin, scene, camera, renderer, wind, weather, fauna, traffic, sea, audio, fishing, combat, objectives, hurtPlayer, openModal, closeModal, buyUpgrade, refreshMods,
+  sectorAt: (x, z) => sectorAt(x, z, state.seed), homeMarks, pennantsAt, completeJobIfHere, farLight: () => U.uFarLight.value.toArray(), raceNow, traffic, abyss, hut, ship, world, state, begin, scene, camera, renderer, wind, weather, fauna, traffic, sea, audio, fishing, combat, objectives, hurtPlayer, openModal, closeModal, buyUpgrade, refreshMods,
 };
 rt.newVoyage = false;   // New voyage reloads straight into the game, no title in between
 try { rt.newVoyage = sessionStorage.getItem('hoist-new') === '1'; sessionStorage.removeItem('hoist-new'); } catch (e) { /* storage blocked */ }

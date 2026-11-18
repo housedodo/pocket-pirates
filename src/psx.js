@@ -18,6 +18,7 @@ export const U = {
   uOcean: { value: 0 },    // the water's look: 0 toon facets (the original) .. 4 (ocean.js OCEAN_STYLES)
   uWindDir: { value: new THREE.Vector2(0, 1) },
   uRain: { value: 0 },     // rain on the water (rings), 0..1
+  uFarLight: { value: new THREE.Vector3(150, 1, 1) },   // far lights (x: from this far, y: their brightness, z: how much further they carry through fog): systems/farlights.js (P-FREE-3)
   uGust: { value: Array.from({ length: 4 }, () => new THREE.Vector4(1e6, 1e6, 1, 0)) },   // gust patches on the water (x, z, radius, strength): seaplay.js   // where the wind blows to (foam streaks)   // the hut's island (x, z, radius): the water round it is dark and murky
 };
 
@@ -31,6 +32,8 @@ attribute vec3 colorB;
 const FRAG_HEAD = /* glsl */`
 uniform float uLight;
 uniform float uDread;
+uniform vec3 uFarLight;
+float farLight() { return mix(1.0, uFarLight.y, step(uFarLight.x, 1.0 / gl_FragCoord.w)); }
 `;
 
 let atlas = null, grit = null;
@@ -73,6 +76,7 @@ export function psxMaterial(opts = {}) {
       #endif`);
     f = f.replace('#include <color_fragment>', `#include <color_fragment>
       diffuseColor.rgb *= mix(uLight, 1.0, glow);
+      diffuseColor.rgb *= mix(1.0, farLight(), glow);
       #ifdef USE_GRIME
         {
           vec3 q = floor(vGW * 1.6);
@@ -85,6 +89,11 @@ export function psxMaterial(opts = {}) {
         }
       #endif
       ${fragmentColor ? fragmentColor.body : ''}`);
+    f = f.replace('#include <fog_fragment>', `#if defined( USE_FOG ) && !defined( FOG_EXP2 )
+      gl_FragColor.rgb = mix(gl_FragColor.rgb, fogColor, smoothstep(fogNear, fogFar, vFogDepth / mix(1.0, uFarLight.z, glow)));   // a lit window carries further with the lamp out (P-FREE-3)
+      #else
+      #include <fog_fragment>
+      #endif`);
     shader.fragmentShader = f;
   };
   return m;
@@ -105,7 +114,8 @@ export function initMaterials() {
   mats.murkFoam = psxMaterial({ color: 0x4a5046, transparent: true, opacity: 0.35, depthWrite: false, vertexColors: true, key: 'F' });
   mats.beam = psxMaterial({ color: 0xffe080, transparent: true, opacity: 0.16, depthWrite: false, side: THREE.DoubleSide, fog: false, key: 'B', fragmentColor: { head: '', body: 'diffuseColor.rgb /= max(uLight, 0.05);' } });
   mats.wake = psxMaterial({ color: 0xffffff, transparent: true, opacity: 0.5, depthWrite: false, vertexColors: true, key: 'Wk', fragmentColor: { head: '', body: 'diffuseColor.rgb /= mix(1.0, max(uLight, 0.05), 0.45);' } });
-  mats.glow = psxMaterial({ color: 0xffc060, vertexColors: true, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, fog: false, key: 'G', fragmentColor: { head: '', body: 'diffuseColor.rgb /= max(uLight, 0.05);' } });
+  mats.glow = psxMaterial({ color: 0xffc060, vertexColors: true, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, fog: false, key: 'G', fragmentColor: { head: '', body: 'diffuseColor.rgb /= max(uLight, 0.05); diffuseColor.rgb *= farLight();' } });
+  mats.shipGlow = psxMaterial({ color: 0xffc060, vertexColors: true, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, fog: false, key: 'G', fragmentColor: { head: '', body: 'diffuseColor.rgb /= max(uLight, 0.05); diffuseColor.rgb *= farLight();' } });   // the ship's own lantern pool (ship.js): goes out with the lamp; the world's lights do not
   return mats;
 }
 

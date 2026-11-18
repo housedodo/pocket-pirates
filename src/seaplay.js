@@ -74,7 +74,7 @@ export class SeaPlay {
   /** dev/test: drop a gust patch at a point */
   spawnAt(x, z) { const g = this.gusts.find((q) => q.life <= 0) || this.gusts[0]; Object.assign(g, { x, z, ttl: 16, life: 16, R: 9, taken: false }); }
   /**
-   * ctx: { ship, wind: {dir, strength}, t (wave time), wave, night, calm, on (gusts allowed) }
+   * ctx: { ship, wind: {dir, strength}, t (wave time), wave, night, calm, on (gusts allowed), curMul (the lanes' strength, 1 by default) }
    * returns events: { gust: true } the moment a gust is caught, { lane } the lane the ship is in (or null)
    */
   update(dt, ctx) {
@@ -116,8 +116,8 @@ export class SeaPlay {
     ship.gust = 1 + 0.32 * clamp(this.boost / 1.5, 0, 1);
 
     // ---- currents: drift the ship, show the foam
-    const cur = currentAt(ship.pos.x, ship.pos.z), cutK = ctx.fogEdge ? ctx.fogEdge(ship.pos.x, ship.pos.z) : 1;   // no current near fog
-    ship.pos.x += cur.x * dt * cutK; ship.pos.z += cur.z * dt * cutK;
+    const cur = currentAt(ship.pos.x, ship.pos.z), curK = ctx.curMul ?? 1, cutK = ctx.fogEdge ? ctx.fogEdge(ship.pos.x, ship.pos.z) : 1;   // no current near fog; curMul: the noon slack (systems/home.js)
+    ship.pos.x += cur.x * dt * cutK * curK; ship.pos.z += cur.z * dt * cutK * curK;
     if (ctx.slack) { const sl = slackAt(ship.pos.x, ship.pos.z); ship.pos.x += sl.x * dt; ship.pos.z += sl.z * dt; }   // the Slack's outward drift
     if (cutK < 0.5) cur.k = 0;
     ev.lane = cur.k > 0.5 ? cur.lane : null;
@@ -130,7 +130,7 @@ export class SeaPlay {
       if (q.life > 0) {
         const c = currentAt(q.x, q.z), sp = Math.hypot(c.x, c.z) || 1;
         q.x += c.x * 2.2 * dt; q.z += c.z * 2.2 * dt; q.life -= dt;
-        const a = clamp(Math.min(q.ttl - q.life, q.life) / 0.8, 0, 1) * clamp(c.k * 1.5, 0, 1) * nightK;
+        const a = clamp(Math.min(q.ttl - q.life, q.life) / 0.8, 0, 1) * clamp(c.k * 1.5, 0, 1) * nightK * curK;
         this.quad(this.cp, this.cc, i, q.x, q.z, waveHeight(q.x, q.z, t, wave) + 0.16, c.x / sp, c.z / sp, q.len, 0.08, [0.9, 0.97, 1, 0.32 * a * (ctx.fogEdge ? ctx.fogEdge(q.x, q.z) : 1)]);
       } else this.quad(this.cp, this.cc, i, 0, 0, -50, 1, 0, 0, 0, [0, 0, 0, 0]);
     }

@@ -7,6 +7,7 @@ import { sectorAt, bumpSectors } from '../sectors.js';
 import { KINDS } from '../traffic.js';
 import { isKnown } from '../clues.js';
 import { BOUNTY, lampBurnMul, lampDead, regionAt } from '../regions.js';
+import { slackLanes } from './home.js';
 import { nightKey } from './calendar.js';
 import { maraRemembers } from '../table.js';
 import { gateRadius, goalReached } from '../objectives.js';
@@ -134,7 +135,7 @@ export function seaGate(dt) {
   }
 }
 export function seaTick(dt, windNow) {
-  const ev = G.seaplay.update(dt, { ship: G.ship, wind: windNow, t: G.abyss.waveTime(Math.floor(rt.animT * 12) / 12), wave: rt.seaWave, night: tod.night, calm: G.weather.calm > 0.5, on: !G.onbQuiet() && !G.ship.rowing && rt.lostK < 0.1, slack: window.__BUILD !== 'demo', fogEdge, gustLong: life.meal(state) === 'curry' });
+  const ev = G.seaplay.update(dt, { ship: G.ship, wind: windNow, t: G.abyss.waveTime(Math.floor(rt.animT * 12) / 12), wave: rt.seaWave, night: tod.night, calm: G.weather.calm > 0.5, on: !G.onbQuiet() && !G.ship.rowing && rt.lostK < 0.1 && rt.homeSlack < 0.5, curMul: slackLanes(), slack: window.__BUILD !== 'demo', fogEdge, gustLong: life.meal(state) === 'curry' });
   if (ev.gust && !state.hints.gust) { state.hints.gust = true; toast('Caught a gust! Steer into the dark patches on the water to fill the sails.', false, 5500); }
   if (ev.lane !== rt.laneShown) {
     rt.laneShown = ev.lane;
