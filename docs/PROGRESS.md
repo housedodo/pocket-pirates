@@ -1876,3 +1876,6 @@ Trials for the owner to compare; nothing changes without a flag and STYLE.md is 
 - **Verified** (headless): old against new shader on a frozen frame at dawn in open water (the swell's tones blend instead of flipping
   in sheets); the Crown letter's pointer lands on the Customs Pier (155, -580); screenshots of a Reef, Crown, Lantern and Cays entrance.
   **Not verified:** your exact spot (the seed differs), and how it looks at full speed on a real screen.
+- **The tide clock** (owner: "use A"): the upright tide gauge beside the clock read as a battery; it is now a small dial like a harbour
+  tide clock (up: high water, down: low; the hand goes round once a tide). Checked headless at low, rising, high and falling water.
+  The weekday is always shown beside the time (a pad cannot hover).

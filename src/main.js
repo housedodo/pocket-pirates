@@ -98,7 +98,7 @@ import { lineLate, laneOars, pennantsAt } from './systems/crown.js';
 import { farLightTick, LIGHTS_LINE, LAMP_OUT_FAR } from './systems/farlights.js';
 import { raceTick, holdRegatta, raceNow } from './systems/race.js';
 import { LANDING, landThrow, landedAt } from './systems/landing.js';
-import { trackTarget, goldShown, etaText, slipInfo, drawCompass, updateTracker, initHud } from './ui/hud.js';
+import { trackTarget, goldShown, etaText, slipInfo, drawCompass, updateTracker, initHud, drawTideClock } from './ui/hud.js';
 import { LOCALS, localGames, pig, maraMood, openCard, caveScene, COLOUR_DEEP, COLOUR_SHALLOW, openCave, tabletopTick, signOn, daysLeft, crewLeave, wishDone, initEncounters } from './ui/encounters.js';
 
 // G-REGISTRY START (generated): what main.js lends the modules under it, read at call time
@@ -1391,7 +1391,7 @@ function frame() {
   mixer.update();
   if (studio) studio.update(rawDt, soundSituation());
   $('clockicon').className = `ico ${tod.sunElev > 0 ? 'sun' : 'moon'}`;
-  { const tm = $('tidemark'), lv = Math.round(25 + (tideAt() + 1) * 33); if (tm.dataset.lv !== String(lv)) { tm.dataset.lv = lv; tm.firstChild.style.height = `${lv}%`; tm.className = `tidemark ${tideFalls() ? 'fall' : 'rise'}`; } }   // the tide, wordless
+  drawTideClock($('tidemark'), ((state.time * 2 + state.dayN * 0.07) % 1 + 1) % 1);   // the tide clock beside the time (ui/hud.js)
   setWidth($('sailfill'), ship.trim * 100);
   $('sailbar').classList.toggle('torn', state.sailsTorn); $('sailbar').classList.toggle('strain', rt.sailStrain > SAIL_LIMIT * 0.35);
   drawCompass(wind, ship.heading);
