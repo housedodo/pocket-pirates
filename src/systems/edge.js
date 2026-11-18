@@ -23,20 +23,20 @@ export const EDGE = {
   LIP_MIN: 300,      // shorter where an island stands on the line of the lip (its end is set short of it), never shorter than this
   PULL_R: 340,       // how far out from the lip the sea pulls at all
   EXIT_D: 390,       // past this the lip has gone back into the mist: out
-  C_FAR: 2.5,        // the broad part of the pull: (1 - d/PULL_R)^2 of this
-  C_EDGE: 8,         // the steep part: (1 - d/PULL_R)^3 of this. In a fair wind a beam reach along the lip holds at ~130 out,
-                     // close-hauled at ~90; stock oars (about 1.5 against it) hold at ~175 and get out from where the lip is
-                     // met; closer than ~50 nothing holds. With no sail and no oars the drift in takes about two and a half minutes.
-  HUNGER: 0.8,       // the steep part grows by this much...
-  T_HUNGER: [150, 240],   // ...between these times: after about four minutes nobody can stay close
+  C_FAR: 1.3,        // the broad part of the pull: (1 - d/PULL_R)^1.5 of this (softer since 2026-11-18, owner: it was too strong)
+  C_EDGE: 3.6,       // the steep part: (1 - d/PULL_R)^3 of this. About 2 at 100 out, 3 at 50, 4 at 20: close-hauled away from the lip
+                     // gets out from almost anywhere until the last stretch; oars get out from where the lip is met. With no sail and
+                     // no oars the drift in takes about four minutes. (Was 2.5 and 8: every voyage went over.)
+  HUNGER: 0.35,      // the steep part grows by this much...
+  T_HUNGER: [200, 360],   // ...between these times: the longer it is played, the closer it draws
   END_V: 6,          // at the ends of the stretch the water runs back along the lip towards the middle
-  RAMP: 6,           // the pull comes up over the first seconds
-  FADE_IN: 8,        // the dark and what stands in it come out of the mist
+  RAMP: 16,          // the pull comes up slowly over the first seconds (smoother: owner 2026-11-18)
+  FADE_IN: 14,       // the dark and what stands in it come out of the mist
   REVEAL: [120, 270],// a thing in the dark is clear while the ship is within the first number of it along the lip, gone past the second
   OVER_D: 4,         // this close, the ship is over
   LOOK_T: 4,         // seconds a thing must be looked at before it can be different the next time
   AWAY_T: 2,         // and seconds it must be out of sight before it is
-  PILLAR_REF: 140,   // a pillar this far from the ship has the size it was built at; each is scaled with its distance
+  PILLAR_REF: 320,   // a pillar this far from the ship has the size it was built at; each is scaled with its distance
   HUSH: 0.85,        // how far the sound goes at the lip (none at PULL_R)
   REWIND: 180,       // after the mist, the ship is this far back from where the lip was
 };
@@ -63,7 +63,7 @@ const endOf = (e, a) => (a < 0 ? e.ends[0] : e.ends[1]);
 export function edgePull(e, a, d) {
   const u = clamp(d / EDGE.PULL_R, 0, 1), h = 1 + EDGE.HUNGER * smooth(EDGE.T_HUNGER[0], EDGE.T_HUNGER[1], e.t);
   const ramp = smooth(0, EDGE.RAMP, e.t), end = Math.abs(a) - (endOf(e, a) - 150);
-  const v = d <= 0 ? EDGE.C_EDGE * h + EDGE.C_FAR : (EDGE.C_FAR * (1 - u) ** 2 + EDGE.C_EDGE * h * (1 - u) ** 3);
+  const v = d <= 0 ? EDGE.C_EDGE * h + EDGE.C_FAR : (EDGE.C_FAR * (1 - u) ** 1.5 + EDGE.C_EDGE * h * (1 - u) ** 3);
   const along = end > 0 ? -Math.sign(a) * EDGE.END_V * Math.min(2.5, smooth(0, 200, end) + Math.max(0, end - 200) / 100) : 0;
   return { v: v * ramp, along: along * ramp };
 }
@@ -77,6 +77,7 @@ export function startEdge(ship, fadeEl, run = null, ends = null) {
   const W = EDGE.LIP_HALF + 450;
   const w = buildEdgeWorld(scene, lip[0], lip[1], -h, W, ends.map((v) => v / EDGE.LIP_HALF));
   const n = new THREE.Vector3(-f[0], 0, -f[1]);   // the sea stays on the ship's side of the lip
+  camera.userData.edgeFar = camera.userData.edgeFar || camera.far; camera.far = 3200; camera.updateProjectionMatrix();   // the void's wall stands 2400 out (edgeworld.js)
   renderer.localClippingEnabled = true; ocean.material.clippingPlanes = [new THREE.Plane(n, -(n.x * lip[0] + n.z * lip[1]))]; ocean.material.needsUpdate = true;
   const looks = {}; for (const k of Object.keys(w.things)) looks[k] = { seen: 0, away: 0, done: false };
   rt.edge = { t: run ? run.t : 0, lip, h, f, r, w, ends, fadeEl, looks, over: -1, clear: 0, mist: 0, windTo: h, hidden: new Set(), dashes: makeDashes() };
@@ -131,7 +132,7 @@ function looksTick(e, dt, L) {
   _pm.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse); _fr.setFromProjectionMatrix(_pm);
   for (const [k, T] of Object.entries(e.w.things)) {
     const s = e.looks[k]; if (s.done) continue;
-    _v.set(T.at[0], 60, T.at[1]); e.w.g.localToWorld(_v); _sp.set(_v, 70);
+    _v.set(T.at[0], 140, T.at[1]); e.w.g.localToWorld(_v); _sp.set(_v, 160);   // they are big now (edgeworld.js SIZE)
     const framed = _fr.intersectsSphere(_sp);
     if (s.seen < EDGE.LOOK_T) { if (framed && T.reveal > 0.5) s.seen += dt; continue; }
     s.away = framed && T.reveal > 0.08 ? 0 : s.away + dt;   // truly out of sight: out of frame, or gone into the dark
@@ -196,14 +197,14 @@ export function edgeTick({ dt, dread, ship, quiet, world, fadeEl, onDone }) {
       T.reveal = 1 - smooth(EDGE.REVEAL[0], EDGE.REVEAL[1], Math.abs(T.at[0] - L.a));
       const m = T.meshes[0].material; m.opacity = fade * T.reveal; m.visible = m.opacity > 0.005;
     }
-    for (const m of e.w.things.pillars.meshes) { const at = m.userData.at; m.scale.setScalar(Math.max(0.6, Math.hypot(at[0] - L.a, at[1] - L.d) / EDGE.PILLAR_REF)); }   // none ever gets smaller
+    for (const m of e.w.things.pillars.meshes) { const at = m.userData.at; m.scale.setScalar(m.userData.size * Math.max(0.6, Math.hypot(at[0] - L.a, at[1] - L.d) / EDGE.PILLAR_REF)); }   // none ever gets smaller
     looksTick(e, dt, L);
     rt.edgeHush = EDGE.HUSH * (1 - smooth(0, EDGE.PULL_R, L.d)) * smooth(0, 6, t);
     // the lamp's flame leans to the lip, more the closer it is (the sound's twin: RULES 28)
     if (ship.flame) { const side = e.f[0] * Math.cos(ship.heading) + e.f[1] * Math.sin(ship.heading), k = 1 - smooth(0, EDGE.PULL_R, L.d); ship.flame = { h: ship.flame.h, lean: ship.flame.lean * (1 - k) - side * 0.9 * k }; }
     dashTick(e, dt, ship);
     hideIslands(e, world);
-    e.windTo = e.h;   // the air goes over the lip too: getting out is a beat to windward (main.js turns the wind)
+    e.windTo = e.h + 0.7;   // the air goes over the lip too, slanting: getting out is a close reach on one tack (main.js turns the wind)
     if (L.d < EDGE.OVER_D) { e.over = 0; state.story.edgeWay = 'over'; state.story.edgeRun.over = true; fadeEl.style.background = '#e8eef0'; fadeEl.style.transition = 'opacity 1.6s steps(8)'; fadeEl.classList.add('on'); }   // the white mist, stepped like the demo's end card
     else if (L.d >= EDGE.EXIT_D) { finish(ship, world, 'out'); onDone('out'); }
     return;
@@ -229,6 +230,7 @@ function finish(ship, world, way, behindMist = false) {
   const e = rt.edge; state.story.edgeWay = way;
   disposeEdgeWorld(scene, e.w); scene.remove(e.dashes.m); e.dashes.m.geometry.dispose(); e.dashes.m.material.dispose();
   ocean.material.clippingPlanes = null; ocean.material.needsUpdate = true;
+  if (camera.userData.edgeFar) { camera.far = camera.userData.edgeFar; camera.userData.edgeFar = 0; camera.updateProjectionMatrix(); }
   for (const isl of e.hidden) isl.group.visible = true;
   delete state.story.edgeRun;
   if (way === 'over') {

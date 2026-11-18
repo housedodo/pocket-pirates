@@ -101,7 +101,7 @@ export function anchorTick() {
     else { rt.tg = h.tg; if (G.ship.speed <= 0.3) { rt.heave = null; tryInteract(); } }
   }
   if (rt.eBuf != null) { if (rt.tNow - rt.eBuf > E_BUFFER) rt.eBuf = null; else if (actionable(rt.tg) && !rt.dig && !rt.heave) { rt.eBuf = null; tryInteract(); } }   // an early E (G-04)
-  G.ship.anchored = !!rt.heave || !!rt.dig || G.fishing.active || !!G.fishing.pending;   // C under way drops it too (G-05)
+  G.ship.anchored = !!rt.heave || !!rt.dig || G.fishing.active || !!G.fishing.pending || !!rt.raceHold;   // at the regatta's line until GO (systems/race.js)   // C under way drops it too (G-05)
   if (!G.ship.anchored) { rt.anchorAt = null; return; }
   if (!rt.anchorAt && G.ship.speed < 0.3) { rt.anchorAt = { x: G.ship.pos.x, z: G.ship.pos.z }; rt.anchorBit = true; if (G.ship.float) G.ship.float.vp -= 0.35; }   // the anchor bites: the bow dips (main.js adds the foam)
   if (rt.anchorAt) { G.ship.pos.x = rt.anchorAt.x; G.ship.pos.z = rt.anchorAt.z; }   // currents and leeway do not move an anchored ship

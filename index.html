@@ -513,6 +513,23 @@
     #endArt { width: min(640px, 90vw); aspect-ratio: 16 / 9; image-rendering: pixelated; box-shadow: 0 0 0 4px var(--edge-navy); margin-bottom: 8px; }
     #ending .endbtns { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
     #cardArt { display: none; width: 100%; max-height: 40vh; object-fit: cover; image-rendering: pixelated; margin-bottom: 12px; box-shadow: 0 0 0 4px #1a0f08; } #card.art #cardArt { display: block; } #card.art #cardWide { grid-template-columns: 1fr; } #card.art #cardIcon { display: none; } #card.art #cardArt { grid-column: 1 / -1; }
+    /* the art card's layouts (owner 2026-11-18: the outcome took the whole screen and fell into a sliver): 'stack' (art above) is the default;
+       'side' (?cardlayout=side) puts the art left and the words right. An outcome replaces the card's own text and choices, so the art stays */
+    /* the regatta's count (systems/race.js): 3, 2, 1, GO, big and centred above the water */
+    #raceCount { position: fixed; left: 0; right: 0; top: 22%; text-align: center; font-size: 96px; line-height: 1; color: var(--paper); text-shadow: 4px 4px 0 #1a0f08; pointer-events: none; z-index: 30; display: none; }
+    #raceCount.on { display: block; } #raceCount.go { color: var(--gold); font-size: 120px; }
+    #card.art #cardDone { grid-column: 1 / -1; }
+    #card.art #cardWide { max-height: calc(100vh - 24px); margin-bottom: 12px; }
+    #card.art #cardArt { max-height: 34vh; }
+    #card.art #cardText, #card.art #cardOut { font-size: clamp(15px, 3.3vh, 24px) !important; line-height: 1.34; }
+    #card.art #cardChoices { gap: 8px; margin-top: 8px; }
+    #card.art.out #cardText, #card.art.out #cardChoices { display: none; }
+    #card.art.out #cardOut { margin-top: 4px; }
+    #card.art.side #cardWide { width: min(1100px, 96vw); grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); column-gap: 20px; align-items: center; }
+    #card.art.side #cardArt { grid-column: 1; grid-row: 1 / 7; max-height: none; height: auto; margin: 0; align-self: center; }
+    #card.art.side #cardWide > :not(#cardArt) { grid-column: 2; }
+    #card.art.side #cardText, #card.art.side #cardOut { font-size: 18px !important; line-height: 24px; text-align: left; }
+    #card.art.side #cardChoices { gap: 6px; } #card.art.side #cardChoices button { font-size: 14px; padding: 6px 10px; }
     #credits { position: fixed; inset: 0; z-index: var(--z-credits); display: none; overflow: hidden; background: #06040e; color: #fff4d8; text-align: center; cursor: pointer; }
     #credits.show { display: block; } #credits .roll { position: absolute; left: 0; right: 0; top: 100%; animation: credroll 16s linear forwards; }
     #credits h1 { font-size: 56px; font-weight: 400; color: var(--gold); margin: 0 0 24px; } #credits p { font-size: 18px; margin: 10px; } #credits small { display: block; margin-top: 40px; font-size: 16px; color: #8a7e9a; }

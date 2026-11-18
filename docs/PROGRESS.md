@@ -2066,3 +2066,37 @@ lining up at 14:00; a full playthrough of Your Seat's last look into the credits
 ## Open
 - Not reversible in place: the Table's arrival copy (`pocket-pirates-table-v1`) is shared with the real game; chart entries and toasts
   from teleporting through places (they are restored only by Undo or a snapshot); a loaded snapshot of another seed needs the reload it gets.
+
+# Endings, the Edge, the race and the Eye: the owner's second round (2026-11-18)
+The owner looked at the endings and set pieces and asked for: Your Seat's last look at the keeper's place, not spinning; a softer,
+smoother Edge with taller, unseen-footed things; a race that waits, stops you and says GO, faster boats that do not hit the isle, a
+plain finish line; an Eye that is part of the sky; the Edge's three questions said, not shown; the Table card's layout when Mara tries.
+
+## What landed
+- **Your Seat** (`systems/endgame.js` `startPan`, `world.js` `hutSpot`): a still view beside the hut's door, the eaves in the corner,
+  looking out to sea; boats cross and come in and out; the weather turns through six moods; time up to x30; Mara, then the credits.
+- **The Table** (`table.js` `EDGE_ASK`, `cavescene.js` `tableDrawing`, main.js `openTable`): the drawing is the Edge alone, no letters;
+  Mara reads the three questions out once on arriving. **The card** (`index.html` `#card.art`, `tabletop.js`): the "Go on" button was
+  pinned to a grid column the art card does not have, so the browser made one and squeezed the text into a sliver; fixed. An outcome now
+  replaces the card's text and choices under the art (`.out`); the art card scales with the window height; a second layout, art left and
+  words right, is behind `?cardlayout=side` (RULES 35: the owner picks, the other is deleted).
+- **The Edge** (`systems/edge.js`, `edgeworld.js`): pull softened (DESIGN), slower to come up, the wind slanting over the lip; the lip a
+  smooth 22-band curve with thin threads and fine spray (the big falling blocks are gone); a curved wall of dark with no ends; the things
+  in the dark 2.6 to 3.4 times bigger, further out, and black from the foot up.
+- **The Sunday race** (`systems/race.js`, `regions.js`, `ui/hud.js`, `interact.js`): Mara says they are waiting, the slip points at the
+  line, the ship anchors at the line, 3 2 1 GO, a buoyed line with a chequered pin; faster boats; a mark on the isle's other side and a
+  keep-off steer so nobody cuts back across it; finishing is crossing the line; Mara says the place.
+- **The Eye** (`abyss.js`): coloured from the sky each frame, half see-through, 1350 out behind the horizon, bands of sky across it.
+
+## Verified
+Headless, dev server (Chromium, swiftshader; about a tenth of real speed, so no feel or timing judged): the Table card at 960x540 in
+both layouts, with Mara's outcome (no sliver); every ending still re-rendered (the questions gone from the drawing); the race on a Sunday
+at 14:12: Mara's call, the slip row, the ship stopping at the line, 2 and GO on screen, the flag down, all four boats round the isle's far
+side (closest about 13 off its shore) and over the line, the line visible from behind; the Edge from 160 and 30 out and from above (tall
+hooded one, foot lost, no wall ends); the Eye by day and by night at 7 s into its sequence; Your Seat's last look at 4, 6, 16, 22, 28 and
+36 s (view fixed, 3 to 9 boats, dusk, storm, clear, fog, overcast). **Not verified:** how hard the Edge's pull feels (the owner's hands);
+whether a stock ship really escapes; the race against a player who sails it; the Eye in motion; sound.
+
+## Open
+- Pick the Table card's layout: stack (default) or side (`?cardlayout=side`); the other is deleted.
+- Mara's race lines and `EDGE_ASK` are drafts for the writer.

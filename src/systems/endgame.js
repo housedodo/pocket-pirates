@@ -16,7 +16,7 @@ import { state } from '../core/state.js';
 import { rt, G } from '../core/runtime.js';
 import { params, store, session, SAVE_KEY } from '../core/config.js';
 import { LM } from '../landmarks.js';
-import { pierOf } from '../world.js';
+import { pierOf, hutSpot } from '../world.js';
 import { tableOpen } from '../clues.js';
 import { smoothstep } from '../util.js';
 import { paintStill } from '../cavescene.js';
@@ -258,30 +258,78 @@ export function startSeat(credits, from = 'book') {
   if (from === 'pan') startPan(credits); else if (from === 'newcomer') newcomer(); else turn();
 }
 
-// ---------------------------------------------------------------- Your Seat: the pan (owner 2026-11-18)
-// After the newcomer, the world goes on without you: the view rises over the Table's island and circles it while time runs faster
-// and faster (days and nights in seconds, boats crossing), until Mara says it is time to leave; then the credits.
-const PAN = { RAMP: 30, TOP: 30, MARA: 34, END: 44, R: 95, H: 42, TURN: 0.05 };   // seconds (real), top speed (x game time), orbit
+// ---------------------------------------------------------------- Your Seat: the last look (owner 2026-11-18)
+// After the newcomer, the world goes on without you. Since the owner's second note the same day: the view does not circle and does
+// not move. It stands where the keeper of the die now sits, at the hut, beside its door, looking out to sea, the hut's own eaves in
+// the corner of the frame. Time runs faster and faster (days and nights in seconds); boats cross and come in and go; the weather turns
+// through its moods; until Mara says it is time to leave; then the credits.
+const PAN = { RAMP: 30, TOP: 30, MARA: 34, END: 44, BOAT: 1.6, SKY: 4.5 };   // seconds (real), top speed (x game time), a boat and a change of sky every so often
 export const SEAT_LEAVE = 'Captain, I think it is time to leave.';   // draft (the owner's words)
+const SKIES = [   // what the weather turns through (weather.force), one after another
+  { cloud: 0, rain: 0, storm: 0, fog: 0 }, { cloud: 0.7, rain: 0, storm: 0, fog: 0.1 }, { cloud: 1, rain: 0.7, storm: 0.2, fog: 0.1 },
+  { cloud: 1, rain: 1, storm: 0.8, fog: 0.2 }, { cloud: 0.5, rain: 0.1, storm: 0, fog: 0.8 }, { cloud: 0.2, rain: 0, storm: 0, fog: 0, calm: 1 },
+];
+const SEAT_KINDS = ['fisher', 'canoe', 'merchant', 'schooner', 'fisher', 'galleon'];
+/** where the keeper sits: the hut's place and which way its door looks (world.js darkHut); the Table if the hut is not there */
+function keeperSpot() {
+  const d = G.world && G.world.hutDesc, hp = d && (d.hutPos || hutSpot(d));
+  if (hp) { const o = [Math.cos(hp.th), Math.sin(hp.th)]; return { x: d.x + hp.x, z: d.z + hp.z, y: hp.y, o }; }
+  const L = LM.table || { x: 0, z: 0 }; return { x: L.x, z: L.z, y: 1, o: [0, 1] };
+}
 function startPan(credits) {
   const el = $('ending'); el.classList.remove('show', 'dark');
   const hud = $('hud'); if (hud) hud.classList.add('hidden');
-  const ship = G.ship; if (ship) { ship.speed = 0; ship.trim = 0; }
+  const K = keeperSpot(), o = K.o, sd = [-o[1], o[0]];
+  const ship = G.ship;
+  if (ship) {   // the Gull is not in this picture: she waits out of sight, and the world is loaded round the hut
+    ship.pos.set(K.x + o[0] * 140, 0, K.z + o[1] * 140); ship.speed = 0; ship.trim = 0; ship.vel = null; ship.root.visible = false;
+  }
+  if (G.world) G.world.hutShown = true;
   const m = G.objectives.mate; m.queue.length = 0; m.cur = null; m.only = SEAT_LEAVE;   // nothing else is said now
   if (m.el) m.el.classList.remove('show');
-  rt.seatPan = { t: 0, speed: 1, credits, said: false, done: false };
+  // the view: beside the door, under the eaves, seated height, looking out over the water; it never moves
+  const cam = [K.x - o[0] * 2.5 + sd[0] * 6.5, K.y + 3.4, K.z - o[1] * 2.5 + sd[1] * 6.5], look = [K.x + o[0] * 70 - sd[0] * 4, 1.2, K.z + o[1] * 70 - sd[1] * 4];   // the hut's side and eaves in the frame, the sea beyond
+  rt.camOverride = { pos: cam, look };
+  rt.seatPan = { t: 0, speed: 1, credits, said: false, done: false, K, sd, boats: [], boatT: 0.5, sky: 0, skyT: PAN.SKY };
+  if (G.weather) G.weather.force = { ...SKIES[0] };
   rt.over = false;   // the world runs again (the helm stays locked: seatPanTick)
 }
-/** each frame (real time), before the simulation step: the speed of the world, the view, Mara, the end */
+/** a boat for the last look: across the bay one way or the other, or in towards the hut and away again */
+function seatBoat(P) {
+  const T = G.traffic; if (!T) return;
+  const { K, sd } = P, o = K.o, n = P.boats.length + Math.floor(P.t * 7), kind = SEAT_KINDS[n % SEAT_KINDS.length];
+  const way = n % 3, D = 45 + (n * 37) % 170, side = n % 2 ? 1 : -1;
+  let x, z, h;
+  if (way < 2) { x = K.x + o[0] * D + sd[0] * 230 * side; z = K.z + o[1] * D + sd[1] * 230 * side; h = Math.atan2(-sd[0] * side, sd[1] * side); }   // across
+  else { x = K.x + o[0] * 260 + sd[0] * 40 * side; z = K.z + o[1] * 260 + sd[1] * 40 * side; h = Math.atan2(-o[0], o[1]); }   // in towards the hut
+  const s = T.spawnAt(kind, 'free', x, z, h, 'live', KINDS_SPEED(kind));
+  s.special = 'seat'; s.state = 'race'; s.seat = { way, turned: false };
+  P.boats.push(s);
+}
+const KINDS_SPEED = (k) => ({ fisher: 5, canoe: 3.6, merchant: 6, schooner: 8, galleon: 4.5 }[k] || 5);
+/** each frame (real time), before the simulation step: the speed of the world, the boats, the sky, Mara, the end */
 export function seatPanTick(rawDt) {
   const P = rt.seatPan; if (!P || P.done) return;
   P.t += rawDt;
   P.speed = 1 + (PAN.TOP - 1) * smoothstep(0, PAN.RAMP, P.t);
-  const L = LM.table || { x: 0, z: 0 }, a = P.t * PAN.TURN * (1 + P.speed * 0.15);
-  rt.camOverride = { pos: [L.x + Math.cos(a) * PAN.R, PAN.H, L.z + Math.sin(a) * PAN.R], look: [L.x, 1, L.z] };
-  if (G.ship) { G.ship.speed = 0; G.ship.trim = 0; }
+  const { K } = P, o = K.o;
+  if (G.ship) { G.ship.speed = 0; G.ship.trim = 0; G.ship.root.visible = false; }
+  if ((P.boatT -= rawDt) <= 0) { P.boatT = PAN.BOAT * (0.6 + ((P.t * 13) % 1) * 0.8) / (1 + P.speed * 0.12); if (P.boats.length < 9) seatBoat(P); }   // more often as the world runs faster
+  for (const s of P.boats) {   // the ones coming in turn short of the shore and go out again
+    if (s.seat.way === 2 && !s.seat.turned && Math.hypot(s.x - K.x, s.z - K.z) < 70) { s.seat.turned = true; s.seat.to = s.heading + Math.PI; }
+    if (s.seat.to != null) s.heading += Math.max(-0.02, Math.min(0.02, Math.atan2(Math.sin(s.seat.to - s.heading), Math.cos(s.seat.to - s.heading))));
+  }
+  P.boats = P.boats.filter((s) => G.traffic && G.traffic.ships.includes(s) && Math.hypot(s.x - K.x, s.z - K.z) < 300 || (s.special = null, dropSeatBoat(s), false));
+  if ((P.skyT -= rawDt) <= 0) { P.skyT = PAN.SKY; P.sky = (P.sky + 1) % SKIES.length; if (G.weather) G.weather.force = { ...SKIES[P.sky] }; }
   if (!P.said && P.t > PAN.MARA) { P.said = true; G.objectives.mate.say(SEAT_LEAVE); }
-  if (P.t > PAN.END) { P.done = true; rt.seatPan = null; rt.camOverride = null; rt.over = true; P.credits(); }
+  if (P.t > PAN.END) { P.done = true; endPan(); rt.over = true; P.credits(); }
+}
+function dropSeatBoat(s) { const T = G.traffic, i = T ? T.ships.indexOf(s) : -1; if (i < 0) return; T.scene.remove(s.root); if (s.wake) s.wake.dispose(T.scene); T.ships.splice(i, 1); }
+function endPan() {
+  const P = rt.seatPan; if (P) for (const s of P.boats) dropSeatBoat(s);
+  rt.seatPan = null; rt.camOverride = null;
+  if (G.weather) G.weather.force = null;
+  if (G.ship) G.ship.root.visible = true;
 }
 
 /** dev (ui/devstudio.js): put back what the endings set going in this session: the table on the water, the last look, the closed
@@ -289,7 +337,7 @@ export function seatPanTick(rawDt) {
 export function endgameReset() {
   seatGen++;
   if (ahead) { if (ahead.parent) ahead.parent.remove(ahead); ahead = null; }
-  rt.seatPan = null; rt.camOverride = null; rt.over = false; rt.unseenK = 0; rt.tableK = 0; rt.tableHush = 0;
+  endPan(); rt.over = false; rt.unseenK = 0; rt.tableK = 0; rt.tableHush = 0;
   if (G.traffic) G.traffic.none = false;
   const m = G.objectives && G.objectives.mate; if (m) m.only = null;
   const hud = $('hud'); if (hud) hud.classList.remove('hidden');

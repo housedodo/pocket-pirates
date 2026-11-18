@@ -42,7 +42,7 @@ import { Fishing } from './fishing.js';
 import { Combat } from './combat.js';
 import './sectors.js';
 import { markSeen, isKnown, levels as clueLevels, tableOpen } from './clues.js';
-import { tableOptions, ENDINGS, EPILOGUE, ARRIVAL } from './table.js';
+import { tableOptions, ENDINGS, EPILOGUE, ARRIVAL, EDGE_ASK } from './table.js';
 import { ritualTick, ritualLook, tableGctx, snapshotTable, tableAgain, tableThrow, onEnding, gameOver, initEndgame, guitarTick, guitarDread, unseenTick, unseenDread, bellsStopped, endQuiet, seatPanTick, startSeat } from './systems/endgame.js';
 import { paintStill } from './cavescene.js';
 import { Objectives, MUSINGS, MAIN_GOALS, unlocked, gateRadius, chapterOf, goalText, goalReached } from './objectives.js';
@@ -982,9 +982,10 @@ function taleAt(d) {
 function openTable(arrive = false) {
   if (arrive) snapshotTable();   // the voyage as it is now, kept aside: a closed ending can come back here (systems/endgame.js)
   const opts = tableOptions(state), memory = (state.story.maraMem || 0) >= 4, again = tableAgain();
+  const ask = tableGctx().edge === 'out' && !state.story.edgeAsk ? EDGE_ASK : ''; if (ask) state.story.edgeAsk = 1;   // the questions are said, once (table.js)
   rt.cardBusy = false; rt.cardNext = null; openModal('card'); audio.play('card');
-  const done = $('cardDone'), out = (t, next) => { $('cardOut').textContent = t; done.style.display = ''; done.textContent = 'Go on [E]'; cardEl.querySelectorAll('#cardChoices button').forEach((b) => { b.disabled = true; }); rt.cardBusy = 'done'; rt.cardNext = next; };
-  renderCard({ icon: 'pip', art: paintStill('table', `table|${tableGctx().edge}`), title: 'THE TABLE BY THE WATER', dark: true, text: `${ARRIVAL}${again.line ? ` ${again.line}` : memory ? ' Mara, quietly: "I do not think we are here to throw."' : ''}`,
+  const done = $('cardDone'), out = (t, next) => { $('cardOut').textContent = t; cardEl.classList.add('out'); done.style.display = ''; done.textContent = 'Go on [E]'; cardEl.querySelectorAll('#cardChoices button').forEach((b) => { b.disabled = true; }); rt.cardBusy = 'done'; rt.cardNext = next; };
+  renderCard({ icon: 'pip', art: paintStill('table', `table|${tableGctx().edge}`), title: 'THE TABLE BY THE WATER', dark: true, text: `${ARRIVAL}${again.line ? ` ${again.line}` : ask ? ` ${ask}` : memory ? ' Mara, quietly: "I do not think we are here to throw."' : ''}`,
     choices: opts.map((o) => ({ label: o.label, id: o.id })) }, (ch) => {
     if (rt.cardBusy) return; rt.cardBusy = true;
     if (ch.id === 'throw') {

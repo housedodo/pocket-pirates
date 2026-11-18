@@ -84,7 +84,7 @@ purple and magenta cosmic horror as dread rises.
 - **The night sky** (2026-11-18, `sky.js`): a thin field of stars in tiers (size 2, 3, and a pixel-cross at 9), a tilted milky way with a dark dust
   lane, an eight-sided ring round the moon. Four colour moods (Calm, Amber, Teal, Violet), one a night in turn, only slightly different;
   and a richness chosen by the night, apart from the colour (`RICHNESS`): from about a tenth of the stars and no band to a full band, so the sky is
-  never always full. Stars flicker in three stepped levels, never a smooth fade. No drawn constellations. The eye of the full dread stays.
+  never always full. Stars flicker in three stepped levels, never a smooth fade. No drawn constellations. The eye of the full dread stays. **The Eye** (`abyss.js`, the very bottom; redrawn 2026-11-18, owner: part of the sky, not on it): coloured each frame from the sky that is up (the horizon's colour, darker for lid and pupil, paler for the white, the iris leaning a little to `#7a2a5a`), half see-through, standing 1350 out so the sea's horizon cuts its lower edge, with six bands of the same sky drifting across it.
   Flags: `?sky=0..4`, `?rich=0..9`. **The day** (same date): four day moods, one a day (Clear, Hazy, Bright, Towering: they tint only the zenith,
   the horizon keeps the fog's colour, and set how many and how tall the clouds are); a pink dithered glow up the horizon at dawn and dusk,
   strongest toward the sun; clouds drift with the wind and wrap round the ship; a few small black birds by day (not at night, in a storm or
@@ -111,14 +111,17 @@ purple and magenta cosmic horror as dread rises.
   near-black, swell slate, deep navy, reef teal), red snag arcs; beach ground per kind (sand, grey shingle with grey
   stone dots, pale dunes, brown mud with dark sunk squares).
 - **The glimpse figure (the diver):** a rusted deep-sea diver standing upright on the water, once (`src/glimpse.js`, look `a`, 2026-11-12): a dented copper helmet with a cracked front glass and one side pane gone, rust running down a swollen canvas suit, lead boots, both arms hanging limp, the air hose in one run from the back of the helmet down into a loop on the water, cut and open. Scale 0.95 at about 48 off the bow; in view about 11 seconds. Nothing glows on him.
-- **The Edge** (`src/systems/edgeworld.js`, sailed since 2026-11-16): a straight lip of pale foam, white ropes of water down the
-  face, spray falling into flat black (`#07050c`); past it, unfogged and built from the same stone boxes, cylinders and blobs
-  in four greys (`#3c3848`..`#6a6070`), the hooded one with nothing in the hood, a head on its side with one magenta eye
-  (`#ff70d0`, the glow tile), the tower at wrong angles with pin-prick windows, the pillars and the sunk arches. Each stands
-  apart along the lip and comes out of the dark (opacity, never a fog colour) only as the ship draws level; the pillars keep
-  one apparent size from anywhere. The pull is pale thin dashes on the water racing to the lip (thicker and faster close in,
-  the current foam's material). The ends of the stretch close in white sea mist (`#e8eef0`), the same white as the mist
-  that takes the ship over.
+- **The Edge** (`src/systems/edgeworld.js`, sailed since 2026-11-16; reworked 2026-11-18, owner): the sea rolls over a straight
+  lip in one long smooth curve (22 bands, pale foam to flat black `#07050c`), thin threads of white water riding down the face and a fine
+  haze of short spray streaks going dark as they fall; nothing big falls off it. Past it a curved wall of the dark stands 2400 out round the
+  whole void side, its top just under the horizon, so the dark has no ends (the camera's far plane is pushed to 3200 while the Edge runs).
+  Out in the dark, unfogged and built from the same stone boxes, cylinders and blobs in four greys (`#3c3848`..`#6a6070`): the hooded
+  one with nothing in the hood, a head on its side with one magenta eye (`#ff70d0`, the glow tile), the tower at wrong angles (13
+  storeys) with pin-prick windows, the pillars and the sunk arches. They are far too big (`SIZE` 2.6 to 3.4 times their build, 520 to
+  820 out) and each goes black from the bottom up (`sinkFade`, `SINK`, `LIFT`): where it starts is never seen. Each stands apart along the
+  lip and comes out of the dark (opacity, never a fog colour) only as the ship draws level; the pillars keep one apparent size from
+  anywhere. The pull is pale thin dashes on the water racing to the lip (thicker and faster close in, the current foam's material).
+  The ends of the stretch close in white sea mist (`#e8eef0`), the same white as the mist that takes the ship over.
 
 ## 4. Colour and mood
 - The sea is low-poly and faceted: a fine wave mesh with small chop, light banded in ~6 steps by facing to the sun,

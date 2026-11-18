@@ -49,6 +49,8 @@ export const ENDINGS = {
 // ---- what the endings leave behind (owner, 2026-11-18; systems/endgame.js runs them). Every line here is a draft for the writer.
 /** arriving at the table: the ritual's card (the old draft: "A table at the water's edge. One chair on this side, one on the other. A die, waiting.") */
 export const ARRIVAL = 'Every candle on the table is lit. In the far chair someone sits very still, and waits. Your chair has been pulled out for you. The book lies open at a clean line, and the die waits on the wood beside a drawing in red. Whatever you do here will be written down.';
+/** the drawing of the Edge on the wood (if the Edge was not gone over): its three questions are said, once, never written on it (owner 2026-11-18) */
+export const EDGE_ASK = 'Mara looks at the drawing a long while, then says it under her breath, as if reading: "What is down there? Who is there? Why is it there?"';
 /** back at the table after She Rises, once: Mara knows how it comes out (the throw then gives the same face as before) */
 export const AGAIN = 'Mara, very quietly: "I am afraid it will not come out above nine."';
 /** the game-over screen (She Rises, the Unseen Throw, Your Seat): no going on, only these two */

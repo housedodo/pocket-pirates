@@ -118,6 +118,7 @@ function threadClues() {
   if (state.story.colour && state.story.colour.found) G.seeClue('CL-T-colour');
 }
 export function seaGate(dt) {
+  if (rt.seatPan) { rt.gateLost = null; rt.gateFog = 0; return; }   // Your Seat's last look: the world is only watched (systems/endgame.js)
   const R = gateRadius(state, tideFalls()), d = Math.hypot(G.ship.pos.x, G.ship.pos.z);
   if (d < R && d > (state.story.reach || 0)) state.story.reach = d;   // how far you have really sailed: a stratum, once entered, stays open
   setReach(R);

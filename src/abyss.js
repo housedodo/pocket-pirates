@@ -48,6 +48,7 @@ const MARA_HINTS = ['Mara does not answer. Her hat is lying on the deck.', 'Mara
 // E1 (owner, 2026-11-18): "the Eye" is the player's own word for what they see, named only at the very bottom (EYE_K: the leviathan's
 // water, where fullTime runs). E2: the stock lines rewritten in the game's own flat voice (drafts, docs/WRITER_TODO.txt 4.7).
 export const EYE_K = 0.9;
+const _eyeC = new THREE.Color();
 const EYE_LIES = new Set(['THE EYE', 'The Eye']);
 const PLACE_LIES = ['TAMA IS THAT WAY', 'you passed here', 'HOME?', 'first time here?', 'THE EYE', 'the same water', 'here', 'Harbour T̶a̶m̶a̶'];
 const GOLD_LIES = ['???', 'they count it too', '0', '∞', 'not yours'];
@@ -129,11 +130,18 @@ export class Abyss {
     const arch = new THREE.TorusGeometry(42, 6, 5, 12, Math.PI);
     this.archMat = psxMaterial({ color: 0x1a0a22, fog: false, key: 'AbL' });
     this.arches = [0, 1, 2].map((i) => { const m = new THREE.Mesh(arch, this.archMat); m.visible = false; m.scale.setScalar(1 - i * 0.18); scene.add(m); return m; });
+    // the Eye (redrawn 2026-11-18, owner: not a sticker in the sky but part of it, partly hidden). It is made of the sky that is up:
+    // every part takes its colour from the horizon's colour each frame (day, night, storm), it stands far out behind the sea so the
+    // horizon cuts its lower edge, and bands of the same sky drift across it. Only the iris leans, slightly, to the dread's magenta
     this.eye = new THREE.Group();
-    const em = (col, r, sy, ord) => { const m = new THREE.Mesh(new THREE.CircleGeometry(r, 18), new THREE.MeshBasicMaterial({ color: col, fog: false, depthTest: false, depthWrite: false })); m.scale.y = sy; m.renderOrder = ord; return m; };
-    this.eyeLid = em(0x0a0410, 1.08, 0.5, -16); this.eyeWhite = em(0xf4e8ff, 1, 0.44, -15); this.eyeIris = em(0xff30c8, 0.36, 1, -14); this.eyePupil = em(0x050008, 0.16, 1, -13);
-    this.eyeIris.position.z = 0.01; this.eyePupil.position.z = 0.02;
-    this.eye.add(this.eyeLid, this.eyeWhite, this.eyeIris, this.eyePupil); this.eye.visible = false; scene.add(this.eye);
+    const em = (r, sy, ord, segs = 18) => { const m = new THREE.Mesh(new THREE.CircleGeometry(r, segs), new THREE.MeshBasicMaterial({ color: 0, fog: false, transparent: true, opacity: 0, depthTest: true, depthWrite: false })); m.scale.y = sy; m.renderOrder = ord; return m; };
+    this.eyeLid = em(1.12, 0.52, -16); this.eyeWhite = em(1, 0.44, -15); this.eyeIris = em(0.36, 1, -14); this.eyePupil = em(0.15, 1.3, -13);
+    this.eyeIris.position.z = 0.002; this.eyePupil.position.z = 0.004;
+    this.eye.add(this.eyeLid, this.eyeWhite, this.eyeIris, this.eyePupil);
+    this.eyeVeil = [];   // bands of sky in front of it, drifting
+    for (let i = 0; i < 6; i++) { const v = em(1, 1, -12, 10); v.userData = { w: 0.7 + (i * 0.37) % 0.9, h: 0.05 + (i * 0.029) % 0.07, y: -0.36 + i * 0.15, sp: 0.012 + (i % 3) * 0.008, ph: i * 1.7, lit: i % 2 }; v.position.z = 0.01; this.eye.add(v); this.eyeVeil.push(v); }
+    this.eye.visible = false; scene.add(this.eye);
+    this.eyeBase = new THREE.Color(); this.eyeScene = scene;
     this.overlay = document.createElement('div');
     this.overlay.id = 'awaken';
     document.body.appendChild(this.overlay);
@@ -424,12 +432,22 @@ export class Abyss {
     const cam = c.camera, open = smoothstep(1, 5, e.t) * (e.t > 15 ? 0 : 1);
     this.eye.visible = e.t < 15.5 && !e.from;
     const fx = Math.sin(c.ch), fz = -Math.cos(c.ch);
-    this.eye.position.set(cam.position.x + fx * 700, cam.position.y + 150, cam.position.z + fz * 700);
+    this.eye.position.set(cam.position.x + fx * 1350, cam.position.y + 185, cam.position.z + fz * 1350);   // behind the sea: the horizon cuts it
     this.eye.lookAt(cam.position);
-    this.eye.scale.set(260, 260 * Math.max(0.02, open), 260);
+    this.eye.scale.set(620, 620 * Math.max(0.02, open), 620);
     const look = Math.sin(e.t * 0.8) * 0.08;
     this.eyeIris.position.x = look; this.eyePupil.position.x = look;
-    this.eyePupil.scale.setScalar(1 + Math.max(0, e.t - 6) * 0.25);
+    this.eyePupil.scale.set(1 + Math.max(0, e.t - 6) * 0.2, 1.3 + Math.max(0, e.t - 6) * 0.2, 1);
+    { // its colours are the sky's: the horizon's colour, darker for the lid and the pupil, paler for the white
+      const base = this.eyeBase.copy(this.eyeScene.fog ? this.eyeScene.fog.color : this.eyeBase), a = smoothstep(0.5, 3, e.t);
+      const tint = (m, k, toward, by, op) => { m.material.color.copy(base).multiplyScalar(k).lerp(_eyeC.set(toward), by); m.material.opacity = op * a; };
+      tint(this.eyeLid, 0.5, '#000000', 0, 0.85); tint(this.eyeWhite, 1.02, '#f2eaf0', 0.1, 0.74); tint(this.eyeIris, 0.8, '#7a2a5a', 0.35, 0.85); tint(this.eyePupil, 0.18, '#000000', 0, 0.92);
+      for (const v of this.eyeVeil) {   // the bands drift across, slowly, and cover different parts of it as they go
+        const u = v.userData, x = Math.sin(e.t * u.sp * 6 + u.ph) * 0.7;
+        v.position.set(x, u.y / Math.max(0.05, open) * 0.44, 0.01); v.scale.set(u.w * 1.4, u.h / Math.max(0.05, open), 1);
+        v.material.color.copy(base).multiplyScalar(u.lit ? 1.0 : 0.74); v.material.opacity = 0.82 * a;
+      }
+    }
     const say = (text, cls = '') => { const p = document.createElement('p'); p.className = cls; p.textContent = text; this.overlay.appendChild(p); };
     if (e.step === 0 && e.t > 5) { e.step = 1; say('THE EYE OPENS.', 'big'); }
     if (e.step === 1 && e.t > 8.5) { e.step = 2; say('It has watched you since the first harbour.'); }

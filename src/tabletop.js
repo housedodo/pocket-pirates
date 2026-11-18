@@ -165,11 +165,14 @@ export function drawCard(dread, seen, only) {
   return list[Math.floor(Math.random() * list.length)];
 }
 
+/** the art card's layout: 'stack' (the art above the words) or 'side' (the art left); ?cardlayout=side tries the other (RULES 35) */
+const CARD_LAYOUT = (typeof location !== 'undefined' && new URLSearchParams(location.search).get('cardlayout')) || 'stack';
 export function renderCard(card, onChoose) {
   const el = document.getElementById('card');
   el.classList.toggle('dark', !!card.dark);
   document.getElementById('cardIcon').innerHTML = `<i class="pxi ico ${card.icon}"></i>`;
   el.classList.toggle('art', !!card.art); if (card.art) document.getElementById('cardArt').src = card.art;   // a painted still above the card (the Table)
+  el.classList.toggle('side', !!card.art && (card.layout || CARD_LAYOUT) === 'side'); el.classList.remove('out');   // layouts: index.html, #card.art
   document.getElementById('cardTitle').textContent = card.title;
   document.getElementById('cardText').textContent = card.text;
   const box = document.getElementById('cardChoices');

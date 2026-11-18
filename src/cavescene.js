@@ -47,12 +47,7 @@ function shelves(ctx, jars, glint) {
 function hermit(ctx, x, y) { R(ctx, '#e8e0d0', x, y, 18, 30); R(ctx, '#e8b890', x + 4, y - 6, 10, 10); R(ctx, '#7a3a2a', x - 2, y - 12, 22, 7); R(ctx, '#e8e0d0', x + 2, y + 4, 14, 14); R(ctx, '#1a1a2a', x + 6, y - 4, 2, 2); R(ctx, '#1a1a2a', x + 12, y - 4, 2, 2); }
 
 // the drawing on the Table (CANON 2026-11-18): crude, red, as if done in a hurry. A ship falling down a hole if the Edge was gone over;
-// otherwise the Edge alone and three questions. A 3x5 hand, each letter a little off the line
-const CRUDE = { W: '101101101111101', H: '101101111101101', A: '010101111101101', T: '111010010010010', I: '111010010010111', S: '011100010001110', D: '110101101101110',
-  O: '010101101101010', N: '101111111101101', E: '111100110100111', R: '110101110101101', Y: '101101010010010', '?': '110001010000010' };
-function crude(ctx, text, x, y, col) {
-  [...text].forEach((ch, i) => { const g = CRUDE[ch]; if (!g) return; const dy = hash(i, y, 77) < 0.3 ? 1 : 0; for (let k = 0; k < 15; k++) if (g[k] === '1') R(ctx, col, x + i * 4 + (k % 3), y + dy + Math.floor(k / 3), 1, 1); });
-}
+// otherwise the Edge alone
 function tableDrawing(ctx, way, x, y) {   // a sheet laid on the wood, hanging over the near edge (112 x 24: inside the card's crop)
   R(ctx, '#c8bc9a', x, y, 112, 24); R(ctx, '#a89a78', x, y + 23, 112, 1); R(ctx, '#e0d4b0', x + 2, y + 1, 108, 1);
   const red = '#b01414';
@@ -61,10 +56,12 @@ function tableDrawing(ctx, way, x, y) {   // a sheet laid on the wood, hanging o
     for (let yy = -5; yy <= 5; yy++) { const w = Math.sqrt(1 - (yy / 6) ** 2) * 17; R(ctx, '#140806', x + 56 - w, y + 12 + yy, w * 2, 1); }
     R(ctx, red, x + 50, y + 5, 3, 9); R(ctx, red, x + 53, y + 7, 2, 6); R(ctx, red, x + 47, y + 7, 3, 1); R(ctx, red, x + 46, y + 5, 2, 3);   // the ship, bow down, mast out sideways
     for (let i = 0; i < 4; i++) R(ctx, red, x + 40 - i * 3, y + 2 + i, 2, 1);   // how it fell
-  } else {   // the questions, and beside them the Edge: the sea running to a straight lip, then down
-    crude(ctx, 'WHAT IS DOWN THERE?', x + 3, y + 2, red); crude(ctx, 'WHO IS THERE?', x + 3, y + 9, red); crude(ctx, 'WHY IS IT THERE?', x + 3, y + 16, red);
-    R(ctx, red, x + 82, y + 6, 16, 1); for (let i = 0; i < 3; i++) R(ctx, red, x + 83 + i * 5, y + 4, 2, 1); R(ctx, red, x + 98, y + 6, 1, 13);
-    for (let i = 0; i < 5; i++) R(ctx, red, x + 101 + (i % 2), y + 8 + i * 3, 1, 2);   // and nothing under it
+  } else {   // the Edge alone: the sea running to a straight lip, then down, and nothing under it. The three questions are said, not
+    // written (owner 2026-11-18: the letters looked wrong): Mara reads them out at the Table (table.js EDGE_ASK)
+    R(ctx, red, x + 22, y + 8, 50, 1); for (let i = 0; i < 9; i++) R(ctx, red, x + 24 + i * 5 + (hash(i, 2, 78) * 2 | 0), y + 6 - (i % 2), 2, 1);   // the sea, waves on it
+    R(ctx, red, x + 72, y + 8, 1, 14); R(ctx, red, x + 71, y + 9, 1, 2);   // the lip, and straight down
+    for (let i = 0; i < 6; i++) R(ctx, red, x + 75 + (i % 2) * 2, y + 10 + i * 2, 1, 2);   // what pours over
+    for (let i = 0; i < 4; i++) R(ctx, '#7a1010', x + 80 + i * 4, y + 15 + (i % 2), 2, 1);   // and nothing under it
   }
 }
 function seatedOne(ctx, lit) {   // the one in the far chair: darker than the dark, hunched over the book; the candles catch an edge of it

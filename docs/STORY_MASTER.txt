@@ -1,7 +1,7 @@
 HOIST (Pocket Pirates): THE MASTER STORY FILE
 ================================================================================================
 This is the main story file for the full game. Edit it, upload it again, and the next session puts every change
-into the game. Built from commit 1a4d380 on 2026-11-18. 1664 in-game lines carry an ID.
+into the game. Built from commit 09ba95e on 2026-11-18. 1670 in-game lines carry an ID.
 
 CONTENTS
   A   HOW TO USE THIS FILE (IDs, status marks, how to add and remove things)
@@ -569,7 +569,7 @@ Where the story hides in the mechanics, and where its text lives (section J).
 # J  EVERY LINE IN THE GAME
 ################################################################################################
 Pulled from the code. Edit the text after the "|" (see part A). Sources are grouped by file; the CODE in front of every
-line says which file it goes back into. 1664 lines.
+line says which file it goes back into. 1670 lines.
 
 
 
@@ -2535,6 +2535,13 @@ line says which file it goes back into. 1664 lines.
 ### MAIN / ADDED 2026-11-18
   MAIN-0338 | The keeper looks at his dark lamp. Nothing comes down.
 
+### MAIN / ADDED 2026-11-18
+  MAIN-0339 | Captain, the regatta is waiting for us off Tama. Bring us up to the line by the committee boat.
+  MAIN-0340 | Here we are. Sails in, wait for the flag.
+  MAIN-0341 | First over the line, Captain! The purse is at the harbourmaster's.
+  MAIN-0342 | In ahead of ${of + 1 - n} of them. There is a purse for that at the harbourmaster's.
+  MAIN-0343 | They went without us, Captain. We can still go round, if we hurry.
+
 ### MAIN / RETIRED (the text is no longer in the game; these IDs are never used again)
     was MAIN-0001 | A floating market, with bunting on every line. (Friday)
     was MAIN-0002 | A regatta! Five boats, racing.
@@ -2861,6 +2868,9 @@ line says which file it goes back into. 1664 lines.
   TBL-0043 | They look a long while at the chair on your side, deep in the dark. You breathe, slow and patient.
   TBL-0044 | "Is it one throw a day?" they ask, too brightly. "I only heard about it at the last harbour."
   TBL-0045 | A yellowed twenty-sided die waits on the wood. You push it across.
+
+### TBL / ADDED 2026-11-18
+  TBL-0046 | Mara looks at the drawing a long while, then says it under her breath, as if reading: "What is down there? Who is there? Why is it there?"
 
 ### TBL / RETIRED (the text is no longer in the game; these IDs are never used again)
     was TBL-0018 | Across the table Mara sits down, slowly. She does not ask.

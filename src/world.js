@@ -905,14 +905,20 @@ let HUT_SHOWN = false;   // the hut stands on its island only once the story has
 // hide, small windows glowing a sick purple, charms of bone and glass hanging from the eaves, a lantern on a crooked
 // post by the path, and a ring of leaning stones round a dark patch of ground. Lives in builder A so it looks the same
 // in both moods.
-function darkHut(d, rng, A) {
+/** where the hut stands on its island and which way its door looks (island-local x, z; the door looks out along th). Pure: the
+ *  same answer before the island is built (Your Seat's last look stands here: systems/endgame.js) */
+export function hutSpot(d) {
   let th = (hash2(d.seed, 3, 9) % 628) / 100, x = 0, z = 0, h = 0;
   for (let k = 0; k < 12; k++) {
     const t = 0.48, xx = Math.cos(th) * shoreR(d, th) * t, zz = Math.sin(th) * shoreR(d, th) * t, hh = terrainHeight(d, xx, zz);
     if (hh > 0.8) { x = xx; z = zz; h = hh; break; }
     th += 0.5;
   }
-  d.hutPos = { x, z, y: h, th };
+  return { x, z, y: h, th };
+}
+function darkHut(d, rng, A) {
+  d.hutPos = hutSpot(d);
+  const { x, z, y: h, th } = d.hutPos;
   const ry = Math.atan2(Math.cos(th), Math.sin(th));   // the door looks out to sea (+z in the hut's frame)
   A.push(x, h - 0.2, z, ry, 1, 1, 1, 0.05, -0.07);       // the whole thing leans
   // crooked stilts and a low mound of stones under it
