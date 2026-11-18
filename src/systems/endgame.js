@@ -125,7 +125,7 @@ export function initEndgame() {
   const mk = (id, label, fn, after) => { const b = document.createElement('button'); b.id = id; b.textContent = label; b.style.display = 'none'; after.after(b); b.addEventListener('click', (e) => { e.stopPropagation(); fn(); }); BTN[id] = b; return b; };
   mk('endBack', OVER.back, backToTable, $('endTitle')); mk('endAgain', OVER.again, beginAgain, $('endTitle'));
   mk('tBack', OVER.back, backToTable, $('tSail')); mk('tAgain', OVER.again, beginAgain, $('tSail'));
-  if (state.story.over) rt.over = true;
+  if (state.story.over && !DEMO) rt.over = true;   // the demo never has a closed voyage (RULES 29)
 }
 
 // ---------------------------------------------------------------- The Tune Is Kept: the guitar
@@ -141,7 +141,7 @@ function guitarMesh(ship) {
   const lamp = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.2, 0.14), new THREE.MeshBasicMaterial({ color: '#ffc060' })); lamp.position.set(0.32, 0.12, 0.5); g.add(lamp);
   const pool = new THREE.Mesh(new THREE.PlaneGeometry(1.4, 1.4), new THREE.MeshBasicMaterial({ color: '#ffb050', transparent: true, opacity: 0.22, depthWrite: false }));
   pool.rotation.x = -Math.PI / 2; pool.position.set(0.15, -0.04, 0.2); g.add(pool);
-  g.position.set(0.55, 1.02, 1.7); g.rotation.set(0.32, -0.35, 0);   // propped against the stern rail, starboard side
+  g.position.set(0.7, 0.9, -0.5); g.rotation.set(0.25, -0.3, 0);   // propped against the starboard rail, amidships
   g.userData = { lamp, pool, body };
   g.visible = false; ship.root.add(g);
   return g;
@@ -207,9 +207,9 @@ export function unseenTick(dt, ship) {
   // the table on the water: always ahead, a little nearer each time it is lost sight of
   u.tt = (u.tt || 0) + dt;
   const fx = Math.sin(ship.heading), fz = -Math.cos(ship.heading);
-  if (!ahead) { ahead = tableOnWater(); ship.root.parent.add(ahead); u.d = 120; place(ship, fx, fz, u.d); }
+  if (!ahead) { ahead = tableOnWater(); ship.root.parent.add(ahead); u.d = 70; place(ship, fx, fz, u.d); }
   const dx = ahead.position.x - ship.pos.x, dz = ahead.position.z - ship.pos.z, d = Math.hypot(dx, dz);
-  if (d > 200 || (dx * fx + dz * fz) / Math.max(1, d) < -0.2 || u.tt > 90) { u.d = Math.max(30, u.d * 0.7); u.tt = 0; place(ship, fx, fz, u.d); }
+  if (d > 200 || (dx * fx + dz * fz) / Math.max(1, d) < -0.2 || u.tt > 90) { u.d = Math.max(25, u.d * 0.7); u.tt = 0; place(ship, fx, fz, u.d); }
   ahead.position.y = Math.sin(rt.tNow * 0.7) * 0.05;   // it does not ride the swell
   if (d < 14 && !u.end) {   // there: dark, then the end
     u.end = 1; $('fade').classList.add('on'); ship.speed = 0;
