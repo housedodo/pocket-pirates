@@ -2100,3 +2100,7 @@ whether a stock ship really escapes; the race against a player who sails it; the
 ## Open
 - Pick the Table card's layout: stack (default) or side (`?cardlayout=side`); the other is deleted.
 - Mara's race lines and `EDGE_ASK` are drafts for the writer.
+- **End-card proposals for the next phase** (owner 2026-11-18: rebuild the ending pixel art with the codixel skill, from the game's look):
+  the skill is in `.claude/skills/codixel`; six proposals (Long Sleep, Good Dreams, She Rises, Tune Is Kept, Unseen Throw, Your Seat) in the
+  game's own ramps are drawn by `docs/proposals/endcards/make.cjs`. Previews only: nothing in the game changed; the chosen ones are
+  ported into `cavescene.js` once the owner picks.
