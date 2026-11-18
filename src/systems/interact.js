@@ -11,7 +11,7 @@ const VISIT_GAP = 120 / DAY_LENGTH;   // a second visit counts after two minutes
 import { state } from '../core/state.js';
 import { tod } from '../daynight.js';
 import { isOpen } from '../gates.js';
-import { pickGreeting, rollGreeting } from '../greetings.js';
+import { pickGreeting, rollGreeting, renamedGreeting } from '../greetings.js';
 import * as life from '../harbourlife.js';
 import { bearingName, friendLevel, fruitName, fruitOf, plural, repOf } from '../jobs.js';
 import { LM } from '../landmarks.js';
@@ -64,6 +64,7 @@ export function getInteract() {
   return far;
 }
 
+export const ROLL_GREET_P = 0.35, ROLL_GREET_GAP = 3;   // E6: a greeter speaks of a later throw about one time in three, never two within three days
 export const HEAVE_KINDS = new Set(['thread', 'spring', 'cave', 'treasure', 'fruit', 'wreck', 'landmark', 'patch', 'supper']);
 // E forgives (SYSTEMS_FEEL G-03, G-04, G-10; numbers to tune by hand):
 export const E_GRACE_T = 0.6;      // s: the last thing in reach stays E-able this long after it leaves reach...
@@ -168,12 +169,14 @@ function doInteract(tg) {
       if (cur && cur.id === 'perrin' && d.id === '0,-1' && !state.story.perrinNote && !state.story.letterP2) state.story.letterP2 = 'wait';   // the note waits as a letter; the player takes it
       if (cur && cur.id === 'gossip' && d.id !== '0,-1' && !state.story.hutKnown) { state.story.hutKnown = true; say = { speaker: 'fisher', text: `The black hut? Out past the ${bearingName(G.world.hutDesc.x - d.x, G.world.hutDesc.z - d.z)} water. There is a table, they say.`, dark: true, story: true }; } }
     const g = state.greet, h = state.hut, told = state.story.rollSeen || 0, ending = state.story.demoEnd === 'pending', free = g.lastDay !== state.dayN || ending;   // one voice a day, wherever you dock
-    if (!say && free && h && h.rolls.length > told) {   // someone already knows the number: always after the first throw, then about half the time
+    if (!say && free && h && h.rolls.length > told) {   // someone already knows: always after the first throw, then now and then (E6: a chance, and not two within ROLL_GREET_GAP days)
       state.story.rollSeen = h.rolls.length;
-      if (told === 0 || ending || Math.random() < 0.5) { say = rollGreeting(h.rolls[h.rolls.length - 1].n, state.time * 24, Math.random); if (ending) say.endsDemo = true; }
+      const last = state.story.rollGreetDay;
+      if (told === 0 || ending || (Math.random() < ROLL_GREET_P && !(last != null && state.dayN - last < ROLL_GREET_GAP))) { state.story.rollGreetDay = state.dayN; say = rollGreeting(h.rolls[h.rolls.length - 1].n, state.time * 24, Math.random); if (ending) say.endsDemo = true; }
     }
     if (!say && ending && h && h.rolls.length) { say = rollGreeting(h.rolls[h.rolls.length - 1].n, state.time * 24, Math.random); say.endsDemo = true; state.story.rollSeen = h.rolls.length; }
     if (!say && window.__BUILD !== 'demo') say = letterRumour(state, G.objectives.pending ? null : G.objectives.current, d, state.time * 24);   // asking around for Perrin's letter (systems/perrin.js)
+    if (!say && free && G.laterOK()) say = renamedGreeting(state, d, Math.random);   // a place that was not always called that (D3)
     if (!say && free && G.laterOK() && window.__BUILD !== 'demo' && !state.story.lullRumour && sectorAt(d.x, d.z, state.seed).faction.id === 'free') { state.story.lullRumour = 1; say = { speaker: 'oldsalt', text: 'In the Cays they say the dark keeps quiet while somebody plays.', story: true }; }   // points at the Two Players (the gentle ending)
     if (!say && free && !state.story.tellGreet && G.lateTell() && Math.random() < 0.5) { state.story.tellGreet = 1; say = { speaker: 'harbourmaster', text: 'Captain. Just yourself again? I will put you down as one.', story: true }; }   // a tell: they greet only you
     if (!say && free && G.laterOK() && isOpen(state, 'tab', 'tavern') && Math.random() < 0.6) say = life.gossipAt(state, d);

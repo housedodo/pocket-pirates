@@ -222,13 +222,17 @@ def coded_lines():
             out += ['', f'### {code} / RETIRED (the text is no longer in the game; these IDs are never used again)']
             for num, text in sorted(gone): out.append(f'    was {code}-{num:04d} | {text}'); gone_n += 1
     print(f'section J: {total} lines with an ID ({new_n} added, {gone_n} retired in all)')
-    flagged = [l for l in out if re.match(r'^  [A-Z]+-\d{4} \| ', l) and re.search(r"\b(lid|eye|sleeper|lady|kept soft)\b|mara is from", l, re.I)]
+    # RULES 6 exception (owner, 2026-11-18, E1): "the Eye" may be named at the very bottom of the dread only. These lines, and only
+    # these, are let through; abyss.js gates the first two to EYE_K (the bottom), the third is the waking sequence itself.
+    EYE_OK = {'THE EYE', 'The Eye', 'THE EYE OPENS.'}
+    eye_ok = lambda t: t.strip() in EYE_OK
+    flagged = [l for l in out if re.match(r'^  [A-Z]+-\d{4} \| ', l) and re.search(r"\b(lid|eye|sleeper|lady|kept soft)\b|mara is from", l, re.I) and not eye_ok(l.split(' | ', 1)[1])]
     print(f'tone check (RULES 6): {len(flagged)} line(s) with a banned word' + ''.join('\n    ' + l.strip()[:110] for l in flagged))
     # the short strings the export leaves out (a place name, a banner) can carry a banned word too: every string in the code is read
     short = []
     for f in sorted(SRC.rglob('*.js')):
         for t in js_strings(f.read_text(encoding='utf-8')):
-            if len(t) < 60 and (' ' in t or t[:1].isupper()) and re.search(r"\b(lid|eye|sleeper|lady|kept soft)\b|mara is from", t, re.I) and not re.search(r'[{}<>=;]|^\w+$', t):
+            if len(t) < 60 and (' ' in t or t[:1].isupper()) and re.search(r"\b(lid|eye|sleeper|lady|kept soft)\b|mara is from", t, re.I) and not re.search(r'[{}<>=;]|^\w+$', t) and not eye_ok(t):
                 short.append(f'{f.relative_to(SRC)}: {t}')
     print(f'tone check, short strings in the code: {len(short)}' + ''.join('\n    ' + x[:110] for x in short))
     # warnings, not errors (task P1): words the banned-word check lets through. Read them; most are innocent. `--warn` lists them all.

@@ -11,12 +11,18 @@ import { TILE } from './textures.js';
 import { smoothstep } from './util.js';
 import { mats } from './psx.js';
 
+// D3 (owner, 2026-11-18): every clue place stands in the water of the region its clue counts for, on every seed (sectors.js
+// WEDGES; clueLint warns otherwise). Moved that day: the Bell into Tama's own sector, the Ribs, the Name Wall and the Throwers'
+// Wreck into the Reef wedge, the Sunken Street out to the Drowned (no longer a distance lie). Old saves: LM_MOVED (core/state.js).
+// Where they stood before stays open water, and the world is still rolled as if they stood there (LM_BEFORE, forcedCells(true)):
+// the hut and the villages land where they always did on every seed. A moved place's ring of open water keeps clear of rings 5 to 7
+// (the hut's ring, world.js) so it never covers the hut's island.
 export const LANDMARKS = [
   { lm: 'crag',    key: '3,1',   name: 'The Grey Tooth',   type: 'rocky',   x: 280,  z: 100,  r: 15, H: 15, sight: 'a bare grey rock' },
-  { lm: 'bell',    key: '1,3',   name: 'The Drowned Bell', type: 'rocky',   x: 60,   z: 320,  r: 8,  H: 7,  sight: 'a leaning tower' },
+  { lm: 'bell',    key: '1,2',   name: 'The Drowned Bell', type: 'rocky',   x: 80,   z: 240,  r: 8,  H: 7,  sight: 'a leaning tower' },
   { lm: 'grove',   key: '-3,2',  name: 'Hollowgreen',      type: 'jungle',  x: -300, z: 180,  r: 17, H: 5.5, sight: 'a dark green wood' },
   { lm: 'keeper',  key: '4,-3',  name: "Wick's Rock",      type: 'rocky',   x: 430,  z: -320, r: 10, H: 3.5, sight: 'a lighthouse alone' },
-  { lm: 'ribs',    key: '-5,1',  name: 'The Ribs',         type: 'sandbar', x: -560, z: 70,   r: 15, H: 0.9, sight: 'masts in the surf' },
+  { lm: 'ribs',    key: '-3,3',  name: 'The Ribs',         type: 'sandbar', x: -380, z: 380,  r: 15, H: 0.9, sight: 'masts in the surf' },
   { lm: 'lagoon',  key: '5,3',   name: 'Glass Lagoon',     type: 'atoll',   x: 540,  z: 360,  r: 22, H: 1.1, sight: 'a reef ring' },
   { lm: 'broken', key: '-11,-2', name: 'The Halved Isle', type: 'rocky', x: -1231, z: -217, r: 26, H: 13, sight: 'a white fog bank' },
   { lm: 'customs', key: '1,-5', name: 'Customs Pier', type: 'sandbar', x: 155, z: -580, r: 12, H: 1.5, sight: 'a long grey pier' },
@@ -24,13 +30,13 @@ export const LANDMARKS = [
   { lm: 'ilse', key: '8,2', name: "Ilse's Rock", type: 'rocky', x: 880, z: 190, r: 9, H: 4, sight: 'a second light across the water' },
   { lm: 'cup', key: '6,2', name: 'The Cup', type: 'sandbar', x: 611, z: 222, r: 9, H: 0.9, sight: 'a lone table on a beach' },
   { lm: 'hammock', key: '7,-2', name: 'The Hammock Isle', type: 'jungle', x: 808, z: -263, r: 16, H: 4, sight: 'hammocks between the palms' },
-  { lm: 'namewall', key: '-2,8', name: 'The Name Wall', type: 'rocky', x: -233, z: 869, r: 14, H: 14, sight: 'a white cliff of tiny marks' },
+  { lm: 'namewall', key: '-3,9', name: 'The Name Wall', type: 'rocky', x: -330, z: 990, r: 14, H: 14, sight: 'a white cliff of tiny marks' },
   { lm: 'archive', key: '-1,-9', name: "The Governor's Fort", type: 'rocky', x: -139, z: -990, r: 16, H: 10, sight: 'a pale fort with one lit window' },
   { lm: 'press', key: '-9,2', name: 'The Oil Press', type: 'rocky', x: -1014, z: 272, r: 14, H: 6, sight: 'a fat chimney and a steady glow' },
-  { lm: 'wreck', key: '2,10', name: "The Throwers' Wreck", type: 'sandbar', x: 200, z: 1133, r: 10, H: 0.5, sight: 'a broken hull and a mast with a rag' },
+  { lm: 'wreck', key: '-5,10', name: "The Throwers' Wreck", type: 'sandbar', x: -560, z: 1100, r: 10, H: 0.5, sight: 'a broken hull and a mast with a rag' },
   { lm: 'ledger', key: '-12,-4', name: "The Keepers' Ledger", type: 'rocky', x: -1284, z: -417, r: 10, H: 4, sight: 'a lighthouse lit at noon' },
   { lm: 'tower', key: '-13,-7', name: 'The Dark Tower', type: 'rocky', x: -1377, z: -732, r: 8, H: 12, sight: 'a black tower' },
-  { lm: 'street', key: '5,7', name: 'The Sunken Street', type: 'sandbar', x: 516, z: 737, r: 14, H: 0.4, sight: 'roof peaks', dread: 0.74 },
+  { lm: 'street', key: '13,9', name: 'The Sunken Street', type: 'sandbar', x: 1450, z: 1030, r: 14, H: 0.4, sight: 'roof peaks', dread: 0.74 },
   { lm: 'table', key: '13,-18', name: 'The Table by the Water', type: 'sandbar', x: 1377, z: -1966, r: 12, H: 0.8, sight: 'a table at the water\'s edge', dread: 1 },
 ];
 export const LM = Object.fromEntries(LANDMARKS.map((l) => [l.lm, l]));
@@ -45,15 +51,29 @@ export const BARRIERS = {
   broken: { R: 110, up: 'lantern', lv: 2, kind: 'fog', no: 'The fog swallows everything. The ship wanders, and drifts back out the way it came. A lens lantern might cut it.', yes: 'The lens lantern cuts a road through the fog.' },
 };
 
-// the forced cells: the landmark itself, and open water in the eight cells round it so it stands alone on the horizon
-export function forcedCells() {
+/** the clue places as they stood before D3 (2026-11-18): only for rolling the world as it was (world.js) and old saves (core/state.js) */
+export const LM_BEFORE = {
+  bell: { key: '1,3', x: 60, z: 320 }, ribs: { key: '-5,1', x: -560, z: 70 }, namewall: { key: '-2,8', x: -233, z: 869 },
+  wreck: { key: '2,10', x: 200, z: 1133 }, street: { key: '5,7', x: 516, z: 737 },
+};
+
+// the forced cells: the landmark itself, and open water in the eight cells round it so it stands alone on the horizon.
+// before = true: the cells as they were before D3 (the rolls that place the hut and the villages read these). Otherwise the moved
+// places stand where they are now, and where they were is open water too.
+export function forcedCells(before = false) {
   const out = {};
-  for (const l of LANDMARKS) {
+  const was = LANDMARKS.map((l) => (LM_BEFORE[l.lm] ? { ...l, ...LM_BEFORE[l.lm] } : l));
+  if (before) { place(out, was); return out; }
+  place(out, was); for (const l of LANDMARKS) if (LM_BEFORE[l.lm]) out[LM_BEFORE[l.lm].key] = null;   // the old places: open water
+  place(out, LANDMARKS.filter((l) => LM_BEFORE[l.lm]));
+  return out;
+}
+function place(out, list) {
+  for (const l of list) {
     const [cx, cz] = l.key.split(',').map(Number);
     for (let dz = -1; dz <= 1; dz++) for (let dx = -1; dx <= 1; dx++) { const k = `${cx + dx},${cz + dz}`; if (!(k in out)) out[k] = null; }
   }
-  for (const l of LANDMARKS) out[l.key] = lmHere(l.lm) ? { type: l.type, x: l.x, z: l.z, r: l.r, lm: l.lm, dread: l.dread } : null;   // in the demo a later place is open water
-  return out;
+  for (const l of list) out[l.key] = lmHere(l.lm) ? { type: l.type, x: l.x, z: l.z, r: l.r, lm: l.lm, dread: l.dread } : null;   // in the demo a later place is open water
 }
 
 /** fill in a landmark's descriptor (called by describeCell) */

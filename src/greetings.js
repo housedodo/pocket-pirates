@@ -188,7 +188,8 @@ export const numberWord = (n) => WORDS[n] || String(n);
 const cap = (s) => s[0].toUpperCase() + s.slice(1);
 const an = (n) => (n === 8 || n === 11 || n === 18 ? 'an' : 'a');
 const BY_ROLL = {
-  low: ['Bad luck travels fast, captain. {A} {w}, was it?', 'Heard it came up {w}. Nobody told me. I just heard.', 'You threw {a} {w}, did you not? The fish knew before we did.', '{W}. Hm. Well. Nobody blames you. Not yet.', 'The tide came in {w} minutes late this morning. Funny number, {w}.'],
+  // E6 (owner, 2026-11-18): after a low throw the sea or the weather comes first; the throw only as an aside, the number last if at all
+  low: ['The sea came in grey this morning and stayed grey. A low one, was it?', 'Nets came up light again. Somebody must have thrown low.', 'Fog on the water before noon. Must have been a low one. {W}, I heard.', 'The tide came in late this morning. A low throw, they say. Nobody blames you.', 'Gulls sat on the roofs all morning. Low one, I suppose.'],
   ten: ['Ten. Nothing at all. She almost smiled, did she not?', 'A ten, they say. Neither here nor there. Like the rest of us.'],
   mid: ['Heard you threw {a} {w}! The whole pier slept well.', '{A} {w}, they say. Good. Good. Keep doing that.', 'Calm night, thanks to you. {W}, was it? Lovely number.'],
   high: ['{W}! The nets came up singing this morning. That was you, was it not?', 'Somebody threw {a} {w} and the whole sea went soft. Was that you, captain?'],
@@ -201,4 +202,22 @@ export function rollGreeting(n, hour, rnd) {
   const w = numberWord(n), text = pool[Math.floor(rnd() * pool.length)].replace(/\{w\}/g, w).replace(/\{W\}/g, cap(w)).replace(/\{a\}/g, an(n)).replace(/\{A\}/g, cap(an(n)));
   const phase = dayPhase(hour), who = Object.keys(SPEAKERS).filter((id) => SPEAKERS[id].when.includes(phase));
   return { speaker: who[Math.floor(rnd() * who.length)], text, dark: n <= 5 };
+}
+
+// ---- D3 (owner, 2026-11-18): the clue places moved to their own region's water. Now and then, in another region, somebody
+// mentions offhand that a place was not always called what it is called now: the charts change. Never explained. Once each,
+// only after the place itself was seen, full game only. Drafts (docs/WRITER_TODO.txt 4.7).
+const RENAMED = [
+  { id: 'ribs', clue: 'CL-RIBS-a', where: ['lantern'], text: 'The Ribs? Our old charts had it nearer, and called it something else.' },
+  { id: 'bell', clue: 'CL-BELL-a', where: ['crown', 'free'], text: 'The Drowned Bell, the charts say now. It was not always called that.' },
+  { id: 'street', clue: 'CL-D1-a', where: ['free'], text: 'A street under the water? My grandmother\'s chart had one much closer in. Another name.' },
+];
+/** an old salt on the pier of harbour d, about a place seen elsewhere; or null. Marks it told. */
+export function renamedGreeting(state, d, rnd) {
+  if (typeof window !== 'undefined' && window.__BUILD === 'demo') return null;
+  const seen = (state.story && state.story.seen) || {}, told = state.story.renamed || (state.story.renamed = {});
+  const row = RENAMED.find((x) => !told[x.id] && seen[x.clue] && x.where.includes(d.region));
+  if (!row || rnd() > 0.5) return null;
+  told[row.id] = state.dayN;
+  return { speaker: 'oldsalt', text: row.text };
 }

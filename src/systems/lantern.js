@@ -6,6 +6,8 @@
 //     Pass within SUPPER_WAVE and he swings his lantern twice. Anchor under the light (E, within SUPPER_E): if you carry a fish, a
 //     basket comes down on a line, takes the first fish, goes up, and comes down again with a jar of oil. No fish: it comes down
 //     empty and goes up empty. Once a day per light. The Guild's people tend lamps, not nets (regions.js sellMul).
+//   C4 (owner, 2026-11-18): on a dead light the keeper is on his gallery at dusk all the same, in the dark: no lantern, no wave, and
+//     he does not follow the ship. E there brings nothing (he looks at the dark lamp); relighting it (interact.js) still works.
 // Nothing here is said in words but one line of Mara's, once. Demo-safe: no dread, nothing from after the hut.
 import * as THREE from 'three';
 import { state } from '../core/state.js';
@@ -19,6 +21,7 @@ import { nightKey } from './calendar.js';
 import { oilOn } from './storybeats.js';
 import { oilCap } from '../oil.js';
 import { sellable } from '../jobs.js';
+import { toast } from '../ui/dom.js';
 
 // ---- P-LANT-3 numbers
 export const SUPPER_FROM = 17.5, SUPPER_TO = 20.5;   // dusk, on the harbour clock
@@ -85,11 +88,12 @@ function keeperFor(isl) {
   k = { isl, g, pivot, basket, rope, fish, jar, lx, ly, lz, waved: false, swingT: 0, run: null };
   keepers.set(d.id, k); return k;
 }
-/** is this rock's keeper out tonight? (a lone Guild light, lit, dusk, oil on board the game) */
+/** is this rock's keeper out tonight? (a lone Guild light, dusk, oil on board the game): 'lit', 'dead' (his light is out, C4) or false */
 function keeperOut(d) {
   if (!guildLight(d) || d.type === 'harbour') return false;
   const h = hourNow();
-  return h >= SUPPER_FROM && h <= SUPPER_TO && oilOn() && !lampDead(state, d, nightKey());
+  if (!(h >= SUPPER_FROM && h <= SUPPER_TO && oilOn())) return false;
+  return lampDead(state, d, nightKey()) ? 'dead' : 'lit';
 }
 function supperTick(dt) {
   near = null;
@@ -103,9 +107,15 @@ function supperTick(dt) {
     const d = isl.desc;
     if (!isl.lampOn || !guildLight(d) || d.type === 'harbour') continue;
     const dist = edgeTo(d, p.x, p.z), k = keepers.get(d.id);
-    const out = keeperOut(d) && dist < KEEPER_SEEN;
+    const how = keeperOut(d), out = !!how && dist < KEEPER_SEEN;
     if (!out && !(k && k.run)) { if (k) k.g.visible = false; continue; }
     const kk = keeperFor(isl); kk.g.visible = true;
+    kk.pivot.visible = how !== 'dead';   // a dead light: he holds no lantern either
+    if (how === 'dead' && !kk.run) {   // C4: he stands with his back to the sea and does not move
+      kk.waved = false; kk.swingT = 0; kk.pivot.rotation.z = 0;
+      if (dist < SUPPER_E && (!near || dist < near.dist)) near = { isl, d, dist, dead: true };
+      continue;
+    }
     kk.g.rotation.y = Math.atan2(p.x - (d.x + kk.lx), p.z - (d.z + kk.lz));   // he faces the ship
     if (dist < SUPPER_WAVE && !kk.waved) { kk.waved = true; kk.swingT = SUPPER_SWING; }   // come closer
     if (dist > SUPPER_WAVE + 40) kk.waved = false;
@@ -118,11 +128,18 @@ function supperTick(dt) {
 /** getInteract (interact.js), after a dead light: the keeper's rock in reach, or null */
 export function supperTarget() {
   if (!near) return null;
-  return { kind: 'supper', key: 'supper:' + near.d.id, isl: near.isl, prompt: '[E] Lie to under the light' };
+  return { kind: 'supper', key: 'supper:' + near.d.id, isl: near.isl, dead: !!near.dead, prompt: '[E] Call up to the keeper' };
 }
 /** E (interact.js): the crew calls up; when it is done the basket comes down */
 export function startSupper(tg) {
   const d = tg.isl.desc;
+  if (tg.dead) {   // C4: the crew calls up; he looks at the dark lamp and nothing comes down
+    rt.dig = { key: tg.key, t: 0, label: 'Calling up to the gallery...', need: SUPPER_ANCHOR, done: () => {
+      const k = keeperFor(tg.isl); k.g.rotation.y = Math.atan2(d.x - G.ship.pos.x, d.z - G.ship.pos.z);   // turned in, to the lamp
+      toast('The keeper looks at his dark lamp. Nothing comes down.', false, 4500);
+    } };
+    return;
+  }
   rt.dig = { key: tg.key, t: 0, label: 'Calling up to the gallery...', need: SUPPER_ANCHOR, done: () => {
     const k = keeperFor(tg.isl);
     if (k.run) return;

@@ -35,28 +35,48 @@ const MARA_LINES = [
   'Captain, I c-c-can\'t remember which way is home. Can you?',
   'We have always been sailing here. Haven\'t we? Haven\'t we.',
   'Who is steering? Who is steering? Who is st',
-  'The crew keeps counting to eleven. We only have nine.',
-  'I see you, Captain. I see you seeing me.',
+  'Eleven answered at roll call this morning. I did not call it.',
+  'Are you looking at me, Captain? Somebody is.',
   'Mara is not here right now. Please leave a message after the tide.',
-  'Don\'t look at the water. It looks back. It looks back. It',
+  'The water is clear here. I can see a long way down. A long way.',
   'What was your name? I wrote it in the log and the ink moved.',
   '. . . . . . . . . . . .',
-  'turn back turn back turn back turn back turn back',
+  'We could still turn. We could still turn. We could',
   'The stars are not where I left them.',
 ];
 const MARA_HINTS = ['Mara does not answer. Her hat is lying on the deck.', 'Mara is staring at the horizon and will not turn around.', 'Someone answers in Mara\'s voice, from below the deck.'];
-const PLACE_LIES = ['TURN BACK', 'it is behind you', 'HOME?', 'you were never here', 'THE EYE', 'the same water', 'here', 'Harbour T̶a̶m̶a̶'];
+// E1 (owner, 2026-11-18): "the Eye" is the player's own word for what they see, named only at the very bottom (EYE_K: the leviathan's
+// water, where fullTime runs). E2: the stock lines rewritten in the game's own flat voice (drafts, docs/WRITER_TODO.txt 4.7).
+export const EYE_K = 0.9;
+const EYE_LIES = new Set(['THE EYE', 'The Eye']);
+const PLACE_LIES = ['TAMA IS THAT WAY', 'you passed here', 'HOME?', 'first time here?', 'THE EYE', 'the same water', 'here', 'Harbour T̶a̶m̶a̶'];
 const GOLD_LIES = ['???', 'they count it too', '0', '∞', 'not yours'];
-const TRACK_LIES = ['Find your way home', 'There is nothing to deliver', 'Keep sailing', 'Look behind you'];
-const MAP_NAMES = ['Here', 'Where you drowned', 'Tama?', 'The Last Harbour', 'Your Island', 'Nowhere', 'The Eye'];
+const TRACK_LIES = ['Find your way home', 'There is nothing to deliver', 'Keep sailing', 'Nothing behind you'];
+const MAP_NAMES = ['Here', 'Where the Gull lies', 'Tama?', 'The Last Harbour', 'Your Island', 'Nowhere', 'The Eye'];
 const MEMORIES = [
   ['Your own compass', 'It points at you.'], ['A letter in your handwriting', 'You have not written it yet.'], ['Mara\'s hat', 'It is dry.'],
   ['The fish you caught yesterday', 'Still alive. Still looking at you.'], ['A key to your cabin', 'The lock was changed long ago.'],
   ['A small wooden ship', 'It is the Gull, carved by someone who knew it well.'], ['A lantern, still lit', 'Underwater. For years.'],
 ];
+// E3 (owner, 2026-11-18): text breaks every way at full dread, varied, so it reads as the game itself failing, not one effect:
+// letters to blocks, letters dropped, a word stuck and repeated, a line cut off mid-word, or two of these at once.
 const GLITCH = '▓▒░█▚▞';
 const pick = (a) => a[Math.floor(Math.random() * a.length)];
-const corrupt = (s, amt) => [...s].map((ch) => (ch !== ' ' && Math.random() < amt ? pick(GLITCH) : ch)).join('');
+const BREAKS = {
+  blocks: (s, amt) => [...s].map((ch) => (ch !== ' ' && Math.random() < amt ? pick(GLITCH) : ch)).join(''),
+  drop: (s, amt) => [...s].filter((ch) => ch === ' ' || Math.random() >= amt).join(''),
+  repeat: (s) => { const w = s.split(' '); if (w.length < 2) return `${s} ${s}`; const i = Math.floor(Math.random() * w.length); w.splice(i, 0, ...Array(1 + Math.floor(Math.random() * 2)).fill(w[i])); return w.join(' '); },
+  cut: (s) => (s.length < 6 ? s : s.slice(0, Math.max(3, Math.floor(s.length * (0.35 + Math.random() * 0.45))))),
+};
+/** break a line one of the ways (or two); amt is how hard */
+export function corrupt(s, amt) {
+  const ways = Object.keys(BREAKS), a = pick(ways);
+  let out = BREAKS[a](s, amt);
+  if (Math.random() < 0.25) { const b = pick(ways.filter((w) => w !== a && w !== 'cut')); out = BREAKS[b](out, amt * 0.6); }
+  return out;
+}
+/** a lie from a list: the Eye's own names only at the very bottom (E1) */
+const lie = (list, k) => pick(k >= EYE_K ? list : list.filter((x) => !EYE_LIES.has(x)));
 const ramp = (t, a, b, len) => clamp(Math.min((t - a) / 2.5, (b - t) / 2.5, 1), 0, 1) * (len > 0 ? 1 : 0); // 0..1 with soft edges
 
 // The watchers: pale villagers with little glowing eyes (the other three looks tried were deleted, RULES 35, 2026-11-15)
@@ -163,7 +183,7 @@ export class Abyss {
     this.solo = id;
     const t = this.t;
     if (id === 'calm') { this.calm.a = t + 1; this.calm.b = t + 26; }
-    if (id === 'mara') { this.maraT = 20; this.d.mate.say(pick(MARA_LINES), true); }
+    if (id === 'mara') { this.maraT = 20; this.d.mate.say(this.maraLine(), true); }
     if (id === 'lights') this.light.t0 = t + 1;
     if (id === 'watchers') this.clearWatchers();
     if (id === 'loop') this.loopT = 9;
@@ -209,7 +229,7 @@ export class Abyss {
     mate.face.classList.toggle('eye', maraOn);
     if (maraOn && live) {
       this.maraT -= dt;
-      if (this.maraT <= 0 && !mate.busy) { mate.say(pick(MARA_LINES), true); this.maraT = 30 + Math.random() * 25; }
+      if (this.maraT <= 0 && !mate.busy) { mate.say(this.maraLine(), true); this.maraT = 30 + Math.random() * 25; }
     }
 
     // 5 lighthouses: stare 10s, dead 7s, normal 20s
@@ -265,7 +285,7 @@ export class Abyss {
     let out = value;
     const r = Math.random();
     if (Math.random() > this.str('hud')) { this.hudCache[field] = { src: value, out: value, until: this.t + 0.5 + Math.random() }; return value; }   // fading: fewer lies
-    if (field === 'place') out = r < 0.3 ? pick(PLACE_LIES) : corrupt(value, 0.25);
+    if (field === 'place') out = r < 0.3 ? lie(PLACE_LIES, this.k) : corrupt(value, 0.25);
     else if (field === 'clock') {
       const m = value.split(':').map(Number), mins = (1440 - (m[0] * 60 + m[1])) % 1440;
       out = r < 0.12 ? pick(['??:??', '13:66', '00:00', '--:--']) : `${String(Math.floor(mins / 60)).padStart(2, '0')}:${String(mins % 60).padStart(2, '0')}`;
@@ -275,6 +295,8 @@ export class Abyss {
     return out;
   }
 
+  /** one of her lines at full dread; about half of them break as they are said (E3) */
+  maraLine() { const l = pick(MARA_LINES); return Math.random() < 0.5 && l.length > 12 ? corrupt(l, 0.12) : l; }
   maraHint() { if (!this.on('mara')) return false; this.d.toast(pick(MARA_HINTS), true, 5000); return true; }
 
   /** 11: the line brings up memories */
@@ -297,7 +319,7 @@ export class Abyss {
     this.mapOpenT = performance.now();
     this.phantoms = [];
     if (!this.on('map')) return;
-    const names = [...MAP_NAMES].sort(() => Math.random() - 0.5);
+    const names = (this.k >= EYE_K ? [...MAP_NAMES] : MAP_NAMES.filter((x) => !EYE_LIES.has(x))).sort(() => Math.random() - 0.5);
     for (let i = 0; i < 3; i++) {
       const a = Math.random() * Math.PI * 2, dd = 60 + Math.random() * 140;
       this.phantoms.push({ id: `ph${i}`, type: pick(['rocky', 'jungle', 'treasure']), x: ship.pos.x + Math.cos(a) * dd, z: ship.pos.z + Math.sin(a) * dd, r: 12 + Math.random() * 10, seed: (Math.random() * 65535) | 0, lobes: [0.15, 0.1, 0.06, Math.random() * 6, Math.random() * 6, Math.random() * 6], name: names[i] });

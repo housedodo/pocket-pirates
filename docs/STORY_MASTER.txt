@@ -1,7 +1,7 @@
 HOIST (Pocket Pirates): THE MASTER STORY FILE
 ================================================================================================
 This is the main story file for the full game. Edit it, upload it again, and the next session puts every change
-into the game. Built from commit 3ef3ec2 on 2026-11-18. 1581 in-game lines carry an ID.
+into the game. Built from commit 781e496 on 2026-11-18. 1664 in-game lines carry an ID.
 
 CONTENTS
   A   HOW TO USE THIS FILE (IDs, status marks, how to add and remove things)
@@ -390,13 +390,13 @@ F3 REGIONS [BUILT as names, colours, village looks and weather; the stories are 
 F4 THE HAND-MADE PLACES [BUILT] (always at the same spot in every voyage; what is ashore is in section J under PLC)
   P-crag     The Grey Tooth     rocky    at (280, 100), 297 from Tama   seen from far: "a bare grey rock"
                your edits: (empty)
-  P-bell     The Drowned Bell   rocky    at (60, 320), 325 from Tama   seen from far: "a leaning tower"
+  P-bell     The Drowned Bell   rocky    at (80, 240), 252 from Tama   seen from far: "a leaning tower"
                your edits: (empty)
   P-grove    Hollowgreen        jungle   at (-300, 180), 349 from Tama   seen from far: "a dark green wood"
                your edits: (empty)
   P-keeper   Wick's Rock        rocky    at (430, -320), 536 from Tama   seen from far: "a lighthouse alone"
                your edits: (empty)
-  P-ribs     The Ribs           sandbar  at (-560, 70), 564 from Tama   seen from far: "masts in the surf"
+  P-ribs     The Ribs           sandbar  at (-380, 380), 537 from Tama   seen from far: "masts in the surf"
                your edits: (empty)
   P-lagoon   Glass Lagoon       atoll    at (540, 360), 648 from Tama   seen from far: "a reef ring"
                your edits: (empty)
@@ -412,19 +412,19 @@ F4 THE HAND-MADE PLACES [BUILT] (always at the same spot in every voyage; what i
                your edits: (empty)
   P-hammock  The Hammock Isle   jungle   at (808, -263), 849 from Tama   seen from far: "hammocks between the palms"
                your edits: (empty)
-  P-namewall The Name Wall      rocky    at (-233, 869), 899 from Tama   seen from far: "a white cliff of tiny marks"
+  P-namewall The Name Wall      rocky    at (-330, 990), 1043 from Tama   seen from far: "a white cliff of tiny marks"
                your edits: (empty)
   P-archive  The Governor's Fort rocky    at (-139, -990), 999 from Tama   seen from far: "a pale fort with one lit window"
                your edits: (empty)
   P-press    The Oil Press      rocky    at (-1014, 272), 1049 from Tama   seen from far: "a fat chimney and a steady glow"
                your edits: (empty)
-  P-wreck    The Throwers' Wreck sandbar  at (200, 1133), 1150 from Tama   seen from far: "a broken hull and a mast with a rag"
+  P-wreck    The Throwers' Wreck sandbar  at (-560, 1100), 1234 from Tama   seen from far: "a broken hull and a mast with a rag"
                your edits: (empty)
   P-ledger   The Keepers' Ledger rocky    at (-1284, -417), 1350 from Tama   seen from far: "a lighthouse lit at noon"
                your edits: (empty)
   P-tower    The Dark Tower     rocky    at (-1377, -732), 1559 from Tama   seen from far: "a black tower"
                your edits: (empty)
-  P-street   The Sunken Street  sandbar  at (516, 737), 899 from Tama   seen from far: "roof peaks"
+  P-street   The Sunken Street  sandbar  at (1450, 1030), 1778 from Tama   seen from far: "roof peaks"
                your edits: (empty)
   P-table    The Table by the Water sandbar  at (1377, -1966), 2400 from Tama   seen from far: "a table at the water's edge"
                your edits: (empty)
@@ -569,7 +569,7 @@ Where the story hides in the mechanics, and where its text lives (section J).
 # J  EVERY LINE IN THE GAME
 ################################################################################################
 Pulled from the code. Edit the text after the "|" (see part A). Sources are grouped by file; the CODE in front of every
-line says which file it goes back into. 1581 lines.
+line says which file it goes back into. 1664 lines.
 
 
 
@@ -1036,6 +1036,11 @@ line says which file it goes back into. 1581 lines.
   LORE-0091 | Look where the compass needle points; the chest lies on that side.
   LORE-0092 | The palm that leans toward the sea is not leaning; it is being pulled.
 
+### LORE / ADDED 2026-11-18
+  LORE-0093 | The gulls followed us all morning. Cook says they carry the news. They were very loud about it.
+  LORE-0094 | We are the first to sail this far, I am sure of it. The wreck we passed must be newer than it looks.
+  LORE-0095 | Fog all day. We heard a bell the whole way. There is no bell out here.
+
 ### LORE / RETIRED (the text is no longer in the game; these IDs are never used again)
     was LORE-0025 | It is not angry. That is the worst part. It is only very, very patient.
     was LORE-0026 | Welcome home, captain. We saved your seat. It was always your seat.
@@ -1199,20 +1204,28 @@ line says which file it goes back into. 1581 lines.
   GRT-0130 | A nod. Only a nod.
   GRT-0131 | Nobody here is angry. Nobody here is in any hurry.
   GRT-0132 | Welcome back, captain. Your chair is where you left it.
-  GRT-0133 | Bad luck travels fast, captain. {A} {w}, was it?
-  GRT-0134 | Heard it came up {w}. Nobody told me. I just heard.
-  GRT-0136 | The tide came in {w} minutes late this morning. Funny number, {w}.
   GRT-0137 | Heard you threw {a} {w}! The whole pier slept well.
   GRT-0138 | Calm night, thanks to you. {W}, was it? Lovely number.
   GRT-0139 | Somebody threw {a} {w} and the whole sea went soft. Was that you, captain?
 
-### GRT / ADDED 2026-11-13
-  GRT-0140 | You threw {a} {w}, did you not? The fish knew before we did.
+### GRT / ADDED 2026-11-18
+  GRT-0141 | The sea came in grey this morning and stayed grey. A low one, was it?
+  GRT-0142 | Nets came up light again. Somebody must have thrown low.
+  GRT-0143 | Fog on the water before noon. Must have been a low one. {W}, I heard.
+  GRT-0144 | The tide came in late this morning. A low throw, they say. Nobody blames you.
+  GRT-0145 | Gulls sat on the roofs all morning. Low one, I suppose.
+  GRT-0146 | The Ribs? Our old charts had it nearer, and called it something else.
+  GRT-0147 | The Drowned Bell, the charts say now. It was not always called that.
+  GRT-0148 | A street under the water? My grandmother's chart had one much closer in. Another name.
 
 ### GRT / RETIRED (the text is no longer in the game; these IDs are never used again)
     was GRT-0124 | It is not angry. That is the worst part. It is only very, very patient.
     was GRT-0125 | Welcome home, captain. We saved your seat. It was always your seat.
+    was GRT-0133 | Bad luck travels fast, captain. {A} {w}, was it?
+    was GRT-0134 | Heard it came up {w}. Nobody told me. I just heard.
     was GRT-0135 | You threw {a} {w} last night, did you not? The fish knew before we did.
+    was GRT-0136 | The tide came in {w} minutes late this morning. Funny number, {w}.
+    was GRT-0140 | You threw {a} {w}, did you not? The fish knew before we did.
 
 
 ####################################################################################################
@@ -1294,6 +1307,10 @@ line says which file it goes back into. 1581 lines.
 
 ### PLC / ADDED 2026-11-13
   PLC-0069 | Gannets on every ledge, and nothing grows. On the top, a cairn; in it, a tin box with a list of ships in many hands, the last one crossed out: KESTREL. You add the Merry Gull. Inside, someone has scratched a little drawing: a white post, standing exactly in front of this rock. And two places.
+
+### PLC / ADDED 2026-11-18
+  PLC-0070 | Teo tunes up. "Who began it? The violin did, long before me. I only answer."
+  PLC-0071 | Ilse rosins her bow. "Who began it? The guitar did. I only answer it."
 
 ### PLC / RETIRED (the text is no longer in the game; these IDs are never used again)
     was PLC-0020 | Gannets on every ledge, and nothing grows. On the top, a cairn; in it, a tin box with a list of ships in many hands, the last one crossed out: KESTREL. You add the Merry Gull. On the lid someone has scratched a little drawing: a white post, standing exactly in front of this rock. And two places.
@@ -1692,13 +1709,9 @@ line says which file it goes back into. 1581 lines.
   ABY-0011 | Captain, I c-c-can't remember which way is home. Can you?
   ABY-0012 | We have always been sailing here. Haven't we? Haven't we.
   ABY-0013 | Who is steering? Who is steering? Who is st
-  ABY-0014 | The crew keeps counting to eleven. We only have nine.
-  ABY-0015 | I see you, Captain. I see you seeing me.
   ABY-0016 | Mara is not here right now. Please leave a message after the tide.
-  ABY-0017 | Don't look at the water. It looks back. It looks back. It
   ABY-0018 | What was your name? I wrote it in the log and the ink moved.
   ABY-0019 | . . . . . . . . . . . .
-  ABY-0020 | turn back turn back turn back turn back turn back
   ABY-0021 | The stars are not where I left them.
 
 ### ABY / MARA_HINTS
@@ -1735,7 +1748,17 @@ line says which file it goes back into. 1581 lines.
   ABY-0041 | Your line brings up memories; chests hold things you already own.
   ABY-0042 | It points at you.
 
+### ABY / ADDED 2026-11-18
+  ABY-0043 | Eleven answered at roll call this morning. I did not call it.
+  ABY-0044 | Are you looking at me, Captain? Somebody is.
+  ABY-0045 | The water is clear here. I can see a long way down. A long way.
+  ABY-0046 | first time here?
+
 ### ABY / RETIRED (the text is no longer in the game; these IDs are never used again)
+    was ABY-0014 | The crew keeps counting to eleven. We only have nine.
+    was ABY-0015 | I see you, Captain. I see you seeing me.
+    was ABY-0017 | Don't look at the water. It looks back. It looks back. It
+    was ABY-0020 | turn back turn back turn back turn back turn back
     was ABY-0033 | Distant shapes (subtle)
 
 
@@ -2026,9 +2049,6 @@ line says which file it goes back into. 1581 lines.
 
 ### MAIN / c0
   MAIN-0018 | has stopped saying what they want
-
-### MAIN / hut
-  MAIN-0019 | [onWin] A natural twenty. Somewhere far below, something is disappointed.
 
 ### MAIN / n
   MAIN-0020 | Market day, Captain! Every harbour pays a bit more for what we bring in.
@@ -2512,6 +2532,9 @@ line says which file it goes back into. 1581 lines.
   MAIN-0336 | Doors? Try ${n}, ${w}, at low water. Do not knock.
   MAIN-0337 | You slept the whole way home, Captain. Kicked like someone falling.
 
+### MAIN / ADDED 2026-11-18
+  MAIN-0338 | The keeper looks at his dark lamp. Nothing comes down.
+
 ### MAIN / RETIRED (the text is no longer in the game; these IDs are never used again)
     was MAIN-0001 | A floating market, with bunting on every line. (Friday)
     was MAIN-0002 | A regatta! Five boats, racing.
@@ -2520,6 +2543,7 @@ line says which file it goes back into. 1581 lines.
     was MAIN-0006 | A whale surfaces in the distance!
     was MAIN-0011 | ${from} gave you a treasure riddle for ${d.name}. Saved in your log: Riddles tab.
     was MAIN-0012 | ${from} gave you a riddle. Saved in your log: Riddles tab. Where it points is up to you.
+    was MAIN-0019 | [onWin] A natural twenty. Somewhere far below, something is disappointed.
     was MAIN-0045 | Sold ${state.catch.length} fish for ${fishVal} gold.
     was MAIN-0061 | Open your log with M and look under the Riddles tab.
     was MAIN-0062 | Another letter from Perrin? Open your log with M: it is at the top of the Journal tab.
@@ -2648,7 +2672,6 @@ line says which file it goes back into. 1581 lines.
   HLF-0084 | Most of the ships on the wall you have never heard of. Two you have.
   HLF-0085 | The wall has been washed clean. There is a new man on the pier with a stick of chalk. "Name?" he says.
   HLF-0086 | He writes MERRY GULL, very neatly.
-  HLF-0087 | A man on the pier writes every ship on the wall in chalk. The wall is washed every week.
 
 ### HLF / block
   HLF-0088 | Come back another day.
@@ -2715,8 +2738,12 @@ line says which file it goes back into. 1581 lines.
   HLF-0139 | Cut round the rim of the old bell, worn almost smooth: RING SOFTLY. TWO STROKES, NEVER THREE.
   HLF-0140 | Painted along the terrace wall, older than the houses: the sea drawn as one long smooth line, a tiny house sitting on it, a light in the house, and nothing else.
 
+### HLF / ADDED 2026-11-18
+  HLF-0141 | A man on the pier writes every ship on the wall in chalk. The wall is washed on market day.
+
 ### HLF / RETIRED (the text is no longer in the game; these IDs are never used again)
     was HLF-0066 | You give Lune the words. She sings the whole song for the first time: a table by the water, someone who keeps the count, and everyone asleep. She stops. "That is not how I remember it ending."
+    was HLF-0087 | A man on the pier writes every ship on the wall in chalk. The wall is washed every week.
     was HLF-0093 | [classic] Cut round the rim of the old bell, worn almost smooth: RUNG FOR THE ONE WHO SLEEPS. RING SOFTLY.
     was HLF-0097 | [terraced] Painted along the terrace wall, older than the houses: the sea drawn as a closed eye, the horizon its lid, and a tiny house sitting on the lid.
 
@@ -2910,6 +2937,15 @@ line says which file it goes back into. 1581 lines.
   NEWS-0048 | FOUND: twenty dice. One face is worn off every one.
   NEWS-0049 | WANTED: nobody. Nobody is wanted.
 
+### NEWS / ADDED 2026-11-18
+  NEWS-0050 | He says he never once reached the bottom of a page.
+  NEWS-0051 | The Guild's books and ours were compared. They did not agree. They never have.
+  NEWS-0052 | Everything but the face. Nobody would.
+  NEWS-0053 | The weed line is above it again.
+  NEWS-0054 | Nobody could name the knot. The rope is on show at the inn.
+  NEWS-0055 | THE GUILD COUNTS LIGHTS, NOT SHIPS. Report a dark light at any Guild quay.
+  NEWS-0056 | SET AND PRINTED in the Crown. Comes in with the Friday market. Wet ink is no fault of the printer.
+
 
 ####################################################################################################
 ## SOURCE CLUE   (clues.js): the clue log lines, in another hand (CL-T-* are drafts)
@@ -2957,6 +2993,80 @@ line says which file it goes back into. 1581 lines.
   CARD-0002 | The die is back on the table.
   CARD-0003 | The die is back on the table. Somewhere, a pen is still writing.
   CARD-0004 | End of the HOIST demo. Thank you for sailing.
+
+
+####################################################################################################
+## SOURCE CUST   (customs.js): regional customs: sayings, sights on the quay, Mara by region (the lore bible, drafts)
+####################################################################################################
+
+### CUST / ADDED 2026-11-18
+  CUST-0001 | We ring it gently here. It carries further that way.
+  CUST-0002 | Velto. Nets, gulls, pie. Mind the second step.
+  CUST-0003 | In my day you did not go past hearing. Past where the bell carries.
+  CUST-0004 | Old wrecks? Ask three people which went down first. You will get four answers.
+  CUST-0005 | That wall is older than my grandmother. Older than the lamps, even.
+  CUST-0006 | Master says every chart draws the sea the same. It is the coasts that will not sit still.
+  CUST-0007 | Gulls carry the news. That is why they shout.
+  CUST-0008 | The post! Anything for this quay?
+  CUST-0009 | Between the buoys you are in the book, Captain. Outside them you are weather.
+  CUST-0010 | Clean lines, calm water. My father said it, and his.
+  CUST-0011 | Tama? Your bell is too soft to count by. Ours you can count from the next island.
+  CUST-0012 | Out past the lanes? That is off the book, Captain.
+  CUST-0013 | On the old charts this quay had another name. The old charts are wrong about a lot.
+  CUST-0014 | Fog bell? Ours hangs on the Fort. You can count by it.
+  CUST-0015 | Fish after dark, fruit after dark, sleep after breakfast!
+  CUST-0016 | Morning, Captain! We are only just up.
+  CUST-0017 | Nobody plays, nobody sleeps. Pull up a stool.
+  CUST-0018 | Hush now. Somebody is playing. Sleep while they play.
+  CUST-0019 | I keep the fire. They keep the tune. Everyone keeps something.
+  CUST-0020 | Past the last cay is where nobody plays. We do not fish there.
+  CUST-0021 | Bells in the fog? Not here. Not while somebody plays.
+  CUST-0022 | A name goes up the day a ship does not come in. Nobody sees the day it sinks.
+  CUST-0023 | Salvage at low water. A grave at high. Be quick about the difference.
+  CUST-0024 | Out there is the quiet water. Nothing to wreck, nothing to take.
+  CUST-0025 | In fog the old wreck rings. Nobody has ever found the wreck.
+  CUST-0026 | The stool at the sea end is not for sitting. Ask anyone.
+  CUST-0027 | Two long for the Point, one short for the Rock. Count them home.
+  CUST-0028 | It comes up. We thank it. We do not go down.
+  CUST-0029 | Past the last light the water is anyone's. The Guild does not chart it.
+  CUST-0030 | In fog you hear a bell under the water. The Guild says it is the Point's. The Point has no bell.
+  CUST-0031 | We call our names on the way in. So the harbour knows who it is getting.
+  CUST-0032 | Thank us? No. Nothing was taken. It was kept.
+  CUST-0033 | The harbourmaster follows your look out to sea, then points down at the pier. Politely.
+  CUST-0034 | On fog nights we stop rowing and listen. Then we row on.
+  CUST-0035 | Nets drying, gulls, a pie cart. Nothing else, and nobody minds.
+  CUST-0036 | The buoys have been painted again, red and green. The outermost is still wet.
+  CUST-0037 | On the clerk's desk at the end of the pier, two cups. He only ever drinks from one.
+  CUST-0038 | A clerk has stamped a small twenty in the margin of your papers. For luck, he says.
+  CUST-0039 | By the fire, nearest the water, a mat nobody sits on.
+  CUST-0040 | The stalls are shuttered at noon. Lanterns are strung for the evening.
+  CUST-0041 | Chalked on a plank by the pier: CLAIMED. Named and painted. The Brotherhood.
+  CUST-0042 | At the sea end of the wreckers' table, a stool. Nobody sits on it.
+  CUST-0043 | A wrecker's oar lies on the planks, a twenty scratched on its loom. For luck.
+  CUST-0044 | A Guild notice: THE GUILD COUNTS LIGHTS, NOT SHIPS. Report a dark light at any Guild quay.
+  CUST-0045 | No nets on the quay. The fish comes in by boat, and is paid for.
+  CUST-0046 | A lamp burns in the window of an empty house, the one nearest the sea.
+  CUST-0047 | A tide pole by the pier, painted with rings. The oldest are at the bottom. The weed line is above them all.
+  CUST-0048 | At the end of the table nearest the sea, a place is laid. Someone has already eaten from it.
+  CUST-0049 | At dusk the boats come in. Each rower calls out a name: their own.
+  CUST-0050 | A line on the customs bollard is made fast with an old hitch. The clerks call it that. None of them ties it.
+  CUST-0051 | A canoe is tied to the stilts with an old hitch. Its owner shrugs: it came that way.
+  CUST-0052 | A salvaged bell rope, still in an old hitch. The wreckers will not untie it.
+  CUST-0053 | One lamp-float is moored with an old hitch. The Guild ties a different knot.
+  CUST-0054 | Every mooring on this quay is tied in the old hitch.
+  CUST-0055 | A stall sign: SHORT DICE. For looking at, not for playing.
+  CUST-0056 | Market day. They are washing the chalk off the harbour wall.
+  CUST-0057 | Velto again? Good. I like a place that stays where we left it.
+  CUST-0058 | Another stamp, Captain. I am starting a collection.
+  CUST-0059 | Listen. They are at it again.
+  CUST-0060 | That is another wreck by the way in. I have stopped counting them. Nearly.
+  CUST-0061 | Long, long, short. That one is the Point. I think.
+  CUST-0062 | Everyone is very kind here. I keep checking my pockets.
+  CUST-0063 | There. Now the harbour can find us.
+  CUST-0064 | The keeper writes in his log: "Relit at dusk by a passing captain. Ships seen: all. Ships expected: all but one."
+  CUST-0065 | Someone at the next stall laughs. "Ah. That is a candle. Buy the next round and we will say no more."
+  CUST-0066 | A twenty is scratched on the loom of the oar. For luck, the last owner said.
+  CUST-0067 | The Brotherhood remembers a debt both ways, Captain.
 
 
 
