@@ -2173,8 +2173,8 @@ full sail, lanterns lit, the cabin door open on a desk with one page). Pictures:
 `src/ravenhulk.js` (a set piece beside the threads, wired in `threads.js` `hulk()`; not one of the seven, no Tide, no marks). Full game only, and only
 once the die is known (a first throw at the hut). One fixed spot per voyage in Reef water, 1,500 to 2,000 from Tama (`pick('raven')`), the model of
 `ravenship.js` standing still a hand above the sea (no bob, no wake). E within 40: "E: come alongside" (the anchor goes down first, as for any thread);
-the card shows the page (the game's own card, dated rows, last date blank); reading it once adds the clue `CL-RAV-a` (Reef; Q3 and Q4, weight 1), the
+E is a narrated sequence (owner: text read like a narrator while the camera shows the empty ship, no walking): three cards over camera cuts (alongside, the cabin door, the desk), the last the page (the game's own card, dated rows, last date blank); reading it once adds the clue `CL-RAV-a` (Reef; Q3 and Q4, weight 1), the
 keepsake "A page of dates" in the Ship's book, and 2.5 s later Mara's one offhand line ("Hard to sail a boat without crew, Captain.", draft). A second visit
-shows a bare desk. **Verified headless:** not offered before the first throw; offered after; E reads the page; clue and keepsake land; the card closes;
-second visit is the bare desk; no console errors. **Not built:** the camera does not go aboard (no on-foot mode exists yet; the shore slice comes first),
+shows one card, the bare desk. **Verified headless:** not offered before the first throw; offered after; E reads the page; clue and keepsake land; the card closes;
+second visit is the bare desk; no console errors. **Not built:** walking aboard (owner: stays text for now),
 no sound for the Raven, no mention on the chart or in rumours (a bottle or Mara line pointing at it is the next step).
