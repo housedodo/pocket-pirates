@@ -1,111 +1,284 @@
 HOIST: OPEN QUESTIONS FOR THE WRITER
-Made 2026-11-18. Only the questions, each with a little context. Answer in any order; short answers are fine.
-The long version with every draft line is docs/WRITER_TODO.txt.
+Made 2026-11-18. Every question that is still yours to answer, with enough context to answer it properly.
+For each: what it is, when the player meets it, what is there today, what limits apply, and what hangs on it.
+Write as much as you like under each one. The full draft texts with their IDs are in docs/WRITER_TODO.txt.
+
+Rules every answer must keep (docs/RULES.md):
+  - Horror is implied, never explained. A wrong thing has an ordinary reading first.
+  - Lines are short, one idea each.
+  - Never in player text: lid, eye, sleeper, Lady, "kept soft", "Mara is from".
+  - The Lady never speaks. The captain never speaks. Only the captain sees and hears Mara.
+  - Only one ending may feel happy: The Tune Is Kept.
+  - The name of Mara's village is never written anywhere.
 
 
+================================================================================================================
 A. THE END OF THE GAME
-------------------------------------------------------------------
+================================================================================================================
+
 A1. What does the player read on arriving at the Table by the Water?
-    - Today: a draft card under a painted picture (night sand, a table, two chairs, the book).
+    When: the last place in the game, about 2400 north-east of Tama, reached only after understanding clues from
+      three regions. It is the moment the whole voyage has been heading for.
+    What the player sees: a painted picture above a card. Night sand, a table, two chairs, the book, the die,
+      a candle, and a dark shape in the far chair. Under it the card text, then the choices the voyage has earned.
+    Today (draft): "A table at the water's edge. One chair on this side, one on the other. A die, waiting."
+      If Mara has remembered her whole village, she adds quietly: "I do not think we are here to throw."
+    The choices, each shown only if earned:
+      Throw the die / Hum the tune the two of them play / Let Mara throw (once) / Ask her who counts (once) /
+      Walk round and sit in the other chair / Push your chair in and go back to the boat.
+    Also yours here:
+      - "Let Mara throw" today: her fingers close round the die and it does not move. "Slippery thing," she
+        says, and laughs, a little too quickly.
+      - "Ask her who counts" today: she writes WHO COUNTS? on a clean line, and under it YOU. Every line above,
+        as far back as the book goes, ends with the same word.
+    Open: keep the drafts, rewrite them, or change the mood of the arrival (quiet, uncanny, ceremonial...).
 
 A2. What do the six endings say?
-    - Today: drafts. The six: The Long Sleep (throw 20), Good Dreams (10 to 19), She Rises (1 to 9),
-      The Tune Is Kept (hum the tune), Your Seat (sit in the other chair), The Unseen Throw (go back to the boat).
-    - Only The Tune Is Kept may feel happy.
+    When: after the player chooses at the Table. Each ending is three to five short lines under its own
+      painted sky, then a choice: keep sailing, or end the voyage (credits, then the title).
+    Today (drafts):
+      THE LONG SLEEP (a throw of 20 after the book's weight; first light, only an old woman in the chair)
+        "Twenty." / "She closes the book. For the first time she looks up, and it is only an old woman, very
+        tired." / "The sea breathes out. It will be a hundred years."
+      GOOD DREAMS (10 to 19; blue night, two lights far off)
+        "She writes the number and blots it." / "Far across the water two instruments find each other for a
+        bar." / "The sea stays blue. Mara is already talking about supper."
+      SHE RISES (1 to 9; the sea lit pink from below; then the waking sequence, and you wake off Tama)
+        "She writes the number. Then she puts the pen down." / "Under the table, under the sand, under the sea,
+        something that was lying still is not."
+      THE TUNE IS KEPT (hum the tune; no throw; Teo's guitar and Ilse's violin play)
+        "You hum the eight bars. Your voice is not good. It does not matter." / "The die stays where it is. The
+        pen stops." / "Far off, a violin answers. It always did need two." / "Nobody throws tonight."
+        Mara, afterwards: "I suppose one of us ought to learn the guitar."
+      THE UNSEEN THROW (push the chair in; the table far behind, your steps in the sand)
+        "You push the chair in and walk back down the sand." / "Nobody calls after you. Behind you a pen starts
+        again, on a new line." / "There is a blank in the book where your number would be. It will stay there."
+      YOUR SEAT (sit in the other chair; the far chair empty)
+        "You walk round the table and sit in the other chair. It is warm." / "The book is in front of you. The
+        pen is in your hand. You know every name in it." / "Across the table Mara sits down, slowly. She does
+        not ask." / "A die waits on the wood."
+    Limits: only The Tune Is Kept may read as happy; Good Dreams is "warm, a little uneasy"; the others stay
+      still, dark or uneasy. Nothing may explain what is under the sea.
+    Open: rewrite any or all; say for each what feeling the player should leave with.
 
-A3. What is the one line in another hand left in the Ship's book after each ending?
-    - Today: six draft epilogue lines.
+A3. What is the line left in the Ship's book after each ending?
+    When: after an ending, one line appears in the Ship's book "in another hand", as if someone else logged it.
+      The player sees it when they keep sailing or load the voyage later.
+    Today (drafts):
+      long sleep: "Logged: a twenty, at the table by the water. The sea has been quiet since."
+      good dreams: "Logged: a middling throw. That night the two of them were heard playing together, for one bar."
+      she rises: "Logged: a low throw. The next page is wet through."
+      tune kept: "Logged: no throw. Somebody hummed. A violin answered."
+      unseen throw: "Logged: a blank line, left blank."
+      your seat: "Logged, in our own hand: the other chair is warm."
+    Open: whose hand is it (the Lady's, Perrin's, nobody's)? Rewrite as you like.
 
 A4. What does her book say at the very end, if anything?
-    - Every throw is kept with its day. Does the player ever read it?
+    Context: every throw at the hut is kept with its day; the Ship's book shows a "Counted" tally. The player
+      never reads her book itself. At the Table the book is on the table.
+    Open: does the player ever see a page of it (at an ending, at the hut, never)? If yes, what is on it?
+      Option: it stays closed forever; the not-knowing is the point.
 
-A5. Does Mara's nature come up at the end, or stay unsaid forever?
-    - Truth: the sleeper made her; her village came from an earlier dream. The game never says it.
+A5. Does Mara's nature ever come up at the end?
+    Truth (canon, never said): the sleeper made her; her village belonged to an earlier dream and came over
+      into this one. Over the story her village comes back to her in four pieces (a bell, a street to the
+      water, a blue door, the name she never says aloud).
+    Today: no ending touches it, except the arrival line if her village has fully returned.
+    Open: does any ending hint at it (which one, how lightly), or does it stay unsaid forever?
 
 A6. Which wording of what Mara is stands?
-    - One place in the canon says "someone who survived something".
-    - Another says "the sleeper made her".
+    Context: the canon says two things. Section 2: "the sleeper made her". The table of the seven questions
+      gives the hidden answer to "What is Mara?" as "Someone who survived something". They can both be true
+      (made, and survived), or one is old wording.
+    Open: which is the real answer to question 6, or is it both?
 
-A7. The credits: which names go in?
+A7. What are the credits?
+    Today: "HOIST / A voyage. / Thank you for sailing. / The die is back on the table."
+    Open: names and roles (writing, music, playtesters, thanks), and whether the last line stays.
 
 
+================================================================================================================
 B. THE STORY AFTER THE HUT
-------------------------------------------------------------------
-B1. What do Perrin's five letters say? (Crown, Free Cays, Lantern, Reef, Drowned)
-    - Today: drafts. A letter never says what to find.
+================================================================================================================
 
-B2. What is the line written in the log the first time each of the seven threads is met?
-    - Today: drafts. A fact in another hand, never a conclusion.
+B1. What do Perrin's five letters say?
+    When: after the first throw at the hut (full game only), Perrin sends letters that send the captain into
+      each region in turn: Crown, Free Cays, Lantern, Reef, Drowned. A letter is done when the captain has seen
+      any clue of that region. Mara reads each one aloud.
+    Who Perrin is: the cartographer who never left port. Letters only. Dry, precise, a little smug.
+    Limits: a letter never says what to find; it only points at the region and a way of looking.
+    Today (drafts):
+      Crown: "The Crown writes down every ship that comes in. Ask to see the book. Tell me whose name is at the top."
+      Free Cays: "In the Free Cays they sleep by day and play by night. Go at night. Take nothing but your ears."
+      Lantern: "The Guild's lamps burn a colour I have no name for. You will tell me I am wrong. Go and look."
+      Reef: "The Reef counts its wrecks. Count them yourself. I would like a second opinion."
+      Drowned: "The Drowned waters have streets, and streets have doors. Go at low water, and count the doors."
+    Also: Mara's hint when stuck (the same for all five today: "Perrin wants us in the ... waters. The chart
+      shows whose waters we are in."), and her line when the ship needs better parts to go further.
+    Note: the Free Cays harbours now really sleep by day, so that letter is now literally true.
+    Open: rewrite any letter and the hints; should Perrin's voice change as the voyage darkens?
+
+B2. What line is written in the log the first time each of the seven threads is met?
+    When: the threads are seven side stories, three of which wake on each voyage, each in its own region.
+      Meeting one writes a line in the log. These lines count as clues towards the seven questions.
+    Limits: a fact in another hand that never concludes. Before the hut is known it may not say she, her,
+      the hut, or a number.
+    Today (drafts):
+      Music out of the Fog (Free Cays): "A tune that never ends. Nobody near it sleeps without it."
+      The Bell Below (Lantern): "A bell under the water rings the hours of Tama, not of this place."
+      The Ferryman's Coin (Crown): "A coin that finds its way back to the purse it left."
+      The Strange High House (Crown): "A house that keeps a book of who stayed. Our name is in it."
+      The Other Captain (Reef): "A ship like ours in the wrong colours, lower in the water."
+      The Colour (Drowned): "A patch of sea the wrong colour. The fish from it taste of nothing."
+      The Hollow Harbour (Drowned): "A harbour that knew we were coming, and had a place set."
+    Open: keep or rewrite each.
 
 B3. Does the hut change on later visits?
-    - Ideas: more candles, a second chair, your ship drawn on an open page, empty after a natural 1. Or nothing.
+    Context: the player can throw once a day at the hut. Each low throw adds a candle (that is canon). The hut
+      otherwise looks the same every time.
+    Ideas, none built: a second chair appears; a page left open with your ship drawn on it; after a natural 1
+      the hut is empty on the next visit.
+    Open: which of these, something else, or nothing.
 
 
+================================================================================================================
 C. THINGS ADDED THIS ROUND
-------------------------------------------------------------------
-C1. The Edge now has two ways out: over the lip, or beating back out against the current.
-    - The game remembers which. Should it ever matter?
+================================================================================================================
+
+C1. Should the way the player leaves the Edge ever matter?
+    What the Edge is: once a voyage, deep in the dread on open water, the sea runs to a straight lip and falls
+      into the dark. Past it stand things far too big: a hooded figure with nothing in the hood, a head on its
+      side, a tower at wrong angles, pillars that never get smaller, sunk arches. Nothing explains it.
+    What changed: it used to be watched (about 45 seconds, the helm locked). Now it is sailed: the sea pulls
+      towards the lip; the player can sail along it, see each thing in turn, and each one is subtly different on
+      a second look.
+    Two ways out: over the lip (white mist, the ship drifts back pointing home), or beating back out against the
+      current (harder; the lip fades into the mist).
+    Today: the game remembers which, and nothing uses it.
+    Open: should "over" and "out" ever lead anywhere different (a line, a clue, an ending), or stay meaningless?
 
 C2. May the thing that wakes at full dread wake during the Edge?
-    - Today: no, its clock pauses.
+    Context: if the player lingers at the deepest dread, a waking sequence plays and they wake off Tama (not an
+      ending). During the Edge its clock is paused, so it cannot cut the Edge short.
+    Open: keep it paused, or let it wake even there?
 
-C3. The stake with no wreck (Reef, once, after the hut): a lone stake, and the next storm raises a wreck beside it.
-    - Should it count as a clue for "Who sat before you?"
-    - Today: it counts for nothing.
+C3. Should the stake with no wreck count as a clue for "Who sat before you?"
+    What it is (Reef waters, full game, once, after the first throw): the player passes a lone stake with a white
+      rag in open water. Nothing is there. When the next storm comes, a wreck has risen right beside it. The stake
+      stays. Nobody says who planted it.
+    Its ordinary reading: Reef salvagers mark wrecks they mean to claim (adopted lore: "a Reef wreck belongs to
+      whoever claims it"). The second look: it was marked before it sank.
+    Today: it counts for nothing in the clue ledger.
+    Open: should seeing the risen wreck add a clue line (towards question 3 or another), and if so, what line?
 
-C4. The lighthouse keeper who trades oil for a fish at dusk: does he come out when his light is dead?
-    - Today: no.
+C4. Does the lighthouse keeper come out when his light is dead?
+    What it is (Lantern waters, at dusk): on a lone lighthouse rock a keeper swings his lantern from the gallery.
+      Come close and press E: a basket comes down on a line. Put a fish in it and it comes back with a jar of oil.
+    Today: if his light is dead that night, he does not appear (the "relight" action takes that spot).
+    Open: should a dead light's keeper still be there (in the dark, not waving), or is the absence the point?
 
-C5. Nine new draft lines were written by the build team (three Mara lines, prompts, harbour board lines).
-    - Keep, or rewrite? (List in WRITER_TODO part 4.1.)
+C5. Nine new draft lines were written during the build. Keep or rewrite?
+    Mara, once each:
+      - Rowing up a Crown harbour's buoy lane: "Oars, Captain? In front of the whole town?"
+      - First night in the Cays with the lamp out: "Lamp out a moment. There. Lights."
+      - The keeper's basket comes down empty: "No fish for the keeper, Captain?"
+    Prompts and boards:
+      - While the basket comes down: "Calling up to the gallery..."
+      - At a keeper's rock: "[E] Lie to under the light"
+      - A Free Cays harbour board by day: "The quay is asleep. Come back after dark."
+      - Tama's board after the Sunday race: "The regatta purse"
+      - A Drowned harbour at high water: "The planks are under water. Nobody comes down."
+      - Selling, when only errand goods are aboard: "kept for your errands"
 
 
+================================================================================================================
 D. THINGS THAT DISAGREE
-------------------------------------------------------------------
-D1. Tama's bell: how many strokes?
-    - The texts say "two strokes, never three", "twelve, every day" and "Tama rang fourteen at noon".
-    - The bell rings once.
-    - One true number, or do they disagree on purpose?
+================================================================================================================
 
-D2. The crew count: "we only have nine" and "we are ten" (both say eleven are counted).
-    - On purpose, or one number?
+D1. How many strokes does Tama's bell ring?
+    Context: Tama is home because the bells there ring softly (canon). Three texts give three counts:
+      a harbour text "TWO STROKES, NEVER THREE"; a greeter "Twelve, every day"; and a clue line, "Tama rang
+      fourteen at noon." The bell in the game rings one stroke at noon.
+    Open: is there one true count (and which), or do the sources disagree on purpose (the game does use
+      disagreeing sources as a device elsewhere)? If on purpose, should the bell you hear match any of them?
+
+D2. How many crew are there?
+    Context: two lines: "The crew keeps counting to eleven. We only have nine." and elsewhere "Eleven. We are ten."
+      Both are at high dread. The captain's crew is otherwise never counted.
+    Open: on purpose (the count keeps slipping), or one number?
 
 D3. Five clue places sit in another region's water.
-    - The Ribs (a Reef clue in Lantern water).
-    - The Sunken Street (a Drowned clue in Cays water).
-    - The Drowned Bell, the Name Wall, the Throwers' Wreck (between regions, depends on the voyage).
-    - For each: change which region the clue counts for, or move the place?
+    Context: each clue counts for one region (that is how Perrin's letters and the deep gates are opened). The
+      chart decides a place's region by the water it stands in. For five places these disagree:
+      - The Ribs: counts as Reef, stands in Lantern water.
+      - The Sunken Street: counts as Drowned, stands in Free Cays water (on purpose once: a "distance lie").
+      - The Drowned Bell (counts as home), the Name Wall and the Throwers' Wreck (count as Reef): between regions,
+        depending on the voyage.
+    Effect today: e.g. seeing the Ribs finishes Perrin's Reef letter while the ship is in Lantern water.
+    Open: for each, change the clue's region to match the water, or move the place, or keep it as a deliberate lie.
 
 
-E. LINES THAT BREAK THE GAME'S OWN RULES (full game only, at full dread)
-------------------------------------------------------------------
-E1. "THE EYE", "The Eye", "THE EYE OPENS." use a banned word.
-    - Allowed at the very end, or never?
+================================================================================================================
+E. LINES THAT BREAK THE GAME'S OWN RULES (full game only, at the deepest dread)
+================================================================================================================
 
-E2. Stock horror lines: "TURN BACK", "it is behind you", "you were never here", "Look behind you",
-    "Where you drowned", and Mara's "turn back turn back...", "It looks back", "I see you seeing me".
-    - Keep, cut, or rewrite in the game's own flat voice?
+E1. Should "the Eye" ever be named?
+    Context: "eye" is banned in player text (RULES 6). Three lines use it at full dread: the place name on the HUD
+      becomes "THE EYE"; an island on the chart is named "The Eye"; the waking sequence shows "THE EYE OPENS."
+      An older note of yours allowed the word "before the end"; the current rules have no exception.
+    Open: allowed at the very bottom of the dread, or never (and then what replaces them)?
 
-E3. At full dread, text is broken with block characters.
-    - Keep (the one place the interface breaks), or break it with dropped letters and cut-off words instead?
+E2. What about the stock horror lines?
+    Context: at full dread the HUD, the chart and Mara start to lie. Some lines sound like any horror game:
+      "TURN BACK", "it is behind you", "you were never here", "Look behind you", "Where you drowned", and Mara's
+      "turn back turn back turn back...", "Don't look at the water. It looks back. It looks back. It",
+      "I see you, Captain. I see you seeing me." The chart also writes "TURN BACK" in large letters over the ship.
+    Lines from the same lists that already sound like this game: "the same water", "HOME?", "Tama?",
+      "The stars are not where I left them."
+    Open: keep, cut, or rewrite each in the game's own flat, ordinary voice.
 
-E4. The hut talks like a shop: "(+N gold, and a trinket)" and "Come back tomorrow".
-    - Keep, or say it another way?
+E3. How should the text break at full dread?
+    Context: today letters on the HUD and in Mara's box are swapped at random for block characters. The rules
+      ban symbol glyphs; Mara's own lines already break by being cut off mid-word.
+    Open: keep the blocks (the one place the interface itself breaks), or break text only with dropped letters,
+      repeated words and lines cut off mid-word?
+
+E4. Should the hut sound less like a shop?
+    Context: after a good throw the line ends "(+N gold, and <trinket>)". When you have already thrown today:
+      "The die is gone from the table. She is writing. Come back tomorrow." The gold is a real game rule; the
+      question is only how it is said.
+    Open: keep, or say it another way (or not at all)?
 
 E5. "A natural twenty. Somewhere far below, something is disappointed."
-    - It explains. Keep, rewrite, or cut?
+    Context: shown on rolling a natural 20 at the hut. It says there is something below and what it feels,
+      which breaks "never explain".
+    Open: keep, rewrite, or cut?
 
-E6. Greeters who say "Somebody threw a low number and the whole sea went soft".
-    - Keep or cut?
+E6. Greeters who name the cause after a throw.
+    Context: after a low throw, some harbour greeters say things like "Somebody threw a {number} and the whole sea
+      went soft". There is also a trial (off by default) where a low throw "lands" on one harbour.
+    Open: keep these greeters, cut them, or only keep them if the "landing" trial becomes part of the game?
 
 
+================================================================================================================
 F. YOUR RULES AND THE BIG MENUS
-------------------------------------------------------------------
+================================================================================================================
+
 F1. Any general writing rules to add?
-    - Words to avoid, running jokes, longest allowed line.
+    Context: today's rules are listed at the top of this file.
+    Open: words to avoid, running jokes, how long a line may be, how Mara's voice changes with the dread.
 
-F2. The 42 lore proposals (docs/proposals/LORE_BIBLE.md, section 1): which do you want?
+F2. Which of the 42 lore proposals do you want?
+    Context: docs/proposals/LORE_BIBLE.md. They fill in everyday life between the big mysteries: what each region
+      eats, trades, fears and sings; small trades and customs; bridges between regions. Section 1 is a one-page
+      list; items L-35 to L-42 are A/B/C choices. Only L-16 (Reef salvage claims) is in the game.
+    Open: approve, change or reject each (you can do it in batches).
 
-F3. The 34 unbuilt puzzles (docs/proposals/REGIONAL_CATALOGUE.md, section 10): approve, tweak or cut?
+F3. Which of the 34 unbuilt puzzles do you want?
+    Context: docs/proposals/REGIONAL_CATALOGUE.md, section 10, with tick boxes. 19 of 53 are built.
+    Open: approve, tweak or cut. Approved ones may need a Mara line or a board line from you.
 
-F4. Optional: new places, side stories, small harbour quests, voice notes for the cast (WRITER_TODO part 3).
+F4. Optional extras.
+    Context: WRITER_TODO part 3: places not built yet, unused side-story seeds, small harbour quests (the lost
+      kitten, the birthday cake, "the other kitten"), voice notes for the cast.
+    Open: anything you want to add.
