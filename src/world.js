@@ -1567,7 +1567,7 @@ export class Island {
     decorate(d, rng, A, B, D, extra);
     abyssForms(d, D, extra);
     regionDecor(d, A, extra, { shoreR, terrainHeight });
-    if (extra.lamp) d.lampAt = { x: d.x + extra.lamp.x, z: d.z + extra.lamp.z };   // where its light is (the Guild's lights, oil burn)   // the region's own things on the water (buoys, stilt houses, coral, lamps, roofs)
+    if (extra.lamp) d.lampAt = { x: d.x + extra.lamp.x, z: d.z + extra.lamp.z, y: extra.lamp.y };   // where its light is (the Guild's lights, oil burn)   // the region's own things on the water (buoys, stilt houses, coral, lamps, roofs)
 
     const add = (builder, mat, order = 0) => {
       const m = meshOf(builder, mat);

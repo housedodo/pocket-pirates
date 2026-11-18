@@ -58,6 +58,21 @@ export const deadlineFor = (dist) => Math.round(dist / 6 + 60);
 
 // ---- the Lantern Guild: the lights must be kept lit (oil.js, ui/harbour.js)
 export const OIL_SELL = 0.9;   // what a Lantern harbour pays a unit of oil (Tama sells at OIL_PRICE)
+// M-LANT-1 Every light its rhythm (2026-11-17): each Guild lighthouse flashes its own pattern from its seed: one to three flashes,
+// short or long, every 6 to 10 s (systems/lantern.js); the chart inks it, dots and dashes, once the ship has been within RHYTHM_NEAR
+export const RHYTHM_SHORT = 0.3, RHYTHM_LONG = 1, RHYTHM_GAP = 0.6, RHYTHM_PERIOD = [6, 10], RHYTHM_NEAR = 45;
+/** a light's rhythm: { flashes: [seconds lit, ...], period } */
+export function lightRhythm(d) {
+  const h = ((d.seed || 1) * 2246822519) >>> 0, n = 1 + (h % 3), flashes = [];
+  for (let i = 0; i < n; i++) flashes.push((h >>> (5 + i)) & 1 ? RHYTHM_LONG : RHYTHM_SHORT);
+  return { flashes, period: RHYTHM_PERIOD[0] + ((h >>> 11) % (RHYTHM_PERIOD[1] - RHYTHM_PERIOD[0] + 1)) };
+}
+/** is a light with this rhythm lit at time t (seconds)? */
+export function rhythmOn(r, t) {
+  let u = ((t % r.period) + r.period) % r.period;
+  for (const f of r.flashes) { if (u < f) return true; u -= f + RHYTHM_GAP; if (u < 0) return false; }
+  return false;
+}
 /** the lamp burns half while a lit lighthouse is in sight in Lantern waters, double in the open dark there */
 export const lampBurnMul = (region, lighthouseNear) => (region !== 'lantern' ? 1 : lighthouseNear ? 0.5 : 2);
 
@@ -118,6 +133,10 @@ export function lampDead(state, d, night) {
 
 // ---- the Drowned's harbours take no coin: what they keep from the hold (ui/harbour.js). The first thing that comes to hand:
 // a fish, then fruit, then the newest treasure. Null when the hold is empty.
+// M-DROWN-4 Low-water hours (2026-11-17): a Drowned harbour gives and keeps only while the tide is below DROWNED_OPEN_TIDE (half of
+// each cycle, about 172 s). Above it the pier lies awash (regiondecor.js): you may dock, and nothing is given or kept.
+export const DROWNED_OPEN_TIDE = 0;
+export const drownedOpen = (tide) => tide < DROWNED_OPEN_TIDE;
 export function drownedTake(state) {
   if (state.catch.length) return { label: 'one of your fish', take: () => keep(state, { fish: state.catch.splice(0, 1)[0] }) };
   const fr = Object.entries(state.fruit).find(([, n]) => n > 0);

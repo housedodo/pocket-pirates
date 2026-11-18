@@ -12,7 +12,7 @@
 import { TILE } from './textures.js';
 import { mats } from './psx.js';
 import { mulberry32 } from './util.js';
-import { REEF_SLICK_TIDE, REEF_RING_TIDE } from './regions.js';
+import { REEF_SLICK_TIDE, REEF_RING_TIDE, drownedOpen } from './regions.js';
 
 const NIGHT = (i) => i.tod && i.tod.night > 0.45;
 let DAY = 0;   // the Reef's shoals are laid out again each dawn (main.js sets the day; world.refresh rebuilds the Reef islands)
@@ -109,6 +109,12 @@ export function regionDecor(d, A, extra, h) {
       A.gable(0, -1.6, 0, 7, 3.6, 11, '#6a6064', TILE.roof, '#5a5256');
       A.box(2.2, -0.5, -2, 1.4, 3.8, 1.4, '#8a6a5a', TILE.stone);
       A.pop();
+    }
+    if (harbour && d.dockGeom) {   // M-DROWN-4: above DROWNED_OPEN_TIDE a film of water lies over the pier's planks, broken white at its edges
+      const { z0, z1 } = d.dockGeom, W = mk(), ry = Math.PI / 2 - d.dockTh, zc = (z0 + z1) / 2;
+      W.push(0, 0, 0, ry); W.box(0, 0.86, zc, 3.4, 0.03, z1 - z0 + 0.6, '#6a8088', TILE.white);
+      for (let k = 0; k < 6; k++) W.box((k % 2 ? 1 : -1) * 1.6, 0.88, z0 + (k + 0.5) * (z1 - z0) / 6, 0.4, 0.07, 1.6, '#c8d4d4', TILE.white);
+      W.pop(); st(W, (i) => !drownedOpen(i.tide || 0));
     }
     if (harbour || rng() < 0.4) { const [x, z] = P(50, -26); A.push(x, -3, z, way, 1, 1, 1, 0, 0.18); A.box(0, 0, 0, 5, 18, 5, '#7a7476', TILE.stone); A.cyl(0, 18, 0, 4, 0, 6, 4, '#4a4446', TILE.roof); A.pop(); }
   }

@@ -60,7 +60,7 @@ export const state = {
 };
 // state.story is a free bag of flags (RULES 31). Its containers get their empty shape here, in one place; a plain flag that is
 // absent means "not yet" and stays absent until it happens. (`threads` is left out: absent means "pick the voyage's threads".)
-const STORY_SHAPE = { seen: {}, lm: {}, secrets: {}, marks: {}, keeps: [], lost: {}, relit: {}, lanes: {}, lh: {}, caves: {}, pets: {}, placeSet: {}, tp: {}, uiSeen: {}, pins: [], tales: {}, drownedKept: [] };
+const STORY_SHAPE = { seen: {}, lm: {}, secrets: {}, marks: {}, keeps: [], lost: {}, relit: {}, lanes: {}, lh: {}, caves: {}, pets: {}, placeSet: {}, tp: {}, uiSeen: {}, pins: [], tales: {}, drownedKept: [], rhythm: {}, supper: {} };
 for (const [k, v] of Object.entries(STORY_SHAPE)) if (state.story[k] == null) state.story[k] = Array.isArray(v) ? [] : {};
 
 // lists that grow with every day at sea are kept to their newest entries when the voyage is saved (task R8); each limit is far above

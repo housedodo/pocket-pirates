@@ -27,6 +27,7 @@ import { shipwrightLine } from '../upgrades.js';
 import { angleDiff, hash2, mulberry32 } from '../util.js';
 import { isFestival, isLanternNight, isMarketDay, nightKey, tideAt } from './calendar.js';
 import { mendSails, oilOn } from './storybeats.js';
+import { supperTarget, startSupper } from './lantern.js';
 
 export function getInteract() {
   const hi = G.world.nearest(G.ship.pos.x, G.ship.pos.z, 18);
@@ -56,10 +57,11 @@ export function getInteract() {
   const fi = G.world.nearest(G.ship.pos.x, G.ship.pos.z, 14, ['jungle', 'sandbar']);
   if (fi) return { kind: 'fruit', key: 'fruit' + fi.desc.id, isl: fi };
   { const li = G.world.nearest(G.ship.pos.x, G.ship.pos.z, 45); if (li && G.world.lit && li.desc.lampAt && lampDead(state, li.desc, nightKey())) return { kind: 'relight', key: 'relight:' + li.desc.id, isl: li }; }   // a dead Guild light
+  { const su = supperTarget(); if (su) return su; }   // a Guild keeper on his gallery at dusk (lantern.js, P-LANT-3)
   return far;
 }
 
-export const HEAVE_KINDS = new Set(['thread', 'spring', 'cave', 'treasure', 'fruit', 'wreck', 'landmark', 'patch']);
+export const HEAVE_KINDS = new Set(['thread', 'spring', 'cave', 'treasure', 'fruit', 'wreck', 'landmark', 'patch', 'supper']);
 // E forgives (SYSTEMS_FEEL G-03, G-04, G-10; numbers to tune by hand):
 export const E_GRACE_T = 0.6;      // s: the last thing in reach stays E-able this long after it leaves reach...
 export const E_GRACE_D = 6;        // ...while the ship has moved no more than this since it was last in reach (about "its range + 6"; never a harbour)
@@ -68,7 +70,7 @@ export const HEAVE_GIVE_UP = 8;    // s: the heave gives up if she has not come 
 export const E_BUFFER = 0.25;      // s: an E with nothing in reach waits this long for something to come in reach
 export const ACTION_LEASH = 8;     // a running action ends only if the ship is moved more than its range + this from where it began (a sinking, a jump)
 export const DIG_LEAVE_HOLD = 0.8; // s: hold E on the beach to pack up (it counts as a failed dig)
-const ACTION_RANGE = { treasure: 16, landmark: 16, fruit: 14, wreck: 22, secret: 18 };   // the ranges in getInteract
+const ACTION_RANGE = { treasure: 16, landmark: 16, fruit: 14, wreck: 22, secret: 18, supper: 45 };   // the ranges in getInteract
 rt.heave = null, rt.anchorAt = null;   // heave: E was pressed under way, the anchor is going down; anchorAt: where she lies while it is down
 rt.tgLast = null, rt.tgRaw = null, rt.eBuf = null, rt.eDown = null, rt.digLeave = 0;
 /** can E do something with this target now? (the pier hint, a secret under way and a plundered isle cannot) */
@@ -130,6 +132,7 @@ function doInteract(tg) {
     if (!rt.dig) rt.dig = { key: tg.key, t: 0, label: tg.sc.kind === 'kestrel' ? 'Someone goes down on a rope...' : tg.sc.kind === 'camp' ? 'Going ashore...' : 'Salvaging...', need: tg.sc.kind === 'kestrel' ? 5 : 3.2, done: () => G.secretFound(tg.sc) };
     return;
   }
+  if (tg.kind === 'supper') { if (!rt.dig) startSupper(tg); return; }   // the keeper's supper (lantern.js)
   if (tg.kind === 'relight') {   // the Lantern Guild's dead light: oil from your lamp, and the keeper pays and marks the waters
     if (state.oil < RELIGHT_OIL) { toast(`The lamp needs ${RELIGHT_OIL} oil. You have ${Math.floor(state.oil)}.`, false, 3500); return; }
     const d = tg.isl.desc; state.oil -= RELIGHT_OIL; (state.story.relit = state.story.relit || {})[d.id] = nightKey(); state.gold += RELIGHT_PAY;
