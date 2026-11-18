@@ -8,6 +8,7 @@ Contents
   PART 1  MUST WRITE: drafts the player can see today      (1.1 to 1.6)
   PART 2  OPEN STORY DECISIONS: only you can decide these  (2.1 to 2.4)
   PART 3  OPTIONAL: empty slots for more content           (3.1 to 3.6)
+  PART 4  NEW SINCE 2026-11-16: drafts and decisions added by the systems, Edge and puzzle work  (4.1 to 4.4)
 
 
 ================================================================================================================
@@ -270,3 +271,68 @@ PART 3  OPTIONAL (empty slots; the game works without them)
 
 3.6  Everything else: every one of the 1,462 lines in the game, with its ID, is in docs/STORY_MASTER.txt (section J).
      Edit any line there the same way and I bring it into the code.
+
+
+================================================================================================================
+PART 4  NEW SINCE 2026-11-16 (added 2026-11-18; parts 1 to 3 above are still open as written)
+================================================================================================================
+
+4.1  NEW DRAFT LINES IN THE GAME (written by the build agents; yours to keep or rewrite)
+----------------------------------------------------------------------------------------------------------------
+Mara, once each:
+     MAIN-0328  Oars, Captain? In front of the whole town?          (rowing up a Crown harbour's buoyed lane)
+     yours:
+     MAIN-0329  Lamp out a moment. There. Lights.                    (first night in the Cays with the lamp put out)
+     yours:
+     MAIN-0331  No fish for the keeper, Captain?                     (the Lantern keeper's basket comes down empty)
+     yours:
+Prompts and boards (not picked up by the story export yet; file and line given):
+     MAIN-0330  Calling up to the gallery...                          (the keeper's supper, while the basket comes down)
+     yours:
+     lantern.js 121   [E] Lie to under the light                       (prompt at a keeper's rock)
+     yours:
+     harbour.js 130   The quay is asleep. Come back after dark.        (a Free Cays board by day)
+     yours:
+     harbour.js 96    The regatta purse                                (Tama's board after the Sunday race)
+     yours:
+     harbour.js 191   The planks are under water. Nobody comes down.   (a Drowned harbour at high water)
+     yours:
+     harbour.js 211   kept for your errands                            (selling keeps what an errand needs)
+     yours:
+
+4.2  NEW OPEN STORY DECISIONS (only you decide; nothing is filled in)
+----------------------------------------------------------------------------------------------------------------
+  a) The Edge is now sailed, with two ways out: over the lip, or beating back out. The game records which
+     (state.story.edgeWay: 'over' or 'out') but nothing uses it. Should it ever mean anything?
+     yours:
+  b) May the thing that wakes at full dread wake during the Edge? (Now: its clock holds while the Edge runs.)
+     yours:
+  c) The stake with no wreck (Reef, once, after the hut; built on lore item L-16, "a Reef wreck belongs to
+     whoever claims it"): should it feed question 3 (who sat before you)? No clue is attached yet.
+     yours:
+  d) The Lantern keeper: does he come out when his light is dead? (Now: no.)
+     yours:
+  e) The bell: texts say "two strokes, never three", "twelve, every day" and a clue says "Tama rang fourteen at
+     noon"; the bell rings one stroke (see 2.5 E2 above). The noon slack no longer depends on it.
+     yours:
+  f) Five clues sit in another region's water (the Ribs: reef clue in Lantern water; the Sunken Street: drowned
+     clue in Cays water; the Drowned Bell, the Name Wall, the Throwers' Wreck: mixed). For each: retag the
+     clue, or move the place? (smoke prints them as "warn lint")
+     yours:
+  g) CANON 4 gives Mara's hidden answer as "someone who survived something"; CANON 2 says the sleeper made her.
+     Which wording stands?
+     yours:
+
+4.3  THE LORE PROPOSALS (docs/proposals/LORE_BIBLE.md)
+----------------------------------------------------------------------------------------------------------------
+42 lore items (L-01 to L-42) and 40 sample lines (S-01 to S-40) for in-between lore: everyday culture per region,
+minor trades, sayings, bridges between regions. Only L-16 is in the game. Its section 1 is a one-page changelog
+to tick through; L-35 to L-42 are A/B/C choices. Its section 2 lists 30 inconsistencies between the documents
+(D-01 to D-30); D-03 to D-09 are old lore still in older docs (Mara's village "before the sea rose", the green
+door, "the Lady is never seen") that could be copied by mistake.
+
+4.4  THE REMAINING PUZZLES (docs/proposals/REGIONAL_CATALOGUE.md section 10)
+----------------------------------------------------------------------------------------------------------------
+19 of 53 are built. The other 34 wait for your tick (Approve / Tweak / Cut). Several carry a Mara line or a
+board line that would need writing once approved.
+
