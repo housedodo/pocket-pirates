@@ -416,7 +416,7 @@ const fishing = new Fishing(scene, ship, {
 // ---------------------------------------------------------------- the dark hut (storyline minigame)
 rt.glitchT = 0, rt.preGlitch = 0;
 const hut = new Hut({ state,
-  onWin: (n) => { if (n === 20) toast('A natural twenty. Somewhere far below, something is disappointed.', true, 5000); },
+  onWin: () => {},   // a natural twenty says nothing more (E5, owner 2026-11-18: the line was cut)
   onFail: () => { landThrow(state, ship.pos); rt.preGlitch = rt.dread; rt.glitchT = 0.75; hutEl.classList.add('glitching'); rt.shake = 0.4; },
   onClose: () => closeModal() });
 // ---- the week: market day everywhere on Wednesdays, lantern night on Saturdays, and each harbour its own festival day
