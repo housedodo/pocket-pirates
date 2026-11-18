@@ -388,11 +388,18 @@ export class Abyss {
     this.overlay.innerHTML = '';
     document.body.classList.add('awakening');
   }
+  /** the waking without what comes before it: from the white straight to waking off Tama (the Edge, gone over: CANON 2026-11-18) */
+  wake(from) {
+    if (this.ending) return;
+    this.ending = { t: 15.6, step: 4, from };
+    this.overlay.className = 'show white'; this.overlay.innerHTML = '';
+    document.body.classList.add('awakening');
+  }
   updateEnding(dt, c) {
     const e = this.ending;
     e.t += dt || 0.016;
     const cam = c.camera, open = smoothstep(1, 5, e.t) * (e.t > 15 ? 0 : 1);
-    this.eye.visible = e.t < 15.5;
+    this.eye.visible = e.t < 15.5 && !e.from;
     const fx = Math.sin(c.ch), fz = -Math.cos(c.ch);
     this.eye.position.set(cam.position.x + fx * 700, cam.position.y + 150, cam.position.z + fz * 700);
     this.eye.lookAt(cam.position);
@@ -405,7 +412,7 @@ export class Abyss {
     if (e.step === 1 && e.t > 8.5) { e.step = 2; say('It has watched you since the first harbour.'); }
     if (e.step === 2 && e.t > 11.5) { e.step = 3; say('It knows your name now.'); }
     if (e.step === 3 && e.t > 14) { e.step = 4; this.overlay.classList.add('white'); }
-    if (e.step === 4 && e.t > 16) { e.step = 5; this.overlay.innerHTML = ''; this.d.onEnding(); say('You wake on the deck. Harbour Tama is in sight and the sea is blue.'); say('Nobody remembers the way back. Nobody asks.'); }
+    if (e.step === 4 && e.t > 16) { e.step = 5; this.overlay.innerHTML = ''; this.d.onEnding(e.from); say('You wake on the deck. Harbour Tama is in sight and the sea is blue.'); say('Nobody remembers the way back. Nobody asks.'); }
     if (e.step === 5 && e.t > 23) { e.step = 6; this.overlay.className = ''; this.overlay.innerHTML = ''; document.body.classList.remove('awakening'); this.ending = null; this.fullTime = 0; this.solo = null; this.cyc = { id: null, phase: 'rest', t: 30 + Math.random() * 60, len: 1, w: 0, last: 'leviathan' }; }
   }
 }

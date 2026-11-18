@@ -80,7 +80,7 @@ import { addMark, clearMark, keep } from './systems/storyflags.js';
 import { tunePan, lullDread, lullabyTick, playersEar } from './systems/lullaby.js';
 import { lostTick, LOST_CARDS } from './systems/lostsailors.js';
 import { buildBiome } from './concepts.js';   // dev concept scenes (__game.biome)
-import { edgeTick, startEdge, edgeFog } from './systems/edge.js';
+import { edgeTick, startEdge, edgeFog, edgeWokeLine } from './systems/edge.js';
 import { PITCH_MIN, updateCamera, initCamera1, initCamera2, camInput } from './ui/camera.js';
 import { titleEl, startTitle, titleCam, titleKey, INTRO_DUR, endIntro, skipIntro, begin, initTitle1, initTitle2 } from './ui/title.js';
 import { fsEl, fsOk, toggleFullscreen, nightViewNow, showPauseMain, pauseBack, mixer, studio, soundSituation, initPause1, initPause2 } from './ui/pause.js';
@@ -355,12 +355,13 @@ const objectives = new Objectives({ state, world, ship, toast: (t, d) => toast(t
 objectives.mate.hush = () => eventQuiet();
 objectives.mate.onBlip = (dark, guest) => audio.blip(dark, guest);   // very soft voice blips while she talks
 const abyss = new Abyss({ scene, ship, world, sky, settings, state, mate: objectives.mate, toast: (t, d, ms) => toast(t, d, ms), fade: $('fade'),
-  onEnding: () => {
+  onEnding: (from) => {   // from: 'edge' after going over the lip (systems/edge.js), else the waking at full dread
     rt.forced = null; rt.dread = 0.02; abyss.k = 0;
     ship.pos.set(0, 0, -25); ship.heading = 0; ship.speed = 0; rt.camHeading = 0; rt.yawT = 0;
-    state.stats.awakened = (state.stats.awakened || 0) + 1;
+    if (from !== 'edge') state.stats.awakened = (state.stats.awakened || 0) + 1;
     objectives.mate.queue.length = 0;
-    objectives.mate.say('Captain? Captain! You were asleep at the wheel. For how long, I... let us just go home.');
+    const line = from === 'edge' ? edgeWokeLine() : 'Captain? Captain! You were asleep at the wheel. For how long, I... let us just go home.';
+    if (line) objectives.mate.say(line);
   } });
 // what kind of water the ship is in, for the fish (never shown to the player)
 const ZONE_LABEL = { wreck: 'over a wreck', lagoon: 'in a ring-island lagoon', mangrove: 'by mangroves', harbour: 'by a harbour', reef: 'off a rocky edge', shallows: 'in the shallows', deep: 'in deep water', open: 'in open water', mid: 'between islands' };
@@ -1204,7 +1205,7 @@ function frame() {
   if (live) { anchorTick(); oarTick(dt); }
   if (live && Math.floor(rt.tNow * 0.7) !== Math.floor((rt.tNow - dt) * 0.7)) flushToasts();   // a held message every 1.4 s, once the quiet is over
   if (live && dt > 0 && window.__BUILD !== 'demo') edgeTick({ dt, dread: rt.dread, ship, quiet: eventQuiet() || !!rt.modal || rt.lostK > 0.01 || !!rt.gateLost || weather.calm > 0.5, world,
-    fadeEl: $('fade'), onDone: () => { rt.quietUntil = rt.tNow + 30; } });   // the Edge, once, at the deepest dread
+    fadeEl: $('fade'), onDone: (way) => { rt.quietUntil = rt.tNow + 30; if (way === 'over') abyss.wake('edge'); } });   // over the lip: you wake off Tama   // the Edge, once, at the deepest dread
   if (live && dt > 0 && window.__BUILD !== 'demo') lostTick({ dt, dread: rt.dread, sighting, ship, world, quiet: eventQuiet() || !!rt.modal || !!rt.edge });   // the sailors who went mad
   if (live && dt > 0) { const t0 = world.desc(0, -1); homeTick({ dt, tamaDist: t0 ? Math.hypot(ship.pos.x - t0.x, ship.pos.z - t0.z) : 1e9, ringing: noonPending() > 0, hour: state.time * 24 }); }   // home is gentle: the noon hush and the noon slack (demo too)
   if (live && dt > 0 && window.__BUILD !== 'demo') lullabyTick({ dt, free: !!freeCaysNow(), night: tod.night, storm: weather.storm });   // the Two Players keep the Cays quiet

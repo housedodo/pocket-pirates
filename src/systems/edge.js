@@ -2,8 +2,10 @@
 // deepest dread (stage 5) on open water, the sea ahead runs to a straight lip and pours over it into nothing; past it, things far
 // too big stand in the dark. The helm answers. The sea pulls: a current towards the lip, weak far out and very strong at it, that
 // can be worked against. Sailing along the lip brings each thing out of the dark in turn; a second look is never quite the first.
-// Two ways out: over the lip (white mist, then the ship drifts away pointing home) or out against the current (the lip goes
-// back into the mist behind you). Nothing explains it, nothing marks it. Full game only. The look is systems/edgeworld.js.
+// Two ways out: over the lip (white mist, then you wake off Tama as after the waking: owner 2026-11-18, "Over the Edge"; Mara says
+// one thing, once, and never speaks of it again) or out against the current (the lip goes back into the mist behind you, and the
+// Edge is gone for the voyage: `state.story.edge` is set when it starts and never cleared). The waking clock holds while it runs
+// (abyss.js). Nothing explains it, nothing marks it. Full game only. The look is systems/edgeworld.js.
 import * as THREE from 'three';
 import { rt } from '../core/runtime.js';
 import { state } from '../core/state.js';
@@ -46,8 +48,15 @@ rt.edge = null;          // the running sequence (see start)
 rt.edgeHush = 0;         // 0..1: how far the sound goes away (main.js hands it to audio.hush)
 
 /** which way a voyage left the Edge: 'over', 'out', or null if it has not met it. Saves from before 2026-11-16 met only the
- *  watched sequence, which always went over. Nothing reads this yet (owner's call). */
+ *  watched sequence, which always went over. The Table reads it for its drawing (CANON 2026-11-18). */
 export const edgeWay = (st = state) => st.story.edgeWay || (st.story.edge !== undefined ? 'over' : null);
+
+/** Mara, once, when you wake off Tama after going over (a draft for the writer, WRITER_TODO 4.6); null after the first time */
+export function edgeWokeLine(st = state) {
+  if (st.story.edgeWoke) return null;
+  st.story.edgeWoke = 1;
+  return 'You slept the whole way home, Captain. Kicked like someone falling.';
+}
 
 const endOf = (e, a) => (a < 0 ? e.ends[0] : e.ends[1]);
 /** the current at local (a, d): { v: pull towards the lip, along: run along the lip } */
@@ -158,11 +167,11 @@ export function clearFor(ship, world) {
   return ends[0] >= EDGE.LIP_MIN && ends[1] >= EDGE.LIP_MIN ? ends : null;
 }
 
-/** each frame at sea (full game), after the ship has moved. ctx: { dt, dread, ship, quiet, world, fadeEl, onDone } */
+/** each frame at sea (full game), after the ship has moved. ctx: { dt, dread, ship, quiet, world, fadeEl, onDone(way) } */
 export function edgeTick({ dt, dread, ship, quiet, world, fadeEl, onDone }) {
   if (rt.edgeAfter) rt.edgeAfter(dt);   // the mist lifting after 'over'
   if (!rt.edge) {
-    if (state.story.edgeRun) { startEdge(ship, fadeEl, state.story.edgeRun); if (state.story.edgeRun.over) { finish(ship, world, 'over', true); onDone(); return; } }
+    if (state.story.edgeRun) { startEdge(ship, fadeEl, state.story.edgeRun); if (state.story.edgeRun.over) { finish(ship, world, 'over', true); onDone('over'); return; } }
     else {
       if (state.story.edge !== undefined || dread < 0.9 || quiet) return;
       if ((tryT -= dt) > 0) return; tryT = 2;
@@ -196,14 +205,14 @@ export function edgeTick({ dt, dread, ship, quiet, world, fadeEl, onDone }) {
     hideIslands(e, world);
     e.windTo = e.h;   // the air goes over the lip too: getting out is a beat to windward (main.js turns the wind)
     if (L.d < EDGE.OVER_D) { e.over = 0; state.story.edgeWay = 'over'; state.story.edgeRun.over = true; fadeEl.style.background = '#e8eef0'; fadeEl.style.transition = 'opacity 1.6s steps(8)'; fadeEl.classList.add('on'); }   // the white mist, stepped like the demo's end card
-    else if (L.d >= EDGE.EXIT_D) { finish(ship, world, 'out'); onDone(); }
+    else if (L.d >= EDGE.EXIT_D) { finish(ship, world, 'out'); onDone('out'); }
     return;
   }
   // over: the ship goes on with the water while the mist comes in; behind it the edge is gone and the ship drifts away, pointing home
   e.over += dt;
   ship.pos.x += e.f[0] * 4 * dt; ship.pos.z += e.f[1] * 4 * dt;
   rt.edgeHush = Math.max(rt.edgeHush, 0.95 * smooth(0, 1.5, e.over));
-  if (e.over > 2.2) { finish(ship, world, 'over', true); onDone(); }
+  if (e.over > 2.2) { finish(ship, world, 'over', true); onDone('over'); }   // main.js then wakes you off Tama (abyss.wake)
 }
 
 function hideIslands(e, world) {
