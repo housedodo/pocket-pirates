@@ -253,12 +253,12 @@ Real audio files (synthesised stand-ins ship now), trading, landing on islands, 
 ## Full dread (`src/abyss.js`)
 Ten effects (the star-eye and ghost ship were cut) that only run at dread >= ~0.9, each switchable in the pause menu and testable on its own ("Try"):
 1. **Glass calm** - waves flatten, the sea turns into see-through black glass over a mirrored copy of the ship that slowly turns the wrong way.
-2. **Corrupted HUD** - place names glitch or lie ("TURN BACK"), the clock runs backwards, the gold counter whispers, tracker rows rewrite.
+2. **Corrupted HUD** - place names glitch or lie ("TAMA IS THAT WAY", "the same water"; "THE EYE" only at `EYE_K`, abyss k 0.9, the very bottom: E1, 2026-11-18), the clock runs backwards, the gold counter whispers, tracker rows rewrite.
 3. **Mad wind meter** - needle spins, efficiency ring flickers, the mission arrow points at the player ("YOU").
-4. **Mara breaks** - glitching portrait/text, broken lines every ~40s, hints go unanswered.
+4. **Mara breaks** - glitching portrait/text, broken lines every ~40s (about half of them break as said: `maraLine`), hints go unanswered. Text breaks every way, picked per line (`corrupt`: blocks, dropped letters, a word repeated, cut off mid-word, sometimes two at once; E3, 2026-11-18).
 5. **Lighthouses stare** - every lighthouse beam swings round and tips down onto the deck, holds, then the lamps die.
 6. **Watchers** - four looks chosen with the Style button: distant dark shapes that slowly turn (subtle), pale villagers, far-too-tall thin figures, and waders standing in the sea with glowing eyes and mouths that sink when you get close (scary).
-7. **Living map** - the chart draws island by island, islands crawl, phantom isles ("Where you drowned") and a red "TURN BACK" appear.
+7. **Living map** - the chart draws island by island, islands crawl, phantom isles ("Where the Gull lies"; "The Eye" only at `EYE_K`) and a red "STILL HERE" over the ship appear (E2, 2026-11-18).
 8. **Time loop** - a second, pale sun at the horizon; every ~90s the ship and clock jump back up to 20 seconds.
 9. **Wrong ocean** - wave animation runs backwards, the horizon tilts, the sails and flag swing against the wind.
 11. **Wrong catches** - fishing brings up memories (your own compass, Mara's hat); chests and wrecks hold your earlier loot "again".
@@ -462,6 +462,9 @@ Nothing here has a marker, a tutorial line or a HUD element; numbers are named c
   each way, 1.2 s at either end). With a fish aboard (the cheapest one no errand needs, `sellable`) it takes it, goes up, and comes
   down with a jar: +20 oil (to the cap). Without one it comes down and goes up empty, and Mara says once "No fish for the keeper,
   Captain?". Once a day per light after a trade (`state.story.supper[id]`). Lone lighthouse rocks are rare (one in the Lantern water scanned on the test seed).
+  Prompt "[E] Call up to the keeper" (owner, 2026-11-18). **On a dead light** (C4, 2026-11-18) the keeper is on the gallery at dusk too,
+  with no lantern, not waving, not turning to follow the ship; E within 45 (before the world is lit; once lit, relighting wins as before)
+  calls up and he looks at the dark lamp: "The keeper looks at his dark lamp. Nothing comes down." Nothing else happens.
 - **M-DROWN-4 Low-water hours** (`drownedOpen`, `DROWNED_OPEN_TIDE` 0; `ui/harbour.js`, `regiondecor.js`): a Drowned harbour gives
   and keeps only while the tide is below 0 (about 172 s of each 345 s cycle). Above it a film of grey water lies over its pier and
   its market says only "The planks are under water. Nobody comes down." Docking is as anywhere. Full game only.
@@ -478,3 +481,23 @@ Every harbour has a small side jetty about 40 degrees round the shore (`world.js
 boat tie up there; nothing is moored at the main pier, so the captain's ship cannot be pinned between the pier and a boat. Regional props
 keep clear of the jetty and the boat's berth.
 
+
+## The clue places stand in their own water (D3, 2026-11-18)
+Each clue counts for one region, and now each clue place stands in that region's water on every seed (`clueLint` warns otherwise;
+it reads 32 seeds). Moved (`landmarks.js`, the old places in `LM_BEFORE`): the Drowned Bell (60, 320) to (80, 240), inside Tama's
+own sector; the Ribs (-560, 70) to (-380, 380), the Name Wall (-233, 869) to (-330, 990) and the Throwers' Wreck (200, 1133) to
+(-560, 1100), all in the Reef wedge (sectors (-1, 1) and (-1, 2)); the Sunken Street (516, 737) to (1450, 1030), out in the Drowned
+(dread 0.74 is now its true distance, no longer a distance lie). Each keeps its stratum (dread within about 0.08). Where a place stood
+is open water. The world is still rolled as before the move (`world.js BEFORE`): the villages and the hut stand where they always did
+on every seed; only the moved places' own cells and the ring of open water round them differ (that ring keeps clear of the hut's
+rings 5 to 7, so it never covers the hut). Old saves (`core/state.js`, `story.lmMoved`, once): a charted or rumoured moved place
+moves on the chart with it; an island now under the new open water leaves the chart; a job or passenger bound for a harbour that is
+gone is dropped. A ship saved where an island now stands is pushed to its shore by the usual collision.
+Now and then (`renamedGreeting`, `greetings.js`) an old salt on a pier in another region says, once, after the place itself was seen,
+that it was not always called that: the Ribs (a Lantern harbour), the Drowned Bell (Crown or Free Cays), the Sunken Street (Free Cays).
+Full game only. Never explained.
+
+## The greeter after a throw (E6, 2026-11-18)
+After the first throw someone on the pier always knows; after that about one throw in three (`ROLL_GREET_P` 0.35), never two within
+three days (`ROLL_GREET_GAP`, `story.rollGreetDay`). After a low throw the line speaks of the sea or the weather first and only as an
+aside of a low one, the number last if at all. The natural-twenty line is cut (E5).

@@ -433,3 +433,49 @@ Your Seat, the epilogue (after the book: the hut's first words, from your side o
 Buttons after a closed ending (She Rises, the Unseen Throw, Your Seat), on the card and the title:
      table.js OVER  Begin again / Go back to the table / Go on
      yours:
+
+4.7  DRAFTS FROM THE SECOND ANSWERS (2026-11-18; from your answers C4, D2, D3, E1, E2, E3, E5, E6; IDs from docs/STORY_MASTER.txt)
+----------------------------------------------------------------------------------------------------------------
+Short strings have no ID in STORY_MASTER (the export leaves them out); they are listed by file.
+C4, the keeper on a dead light (E at dusk, nothing comes down):
+     MAIN-0338  The keeper looks at his dark lamp. Nothing comes down.
+     yours:
+D3, an old salt in another region, once each, after the place itself was seen (the charts change):
+     GRT-0146  The Ribs? Our old charts had it nearer, and called it something else.          (a Lantern harbour)
+     yours:
+     GRT-0147  The Drowned Bell, the charts say now. It was not always called that.          (a Crown or Free Cays harbour)
+     yours:
+     GRT-0148  A street under the water? My grandmother's chart had one much closer in. Another name.   (a Free Cays harbour)
+     yours:
+E2, the stock lines in the game's own voice (HUD and chart lies at full dread):
+     abyss.js PLACE_LIES  TAMA IS THAT WAY          (was "TURN BACK")
+     yours:
+     abyss.js PLACE_LIES  you passed here           (was "it is behind you")
+     yours:
+     ABY-0046             first time here?          (was "you were never here")
+     yours:
+     abyss.js TRACK_LIES  Nothing behind you        (was "Look behind you")
+     yours:
+     abyss.js MAP_NAMES   Where the Gull lies       (was "Where you drowned")
+     yours:
+     logbook.js / chartstyles.js  STILL HERE        (the chart's large letters over the ship; was "TURN BACK")
+     yours:
+E2 and D2, Mara at full dread (about half her lines now break as she says them, E3):
+     ABY-0043  Eleven answered at roll call this morning. I did not call it.     (was "...counting to eleven. We only have nine."; no crew count for the Gull)
+     yours:
+     ABY-0044  Are you looking at me, Captain? Somebody is.                       (was "I see you, Captain. I see you seeing me.")
+     yours:
+     ABY-0045  The water is clear here. I can see a long way down. A long way.  (was "Don't look at the water. It looks back...")
+     yours:
+     abyss.js MARA_LINES  We could still turn. We could still turn. We could     (was "turn back turn back...")
+     yours:
+E6, a greeter after a low throw (about one throw in three, never two within three days; the first throw always):
+     GRT-0141  The sea came in grey this morning and stayed grey. A low one, was it?
+     GRT-0142  Nets came up light again. Somebody must have thrown low.
+     GRT-0143  Fog on the water before noon. Must have been a low one. {W}, I heard.
+     GRT-0144  The tide came in late this morning. A low throw, they say. Nobody blames you.
+     GRT-0145  Gulls sat on the roofs all morning. Low one, I suppose.
+     yours:
+     Not changed, for you: after a throw of one the greeter still says only "One." (the number first, alone); the
+     mid, ten, high and twenty greeters still open with the number ("Twenty. You could hear...").
+E5: "A natural twenty. Somewhere far below, something is disappointed." is cut (MAIN-0019 retired).
