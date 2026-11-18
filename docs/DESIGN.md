@@ -413,6 +413,40 @@ Each is read from the world, never said; every number is a named constant in `sr
 | P-FREE-3 Lamp out to see the shore (demo) | At night, with the lamp lit, glowing things further than 150 from the eye (lit windows, lantern strings, lamps) burn at 0.55. With the lamp out (L, or no oil) for 2.5 s the eyes adjust over 1 s: they burn at x1.8 and carry twice as far through the fog, while the near dark closes in as before. Scaled by the night; nothing by day. Everywhere; it pays in the Cays. First time in Cays water at night, Mara: "Lamp out a moment. There. Lights." (`state.story.lampLights`). | `FAR_FROM` 150, `FAR_LIT` 0.55, `FAR_OUT` 1.8, `FAR_REACH` 2, `FAR_EYES` 2.5, `FAR_EYES_RAMP` 1 | `systems/farlights.js`, `psx.js` (`uFarLight`: glow texels and `mats.glow`; the fog on glow texels) |
 | P-DEEP-1 Against the gulls (full game: there is no dread in the demo) | Nothing new: past dread 0.55 the dusk gulls fly away from the nearest land (built). With M-HOME-3 the lesson at home is reliable, so far out the way back is where they come from. | none | `secrets.js` |
 
+### Reef, Lantern and Drowned: mechanics and puzzles (2026-11-17, owner: build the suggested puzzles; `docs/proposals/REGIONAL_CATALOGUE.md` 9)
+Nothing here has a marker, a tutorial line or a HUD element; numbers are named constants in `src/regions.js` or at the top of the file.
+- **M-REEF-1 Teeth under the tide** (`regiondecor.js`, `REEF_SLICK_TIDE` 0.4, `REEF_RING_TIDE` 0.7): the coral bites the same at any
+  tide (speed above 1.2, `reef.js`); what shows follows the water. Up to 0.4 black teeth in white water; to 0.7 only the tips, awash
+  in a pale-green slick; above 0.7 a faint ripple ring over each head (the floor: there is always a tell). Ghosting in under 1.2 is
+  the safe way in at high water. Three tide states per head (`extra.states`), so the change is a step at the threshold.
+- **P-REEF-2 Before the tide takes it** (`reef.js`, `STORM_WRECK_LOW` -0.5, `STORM_WRECK_WAIT` 60): built as it was; the two numbers
+  are named. Once the tide has come in, the next low water takes a storm wreck, never while the ship lies within 60 of it; salvaged
+  below tide -0.45 it pays x1.3, and x1.5 in Reef water.
+- **P-REEF-4 The stake with no wreck** (`reef.js`, full game only, after the first throw; `state.story.reefStake`
+  `{ x, z, w, risen, done }`): the first time the ship is in Reef water after the throw, a stake with a white rag is put in the most
+  open water of a ring 180 to 480 ahead of her (`STAKE_NEAR`, `STAKE_FAR`), wanted 300 clear of every island (`STAKE_CLEAR`), never
+  under 150 (`STAKE_CLEAR_MIN`); drawn within 520. Nothing solid, nothing to pick up, no E. The next blow in Reef water (storm over
+  0.5) raises its wreck 7 from the stake (`STAKE_WRECK_OFF`) instead of near the ship; it salvages as any wreck, goes at the next low
+  water as above, and the stake stays. Once a voyage (`done`). A saved voyage keeps a risen wreck.
+- **P-LANT-1 Keep in sight of a light**: built as it was (`lampBurnMul`, `RELIGHT_OIL`); checked: at dread 0.3 the lamp burns about
+  0.64 a second in the open dark of Guild water and about 0.16 within 260 of a lit light.
+- **M-LANT-1 Every light its rhythm** (`systems/lantern.js`, `lightRhythm`/`rhythmOn` in `regions.js`): each lit Guild lighthouse
+  (not the hand-made places) flashes one to three flashes, short 0.3 s or long 1 s, 0.6 s apart, every 6 to 10 s, from its seed
+  (`RHYTHM_*`); the lamp room and its beam are on only during a flash, so a dead light (never on) and a lit one between flashes
+  differ by counting. Within 45 (`RHYTHM_NEAR`) of a lit one, `state.story.rhythm[id]` is set and the chart inks the pattern beside
+  the island, dots and dashes (`chartstyles.js`). Night and fog only (the lights are lit then).
+- **P-LANT-3 The keeper's supper** (`systems/lantern.js`, `SUPPER_*`): at dusk (17:30 to 20:30) a lone Guild lighthouse rock (not a
+  harbour, its light not dead tonight) has its keeper on the gallery, put there within 260. Within 120 he swings his lantern twice.
+  Within 45, E (heaves to under way, `HEAVE_KINDS`): "Calling up to the gallery" 2.6 s, then a basket comes down on a line (2.5 s
+  each way, 1.2 s at either end). With a fish aboard (the cheapest one no errand needs, `sellable`) it takes it, goes up, and comes
+  down with a jar: +20 oil (to the cap). Without one it comes down and goes up empty, and Mara says once "No fish for the keeper,
+  Captain?". Once a day per light after a trade (`state.story.supper[id]`). Lone lighthouse rocks are rare (one in the Lantern water scanned on the test seed).
+- **M-DROWN-4 Low-water hours** (`drownedOpen`, `DROWNED_OPEN_TIDE` 0; `ui/harbour.js`, `regiondecor.js`): a Drowned harbour gives
+  and keeps only while the tide is below 0 (about 172 s of each 345 s cycle). Above it a film of grey water lies over its pier and
+  its market says only "The planks are under water. Nobody comes down." Docking is as anywhere. Full game only.
+- **P-DROWN-2 A fish for the pier**: built as it was (`drownedTake` keeps a fish first, then fruit, then the newest treasure; the
+  market row names what they will keep before you take it); with M-DROWN-4 the trade waits for low water.
+
 ## The Catch book (2026-11-13, `fishart.js`, `logbook.js fishLogHtml`)
 The Ship's book's fisherman's log is a Catch book: one card per species with a pixel portrait. Caught: the portrait, the price, how many,
 the best, where and when, what the quay told you. Heard of only: its shadow and the hint. Never met: a faint shadow and "? ? ?". The dark

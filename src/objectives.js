@@ -273,7 +273,7 @@ export const gateRadius = (state, tideFalling) => {
 };
 
 export const SIDE_GOALS = [
-  { id: 'fish', title: 'Dinner at sea', reward: 15, text: 'Reef the sails (S) until you slow down, then press C to cast a line.', check: (c) => c.state.stats.fish >= 1 },
+  { id: 'fish', title: 'Dinner at sea', reward: 15, text: 'Press C to cast a line. Under way, the anchor goes down first.', check: (c) => c.state.stats.fish >= 1 },
   { id: 'hail', title: 'Say hello', reward: 12, text: 'Hail a passing ship with E. Not every ship will want to talk.', check: (c) => c.state.stats.hails >= 1 },
   { id: 'bottle', title: 'Message received', reward: 15, text: 'Pick up a message in a bottle by sailing into it.', check: (c) => c.state.stats.bottles >= 1 },
   { id: 'paint', title: 'A touch of style', reward: 12, text: 'Buy something at a shipyard: paint, sails, a pennant, a figurehead.', check: (c) => c.state.stats.cosmetics >= 1 },

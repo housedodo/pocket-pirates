@@ -4,6 +4,7 @@ import { regionLook, regionWeights } from './systems/regionlook.js';
 import { setDecorDay } from './regiondecor.js';
 import { regionAt, caysQuiet, jobPay, onTime, crownLine, inLane, lampDead, RELIGHT_OIL, MARK_WAIT } from './regions.js';
 import { reefTick } from './systems/reef.js';
+import { lanternTick } from './systems/lantern.js';
 import { drownedTick } from './systems/drowned.js';
 import { sampleStage, stageOf, DARK_THRESHOLD, dreadAtDistance, dreadWithPeak, strataIndex } from './palette.js';
 import { U, mats } from './psx.js';
@@ -1306,6 +1307,7 @@ function frame() {
   homeMarks.update(waveT, { ship, hour: state.time * 24, wave: stage.wave, dread: rt.dread });   // the fishers' marks in Home Sound (systems/homemarks.js)
   if (live) reefTick(dt);   // the Reef: coral, the shoals that move at dawn, storm wrecks (systems/reef.js)
   if (live) drownedTick(dt, waveT, stage.wave);   // the Drowned: the shoal belt that opens at low water (systems/drowned.js)
+  if (live) lanternTick(dt);   // the Lantern Guild: every light its rhythm, the keeper's supper (systems/lantern.js)
   { const ni = world.nearest(ship.pos.x, ship.pos.z, 90, ['harbour']); if (ni && inLane(ni.desc, ship.pos.x, ship.pos.z, shoreR)) { rt.lane = { id: ni.desc.id, t: rt.tNow }; if (laterOK() && !eventQuiet() && !objectives.mate.busy) laneOars(ship.rowing, (l) => objectives.mate.say(l)); } }   // the Crown's buoyed lanes (regions.js); rowing up one (systems/crown.js)
   sea.update(dt, waveT, lifeCtx);
 
@@ -1367,7 +1369,7 @@ function frame() {
     else if (rt.digFix > rt.tNow && tgt.kind === 'treasure') { promptBar.style.display = 'none'; promptTxt.textContent = rt.digFixWhy === 'tide' ? 'The tide is in. Wait for it to go out...' : rt.digFixWhy === 'mud' || rt.digFixWhy === 'leave' ? 'Scraping the shovels clean...' : 'Fetching the spare shovel...'; }
     else {
       promptBar.style.display = 'none';
-      promptTxt.textContent = tgt.kind === 'thread' ? tgt.th.prompt : tgt.kind === 'spring' ? '[E] Look into the water' : tgt.kind === 'cave' ? '[E] Look into the cave' : tgt.kind === 'sighting' ? `[E] ${tgt.s.label}` : tgt.kind === 'harbourfar' ? 'Sail to the pier to go ashore' : tgt.kind === 'hut' ? '[E] Knock on the dark hut' : tgt.kind === 'harbour' ? `[E] Visit ${tgt.isl.desc.name}`
+      promptTxt.textContent = tgt.prompt ? tgt.prompt : tgt.kind === 'thread' ? tgt.th.prompt : tgt.kind === 'spring' ? '[E] Look into the water' : tgt.kind === 'cave' ? '[E] Look into the cave' : tgt.kind === 'sighting' ? `[E] ${tgt.s.label}` : tgt.kind === 'harbourfar' ? 'Sail to the pier to go ashore' : tgt.kind === 'hut' ? '[E] Knock on the dark hut' : tgt.kind === 'harbour' ? `[E] Visit ${tgt.isl.desc.name}`
         : tgt.kind === 'treasure' ? (tgt.isl.dug ? 'Already plundered' : !state.riddles[tgt.isl.desc.id] ? '[E] Study the ancient arch inscription' : '[E] Dig on this shore')
         : tgt.kind === 'landmark' ? `[E] Go ashore on ${tgt.isl.desc.name}`
         : tgt.kind === 'secret' ? (ship.speed > 0.6 ? '' : `[E] ${tgt.sc.label}`)

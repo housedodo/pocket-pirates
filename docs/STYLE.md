@@ -189,6 +189,13 @@ purple and magenta cosmic horror as dread rises.
   on floats lining the way in, amber day and night, a tall dark tower with a light on top. Drowned: slate roofs to the ridge with
   chimneys, a leaning belfry (full game only). Lamps use the glow material (additive, never fogged). Home Sound and the hand-made
   places have none.
+- **What the tide and the dusk change** (2026-11-17, regional puzzles; numbers in `src/regions.js`): Reef coral shows by the tide:
+  black teeth in white water up to tide 0.4, then only their tips awash in a pale-green slick (`#b4e6c6`), above 0.7 nothing but a
+  faint pale ripple ring (`#e4f4ea`) over each head, always some tell. A Drowned harbour's pier lies under a film of grey water
+  (`#6a8088`, broken white at the edges) while the tide is above 0. Guild lighthouses at night flash their own rhythm (lamp room and
+  beam on only during a flash); the chart inks it beside the light in dots and dashes. At dusk a lone Guild rock's keeper stands on
+  the gallery (dark coat, cap, an amber lantern) and lowers a plank basket on a pale line. Once a voyage after the first throw, a lone
+  stake with a white rag stands in open Reef water (full game only).
 
 ## 5. Interface (HUD and menus)
 - **Typefaces** (2026-11-12, the owner reverted the 2026-11-11 pairing for now: Jersey 10 overlapped in the HUD and the log): **DotGothic16** for all interface text and headings (16 px grid: 16, 32, 48 px), HUD included. **Pirata One** stays for the title logo, the harbour name banner, the chart's harbour labels and the paper's masthead. The Pirata One + Jersey 10 pairing is kept switched off in `src/chartstyles.js` (`UI_FONT = null`, CSS block in index.html) to bring back later.

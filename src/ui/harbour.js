@@ -20,10 +20,10 @@ import { rt, G } from '../core/runtime.js';
 import { markSeen } from '../clues.js';
 import { lineAhead, takeLine } from '../systems/crown.js';
 import { purseAt, takePurse } from '../systems/race.js';
-import { drownedTake, caysAsleep, regionAt, OIL_SELL, sellMul, buyMul, marketNote, caysQuiet, takeJob, clockAt, nowD, jobPay, DAY_SECONDS, recordMarks } from '../regions.js';
+import { drownedTake, drownedOpen, caysAsleep, regionAt, OIL_SELL, sellMul, buyMul, marketNote, caysQuiet, takeJob, clockAt, nowD, jobPay, DAY_SECONDS, recordMarks } from '../regions.js';
 import { pierOf } from '../world.js';
 import { $, toast } from './dom.js';
-import { isMarketDay, isFestival } from '../systems/calendar.js';
+import { isMarketDay, isFestival, tideAt } from '../systems/calendar.js';
 import { addMark } from '../systems/storyflags.js';
 
 export let upCost, tutorialGoal, priceNote;   // set by the init function(s) below, at the point in boot where main.js had them
@@ -188,9 +188,10 @@ export function renderHarbour() {
   } else if (rt.hbTab === 'market' && d.region === 'drowned') {   // the Drowned take no coin: they give what you lack, and keep one thing (regions.js)
     const done = state.story.placeSet && state.story.placeSet[d.id] === state.dayN, take = drownedTake(state);
     html += `<div class="sec">MARKET</div><small>Nobody here will take coin.</small>`;
-    html += done ? '<small>The table is cleared. Come back tomorrow.</small>' : `<div class="qrow"><div><b>${pxi('lamp')} What the ship needs</b><br><small>oil to the brim, sailcloth, the hull made good. They keep ${take ? take.label : 'nothing: the hold is empty'}.</small></div><button id="placeSet">Take it</button></div>`;
+    html += done ? '<small>The table is cleared. Come back tomorrow.</small>' : !drownedOpen(tideAt()) ? '<small>The planks are under water. Nobody comes down.</small>' : `<div class="qrow"><div><b>${pxi('lamp')} What the ship needs</b><br><small>oil to the brim, sailcloth, the hull made good. They keep ${take ? take.label : 'nothing: the hold is empty'}.</small></div><button id="placeSet">Take it</button></div>`;
     pane.innerHTML = html;
     const ps = $('placeSet'); if (ps) ps.addEventListener('click', () => {
+      if (!drownedOpen(tideAt())) { renderHarbour(); return; }   // the water came over the planks meanwhile (M-DROWN-4)
       const tk = drownedTake(state); if (tk) tk.take();
       state.oil = oilCap(state.upgrades); state.patchKits = 3; state.hp = G.ship.mods.maxHp;
       (state.story.placeSet = state.story.placeSet || {})[d.id] = state.dayN;

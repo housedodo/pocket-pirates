@@ -11,6 +11,7 @@ import { LANES } from './seaplay.js';
 import { LM } from './landmarks.js';
 import { isKnown } from './clues.js';
 import { goalReached } from './objectives.js';
+import { lightRhythm, RHYTHM_LONG } from './regions.js';
 
 export const CHART_STYLE = 'a';   // the inked portolan; the two other styles tried were deleted (RULES 35, 2026-11-15)
 export const UI_FONT = null;   // the Pirata One / Jersey 10 pairing (data-uifont="b", CSS in index.html) is switched off for now: it overlapped in the HUD and the log
@@ -229,6 +230,10 @@ export function drawVariant(lb, key) {
     if (d.type === 'harbour' && show.harbour) spr('anchor', ix - rl - 8, iz + 2, INK, groundAt(ix - rl - 8, iz + 2));
     if (d.type === 'treasure' && !state.dug.has(d.id) && show.treasure && goalReached(state, 'dig')) spr('cross', ix + rpx + 5, iz - rpx - 3, RED, groundAt(ix + rpx + 5, iz - rpx - 3));
     if (d.type === 'harbour' && hasLighthouse(d) && sc >= 0.55) { const lx = ix + Math.max(5, shoreR(d, 0) * k2) + 4; spr('light', lx, iz - 4, INK, groundAt(lx, iz - 4)); dot(lx - 0.5, iz - 7, GOLD === INK ? RED : GOLD); }
+    if (state.story && state.story.rhythm && state.story.rhythm[d.id] && sc >= 0.55) {   // a Guild light's rhythm, once sailed close (M-LANT-1): dots and dashes in ink, no words
+      let rx = ix + Math.max(5, shoreR(d, 0) * k2) + 3; const ry = Math.round(iz + 3); c.fillStyle = INK;
+      for (const f of lightRhythm(d).flashes) { const w = f >= RHYTHM_LONG ? 3 : 1; c.fillRect(Math.round(rx), ry, w, 1); rx += w + 1; }
+    }
     if (d.hut && state.story && state.story.hutKnown) { const hx = Math.round(ix + 3), hz = Math.round(iz - 3); c.fillStyle = '#120c0e'; c.fillRect(hx - 4, hz - 2, 8, 6); for (let k = 0; k < 7; k++) c.fillRect(hx - 6 + k, hz - 3 - k, 13 - Math.round(k * 1.9), 1); c.fillRect(hx + 2, hz - 10, 3, 1); c.fillStyle = '#c030a0'; c.fillRect(hx + 1, hz, 2, 2); }
     const big = d.type === 'harbour';
     if (big || (show.names && sc >= 0.5)) labels.push({ t: o.name, x: ix * 2, y: (iz + rpx) * 2 + (big ? 20 : 14), big, gx: ix, gy: iz + rpx + 8 });
