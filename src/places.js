@@ -54,11 +54,13 @@ const VISITS = {
     clue: 'CL-F1-a', need: (c) => c.night && c.still, no: 'A sandbar and a cold fire. He plays at night, when the water is quiet.',
     once: { text: 'Teo, on the sand, plays eight bars and stops. Across the water a violin takes the tune where he left it. "She answers. We have never met. Forty years. It is manners."', note: 'Teo and Ilse: two players on two islands, forty years, never met.' },
     again: 'Teo plays eight bars and stops. "Never sat at her table. Never will. We play instead." The violin waits.',
+    second: 'Teo tunes up. "Who began it? The violin did, long before me. I only answer."',   // L-38 C: each says the other began (a draft)
   },
   ilse: {
     clue: 'CL-F1-a', need: (c) => c.night && c.still, no: 'A rock with a stool on it. She plays at night, when the water is quiet.',
     once: { text: 'Ilse, on the rock: "He starts it. I finish it. If one of us goes quiet, the other waits."', note: 'Ilse finishes what Teo starts.' },
     again: 'The violin takes the tune where the guitar left it.',
+    second: 'Ilse rosins her bow. "Who began it? The guitar did. I only answer it."',   // L-38 C
   },
   cup: {
     clue: 'CL-F3-a', need: (c) => c.tide > 0.25, no: 'A white cloth on a beach, across a reef the water is too low to cross.',
@@ -183,6 +185,7 @@ export class Places {
     const seen = (state.story.lm = state.story.lm || {});
     const first = seen[lm] === undefined;
     if (first) { seen[lm] = state.dayN; return { ...v.once, first: true, clue: v.clue }; }
+    if (v.second && !(state.story.lm2 = state.story.lm2 || {})[lm]) { state.story.lm2[lm] = 1; return { text: v.second, nothing: true, clue: v.clue }; }   // a second visit hears one more thing, once
     if (v.every && state.dayN - seen[lm] >= v.every) { seen[lm] = state.dayN; return { text: v.again, heal: v.heal, fruit: v.fruit, gold: v.gold, ammo: v.ammo, clue: v.clue }; }
     return { text: v.again, dark: !!v.againDark, nothing: true, clue: v.clue };
   }

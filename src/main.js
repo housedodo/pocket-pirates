@@ -68,6 +68,7 @@ import { Wake } from './wake.js';
 import { Secrets, TALES } from './secrets.js';
 import { oilCap } from './oil.js';
 import * as life from './harbourlife.js';
+import { firstTime, CUSTOMS_SLIP } from './customs.js';
 import './newspaper.js';
 import './localgames.js';
 // the core layers (config <- state <- engine) and the small shared systems; see docs/ARCHITECTURE.md
@@ -220,7 +221,7 @@ const homeMarks = new HomeMarks(scene, world, traffic, state.seed, secrets.kestr
 traffic.onCustoms = () => {   // a Crown customs cutter has looked in the hold (regions.js)
   const j = state.job;
   if (j && j.dark) { state.job = null; crownLine(state, 'black'); toast(`A customs cutter comes alongside and takes the ${j.item}. A black line in the Crown's book.`, true, 7000); }
-  else { state.gold += 5; toast('A customs cutter comes alongside, looks in the hold and stamps your papers. +5 gold.', false, 5000); }
+  else { state.gold += 5; toast('A customs cutter comes alongside, looks in the hold and stamps your papers. +5 gold.', false, 5000); if (window.__BUILD !== 'demo' && firstTime(state, 'slip')) state.notes.push({ text: CUSTOMS_SLIP, dark: false }); }   // the slip, kept in the log (customs.js, L-08)
   audio.play('ui', { vol: 0.5 });
 };
 const sea = new SeaFeatures(scene, world, state.seed, state.collected);
@@ -444,7 +445,7 @@ function noonBells() {   // villages that keep the bells ring them at noon; you 
   }
 }
 function weekMorning() {   // Mara mentions the day the first couple of times, then never again
-  const k = isMarketDay() ? 'market' : isLanternNight() ? 'lanterns' : null; if (!k || !laterOK() || objectives.pending || eventQuiet()) return;   // Mara only talks about the quest in hand until the tutorial is well under way
+  const k = isMarketDay() ? 'market' : isLanternNight() ? 'lanterns' : null; if (!k || !laterOK() || objectives.pending || eventQuiet() || rt.dread > 0.45) return;   // past the light water she stops mentioning it (L-34)   // Mara only talks about the quest in hand until the tutorial is well under way
   const n = state.hints['week:' + k] || 0; if (n >= 2) return; state.hints['week:' + k] = n + 1;
   objectives.mate.say(k === 'market' ? 'Market day, Captain! Every harbour pays a bit more for what we bring in.' : 'Lantern night tonight. They set little lights on the water. I always want to follow one.');
 }

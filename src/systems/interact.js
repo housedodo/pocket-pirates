@@ -16,6 +16,7 @@ import * as life from '../harbourlife.js';
 import { bearingName, friendLevel, fruitName, fruitOf, plural, repOf } from '../jobs.js';
 import { LM } from '../landmarks.js';
 import { lootFor } from '../lore.js';
+import { customLine, maraAt, firstTime, HUSH, RELIT_LOG, RELIT_MARA, BOUNTY_DEBT } from '../customs.js';
 import { goalReached } from '../objectives.js';
 import { oilCap } from '../oil.js';
 import { stageOf } from '../palette.js';
@@ -140,6 +141,7 @@ function doInteract(tg) {
     const d = tg.isl.desc; state.oil -= RELIGHT_OIL; (state.story.relit = state.story.relit || {})[d.id] = nightKey(); state.gold += RELIGHT_PAY;
     const k = G.revealAround(d.x, d.z); tg.isl.setLit(G.world.lit); G.audio.play('discover', { vol: 0.5 });
     toast(`The light is burning again. The keeper pays ${RELIGHT_PAY} gold${k ? ` and marks ${k} island${k > 1 ? 's' : ''} on your chart` : ''}.`, false, 6000);
+    if (firstTime(state, 'relitLog')) { state.notes.push({ text: RELIT_LOG, dark: false }); setTimeout(() => toast(RELIT_LOG, false, 7000), 6500); if (rt.dread < HUSH.lantern) setTimeout(() => { if (!G.objectives.mate.busy) G.objectives.mate.say(RELIT_MARA); }, 2500); }   // L-19 (customs.js)
     return;
   }
   if (tg.kind === 'patch') {
@@ -175,11 +177,14 @@ function doInteract(tg) {
     if (!say && free && G.laterOK() && window.__BUILD !== 'demo' && !state.story.lullRumour && sectorAt(d.x, d.z, state.seed).faction.id === 'free') { state.story.lullRumour = 1; say = { speaker: 'oldsalt', text: 'In the Cays they say the dark keeps quiet while somebody plays.', story: true }; }   // points at the Two Players (the gentle ending)
     if (!say && free && !state.story.tellGreet && G.lateTell() && Math.random() < 0.5) { state.story.tellGreet = 1; say = { speaker: 'harbourmaster', text: 'Captain. Just yourself again? I will put you down as one.', story: true }; }   // a tell: they greet only you
     if (!say && free && G.laterOK() && isOpen(state, 'tab', 'tavern') && Math.random() < 0.6) say = life.gossipAt(state, d);
+    const hr = state.time * 24, cx = { region: regionAt(d.x, d.z, state.seed), hour: hr, night: hr >= 19 || hr < 5, dusk: hr >= 17 && hr < 20, evening: hr >= 17 || hr < 2, storm: G.weather.storm > 0.5, still: G.weather.storm < 0.3, fog: G.weather.fog > 0.4, lane: !!(rt.lane && rt.tNow - rt.lane.t < 90), job: !!state.job, dread: rt.dread, visits: rep.visits };
+    if (!say && free && G.laterOK() && rt.dread < 0.6 && Math.random() < 0.35) say = customLine(state, d, cx);   // a regional custom (customs.js, the lore bible)
+    { const mr = G.laterOK() ? maraAt(state, d, cx) : null; if (mr) setTimeout(() => { if (!G.objectives.mate.busy) G.objectives.mate.say(mr); }, 2600); }   // Mara, once per region, while the water is light (L-34)
     if (!say && free && G.laterOK() && rt.dread < 0.6) say = G.taleAt(d);
     if (!say && free && G.laterOK() && (g.day[d.id] == null || Math.random() < 0.3)) say = pickGreeting({ hour: state.time * 24, weather: G.weather.label, dread: rt.dread, rnd: Math.random, custom: d.custom, event: isFestival(d) ? 'festival' : isMarketDay() ? 'market' : isLanternNight() ? 'lantern' : null, boat: (() => { const b = boatStatus(d, state.dayN, rt.dread, state.seed); return b.today === 'stayed' ? 'stayed' : b.yesterday === 'lost' ? 'lost' : null; })() });
     if (!say && free && window.__BUILD !== 'demo') { const tl = G.threads.harbourLine(d); if (tl) say = { speaker: 'fisher', text: tl, dark: true, story: true }; }
     if (laneArrival(state, d, rt.lane && rt.tNow - rt.lane.t < 90 ? rt.lane : null)) setTimeout(() => toast('In by the buoys. The harbourmaster ticks a line in the book.', false, 4500), 1400);   // the Crown's record (regions.js)
-    if (d.region === 'reef' && state.story.bounty) { const b = state.story.bounty; state.gold += b; state.story.bounty = 0; setTimeout(() => toast(`The Brotherhood pays the bounty: +${b} gold.`, false, 5000), 1600); }   // raiders sunk in Reef waters (regions.js)
+    if (d.region === 'reef' && state.story.bounty) { const b = state.story.bounty; state.gold += b; state.story.bounty = 0; setTimeout(() => toast(`The Brotherhood pays the bounty: +${b} gold. "${BOUNTY_DEBT}"`, false, 6000), 1600); }   // raiders sunk in Reef waters (regions.js)
     rt.harbourIsl = tg.isl; rt.hbTab = 'board'; G.frameVillage(d); G.autosave();
     G.ship.speed = 0; G.ship.vel = null; G.ship.trim = 0; rt.heave = null;   // laid alongside: she leaves the harbour at rest, sails in (G-09)
     if (G.lettersAt(d).length) setTimeout(() => toast('A letter waits for you at the harbourmaster\'s board.', false, 6000), 900);

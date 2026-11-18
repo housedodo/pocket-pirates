@@ -12,6 +12,7 @@
 import { TILE } from './textures.js';
 import { mats } from './psx.js';
 import { mulberry32 } from './util.js';
+import { customProps } from './customprops.js';
 import { REEF_SLICK_TIDE, REEF_RING_TIDE, drownedOpen } from './regions.js';
 
 const NIGHT = (i) => i.tod && i.tod.night > 0.45;
@@ -123,4 +124,5 @@ export function regionDecor(d, A, extra, h) {
     }
     if (harbour || rng() < 0.4) { const [x, z] = P(50, -26); A.push(x, -3, z, way, 1, 1, 1, 0, 0.18); A.box(0, 0, 0, 5, 18, 5, '#7a7476', TILE.stone); A.cyl(0, 18, 0, 4, 0, 6, 4, '#4a4446', TILE.roof); A.pop(); }
   }
+  customProps(d, A, { P, clearOf, st, mk, harbour });   // a fire for the players, a tide pole (customprops.js, the lore bible)
 }

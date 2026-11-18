@@ -44,6 +44,7 @@ CODES = {  # source file -> (ID code, what it holds)
     'systems/lostsailors.js': ('LOST', 'the sailors who went mad: three meetings in deep dread'),
     'newspaper.js': ('NEWS', 'the Friday paper'),
     'clues.js': ('CLUE', 'the clue log lines, in another hand (CL-T-* are drafts)'),
+    'customs.js': ('CUST', 'regional customs: sayings, sights on the quay, Mara by region (the lore bible, drafts)'),
     '../index.html': ('CARD', 'the ending card, the credits and the demo end card (index.html)'),
 }
 # the cards whose words live in index.html, not in a script (read() lifts their text)

@@ -25,6 +25,7 @@ import { pierOf } from '../world.js';
 import { $, toast } from './dom.js';
 import { isMarketDay, isFestival, tideAt } from '../systems/calendar.js';
 import { addMark } from '../systems/storyflags.js';
+import { sightsAt, afterHut, firstTime, CANDLE, OAR } from '../customs.js';
 
 export let upCost, tutorialGoal, priceNote;   // set by the init function(s) below, at the point in boot where main.js had them
 
@@ -105,6 +106,7 @@ export function renderHarbour() {
         else html += `<div class="sec">${r.who.toUpperCase()}</div><div class="qrow letter"><div><b>${pxi('talk')} ${r.text}</b>${r.block ? `<br><small>${r.block}</small>` : ''}</div><button class="lifeStep" data-k="${r.key}" ${r.block ? 'disabled' : ''}>${r.btn}</button></div>`;
       }
       html += `<div class="sec">THIS WEEK</div><small>${life.eventLine(d, state)}: ${life.gameOf(d).name} in the tavern pays double.</small>`;
+      { const sg = sightsAt(state, d, { region: regionAt(d.x, d.z, state.seed), market: isMarketDay() }); if (sg.length) html += `<div class="sec">ON THE QUAY</div>${sg.map((x) => `<small class="${x.dark ? 'darkline' : ''}">${x.text}</small>`).join('<br>')}`; }   // what the region keeps (customs.js)
     }
     html += '<div class="sec">DELIVERY</div>';
     const jo = state.job ? null : makeJob(G.world, d, state.serial[d.id] || 0, !goalReached(state, 'tavern') ? 420 : 750);   // the first jobs stay close
@@ -250,7 +252,7 @@ export function renderHarbour() {
     const hgb = $('haggle'); if (hgb) hgb.addEventListener('click', () => {
       rollCheck(state, { label: 'Talk', kind: 'talk', dc: 12, harbour: d.id, extra: lvl ? [['standing', lvl]] : [] }, (ok, n) => {
         state.haggle = { id: d.id, day: state.dayN, n, mult: ok ? (n === 20 ? 1.5 : 1.3) : n === 1 ? 0.8 : 0.9 };
-        toast(ok ? 'The fishmonger laughs and gives in.' : n === 1 ? 'The fishmonger spits on the planks. By noon the whole harbour has heard.' : 'The fishmonger folds their arms. Prices just got worse.', false, 4000); if (rt.harbourIsl) renderHarbour(); }); });
+        toast(ok ? 'The fishmonger laughs and gives in.' : n === 1 ? 'The fishmonger spits on the planks. By noon the whole harbour has heard.' : 'The fishmonger folds their arms. Prices just got worse.', false, 4000); if (!ok && n <= 5 && afterHut(state) && firstTime(state, 'candle')) setTimeout(() => toast(CANDLE, false, 6000), 4200); if (rt.harbourIsl) renderHarbour(); }); });
   } else if (rt.hbTab === 'tavern') {
     if (G.lifeOn()) {   // the house dish, the local game, and the old story this harbour keeps (harbourlife.js)
       const dish = life.DISHES[d.style] || life.DISHES.classic, cur = life.meal(state), dc = Math.ceil(dish.cost * G.costMul());
@@ -304,7 +306,7 @@ export function renderHarbour() {
     });
     const hh = $('hireHand'); if (hh) hh.addEventListener('click', () => {
       const h = rt.pendingHand; if (!h || state.gold < h.cost || state.crew.length >= 2) return;
-      state.gold -= h.cost; G.signOn(h, h.stay || 4); G.audio.play('buy'); toast(`${h.name} signs on. ${h.name} nods once and says nothing.`, false, 5000); G.objectives.remark('crew', rt.dread); renderHarbour(); });
+      state.gold -= h.cost; G.signOn(h, h.stay || 4); G.audio.play('buy'); toast(`${h.name} signs on. ${h.name} nods once and says nothing.`, false, 5000); if (afterHut(state) && firstTime(state, 'oar')) setTimeout(() => toast(OAR, false, 6000), 5200); G.objectives.remark('crew', rt.dread); renderHarbour(); });
     pane.querySelectorAll('[data-dismiss]').forEach((b) => b.addEventListener('click', () => { state.crew = state.crew.filter((c) => c.name !== b.dataset.dismiss); toast(`${b.dataset.dismiss} goes ashore with a small wave.`); renderHarbour(); }));
     if ($('playPig')) $('playPig').addEventListener('click', () => { if (state.gold < 10) return; state.gold -= 10; state.stats.pig = (state.stats.pig || 0) + 1; const isl = rt.harbourIsl; G.openModal('pig'); rt.pigHome = isl; G.pig.start(G.LOCALS[Math.floor(Math.random() * G.LOCALS.length)], 10); });
   } else {

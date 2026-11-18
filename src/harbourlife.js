@@ -123,7 +123,7 @@ export const ARCS = {
     { at: 'home', say: 'Corvo has filled most of the wall. "Busy week," he says, and writes MERRY GULL again.', btn: 'Point it out', done: 'He looks at the wall, then at you. "Twice. Yes."' },
     { at: 'home', say: 'Your ship\'s name is on the wall three times now. One of them is dated next week. Corvo will not look at you.', btn: 'Read the wall', done: 'Most of the ships on the wall you have never heard of. Two you have.', dark: true },
     { at: 'home', say: 'The wall has been washed clean. There is a new man on the pier with a stick of chalk. "Name?" he says.', btn: 'Tell him', done: 'He writes MERRY GULL, very neatly.', end: true, dark: true },
-  ], after: 'A man on the pier writes every ship on the wall in chalk. The wall is washed every week.' },
+  ], after: 'A man on the pier writes every ship on the wall in chalk. The wall is washed on market day.' },   // L-33
 };
 const ARC_IDS = Object.keys(ARCS);
 

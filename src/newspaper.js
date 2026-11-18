@@ -95,6 +95,20 @@ const REGION = {
   lantern: [['GUILD ASKS FOR MORE OIL', 'Every lamp to be lit an hour earlier this season. No reason given.'], ['GUILD LAMPS BURN ALL DAY', 'The guild asks that nobody put them out. For any reason.']],
   drowned: [['FOG FOR THE THIRD WEEK', 'Fishers are asked to call out their names on the way home.'], ['BELLS HEARD UNDER THE WATER', 'The fishers stopped rowing to listen. Some are still listening.']],
 };
+// the lore bible's paper items (2026-11-18, drafts): more of the region's own news in the light weeks; full = not in the demo (RULES 29)
+const REGION_MORE = {
+  crown: [{ g: 'any', h: 'CLERK RETIRES AFTER FORTY YEARS', t: 'He says he never once reached the bottom of a page.' },   // L-08
+    { g: 'full', h: 'RECKONING DAY AT THE FORT', t: 'The Guild\'s books and ours were compared. They did not agree. They never have.' }],   // L-11
+  reef: [{ g: 'any', h: 'FIGUREHEAD REPAINTED', t: 'Everything but the face. Nobody would.' }],
+  drowned: [{ g: 'full', h: 'TIDE POLE RAISED AGAIN', t: 'The weed line is above it again.' }],   // L-23
+};
+const SEA_FULL = [['KNOT CONTEST WON BY A STRANGER', 'Nobody could name the knot. The rope is on show at the inn.']];   // L-25, light weeks, full game
+const NOTICE_MORE = {   // a region's own notice in the light weeks
+  crown: [{ g: 'full', t: '{N}, clerk at the Fort. His line is closed. It was a clean one.' }],   // L-08
+  lantern: [{ g: 'any', t: 'THE GUILD COUNTS LIGHTS, NOT SHIPS. Report a dark light at any Guild quay.' }],   // L-19
+};
+const PRESS = 'SET AND PRINTED in the Crown. Comes in with the Friday market. Wet ink is no fault of the printer.';   // L-12
+const BLUE = 5;   // the FACES line with the blue boats (L-40 C: said once, never repeated)
 const SEA = [
   [ // 0-1
     ['RECORD CATCH OF SNAPPER', 'The market ran out of ice by noon.'], ['GOAT ELECTED TO HARBOUR COUNCIL', 'The vote was close. The goat has not yet spoken.'],
@@ -135,18 +149,24 @@ export function printPaper(state, d, ctx) {
     const f = (s) => s.replace(/\{W\}/g, W).replace(/\{G\}/g, deed.game || 'contest');
     news.push({ h: f(h).toUpperCase(), t: f(t) });
   }
-  if (stage < 4) { const r = REGION[ctx.faction] || REGION.crown; news.push({ h: r[stage >= 2 ? 1 : 0][0], t: r[stage >= 2 ? 1 : 0][1] }); }
-  const pool = SEA[faceBand(stage)].slice();
+  const full = window.__BUILD !== 'demo', more = (REGION_MORE[ctx.faction] || []).filter((x) => full || x.g === 'any');
+  if (stage < 2 && more.length && rng() < 0.5) { const x = pick(rng, more); news.push({ h: x.h, t: x.t }); }
+  else if (stage < 4) { const r = REGION[ctx.faction] || REGION.crown; news.push({ h: r[stage >= 2 ? 1 : 0][0], t: r[stage >= 2 ? 1 : 0][1] }); }
+  const pool = SEA[faceBand(stage)].concat(stage < 2 && full ? SEA_FULL : []);
   while (news.length < 3 && pool.length) news.push(((x) => ({ h: x[0], t: x[1] }))(pool.splice(Math.floor(rng() * pool.length), 1)[0]));
   const date = `${WEEKDAYS[state.dayN % 7]}, week ${week + 1}`;
+  let fi = Math.floor(rng() * FACES[faceBand(stage)].length);
+  if (faceBand(stage) === 0 && fi === BLUE) { if (L.blueSaid) fi = (fi + 1) % FACES[0].length; else L.blueSaid = 1; }   // L-40 C
+  const face = FACES[faceBand(stage)][fi], nm = (NOTICE_MORE[ctx.faction] || []).filter((x) => full || x.g === 'any');
+  const notice = stage < 2 && rng() < 0.4 ? (nm.length && rng() < 0.6 ? pick(rng, nm).t : PRESS) : pick(rng, NOTICE[stage]);
   return {
     week, stage, at: H,
     mast: MAST[stage], tag: TAG[stage], date: stage >= 4 ? `${date}. ${date}.` : `${date} · ${ctx.factionName} waters`,
     region: ctx.factionName,
     weather: forecast(rng, state, ctx.faction, stage, ctx.frontOn),
     faceHead: stage >= 4 ? 'A FACE' : 'HARBOUR FACES',
-    face: fill(pick(rng, FACES[faceBand(stage)])),
-    news, notice: pick(rng, NOTICE[stage]),
+    face: fill(face),
+    news, notice: fill(notice),
   };
 }
 
