@@ -301,7 +301,7 @@ export function drawVariant(lb, key) {
     { let px = FONTS.dbig; t.font = dfont(px); while (px > 14 && t.measureText(waters).width > CW * 2 - 20) { px -= 2; t.font = dfont(px); }
       write(waters, (CX + CW / 2) * 2, (CY + 12) * 2, dfont(px), T.txt, null);
       write(`${unit} units`, (CX + CW / 2) * 2, (CY + 37) * 2 - 1, bfont, T.txtSoft, null); }
-    if (warp && warp.since > 2.5) { t.globalAlpha = 1; write('TURN BACK', X(ship.pos.x) * 2, Z(ship.pos.z) * 2 - 60, `400 32px ${FONTS.body}`, '#7a1a3a', null); }
+    if (warp && warp.since > 2.5) { t.globalAlpha = 1; write('STILL HERE', X(ship.pos.x) * 2, Z(ship.pos.z) * 2 - 60, `400 32px ${FONTS.body}`, '#7a1a3a', null); }
     // cut the letters hard (no soft edges): the same idea as the #crisp filter
     const ti = t.getImageData(0, 0, W, H), td = ti.data;
     for (let i = 3; i < td.length; i += 4) td[i] = td[i] > 120 ? 255 : 0;

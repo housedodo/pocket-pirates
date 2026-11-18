@@ -538,7 +538,7 @@ export class Logbook {
         c.save(); c.translate(X(ship.pos.x), Z(ship.pos.z)); c.rotate(-0.25 + Math.sin(warp.t * 0.3) * 0.05);
         c.globalAlpha = Math.min(0.75, (warp.since - 2.5) / 3);
         c.font = '400 32px "DotGothic16", monospace'; c.fillStyle = '#7a1a3a'; c.textAlign = 'center';
-        c.fillText('TURN BACK', 0, -60);
+        c.fillText('STILL HERE', 0, -60);   // E2 (2026-11-18): was TURN BACK
         c.strokeStyle = '#7a1a3a'; c.lineWidth = 3; c.beginPath(); c.ellipse(0, 0, 44, 20, 0, 0, 7); c.stroke();
         c.beginPath(); c.arc(0, 0, 9, 0, 7); c.fillStyle = '#7a1a3a'; c.fill();
         c.restore(); c.globalAlpha = 1;
