@@ -450,7 +450,7 @@
     .ico { display: inline-block; width: 17px; height: 17px; vertical-align: -3px; margin-right: 6px; }
     /* the tide, wordless (2026-11-13): a little glass of water beside the clock; its level is the tide, the notch shows which way it goes */
     .tidemark { display: inline-block; position: relative; width: 7px; height: 14px; margin-left: 7px; vertical-align: -2px; border: 1px solid rgba(232,224,200,0.55); background: rgba(0,0,0,0.25); }
-    #clockday { display: none; margin-left: 6px; opacity: 0.75; } #clock:hover #clockday, body:has(.modal.open) #clockday { display: inline; }   /* the weekday: on hover, or while a menu is open (owner 2026-11-18) */
+    #clockday { margin-left: 6px; opacity: 0.75; }   /* the weekday, always beside the time (owner 2026-11-18: not on hover, a pad cannot hover) */
     .dateline { text-align: center; opacity: 0.7; margin: 0 0 6px; }   /* the Ship's book's first line: the day */
     .tidemark > i { position: absolute; left: 0; right: 0; bottom: 0; background: #5aa8c8; }
     .tidemark::after { content: ''; position: absolute; left: 1px; width: 3px; height: 2px; background: #e8e0c8; }
