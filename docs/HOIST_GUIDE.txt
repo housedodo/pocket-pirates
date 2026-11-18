@@ -1,0 +1,373 @@
+HOIST: A GUIDE TO THE WHOLE GAME
+================================
+For the owner. Written 2026-11-18, after the lore, systems, Edge and puzzle work.
+This guide speaks plainly about what the game never says. Nothing in it is player text.
+Where a number is given it is the value in the code today; numbers marked (tune) still need your hands on the game.
+
+CONTENTS
+  1. The game in a minute
+  2. Controls (keyboard and pad)
+  3. How to play: the first hour
+  4. The ship and its systems
+  5. The regions and how each plays
+  6. The puzzles, region by region (with walkthroughs)
+  7. Dread, the deep, and the Edge
+  8. The story under the game (lore)
+  9. Endings
+ 10. What changed in this round, at a glance
+ 11. What still needs you
+ 12. Where everything lives
+
+
+1. THE GAME IN A MINUTE
+-----------------------
+You sail the Merry Gull, a small ship, with your first mate Mara. The captain (you) never speaks.
+It plays as a cosy Caribbean sailing game: sail, fish, dig, deliver, chat, trade.
+The further you sail from home (Tama), the more the world goes wrong. That is "dread": it follows where you
+are, never the clock. Nothing is ever explained.
+In a black hut a silent figure throws a twenty-sided die and writes the numbers down. You throw too.
+What you have understood by the end decides what you can do at the Table by the Water, where every ending happens.
+
+The demo build is a different game: it ends at the first throw at the hut, and has no dread at all.
+
+
+2. CONTROLS
+-----------
+Keyboard (every key except Esc, P, Enter, arrows, digits and F-keys can now be remapped:
+Pause > Settings > Keys; prompts on screen follow your keys).
+
+  A / D, left / right    steer
+  W / S, up / down       let the sails out / reef them (with oars out: row / back water)
+  G                      oars out / in (dead calm, or creeping up to a pier)
+  E                      the one "do" key: go ashore, dig, pick fruit, salvage, hail, patch a sail...
+                         Works under way: the anchor drops by itself and the action starts.
+  C                      fish (also under way: the anchor drops first)
+  Space / Enter          move Mara's line on; Space fires the cannons when a raider is engaged
+  L                      lamp on / off
+  M / J                  the captain's log (M opens the chart, J the orders)
+  Q                      show / hide the tracker slip
+  Y                      ask Mara for a hint
+  R / F, mouse drag      tilt the camera; Z / X / V look left / right / ahead
+  - / =, mouse wheel     zoom
+  H                      hide the HUD
+  Esc / P                pause
+
+Controller (new: every screen now works by pad)
+  Left stick     steer (analogue now) and sails;  in menus: move the focus
+  D-pad          arrows; in menus: move the focus
+  A              E (interact); in menus: press the focused button
+  B              back one level, then close (does nothing at sea)
+  X              fish (C)
+  Y              the log
+  RT             Space (fire, throw, go on)
+  LT             oars (G)
+  LB / RB        look around; in menus: change tab or bookmark
+  Right stick    look around (sideways) and zoom (up / down)
+  View           tap: tracker; hold 0.6 s: hint
+  Start          pause
+  Left stick in  lamp
+Rumble is optional (Pause > Settings > Display), on for bites, catches, hits and the anchor biting; never for anything frightening.
+
+
+3. HOW TO PLAY: THE FIRST HOUR
+------------------------------
+The main story runs in chapters. Mara nudges you; nothing is marked on the map except the first few goals.
+
+  Chapter I    Find your sea legs; make landfall at Tama.
+  Chapter II   Follow Perrin's riddle (dig for treasure); spend your loot at the shipwright.
+  Chapter III  Dead calm (row); beat to windward; earn your keep (a delivery); take a passenger; chart the sea.
+  Chapter IV   Meet the locals (tavern); a note from Perrin; check his chart; his second riddle.
+  Chapter V    What the sea says (bottles); ask around (gossip).
+  Chapter VI   Find the hut. The first throw. A rusted diver stands on the water. (The demo ends here.)
+  After        Perrin's five letters send you into each region in turn (Crown, Free Cays, Lantern, Reef, Drowned).
+
+Until the first throw a fog wall holds you in the chapter's waters, however well fitted your ship is
+(this was tightened this round: before, a well-upgraded ship could slip out early). After the throw the sea opens;
+only your ship (hull, sails, lantern) and what you have learned take you further out.
+
+Side goals (optional): fish, hail a ship, pick up a bottle, buy paint, pick fruit, see dolphins, odd jobs from a
+harbour board, salvage a wreck, sink a raider.
+
+Tips that are now true:
+  - You never have to stop the ship by hand. Press E or C under way; the anchor does the rest.
+  - Pausing or opening the log no longer ends a dig or a fishing fight. They wait for you.
+  - Hold E for under a second on a dig beach to pack up and leave (it counts as a failed dig).
+  - Selling at a harbour keeps back what an errand in hand needs.
+  - Docking lays the ship alongside at rest.
+
+
+4. THE SHIP AND ITS SYSTEMS
+---------------------------
+Sailing: the wind wanders. Running before it is fast; you cannot sail straight into it, so you tack.
+  Gusts show as dark patches on the water; current lines as foam streaks. The wind ring on the HUD shows the wind.
+  The wind no longer announces its shifts in words, and crossing into a region no longer shows a banner:
+  the wind ring and the place line show both.
+Oars (G): slow (2.6 a second) but work in a dead calm and against everything.
+Interacting (E): one target at a time, picked in a fixed order. New forgiving rules:
+  the last thing in reach stays usable for 0.6 s; an E pressed a quarter-second early still counts;
+  a running action keeps its target even if a boat drifts past.
+Fishing (C): cast, wait for the bite, strike on the mark (60 ms of grace either side; never on a red snag),
+  then hold Space to keep the marker in the green. 11 species by place and hour; dark ones with dread and at night.
+  The Catch book in the Ship's book has a pixel portrait of each.
+Digging (E on a riddle beach): an 8 x 5 beach; read the riddle; the noon shadow can point.
+Deliveries, passengers, commissions: from harbour boards. Crown deliveries have deadlines.
+Upgrades (7, three levels each): sails, rudder, lantern, spyglass, hull, cannons, crew.
+  Lantern 3 now really does keep the dark back: the lamp burns its oil at 0.8 of lantern 2.
+Lamp oil: the lamp burns oil at night; out in the open dark it drains fast.
+Combat (optional): only some Reef ships are raiders. New: 0.7 s before a raider fires you see a puff at her gun side
+  and she holds her turn. Under half her hull she lists and smokes; under a quarter she runs.
+  While a raider is engaged, Space only fires (it no longer skips Mara's line instead).
+The log: three bookmarks only (Chart, Orders, Ship's book). The chart is an inked portolan: painted means sailed.
+The HUD stays wordless: gold, time, place, the slip.
+
+
+5. THE REGIONS AND HOW EACH PLAYS
+---------------------------------
+Home Sound (Tama)  Bright, gentle, the bells ring softly. No dread. New: the noon slack, the fishers' marks,
+                   gulls that fly home at dusk, a Sunday race.
+Crown Traders (north)  Deadlines and a shared record of arrivals (ticks and black lines) at every Crown harbour;
+                   customs cutters; buoyed lanes (coming in between the buoys is a clean arrival).
+                   On time pays 1.45x, late 0.55x; up to 15 s late now still counts.
+                   New: pennants on the destination's mast count down your hours.
+Free Cays (east)   Raiders only by day; the night market pays 1.4x; dusk fish. The Two Players keep the Cays'
+                   nights quiet. New: the harbours sleep by day (07:00 to 17:00).
+Reef Brotherhood (south-west)  Wrecks pay 1.5x; bounties for sunk raiders; coral heads are rock;
+                   shoals move at dawn; storms bring wrecks up. New: the coral shows differently with the tide.
+Lantern Guild (west)  Fish dear; the Guild buys lamp oil; half the lighthouses are dark; relight one with 30 oil
+                   for pay and the local chart. New: every light flashes its own rhythm; a keeper trades oil for fish.
+The Drowned (far out, full game only)  A shoal belt open only at low water (at high water it pushes you back;
+                   it no longer snaps the ship). Harbours take no coin; they fill the lamp, sailcloth and hull once
+                   a day and keep one thing from the hold. New: they only come down at low water.
+
+
+6. THE PUZZLES, REGION BY REGION
+--------------------------------
+All of these are read from the world. No markers, no tutorial text, no reward popups. Mara speaks at most once.
+"(demo)" means it is in the demo too.
+
+HOME SOUND
+  Noon slack (demo)
+    Near Tama around noon the water goes glassy, the cat's paws stop and the current streaks fade; the bell swings
+    once at twelve. From 11:30 to 12:30 within 260 of Tama. Nothing to do: a breathing space to drift, anchor, fish.
+    (No longer tied to the bell's stroke count, so the bell decision is free.)
+  Fishers' marks (demo)
+    By day you keep seeing the same three fishing boats at anchor in the same places. Sail up to one and look past
+    it: two tall things (Tama's lighthouse and something behind it) stand in line. Fish there: bites come sooner
+    (x0.7 wait) and the right fish bite.
+  The empty mark (demo)
+    After three in the afternoon the boats row home. Sail to where one lay, line up the same two things, anchor and
+    fish: a morning snapper bites in the afternoon; a golden grouper bites with no wreck in sight.
+  Gulls go home (demo)
+    At dusk in Home Sound a loose V of gulls crosses ahead of the bow, always flying towards Tama (at dawn away
+    from it). Follow them and you are home, no dot needed.
+  The Sunday race (demo)
+    Be in Home Sound on a Sunday after one. Off Tama four small boats sit beside a committee boat with a big flag.
+    At two the flag drops and they make sail. Follow them round the isle they head for and back past the flag boat,
+    using gusts and currents. Beat at least one: Tama's board has "The regatta purse" for you (30 to 60 gold).
+
+CROWN
+  Pennants come down (demo)
+    Take a timed delivery to a Crown harbour. Its tall white signal mast flies one pennant per hour you have left
+    and strikes one each hour. None left: you are late.
+  Rowing the lane (demo)
+    At a Crown harbour with the wind blowing straight out of its lane, furl and row (G) up between the red and green
+    buoys. Mara teases you once. It counts as a clean arrival; clean lines raise Crown pay.
+  The line already written (full game, once)
+    After the Customs Pier, one long timed run (350 or more) on a Crown board shows its next line in the record
+    already written black. Make it on time and the black becomes a tick, with a faint struck-out mark left beside it
+    for good. Late: the black line stands. No grace on that run.
+
+FREE CAYS
+  Turned-round day (demo)
+    Visit a Cays harbour by day: the board is thin ("The quay is asleep. Come back after dark."), no passengers,
+    residents or gossip. Come back after five in the evening and everything is there. While the main story needs a
+    harbour's people there, the Cays stay awake so the story never waits.
+  Lamp out to see the shore (demo)
+    At night, looking for a harbour, the far lights are faint inside your own lamp's glow. Press L: the near water
+    goes black, and after a moment the far windows and lantern strings come up bright and carry twice as far. Steer
+    for them, light up at the pier. Mara says so the first time.
+
+REEF
+  Teeth under the tide
+    A Reef isle with black coral in white water across its way in. At high water the white is gone: only a
+    pale-green slick, then just a faint ring marks each head. They still bite the hull. Ghost in slowly (under speed
+    1.2) and they do no harm.
+  Before the tide takes it
+    A storm in Reef water brings a wreck up near you. If you leave, the next low water takes it. Stay within about 60
+    while the tide drops, then salvage at the bottom of the tide: the Reef's x1.5 and low water's x1.3 together.
+  The stake with no wreck (full game, after the first throw, once)
+    In open Reef water you pass a lone stake with a white rag. There is nothing there; E does nothing. When the next
+    blow comes in Reef water, sail back: a wreck has come up right beside it. Salvage it before low water takes it.
+    The stake stays. Nobody says who planted it.
+
+LANTERN
+  Keep in sight of a light
+    At dusk, a dead light 400 to 600 away across open water, about 45 oil in the lamp. Straight across, the lamp
+    drains fast and you arrive short of the 30 a relight needs. Hug the coast past lit lighthouses and it burns a
+    quarter as fast. Relight for 30 gold and the local chart.
+  Every light its rhythm
+    At night each Guild lighthouse flashes its own count: one to three flashes, short or long. Sail close to one and
+    open the chart: its pattern is inked beside it in dots and dashes. In the dark or fog, count the flashes and
+    match the chart to know which light is which. A dead light never flashes.
+  The keeper's supper
+    At dusk, a lone lighthouse rock in Guild water: a keeper on the gallery swings his lantern twice. Catch a fish
+    first, come within about 45 and press E. A basket comes down on a line, takes the fish, goes up, and comes back
+    with a jar: 20 oil. With no fish it comes down empty (Mara: once). Once a day per light.
+
+DROWNED (full game only)
+  Low-water hours
+    Dock at a Drowned harbour at high water: the pier is awash under a grey film, and nobody comes down. Watch the
+    tide mark; when it falls below half, they fill the lamp, the sailcloth and the hull, and keep one thing.
+  A fish for the pier
+    The Drowned keep the first thing to hand: a fish, then fruit, then your newest treasure (the market row says
+    which before you take it). Carry a cheap fish when you dock and your treasure stays aboard.
+
+DEEP
+  Against the gulls (full game)
+    Far out, deep in the wrongness, at dusk: the gulls fly out to sea, away from land. Remember Tama's gulls: turn
+    the bow to where they come from, and land is that way.
+
+The full menu these were picked from (53 items, with the rest still unbuilt) is in
+docs/proposals/REGIONAL_CATALOGUE.md, with its tick-box checklist in section 10.
+
+
+7. DREAD, THE DEEP, AND THE EDGE
+--------------------------------
+Dread is one number from 0 to 1, set by where you are. Five stages (stage n = the code's stageOf + 1):
+  1  0 to 0.2   Home waters: sunny, gulls, shanties.
+  2  0.2-0.4    Off: paler, quieter; people repeat themselves.
+  3  0.4-0.6    Wrong: green haze, glowing fungus, standing stones, odd names.
+  4  0.6-0.8    Eerie: fog, dead palms, lit empty windows, a magenta lighthouse beam. The lost sailors appear (from 0.6).
+  5  0.8-1      Cosmic: black sun, an eye in the stars, the picture itself splits and wobbles.
+The music thins as dread rises: horror by taking away, never by adding a scare.
+The Free Cays' nights stay under 0.45 while the Two Players play.
+Linger at full dread and something wakes: you wake up off Tama. It is not an ending.
+
+The lost sailors (stage 4 and up, each once, never named): a man on a wreck waiting for his stop (his ticket is for
+two berths); a rowboat with a fishing line cut clean; a man on a black sandbar digging a hole the sand keeps filling.
+They answer the three small wrong things near home (the second berth, the hook already in it, the hole already dug).
+
+THE EDGE (rebuilt this round: now played, not watched)
+  Once a voyage, the first time dread reaches 0.9 on open water:
+   1. The sea ahead runs to a straight lip about 240 off the bow. Past it, out of the mist, stands a hooded figure
+      with nothing in the hood.
+   2. The sea starts to pull towards the lip: foam dashes race to it, the wind swings round to blow over it, the
+      lamp's flame leans towards it, the music thins.
+   3. Nothing locks. Helm, sail, oars, lamp and camera stay yours the whole time.
+   4. Sail along the lip, angled a little away from it, and you can hold about 130 out (90 close-hauled).
+      Closer than about 50 nothing holds.
+   5. One way along the lip: a head on its side with one eye open, then sunk arches. The other way: a tower built at
+      wrong angles, then a row of pillars that never get smaller.
+   6. A second look is never quite the first. Look at a thing, lose sight of it, look again: the hood has turned a
+      little towards where you were; the other eye is open; the tower has one more storey; the row one more pillar;
+      one arch fewer stands.
+   7. At each end of the stretch white fog closes and the water runs back along the lip.
+   8. After two and a half to four minutes the pull grows; nobody stays long.
+   Two ways out:
+    - Over the lip: white mist, then the ship drifts 180 back, sail slack, pointing at Tama.
+    - Beat out against the current, past 390 from the lip (under sail about a minute, with oars a little longer):
+      the lip fades back into the mist behind you. Nothing marks it.
+  Hands off, it is all over in well under a minute. Played attentively, about four to five minutes.
+  The game records which way you left, but nothing uses it yet.
+  Screenshots: docs/proposals/edge/.
+
+
+8. THE STORY UNDER THE GAME
+---------------------------
+What is true (CANON.md), said plainly here and never in the game:
+  - The sea is a closed eyelid. Something under it sleeps and dreams; the world is its dream, and not its first one.
+    This is the longest it has slept, so this dream stays. Dread is it stirring.
+  - The Lady in the hut keeps it asleep with the die. Each low throw is a moment it nearly woke; the world pays for
+    it somewhere. She never speaks (she may be seen).
+  - Tama is home because it is where the sleeper is kept gentle: the bells ring softly.
+  - Others sat at the table before you. Some did not leave: the lost sailors are earlier captains who went mad in the
+    deep. To the Lady all sailors are one: "the sailor". At the Table, once you understand "who counts", she writes
+    WHO COUNTS? and under it YOU.
+  - Mara is something the sleeper made. Her village belonged to an earlier dream and came over into this one; it is
+    no longer above water. Only the captain sees and hears her. Her village comes back to her in four pieces
+    (a bell, a street to the water, a blue door, a name she never says). She cannot pick up the die.
+  - The Two Players (Teo on guitar, Ilse on violin) sailed too but refused to throw. Their music keeps the Free Cays
+    asleep. You find them on still nights only.
+  - The Pained Raven, the Other Captain's ship, sails empty, untouched by time.
+  - Old Perrin, the cartographer, never left port. Letters only.
+
+The seven questions (understood when sources from two or three regions agree; never shown as a number):
+  1 Who counts?             Someone has been writing you down since before you arrived.
+  2 What is the Eye?        Something is under the sea, and it dreams.
+  3 Who sat before you?     You are the latest, not the first.
+  4 What does a throw cost? Your numbers land on other people.
+  5 Why is Tama home?       Home is where it is kept soft.
+  6 What is Mara?           (see above)
+  7 Can it end?             You choose what to do with the last throw.
+
+Threads by region (three wake per voyage): Free Cays, the Music out of the Fog and the Two Players; Lantern, the Bell
+Below; Crown, the Ferryman's Coin and the Strange High House; Reef, the Other Captain; Drowned, the Colour and the
+Hollow Harbour.
+
+New this round, adopted for one puzzle: in the Reef, a wreck belongs to whoever claims it (lore item L-16, behind
+the stake with no wreck). The other 41 lore proposals in docs/proposals/LORE_BIBLE.md are still only proposals.
+
+
+9. ENDINGS (all at the Table by the Water)
+------------------------------------------
+  The Long Sleep      throw a 20                         still
+  Good Dreams         throw 10 to 19                     warm, a little uneasy
+  She Rises           throw 1 to 9                       dark; the Eye follows
+  The Tune Is Kept    hum the Two Players' tune          the only gentle, happy ending; no throw
+  Your Seat           sit in the other chair             dark; needs question 3 fully understood
+  The Unseen Throw    go back to the boat                uneasy
+The book weighs the last throw: each earlier high throw lifts it, each low one weighs it, at most 3 either way.
+After an ending you may keep sailing or end the voyage (credits, then the title).
+The ending texts themselves are still drafts waiting for the writer.
+
+
+10. WHAT CHANGED IN THIS ROUND, AT A GLANCE
+-------------------------------------------
+Proposals written (documents only, for your review):
+  docs/proposals/LORE_BIBLE.md          42 lore proposals, 40 sample lines, a loose-ends audit
+  docs/proposals/SYSTEMS_FEEL.md        33 systems proposals, control rules, feedback matrix
+  docs/proposals/REGIONAL_CATALOGUE.md  25 mechanics and 28 puzzles, with your tick-box checklist
+Built (all of SYSTEMS_FEEL, G-01 to G-33):
+  - Forgiving controls: menus pause actions instead of cancelling them; E and C work under way; E forgives being a
+    little late, early or out of range; fishing strikes have 60 ms of grace; Space in a fight only fires.
+  - Harbours: selling keeps errand goods; docking stops the ship; a way off the dig beach.
+  - Controller: every screen by pad; analogue steering; prompts follow your device; optional rumble.
+  - Remappable keys; zoom without a mouse; the camera looks ahead at speed and lifts when a hill hides the ship.
+  - Raiders telegraph their shots and show damage; the Drowned belt pushes instead of snapping.
+  - Crown deadlines forgive 15 s; Lantern 3 does what its card says.
+  - The fog wall holds until the first throw; the Table's label shows once you can land there.
+  - The wind-shift and region banners are gone.
+  - Sound: six tones that played outside the cue list are now listed cues (same sounds).
+  - Tools: ?econ=1 measures gold per hour by source (dev only); a lint warning lists clues whose place lies in
+    another region's water.
+The Edge: playable (section 7).
+Puzzles: 19 regional mechanics and puzzles (section 6).
+
+
+11. WHAT STILL NEEDS YOU
+------------------------
+Play-feel (nothing here could be judged headless): every new timing and distance is a named constant in the code;
+  the Edge's pull and pacing; the Sunday race's fairness; the raider's 0.7 s tell; the stick curve; rumble strength.
+Decisions:
+  - Clue regions: five clues sit in another region's water (the Ribs, the Sunken Street, the Drowned Bell, the Name
+    Wall, the Throwers' Wreck). Retag each clue, or move each place?
+  - The bell counts: texts say two strokes, twelve and fourteen; the bell rings once.
+  - The Edge: may the Eye wake during it (now: no)? Should "over" or "out" ever mean anything?
+  - The stake: should its second look ever feed question 3? Should the lighthouse keeper come out on a dead light?
+  - The 42 lore proposals and the 34 unbuilt catalogue items: tick, tweak or cut.
+  - Economy: one playthrough with ?econ=1 to get real gold-per-hour numbers.
+Not built and left for design: the seabed showing at noon; sleeping figures on the Cays quays; a focus ring for pad
+  focus outside the main menus; the hurt raider's smoke has its own look.
+Writer: the ending texts, Perrin's five letters, the epilogue lines, the thread clue lines, the credits.
+
+
+12. WHERE EVERYTHING LIVES
+--------------------------
+docs/CANON.md      what is true, every dated decision (new rows 2026-11-16 and 2026-11-17)
+docs/RULES.md      the standing rules
+docs/DESIGN.md     how every system works, with numbers
+docs/PROGRESS.md   what was built, in order (this round is at the bottom)
+docs/STORY_MASTER.txt  every line in the game, with IDs
+docs/proposals/    the three proposal documents, puzzle and Edge screenshots
+src/systems/       edge.js, edgeworld.js, race.js, homemarks.js, crown.js, farlights.js, lantern.js, econ.js (new this round)
+src/input.js       remapping and rumble; src/gamepad.js the pad
