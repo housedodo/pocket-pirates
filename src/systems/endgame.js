@@ -134,11 +134,16 @@ export function initEndgame() {
 // ---------------------------------------------------------------- The Tune Is Kept: the guitar
 let guitar = null;
 /** the guitar on deck, its silent twin (RULES 28): lying by the stern rail; at night, while it plays, a small warm light and a slow sway */
-function guitarMesh(ship) {   // built like every other prop (Builder, the props material, lit by the game's own shader: 2026-11-18, it was unlit black)
+/** the guitar itself (also leant on your chair in The Tune Is Kept's card: endcards.js) */
+export function makeGuitar() {
   const g = new THREE.Group(), B = new Builder(), cbox = (x, y, z, w, h, d, c, t = TILE.planks) => B.box(x, y - h / 2, z, w, h, d, c, t);
   cbox(0, 0, 0.18, 0.42, 0.1, 0.5, '#a0602a'); cbox(0, 0, -0.18, 0.34, 0.1, 0.3, '#a0602a');
   cbox(0, 0.005, -0.02, 0.1, 0.11, 0.1, '#2a1608'); cbox(0, 0.02, -0.65, 0.08, 0.06, 0.7, '#4a2c16'); cbox(0, 0.02, -1.05, 0.12, 0.06, 0.16, '#2a1a0e');
-  const body = new THREE.Mesh(B.geometry(), mats.props); g.add(body);
+  const body = new THREE.Mesh(B.geometry(), mats.props); g.add(body); g.userData.body = body;
+  return g;
+}
+function guitarMesh(ship) {   // built like every other prop (Builder, the props material, lit by the game's own shader: 2026-11-18, it was unlit black)
+  const g = makeGuitar(), body = g.userData.body;
   const lamp = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.2, 0.14), new THREE.MeshBasicMaterial({ color: '#ffc060' })); lamp.position.set(0.32, 0.12, 0.5); g.add(lamp);
   const pool = new THREE.Mesh(new THREE.PlaneGeometry(1.4, 1.4), new THREE.MeshBasicMaterial({ color: '#ffb050', transparent: true, opacity: 0.22, depthWrite: false }));
   pool.rotation.x = -Math.PI / 2; pool.position.set(0.15, -0.04, 0.2); g.add(pool);

@@ -510,8 +510,11 @@
     /* an ending of the voyage (table.js): the same black card as the demo's end, the lines one under the other */
     #ending { position: fixed; inset: 0; z-index: var(--z-ending); display: none; flex-direction: column; align-items: center; justify-content: center; gap: 12px; background: #06040e; color: #fff4d8; text-align: center; padding: 16px; }
     #ending.show { display: flex; animation: dfade 3s steps(8) both; } #ending h1 { font-size: 48px; font-weight: 400; color: var(--gold); margin: 0 0 8px; } #ending.dark h1 { color: var(--horror); }
-    #endArt { width: min(640px, 90vw); aspect-ratio: 16 / 9; image-rendering: pixelated; box-shadow: 0 0 0 4px var(--edge-navy); margin-bottom: 8px; }
+    #endArt { width: min(640px, 90vw); aspect-ratio: 16 / 9; object-fit: cover; image-rendering: pixelated; box-shadow: 0 0 0 4px var(--edge-navy); margin-bottom: 8px; }
     #ending .endbtns { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
+    /* Good Dreams: the card over the whole screen, turning back into the game (endcards.js unpixelate) */
+    #endMorph { position: fixed; inset: 0; width: 100vw; height: 100vh; object-fit: cover; image-rendering: pixelated; z-index: var(--z-ending); display: none; pointer-events: none; opacity: 1; transition: opacity .6s steps(6); }
+    #endMorph.on { display: block; } #endMorph.out { opacity: 0; }
     #cardArt { display: none; width: 100%; max-height: 40vh; object-fit: cover; image-rendering: pixelated; margin-bottom: 12px; box-shadow: 0 0 0 4px #1a0f08; } #card.art #cardArt { display: block; } #card.art #cardWide { grid-template-columns: 1fr; } #card.art #cardIcon { display: none; } #card.art #cardArt { grid-column: 1 / -1; }
     /* the art card's layouts (owner 2026-11-18: the outcome took the whole screen and fell into a sliver): 'stack' (art above) is the default;
        'side' (?cardlayout=side) puts the art left and the words right. An outcome replaces the card's own text and choices, so the art stays */

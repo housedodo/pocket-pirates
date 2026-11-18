@@ -37,13 +37,15 @@ export const EPILOGUE = {
   leave: 'Logged: a blank line, left blank.',
   sit: 'Logged, in our own hand: the other chair is warm.',
 };
+// each ending is its card (endcards.js: the game's own scene at the Table, as pixel art) and one short line (owner 2026-11-18: "the end cards
+// and then just a short ending description"; drafts for the writer)
 export const ENDINGS = {
-  sleep: { title: 'THE LONG SLEEP', lines: ['Twenty.', 'She closes the book. For the first time she looks up, and it is only an old woman, very tired.', 'The sea breathes out. It will be a hundred years.'] },
-  dreams: { title: 'GOOD DREAMS', lines: ['She writes the number and blots it.', 'Far across the water two instruments find each other for a bar.', 'The sea stays blue. Mara is already talking about supper.'] },
-  rises: { title: 'SHE RISES', dark: true, lines: ['She writes the number. Then she puts the pen down.', 'Under the table, under the sand, under the sea, something that was lying still is not.'] },
-  tune: { title: 'THE TUNE IS KEPT', lines: ['You hum the eight bars. Your voice is not good. It does not matter.', 'The die stays where it is. The pen stops.', 'Far off, a violin answers. It always did need two.', 'Nobody throws tonight.'], mara: 'I suppose one of us ought to learn the guitar.' },
-  leave: { title: 'THE UNSEEN THROW', lines: ['You push the chair in and walk back down the sand.', 'Nobody calls after you. Behind you a pen starts again, on a new line.', 'There is a blank in the book where your number would be. It will stay there.'] },
-  sit: { title: 'YOUR SEAT', dark: true, lines: ['You walk round the table and sit in the other chair. It is warm.', 'The book is in front of you. The pen is in your hand. You know every name in it.', 'Down at the boat, Mara has lit the lamp. She does not call up.', 'A die waits on the wood.'] },
+  sleep: { title: 'THE LONG SLEEP', lines: ['Twenty. She closes the book, and the sea breathes out. It will be a hundred years.'] },
+  dreams: { title: 'GOOD DREAMS', lines: ['She writes the number and blots it. The sea stays blue.'] },
+  rises: { title: 'SHE RISES', dark: true, lines: ['She puts the pen down. Under the sea, something that was lying still is not.'] },
+  tune: { title: 'THE TUNE IS KEPT', lines: ['You hum the eight bars. Far off, a violin answers. Nobody throws tonight.'], mara: 'I suppose one of us ought to learn the guitar.' },
+  leave: { title: 'THE UNSEEN THROW', lines: ['You push the chair in. There is a blank in the book where your number would be.'] },
+  sit: { title: 'YOUR SEAT', dark: true, lines: ['You sit in the other chair. It is warm. The pen is in your hand.'] },
 };
 
 // ---- what the endings leave behind (owner, 2026-11-18; systems/endgame.js runs them). Every line here is a draft for the writer.

@@ -43,6 +43,7 @@ import { Combat } from './combat.js';
 import './sectors.js';
 import { markSeen, isKnown, levels as clueLevels, tableOpen } from './clues.js';
 import { tableOptions, ENDINGS, EPILOGUE, ARRIVAL, EDGE_ASK } from './table.js';
+import { makeCard, unpixelate } from './endcards.js';
 import { ritualTick, ritualLook, tableGctx, snapshotTable, tableAgain, tableThrow, onEnding, gameOver, initEndgame, guitarTick, guitarDread, unseenTick, unseenDread, bellsStopped, endQuiet, seatPanTick, startSeat } from './systems/endgame.js';
 import { paintStill } from './cavescene.js';
 import { Objectives, MUSINGS, MAIN_GOALS, unlocked, gateRadius, chapterOf, goalText, goalReached } from './objectives.js';
@@ -1008,7 +1009,8 @@ function showEnding(id, roll = null) {
   const el = $('ending'); el.classList.toggle('dark', !!e.dark);
   el.querySelector('h1').textContent = e.title;
   el.querySelector('div').innerHTML = e.lines.map((l) => `<p>${l}</p>`).join('');
-  $('endArt').src = paintStill('table', `${id}|${tableGctx().edge}`);   // the drawing on the wood stays (systems/endgame.js)
+  $('endArt').src = paintStill('table', `${id}|${tableGctx().edge}`);   // the painted still first: the card replaces it in a moment (endcards.js)
+  rt.endCard = null; makeCard(id, (url) => { if (url) { $('endArt').src = url; rt.endCard = url; } });
   if (EPILOGUE[id]) state.notes.push({ text: EPILOGUE[id], dark: !!e.dark });   // the Ship's book keeps how it ended
   if (id === 'tune' && audio.layers) audio.layers.keepTune(80);   // the Two Players' own recordings: he starts, she answers
   onEnding(id, roll);   // what it sets going, and which buttons it has (systems/endgame.js)
@@ -1028,6 +1030,7 @@ $('endGo').addEventListener('click', () => {
     state.story.peakDread = 0; rt.forced = null; rt.dread = 0.02; abyss.k = 0; state.time = 0.3;
     ship.pos.set(0, 0, -25); ship.heading = 0; ship.speed = 0; ship.vel = null; rt.camHeading = 0; rt.yawT = 0; objectives.mate.queue.length = 0;
   }
+  if (e.id === 'dreams' && rt.endCard) { const m = ENDINGS[e.id].mara; unpixelate(rt.endCard, () => { if (m) objectives.mate.say(m); }); return; }   // the card turns back into the game, where the Gull lies (endcards.js)
   if (ENDINGS[e.id].mara) objectives.mate.say(ENDINGS[e.id].mara);
 });
 initShipTrade();   // (ui/shiptrade.js)
@@ -1468,6 +1471,7 @@ function frame() {
   pu.uDread.value = rt.dread; pu.uWobble.value = settings.comfort.wobble ? 1 : 0; pu.uTime.value = rt.tNow; pu.uSat.value = stage.sat; pu.uVig.value = stage.vig;
   pu.uDither.value = stage.dither; pu.uTint.value.copy(stage.tint);
   if (rt.modal === 'local' && localGames.view) localGames.render(post); else post.render(scene, camera);   // a tavern game shows its own little 3D scene
+  if (rt.onRendered) rt.onRendered(renderer.domElement);   // the ending cards take the picture here, before the buffer is cleared (endcards.js)
   requestAnimationFrame(frame);
 }
 

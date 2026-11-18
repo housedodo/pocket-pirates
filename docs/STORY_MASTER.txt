@@ -1,7 +1,7 @@
 HOIST (Pocket Pirates): THE MASTER STORY FILE
 ================================================================================================
 This is the main story file for the full game. Edit it, upload it again, and the next session puts every change
-into the game. Built from commit 09ba95e on 2026-11-18. 1670 in-game lines carry an ID.
+into the game. Built from commit be3f50a on 2026-11-18. 1658 in-game lines carry an ID.
 
 CONTENTS
   A   HOW TO USE THIS FILE (IDs, status marks, how to add and remove things)
@@ -569,7 +569,7 @@ Where the story hides in the mechanics, and where its text lives (section J).
 # J  EVERY LINE IN THE GAME
 ################################################################################################
 Pulled from the code. Edit the text after the "|" (see part A). Sources are grouped by file; the CODE in front of every
-line says which file it goes back into. 1670 lines.
+line says which file it goes back into. 1658 lines.
 
 
 
@@ -2820,24 +2820,9 @@ line says which file it goes back into. 1670 lines.
 ####################################################################################################
 
 ### TBL / ADDED 2026-11-11
-  TBL-0001 | She closes the book. For the first time she looks up, and it is only an old woman, very tired.
-  TBL-0002 | The sea breathes out. It will be a hundred years.
   TBL-0003 | She writes the number and blots it.
-  TBL-0004 | Far across the water two instruments find each other for a bar.
-  TBL-0005 | The sea stays blue. Mara is already talking about supper.
-  TBL-0006 | She writes the number. Then she puts the pen down.
-  TBL-0007 | Under the table, under the sand, under the sea, something that was lying still is not.
-  TBL-0008 | You hum the eight bars. Your voice is not good. It does not matter.
-  TBL-0009 | The die stays where it is. The pen stops.
-  TBL-0010 | Far off, a violin answers. It always did need two.
   TBL-0011 | Nobody throws tonight.
   TBL-0012 | I suppose one of us ought to learn the guitar.
-  TBL-0013 | You push the chair in and walk back down the sand.
-  TBL-0014 | Nobody calls after you. Behind you a pen starts again, on a new line.
-  TBL-0015 | There is a blank in the book where your number would be. It will stay there.
-  TBL-0016 | You walk round the table and sit in the other chair. It is warm.
-  TBL-0017 | The book is in front of you. The pen is in your hand. You know every name in it.
-  TBL-0019 | A die waits on the wood.
   TBL-0020 | We had a bell at home, Captain. Two strokes, every hour. I had forgotten the bell.
   TBL-0021 | Our street ran down to the water. Down, not along. Odd thing to remember.
   TBL-0022 | The third house. The door was blue.
@@ -2852,7 +2837,6 @@ line says which file it goes back into. 1670 lines.
   TBL-0029 | Logged, in our own hand: the other chair is warm.
 
 ### TBL / ADDED 2026-11-18
-  TBL-0030 | Down at the boat, Mara has lit the lamp. She does not call up.
   TBL-0031 | Every candle on the table is lit. In the far chair someone sits very still, and waits. Your chair has been pulled out for you. The book lies open at a clean line, and the die waits on the wood beside a drawing in red. Whatever you do here will be written down.
   TBL-0032 | Mara, very quietly: "I am afraid it will not come out above nine."
   TBL-0033 | On the quay, a long bundle in old sailcloth, tied with fishing line. No note. Nobody saw it come.
@@ -2872,8 +2856,30 @@ line says which file it goes back into. 1670 lines.
 ### TBL / ADDED 2026-11-18
   TBL-0046 | Mara looks at the drawing a long while, then says it under her breath, as if reading: "What is down there? Who is there? Why is it there?"
 
+### TBL / ADDED 2026-11-18
+  TBL-0047 | Twenty. She closes the book, and the sea breathes out. It will be a hundred years.
+  TBL-0048 | She puts the pen down. Under the sea, something that was lying still is not.
+  TBL-0049 | You push the chair in. There is a blank in the book where your number would be.
+  TBL-0050 | You sit in the other chair. It is warm. The pen is in your hand.
+
 ### TBL / RETIRED (the text is no longer in the game; these IDs are never used again)
+    was TBL-0001 | She closes the book. For the first time she looks up, and it is only an old woman, very tired.
+    was TBL-0002 | The sea breathes out. It will be a hundred years.
+    was TBL-0004 | Far across the water two instruments find each other for a bar.
+    was TBL-0005 | The sea stays blue. Mara is already talking about supper.
+    was TBL-0006 | She writes the number. Then she puts the pen down.
+    was TBL-0007 | Under the table, under the sand, under the sea, something that was lying still is not.
+    was TBL-0008 | You hum the eight bars. Your voice is not good. It does not matter.
+    was TBL-0009 | The die stays where it is. The pen stops.
+    was TBL-0010 | Far off, a violin answers. It always did need two.
+    was TBL-0013 | You push the chair in and walk back down the sand.
+    was TBL-0014 | Nobody calls after you. Behind you a pen starts again, on a new line.
+    was TBL-0015 | There is a blank in the book where your number would be. It will stay there.
+    was TBL-0016 | You walk round the table and sit in the other chair. It is warm.
+    was TBL-0017 | The book is in front of you. The pen is in your hand. You know every name in it.
     was TBL-0018 | Across the table Mara sits down, slowly. She does not ask.
+    was TBL-0019 | A die waits on the wood.
+    was TBL-0030 | Down at the boat, Mara has lit the lamp. She does not call up.
 
 
 ####################################################################################################

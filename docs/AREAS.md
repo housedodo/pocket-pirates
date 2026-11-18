@@ -29,6 +29,7 @@ area only when the task says so or when the change crosses over (then say which 
   (design and gameplay), `src/ui/devstudio.js` (gameplay: the Dev Studio, F10, dev builds only; its panel look follows the mixer's). Their text counts as main.js
   text in the story export (MAIN-xxxx).
 
+- `src/endcards.js` (design and gameplay): the ending cards made from the game's own scene, and Good Dreams' hand-back to play.
 - Pixel art drafts (design): the **codixel** skill (`.claude/skills/codixel`, MIT, from github.com/mankidev/codixel; owner 2026-11-18: use it for the end cards and later pixel art). Previews first, then the owner approves, then it is ported into `src/cavescene.js` as procedural code (RULES 24: no image files in the game). First use: `docs/proposals/endcards/make.cjs` (`node docs/proposals/endcards/make.cjs <out dir>`).
 
 ## Crossing over

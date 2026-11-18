@@ -2108,3 +2108,28 @@ whether a stock ship really escapes; the race against a player who sails it; the
   Lambert materials, which need scene lights; the game lights everything through its own shader, so both drew as flat black. They are now
   built like every prop (Builder, `mats.props`); the lamp, the pool of light and the candle flame stay unlit glows. Found while rendering
   the ending cards from in-game shots. (The regatta's line floats had the same fault and were already flat colours.)
+
+# The ending cards in the game (2026-11-18)
+The owner: "the endings have the end cards and then just a short ending description; for Good Dreams the boat is exactly in the game
+position of the card, then it turns from pixel art into the game and play goes on from that point."
+
+## What landed
+- `src/endcards.js`: on choosing an ending the game frames that ending's scene at the real Table (Long Sleep at first light with the sea
+  calm; She Rises at night; the Tune at night, calm, the game's guitar leant on your chair; the Unseen Throw from down the sand; Your Seat
+  over the table, the far chair empty), waits ten frames, takes the frame and turns it into pixel art in the browser. No image files.
+  The painted still shows for that moment and stays as the fallback (the demo, no Table near).
+- The ending screen: the card, the title, one short line (`ENDINGS` in table.js: six one-line drafts for the writer; the longer drafts
+  are gone).
+- Good Dreams: the card is the live view with the Gull at anchor off the Table, sails in, the follow camera behind her. Keep sailing lays
+  the card over the whole screen, then takes the live view again at 480, 720 and 1080 wide and fades into the game; nothing moved, so play
+  goes on from there. Mara's line (if any) comes after.
+
+## Verified
+Headless (dev server; a tenth of real speed): all six cards made at the Table with no console error and shown with their line; the Long
+Sleep at dawn and calm, the night cards lifted so the table, the chairs and the figure read; the guitar stands by your chair; Good Dreams'
+card, the hand-back mid-way and the game after it with the Gull in the same place and the HUD back. **Not verified:** how the hand-back
+feels at full speed; a Table approached in real play (the cards were made after a teleport); sound.
+
+## Open
+- The six short lines are drafts.
+- The game-over screens (She Rises after the Eye, the Unseen Throw's table on the water, Your Seat's newcomer) still use the painted stills.
