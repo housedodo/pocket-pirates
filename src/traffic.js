@@ -232,7 +232,7 @@ export class Traffic {
     const { ship, dread, wave, wind } = ctx;
     this.routines(dt, t, ctx);
     this.timer -= dt;
-    const want = dread < 0.7 ? 2 : 1;
+    const want = this.none ? 0 : dread < 0.7 ? 2 : 1;   // none: the Unseen Throw's empty sea (systems/endgame.js)
     if (this.timer <= 0) {
       this.timer = 10;
       if (this.ships.filter((q) => !q.special).length < want && Math.random() < 0.6) this.spawn(ship, dread);

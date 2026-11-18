@@ -2,6 +2,7 @@
 // and the anchor that holds her still meanwhile (anchorTick, HEAVE_KINDS: RULES 18, E works under way). Moved out of main.js (task R5).
 // main.js computes the interaction once a frame into rt.tg (frame step 4); the prompt, the anchor and E all read that one value.
 // Everything main.js owns comes through G, read at call time; screens (ui/ other than dom.js) too, since systems sit below them.
+import { guitarDock } from './endgame.js';
 import { markSeen, tableOpen } from '../clues.js';
 import { G, rt } from '../core/runtime.js';
 import { after } from './later.js';
@@ -156,6 +157,7 @@ function doInteract(tg) {
     const idx = stageOf(rt.dread), lvl = friendLevel(rep);
     rt.hbShipLine = shipwrightLine(rng, idx);
     G.threads.onDock(d);
+    guitarDock(d);   // after the tune is kept, something waits on Tama's quay (systems/endgame.js)
     // someone on the pier may speak first: always on a first visit or a story beat, otherwise rarely
     let say = null;
     { const cur = G.objectives.current;
@@ -267,7 +269,7 @@ function doInteract(tg) {
 export function goAshore(tg) {
   const d = tg.isl.desc;
   rt.dig = { key: tg.key, t: 0, label: 'Going ashore...', need: 2.6, done: () => {
-    if (d.lm === 'table' && tableOpen(state) && !state.story.ending && window.__BUILD !== 'demo') { G.places.visit(d.lm, state, {}); G.openTable(); return; }
+    if (d.lm === 'table' && tableOpen(state) && !state.story.ending && window.__BUILD !== 'demo') { G.places.visit(d.lm, state, {}); G.openTable(true); return; }
     const r = G.places.visit(d.lm, state, { night: tod.night > 0.45, calm: G.weather.calm > 0.5, still: G.weather.storm < 0.3, tide: tideAt(), mara: true });   // still: the Two Players play on any night without a storm
     if (!r) return;
     if (r.clue) G.seeClue(r.clue);   // the ledger takes it; no popup (docs/WORLD_REDESIGN.md 6.7)

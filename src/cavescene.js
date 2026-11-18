@@ -46,6 +46,35 @@ function shelves(ctx, jars, glint) {
 }
 function hermit(ctx, x, y) { R(ctx, '#e8e0d0', x, y, 18, 30); R(ctx, '#e8b890', x + 4, y - 6, 10, 10); R(ctx, '#7a3a2a', x - 2, y - 12, 22, 7); R(ctx, '#e8e0d0', x + 2, y + 4, 14, 14); R(ctx, '#1a1a2a', x + 6, y - 4, 2, 2); R(ctx, '#1a1a2a', x + 12, y - 4, 2, 2); }
 
+// the drawing on the Table (CANON 2026-11-18): crude, red, as if done in a hurry. A ship falling down a hole if the Edge was gone over;
+// otherwise the Edge alone and three questions. A 3x5 hand, each letter a little off the line
+const CRUDE = { W: '101101101111101', H: '101101111101101', A: '010101111101101', T: '111010010010010', I: '111010010010111', S: '011100010001110', D: '110101101101110',
+  O: '010101101101010', N: '101111111101101', E: '111100110100111', R: '110101110101101', Y: '101101010010010', '?': '110001010000010' };
+function crude(ctx, text, x, y, col) {
+  [...text].forEach((ch, i) => { const g = CRUDE[ch]; if (!g) return; const dy = hash(i, y, 77) < 0.3 ? 1 : 0; for (let k = 0; k < 15; k++) if (g[k] === '1') R(ctx, col, x + i * 4 + (k % 3), y + dy + Math.floor(k / 3), 1, 1); });
+}
+function tableDrawing(ctx, way, x, y) {   // a sheet laid on the wood, hanging over the near edge (112 x 24: inside the card's crop)
+  R(ctx, '#c8bc9a', x, y, 112, 24); R(ctx, '#a89a78', x, y + 23, 112, 1); R(ctx, '#e0d4b0', x + 2, y + 1, 108, 1);
+  const red = '#b01414';
+  if (way === 'over') {   // a hole, and a ship going down it
+    for (let a = 0; a < 6.28; a += 0.1) R(ctx, red, x + 56 + Math.cos(a) * 20 + (hash(a * 9 | 0, 1, 79) < 0.3 ? 1 : 0), y + 12 + Math.sin(a) * 7, 1, 1);
+    for (let yy = -5; yy <= 5; yy++) { const w = Math.sqrt(1 - (yy / 6) ** 2) * 17; R(ctx, '#140806', x + 56 - w, y + 12 + yy, w * 2, 1); }
+    R(ctx, red, x + 50, y + 5, 3, 9); R(ctx, red, x + 53, y + 7, 2, 6); R(ctx, red, x + 47, y + 7, 3, 1); R(ctx, red, x + 46, y + 5, 2, 3);   // the ship, bow down, mast out sideways
+    for (let i = 0; i < 4; i++) R(ctx, red, x + 40 - i * 3, y + 2 + i, 2, 1);   // how it fell
+  } else {   // the questions, and beside them the Edge: the sea running to a straight lip, then down
+    crude(ctx, 'WHAT IS DOWN THERE?', x + 3, y + 2, red); crude(ctx, 'WHO IS THERE?', x + 3, y + 9, red); crude(ctx, 'WHY IS IT THERE?', x + 3, y + 16, red);
+    R(ctx, red, x + 82, y + 6, 16, 1); for (let i = 0; i < 3; i++) R(ctx, red, x + 83 + i * 5, y + 4, 2, 1); R(ctx, red, x + 98, y + 6, 1, 13);
+    for (let i = 0; i < 5; i++) R(ctx, red, x + 101 + (i % 2), y + 8 + i * 3, 1, 2);   // and nothing under it
+  }
+}
+function seatedOne(ctx, lit) {   // the one in the far chair: darker than the dark, hunched over the book; the candles catch an edge of it
+  R(ctx, '#05040a', 150, 70, 20, 40); R(ctx, '#05040a', 153, 62, 14, 10); R(ctx, '#05040a', 156, 58, 8, 5); R(ctx, '#0b0a12', 146, 96, 6, 14); R(ctx, '#0b0a12', 168, 96, 6, 14);
+  R(ctx, '#05040a', 147, 76, 4, 20); R(ctx, '#05040a', 169, 76, 4, 20);   // shoulders, arms
+  if (lit) { for (let y = 60; y < 108; y += 2) if (hash(y, 4, 80) < 0.6) R(ctx, '#4a2c16', y < 72 ? 166 : 172, y, 1, 2); R(ctx, '#6a6070', 150, 98, 4, 2); R(ctx, '#6a6070', 167, 98, 4, 2); }   // an edge, two hands on the wood
+}
+function candles(ctx, xs, y) { const out = []; for (const x of xs) { R(ctx, '#e8e0c8', x, y, 2, 6); R(ctx, '#ffe88a', x, y - 3, 2, 3); out.push([x + 1, y - 2, 22, '#ffd070']); } return out; }
+const PARCH = ['#2a1a0e', '#6a5a40', '#a8926a', '#cdb88e', '#e4d4ae', '#efe4c8'];
+
 /** draws the picture for this room; returns { lamps: [[x, y, r, colour]], water: top row of the water or null } */
 const VIOLET = ['#05040a', '#150a22', '#2a1245', '#52208a', '#a050e0', '#f0c8ff'];
 const SCENES = {
@@ -53,15 +82,33 @@ const SCENES = {
   // shape in the chair, darker than the dark, never more than that. node: 'table' (arriving) or an ending id, which sets the sky
   // (sleep: first light; dreams: blue night; tune: blue night, two lights far off; rises: the sea lit from below; leave: the table far
   // behind you; sit: the chair across is empty, seen from the other side)
-  table(ctx, node) {
-    const sky = { sleep: ['#05040a', '#1a1430', '#4a3a5a', '#a0708a', '#e8b890', '#ffe0b0'], rises: ['#05040a', '#100618', '#2a0a2a', '#4a0a3a', '#7a1a4a', '#c04a6a'] }[node]
+  table(ctx, nodeArg) {
+    const [node, way] = String(nodeArg).split('|');
+    if (node === 'seat') return SCENES.seat(ctx);
+    const sky = { sleep: ['#05040a', '#1a1430', '#4a3a5a', '#a0708a', '#e8b890', '#ffe0b0'], rises: ['#05040a', '#100618', '#2a0a2a', '#4a0a3a', '#7a1a4a', '#c04a6a'] }[node === 'gone' ? 'rises' : node]
       || ['#05040a', '#0b1020', '#14263a', '#1f3a56', '#3a5a88', '#9fb8e0'];
     ramp(ctx, (x, y) => (y < 78 ? 0.25 + 0.6 * (y / 78) * (node === 'sleep' ? 1.2 : 0.8) + 0.06 * fbm(x / 14, y / 10, 7) : 0.18 + 0.22 * fbm(x / 5, y / 2, 13) * (1 - (y - 78) / 60)), sky);
     if (node !== 'sleep') for (let i = 0; i < 40; i++) R(ctx, '#e8f0ff', hash(i, 1, 3) * W, hash(i, 2, 3) * 60, 1, 1);   // stars
-    if (node === 'rises') for (let y = 84; y < 128; y++) for (let x = 0; x < W; x++) if (hash(x, y, 9) < 0.05 * (y - 84) / 44) R(ctx, '#ff70d0', x, y, 1, 1);   // the sea lit from below
+    if (node === 'rises' || node === 'gone') for (let y = 84; y < 128; y++) for (let x = 0; x < W; x++) if (hash(x, y, 9) < 0.05 * (y - 84) / 44) R(ctx, '#ff70d0', x, y, 1, 1);   // the sea lit from below
     if (node === 'tune' || node === 'dreams') { R(ctx, '#ffd070', 34, 80, 2, 2); R(ctx, '#ffd070', 290, 81, 2, 2); }   // two lights far off: his, hers
     for (let x = 0; x < W; x += 9) R(ctx, '#3a5a88', x + (hash(x, 4, 2) * 6 | 0), 80 + (hash(x, 5, 2) * 40 | 0), 4, 1);   // glints
-    ramp(ctx, (x, y) => (y < 124 + Math.sin(x / 30) * 3 ? null : 0.35 + 0.35 * fbm(x / 7, y / 5, 21) + (y - 124) / 120), ['#120a06', '#2a1a0e', '#4a3a28', '#6a5a40', '#8a7a5a', '#b8a880']);
+    if (node !== 'pulled') ramp(ctx, (x, y) => (y < 124 + Math.sin(x / 30) * 3 ? null : 0.35 + 0.35 * fbm(x / 7, y / 5, 21) + (y - 124) / 120), ['#120a06', '#2a1a0e', '#4a3a28', '#6a5a40', '#8a7a5a', '#b8a880']);
+    if (node === 'gone') {   // She Rises, after: the sand and the lit sea, and nothing on the sand but the die
+      R(ctx, '#e8e0d0', 158, 146, 6, 5); R(ctx, '#b8b0a0', 158, 150, 6, 1); R(ctx, '#5a0a2a', 160, 147, 1, 1);
+      return { lamps: [] };
+    }
+    if (node === 'pulled') {   // the Unseen Throw, after: the table stands on the water, a candle lit; your chair pulled out and turned to you
+      for (let y = 84; y < H; y += 3) for (let x = (y * 7) % 11; x < W; x += 11 + (y % 5)) R(ctx, '#1f3a56', x, y, 3 + (y - 84) / 20, 1);
+      R(ctx, '#1a0f08', 146, 72, 28, 36); R(ctx, '#2a1a0e', 148, 74, 24, 4); seatedOne(ctx, true);
+      R(ctx, '#3a2210', 96, 104, 128, 10); R(ctx, '#5a3418', 92, 100, 136, 6); R(ctx, '#7a4a22', 92, 100, 136, 2);
+      R(ctx, '#2a1a0e', 100, 114, 6, 22); R(ctx, '#2a1a0e', 214, 114, 6, 22);
+      for (const lx of [100, 214]) for (let i = 0; i < 3; i++) R(ctx, '#3a5a88', lx - 4 - i * 3, 137 + i * 2, 14 + i * 6, 1);   // where the legs stand in the water
+      R(ctx, '#e8dcc0', 128, 94, 30, 7); R(ctx, '#d8ccb0', 158, 94, 30, 7); R(ctx, '#8a7a5a', 157, 94, 2, 7);
+      R(ctx, '#e8e0c8', 204, 90, 4, 10); R(ctx, '#ffe88a', 205, 86, 2, 4);
+      R(ctx, '#2a1a0e', 196, 128, 34, 5); R(ctx, '#2a1a0e', 200, 133, 3, 22); R(ctx, '#2a1a0e', 224, 133, 3, 18); R(ctx, '#3a2210', 226, 104, 4, 26);   // the near chair, out from the table
+      for (let i = 0; i < 3; i++) R(ctx, '#3a5a88', 192 - i * 3, 157 + i * 2, 16 + i * 6, 1);
+      return { lamps: [[206, 86, 70, '#ffd070']] };
+    }
     if (node === 'leave') {   // far behind you: a small table and a light on the sand
       R(ctx, '#2a1a0e', 150, 122, 22, 3); R(ctx, '#1a0f08', 152, 125, 2, 6); R(ctx, '#1a0f08', 168, 125, 2, 6); R(ctx, '#ffe88a', 160, 119, 1, 2);
       for (let i = 0; i < 9; i++) R(ctx, '#2a1a0e', 158 + i * 3 + (i % 2) * 2, 140 + i * 4, 3, 2);   // your steps
@@ -70,7 +117,7 @@ const SCENES = {
     const far = node !== 'sit';
     // the far chair, and in it (not when you sit there) the shape
     R(ctx, '#1a0f08', 146, 72, 28, 36); R(ctx, '#2a1a0e', 148, 74, 24, 4);
-    if (far && node !== 'sleep') { R(ctx, '#05040a', 150, 70, 20, 40); R(ctx, '#05040a', 154, 62, 12, 10); R(ctx, '#0b0a12', 146, 96, 6, 14); R(ctx, '#0b0a12', 168, 96, 6, 14); }
+    if (far && node !== 'sleep') seatedOne(ctx, node === 'table');   // seen at last (CANON 2026-11-18): only ever this much
     if (node === 'sleep') { R(ctx, '#3a3040', 152, 76, 16, 32); R(ctx, '#8a8090', 155, 66, 10, 10); R(ctx, '#c8c0c8', 154, 64, 12, 4); }   // only an old woman, very tired
     // the table
     R(ctx, '#3a2210', 96, 104, 128, 10); R(ctx, '#5a3418', 92, 100, 136, 6); R(ctx, '#7a4a22', 92, 100, 136, 2);
@@ -81,11 +128,51 @@ const SCENES = {
     if (node !== 'rises') R(ctx, '#1a0f08', 184, 90, 1, 8);
     // the die (none on the table once the tune is kept)
     if (node !== 'tune') { R(ctx, '#e8e0d0', 112, 95, 7, 6); R(ctx, '#b8b0a0', 112, 100, 7, 1); R(ctx, '#3a2210', 115, 97, 1, 1); }
-    // the candle
+    // the candle (arriving: every candle on the table is lit)
     R(ctx, '#e8e0c8', 204, 90, 4, 10); R(ctx, '#ffe88a', 205, 86, 2, 4);
+    const more = node === 'table' ? candles(ctx, [98, 122, 194, 218], 94) : [];
+    if (way) tableDrawing(ctx, way, 94, 101);
     // the near chair: its back to you (or, when you sit, the far one is empty and you look across at Mara's)
-    R(ctx, '#2a1a0e', 140, 132, 40, 6); R(ctx, '#2a1a0e', 142, 138, 4, 30); R(ctx, '#2a1a0e', 174, 138, 4, 30); R(ctx, '#3a2210', 140, 120, 40, 4);
-    return { lamps: [[206, 86, node === 'rises' ? 40 : 64, '#ffd070']] };
+    const nx = way ? 70 : 0;   // your chair has been pulled out for you (and it leaves the drawing in sight)
+    R(ctx, '#2a1a0e', 140 + nx, 132, 40, 6); R(ctx, '#2a1a0e', 142 + nx, 138, 4, 30); R(ctx, '#2a1a0e', 174 + nx, 138, 4, 30); R(ctx, '#3a2210', 140 + nx, 120, 40, 4);
+    return { lamps: [[206, 86, node === 'rises' ? 40 : 64, '#ffd070'], ...more] };
+  },
+  // Your Seat, after: from the far chair, inside the hut. The table, the book, the candle; the door open on the evening and a ship you do
+  // not know at the water; someone in the doorway
+  seat(ctx) {
+    ramp(ctx, (x, y) => 0.12 + 0.18 * fbm(x / 9, y / 9, 31) * (1 - Math.hypot((x - 160) / 260, (y - 120) / 160)), WARM);
+    R(ctx, '#3a5a88', 138, 40, 44, 74); ramp(ctx, (x, y) => (x < 140 || x >= 180 || y < 42 || y >= 112 ? null : y < 86 ? 0.5 + 0.4 * (y - 42) / 44 : 0.3 + 0.1 * fbm(x / 4, y / 2, 33)), ['#05040a', '#1a1030', '#3a1a50', '#7a2a60', '#d0603a', '#ffc070']);
+    R(ctx, '#2a1a0e', 136, 38, 48, 3); R(ctx, '#2a1a0e', 136, 38, 3, 78); R(ctx, '#2a1a0e', 181, 38, 3, 78);
+    R(ctx, '#e8e8f0', 147, 84, 12, 1); R(ctx, '#7a4a22', 145, 86, 18, 3); R(ctx, '#2a1a0e', 153, 70, 1, 16); R(ctx, '#4a9a5a', 150, 72, 8, 10); R(ctx, '#5ab06a', 154, 74, 6, 6);   // green sails, new paint
+    R(ctx, '#0b0a12', 164, 70, 10, 42); R(ctx, '#0b0a12', 165, 62, 8, 9); R(ctx, '#0b0a12', 161, 74, 3, 18); R(ctx, '#0b0a12', 174, 74, 3, 16);   // someone in the door, not yet in
+    R(ctx, '#3a2210', 20, 128, 280, 52); R(ctx, '#5a3418', 16, 122, 288, 8); R(ctx, '#7a4a22', 16, 122, 288, 2);
+    R(ctx, '#e8dcc0', 104, 132, 54, 30); R(ctx, '#d8ccb0', 158, 132, 54, 30); R(ctx, '#8a7a5a', 157, 132, 2, 30);   // the book, open, its pages full
+    for (let i = 0; i < 13; i++) { R(ctx, '#5a4a3a', 108, 134 + i * 2, 44 - (hash(i, 1, 34) * 14 | 0), 1); R(ctx, '#5a4a3a', 162, 134 + i * 2, 44 - (hash(i, 2, 34) * 14 | 0), 1); }
+    R(ctx, '#1a0f08', 214, 128, 1, 14);   // the pen
+    R(ctx, '#e8e0d0', 76, 118, 9, 8); R(ctx, '#b8b0a0', 76, 125, 9, 1); R(ctx, '#3a2210', 80, 121, 1, 1);   // the die, pushed across
+    R(ctx, '#e8e0c8', 240, 104, 4, 18); R(ctx, '#ffe88a', 241, 98, 2, 6);
+    return { lamps: [[242, 98, 90, '#ffd070'], [160, 80, 34, '#d0603a']] };
+  },
+  // Her book, open, once (Your Seat): every voyage before, far too dense to read. Lines, tallies, little ships; a page wet through now and
+  // then; nothing that can be read. node: the page number (each page its own)
+  book(ctx, node) {
+    const pg = parseInt(node, 10) || 0;
+    ramp(ctx, (x, y) => 0.08 + 0.06 * fbm(x / 9, y / 9, 51), WARM);
+    for (const [px, side] of [[18, 0], [162, 1]]) {
+      const s = pg * 2 + side, wet = hash(s, 1, 52) < 0.12;
+      ramp(ctx, (x, y) => (x < px || x >= px + 140 || y < 14 || y >= 168 ? null : 0.62 + 0.18 * fbm(x / 11, y / 11, 53 + s) - (wet ? 0.25 * fbm(x / 5, y / 5, 54 + s) : 0) - (side ? (x - px < 6 ? 0.2 : 0) : (px + 140 - x < 6 ? 0.2 : 0))), PARCH);
+      for (let y = 20; y < 162; y += 3) {   // rows in many hands, too small to read
+        let x = px + 6 + (hash(y, s, 55) * 4 | 0);
+        const hand = hash(y >> 4, s, 56), ink = hand < 0.15 ? '#7a1a1a' : hand < 0.3 ? '#3a3a5a' : '#3a2a1a';
+        while (x < px + 132) {
+          const r = hash(x, y + s * 999, 57);
+          if (r < 0.06) { R(ctx, ink, x, y - 2, 1, 3); R(ctx, ink, x + 2, y - 2, 1, 3); R(ctx, ink, x + 4, y - 2, 1, 3); R(ctx, ink, x + 6, y - 2, 1, 3); R(ctx, ink, x - 1, y - 1, 9, 1); x += 11; continue; }   // a tally
+          if (r < 0.085) { R(ctx, ink, x, y, 6, 1); R(ctx, ink, x + 1, y + 1, 4, 1); R(ctx, ink, x + 3, y - 3, 1, 3); R(ctx, ink, x + 4, y - 3, 2, 2); x += 9; continue; }   // a little ship
+          const w = 2 + (hash(x, y, 58 + s) * 9 | 0); R(ctx, ink, x, y, w, 1); if (hash(x, y, 59) < 0.3) R(ctx, ink, x + (w >> 1), y - 1, 1, 1); x += w + 2;
+        }
+      }
+    }
+    return { lamps: [] };
   },
   house(ctx, node) {   // the lamp room: a huge steady lamp, a round desk, a ledger, an hourglass that has stopped
     lantern(ctx, WARM, 160, 70, 150, 105, 12);

@@ -1,5 +1,6 @@
 // The title screen and the way into a voyage: the live title scene (the ship alone at sea at a random hour), its menu and keys,
 // New voyage, the dev thread chooser, and the opening cinematic over Tama (begin, skip, end). State in rt (titleScene, introT...).
+import { overTitle, gameOver } from '../systems/endgame.js';
 import { TITLE_SCENES, drawTitleLogo } from '../title.js';
 import { THREAD_DEFS, pickAwake } from '../marks.js';
 import { params, store, saved, DEV, session, SAVE_KEY, THREADS_KEY } from '../core/config.js';
@@ -26,8 +27,9 @@ export function startTitle() {
   G.weather.force = sc.weather; Object.assign(G.weather, sc.weather);
   $('hud').classList.add('hidden');
   $('tNew').style.display = saved ? '' : 'none';
+  const over = overTitle();   // a closed voyage: Begin again / Go back to the table (systems/endgame.js)
   document.fonts.load("86px 'Pirata One'").then(() => drawTitleLogo($('titleLogo')));
-  setTimeout(() => $('tSail').focus(), 50);
+  if (!over) setTimeout(() => $('tSail').focus(), 50);
 }
 export function titleCam(dt) {
   const ts = rt.titleScene, [ang, dist, hgt, lookY] = ts.sc.cam; ts.t += dt;
@@ -68,6 +70,7 @@ export function begin() {
   rt.started = true;
   endTitle();
   titleEl.style.display = 'none';
+  if (state.story.over && window.__BUILD !== 'demo') { gameOver(state.story.over); return; }   // a closed voyage (systems/endgame.js)
   G.audio.start();
   if (introWanted()) { rt.introT = 0; document.body.classList.add('intro'); }
   else if (!params.get('nomate')) G.objectives.start();

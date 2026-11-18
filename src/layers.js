@@ -229,13 +229,16 @@ export class SeaLayers {
     { // the Free Cays night episodes: silence 25-65 s, then guitar alone / violin alone / both / one joins the other (and the first sometimes leaves)
       // The guitar is Teo's and the violin Ilse's (the Two Players, systems/lullaby.js): near them the silences are short and he starts, she finishes.
       const P = s.players, near = P ? P.near : 0;
-      const F = this.fc, ok = (this.kept > 0 || (fk > 0.6 && nk > 0.5)) && FC.every((k) => this.srcs.has(k));
+      // the guitar kept aboard after the tune (systems/endgame.js, s.guitar): at night it plays wherever the ship is, alone, with short rests
+      // (placeholder: Teo's fc_night until its own tune comes)
+      const gu = (s.guitar || 0) > 0.5 && nk > 0.5;
+      const F = this.fc, ok = (this.kept > 0 || (fk > 0.6 && nk > 0.5) || gu) && FC.every((k) => this.srcs.has(k));
       if (!ok) { F.ep = null; F.want = [0, 0]; if (F.phase !== 'rest') F.phase = 'out'; if (F.phase === 'rest') F.t = Math.min(F.t, 14); }
       else if (F.phase === 'rest') {
-        F.t -= d; if (near > 0.5) F.t = Math.min(F.t, 12);
+        F.t -= d; if (near > 0.5) F.t = Math.min(F.t, 12); if (gu) F.t = Math.min(F.t, 5);
         if (F.t <= 0) {
           const kinds = ['G', 'V', 'B', 'G>V', 'V>G', 'G>V>', 'V>G>'].filter((x) => !F.last.includes(x));
-          const kind = near > 0.5 ? (F.last.includes('G>V') ? 'B' : 'G>V') : kinds[Math.floor(this.rnd() * kinds.length)], L = 28 + this.rnd() * 32, dl = 9 + this.rnd() * 14;
+          const kind = gu && fk <= 0.6 && !(this.kept > 0) ? 'G' : near > 0.5 ? (F.last.includes('G>V') ? 'B' : 'G>V') : kinds[Math.floor(this.rnd() * kinds.length)], L = 28 + this.rnd() * 32, dl = 9 + this.rnd() * 14;
           // on / off times (seconds from the start) per voice [guitar, violin]; a trailing ">" means the first voice leaves while the second stays
           const ep = { kind, clock: 0, end: L, on: [0, 0], off: [L, L] };
           if (kind === 'G') ep.on[1] = ep.off[1] = -1;
@@ -276,7 +279,7 @@ export class SeaLayers {
         const [home, wander, sp] = PLACE[k];
         const drift = home + wander * Math.sin(this.t * sp * 6.283 + st.ph), there = s.players ? (i ? s.players.vPan : s.players.gPan) : drift, nr = s.players ? s.players.near : 0;
         this.pans.get(k).pan.setTargetAtTime(s.steer != null ? s.steer : Math.max(-0.9, Math.min(0.9, drift + (there - drift) * nr)), T, s.steer != null ? 0.6 : 2);   // near them: from where each of them sits; lost in fog with the tune known: from the way out (L9)
-        out[k] = smooth(F.k[i]) * (1 - 0.16 * smooth(F.k[1 - i])) * (this.kept > 0 ? 1 : nk * fk * Math.max(s.stage ?? 1, s.lull || 0) * (0.4 + 0.6 * this.open));   // a little lower when both play; the Cays' quiet keeps them playing
+        out[k] = smooth(F.k[i]) * (1 - 0.16 * smooth(F.k[1 - i])) * (this.kept > 0 ? 1 : nk * Math.max(fk, i ? 0 : Math.min(1, s.guitar || 0)) * Math.max(s.stage ?? 1, s.lull || 0, s.guitar || 0) * (0.4 + 0.6 * this.open));   // the kept guitar: its voice anywhere (systems/endgame.js)   // a little lower when both play; the Cays' quiet keeps them playing
         continue;
       }
       if (k === PAD) {   // the night pad, in place of the night band while it holds
