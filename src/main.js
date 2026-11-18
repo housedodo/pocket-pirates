@@ -415,6 +415,16 @@ const hut = new Hut({ state,
 const lifeOn = () => isOpen(state, 'tab', 'tavern');   // harbour life opens with the tavern (chapter III)
 // two tides a day, drifting a little later each day; low tide (below -0.45) uncovers more at wrecks and widens the shallows
 const tideWord = () => { const a = tideAt(), b = tideAt(state.time + 0.02); return a < -0.45 ? 'low tide' : a > 0.45 ? 'high tide' : b > a ? 'tide coming in' : 'tide going out'; };
+/** the clock's sign, like a weather symbol: the weather first, then the light (owner 2026-11-18) */
+function skySign() {
+  const w = weather, night = tod.sunElev <= 0, hr = parseInt(tod.clock, 10);
+  if (w.storm > 0.4) return 'storm';
+  if (w.rain > 0.3) return 'rain';
+  if (w.fog > 0.4) return 'fog';
+  if (w.cloud > 0.55) return night ? 'cloudn' : 'cloud';
+  if (tod.sunElev > -0.08 && tod.sunElev < 0.16) return hr < 12 ? 'dawn' : 'dusk';
+  return night ? 'moon' : 'sun';
+}
 function dayLine(d) { const ev = isFestival(d) ? 'festival day' : isMarketDay() ? 'market day' : isLanternNight() ? 'lantern night' : ''; return WEEK[weekday()] + (ev ? ` · ${ev}` : '') + ` · ${tideWord()}`; }
 // a harbour grows with your trade there: more boats, then a busier quay, then flags over the pier
 function noonBells() {   // villages that keep the bells ring them at noon; you hear them if you are near
@@ -1390,7 +1400,8 @@ function frame() {
   updateTracker();
   mixer.update();
   if (studio) studio.update(rawDt, soundSituation());
-  $('clockicon').className = `ico ${tod.sunElev > 0 ? 'sun' : 'moon'}`;
+  $('clockicon').className = `ico ${skySign()}`;   // a weather sign: sun, moon, dawn, dusk, cloud, rain, storm, fog (owner 2026-11-18)
+  U.uTide.value = tideAt();   // the wet band on shores and pilings (psx.js)
   drawTideClock($('tidemark'), ((state.time * 2 + state.dayN * 0.07) % 1 + 1) % 1);   // the tide clock beside the time (ui/hud.js)
   setWidth($('sailfill'), ship.trim * 100);
   $('sailbar').classList.toggle('torn', state.sailsTorn); $('sailbar').classList.toggle('strain', rt.sailStrain > SAIL_LIMIT * 0.35);

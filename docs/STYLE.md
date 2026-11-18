@@ -257,7 +257,8 @@ purple and magenta cosmic horror as dread rises.
 
 - **The Friday paper** (`src/newspaper.js`, `.paper` in index.html): newsprint cream with a faint 4 px grain, ink rules, a Pirata One masthead and headlines (24 / 34 / 48 px, headline case), the pixel text font for the body, a lead story with a drop cap, boxed weather and a dashed box for notices. It yellows, stains and the ink runs with dread (stages 2 to 4); it never shows anything but the paper.
 
-- **The clock panel** holds the time, the weekday (three letters at 0.75, always shown: owner
+- **The clock panel** opens with a weather sign (7x7 pixel sprites, owner 2026-11-18): storm, rain, fog, cloud by day or night, dawn and
+  dusk as the sun on the horizon (gold, red), else sun or moon. It holds the time, the weekday (three letters at 0.75, always shown: owner
   2026-11-18) and the tide clock (owner 2026-11-18, replacing the upright gauge that read as a battery): a 16-pixel dial like a
   harbour tide clock, blue mark at the top for high water, sand mark at the bottom for low, one hand going round clockwise once a
   tide (twice a day), drawn in `ui/hud.js drawTideClock`.

@@ -5,6 +5,7 @@ import { makeAtlas, makeGrit } from './textures.js';
 export const U = {
   uSnap: { value: new THREE.Vector2(240, 135) }, // vertex snap grid (half-res, in "pixels")
   uDread: { value: 0 },
+  uTide: { value: 0 },     // -1 low water .. +1 high (calendar.js tideAt): the wet band on shores and pilings (owner 2026-11-18)
   uTime: { value: 0 },      // stepped (12 fps) time for water
   uLight: { value: 1 },     // global brightness, emissive texels ignore it
   uSunDir: { value: new THREE.Vector3(0.3, 0.8, -0.5) },
@@ -32,6 +33,7 @@ attribute vec3 colorB;
 const FRAG_HEAD = /* glsl */`
 uniform float uLight;
 uniform float uDread;
+uniform float uTide;
 uniform vec3 uFarLight;
 float farLight() { return mix(1.0, uFarLight.y, step(uFarLight.x, 1.0 / gl_FragCoord.w)); }
 `;
@@ -47,10 +49,10 @@ export const getGrit = () => grit || (grit = makeGrit());
  *  - global light level multiplies everything except glowing texels (windows, lanterns, eyes)
  */
 export function psxMaterial(opts = {}) {
-  const { dark = false, grime = false, vertex, fragmentColor, key = '', ...params } = opts;
+  const { dark = false, grime = false, notide = false, vertex, fragmentColor, key = '', ...params } = opts;
   const m = new THREE.MeshBasicMaterial(params);
-  if (dark || grime) m.defines = Object.assign({}, dark ? { USE_DARKCOL: '' } : {}, grime ? { USE_GRIME: '' } : {});
-  m.customProgramCacheKey = () => `psx${dark ? 'D' : ''}${grime ? 'G' : ''}${key}`;
+  if (dark || grime) m.defines = Object.assign({}, dark ? { USE_DARKCOL: '' } : {}, grime ? { USE_GRIME: '' } : {}, notide ? { NO_TIDE: '' } : {});
+  m.customProgramCacheKey = () => `psx${dark ? 'D' : ''}${grime ? 'G' : ''}${notide ? 'N' : ''}${key}`;
   m.onBeforeCompile = (shader) => {
     Object.assign(shader.uniforms, U);
     let v = shader.vertexShader;
@@ -82,9 +84,22 @@ export function psxMaterial(opts = {}) {
           vec3 q = floor(vGW * 1.6);
           float n = gh(q), n2 = gh(floor(vGW * 0.45) + 7.0);
           float dirt = step(0.76, n) * 0.15 + step(0.55, n2) * 0.04;
-          float wet = smoothstep(0.7, -0.1, vGW.y);
+          // the tide on every shore and piling (owner 2026-11-18): the sea stays level, so the tide is shown on the land. As the water
+          // goes out a dark wet band shows from the sea up to where high water reached, with a thin pale wrack line at its top;
+          // at high water only a damp hem is left. (The sea itself rising and falling is noted for later: docs/PROGRESS.md.)
+          #ifdef NO_TIDE
+          float low = 0.5, wetTop = 0.6;   // a hull rides the water: a steady waterline, no tide
+          #else
+          float low = 0.5 - 0.5 * uTide, wetTop = mix(0.35, 1.7, low);
+          #endif
+          float wet = 1.0 - smoothstep(wetTop - 0.12, wetTop, vGW.y);
+          float wrack = step(wetTop, vGW.y) * (1.0 - step(wetTop + 0.1, vGW.y)) * low;
+          #ifdef NO_TIDE
+          wrack = 0.0;
+          #endif
           vec3 g = diffuseColor.rgb * (1.0 - dirt * (1.0 + uDread * 0.8));
-          g = mix(g, g * vec3(0.66, 0.58, 0.46), wet * 0.5);
+          g = mix(g, g * vec3(0.5, 0.46, 0.4), wet * mix(0.45, 0.7, low));
+          g = mix(g, g * vec3(1.18, 1.14, 1.04), wrack * 0.6);
           diffuseColor.rgb = mix(g, diffuseColor.rgb, glow);
         }
       #endif
@@ -105,6 +120,7 @@ export function initMaterials() {
   const a = getAtlas();
   mats.terrain = psxMaterial({ map: getGrit(), vertexColors: true, dark: true, grime: true });
   mats.props = psxMaterial({ map: a, vertexColors: true, dark: true, grime: true, alphaTest: 0.5, side: THREE.DoubleSide });
+  mats.hull = psxMaterial({ map: a, vertexColors: true, dark: true, grime: true, notide: true, alphaTest: 0.5, side: THREE.DoubleSide });   // ships: no tide band (they float)
   mats.flagP = psxMaterial({ map: a, vertexColors: true, dark: true, alphaTest: 0.5, side: THREE.DoubleSide });
   mats.sail = psxMaterial({ map: a, vertexColors: true, dark: true, grime: true, side: THREE.DoubleSide, key: 'S' });
   mats.shallow = psxMaterial({ vertexColors: true, transparent: true, depthWrite: false, key: 'A' });

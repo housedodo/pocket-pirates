@@ -476,7 +476,7 @@ function hammockSleeper(b, x, y, z, ry, rng) {
 }
 function lanternMan(b, x, y, z, ry, rng) {
   villager(b, x, y, z, ry, rng, 'oldsalt');
-  b.push(x, y, z, ry); b.box(0.36, 0.55, 0.12, 0.05, 0.3, 0.05, '#3a3036', TILE.stone); b.box(0.36, 0.36, 0.12, 0.2, 0.24, 0.2, '#ffffff', TILE.glow); b.pop();
+  b.push(x, y, z, ry); b.box(0.36, 0.55, 0.12, 0.05, 0.3, 0.05, '#3a3036', TILE.stone); b.box(0.36, 0.36, 0.12, 0.14, 0.17, 0.14, '#ffd890', TILE.glow); b.pop();
 }
 function smoke(b, x, y, z, n = 4) { for (let i = 0; i < n; i++) b.blob(x + i * 0.3, y + i * 0.8, z + Math.sin(i) * 0.3, 0.3 + i * 0.16, 0.25 + i * 0.12, 0.3 + i * 0.16, i < 2 ? '#a8a4a6' : '#d0ccce', TILE.white, 0.35, i + x); }
 
@@ -490,7 +490,7 @@ function yard(A, rng, w, dep, sx = 1) {
   if (rng() < 0.7) { A.blob(sx * (w / 2 + 0.5), 0.35, fz - 0.6, 0.5, 0.4, 0.5, '#3f8a38', TILE.white, 0.3, 4); for (let i = 0; i < 3; i++) A.blob(sx * (w / 2 + 0.5) + (i - 1) * 0.25, 0.7, fz - 0.6 + (i % 2) * 0.2, 0.13, 0.13, 0.13, pickCol(rng, ['#e8509a', '#f0c030', '#e85a3a', '#ffffff']), TILE.white, 0.05, i); }
   if (rng() < 0.4) { A.box(-sx * (w * 0.25), 0.2, fz + 0.2, 1.3, 0.12, 0.5, '#6b4a2e', TILE.planks); A.box(-sx * (w * 0.25) - 0.5, 0, fz + 0.2, 0.14, 0.2, 0.4, '#5a3e24', TILE.bark); A.box(-sx * (w * 0.25) + 0.5, 0, fz + 0.2, 0.14, 0.2, 0.4, '#5a3e24', TILE.bark); }
   if (rng() < 0.35) { A.blob(sx * 0.2, 0.25, fz + 0.9, 0.22, 0.18, 0.28, '#f4f0e4', TILE.white, 0.2, 2); A.box(sx * 0.2, 0.36, fz + 1.08, 0.1, 0.1, 0.1, '#c83a2a', TILE.white); }   // a hen
-  if (rng() < 0.3) { A.box(-sx * (w / 2 + 0.3), 0.0, dep / 2 - 0.1, 0.2, 2.0, 0.2, '#3a3036', TILE.bark); A.box(-sx * (w / 2 + 0.3), 2.0, dep / 2 - 0.1, 0.34, 0.36, 0.34, '#ffffff', TILE.glow); }   // a lantern post
+  if (rng() < 0.3) { A.box(-sx * (w / 2 + 0.3), 0.0, dep / 2 - 0.1, 0.2, 2.0, 0.2, '#3a3036', TILE.bark); A.box(-sx * (w / 2 + 0.3), 1.95, dep / 2 - 0.1, 0.2, 0.22, 0.2, '#ffd890', TILE.glow); }   // a lantern post
 }
 export function houseKind(A, B, x, y, z, ry, rng, kind) {
   let wall = pickCol(rng, WALLS), roof = pickCol(rng, ROOFS);
@@ -591,7 +591,7 @@ export function houseKind(A, B, x, y, z, ry, rng, kind) {
       A.box(w / 2 + 0.2, 1.4, dep / 2 - 0.2, 0.1, 1.6, 0.1, '#5a3a20', TILE.bark);
       A.box(w / 2 + 0.7, 2.6, dep / 2 - 0.2, 1.0, 0.08, 0.08, '#5a3a20', TILE.bark);
       A.box(w / 2 + 0.75, 1.95, dep / 2 - 0.2, 0.8, 0.6, 0.08, '#e8c060', TILE.flag);
-      for (const sx of [-0.9, 0.9]) A.box(sx, 1.9, dep / 2 + 0.1, 0.25, 0.3, 0.25, '#ffffff', TILE.glow);
+      for (const sx of [-0.9, 0.9]) A.box(sx, 1.9, dep / 2 + 0.1, 0.16, 0.2, 0.16, '#ffd890', TILE.glow);
       barrel(A, -w / 2 + 0.6, 0, dep / 2 + 0.6, 1); barrel(A, -w / 2 + 1.4, 0, dep / 2 + 0.7, 0.9); barrel(A, -w / 2 + 1.0, 0.85, dep / 2 + 0.65, 0.8);
       A.box(w * 0.2, 0, dep / 2 + 0.8, 1.6, 0.45, 0.4, '#6b4a2e', TILE.planks);
       A.box(-w * 0.3, h + 1.0, -dep * 0.2, 0.6, 1.3, 0.6, '#a89a88', TILE.stone);
@@ -1044,7 +1044,7 @@ function lampPost(A, x, y, z, ry) {   // a black iron post with an arm and a han
   A.push(x, y, z, ry);
   A.box(0, 0, 0, 0.4, 0.3, 0.4, '#5a5a5e', TILE.stone); A.box(0, 0.3, 0, 0.16, 2.7, 0.16, '#2a2a30', TILE.bark);
   A.box(0.32, 2.85, 0, 0.8, 0.12, 0.12, '#2a2a30', TILE.bark);
-  A.box(0.62, 2.22, 0, 0.36, 0.44, 0.36, '#ffffff', TILE.glow); A.box(0.62, 2.66, 0, 0.5, 0.12, 0.5, '#2a2a30', TILE.bark);
+  A.box(0.62, 2.3, 0, 0.2, 0.26, 0.2, '#ffd890', TILE.glow); A.box(0.62, 2.5, 0, 0.3, 0.08, 0.3, '#2a2a30', TILE.bark);
   A.pop();
 }
 function hibiscus(A, x, y, z, s, col) { A.blob(x, y + 0.4 * s, z, 0.75 * s, 0.6 * s, 0.75 * s, '#3f8a38', TILE.leaf, 0.3, Math.floor(x * 3 + z)); for (let i = 0; i < 5; i++) { const a = i * 1.26 + x; A.blob(x + Math.cos(a) * 0.55 * s, y + (0.55 + (i % 2) * 0.3) * s, z + Math.sin(a) * 0.55 * s, 0.13, 0.13, 0.13, col, TILE.white, 0.05, i); } }
@@ -1170,10 +1170,10 @@ function tamaPolish(S, look, houses) {
     for (let i = 0; i < 5; i++) { const a = dockTh + Math.PI * 0.6 + i * 0.5, x = Math.cos(a) * (rP + 3), z = Math.sin(a) * (rP + 3); if (nearHouse(x, z, 3)) continue; A.push(x, H - 0.08, z, -a); for (let j = 0; j < 4; j++) A.box(0, 0, (j - 1.5) * 0.55, 1.6, 0.2, 0.32, '#6a4a2c', TILE.white), A.box(0, 0.2, (j - 1.5) * 0.55, 1.4, 0.24, 0.2, j % 2 ? '#5aa844' : '#d8402e', TILE.leaf); A.pop(); }   // vegetable rows
   }
 }
-function floatLantern(b, x, z) { b.box(x, 0.2, z, 0.7, 0.18, 0.7, '#8a5a30', TILE.planks); b.box(x, 0.38, z, 0.36, 0.42, 0.36, '#ffffff', TILE.glow); }
+function floatLantern(b, x, z) { b.box(x, 0.2, z, 0.7, 0.18, 0.7, '#8a5a30', TILE.planks); b.box(x, 0.36, z, 0.22, 0.26, 0.22, '#ffd890', TILE.glow); }
 function boatAt(b, x, z, ry, lantern) {
   b.push(x, 0, z, ry); b.box(0, -0.1, 0, 1.4, 0.5, 3.2, '#a06a3a', TILE.planks); b.box(0, 0.4, 0, 1.0, 0.05, 2.6, '#6b4a2e', TILE.planks);
-  if (lantern) { b.box(0, 0.4, 1.1, 0.08, 1.6, 0.08, '#3a3036', TILE.bark); b.box(0, 2.0, 1.1, 0.3, 0.34, 0.3, '#ffffff', TILE.glow); }
+  if (lantern) { b.box(0, 0.4, 1.1, 0.08, 1.6, 0.08, '#3a3036', TILE.bark); b.box(0, 2.0, 1.1, 0.18, 0.22, 0.18, '#ffd890', TILE.glow); }
   b.pop();
 }
 function weekAndCustoms(d, rng, cr, g) {
@@ -1227,7 +1227,7 @@ function weekAndCustoms(d, rng, cr, g) {
   // growth: the harbour does better the more you trade here
   { const b = L('grow1'); b.push(0, 0, 0, ry); boatAt(b, -3.8, z1 - 9, 0.15, false); boatAt(b, 3.9, z1 - 15, -0.1, false); b.pop(); }
   { const b = L('grow2'); for (let i = 0; i < 4; i++) { const [x, z] = dockAt(R * 0.62 + i * 1.6, 3 + (i % 2)); barrel(b, x, yy, z, 0.9); crateBox(b, x + 1, yy, z + 0.6, rng() * 3); }
-    b.push(0, 0, 0, ry); for (let z = z1 - 12; z < z1; z += 5) { b.box(-1.35, 0.84, z, 0.14, 2.2, 0.14, '#6b4a2e', TILE.bark); b.box(-1.35, 3.0, z, 0.36, 0.36, 0.36, '#ffffff', TILE.glow); } b.pop(); }
+    b.push(0, 0, 0, ry); for (let z = z1 - 12; z < z1; z += 5) { b.box(-1.35, 0.84, z, 0.14, 2.2, 0.14, '#6b4a2e', TILE.bark); b.box(-1.35, 3.0, z, 0.22, 0.22, 0.22, '#ffd890', TILE.glow); } b.pop(); }
   { const b = L('grow3'); b.push(0, 0, 0, ry); const zA = R * 0.62, zB = z1 - 1;
     b.box(-1.6, 0.84, zA, 0.2, 4, 0.2, '#6b4a2e', TILE.bark); b.box(1.6, 0.84, zA, 0.2, 4, 0.2, '#6b4a2e', TILE.bark); b.box(0, 4.6, zA, 3.6, 0.6, 0.25, '#d24a3e', TILE.planks);
     flagLine(b, [-1.4, 4.2, zA], [-1.4, 2.6, zB], 0); flagLine(b, [1.4, 4.2, zA], [1.4, 2.6, zB], 3); b.pop(); }
@@ -1437,7 +1437,7 @@ function decorate(d, rng, A, B, D, extra) {
         if (rng() > 0.4) A.box(-sx * 0.8, 0.84, z + 1.4, 1, 0.9, 1, '#ffffff', TILE.planks);
       }
       A.box(1.35, 0.84, z1 - 0.4, 0.14, 1.8, 0.14, '#6b4a2e', TILE.bark);
-      A.box(1.35, 2.6, z1 - 0.4, 0.4, 0.4, 0.4, '#ffffff', TILE.glow);
+      A.box(1.35, 2.6, z1 - 0.4, 0.24, 0.24, 0.24, '#ffd890', TILE.glow);
       A.pop();
       // a small side jetty for the harbour's own boats (owner, 2026-11-14): the rowboat and the fishing boat moor here, never at the
       // main pier, so nothing can pin the captain's ship against it. About 40 degrees round the shore from the pier, same side each time.

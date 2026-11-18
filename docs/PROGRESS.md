@@ -1879,3 +1879,12 @@ Trials for the owner to compare; nothing changes without a flag and STYLE.md is 
 - **The tide clock** (owner: "use A"): the upright tide gauge beside the clock read as a battery; it is now a small dial like a harbour
   tide clock (up: high water, down: low; the hand goes round once a tide). Checked headless at low, rising, high and falling water.
   The weekday is always shown beside the time (a pad cannot hover).
+- **The tide shows on every shore** (owner: "do the wet band"): the sea stays level; as the water goes out a dark wet band shows on
+  beaches, rocks and pier pilings from the sea up to where high water reached (0.35 to 1.7 high), with a thin pale wrack line at its
+  top; at high water only a damp hem (`psx.js`, `uTide`; ships use `mats.hull`, no band, they float). Checked headless at Tama, low
+  against high water. **For later (owner):** the sea itself rising and falling with the tide (about half a unit) is the more real
+  version; it needs piers, shores and the shallows re-tuned to a moving water line.
+- **House, post, pier and boat lanterns** are about 40% smaller and warm amber instead of white (`world.js`): they read as bright
+  squares. Not checked at night on screen.
+- **The clock's sign is a weather symbol** (`main.js skySign`, sprites in `pixelui.js`): storm, rain, fog, cloud (day or night), then
+  dawn and dusk (the sun on the horizon, gold or red), then sun or moon. Sprites checked on screen.

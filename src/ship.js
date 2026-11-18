@@ -263,8 +263,8 @@ export class Ship {
     this.root = new THREE.Group();
     this.root.rotation.order = 'YXZ';
     scene.add(this.root);
-    this.hullMesh = new THREE.Mesh(shipGeos().hull, mats.props);
-    this.hullLook = new THREE.Mesh(new THREE.BufferGeometry(), mats.props); this.hullMesh.add(this.hullLook);
+    this.hullMesh = new THREE.Mesh(shipGeos().hull, mats.hull);
+    this.hullLook = new THREE.Mesh(new THREE.BufferGeometry(), mats.hull); this.hullMesh.add(this.hullLook);
     this.root.add(this.hullMesh);
     this.figureGroup = new THREE.Group(); this.figureGroup.position.set(0, 1.7, -3.9); this.figureGroup.scale.setScalar(1.05); this.root.add(this.figureGroup);
     this.custom = { ...DEFAULT_CUSTOM };
@@ -310,9 +310,9 @@ export class Ship {
       this.deckLight = new THREE.Mesh(pb.geometry(), psxMaterial({ color: 0x8a6020, vertexColors: true, transparent: true, opacity: 0.55, depthWrite: false, blending: THREE.AdditiveBlending, key: 'Dl', fragmentColor: { head: '', body: 'diffuseColor.rgb /= max(uLight, 0.05);' } }));
       this.deckLight.visible = false; this.root.add(this.deckLight); this.shadowMesh.renderOrder = 2; this.deckLight.renderOrder = 1; }
     { const fl = new Builder(); fl.cyl(0, 0, 0, 0.15, 0, 0.6, 4, '#ffffff', TILE.glow, false);   // the stern lantern's flame (task L6): upright at home, shorter and leaning far out
-      this.flameMesh = meshOf(fl, mats.props); this.flameMesh.position.set(0, 2.95, 2.9); this.flameMesh.visible = false; this.root.add(this.flameMesh); }
+      this.flameMesh = meshOf(fl, mats.hull); this.flameMesh.position.set(0, 2.95, 2.9); this.flameMesh.visible = false; this.root.add(this.flameMesh); }
     this.flagBright = meshOf(fb, mats.flagP);
-    this.flagDark = meshOf(db, mats.props);
+    this.flagDark = meshOf(db, mats.hull);
     this.flagDark.visible = false;
     this.flag.add(this.flagBright, this.flagDark);
     this.root.add(this.flag);
@@ -325,7 +325,7 @@ export class Ship {
     const og = ob.geometry();
     for (const side of [-1, 1]) for (const z of [-0.7, 1.1]) {
       const arm = new THREE.Group(); arm.position.set(side * 1.15, 1.25, z);
-      const m = new THREE.Mesh(og, mats.props); arm.add(m); arm.visible = false;
+      const m = new THREE.Mesh(og, mats.hull); arm.add(m); arm.visible = false;
       arm.userData = { side, ph: z * 0.25 };
       this.root.add(arm); this.oarArms.push(arm);
     }
@@ -391,7 +391,7 @@ export class Ship {
     if (this.flagShapeNow !== this.custom.flagshape) { this.flagShapeNow = this.custom.flagshape; this.flagBright.geometry = flagGeo(this.custom.flagshape); }
     for (const ch of [...this.figureGroup.children]) { this.figureGroup.remove(ch); ch.geometry.dispose(); }
     const g = buildFigure(this.custom.figure);
-    if (g) this.figureGroup.add(new THREE.Mesh(g, mats.props));
+    if (g) this.figureGroup.add(new THREE.Mesh(g, mats.hull));
   }
 
   update(dt, input, wind, t) {
