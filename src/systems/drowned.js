@@ -24,11 +24,11 @@ function build() {   // white water along the belt near the ship: flat foam patc
   // vertex colours under the props material (pure black dots); now the game's foam material, which takes the light and snaps, and stone
   // teeth from the builder; patches of several sizes, not a lattice
   const foamGeo = new THREE.CircleGeometry(4.5, 7); foamGeo.rotateX(-Math.PI / 2);
-  foamGeo.setAttribute('color', new THREE.Float32BufferAttribute(new Float32Array(foamGeo.attributes.position.count * 4).fill(1), 4));
+  { const n = foamGeo.attributes.position.count, cc = new Float32Array(n * 4); for (let v = 0; v < n; v++) { cc.set([0.82, 0.86, 0.86, v === 0 ? 0.9 : 0.35], v * 4); } foamGeo.setAttribute('color', new THREE.Float32BufferAttribute(cc, 4)); }   // soft-edged: bright in the middle, thin at the rim
   const tb = new Builder(); tb.cyl(0, -1.3, 0, 1.1, 0.15, 2.6, 5, '#3a3634', TILE.stone); const toothGeo = tb.geometry();
   for (let i = 0; i < N; i++) {
     const f = new THREE.Mesh(foamGeo, mats.foam); const t = new THREE.Mesh(toothGeo, mats.props);
-    const k = 0.45 + 0.75 * ((Math.sin(i * 12.9898) * 43758.5453) % 1 + 1) % 1; f.scale.set(k, 1, k * (0.7 + 0.5 * ((i * 0.37) % 1)));
+    const k = 0.3 + 0.45 * ((Math.sin(i * 12.9898) * 43758.5453) % 1 + 1) % 1; f.scale.set(k, 1, k * (0.7 + 0.5 * ((i * 0.37) % 1)));
     f.rotation.y = i * 1.7; f.renderOrder = 2; f.userData.i = i; t.userData.i = i; g.add(f, t);
   }
   scene.add(g); return g;

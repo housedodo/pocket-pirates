@@ -1265,7 +1265,7 @@ function frame() {
   rt.sunScale = stage.sunElev / 0.62;   // how high the sun climbs today (the dig's noon shadow uses it)
   stage.wave *= 0.7 + 0.5 * wind.strength;
   weather.update(dt, wind.t, rt.dread, wind.dir, wind.strength, camera, tod);
-  weather.apply(stage);
+  weather.apply(stage, tod.night);   // the weather's greys are darkened at night (visual QA)
   homeLook(stage);   // the noon hush near Tama (systems/home.js)
   if (rt.titleScene && rt.titleScene.sc.tint) { const t = rt.titleScene.sc.tint; stage.skyTop.lerp(_tc.set(t.top), t.k * 0.6); stage.skyHorizon.lerp(_tc.set(t.hor), t.k); stage.fog.lerp(_tc.set(t.fog), t.k); }
   stage.fogFar += ship.mods.fogBonus; stage.fogNear += ship.mods.fogBonus * 0.5; ritualLook(stage);

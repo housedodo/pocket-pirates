@@ -4,6 +4,7 @@ import { settings } from './core/config.js';
 
 // Rolling weather: overcast -> rain -> storms (with lightning), plus fog banks.
 // Driven by slow noise, scaled by dread (the further out, the nastier it gets).
+const SC = {};   // scratch colours for the night-darkened greys (made once, reused each frame)
 const GREY_TOP = new THREE.Color('#56626f'), GREY_HOR = new THREE.Color('#9aa5ad'), GREY_FOG = new THREE.Color('#8c979e');
 const RED_SKY = new THREE.Color('#d8402a'), RED_TOP = new THREE.Color('#6a2038');
 const WHITE = new THREE.Color(1, 1, 1);
@@ -124,21 +125,24 @@ export class Weather {
   }
 
   /** Mutates the per-frame stage so everything downstream sees the weather. */
-  apply(stage) {
+  apply(stage, night = 0) {
+    // the weather's greys are daylight greys: at night they are darkened by the same amount as the night itself, so rain or fog never
+    // lights up the dark (visual QA 2026-11-19: a rainy night was a bright periwinkle beside a black clear night)
+    const nk = 1 - 0.72 * night, T = (c) => SC[c.__k || (c.__k = String(Object.keys(SC).length))] ? SC[c.__k].copy(c).multiplyScalar(nk) : (SC[c.__k] = c.clone().multiplyScalar(nk));
     const c = this.cloud, fogK = Math.max(c * 0.6, this.fog * 0.8, this.rain * 0.5);
-    stage.skyTop.lerp(GREY_TOP, c * 0.65);
-    stage.skyHorizon.lerp(GREY_HOR, Math.max(c, this.fog) * 0.55);
-    stage.fog.lerp(GREY_FOG, fogK * 0.7);
+    stage.skyTop.lerp(T(GREY_TOP), c * 0.65);
+    stage.skyHorizon.lerp(T(GREY_HOR), Math.max(c, this.fog) * 0.55);
+    stage.fog.lerp(T(GREY_FOG), fogK * 0.7);
     stage.cloud.multiplyScalar(1 - 0.45 * c);
     stage.light *= 1 - 0.3 * this.darkness;   // weather only darkens (it used to hold a floor of 0.28 that also lit up clear nights)
     stage.sat *= 1 - 0.25 * c;
     stage.wave *= (1 - 0.25 * this.drizzle) * (1 + 1.3 * this.storm);   // rain flattens the swell; a storm heaps it up
     // light rain: pale grey sky, a milky, quiet sea, soft mist. A storm: near-black sky, dark slate water, cold flat light, scudding clouds
     const dz = this.drizzle, st = this.heavy;
-    stage.skyTop.lerp(DRIZZLE_TOP, dz * 0.85); stage.skyHorizon.lerp(DRIZZLE_HOR, dz * 0.8); stage.fog.lerp(DRIZZLE_FOG, dz * 0.8);
-    stage.deep.lerp(DRIZZLE_DEEP, dz * 0.6); stage.shallow.lerp(DRIZZLE_SHALLOW, dz * 0.55); stage.cloud.lerp(DRIZZLE_HOR, dz * 0.6);
-    stage.skyTop.lerp(STORM_TOP, st * 0.75); stage.skyHorizon.lerp(STORM_HOR, st * 0.6); stage.fog.lerp(STORM_FOG, st * 0.6);   // the horizon stays lighter: something to steer by
-    stage.deep.lerp(STORM_DEEP, st * 0.5); stage.shallow.lerp(STORM_SHALLOW, st * 0.45); stage.cloud.lerp(STORM_CLOUD, st * 0.8);   // a dark sea, but you can still read the waves
+    stage.skyTop.lerp(T(DRIZZLE_TOP), dz * 0.85); stage.skyHorizon.lerp(T(DRIZZLE_HOR), dz * 0.8); stage.fog.lerp(T(DRIZZLE_FOG), dz * 0.8);
+    stage.deep.lerp(T(DRIZZLE_DEEP), dz * 0.6); stage.shallow.lerp(T(DRIZZLE_SHALLOW), dz * 0.55); stage.cloud.lerp(T(DRIZZLE_HOR), dz * 0.6);
+    stage.skyTop.lerp(T(STORM_TOP), st * 0.75); stage.skyHorizon.lerp(T(STORM_HOR), st * 0.6); stage.fog.lerp(T(STORM_FOG), st * 0.6);   // the horizon stays lighter: something to steer by
+    stage.deep.lerp(T(STORM_DEEP), st * 0.5); stage.shallow.lerp(T(STORM_SHALLOW), st * 0.45); stage.cloud.lerp(T(STORM_CLOUD), st * 0.8);   // a dark sea, but you can still read the waves
     stage.tint.lerp(STORM_TINT, st * 0.5);
     stage.light *= (1 - 0.1 * dz) * (1 - 0.18 * st);
     stage.sat *= (1 - 0.3 * dz) * (1 - 0.35 * st);

@@ -93,10 +93,10 @@ export class Sky {
 
     // gradient dome
     this.domeMat = new THREE.ShaderMaterial({
-      uniforms: { uTop: { value: new THREE.Color() }, uHorizon: { value: new THREE.Color() }, uGlow: { value: new THREE.Color('#ff6a7a') }, uGlowK: { value: 0 }, uSunXZ: { value: new THREE.Vector2(0, -1) } },
+      uniforms: { uTop: { value: new THREE.Color() }, uHorizon: { value: new THREE.Color() }, uFogC: { value: new THREE.Color() }, uGlow: { value: new THREE.Color('#ff6a7a') }, uGlowK: { value: 0 }, uSunXZ: { value: new THREE.Vector2(0, -1) } },
       vertexShader: 'varying float vY; varying vec2 vXZ; void main(){ vec3 n = normalize(position); vY = n.y; vXZ = n.xz; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }',
       // seven bands with an ordered-dither seam between them (STYLE 2: no smooth gradients; G2)
-      fragmentShader: 'uniform vec3 uTop; uniform vec3 uHorizon; uniform vec3 uGlow; uniform float uGlowK; uniform vec2 uSunXZ; varying float vY; varying vec2 vXZ; float b2(vec2 a){ return fract(dot(a, vec2(0.5, a.y * 0.75))); } float b4(vec2 a){ a = floor(a); return b2(floor(0.5 * a)) * 0.25 + b2(a); } void main(){ float t = pow(clamp(vY,0.0,1.0), 0.5); float b = floor(t * 7.0 + (b4(gl_FragCoord.xy) - 0.5) * 0.4 + 0.5) / 7.0; vec3 c = mix(uHorizon, uTop, clamp(b, 0.0, 1.0)); float g = uGlowK * (1.0 - smoothstep(0.0, 0.34, vY)) * (0.3 + 0.7 * max(0.0, dot(normalize(vXZ + 1e-4), uSunXZ))); float q = floor(g * 4.0 + (b4(gl_FragCoord.xy) - 0.5) * 0.5 + 0.5) / 4.0; c = mix(c, uGlow, clamp(q, 0.0, 1.0) * 0.8); gl_FragColor = vec4(c, 1.0); }',
+      fragmentShader: 'uniform vec3 uTop; uniform vec3 uHorizon; uniform vec3 uFogC; uniform vec3 uGlow; uniform float uGlowK; uniform vec2 uSunXZ; varying float vY; varying vec2 vXZ; float b2(vec2 a){ return fract(dot(a, vec2(0.5, a.y * 0.75))); } float b4(vec2 a){ a = floor(a); return b2(floor(0.5 * a)) * 0.25 + b2(a); } void main(){ float t = pow(clamp(vY,0.0,1.0), 0.5); float b = floor(t * 7.0 + (b4(gl_FragCoord.xy) - 0.5) * 0.4 + 0.5) / 7.0; vec3 c = mix(uHorizon, uTop, clamp(b, 0.0, 1.0)); float g = uGlowK * (1.0 - smoothstep(0.0, 0.34, vY)) * (0.3 + 0.7 * max(0.0, dot(normalize(vXZ + 1e-4), uSunXZ))); float q = floor(g * 4.0 + (b4(gl_FragCoord.xy) - 0.5) * 0.5 + 0.5) / 4.0; c = mix(c, uGlow, clamp(q, 0.0, 1.0) * 0.8); c = mix(c, uFogC, smoothstep(0.0, -0.04, vY)); gl_FragColor = vec4(c, 1.0); }',   // below the horizon the dome is the fog: where the sea ends (seen from high up) there is no seam (visual QA 2026-11-19)
       side: THREE.BackSide, depthWrite: false, depthTest: false, fog: false,
     });
     const dome = new THREE.Mesh(new THREE.SphereGeometry(R, 14, 8), this.domeMat);
@@ -293,6 +293,7 @@ export class Sky {
     this.group.position.copy(cam.position);
     this.domeMat.uniforms.uTop.value.copy(stage.skyTop);
     this.domeMat.uniforms.uHorizon.value.copy(stage.skyHorizon);
+    this.domeMat.uniforms.uFogC.value.copy(stage.fog);
     if (this.dayLook) this.dayUpdate(dt, cam, stage, windDir, tod, fx);
 
     const place = (obj, az, el) => {

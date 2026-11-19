@@ -282,6 +282,13 @@ export class Ocean {
             murk = mix(murk, vec3(0.22, 0.22, 0.13), scum * 0.45 * smoothstep(0.3, 1.0, mk));
             outc = mix(outc, murk * uLight, mk * 0.92);
           }
+          #ifdef USE_FOG
+          { // the sea's square edge (visual QA 2026-11-19): from a high camera the mesh's rim showed as a diamond against the sky; the last
+            // stretch before the rim goes to the fog's own colour, so the sea always ends in fog, however high the view
+            vec2 dd = abs(vWP.xz - cameraPosition.xz); float rim = max(dd.x, dd.y);
+            outc = mix(outc, fogColor, smoothstep(${(SIZE / 2 - 130).toFixed(1)}, ${(SIZE / 2 - 25).toFixed(1)}, rim));
+          }
+          #endif
           diffuseColor.rgb = outc;`,
       },
     });
