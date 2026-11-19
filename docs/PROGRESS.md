@@ -2263,3 +2263,7 @@ dread there eased for a while after it.
 - `bookWeight` (`table.js`): `Math.sign(w) * Math.round(|w| / 2)`, so one low throw weighs one as one high throw lifts one; `|| 0` keeps
   no negative zero. The Table's card always shows Sail on, and Sail on is the Unseen Throw (`openTable` sets `rt.cardNext`).
 - Open: the ending buttons sit below the fold in a short window (640x400): four ways to fix it put to the owner.
+- **No keys at the Table** (`main.js`: `rt.tableCard`, set in `openTable`, cleared in `closeModal`; the keydown handler returns first).
+  Checked: Escape, E, 1, Enter, Space and P change nothing; after a throw E does not go on; only clicking does. "Go on [E]" reads "Go on".
+- **The ending's buttons pinned** (`index.html` #ending): the buttons are sticky at the bottom; the picture shrinks to leave 250 px for
+  the title, the line and the buttons; under 560 px tall the title is 32 px. Checked at 640x400 (screenshot): all of it fits.

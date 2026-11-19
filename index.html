@@ -512,6 +512,12 @@
     #ending.show { display: flex; animation: dfade 3s steps(8) both; } #ending h1 { font-size: 48px; font-weight: 400; color: var(--gold); margin: 0 0 8px; } #ending.dark h1 { color: var(--horror); }
     #endArt { width: min(640px, 90vw); aspect-ratio: 16 / 9; object-fit: cover; image-rendering: pixelated; box-shadow: 0 0 0 4px var(--edge-navy); margin-bottom: 8px; }
     #ending .endbtns { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
+    /* short windows (owner, 2026-11-19, option 1): the picture and the words scroll; the buttons stay pinned at the bottom edge */
+    #ending { justify-content: flex-start; overflow-y: auto; padding-bottom: 0; }
+    #ending > img, #ending > h1 { flex-shrink: 0; } #ending > img { margin-top: auto; width: min(640px, 90vw, calc((100vh - 250px) * 16 / 9)); }   /* the picture gives way so the title and the line still fit */
+    @media (max-height: 560px) { #ending h1 { font-size: 32px; margin: 0; } #ending { gap: 6px; } }
+    #ending .endbtns { position: sticky; bottom: 0; margin-top: auto; padding: 8px 0 14px; width: 100%; background: #06040e; flex-shrink: 0; }
+    #ending .endbtns button { margin-top: 8px; }
     /* Good Dreams: the card over the whole screen, turning back into the game (endcards.js unpixelate) */
     #endMorph { position: fixed; inset: 0; width: 100vw; height: 100vh; object-fit: cover; image-rendering: pixelated; z-index: var(--z-ending); display: none; pointer-events: none; opacity: 1; transition: opacity .6s steps(6); }
     #endMorph.on { display: block; } #endMorph.out { opacity: 0; }

@@ -26,6 +26,7 @@ need to break one, stop and ask the owner. `docs/CANON.md` says what is true in 
 18. **E works under way.** Anything that needs the ship still drops the anchor first and starts by itself (`HEAVE_KINDS`, `anchorTick`). Never ask the player to stop by hand, and never cancel an action because the ship drifted.
 19. **A letter is shown where it is taken.** Do not send the player to another screen to read what they were just handed.
 20. **The log's bookmarks never move** between pages, and a click beside the book does not close it.
+20a. **At the Table no key acts** (owner, 2026-11-19): not E, not Esc, not a number, not Enter or Space, from the keyboard or the pad. Only the options, chosen by hand, can end a run. The ending screen's buttons stay pinned at the bottom edge in any window; the picture gives way first.
 
 ## Look
 21. **`docs/STYLE.md` is the law for looks.** If the look changes on purpose, STYLE.md changes in the same commit.

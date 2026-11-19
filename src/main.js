@@ -569,7 +569,7 @@ function openModal(name) {
   audio.setPaused(name === 'pause');
 }
 function closeModal(silent = false) {
-  rt.hbPaper = false;
+  rt.hbPaper = false; rt.tableCard = false;
   if (!rt.modal) return;
   document.body.classList.remove('ashore');
   pauseEl.classList.remove('open'); chartEl.classList.remove('open'); harbourEl.classList.remove('open'); shipEl.classList.remove('open'); yardEl.classList.remove('open'); hutEl.classList.remove('open'); cardEl.classList.remove('open'); pigEl.classList.remove('open'); greetEl.classList.remove('open'); caveEl.classList.remove('open'); if (rt.modal === 'local') localGames.finish();
@@ -597,6 +597,7 @@ window.addEventListener('keydown', (e) => {
   if (e.target && e.target.closest && e.target.closest('#mixer, #studio') && e.code !== 'F8' && e.code !== 'F9') return;   // arrow keys on a mixer slider move the slider, not the ship
   if (!rt.started && $('thPanel').classList.contains('open')) return;
   if (!rt.started) { if (rt.titleScene) titleKey(e); else begin(); return; }
+  if (rt.modal === 'card' && rt.tableCard) { e.preventDefault(); return; }   // at the Table no key acts, not E, not Esc, not a number: only the options, by hand (owner, 2026-11-19: an accident must not end a run)
   if (e.code === 'Escape' || e.code === 'KeyP') {
     e.preventDefault();
     if (rt.modal === 'pause') { if (rt.pausePanel !== 'main') pauseBack(); else closeModal(); }
@@ -994,9 +995,9 @@ function openTable(arrive = false) {
   if (arrive) snapshotTable();   // the voyage as it is now, kept aside: a closed ending can come back here (systems/endgame.js)
   const opts = tableOptions(state), memory = (state.story.maraMem || 0) >= 4, again = tableAgain();
   const ask = tableGctx().edge === 'out' && !state.story.edgeAsk ? EDGE_ASK : ''; if (ask) state.story.edgeAsk = 1;   // the questions are said, once (table.js)
-  rt.cardBusy = false; openModal('card'); audio.play('card');
+  rt.cardBusy = false; openModal('card'); audio.play('card'); rt.tableCard = true;   // closeModal clears it
   rt.cardNext = () => { closeModal(); showEnding('leave'); };   // Sail on without choosing is going back to the boat: the Unseen Throw (owner, 2026-11-19)
-  const done = $('cardDone'), out = (t, next) => { $('cardOut').textContent = t; cardEl.classList.add('out'); done.style.display = ''; done.textContent = 'Go on [E]'; cardEl.querySelectorAll('#cardChoices button').forEach((b) => { b.disabled = true; }); rt.cardBusy = 'done'; rt.cardNext = next; };
+  const done = $('cardDone'), out = (t, next) => { $('cardOut').textContent = t; cardEl.classList.add('out'); done.style.display = ''; done.textContent = 'Go on'; cardEl.querySelectorAll('#cardChoices button').forEach((b) => { b.disabled = true; }); rt.cardBusy = 'done'; rt.cardNext = next; };
   renderCard({ icon: 'pip', art: paintStill('table', `table|${tableGctx().edge}`), title: 'THE TABLE BY THE WATER', dark: true, text: `${ARRIVAL}${again.line ? ` ${again.line}` : ask ? ` ${ask}` : memory ? ' Mara, quietly: "I do not think we are here to throw."' : ''}`,
     choices: opts.map((o) => ({ label: o.label, id: o.id })) }, (ch) => {
     if (rt.cardBusy) return; rt.cardBusy = true;
