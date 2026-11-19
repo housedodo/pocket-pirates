@@ -18,6 +18,11 @@ function ramp(ctx, f, colours) {   // f(x, y) -> brightness 0..1, dithered onto 
   ctx.putImageData(img, 0, 0);
 }
 const R = (ctx, c, x, y, w, h) => { ctx.fillStyle = c; ctx.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h)); };
+// a twenty-sided die in pixels (owner, 2026-11-19: "the die is not 20 sided"): a hexagon's outline, a pale triangular face on top,
+// the side faces in shade, a mark on the face
+const D20 = ['..MLM..', '.MLLLM.', 'MLLKLLM', 'DMLLLMD', 'DDMLMDD', '.DDMDD.', '..DDD..'];
+const D20C = { L: '#f0e8d8', M: '#c8bca4', D: '#8a7e6a', K: '#3a2210' };
+const die20 = (ctx, x, y, k = 1) => D20.forEach((row, j) => { for (let i = 0; i < 7; i++) if (row[i] !== '.') R(ctx, D20C[row[i]], x + i * k, y + j * k, k, k); });
 function glow(ctx, cx, cy, r, col, a) {
   const x0 = Math.max(0, cx - r | 0), y0 = Math.max(0, cy - r | 0), x1 = Math.min(W, cx + r | 0), y1 = Math.min(H, cy + r | 0);
   if (x1 <= x0 || y1 <= y0) return;
@@ -91,7 +96,7 @@ const SCENES = {
     for (let x = 0; x < W; x += 9) R(ctx, '#3a5a88', x + (hash(x, 4, 2) * 6 | 0), 80 + (hash(x, 5, 2) * 40 | 0), 4, 1);   // glints
     if (node !== 'pulled') ramp(ctx, (x, y) => (y < 124 + Math.sin(x / 30) * 3 ? null : 0.35 + 0.35 * fbm(x / 7, y / 5, 21) + (y - 124) / 120), ['#120a06', '#2a1a0e', '#4a3a28', '#6a5a40', '#8a7a5a', '#b8a880']);
     if (node === 'gone') {   // She Rises, after: the sand and the lit sea, and nothing on the sand but the die
-      R(ctx, '#e8e0d0', 158, 146, 6, 5); R(ctx, '#b8b0a0', 158, 150, 6, 1); R(ctx, '#5a0a2a', 160, 147, 1, 1);
+      die20(ctx, 157, 144);
       return { lamps: [] };
     }
     if (node === 'pulled') {   // the Unseen Throw, after: the table stands on the water, a candle lit; your chair pulled out and turned to you
@@ -124,7 +129,7 @@ const SCENES = {
     for (let i = 0; i < 3; i++) { R(ctx, '#5a4a3a', 131, 95 + i * 2, 22 - i * 5, 1); R(ctx, '#5a4a3a', 161, 95 + i * 2, 20 - i * 3, 1); }
     if (node !== 'rises') R(ctx, '#1a0f08', 184, 90, 1, 8);
     // the die (none on the table once the tune is kept)
-    if (node !== 'tune') { R(ctx, '#e8e0d0', 112, 95, 7, 6); R(ctx, '#b8b0a0', 112, 100, 7, 1); R(ctx, '#3a2210', 115, 97, 1, 1); }
+    if (node !== 'tune') die20(ctx, 112, 94);
     // the candle (arriving: every candle on the table is lit)
     R(ctx, '#e8e0c8', 204, 90, 4, 10); R(ctx, '#ffe88a', 205, 86, 2, 4);
     const more = node === 'table' ? candles(ctx, [98, 122, 194, 218], 94) : [];
@@ -146,7 +151,7 @@ const SCENES = {
     R(ctx, '#e8dcc0', 104, 132, 54, 30); R(ctx, '#d8ccb0', 158, 132, 54, 30); R(ctx, '#8a7a5a', 157, 132, 2, 30);   // the book, open, its pages full
     for (let i = 0; i < 13; i++) { R(ctx, '#5a4a3a', 108, 134 + i * 2, 44 - (hash(i, 1, 34) * 14 | 0), 1); R(ctx, '#5a4a3a', 162, 134 + i * 2, 44 - (hash(i, 2, 34) * 14 | 0), 1); }
     R(ctx, '#1a0f08', 214, 128, 1, 14);   // the pen
-    R(ctx, '#e8e0d0', 76, 118, 9, 8); R(ctx, '#b8b0a0', 76, 125, 9, 1); R(ctx, '#3a2210', 80, 121, 1, 1);   // the die, pushed across
+    die20(ctx, 76, 118);   // the die, pushed across
     R(ctx, '#e8e0c8', 240, 104, 4, 18); R(ctx, '#ffe88a', 241, 98, 2, 6);
     return { lamps: [[242, 98, 90, '#ffd070'], [160, 80, 34, '#d0603a']] };
   },

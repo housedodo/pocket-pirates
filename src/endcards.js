@@ -26,7 +26,7 @@ export function dreamsSetup() {
   const d = tableDesc(), ship = G.ship; if (!d || window.__BUILD === 'demo') return false;
   const R = shoreR(d, 0) + 26;
   ship.pos.set(d.x + R, 0, d.z + 8); ship.heading = Math.PI; ship.speed = 0; ship.trim = 0; ship.vel = null; ship.yaw = 0;
-  if (state.time > 0.2 && state.time < 0.8) state.time = 0.9;   // night, as on the card (the voyage goes on from it)
+  state.time = 0.775;   // the end of dusk: still light enough to see the Gull and the Table as the card shows them, and the night comes on as it does (owner, 2026-11-19: the hand-back was far darker than the card)
   const w = G.weather; w.calmHold = 120; w.cloud = 0; w.rain = 0; w.storm = 0; w.fog = 0;
   rt.camHeading = Math.PI; rt.yawT = 0; rt.camYaw = 0;
   const P = ship.pos;

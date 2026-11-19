@@ -10,6 +10,7 @@
 // Built once with the island (world.js Island), in the island's own frame. Home Sound and the hand-made places are left alone.
 // Lamps are drawn with the game's glow material (additive, never fogged), so they read at night.
 import { TILE } from './textures.js';
+import { params } from './core/config.js';
 import { mats } from './psx.js';
 import { mulberry32 } from './util.js';
 import { customProps } from './customprops.js';
@@ -105,8 +106,10 @@ export function regionDecor(d, A, extra, h) {
     st(G, ALWAYS, mats.glow);
     if (harbour || rng() < 0.3) {
       const [tx, tz] = P(-6, -(h.shoreR(d, way + Math.PI / 2) + 30));
-      A.cyl(tx, -1, tz, 4.5, 3, 41, 8, '#2a2420', TILE.stone);
-      const T = mk(); T.box(tx, 40, tz, 5, 5, 5, '#ffc060'); st(T, ALWAYS, mats.glow);
+      const T = mk();
+      if (GUILD_TOWER === 'old') { A.cyl(tx, -1, tz, 4.5, 3, 41, 8, '#2a2420', TILE.stone); T.box(tx, 40, tz, 5, 5, 5, '#ffc060'); }
+      else guildTower(GUILD_TOWER, A, T, tx, tz, way);
+      st(T, ALWAYS, mats.glow);
     }
   } else if (reg === 'drowned') {   // roofs to the ridge and chimneys along the way in, a leaning belfry
     for (let i = 0; i < (harbour ? 6 : 4); i++) {
@@ -125,4 +128,51 @@ export function regionDecor(d, A, extra, h) {
     if (harbour || rng() < 0.4) { const [x, z] = P(50, -26); A.push(x, -3, z, way, 1, 1, 1, 0, 0.18); A.box(0, 0, 0, 5, 18, 5, '#7a7476', TILE.stone); A.cyl(0, 18, 0, 4, 0, 6, 4, '#4a4446', TILE.roof); A.pop(); }
   }
   customProps(d, A, { P, clearOf, st, mk, harbour });   // a fire for the players, a tide pole (customprops.js, the lore bible)
+}
+
+// ---- the Guild's towers, half fortress and half lighthouse (owner, 2026-11-19: "present me 4 different designs, each one distinct").
+// A trial (RULES 35): ?guildtower=a, b, c or d; without it the old dark column stands. The losers are deleted once one is chosen.
+//   a  the bastion light: a crenellated round drum on the water, a limewashed tower with black bands rising out of it, a gallery and a cone
+//   b  the keep light: a square stone keep with four round corner turrets and battlements, arrow slits, a square lamp house, a pyramid roof
+//   c  the sea-wall light: two stubs of curtain wall, a tapering red and white octagonal tower, a corbelled ring under a railed gallery, a dome
+//   d  the martello light: a wide low sandstone drum with a gun port and a stepped parapet; an iron lattice lantern stands off to one side
+export const GUILD_TOWER = ['a', 'b', 'c', 'd'].includes(params.get('guildtower')) ? params.get('guildtower') : 'old';
+function guildTower(kind, A, T, x, z, way) {
+  const STONE = '#5a5248', DARK = '#2a2420', LIME = '#e8e2d2', LAMP = '#ffc060';
+  if (kind === 'a') {
+    A.cyl(x, -1, z, 6.5, 6, 9, 10, STONE, TILE.stone);
+    for (let i = 0; i < 10; i++) { const t = (i / 10) * Math.PI * 2; A.push(x + Math.cos(t) * 5.6, 8, z + Math.sin(t) * 5.6, -t); A.box(0, 0, 0, 1.2, 1.3, 1.6, STONE, TILE.stone); A.pop(); }   // merlons
+    A.cyl(x, 8, z, 3.2, 2.6, 14, 8, LIME, TILE.wall);
+    for (const y of [12, 17]) A.cyl(x, y, z, 3.05, 2.85, 0.8, 8, DARK, TILE.white, false);   // black bands
+    A.cyl(x, 22, z, 3.6, 3.6, 0.5, 8, DARK, TILE.white);   // the gallery
+    T.box(x, 22.5, z, 3, 2.4, 3, LAMP);
+    A.cyl(x, 24.9, z, 2.3, 0.2, 2.2, 8, DARK, TILE.roof);
+  } else if (kind === 'b') {
+    A.box(x, -1, z, 9, 15, 9, STONE, TILE.stone);
+    for (const [cx, cz] of [[-4.5, -4.5], [4.5, -4.5], [-4.5, 4.5], [4.5, 4.5]]) { A.cyl(x + cx, -1, z + cz, 1.5, 1.4, 17, 8, STONE, TILE.stone); A.cyl(x + cx, 16, z + cz, 1.7, 0.1, 2.6, 8, '#3a2a26', TILE.roof); }   // corner turrets
+    for (let i = -3; i <= 3; i += 2) for (const [ax, az] of [[i, -4.2], [i, 4.2], [-4.2, i], [4.2, i]]) A.box(x + ax, 14, z + az, 1.1, 1.2, 1.1, STONE, TILE.stone);   // battlements
+    for (const y of [5, 9.5]) for (const [ax, az, w, dd] of [[0, -4.55, 0.4, 0.1], [0, 4.55, 0.4, 0.1], [-4.55, 0, 0.1, 0.4], [4.55, 0, 0.1, 0.4]]) A.box(x + ax, y, z + az, w, 1.4, dd, '#100c0a');   // arrow slits
+    A.box(x, 14, z, 4.2, 1, 4.2, DARK, TILE.white);
+    T.box(x, 15, z, 3.2, 2.4, 3.2, LAMP);
+    A.cyl(x, 17.4, z, 3.0, 0.1, 2.6, 4, DARK, TILE.roof);   // a four-sided cone: the pyramid roof
+  } else if (kind === 'c') {
+    A.push(x, -1, z, way);
+    for (const s of [-1, 1]) A.box(s * 7, 0, 0, 8, 6, 2.4, STONE, TILE.stone);   // the curtain wall's stubs
+    for (const s of [-1, 1]) for (let k = 0; k < 3; k++) A.box(s * (4.5 + k * 2.4), 6, 0, 1.0, 1.0, 2.4, STONE, TILE.stone);
+    const seg = 6; for (let k = 0; k < 4; k++) { const r0 = 4 - k * 0.3, r1 = 4 - (k + 1) * 0.3; A.cyl(0, k * seg, 0, r0, r1, seg, 8, k % 2 ? '#8a2a22' : LIME, TILE.wall, false); }   // red and white
+    A.cyl(0, 24, 0, 2.8, 3.8, 1.2, 8, DARK, TILE.stone);   // the corbelled ring
+    for (let i = 0; i < 8; i++) { const t = (i / 8) * Math.PI * 2; A.box(Math.cos(t) * 3.5, 25.2, Math.sin(t) * 3.5, 0.15, 1.1, 0.15, DARK); }   // the railing
+    A.pop();
+    T.box(x, 24.2, z, 2.4, 2.4, 2.4, LAMP);
+    A.blob(x, 27.3, z, 1.8, 1.1, 1.8, DARK, TILE.roof, 0.05, 2);   // the dome
+  } else {
+    A.cyl(x, -1, z, 8, 6.5, 8, 12, '#7a6e60', TILE.stone);
+    A.cyl(x, 7, z, 6.8, 6.8, 1.2, 12, '#6a5e50', TILE.stone); A.cyl(x, 8.2, z, 6.2, 6.2, 0.6, 12, '#6a5e50', TILE.stone, false);   // the stepped parapet
+    A.push(x, -1, z, way); A.box(0, 3, -7.1, 1.4, 1.0, 0.4, '#100c0a'); A.pop();   // a gun port to seaward
+    const ox = x + Math.cos(way) * 2.6, oz = z - Math.sin(way) * 2.6;   // the iron lantern stands off to one side
+    for (const [a, b] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) A.box(ox + a * 1.1, 8.6, oz + b * 1.1, 0.16, 7, 0.16, '#1a1614');
+    for (const y of [10.6, 13]) { A.box(ox, y, oz - 1.1, 2.3, 0.14, 0.14, '#1a1614'); A.box(ox, y, oz + 1.1, 2.3, 0.14, 0.14, '#1a1614'); A.box(ox - 1.1, y, oz, 0.14, 0.14, 2.3, '#1a1614'); A.box(ox + 1.1, y, oz, 0.14, 0.14, 2.3, '#1a1614'); }
+    T.box(ox, 15.4, oz, 2.0, 2.0, 2.0, LAMP);
+    A.cyl(ox, 17.4, oz, 1.7, 0.3, 1.4, 6, '#1a1614', TILE.roof);
+  }
 }

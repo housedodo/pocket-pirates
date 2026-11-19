@@ -2267,3 +2267,13 @@ dread there eased for a while after it.
   Checked: Escape, E, 1, Enter, Space and P change nothing; after a throw E does not go on; only clicking does. "Go on [E]" reads "Go on".
 - **The ending's buttons pinned** (`index.html` #ending): the buttons are sticky at the bottom; the picture shrinks to leave 250 px for
   the title, the line and the buttons; under 560 px tall the title is 32 px. Checked at 640x400 (screenshot): all of it fits.
+
+## 2026-11-19 (late): the Table, the die, Your Seat, Good Dreams, the Guild towers
+- **The Table** (`landmarks.js` case 'table'): at the island's centre; four table legs and four legs on each chair, each to its own
+  ground (`at(x, z)`); the far one sits on the far chair's ground. Screenshot checked.
+- **A d20** (`D20` pattern, `die20` in `cavescene.js` and `tools/endcards/paint.cjs`; cards repainted with `node tools/endcards/paint.cjs`).
+- **Your Seat**: the newcomer shows `cardFor('sit')`; `PAN` shortened (END 30, Mara at 22) and the camera eases back 26 and up 22 over
+  the whole look (`seatPanTick`); skies without fog or storm. Screenshots at t 0 and 18.
+- **Good Dreams** (`endcards.js` dreamsSetup): time 0.775 instead of 0.9. Screenshot: the Gull and the sea readable.
+- **The Guild's towers** (`regiondecor.js` `guildTower`, trial `?guildtower=a|b|c|d`, default the old column): the bastion light, the keep
+  light, the sea-wall light, the martello light. Screenshots for the owner; the losers go once one is chosen.

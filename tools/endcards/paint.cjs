@@ -9,6 +9,11 @@ const REF = path.join(__dirname, 'refs'), W = 320, H = 180;
 const hx = (h) => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
 const C = (h) => P.col(hx(h)), clamp = (v) => Math.max(0, Math.min(255, v | 0));
 const R = (b, c, x, y, w, h) => b.rect(Math.round(x), Math.round(y), Math.round(x + w), Math.round(y + h), hx(c));
+// a twenty-sided die in pixels (owner, 2026-11-19: "the die is not 20 sided"): a hexagon's outline, a pale triangular face on top,
+// the side faces in shade, a mark on the face
+const D20 = ['..MLM..', '.MLLLM.', 'MLLKLLM', 'DMLLLMD', 'DDMLMDD', '.DDMDD.', '..DDD..'];
+const D20C = { L: '#f0e8d8', M: '#c8bca4', D: '#8a7e6a', K: '#3a2210' };
+const die20 = (b, x, y, k = 1) => D20.forEach((row, j) => { for (let i = 0; i < 7; i++) if (row[i] !== '.') R(b, D20C[row[i]], x + i * k, y + j * k, k, k); });
 const F = (b, fn, cols) => b.field((x, y) => { const v = fn(x, y); return v == null ? null : Math.max(0.001, Math.min(0.999, v)); }, cols.map(C));
 const glow = (b, cx, cy, r, col, a = 0.8, sy = 1.15) => { const c = hx(col); for (let y = Math.floor(cy - r); y <= cy + r; y++) for (let x = Math.floor(cx - r); x <= cx + r; x++) { const t = 1 - Math.hypot(x - cx, (y - cy) * sy) / r; if (t <= 0 || P.bt(x, y) >= t * t * a) continue; const o = b.get(x, y); if (o) b.pset(x, y, P.mix(P.unpack(o), c, 0.42)); } };
 
@@ -126,7 +131,7 @@ function table(b, o) {
   for (const u of [0.03, 0.97]) { const p = at(u, 0); quad(b, [p[0] - 2.5 * s, p[1] + ap], [p[0] + 2.5 * s, p[1] + ap], [p[0] + 2.2 * s, p[1] + legH], [p[0] - 2.2 * s, p[1] + legH], (uu, v, X, Y) => worn(v, uu, X, Y, 0.62 - 0.25 * uu, 1, 5)); }
   // on it: the book open, the die, the drawing of the Edge, candles
   const bk = at(0.48, 0.45); quad(b, [bk[0] - 12 * s, bk[1] + 2 * s], [bk[0] + 12 * s, bk[1] + 0 * s], [bk[0] + 14 * s, bk[1] - 4 * s], [bk[0] - 9 * s, bk[1] - 2 * s], (u, v, X, Y) => (Math.abs(u - 0.5) < 0.03 ? hx('#8a7a5a') : (Math.round(v * 6) % 2 && u > 0.08 && u < 0.92 && Math.abs(u - 0.5) > 0.06 ? hx('#7a6a58') : hx(u < 0.5 ? '#efe4c8' : '#e2d6b8'))));
-  if (o.die !== false) { const dp = at(0.24, 0.5); R(b, '#f0e8d8', dp[0], dp[1] - 4 * s, 4 * s, 3.5 * s); R(b, '#b8b0a0', dp[0], dp[1] - 1 * s, 4 * s, 1); b.pset(Math.round(dp[0] + 2 * s), Math.round(dp[1] - 3 * s), hx('#3a2210')); }
+  if (o.die !== false) { const dp = at(0.24, 0.5), k = Math.max(1, Math.round(s * 0.7)); die20(b, dp[0], dp[1] - 7 * k, k); }
   { const dw = at(0.12, 0.3); quad(b, [dw[0], dw[1]], [dw[0] + 20 * s, dw[1] - 1.5 * s], [dw[0] + 23 * s, dw[1] - 5 * s], [dw[0] + 3 * s, dw[1] - 3.5 * s], (u, v, X, Y) => (Math.abs(v - 0.5) < 0.12 && u < 0.6 ? hx('#b01414') : u > 0.6 && u < 0.65 ? hx('#b01414') : hx('#d4c8a4'))); }   // the Edge, in red
   const cs = o.candleAt || [[0.08, 0.7], [0.2, 0.75], [0.34, 0.68], [0.7, 0.7], [0.8, 0.62], [0.9, 0.7]];
   for (const [u, v] of cs) { const p = at(u, v); candle(b, Math.round(p[0]), Math.round(p[1] - 7 * s), o.candles !== false, Math.max(4, Math.round(7 * s))); }
@@ -279,7 +284,7 @@ cards.sit = () => {   // Your Seat, after the owner's reference: inside the roun
   R(b, '#2a1a10', 158, 142, 3, 27);   // the gutter
   quad(b, [40, 150], [84, 147], [82, 140], [44, 142], (u, v, X, Y) => hx(v < 0.2 ? '#6a2a1a' : ['#2a120c', '#4a2014', '#6a2a1a'][Math.min(2, Math.floor(lightAt(X, Y) * 4))]));   // a closed book, old red leather
   R(b, '#3a1a10', 40, 150, 44, 2);
-  R(b, '#f0e8d8', 92, 133, 5, 4); R(b, '#b8b0a0', 92, 136, 5, 1); b.pset(94, 134, hx('#3a2210'));   // the die
+  die20(b, 91, 131);   // the die
   // the candle in its holder, and its light
   R(b, '#2a1a10', 254, 136, 22, 3); R(b, '#4a3020', 256, 134, 18, 2); R(b, '#e8e0c8', 262, 112, 6, 22); R(b, '#c8bca0', 266, 113, 2, 21); R(b, '#f8f0dc', 262, 112, 2, 2);
   new P.Flame({ height: 16, width: 4.4, speed: 2.2, rough: 0.8, swayAmp: 1.5, bits: 0, cols: ['#7a2a0a', '#d0603a', '#ffb050', '#ffe88a', '#fff8d0'].map(hx) }).draw(b, 265, 112, 0.5);

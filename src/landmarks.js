@@ -402,15 +402,19 @@ export function lmDecor(d, rng, A, B, D, extra, h) {
       break;
     }
     case 'table': {   // the table at the water's edge: it exists only once three questions have reached a second look. Chairs lean towards each other; the far seat is wet-black
-      const p = P(0.0, 0.7), T = mk();
-      T.box(p[0], p[1] + 0.9, p[2], 3.5, 0.1, 1.6, '#e8e2d4', TILE.white); T.box(p[0], p[1], p[2], 0.14, 0.9, 0.14, '#4a3a2a');
-      T.push(p[0] - 2.1, p[1], p[2], 0, 1, 1, 1, 0, -0.1); T.box(0, 0.5, 0, 0.7, 0.08, 0.7, '#e0d8c8', TILE.white); T.box(-0.3, 0.5, 0, 0.08, 0.9, 0.7, '#e0d8c8', TILE.white); T.pop();
-      T.push(p[0] + 2.1, p[1], p[2], 0, 1, 1, 1, 0, 0.1); T.box(0, 0.5, 0, 0.7, 0.08, 0.7, '#1c1214', TILE.stone); T.box(0.3, 0.5, 0, 0.08, 0.9, 0.7, '#e0d8c8', TILE.white); T.pop();
+      // in the middle of the island (owner, 2026-11-19), and every foot on the sand: the table stands on its own ground, each chair on its own
+      const p = [0, at(0, 0), 0], T = mk(), yN = at(-2.1, 0), yF = at(2.1, 0);
+      T.box(p[0], p[1] + 0.9, p[2], 3.5, 0.1, 1.6, '#e8e2d4', TILE.white); T.box(p[0], p[1] - 0.3, p[2], 0.14, 1.2, 0.14, '#4a3a2a');   // the leg goes a little into the sand
+      for (const [lx, lz] of [[-1.55, -0.65], [1.55, -0.65], [-1.55, 0.65], [1.55, 0.65]]) { const gy = at(lx, lz); T.box(lx, gy - 0.3, lz, 0.12, p[1] + 0.9 - gy + 0.3, 0.12, '#4a3a2a'); }   // four legs, each to its own ground
+      const chair = (x, y, tilt, seat, back, bx) => { T.push(x, y, p[2], 0, 1, 1, 1, 0, tilt); T.box(0, 0.5, 0, 0.7, 0.08, 0.7, seat, seat === '#1c1214' ? TILE.stone : TILE.white); T.box(bx, 0.5, 0, 0.08, 0.9, 0.7, back, TILE.white);
+        for (const [cx, cz] of [[-0.3, -0.3], [0.3, -0.3], [-0.3, 0.3], [0.3, 0.3]]) T.box(cx, -0.3, cz, 0.07, 0.8, 0.07, '#4a3a2a'); T.pop(); };   // four legs down into the sand
+      chair(p[0] - 2.1, yN, -0.1, '#e0d8c8', '#e0d8c8', -0.3);
+      chair(p[0] + 2.1, yF, 0.1, '#1c1214', '#e0d8c8', 0.3);
       st(T, (i) => !!i.gctx.d3);
       const Gp = mk(); Gp.cyl(p[0], p[1] + 0.05, p[2], 4.5, 4.5, 0.02, 10, '#3a1030', TILE.white, false); st(Gp, (i) => !!i.gctx.d3, mats.glow);   // a pale pool of light on the water
       // seen at last (CANON 2026-11-18): someone in the far chair, darker than the dark, leaning to the book (gone once you take the chair)
       const top = p[1] + 1.0, E = (i) => i.gctx.end || {};
-      const F = mk(); F.box(p[0] + 2.2, p[1] + 0.58, p[2], 0.5, 1.0, 0.62, '#06050a', TILE.stone); F.box(p[0] + 2.12, p[1] + 1.58, p[2], 0.34, 0.38, 0.32, '#06050a', TILE.stone);
+      const F = mk(); F.box(p[0] + 2.2, yF + 0.58, p[2], 0.5, 1.0, 0.62, '#06050a', TILE.stone); F.box(p[0] + 2.12, yF + 1.58, p[2], 0.34, 0.38, 0.32, '#06050a', TILE.stone);   // seated on the far chair's own ground
       F.box(p[0] + 1.75, top - 0.08, p[2] - 0.22, 0.5, 0.1, 0.1, '#06050a', TILE.stone); F.box(p[0] + 1.75, top - 0.08, p[2] + 0.22, 0.5, 0.1, 0.1, '#06050a', TILE.stone);
       st(F, (i) => !!i.gctx.d3 && E(i).sat !== 'sit');
       // the candles: one lights for every few lengths nearer you come (the arrival, systems/endgame.js); after an ending they stay lit

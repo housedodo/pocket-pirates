@@ -20,6 +20,7 @@ import { hutSpot } from '../world.js';
 import { tableOpen } from '../clues.js';
 import { smoothstep } from '../util.js';
 import { paintStill } from '../cavescene.js';
+import { cardFor } from '../endcards.js';
 import { finalThrow, AGAIN, OVER, GUITAR, UNSEEN, SEAT } from '../table.js';
 import { $, toast } from '../ui/dom.js';
 import { Builder } from '../builder.js';
@@ -249,7 +250,7 @@ export function startSeat(credits, from = 'book') {
   };
   const newcomer = () => {
     if (stale()) return;
-    art.src = paintStill('table', 'seat');
+    art.src = cardFor('sit') || paintStill('table', 'seat');   // the ending's own card, the same picture (owner, 2026-11-19)
     let i = 0;
     const next = () => {
       if (stale()) return;
@@ -267,11 +268,11 @@ export function startSeat(credits, from = 'book') {
 // not move. It stands where the keeper of the die now sits, at the hut, beside its door, looking out to sea, the hut's own eaves in
 // the corner of the frame. Time runs faster and faster (days and nights in seconds); boats cross and come in and go; the weather turns
 // through its moods; until Mara says it is time to leave; then the credits.
-const PAN = { RAMP: 30, TOP: 30, MARA: 34, END: 44, BOAT: 1.6, SKY: 4.5 };   // seconds (real), top speed (x game time), a boat and a change of sky every so often
+const PAN = { RAMP: 20, TOP: 30, MARA: 22, END: 30, BOAT: 1.4, SKY: 4.5, BACK: 26, UP: 22 };   // shorter since 2026-11-19 (owner); BACK/UP: how far the view slowly pulls away   // seconds (real), top speed (x game time), a boat and a change of sky every so often
 export const SEAT_LEAVE = 'Captain, I think it is time to leave.';   // draft (the owner's words)
-const SKIES = [   // what the weather turns through (weather.force), one after another
-  { cloud: 0, rain: 0, storm: 0, fog: 0 }, { cloud: 0.7, rain: 0, storm: 0, fog: 0.1 }, { cloud: 1, rain: 0.7, storm: 0.2, fog: 0.1 },
-  { cloud: 1, rain: 1, storm: 0.8, fog: 0.2 }, { cloud: 0.5, rain: 0.1, storm: 0, fog: 0.8 }, { cloud: 0.2, rain: 0, storm: 0, fog: 0, calm: 1 },
+const SKIES = [   // what the weather turns through (weather.force), one after another; kept clear enough to see the bay (owner, 2026-11-19)
+  { cloud: 0, rain: 0, storm: 0, fog: 0 }, { cloud: 0.6, rain: 0, storm: 0, fog: 0 }, { cloud: 0.9, rain: 0.3, storm: 0, fog: 0 },
+  { cloud: 0.4, rain: 0, storm: 0, fog: 0 }, { cloud: 0.2, rain: 0, storm: 0, fog: 0, calm: 1 },
 ];
 const SEAT_KINDS = ['fisher', 'canoe', 'merchant', 'schooner', 'fisher', 'galleon'];
 /** where the keeper sits: the hut's place and which way its door looks (world.js darkHut); the Table if the hut is not there */
@@ -293,8 +294,8 @@ function startPan(credits) {
   if (m.el) m.el.classList.remove('show');
   // the view: beside the door, under the eaves, seated height, looking out over the water; it never moves
   const cam = [K.x - o[0] * 2.5 + sd[0] * 6.5, K.y + 3.4, K.z - o[1] * 2.5 + sd[1] * 6.5], look = [K.x + o[0] * 70 - sd[0] * 4, 1.2, K.z + o[1] * 70 - sd[1] * 4];   // the hut's side and eaves in the frame, the sea beyond
-  rt.camOverride = { pos: cam, look };
-  rt.seatPan = { t: 0, speed: 1, credits, said: false, done: false, K, sd, boats: [], boatT: 0.5, sky: 0, skyT: PAN.SKY };
+  rt.camOverride = { pos: [...cam], look };
+  rt.seatPan = { cam0: cam, back: [-o[0], -o[1]], t: 0, speed: 1, credits, said: false, done: false, K, sd, boats: [], boatT: 0.5, sky: 0, skyT: PAN.SKY };
   if (G.weather) G.weather.force = { ...SKIES[0] };
   rt.over = false;   // the world runs again (the helm stays locked: seatPanTick)
 }
@@ -317,6 +318,8 @@ export function seatPanTick(rawDt) {
   P.t += rawDt;
   P.speed = 1 + (PAN.TOP - 1) * smoothstep(0, PAN.RAMP, P.t);
   const { K } = P, o = K.o;
+  { const k = smoothstep(0, PAN.END, P.t), c = P.cam0, b = P.back;   // the slow zoom out: up over the eaves and back, still looking out to sea
+    if (rt.camOverride) rt.camOverride.pos = [c[0] + b[0] * PAN.BACK * k, c[1] + PAN.UP * k, c[2] + b[1] * PAN.BACK * k]; }
   if (G.ship) { G.ship.speed = 0; G.ship.trim = 0; G.ship.root.visible = false; }
   if ((P.boatT -= rawDt) <= 0) { P.boatT = PAN.BOAT * (0.6 + ((P.t * 13) % 1) * 0.8) / (1 + P.speed * 0.12); if (P.boats.length < 9) seatBoat(P); }   // more often as the world runs faster
   for (const s of P.boats) {   // the ones coming in turn short of the shore and go out again
