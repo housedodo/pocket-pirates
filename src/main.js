@@ -994,7 +994,8 @@ function openTable(arrive = false) {
   if (arrive) snapshotTable();   // the voyage as it is now, kept aside: a closed ending can come back here (systems/endgame.js)
   const opts = tableOptions(state), memory = (state.story.maraMem || 0) >= 4, again = tableAgain();
   const ask = tableGctx().edge === 'out' && !state.story.edgeAsk ? EDGE_ASK : ''; if (ask) state.story.edgeAsk = 1;   // the questions are said, once (table.js)
-  rt.cardBusy = false; rt.cardNext = null; openModal('card'); audio.play('card');
+  rt.cardBusy = false; openModal('card'); audio.play('card');
+  rt.cardNext = () => { closeModal(); showEnding('leave'); };   // Sail on without choosing is going back to the boat: the Unseen Throw (owner, 2026-11-19)
   const done = $('cardDone'), out = (t, next) => { $('cardOut').textContent = t; cardEl.classList.add('out'); done.style.display = ''; done.textContent = 'Go on [E]'; cardEl.querySelectorAll('#cardChoices button').forEach((b) => { b.disabled = true; }); rt.cardBusy = 'done'; rt.cardNext = next; };
   renderCard({ icon: 'pip', art: paintStill('table', `table|${tableGctx().edge}`), title: 'THE TABLE BY THE WATER', dark: true, text: `${ARRIVAL}${again.line ? ` ${again.line}` : ask ? ` ${ask}` : memory ? ' Mara, quietly: "I do not think we are here to throw."' : ''}`,
     choices: opts.map((o) => ({ label: o.label, id: o.id })) }, (ch) => {
@@ -1012,6 +1013,7 @@ function openTable(arrive = false) {
       out('Mara reaches for the die. Her fingers close round it, and it does not move. She tries again. "Slippery thing," she says, and laughs, a little too quickly.', () => { closeModal(true); openTable(); });
     } else { closeModal(); showEnding(ch.id); }
   });
+  done.style.display = ''; done.textContent = 'Sail on';   // always there: choosing it is going back to the boat without a throw (rt.cardNext above)
 }
 function showEnding(id, roll = null) {
   const e = ENDINGS[id]; if (!e) return;

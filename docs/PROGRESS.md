@@ -2255,3 +2255,11 @@ dread there eased for a while after it.
 - **Verified** (headless): build; smoke; chest hauled slow (+22), buoy coin (+8), castaway aboard, stowaway (+15), shoal line, dinghy
   refused at 5 gold with E prompts only on the three; R.'s four signatures and both harbourmasters. **Not verified:** the rowboat's
   company, the glass patch, the tide pole notches on screen, how the lines read in play.
+
+## 2026-11-19 (late): after the endings playtest
+- A Sonnet playtest drove all six endings (state set by hand, the Table's real choices and ending code; screenshots in the session's
+  scratchpad). All six run with no console errors; untested: the guitar at Tama, the Unseen Throw's last scene, Your Seat's credits,
+  "Go back to the table" after She Rises.
+- `bookWeight` (`table.js`): `Math.sign(w) * Math.round(|w| / 2)`, so one low throw weighs one as one high throw lifts one; `|| 0` keeps
+  no negative zero. The Table's card always shows Sail on, and Sail on is the Unseen Throw (`openTable` sets `rt.cardNext`).
+- Open: the ending buttons sit below the fold in a short window (640x400): four ways to fix it put to the owner.

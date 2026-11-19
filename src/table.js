@@ -9,8 +9,8 @@ import { isKnown, hasSeen, level, regionsSeen, d3Open } from './clues.js';
 export function bookWeight(state) {
   const rolls = (state.hut && state.hut.rolls) || [];
   let w = 0; for (const r of rolls) w += r.n >= 11 ? 1 : r.n <= 9 ? -1 : 0;
-  w = Math.max(-3, Math.min(3, Math.round(w / 2)));
-  return w < 0 && isKnown(state, 'lamp') ? Math.ceil(w / 2) : w;
+  w = Math.max(-3, Math.min(3, Math.sign(w) * Math.round(Math.abs(w) / 2)));   // the same both ways: one high throw lifts one, one low throw weighs one (owner, 2026-11-19; Math.round(-0.5) was 0)
+  return (w < 0 && isKnown(state, 'lamp') ? Math.ceil(w / 2) : w) || 0;   // the lamp still halves a bad weight (one becomes none)
 }
 /** the last throw: the face that came up, what the book makes of it, and which ending that is */
 export function finalThrow(state, n) {
