@@ -1,7 +1,7 @@
 HOIST (Pocket Pirates): THE MASTER STORY FILE
 ================================================================================================
 This is the main story file for the full game. Edit it, upload it again, and the next session puts every change
-into the game. Built from commit 3780482 on 2026-11-19. 1673 in-game lines carry an ID.
+into the game. Built from commit ee5a79e on 2026-11-19. 1682 in-game lines carry an ID.
 
 CONTENTS
   A   HOW TO USE THIS FILE (IDs, status marks, how to add and remove things)
@@ -569,7 +569,7 @@ Where the story hides in the mechanics, and where its text lives (section J).
 # J  EVERY LINE IN THE GAME
 ################################################################################################
 Pulled from the code. Edit the text after the "|" (see part A). Sources are grouped by file; the CODE in front of every
-line says which file it goes back into. 1673 lines.
+line says which file it goes back into. 1682 lines.
 
 
 
@@ -2560,6 +2560,20 @@ line says which file it goes back into. 1673 lines.
   MAIN-0354 | Into Glass Lagoon with a narrow rudder? High water, oars out, slow.
   MAIN-0355 | Breakers come in sets. Count them. In the quiet between, row in.
 
+### MAIN / ADDED 2026-11-19
+  MAIN-0356 | There is a white cap on the reef at Glass Lagoon, and another on a hill out beyond. Put the one behind the other and sail in.
+  MAIN-0357 | The Reef boats go into the Ribs every day. Stay in their wake and you will not touch.
+  MAIN-0358 | Brought up from the green dark under the two white posts. It burns small and does not go out.
+  MAIN-0359 | A lead and a marked line, out of the wreckage at the Ribs. The crew sounds ahead in shoal water and the ship is held off.
+  MAIN-0360 | It came down in the basket with the oil. With the lamp out, the eyes are quicker in the dark.
+  MAIN-0361 | Dug out of the sand at the Ribs, where she stood up to her waist. Any shipyard can fit her.
+  MAIN-0362 | A bolt of patched cloth, left on the deck after the music on the sandbar. Any shipyard can cut sails from it.
+  MAIN-0363 | It came up on the line near the Drowned Bell. Heavy, and wet a long time.
+  MAIN-0364 | A clapper. Nobody round here has a bell that size.
+  MAIN-0365 | It says MERRY GULL, in a hand you do not know.
+  MAIN-0366 | Your own ship's name on it, Captain. I will not take that.
+  MAIN-0367 | Into the sea chest: ${CHEST[id].name}.
+
 ### MAIN / RETIRED (the text is no longer in the game; these IDs are never used again)
     was MAIN-0001 | A floating market, with bunting on every line. (Friday)
     was MAIN-0002 | A regatta! Five boats, racing.
@@ -2906,15 +2920,23 @@ line says which file it goes back into. 1673 lines.
 ####################################################################################################
 
 ### LOST / ADDED 2026-11-12
-  LOST-0001 | A wreck lies over on the swell. On the dry side of the deck a man sits on his trunk, ticket in his hand, watching the water for his harbour. The ticket is for two berths.
-  LOST-0002 | He looks past you, at the water. "Is this my stop?" He does not wait for an answer. When you look back, the wreck is no further off than before.
-  LOST-0003 | He does not look up. When you look back, the wreck is no further off than before.
-  LOST-0004 | A rowboat drifts with its oars shipped and nobody in it. Over the side a fishing line hangs straight down into the dark, cut clean a hand above the water. The knot is the old kind, for a bronze hook.
-  LOST-0005 | It does not end. You let it go, and it slides back over the side, all of it, as if something below were still taking it in.
   LOST-0006 | The line twitches once as you pass.
-  LOST-0007 | A sandbar of black sand, where the chart says deep water. A man is digging. The hole is deeper than he is tall. Every spadeful he lifts out, the sand runs back in.
-  LOST-0008 | He does not look up. He says, to the hole, "Nearly there." He has been saying it a long time.
   LOST-0009 | The sound of the spade follows you a long way over the water.
+
+### LOST / ADDED 2026-11-19
+  LOST-0010 | A wreck lies over on the swell. On the dry side of the deck a man sits on his trunk, a ticket in his hand, watching the water for his harbour. The ticket is for two berths.
+  LOST-0011 | When you look back, the wreck is no further off than before.
+  LOST-0012 | A rowboat with nobody in it. Over the side a fishing line hangs straight down, cut clean a hand above the water. The knot is the old kind, for a bronze hook.
+  LOST-0013 | A sandbar of black sand, where the chart says deep water. A man is digging. Every spadeful he lifts out, the sand runs back in. "Nearly there," he tells the hole.
+
+### LOST / RETIRED (the text is no longer in the game; these IDs are never used again)
+    was LOST-0001 | A wreck lies over on the swell. On the dry side of the deck a man sits on his trunk, ticket in his hand, watching the water for his harbour. The ticket is for two berths.
+    was LOST-0002 | He looks past you, at the water. "Is this my stop?" He does not wait for an answer. When you look back, the wreck is no further off than before.
+    was LOST-0003 | He does not look up. When you look back, the wreck is no further off than before.
+    was LOST-0004 | A rowboat drifts with its oars shipped and nobody in it. Over the side a fishing line hangs straight down into the dark, cut clean a hand above the water. The knot is the old kind, for a bronze hook.
+    was LOST-0005 | It does not end. You let it go, and it slides back over the side, all of it, as if something below were still taking it in.
+    was LOST-0007 | A sandbar of black sand, where the chart says deep water. A man is digging. The hole is deeper than he is tall. Every spadeful he lifts out, the sand runs back in.
+    was LOST-0008 | He does not look up. He says, to the hole, "Nearly there." He has been saying it a long time.
 
 
 ####################################################################################################

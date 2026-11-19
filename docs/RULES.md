@@ -17,7 +17,7 @@ need to break one, stop and ask the owner. `docs/CANON.md` says what is true in 
 11. **Goals are found, never marked.** The game never points (owner, 2026-11-19, T5): no dot on the wind ring, no way line and no course on the chart for a goal, an errand's harbour, the regatta or Tama's quay. The dot, the slip's third line and the chart's course follow only a mark the captain set: a pin on the chart, or a rumour pinned from Orders. A goal's slip still names where (`goalWhere` in `ui/hud.js`; `where` in `MAIN_GOALS`). An errand's flag shows on the chart only at a harbour the captain has found.
 
 ## Interface
-12. **Three bookmarks: Chart, Orders, Ship's book.** New pages become sections of one of them, never a fourth bookmark.
+12. **Four bookmarks: Chart, Orders, Ship's book, Sea chest** (owner, 2026-11-19; three until then). The Sea chest is there from the first thing put in it (RULES 13). New pages become sections of one of them, never a fifth bookmark.
 13. **Nothing is a locked tab.** A section the story has not reached is not printed. A greyed button stays readable and answers a click with one line.
 14. **The slip is always in this order: what, where, which way and how long.** The same on the HUD, on Orders and on the chart. The third line is there only when the captain has a mark of their own (RULES 11, 2026-11-19).
 15. **Distances are units** ("west · 232"), the same plain number everywhere the player reads them: the board, the slip, Orders, the chart (`etaText` in `ui/hud.js`). Not minutes: sailing time made it feel like a fetch game (owner, 2026-11-13).

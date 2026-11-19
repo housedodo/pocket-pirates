@@ -23,7 +23,11 @@ import { state } from '../core/state.js';
 import { rt, G } from '../core/runtime.js';
 import { DEMO } from '../core/config.js';
 import { scene } from '../core/engine.js';
-import { CELL, hasLighthouse } from '../world.js';
+import { CELL, hasLighthouse, terrainHeight, shoreR } from '../world.js';
+import { BARRIERS } from '../landmarks.js';
+import { Builder } from '../builder.js';
+import { mats } from '../psx.js';
+import { TILE } from '../textures.js';
 import { LM } from '../landmarks.js';
 import { lampDead } from '../regions.js';
 import { isKnown } from '../clues.js';
@@ -32,6 +36,7 @@ import { tod } from '../daynight.js';
 import { nightKey, tideAt } from './calendar.js';
 import { leadPass } from './leadlight.js';
 import { hurtPlayer } from './storybeats.js';
+import { chestHas } from '../chest.js';
 
 export const WALL_R = 1650;           // the wall these ways go through (objectives.js GATES' last, held by the lens lantern)
 export const LINE_HALF = 0.05;        // rad either side of a still beam's line
@@ -94,13 +99,84 @@ export function tuneGapWay() {
 /** seaGate (storybeats.js): the ship has come out past the wall by a way through: the sea beyond is the captain's from now on */
 export function crossWall(how) { if (!state.story.crossed) state.story.crossed = { s3: state.dayN, how }; }
 
-/** Places.tick: another way in through a hand-made place's barrier */
+/** Places.tick: another way in through a hand-made place's barrier. Once in by one, the ship may lie inside until it leaves. */
+const inside = {};
 export function barrierPass(lm, ship) {
   if (lm === 'broken') return leadPass(lm, ship);
-  if (!on()) return false;
-  if (lm === 'lagoon') return ship.rowing && tideAt() > LAGOON_TIDE;
-  if (lm === 'ribs') return ship.rowing && ribsLull() > 0.5;
-  return false;
+  if (!on() || !LM[lm] || !BARRIERS[lm]) return false;
+  const B = BARRIERS[lm], d = Math.hypot(ship.pos.x - LM[lm].x, ship.pos.z - LM[lm].z);
+  if (d > B.R + 12) inside[lm] = false;
+  let by = false;
+  if (lm === 'lagoon') by = (ship.rowing && tideAt() > LAGOON_TIDE) || onTransit(ship);
+  if (lm === 'ribs') by = (ship.rowing && ribsLull() > 0.5) || followingPilot(ship);
+  if (by && d < B.R) inside[lm] = true;
+  return by || (!!inside[lm] && d < B.R - 6);
+}
+
+// ---- the Glass Lagoon's transit (owner, 2026-11-19, T4 b: "use natural peaks, but make them recognizable"): a tall natural isle near
+// the lagoon and one rock in its reef both wear a white cap, the only two such marks in that water. Keep the peak exactly behind the
+// capped rock (within TRANSIT_HALF) and the reef lets the ship through that rock's gap, at any tide, under sail.
+export const TRANSIT_HALF = 0.03, TRANSIT_SEEK = [160, 620];
+let transit = null;
+function transitMarks() {
+  if (transit && transit.seed === state.seed) return transit;
+  const L = LM.lagoon; transit = { seed: state.seed, peak: null };
+  if (!L) return transit;
+  let best = null; const n = Math.ceil(TRANSIT_SEEK[1] / CELL), c0x = Math.round(L.x / CELL), c0z = Math.round(L.z / CELL);
+  for (let cz = c0z - n; cz <= c0z + n; cz++) for (let cx = c0x - n; cx <= c0x + n; cx++) {
+    const d = G.world.desc(cx, cz); if (!d || d.lm || !(d.type === 'rocky' || d.type === 'volcano')) continue;
+    const dist = Math.hypot(d.x - L.x, d.z - L.z); if (dist < TRANSIT_SEEK[0] || dist > TRANSIT_SEEK[1]) continue;
+    const score = Math.abs(dist - 360) - (d.type === 'volcano' ? 60 : 0); if (!best || score < best.score) best = { d, score };
+  }
+  if (!best) return transit;
+  const P = best.d, ux = (L.x - P.x), uz = (L.z - P.z), len = Math.hypot(ux, uz);
+  transit.peak = P; transit.rock = { x: L.x + ux / len * 41, z: L.z + uz / len * 41 };   // on the reef ring, on the far side from the peak
+  return transit;
+}
+function onTransit(ship) {
+  const T = transitMarks(); if (!T.peak) return false;
+  const P = T.peak, a1 = Math.atan2(T.rock.z - P.z, T.rock.x - P.x), a2 = Math.atan2(ship.pos.z - P.z, ship.pos.x - P.x);
+  return Math.abs(angleDiff(a2, a1)) < TRANSIT_HALF;
+}
+let capsMade = null;
+function makeCaps(T) {   // the two white caps: on the peak's top, and on one black knuckle of the reef
+  const g = new THREE.Group();
+  const P = T.peak; let top = { h: -1, x: 0, z: 0 };
+  const R = shoreR(P, 0);
+  for (let i = -6; i <= 6; i++) for (let j = -6; j <= 6; j++) { const lx = i / 6 * R * 0.8, lz = j / 6 * R * 0.8, h = terrainHeight(P, lx, lz); if (h > top.h) top = { h, x: lx, z: lz }; }
+  const b = new Builder(); b.blob(0, 0, 0, 3.6, 1.6, 3.6, '#f6f3ea', TILE.white, 0.25, 7);
+  const cap = new THREE.Mesh(b.geometry(), mats.props); cap.position.set(P.x + top.x, top.h - 0.2, P.z + top.z); g.add(cap);
+  const r = new Builder(); r.blob(0, 0.2, 0, 2.4, 2.0, 2.1, '#2e2e34', TILE.stone, 0.3, 3); r.blob(0, 2.0, 0, 1.7, 0.9, 1.5, '#f6f3ea', TILE.white, 0.2, 4);   // a knuckle of the reef, standing a little taller, capped white
+  const rock = new THREE.Mesh(r.geometry(), mats.props); rock.position.set(T.rock.x, 0, T.rock.z); g.add(rock);
+  scene.add(g); return g;
+}
+
+// ---- the Ribs' pilot (T4 b): once a day by daylight, when the ship is near, a Reef boat comes in from the open water, lies to just
+// outside the breakers until the lull, rows in, waits a while, and rows out again on the next lull. Within PILOT_NEAR of her as she
+// goes through, the ship goes through too, under sail or oars.
+export const PILOT_NEAR = 22, PILOT_WAIT = 40;
+let pilot = null;
+function followingPilot(ship) {
+  return !!(pilot && pilot.s && (pilot.phase === 'in' || pilot.phase === 'out') && Math.hypot(ship.pos.x - pilot.s.x, ship.pos.z - pilot.s.z) < PILOT_NEAR);
+}
+function pilotTick(dt) {
+  const rb = LM.ribs; if (!rb || !G.traffic) return;
+  const p = G.ship.pos, near = Math.hypot(p.x - rb.x, p.z - rb.z) < 280, day = tod.night < 0.3;
+  if (!pilot && near && day && state.story.ribsPilot !== state.dayN) {
+    state.story.ribsPilot = state.dayN;
+    const a = Math.atan2(p.z - rb.z, p.x - rb.x) + 0.6, x = rb.x + Math.cos(a) * 140, z = rb.z + Math.sin(a) * 140;
+    const s = G.traffic.spawnAt('canoe', 'reef', x, z, Math.atan2(rb.x - x, -(rb.z - z)), 'live', 0);
+    if (s) { s.special = 'pilot'; s.name = 'A Reef boat'; pilot = { s, a, phase: 'come', t: 0 }; }
+  }
+  if (!pilot) return;
+  const s = pilot.s; if (!G.traffic.ships.includes(s)) { pilot = null; return; }
+  const to = (r, v) => { const tx = rb.x + Math.cos(pilot.a) * r, tz = rb.z + Math.sin(pilot.a) * r; s.heading = Math.atan2(tx - s.x, -(tz - s.z)); s.speed = Math.hypot(tx - s.x, tz - s.z) < 3 ? 0 : v; return Math.hypot(tx - s.x, tz - s.z) < 3; };
+  pilot.t += dt;
+  if (pilot.phase === 'come') { if (to(64, 4)) pilot.phase = 'hold'; }
+  else if (pilot.phase === 'hold') { to(64, 0); if (ribsLull() > 0.5) pilot.phase = 'in'; }
+  else if (pilot.phase === 'in') { if (to(30, 3.2)) { pilot.phase = 'wait'; pilot.t = 0; } }
+  else if (pilot.phase === 'wait') { s.speed = 0; if (pilot.t > PILOT_WAIT && ribsLull() > 0.5) pilot.phase = 'out'; }
+  else if (pilot.phase === 'out') { if (to(160, 3.6)) { s.special = null; pilot = null; } }
 }
 /** 0 while the breakers are running, 1 in the lull (sim time, so pausing keeps the count) */
 export function ribsLull() { const t = (rt.tNow + (state.seed % 17)) % RIBS_SET; return t > RIBS_SET - RIBS_LULL ? 1 : 0; }
@@ -109,7 +185,7 @@ export function ribsLull() { const t = (rt.tNow + (state.seed % 17)) % RIBS_SET;
 let lampT = 0, hurtT = 0, slickMesh = null, ribsMesh = null;
 export function passesTick(dt) {
   if (!on()) return;
-  lampT = rt.lampOut ? lampT + dt : 0;
+  lampT = rt.lampOut ? lampT + dt * (chestHas('shutter') ? 2 : 1) : 0;
   const S = sea(), p = G.ship.pos;
   for (const L of S.lights) { const isl = G.world.islands.get(L.id); if (isl && !isl.lead) { const k = (WALL_R + 220) / Math.hypot(L.x, L.z); isl.lead = { x: L.x * k, z: L.z * k, short: false }; } }   // world.js lays the beam still
   for (const L of S.lights) { const isl = G.world.islands.get(L.id); if (isl && isl.lead) isl.lead.short = Math.hypot(p.x, p.z) > WALL_R - 120 && !(state.story.rhythm && state.story.rhythm[L.id]); }   // inside the white, the beam goes only as far as you know the light
@@ -121,8 +197,15 @@ export function passesTick(dt) {
   hurtT -= dt;
   const R = Math.hypot(p.x, p.z);
   if (hurtT <= 0 && tideAt() >= SLICK_TIDE && R > WALL_R - 30 && R < WALL_R + 60 && S.slick.some((g) => across(g, p.x, p.z) < SLICK_HALF) && G.ship.speed > 1) {
-    hurtT = SLICK_HURT_EVERY; hurtPlayer(SLICK_HURT);
+    if (chestHas('leadline')) { G.ship.speed *= 0.2; hurtT = 1; }   // the lead line: the crew sounds ahead and the ship is held off (the sea chest)
+    else {
+      hurtT = SLICK_HURT_EVERY; hurtPlayer(SLICK_HURT);
+      const k = 'g' + Math.round(Math.atan2(p.z, p.x) * 100), hit = state.story.slickHit || (state.story.slickHit = {});   // owner 2026-11-19: the chart keeps a pencil sign where it bit
+      if (!hit[k]) hit[k] = { x: Math.round(p.x), z: Math.round(p.z) };
+    }
   }
+  pilotTick(dt);
+  { const T = transitMarks(); if (T.peak && !capsMade && Math.hypot(p.x - LM.lagoon.x, p.z - LM.lagoon.z) < 900) capsMade = makeCaps(T); }
   // the Ribs: a ring of white water that runs high through a set and lies down in the lull
   const rb = LM.ribs;
   if (rb && Math.hypot(p.x - rb.x, p.z - rb.z) < 320) {
@@ -159,7 +242,9 @@ export const SAYINGS = {
   slick: { speaker: 'fisher', text: 'At the bottom of the tide the wall leaves a road of glass water. Miss the hour and it takes your planks.' },
   lamp: { speaker: 'watchman', text: 'Put your lamp out by the wall at night and you see harbours on the other side. Steer for one. Do not look down.' },
   lagoon: { speaker: 'fisher', text: 'Into Glass Lagoon with a narrow rudder? High water, oars out, slow.' },
+  transit: { speaker: 'oldsalt', text: 'There is a white cap on the reef at Glass Lagoon, and another on a hill out beyond. Put the one behind the other and sail in.' },
   ribs: { speaker: 'oldsalt', text: 'Breakers come in sets. Count them. In the quiet between, row in.' },
+  pilot: { speaker: 'fisher', text: 'The Reef boats go into the Ribs every day. Stay in their wake and you will not touch.' },
 };
 export const SAYING_P = 0.3;
 /** docking at harbour d: one saying not yet heard that belongs near here, or null */
@@ -167,11 +252,11 @@ export function pilotSaying(d) {
   if (!on() || Math.random() >= SAYING_P) return null;
   const heard = state.story.sayings || (state.story.sayings = {}), r = Math.hypot(d.x, d.z);
   const near = (lm) => LM[lm] && Math.hypot(LM[lm].x - d.x, LM[lm].z - d.z) < 900;
-  const can = { light: r > 1200 && d.region === 'lantern', tune: r > 1200, slick: r > 1200, lamp: r > 1200, lagoon: near('lagoon'), ribs: near('ribs') };
+  const can = { light: r > 1200 && d.region === 'lantern', tune: r > 1200, slick: r > 1200, lamp: r > 1200, lagoon: near('lagoon'), transit: near('lagoon'), ribs: near('ribs'), pilot: near('ribs') };
   const k = Object.keys(SAYINGS).find((key) => can[key] && !heard[key]);
   if (!k) return null;
   heard[k] = state.dayN;
   return { ...SAYINGS[k], story: true };
 }
 /** for tests: the wall's still lights, gaps and slicks */
-export const passesSea = () => { const S = sea(); return { lights: S.lights.map((d) => ({ id: d.id, x: d.x, z: d.z })), harbours: S.harbours.length, tune: S.tune, slick: S.slick }; };
+export const passesSea = () => { const S = sea(), T = transitMarks(); return { transit: T.peak ? { peak: { x: T.peak.x, z: T.peak.z, name: T.peak.name }, rock: T.rock } : null, pilot: pilot ? pilot.phase : null, lights: S.lights.map((d) => ({ id: d.id, x: d.x, z: d.z })), harbours: S.harbours.length, tune: S.tune, slick: S.slick }; };

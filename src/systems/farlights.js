@@ -5,6 +5,7 @@
 // dark. In Lantern water the dark is the danger. The shader side is one uniform (psx.js uFarLight). Mara says one line, once, the
 // first time it happens in Cays water at night. Demo-safe.
 import { U } from '../psx.js';
+import { chestHas } from '../chest.js';
 import { clamp } from '../util.js';
 import { FAR_FROM, FAR_LIT, FAR_OUT, FAR_REACH, FAR_EYES, FAR_EYES_RAMP } from '../regions.js';
 
@@ -20,7 +21,7 @@ export const LIGHTS_LINE = 'Lamp out a moment. There. Lights.';
  *  lights have come up (for the one Mara line) */
 export function farLightTick(dt, lampOut, night) {
   const was = outT >= FAR_EYES + FAR_EYES_RAMP;
-  outT = lampOut ? outT + dt : 0;
+  outT = lampOut ? outT + dt * (chestHas('shutter') ? 2 : 1) : 0;   // the lamplighter's shutter: the eyes are quicker (the sea chest)
   const eyes = clamp((outT - FAR_EYES) / FAR_EYES_RAMP, 0, 1), want = lampOut ? FAR_LIT + (FAR_OUT - FAR_LIT) * eyes : FAR_LIT;
   U.uFarLight.value.set(FAR_FROM, 1 + (want - 1) * night, (1 + (NIGHT_REACH - 1) * night) + (FAR_REACH / LAMP_OUT_FAR - NIGHT_REACH) * eyes * night);   // twice as far as with the lamp lit
   return !was && outT >= FAR_EYES + FAR_EYES_RAMP;

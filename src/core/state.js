@@ -61,7 +61,7 @@ export const state = {
 };
 // state.story is a free bag of flags (RULES 31). Its containers get their empty shape here, in one place; a plain flag that is
 // absent means "not yet" and stays absent until it happens. (`threads` is left out: absent means "pick the voyage's threads".)
-const STORY_SHAPE = { seen: {}, lm: {}, secrets: {}, marks: {}, keeps: [], lost: {}, relit: {}, lanes: {}, lh: {}, caves: {}, pets: {}, placeSet: {}, tp: {}, uiSeen: {}, pins: [], notyet: {}, tales: {}, drownedKept: [], rhythm: {}, supper: {} };
+const STORY_SHAPE = { seen: {}, lm: {}, secrets: {}, marks: {}, keeps: [], lost: {}, relit: {}, lanes: {}, lh: {}, caves: {}, pets: {}, placeSet: {}, tp: {}, uiSeen: {}, pins: [], notyet: {}, chest: [], tales: {}, drownedKept: [], rhythm: {}, supper: {} };
 for (const [k, v] of Object.entries(STORY_SHAPE)) if (state.story[k] == null) state.story[k] = Array.isArray(v) ? [] : {};
 for (const n of state.notes) if (n.w === undefined) n.w = '';   // notes from before the book kept their water (item 3): "Earlier"
 

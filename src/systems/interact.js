@@ -34,6 +34,7 @@ import { letterRumour, placeRumour } from './perrin.js';
 import { supperTarget, startSupper } from './lantern.js';
 import { raceHere, joinRace } from './race.js';
 import { pilotSaying } from './passes.js';
+import { chestAdd } from '../chest.js';
 
 export function getInteract() {
   const hi = G.world.nearest(G.ship.pos.x, G.ship.pos.z, 18);
@@ -302,6 +303,11 @@ export function goAshore(tg) {
     if (r.around) { const n = G.revealAround(d.x, d.z); if (n) bits.push(`${n} ${n === 1 ? 'isle' : 'isles'} charted`); }
     if (d.lm === 'keeper' && oilOn() && state.oil < oilCap(state.upgrades) - 1) { state.oil = oilCap(state.upgrades); bits.push('Wick fills your lamp'); }
     if (r.oil && oilOn() && state.oil < oilCap(state.upgrades) - 1) { state.oil = oilCap(state.upgrades); bits.push('the lamp is filled'); }
+    { const w = regionAt(d.x, d.z, state.seed);   // the sea chest: things found ashore (src/chest.js)
+      if (d.lm === 'ribs' && r.first) chestAdd('leadline', w);
+      else if (d.lm === 'ribs' && !r.nothing) chestAdd('ribsfigure', w);
+      if (d.lm === 'cup' && !r.first && r.nothing && r.clue) chestAdd('cup', w);
+      if ((d.lm === 'teo' || d.lm === 'ilse') && r.nothing && r.clue && state.story.lm2 && state.story.lm2[d.lm]) chestAdd('cayssails', w); }
     if (r.note) state.notes.push({ text: r.note, dark: false });
     toast(text + (bits.length ? ` (${bits.join(', ')})` : ''), !!r.dark && !demo, 9000);
     if (r.first) state.stats.places = (state.stats.places || 0) + 1;

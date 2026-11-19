@@ -8,23 +8,24 @@ import { state } from '../core/state.js';
 import { markSeen } from '../clues.js';
 
 const met = (id, clue) => { (state.story.lost = state.story.lost || {})[id] = state.dayN; markSeen(state, clue); };
+// Since 2026-11-19 (owner: "lost sailors should become a thing, remove the choice cards") they are things on the water, not cards:
+// no [E], no choice. Sailing within SEEN_R is meeting them: one line, once, and the clue. Each keeps one small behaviour of its own,
+// shown, never told (sighting.js): the wreck stays no further off as you sail away; the line slides back over the side as you pass;
+// the sand runs back into the hole. Drafts for the writer (docs/LORE_TO_WRITE.txt).
+export const SEEN_R = 30;
 export const LOST_CARDS = {
-  lost_berth: { id: 'lost_berth', icon: 'talk', title: 'A Wreck, Lying Over', dark: true,
-    text: 'A wreck lies over on the swell. On the dry side of the deck a man sits on his trunk, ticket in his hand, watching the water for his harbour. The ticket is for two berths.',
-    choices: [
-      { label: 'Ask him where he is going', go: () => { met('lost_berth', 'CL-X1-berth'); return 'He looks past you, at the water. "Is this my stop?" He does not wait for an answer. When you look back, the wreck is no further off than before.'; } },
-      { label: 'Sail on', go: () => { met('lost_berth', 'CL-X1-berth'); return 'He does not look up. When you look back, the wreck is no further off than before.'; } }] },
-  lost_hook: { id: 'lost_hook', icon: 'fish', title: 'A Rowboat, Line Out', dark: true,
-    text: 'A rowboat drifts with its oars shipped and nobody in it. Over the side a fishing line hangs straight down into the dark, cut clean a hand above the water. The knot is the old kind, for a bronze hook.',
-    choices: [
-      { label: 'Haul the line in', go: () => { met('lost_hook', 'CL-X2-hook'); return 'It does not end. You let it go, and it slides back over the side, all of it, as if something below were still taking it in.'; } },
-      { label: 'Sail on', go: () => { met('lost_hook', 'CL-X2-hook'); return 'The line twitches once as you pass.'; } }] },
-  lost_dig: { id: 'lost_dig', icon: 'pip', title: 'A Black Sandbar', dark: true,
-    text: 'A sandbar of black sand, where the chart says deep water. A man is digging. The hole is deeper than he is tall. Every spadeful he lifts out, the sand runs back in.',
-    choices: [
-      { label: 'Call out to him', go: () => { met('lost_dig', 'CL-X3-hole'); return 'He does not look up. He says, to the hole, "Nearly there." He has been saying it a long time.'; } },
-      { label: 'Sail on', go: () => { met('lost_dig', 'CL-X3-hole'); return 'The sound of the spade follows you a long way over the water.'; } }] },
+  lost_berth: { id: 'lost_berth', lost: true, clue: 'CL-X1-berth',
+    line: 'A wreck lies over on the swell. On the dry side of the deck a man sits on his trunk, a ticket in his hand, watching the water for his harbour. The ticket is for two berths.',
+    after: 'When you look back, the wreck is no further off than before.' },
+  lost_hook: { id: 'lost_hook', lost: true, clue: 'CL-X2-hook',
+    line: 'A rowboat with nobody in it. Over the side a fishing line hangs straight down, cut clean a hand above the water. The knot is the old kind, for a bronze hook.',
+    after: 'The line twitches once as you pass.' },
+  lost_dig: { id: 'lost_dig', lost: true, clue: 'CL-X3-hole',
+    line: 'A sandbar of black sand, where the chart says deep water. A man is digging. Every spadeful he lifts out, the sand runs back in. "Nearly there," he tells the hole.',
+    after: 'The sound of the spade follows you a long way over the water.' },
 };
+/** sighting.js: the ship has come within SEEN_R of one */
+export function lostSeen(card) { met(card.id, card.clue); }
 const ORDER = ['lost_berth', 'lost_hook', 'lost_dig'];
 const LOST_FROM = 0.6;   // "stage 4 and up" (CANON 2026-11-12): the fourth stage starts at 0.6 (palette.js stageOf); it was 0.75 until 2026-11-15
 rt.lostT = 90;   // seconds of deep dread before the next one may show

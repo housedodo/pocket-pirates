@@ -14,6 +14,7 @@ export const SAILS = [
   { id: 'sun', name: 'Sunlit gold', cost: 25, tint: [1.1, 0.95, 0.55] },
   { id: 'jade', name: 'Jade', cost: 25, tint: [0.7, 1.05, 0.8] },
   { id: 'night', name: 'Night', cost: 35, tint: [0.45, 0.45, 0.62] },
+  { id: 'patched', name: 'Patched', cost: 0, tint: [1.08, 0.96, 0.82], found: 'cayssails' },   // found, not bought (the sea chest)
 ];
 export const FLAGS = [
   { id: 'red', name: 'Red', cost: 0, color: '#d63a30' },
@@ -39,6 +40,7 @@ export const FIGURES = [
   { id: 'dolphin', name: 'Dolphin', cost: 60, req: 'Catch 5 fish', ok: (s) => s.stats.fish >= 5 },
   { id: 'mermaid', name: 'Mermaid', cost: 80, req: 'Salvage a wreck', ok: (s) => s.stats.wrecks >= 1 },
   { id: 'lion', name: 'Golden lion', cost: 90, req: 'Be well known at a harbour (3 stars)', ok: (s) => Object.values(s.rep).some((r) => Math.min(3, Math.floor((r.visits + 2 * r.deliveries) / 3)) >= 3) },
+  { id: 'sandmaid', name: 'From the Ribs', cost: 0, found: 'ribsfigure' },   // found, not bought (the sea chest)
   { id: 'skull', name: 'Skull', cost: 70, req: 'Sink a raider', ok: (s) => s.stats.sunk >= 1 },
 ];
 export const GROUPS = [['hull', 'Hull paint', HULLS], ['sail', 'Sails', SAILS], ['flag', 'Pennant colour', FLAGS], ['flagshape', 'Pennant shape', FLAG_SHAPES], ['figure', 'Figurehead', FIGURES]];

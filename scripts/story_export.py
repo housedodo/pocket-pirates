@@ -54,7 +54,7 @@ HTML_CARDS = ('id="ending"', 'id="credits"', 'id="demoend"')
 # main.js's text also lives in the ui/ modules split out of it (2026-11-12): read together, so the MAIN-xxxx IDs stay the same
 MAIN_PARTS = ['main.js', 'systems/interact.js', 'ui/title.js', 'ui/pause.js', 'ui/harbour.js', 'ui/shipyard.js', 'ui/shiptrade.js', 'ui/camera.js', 'ui/dom.js',
               'ui/hud.js', 'ui/encounters.js', 'systems/storybeats.js', 'regions.js', 'systems/reef.js', 'systems/drowned.js',
-              'systems/crown.js', 'systems/farlights.js', 'systems/race.js', 'systems/lantern.js', 'systems/perrin.js', 'systems/edge.js', 'systems/hutword.js', 'systems/leadlight.js', 'systems/passes.js', 'systems/rletters.js']
+              'systems/crown.js', 'systems/farlights.js', 'systems/race.js', 'systems/lantern.js', 'systems/perrin.js', 'systems/edge.js', 'systems/hutword.js', 'systems/leadlight.js', 'systems/passes.js', 'systems/rletters.js', 'chest.js']
 
 
 def read(name):

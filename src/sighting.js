@@ -122,7 +122,7 @@ export class Sighting {
     return false;
   }
   /** the sign within reach (it can only be answered up close) */
-  near(px, pz, r = 15) { const c = this.cur; return c && !c.sink && Math.hypot(px - c.x, pz - c.z) < r ? c : null; }
+  near(px, pz, r = 15) { const c = this.cur; return c && !c.sink && !c.card.lost && Math.hypot(px - c.x, pz - c.z) < r ? c : null; }   // the lost sailors are not answered (2026-11-19)
   /** it slips under the water once answered or left behind */
   dismiss() { if (this.cur) this.cur.sink = 0.001; }
   update(dt, t, ship) {
@@ -133,7 +133,16 @@ export class Sighting {
     if (c.sink) { c.sink += dt; c.mesh.position.set(c.x, y - c.sink * 0.9, c.z); if (c.sink > 3) this.clear(); return; }
     c.mesh.position.set(c.x, y + (still ? 0 : 0.1), c.z);
     if (!still) c.mesh.rotation.z = Math.sin(t * 1.2 + c.x) * 0.06;
-    if (Math.hypot(ship.pos.x - c.x, ship.pos.z - c.z) > 260 || c.age > 300) this.dismiss();
+    const dist = Math.hypot(ship.pos.x - c.x, ship.pos.z - c.z);
+    if (c.card.lost) {   // a lost sailor: met by coming close; then each does its one thing (systems/lostsailors.js)
+      if (!c.seen && dist < 30) { c.seen = c.age; this.onLost && this.onLost(c.card, 'line'); }
+      if (c.seen != null && !c.afterSaid && dist > 70) { c.afterSaid = true; this.onLost && this.onLost(c.card, 'after'); }
+      if (c.seen != null && c.card.id === 'lost_berth' && dist > 70 && c.age - c.seen < 120) {   // no further off than before
+        const k = 70 / dist; c.x = ship.pos.x + (c.x - ship.pos.x) * k; c.z = ship.pos.z + (c.z - ship.pos.z) * k;
+      }
+      if (c.seen != null && c.age - c.seen > 150) this.dismiss();
+    }
+    if (dist > 260 || c.age > 300) this.dismiss();
   }
   solids(out) { const c = this.cur; if (c && !c.sink) out.push({ x: c.x, z: c.z, r: 1.3 }); return out; }
   clear() { if (!this.cur) return; this.scene.remove(this.cur.mesh); this.cur = null; }

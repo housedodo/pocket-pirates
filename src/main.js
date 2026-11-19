@@ -81,7 +81,7 @@ import { $, goldEl, promptEl, promptTxt, promptBar, promptFill, toastsEl, debugE
 import { WEEK, weekday, isMarketDay, isLanternNight, isFestival, tideAt, tideFalls, nightKey } from './systems/calendar.js';
 import { addMark, clearMark, keep } from './systems/storyflags.js';
 import { tunePan, lullDread, lullabyTick, playersEar } from './systems/lullaby.js';
-import { lostTick, LOST_CARDS } from './systems/lostsailors.js';
+import { lostTick, LOST_CARDS, lostSeen } from './systems/lostsailors.js';
 import { buildBiome } from './concepts.js';   // dev concept scenes (__game.biome)
 import { edgeTick, startEdge, edgeFog, edgeWokeLine } from './systems/edge.js';
 import { PITCH_MIN, updateCamera, initCamera1, initCamera2, camInput } from './ui/camera.js';
@@ -93,7 +93,8 @@ import { renderHarbour, lettersAt, PETS, companions, petOffer, takePet, tabOpene
 import { HUT_NOTES, perrinNote, hutNod, revealHut, showDemoEnd, fogLost, WHITE_MIST, seamTick, clueTick, seaGate, seaTick, oilOn, freeCaysNow, oilTick, SAIL_LIMIT, sailTick, toggleLamp, buyOil, tackTick, hurtPlayer, onHitEnemy, initStoryBeats } from './systems/storybeats.js';
 import { getInteract, tryInteract, anchorTick, digLeaveTick } from './systems/interact.js';
 import { bottleWord, passengerWord } from './systems/hutword.js';
-import { rLetter } from './systems/rletters.js';   // hearing of the hut (T2)
+import { rLetter } from './systems/rletters.js';
+import { chestAdd } from './chest.js';   // hearing of the hut (T2)
 import { leadTick, leaderDesc, offLine } from './systems/leadlight.js';   // the Halved Isle by light
 import { passesTick, wallPass, ribsLull } from './systems/passes.js';   // the other ways through (T4)
 import { econ, econTick, econLine } from './systems/econ.js';   // ?econ=1: gold per hour by source (G-25)
@@ -232,6 +233,7 @@ traffic.onCustoms = () => {   // a Crown customs cutter has looked in the hold (
 };
 const sea = new SeaFeatures(scene, world, state.seed, state.collected);
 const sighting = new Sighting(scene);
+sighting.onLost = (card, what) => { if (what === 'line') { lostSeen(card); toast(card.line, true, 9000); } else toast(card.after, true, 5000); };   // the lost sailors: things on the water, no card (2026-11-19)
 const caves = new Caves(scene, world, state);
 const threads = new Threads(scene, world, state);
 // the Tide of Threads: which threads this voyage has awake. In the dev build the title screen can choose (or ?threads=colour,bell / all / none)
@@ -404,6 +406,7 @@ const fishing = new Fishing(scene, ship, {
   onCatch: (f) => {
     f = abyss.wrongCatch(f);
     if (f.value && threads.fishBonus() > 1) f = { ...f, value: Math.round(f.value * threads.fishBonus()) };
+    if (!f.dark && state.hut && state.hut.rolls.length && LM.bell && Math.hypot(ship.pos.x - LM.bell.x, ship.pos.z - LM.bell.z) < 160 && Math.random() < 0.25 && chestAdd('clapper', regionAt(ship.pos.x, ship.pos.z, state.seed))) { audio.play('catch'); return; }   // the sea chest: the line comes up with a clapper
     state.catch.push(f); state.stats.fish++; audio.play('catch');
     const l = state.fishLog[f.id] || (state.fishLog[f.id] = { count: 0, best: 0 });
     l.count++; l.best = Math.max(l.best, f.kg);
@@ -641,7 +644,7 @@ window.addEventListener('keydown', (e) => {
     else if (e.code === 'ArrowLeft') logbook.step(-1);
     else if (e.code === 'ArrowDown' || e.code === 'PageDown') logbook.turn(1);
     else if (e.code === 'ArrowUp' || e.code === 'PageUp') logbook.turn(-1);
-    else if (/^Digit[1-3]$/.test(e.code)) logbook.tabByIndex(parseInt(e.code.slice(5), 10) - 1);
+    else if (/^Digit[1-4]$/.test(e.code)) logbook.tabByIndex(parseInt(e.code.slice(5), 10) - 1);
     else if (e.code === 'KeyM') closeModal();
     else if (e.code === 'KeyJ') { if (logbook.tab === 'orders') closeModal(); else logbook.open('orders'); }
     rt.logTab = logbook.tab;
@@ -950,7 +953,7 @@ const CAMP_LINES = ['A man with a beard down to his belt. He has been here since
 function secretFound(sc) {
   const S = state.story.secrets || (state.story.secrets = {});
   if (sc.kind === 'kestrel') {
-    state.collected.add('kestrel'); state.loot.push({ name: "The Kestrel's bell", value: 40 }); audio.play('treasure'); seeClue('CL-K-a');
+    state.collected.add('kestrel'); chestAdd('kestrellamp', regionAt(ship.pos.x, ship.pos.z, state.seed)); state.loot.push({ name: "The Kestrel's bell", value: 40 }); audio.play('treasure'); seeClue('CL-K-a');
     toast("Down in the green dark: a ship on her side, KESTREL on the stern. Her lamp comes up, and her bell, still ringing.", false, 9000);   // a lamp, not gold: it cuts the dark (dreamShift)
     state.notes.push({ text: 'Where the two white posts sat on the Tooth and the Bell: the Kestrel, on the bottom. Her bell still rings.', dark: false });
   } else if (sc.kind === 'tidewreck') {

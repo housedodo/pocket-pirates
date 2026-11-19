@@ -1,6 +1,7 @@
 // The shipyard: a turntable where any hull, sail, flag or figurehead can be tried on before it is bought. State in rt (yard*).
 import { clamp } from '../util.js';
 import { GROUPS, byId } from '../customize.js';
+import { chestHas } from '../chest.js';
 import { state } from '../core/state.js';
 import { rt, G } from '../core/runtime.js';
 import { $ } from './dom.js';
@@ -13,7 +14,7 @@ export function renderYard() {
   $('yardGold').textContent = state.gold;
   $('yardTabs').innerHTML = GROUPS.map(([g, label]) => `<button data-tab="${g}" class="${g === rt.yardTab ? 'on' : ''}">${label.replace('Hull paint', 'Hull').replace('Pennant colour', 'Colour').replace('Pennant shape', 'Shape').replace('Figurehead', 'Figure')}</button>`).join('');
   const { g, list, o } = yardSel();
-  $('yardBody').innerHTML = `<div class="swatches">${list.map((x) => {
+  $('yardBody').innerHTML = `<div class="swatches">${list.filter((x) => !x.found || chestHas(x.found)).map((x) => {   // a found thing shows once it is in the sea chest
     const key = `${g}:${x.id}`, owned = !x.cost || state.owned.has(key), locked = x.ok && !x.ok(state), on = rt.yardTry[g] === x.id;
     const col = g === 'hull' ? x.upper : g === 'flag' ? x.color : g === 'sail' ? `rgb(${x.tint.map((v) => Math.min(255, v * 235) | 0)})` : '';
     return `<button data-id="${x.id}" class="${on ? 'on' : ''}${locked ? ' lock' : ''}" title="${locked ? x.req : ''}">${col ? `<span class="dot" style="background:${col}"></span>` : ''}${x.name}${owned || locked ? '' : ` ${x.cost}g`}</button>`;

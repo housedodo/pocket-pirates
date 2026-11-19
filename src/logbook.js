@@ -14,12 +14,14 @@ import { pxi } from './pixelui.js';
 import { WEEK, weekday } from './systems/calendar.js';
 import { LANES, ROUND } from './seaplay.js';
 import { renderChart, drawChart } from './chart.js';
+import { CHEST, KINDS as CHEST_KINDS, chestAny, chestSell } from './chest.js';
 
 // The captain's log: an old low-poly book. Tabs are cloth bookmarks sticking out of the right side, content flows over two pages
 // (turn with the arrows below / Up and Down), and the Map is a hand-inked low-poly chart.
-// Three bookmarks: the Chart is where things are, Orders is what to do, the Ship's book is what you have.
-// (Until 2026-11 there were seven; the old names still open the bookmark their page moved to.)
-const TABS = [['map', 'Chart', ''], ['orders', 'Orders', ''], ['book', "Ship's book", '']];
+// Four bookmarks: the Chart is where things are, Orders is what to do, the Ship's book is what you have done and seen, the Sea chest
+// is what you carry (owner, 2026-11-19; it is there from the first thing put in it). (Until 2026-11 there were seven; the old names
+// still open the bookmark their page moved to.)
+const TABS = [['map', 'Chart', ''], ['orders', 'Orders', ''], ['book', "Ship's book", ''], ['chest', 'Sea chest', '']];
 const ALIAS = { goals: 'orders', quests: 'orders', riddles: 'orders', journal: 'book', ship: 'book', standing: 'book' };
 const W = 880, H = 470;
 const INK = '#3a2210';
@@ -214,7 +216,7 @@ export class Logbook {
   /** is a section still unwritten (the story has not reached it)? */
   sec(name) { return !!(this.d.locked && this.d.locked(name)); }
   /** a bookmark is only there once something is written behind it: the Ship's book appears with its first page */
-  shut(tab) { return tab === 'book' && this.sec('journal') && this.sec('ship') && this.sec('standing'); }
+  shut(tab) { return (tab === 'book' && this.sec('journal') && this.sec('ship') && this.sec('standing')) || (tab === 'chest' && !chestAny()); }
 
   turn(dir) {
     const gap = 56, w = this.body.clientWidth, count = Math.max(1, Math.round((this.body.scrollWidth + gap) / (w + gap)));
@@ -227,8 +229,23 @@ export class Logbook {
     this.root.classList.toggle('mapmode', this.tab === 'map');
     this.body.className = this.tab === 'map' ? 'full' : 'cols';
     this.body.scrollLeft = 0;
-    ({ map: this.renderMap, orders: this.renderOrders, book: this.renderBook })[this.tab].call(this);
+    ({ map: this.renderMap, orders: this.renderOrders, book: this.renderBook, chest: this.renderChest })[this.tab].call(this);
     requestAnimationFrame(() => this.turn(0));
+  }
+
+  // ------------------------------------------------------------ the sea chest (src/chest.js): keepsakes, things for the ship, remnants
+  renderChest() {
+    const { state, world, ship } = this.d, have = (state.story.chest || []).filter((e) => !e.sold);
+    const dock = world.nearest(ship.pos.x, ship.pos.z, 70, ['harbour']), docked = !!dock && ship.speed < 1.5;
+    let html = '';
+    for (const [k, label] of CHEST_KINDS) {
+      const es = have.filter((e) => CHEST[e.id] && CHEST[e.id].kind === k); if (!es.length) continue;
+      html += h3(label) + es.map((e) => { const it = CHEST[e.id];
+        const btn = k === 'remnant' ? (docked ? `<button class="mini" data-sell="${e.id}">Offer it at ${dock.desc.name}</button>` : '<small class="dim">Kept. A harbour might buy it.</small>') : '';
+        return ent(it.name, `${it.text}${e.w && WATER_NAMES[e.w] ? ` (${WATER_NAMES[e.w]})` : ''}`, '', '', btn); }).join('');
+    }
+    this.body.innerHTML = html || ent('Empty', '', '', 'dim');
+    this.body.querySelectorAll('[data-sell]').forEach((b) => b.addEventListener('click', () => { const r = chestSell(b.dataset.sell); if (r) this.d.toast(`"${r.text}"${r.gold ? ` (+${r.gold} gold)` : ''}`); this.render(); }));
   }
 
   // ------------------------------------------------------------ pages

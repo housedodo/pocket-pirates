@@ -173,3 +173,34 @@ F2  Side-story seeds (WRITER_TODO 3.2): the fisherman's debt, letters from a cap
 F3  Voice notes for the cast, one line each: Mara, Old Perrin, Tama's harbourmaster, Ada the baker, Tilda and her dog, Ines at
     the lamp, Nilo the boatbuilder, Old Sabe, Lune who sings, Marisol and Anselm, Corvo who counts ships, Teo, Ilse.     yours:
 F4  General writing rules you want kept (words to avoid, running jokes, how long a line may be).                           yours:
+
+====================================================================================================================================
+PART G  NEW 2026-11-19 (later): THE SEA CHEST, THE LOST SAILORS ON THE WATER, TWO MORE SAYINGS
+====================================================================================================================================
+G1  The sea chest's words  (src/chest.js CHEST)
+    Each thing has a name and one line; remnants also have the buyer's one line (or a refusal). Drafts:
+      The Kestrel's lamp      Brought up from the green dark under the two white posts. It burns small and does not go out.
+      A lead line             A lead and a marked line, out of the wreckage at the Ribs. The crew sounds ahead in shoal water...
+      A lamplighter's shutter It came down in the basket with the oil. With the lamp out, the eyes are quicker in the dark.
+      The figurehead (Ribs)   Dug out of the sand at the Ribs, where she stood up to her waist. Any shipyard can fit her.
+      Patched sailcloth       A bolt of patched cloth, left on the deck after the music on the sandbar.
+      A bell clapper          It came up on the line near the Drowned Bell. Heavy, and wet a long time.
+                              buyer: "A clapper. Nobody round here has a bell that size."
+      A cup                   It says MERRY GULL, in a hand you do not know.
+                              nobody buys it: "Your own ship's name on it, Captain. I will not take that."
+    Needed: refine; and more things for each kind (what else could be found, where, and what it lets you read in the sea).
+    yours:
+
+G2  The lost sailors, now met on the water  (src/systems/lostsailors.js)
+    No card and no choice any more. Coming close shows one line, and when you sail on, one more:
+      the wreck    ...The ticket is for two berths.  /  When you look back, the wreck is no further off than before.
+      the rowboat  ...The knot is the old kind, for a bronze hook.  /  The line twitches once as you pass.
+      the sandbar  ..."Nearly there," he tells the hole.  /  The sound of the spade follows you a long way over the water.
+    Needed: refine. They are the answer to the three small wrong things near home; they must stay unnamed.
+    yours:
+
+G3  Two more pilots' sayings  (src/systems/passes.js SAYINGS)
+      transit  (old salt) There is a white cap on the reef at Glass Lagoon, and another on a hill out beyond. Put the one behind
+               the other and sail in.
+      pilot    (fisher)   The Reef boats go into the Ribs every day. Stay in their wake and you will not touch.
+    yours:

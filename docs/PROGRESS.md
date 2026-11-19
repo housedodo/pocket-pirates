@@ -2219,3 +2219,25 @@ dread there eased for a while after it.
   light, `crossed` set and the wall moves to 1950; Lagoon only at high water under oars; the Ribs' lull comes and goes.
   **Not verified:** the lamp-out way (needs the lamp's dark held in a live run), how the still beams read at the wall from astern,
   the land-ho card on screen, any feel. The slicks and the Ribs' ring use flat unlit materials, like the race buoys: design should look.
+
+## 2026-11-19 (evening): the sea chest, lost sailors on the water, the cards off, the Lagoon's transit, the Ribs' pilot
+- **Sea chest** (`src/chest.js`, `logbook.js` renderChest, the fourth bookmark, digit 4): `state.story.chest` [{id, day, w}]. Finds: the
+  Kestrel's lamp (with the Kestrel), the lead line (first time ashore at the Ribs), the figurehead (a later gift visit to the Ribs),
+  the shutter (the first jar from a Guild keeper's basket), patched sailcloth (Teo's or Ilse's second line), the clapper (25% of
+  catches within 160 of the Drowned Bell after the first throw), the cup (a later visit to the Cup). Uses: the lead line holds the
+  ship off a slick's shoal (no damage); the shutter doubles how fast the eyes come up with the lamp out (farlights and the lamp way).
+  Found cosmetics: `found` on `customize.js` entries (sail 'patched', figure 'sandmaid' built in `ship.js`), shown in the shipyard
+  only once in the chest, free. Remnants: "Offer it at <harbour>" when docked; the cup is refused.
+- **Choice cards off** (`ui/encounters.js` CARDS_ON = false; the deck stays in `tabletop.js`). **Lost sailors** (`lostsailors.js`,
+  `sighting.js`): spawned as before in deep dread; no E; within 30 the line and the clue, past 70 the after line; the wreck keeps 70
+  from the ship for two minutes.
+- **T4 b** (`systems/passes.js`): the Glass Lagoon's transit: the rolled rocky or volcano isle nearest 360 from the lagoon, a white
+  cap on its highest point, and a white-capped knuckle on the reef ring on the far side; within 0.03 rad of the line from the peak
+  through the rock the reef lets the ship in at any tide under sail. The Ribs' pilot: once a day by daylight near the Ribs a Reef
+  canoe comes in, holds at 64 for the lull, rows in to 30, waits, and rows out on a later lull; within 22 of her while she goes in or
+  out the breakers let the ship through. Once in by any way, the ship may lie inside until it leaves. Two more sayings.
+- **The slick's sign** (`chartstyles.js`): where the shoal first bit, the low-water pencil sign (`state.story.slickHit`).
+- **Verified** (headless): build; smoke; the chest bookmark absent with nothing in it and present after; the chest page; the transit
+  passes on its line and not 25 off it at low tide under sail; the Ribs' canoe comes and goes in; a lost rowboat met by sailing
+  close (clue set) with no E prompt. Screenshots of the chest and the capped reef rock. **Not verified:** the figurehead and sails on
+  the ship, selling at a harbour, the clapper's catch, the cap on the far peak seen from the transit, feel.

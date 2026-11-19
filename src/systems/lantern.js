@@ -22,6 +22,7 @@ import { oilOn } from './storybeats.js';
 import { oilCap } from '../oil.js';
 import { sellable } from '../jobs.js';
 import { toast } from '../ui/dom.js';
+import { chestAdd } from '../chest.js';
 
 // ---- P-LANT-3 numbers
 export const SUPPER_FROM = 17.5, SUPPER_TO = 20.5;   // dusk, on the harbour clock
@@ -166,6 +167,7 @@ function runBasket(k, dt) {
     if (r.step === 3) { k.fish.visible = false; state.story.supper[d.id] = state.dayN; }   // the fish is taken in: once a day per light
     if (r.step === 4) k.jar.visible = true;
     if (r.step === 5 && oilOn()) state.oil = Math.min(oilCap(state.upgrades), state.oil + SUPPER_OIL);   // the jar is taken aboard
+    if (r.step === 5) chestAdd('shutter', 'lantern');   // the first time, a shutter comes down with it (the sea chest)
     if (r.step === 5) k.jar.visible = false;
     if (r.step >= len.length) { k.basket.visible = k.rope.visible = false; k.run = null; return; }
   }

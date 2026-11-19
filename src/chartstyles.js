@@ -238,6 +238,8 @@ export function drawVariant(lb, key) {
     const x0 = Math.round(X(l.x)) + 7, y0 = Math.round(Z(l.z)) - 9;
     m.forEach((row, j) => { for (let i = 0; i < row.length; i++) if (row[i] === '#') dot(x0 + i, y0 + j, PEN); });
   }
+  // ---- where the shoal in a slick's place bit (owner, 2026-11-19): the low-water sign in pencil, so the hour can be learned
+  for (const h of Object.values(state.story.slickHit || {})) { const m = NOTE_SPR.low, x0 = Math.round(X(h.x)) - 2, y0 = Math.round(Z(h.z)) - 3; m.forEach((row, j) => { for (let i = 0; i < row.length; i++) if (row[i] === '#') dot(x0 + i, y0 + j, PEN); }); }
   // ---- the wall you are not fitted for (owner, 2026-11-19, item 6): where the paint stops at the fog wall, the edge is drawn in its own
   // slate ink with short ticks outward, a line a chartmaker draws where the ship could not go; unsailed water just stays bare.
   if (gate !== Infinity) {
