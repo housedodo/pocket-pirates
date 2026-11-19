@@ -2196,3 +2196,26 @@ dread there eased for a while after it.
 - **The regatta and the guitar by finding** (owner, same day): `raceTarget` and `guitarTarget` are gone and the HUD has no rows for them.
   At the regatta's line the prompt is `[E] Race` (`raceHere`/`joinRace` in `systems/race.js`, before hails in `getInteract`); E starts the
   count as the automatic stop used to. After the start, `[E] Race (they have started)` joins late until the first boat is in.
+
+## 2026-11-19 (later): land ho for harbours, other ways through, asking around, R.'s letters, the lore file
+- **Land ho** (`main.js` discover): a harbour charted for the first time (not Tama, not inside a menu) shows the old `#landho` card with
+  LAND HO and its name; other islands keep the quiet "Charted" toast.
+- **T4** (`src/systems/passes.js`): four ways through the 1650 wall (light, tune, slick, lamp) and two barrier ways (Glass Lagoon at
+  high water under oars, the Ribs in the lull under oars); `seaGate` lets the ship through while a way holds and sets
+  `state.story.crossed` once it is 60 past, which opens both the S3 and S4 checks in `strataGate`. Still beams for up to three Guild
+  lights 40 to 260 inside the wall (`isl.lead`, world.js); slick strips at four seeded angles, shown near the bottom of the tide, and
+  3 hull every 2.5 s in a slick's place at the wrong hour; five tune gaps, and lost in the wall at night the pennant and stems lean to
+  the nearest (`rt.tuneGap`, fogLost); a ring of white water at the Ribs that runs high through a 25 s set and lies down for 9 s.
+  Pilots' sayings, once each, 30% of docks near the way. The Halved Isle's leading light is kept (the `?leadlight` flag is gone).
+  The Shoals/Belt/Dim walls (450, 800, 1550) need nothing: after the throw the wall is never closer than 1650 and the Shoals and Belt
+  checks open by distance sailed. Not built: the transit lines, the home boat, the current and the convoy (they have no wall to open).
+- **T6** (`systems/perrin.js` placeRumour): after the first throw, 40% of docks name an unvisited clue place in the harbour's own
+  water, once per place, as a rumour (keyed by the place's island, so charting it marks it found). Mara's last-goal line fixed.
+- **T7** (`clues.js` CL-RL-*, `systems/rletters.js`): R.'s four letters, 35% of bottles in their water after the throw, any order;
+  the letter is the note and the clue at once. Q5 reaches 2 without a thread, Q1, Q2 and Q7 reach 3 without one.
+- **docs/LORE_TO_WRITE.txt**: every open piece of lore in one file, with context and what is needed.
+- **Verified** (headless): build; smoke; slick on (passes) and beside it or at high water (lost); tune gap at night with the tune known
+  (passes), without it or by day (lost); a relit still light with its rhythm (passes), without the rhythm (lost); through on the
+  light, `crossed` set and the wall moves to 1950; Lagoon only at high water under oars; the Ribs' lull comes and goes.
+  **Not verified:** the lamp-out way (needs the lamp's dark held in a live run), how the still beams read at the wall from astern,
+  the land-ho card on screen, any feel. The slicks and the Ribs' ring use flat unlit materials, like the race buoys: design should look.

@@ -1,7 +1,7 @@
 HOIST (Pocket Pirates): THE MASTER STORY FILE
 ================================================================================================
 This is the main story file for the full game. Edit it, upload it again, and the next session puts every change
-into the game. Built from commit 8543ba5 on 2026-11-19. 1663 in-game lines carry an ID.
+into the game. Built from commit 3780482 on 2026-11-19. 1673 in-game lines carry an ID.
 
 CONTENTS
   A   HOW TO USE THIS FILE (IDs, status marks, how to add and remove things)
@@ -569,7 +569,7 @@ Where the story hides in the mechanics, and where its text lives (section J).
 # J  EVERY LINE IN THE GAME
 ################################################################################################
 Pulled from the code. Edit the text after the "|" (see part A). Sources are grouped by file; the CODE in front of every
-line says which file it goes back into. 1663 lines.
+line says which file it goes back into. 1673 lines.
 
 
 
@@ -706,7 +706,6 @@ line says which file it goes back into. 1663 lines.
   OBJ-0140 | Find a half-sunk wreck in open water and salvage it (E).
   OBJ-0141 | Raiders sail the Reef waters. Sink one: Space fires the cannons at an attacking raider.
   OBJ-0142 | Captain... how long have we been sailing? I can see my own street. I wish I could not, out here.
-  OBJ-0143 | That is everything we set out to do, Captain. Sail where you like inside the fog: deliveries, errands, treasure and the side goals in your orders are all still there.
   OBJ-0144 | Goal complete: ${goal.title} (+${goal.reward} gold)
 
 ### OBJ / ADDED 2026-11-13
@@ -751,6 +750,9 @@ line says which file it goes back into. 1663 lines.
   OBJ-0190 | Perrin writes: "Drowned waters. Streets. Doors. Go at low water and count them. I keep drawing that street, and I have never been. If a door is open, leave it."
   OBJ-0191 | Perrin wants us in the Drowned waters. Let us tie up at a harbour there and ask around.
 
+### OBJ / ADDED 2026-11-19
+  OBJ-0192 | That is everything we set out to do, Captain. The harbours still talk, if we ask. Deliveries, errands and treasure are all still there.
+
 ### OBJ / RETIRED (the text is no longer in the game; these IDs are never used again)
     was OBJ-0012 | [text] Perrin's riddle is in your log (Journal). Find the right shore of Hollow Cay Galen and dig.
     was OBJ-0013 | [intro] Now to find the shore that riddle means. Stop the ship there and press E to dig.
@@ -774,6 +776,7 @@ line says which file it goes back into. 1663 lines.
     was OBJ-0114 | [raider] Raiders, off the bow! They are Reef Brotherhood. You can outrun them, pay tribute, or fight with Space.
     was OBJ-0117 | [notarget] No raider in range. Space only fires at raiders that are attacking us.
     was OBJ-0129 | That is everything we set out to do, Captain. Sail where you like inside the fog: deliveries, errands, treasure and the side goals in your log (Goals tab) are all still there.
+    was OBJ-0143 | That is everything we set out to do, Captain. Sail where you like inside the fog: deliveries, errands, treasure and the side goals in your orders are all still there.
     was OBJ-0152 | The Crown writes down every ship that comes in. Ask to see the book. Tell me whose name is at the top.
     was OBJ-0154 | Perrin writes: "The Crown writes down every ship that comes in. Ask to see the book. Tell me whose name is at the top."
     was OBJ-0155 | Perrin wants us in the Crown Traders' waters. The chart shows whose waters we are in.
@@ -2549,6 +2552,14 @@ line says which file it goes back into. 1663 lines.
   MAIN-0348 | The hut is ${wayFrom(0, 0)} of Tama, past where the water goes dark. Black boards, one window lit. Do not knock twice. - R.
   MAIN-0349 | I will not go near the black hut, before you ask. It is ${wayFrom(x, z)} of here. I am only saying so you do not go by accident.
 
+### MAIN / ADDED 2026-11-19
+  MAIN-0350 | A light that does not turn is pointing at something. The old pilots kept one at their backs.
+  MAIN-0351 | When the fog stands up like a wall, they say there is a tune that knows the way through. I never learned it.
+  MAIN-0352 | At the bottom of the tide the wall leaves a road of glass water. Miss the hour and it takes your planks.
+  MAIN-0353 | Put your lamp out by the wall at night and you see harbours on the other side. Steer for one. Do not look down.
+  MAIN-0354 | Into Glass Lagoon with a narrow rudder? High water, oars out, slow.
+  MAIN-0355 | Breakers come in sets. Count them. In the quiet between, row in.
+
 ### MAIN / RETIRED (the text is no longer in the game; these IDs are never used again)
     was MAIN-0001 | A floating market, with bunting on every line. (Friday)
     was MAIN-0002 | A regatta! Five boats, racing.
@@ -3006,6 +3017,12 @@ line says which file it goes back into. 1663 lines.
   CLUE-0028 | A ship like ours in the wrong colours, lower in the water.
   CLUE-0029 | A patch of sea the wrong colour. The fish from it taste of nothing.
   CLUE-0030 | A harbour that knew we were coming, and had a place set.
+
+### CLUE / ADDED 2026-11-19
+  CLUE-0031 | The bells out here ring like they mean it. At Tama they hardly touch the rope. I asked the ringer why. He said it is not for us. - R.
+  CLUE-0032 | Somebody told me there is a song that ends it gently. Nobody would sing it for me. - R.
+  CLUE-0033 | In the Cays nobody counts anything, not fish, not days. I counted the boats for them anyway. Somebody had already written the number down. - R.
+  CLUE-0034 | The water here is clear to the bottom, and the bottom is a long way down. Last night the bottom was closer. - R.
 
 
 ####################################################################################################

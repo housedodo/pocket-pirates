@@ -5,6 +5,7 @@
 // It says where, never what. The rumour comes off the chart when the letter is done (objectives.js letterDone).
 import { CLUES } from '../clues.js';
 import { CLUE_PLACES } from '../places.js';
+import { LM } from '../landmarks.js';
 import { bearingName } from '../jobs.js';
 import { pierOf } from '../world.js';
 import { caysAsleep } from '../regions.js';
@@ -40,4 +41,24 @@ export function letterRumour(state, g, d, hour) {
   state.rumoured['letter:' + g.id] = { name: p.name, x: Math.round(p.x), z: Math.round(p.z), source: d.name, found: false, letter: g.id };
   const who = WHO[phase(hour)], name = p.name.replace(/^The /, 'the ');   // mid-line: "Try the Governor's Fort"
   return { speaker: who[Math.floor(Math.random() * who.length)], text: LINES[g.region](name, bearingName(p.x - pier.x, p.z - pier.z)), story: true, rumour: true };
+}
+
+// T6 c (owner, 2026-11-19): asking around never runs out. After the first throw, docking at a harbour may get a voice on the pier naming
+// a place in that harbour's own water that the captain has not been ashore on yet, in the same voice as the letters' rumours (LINES).
+// Once per place; one in PLACE_P docks; never while a letter's own rumour is due. It goes on the chart as a rumour the captain can pin.
+export const PLACE_P = 0.4;
+export function placeRumour(state, d, hour) {
+  if (!LINES[d.region] || !(state.hut && state.hut.rolls && state.hut.rolls.length) || caysAsleep(d.region, hour, null) || Math.random() >= PLACE_P) return null;
+  const asked = state.story.placeAsk || (state.story.placeAsk = {}), been = state.story.lm || {}, reg = Object.fromEntries(CLUES.map((c) => [c.id, c.region]));
+  const pier = pierOf(d);
+  let best = null;
+  for (const p of CLUE_PLACES()) {
+    if (reg[p.clue] !== d.region || been[p.lm] !== undefined || asked[p.lm] !== undefined || state.rumoured[LM[p.lm].key]) continue;
+    const dist = Math.hypot(p.x - pier.x, p.z - pier.z); if (!best || dist < best.dist) best = { p, dist };
+  }
+  if (!best) return null;
+  const p = best.p; asked[p.lm] = state.dayN;
+  state.rumoured[LM[p.lm].key] = { name: p.name, x: Math.round(p.x), z: Math.round(p.z), source: d.name, found: false };
+  const who = WHO[phase(hour)], name = p.name.replace(/^The /, 'the ');
+  return { speaker: who[Math.floor(Math.random() * who.length)], text: LINES[d.region](name, bearingName(p.x - pier.x, p.z - pier.z)), story: true, rumour: true };
 }

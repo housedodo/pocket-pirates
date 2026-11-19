@@ -149,9 +149,9 @@ export class Places {
     this.fog = 0; this.lost = null;
     for (const [lm, B] of Object.entries(BARRIERS)) {
       const l = LM[lm], dx = ship.pos.x - l.x, dz = ship.pos.z - l.z, d = Math.hypot(dx, dz);
-      const byLight = B.kind === 'fog' && !this.open(lm, upgrades) && d < B.R + 70 && !!pass && pass(lm, ship);   // on the leading light's line
-      if (B.kind === 'fog') this.fog = Math.max(this.fog, smoothstep(B.R + 70, B.R - 30, d) * (this.open(lm, upgrades) ? 0.45 : byLight ? 0.7 : 1));
-      if (d > B.R + 4 || freeze || byLight) continue;
+      const by = !this.open(lm, upgrades) && d < B.R + 70 && !!pass && pass(lm, ship);   // another way in (systems/passes.js): the leading light, high water, the lull
+      if (B.kind === 'fog') this.fog = Math.max(this.fog, smoothstep(B.R + 70, B.R - 30, d) * (this.open(lm, upgrades) ? 0.45 : by ? 0.7 : 1));
+      if (d > B.R + 4 || freeze || by) continue;
       const k = `${lm}`;
       if (this.open(lm, upgrades)) {
         if (!this.toastT[k + 'ok'] && d < B.R) { this.toastT[k + 'ok'] = 1; msg = { text: B.yes }; }
@@ -213,4 +213,4 @@ export class Places {
 }
 
 /** each clue seen ashore at a hand-made place, with where that place stands (for clueLint's region check, clues.js, G-30) */
-export const CLUE_PLACES = () => Object.entries(VISITS).filter(([lm, v]) => v.clue && LM[lm]).map(([lm, v]) => ({ clue: v.clue, name: LM[lm].name, x: LM[lm].x, z: LM[lm].z }));
+export const CLUE_PLACES = () => Object.entries(VISITS).filter(([lm, v]) => v.clue && LM[lm]).map(([lm, v]) => ({ lm, clue: v.clue, name: LM[lm].name, x: LM[lm].x, z: LM[lm].z }));

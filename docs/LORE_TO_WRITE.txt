@@ -1,0 +1,175 @@
+HOIST: THE LORE THAT IS STILL TO BE WRITTEN
+Written 2026-11-19 for the owner. Plain text. Each item says what it is, where it shows in the game, what is there now, and what is
+needed from you. Write your answer under "yours:" and I carry it into the game (and into docs/CANON.md if it is a decision).
+Nothing here is ever said to the player in these words.
+
+The rules every line keeps (docs/RULES.md 1-11):
+  - Horror is implied, never explained. A wrong detail, an ordinary reading for it, a shrug. Two to four short sentences.
+  - Bright reading first: everything strange is first something cosy.
+  - Never in player text: lid, eye, sleeper, Lady, "kept soft", "Mara is from". Before the hut is known: no "she", "the hut" or a
+    number about it. ("The Eye" may be named only at the very bottom of the dread.)
+  - Mara never explains and never confirms. One or two short lines. Calls you Captain.
+  - One idea per line. No glyphs, no emoji. The village's name is never written anywhere.
+  - Only the tune ending is happy.
+
+====================================================================================================================================
+PART A  THE END OF THE VOYAGE (the biggest gap: CANON section 8)
+====================================================================================================================================
+
+A1  The six ending texts  (src/table.js; drafts in docs/WRITER_TODO.txt 4.5)
+    What: after the last choice at the Table by the Water, a painted card and one short line. What each ending DOES is decided
+    (CANON 2026-11-18); the words are drafts.
+      The Long Sleep (throw 20)        still
+      Good Dreams (throw 10-19)        warm, a little uneasy; play goes on from the card
+      She Rises (throw 1-9)            dark; the true game over
+      The Tune Is Kept (hum)           the only gentle, happy one; a guitar waits at Tama after
+      Your Seat (sit in her chair)     dark; you become the keeper of the die
+      The Unseen Throw (go back)       uneasy; a few minutes of ordinary play, then the world turns
+    Needed: one line for each card, in the game's voice. Also: WHAT THE LONG SLEEP DOES TO THE WORLD is still open (a reset to
+    before the Table, or a calm epilogue with no dread). That one is a decision, not only words.
+    yours:
+
+A2  The six epilogue lines  (src/table.js EPILOGUE)
+    What: after each ending, one line appears in the Ship's book "in another hand". It is the last thing the book says.
+    Needed: six lines, one per ending. They should read like a note in a ledger, not like a moral.
+    yours:
+
+A3  The credits  (index.html, #credits)
+    What: after "End the voyage". Needed: the names to add, and in what order.
+    yours:
+
+A4  What her book says  (WRITER_TODO 2.1; CANON 2026-11-18 "her book is read once")
+    What: only in Your Seat does the player see the book open: every voyage, every dream before. "Nothing is described."
+    Needed: confirm it stays wordless (a picture only), or give the one thing the player may read in it.
+    yours:
+
+====================================================================================================================================
+PART B  WHAT IS SAID ON THE WAY
+====================================================================================================================================
+
+B1  Perrin's five letters after the hut  (src/objectives.js perrin_*; drafts in WRITER_TODO 1.4 and 4.6)
+    What: after the first throw Perrin writes five letters, one per region (Crown, Free Cays, Lantern, Reef, Drowned). Each is done
+    when any clue of that region is seen. Decided: he grows stranger letter by letter; by the Reef and the Drowned he half writes to
+    himself (CANON 2026-11-18 "Perrin goes strange"). A letter points at a region, never at an answer.
+    Since 2026-11-19 nothing on the HUD points where a letter sends you, so the letter itself must be enough to go on: it should
+    name the water and one thing to look for there (a sight, a sound, a time of day), never the place's name.
+    Needed: the five letters, rewritten from the drafts with that in mind.
+    yours:
+
+B2  The seven thread clue lines  (src/clues.js CL-T-*)
+    What: the line that goes in the Ship's book the first time each thread is met. Drafts now:
+      CL-T-music   A tune that never ends. Nobody near it sleeps without it.
+      CL-T-bell    A bell under the water rings the hours of Tama, not of this place.
+      CL-T-coin    A coin that finds its way back to the purse it left.
+      CL-T-house   A house that keeps a book of who stayed. Our name is in it.
+      CL-T-captain A ship like ours in the wrong colours, lower in the water.
+      CL-T-colour  A patch of sea the wrong colour. The fish from it taste of nothing.
+      CL-T-hollow  A harbour that knew we were coming, and had a place set.
+    Needed: keep, cut or rewrite each.
+    yours:
+
+B3  R.'s letters, the first batch  (src/clues.js CL-RL-*, src/systems/rletters.js; NEW 2026-11-19, T7)
+    What: R. is the one whose bottles first told of the hut ("If you find the black hut, do not sit down. I sat down. - R."). R.
+    stays an initial (L-36 A). After the first throw, a bottle picked up in a water may be R.'s letter for that water, in any
+    order. Each feeds one question that was too thin before:
+      Reef (why Tama is home):     The bells out here ring like they mean it. At Tama they hardly touch the rope. I asked the
+                                   ringer why. He said it is not for us. - R.
+      Crown (can it end):          Somebody told me there is a song that ends it gently. Nobody would sing it for me. - R.
+      Free Cays (who counts):      In the Cays nobody counts anything, not fish, not days. I counted the boats for them anyway.
+                                   Somebody had already written the number down. - R.
+      Drowned (what is under the sea): The water here is clear to the bottom, and the bottom is a long way down. Last night the
+                                   bottom was closer. - R.
+    Needed: refine the four. Also: does R. have letters in Home Sound and Lantern water too? Who R. was is never said; do you want
+    a hint of R.'s fate across the letters (they might grow shorter, or stop)?
+    yours:
+
+B4  Hearing of the hut  (src/systems/hutword.js; WRITER_TODO 4.9; NEW 2026-11-19, T2)
+    What: before the first throw, the way to the hut can now come from a pier voice (fisher, netmender, old salt, innkeeper), a
+    bottle from R., or a passenger. Six drafts in WRITER_TODO 4.9.
+    Needed: keep or rewrite each. They may name the hut (they are how it becomes known) but never "she" or a number.
+    yours:
+
+B5  The pilots' sayings  (src/systems/passes.js SAYINGS; NEW 2026-11-19, T4)
+    What: the new ways through the fog wall and into the Lagoon and the Ribs are never explained; a harbour voice near each says
+    one old saying, once. Drafts:
+      light   (lamplighter) A light that does not turn is pointing at something. The old pilots kept one at their backs.
+      tune    (old salt)    When the fog stands up like a wall, they say there is a tune that knows the way through. I never learned it.
+      slick   (fisher)      At the bottom of the tide the wall leaves a road of glass water. Miss the hour and it takes your planks.
+      lamp    (watchman)    Put your lamp out by the wall at night and you see harbours on the other side. Steer for one. Do not look down.
+      lagoon  (fisher)      Into Glass Lagoon with a narrow rudder? High water, oars out, slow.
+      ribs    (old salt)    Breakers come in sets. Count them. In the quiet between, row in.
+    Also the Halved Isle's still light has no saying yet. Needed: refine these; add one for the Halved Isle if you want.
+    yours:
+
+B6  Asking around after the letters  (src/systems/perrin.js LINES; T6 c)
+    What: harbours keep naming unvisited places in their own water, in one voice per region:
+      Crown "Old names? Try X, west of here. They write everything down."   Free "Try X... Go after dark, and go quiet."
+      Lantern "Out by X... The light there is not like ours."   Reef "Wrecks? Try X... They are not going anywhere."
+      Drowned "Doors? Try X, at low water. Do not knock."
+    These now carry more of the game (they are the main pull late on). Needed: two or three variants per region so they do not
+    repeat, in the region's own voice (the lore bible's L-08 to L-24 say how each region talks).
+    yours:
+
+====================================================================================================================================
+PART C  THE WORDS AT THE TABLE THAT GIVE THE ANSWERS AWAY (T8, parked by you; listed so it is not lost)
+====================================================================================================================================
+
+C1  The Table's choices  (src/table.js tableOptions)
+    Now: "Ask her who counts" and "Walk round and sit in the other chair". Each appears only when its question is understood, but
+    the label itself states the answer. Needed: labels that offer the act without naming what it means.
+    yours:
+
+C2  The arrival  (src/table.js ARRIVAL)
+    Now ends: "Whatever you do here will be written down." That is question 1's answer, said outright. Needed: keep, cut or soften.
+    yours:
+
+C3  Two fragments that explain  (src/harbourlife.js FRAGMENTS)
+    The shrine carving: "SHE COUNTS SO WE DO NOT HAVE TO". The fishing village: the grandfather who played the woman at the table,
+    "He won. The fish came back". Both come close to telling the premise. Needed: keep, cut or soften.
+    yours:
+
+====================================================================================================================================
+PART D  THE NEXT PIECES OF THE PICTURE (K5: events, riddles, letters, remnants; you asked for these)
+====================================================================================================================================
+Every piece follows one rule: it is a clue for one question in one water, it leaves one line in the Ship's book under its water,
+and it never explains. The game never ties two pieces together (owner 2026-11-19): the player does that.
+What each question still lacks (after R.'s letters):
+  Q1 Who counts         fine (Crown, Lantern, Free Cays). More would help in Reef or Home water.
+  Q2 What is under it   fine (Free Cays, Lantern, Drowned). A Crown or Reef piece would give a fourth.
+  Q3 Who sat before you strong everywhere.
+  Q4 What a throw costs fine (Home, Reef, Crown, Free Cays).
+  Q5 Why Tama is home   still the thinnest: Home and Reef, plus the bell thread when it wakes. Needs one more in Crown, Free Cays
+                        or Drowned water.
+  Q6 What Mara is       Home, Drowned, the bell thread. Mara stays a mystery forever (CANON 2026-11-18): any piece must stay oblique.
+  Q7 Can it end         Free Cays, Lantern, Crown. One in Reef or Drowned would help.
+Kinds you can write (one line of idea is enough; I build it):
+  - an EVENT at sea: something seen once, under a condition (a tide, a night, a storm).
+  - a RIDDLE that is a place: a description to match, solved only by being there at the right time.
+  - a LETTER: more of R., or someone new.
+  - a REMNANT: an object that goes into the hold with a name and no explanation; whoever buys it says one plain thing.
+  - an ECHO: the same thing seen in two waters (like the second cup on the customs desk and the cup in the Cays).
+    yours:
+
+====================================================================================================================================
+PART E  OPEN DECISIONS (only you decide; from WRITER_TODO parts 2 and 4.2)
+====================================================================================================================================
+E1  Does the hut change on later visits? (more candles, a second chair, a page left open with your ship drawn on it)   yours:
+E2  The Edge records which way you left it (over the lip or back out). Should that ever mean anything?                yours:
+E3  May the thing that wakes at full dread wake during the Edge? (now: no)                                               yours:
+E4  The stake with no wreck (Reef, once): should it feed question 3?                                                     yours:
+E5  The bell's count: texts say "two strokes, never three", "twelve", and a clue "Tama rang fourteen at noon"; the bell
+    rings one stroke. Which count stands? (you said: later)                                                              yours:
+E6  The hut's gold wording (you said: later)                                                                             yours:
+E7  Mara's hidden answer: CANON 4 says "someone who survived something", CANON 2 says the sleeper made her. Which wording? yours:
+E8  Five clue places sit in mixed water at the region edges: retag the clue or move the place, for each.                 yours:
+
+====================================================================================================================================
+PART F  WORLD AND CAST, WHEN YOU HAVE TIME
+====================================================================================================================================
+F1  Places not built yet (WRITER_TODO 3.1): the Governor's Dinner, the Closed Mint, the Turtle Road, the Singing Sandbar, the
+    Wreckers' Light, the Surrender, the Island That Moves. Pick any; one line each is enough.                            yours:
+F2  Side-story seeds (WRITER_TODO 3.2): the fisherman's debt, letters from a captain whose hand becomes yours, the twin harbour,
+    the other dice, the choir of gulls. Pick any.                                                                        yours:
+F3  Voice notes for the cast, one line each: Mara, Old Perrin, Tama's harbourmaster, Ada the baker, Tilda and her dog, Ines at
+    the lamp, Nilo the boatbuilder, Old Sabe, Lune who sings, Marisol and Anselm, Corvo who counts ships, Teo, Ilse.     yours:
+F4  General writing rules you want kept (words to avoid, running jokes, how long a line may be).                           yours:

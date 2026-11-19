@@ -265,8 +265,8 @@ export function strataGate(state, tideFalling) {
     () => true,                                                                                    // S0 Home Sound: open
     () => (up.rudder || 0) >= 2 || Object.keys(state.charts || {}).length > 0 || reach >= S[1].r1,   // S1: a broad rudder or a bought local chart
     () => (up.lantern || 0) >= 1 && (up.hull || 0) >= 2 || reach >= S[2].r1,                       // S2: lamp holds 130+, iron-banded hull
-    () => (up.lantern || 0) >= 2,                                                                  // S3: the lens lantern cuts the fog belt
-    () => ((up.hull || 0) >= 3 || (up.sails || 0) >= 3) && (tideFalling || reach > S[4].r0 + 2), // S4: outrun the swell, enter on a falling tide
+    () => (up.lantern || 0) >= 2 || !!(state.story && state.story.crossed),                        // S3: the lens lantern cuts the fog belt, or a way through has been found (passes.js, T4)
+    () => ((up.hull || 0) >= 3 || (up.sails || 0) >= 3) && (tideFalling || reach > S[4].r0 + 2) || !!(state.story && state.story.crossed), // S4: outrun the swell, enter on a falling tide; or a way through found (passes.js, T4: both gates stand at the same 1650 wall)
     () => regionsSeen(state) >= 3,                                                                 // S5: three regions read, or the compass will not hold
   ];
   // gates[i] opens stratum i+1's far edge...: the wall for stratum i sits at its outer edge unless gates[i+1] is met
@@ -445,7 +445,7 @@ export class Objectives {
   askHint(dread) {
     const g = this.current;
     this.stall = 0;
-    if (!g) { this.mate.say('That is everything we set out to do, Captain. Sail where you like inside the fog: deliveries, errands, treasure and the side goals in your orders are all still there.'); return; }
+    if (!g) { this.mate.say('That is everything we set out to do, Captain. The harbours still talk, if we ask. Deliveries, errands and treasure are all still there.'); return; }
     this.mate.say(g.hints[this.hintI++ % g.hints.length], dread > 0.6);
   }
 

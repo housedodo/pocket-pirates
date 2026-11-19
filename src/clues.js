@@ -39,6 +39,12 @@ export const CLUES = [
   { id: 'CL-T-house',   region: 'crown',   q: [1, 3], w: 1, cap: null, line: 'A house that keeps a book of who stayed. Our name is in it.' },
   { id: 'CL-T-captain', region: 'reef',    q: [3],    w: 1, cap: null, line: 'A ship like ours in the wrong colours, lower in the water.' },
   { id: 'CL-T-colour',  region: 'drowned', q: [2],    w: 1, cap: null, line: 'A patch of sea the wrong colour. The fish from it taste of nothing.' },
+  // R.'s letters, the first batch for the thin questions (owner, 2026-11-19, T7: "create a first batch and i will refine it"; drafts).
+  // Each comes in a bottle picked up in its own water after the first throw (systems/rletters.js); the line is the letter itself.
+  { id: 'CL-RL-reef',    region: 'reef',    q: [5],    w: 1, cap: null, line: 'The bells out here ring like they mean it. At Tama they hardly touch the rope. I asked the ringer why. He said it is not for us. - R.' },
+  { id: 'CL-RL-crown',   region: 'crown',   q: [7],    w: 1, cap: null, line: 'Somebody told me there is a song that ends it gently. Nobody would sing it for me. - R.' },
+  { id: 'CL-RL-free',    region: 'free',    q: [1],    w: 1, cap: null, line: 'In the Cays nobody counts anything, not fish, not days. I counted the boats for them anyway. Somebody had already written the number down. - R.' },
+  { id: 'CL-RL-drowned', region: 'drowned', q: [2],    w: 1, cap: null, line: 'The water here is clear to the bottom, and the bottom is a long way down. Last night the bottom was closer. - R.' },
   { id: 'CL-T-hollow',  region: 'drowned', q: [1, 6], w: 1, cap: null, line: 'A harbour that knew we were coming, and had a place set.' },
 ];
 export const CLUE = Object.fromEntries(CLUES.map((c) => [c.id, c]));

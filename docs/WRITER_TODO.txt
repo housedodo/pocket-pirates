@@ -663,3 +663,7 @@ E5: "A natural twenty. Somewhere far below, something is disappointed." is cut (
     "The hut is {way} of Tama, past where the water goes dark. Black boards, one window lit. Do not knock twice. - R."
   Passenger:
     "I will not go near the black hut, before you ask. It is {way} of here. I am only saying so you do not go by accident."
+
+4.10 DRAFTS: R.'S LETTERS, THE PILOTS' SAYINGS, ASKING AROUND (2026-11-19; T4, T6, T7)
+  All of them, with context and what is needed, are in docs/LORE_TO_WRITE.txt (B3, B5, B6). That file also gathers every other open
+  piece of lore in one place.

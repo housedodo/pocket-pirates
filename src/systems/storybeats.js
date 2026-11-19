@@ -22,7 +22,7 @@ import { scene } from '../core/engine.js';
 import { $, toast } from '../ui/dom.js';
 import { tideFalls } from './calendar.js';
 import { after } from './later.js';
-import { leadPass } from './leadlight.js';
+import { wallPass, crossWall, tuneGapWay, barrierPass } from './passes.js';
 
 export let WHITE_MIST, oilOn;   // set by the init function(s) below, at the point in boot where main.js had them
 
@@ -79,7 +79,7 @@ export function fogLost(dt) {
   if (!out) { rt.tuneWay = null; return; }
   rt.lostWob += dt;
   const hum = isKnown(state, 'hum');   // the two players' tune carries through fog: the helm half answers, and the way home is plain
-  rt.tuneWay = hum && (out.x || out.z) ? Math.atan2(out.x, -out.z) : null;   // steering by the tune (task L9): the bearing of the way out; the night stems lean to it and the pennant points there (never in the demo: nothing is known there)
+  rt.tuneWay = hum && rt.gateLost && rt.tuneGap != null ? rt.tuneGap : hum && (out.x || out.z) ? Math.atan2(out.x, -out.z) : null;   // in the wall at night the tune leans to its gap (passes.js)   // steering by the tune (task L9): the bearing of the way out; the night stems lean to it and the pennant points there (never in the demo: nothing is known there)
   const want = Math.atan2(out.x, -out.z) + (Math.sin(rt.lostWob * 0.7) * 0.6 + Math.sin(rt.lostWob * 1.9) * 0.25) * (hum ? 0.25 : 1);   // aimless, but always bending outward
   G.ship.heading += angleDiff(G.ship.heading, want) * Math.min(1, dt * (hum ? 1.3 : 0.5));
   G.ship.trim += (0.45 - G.ship.trim) * Math.min(1, dt * 0.8);
@@ -122,16 +122,19 @@ function threadClues() {
 export function seaGate(dt) {
   if (rt.seatPan) { rt.gateLost = null; rt.gateFog = 0; return; }   // Your Seat's last look: the world is only watched (systems/endgame.js)
   const R = gateRadius(state, tideFalls()), d = Math.hypot(G.ship.pos.x, G.ship.pos.z);
-  if (d < R && d > (state.story.reach || 0)) state.story.reach = d;   // how far you have really sailed: a stratum, once entered, stays open
+  const how = R !== Infinity && d > R - 200 ? wallPass(R) : null;   // a way through the wall the ship is on (systems/passes.js, T4)
+  if ((d < R || how) && d > (state.story.reach || 0)) state.story.reach = d;   // how far you have really sailed: a stratum, once entered, stays open
+  if (how && d > R + 60) crossWall(how);   // through: the sea beyond is the captain's
+  rt.tuneGap = R !== Infinity && d > R - 260 ? tuneGapWay() : null;
   setReach(R);
   // an errand or passenger that points beyond the fog (taken before the fog was understood, or from an old save) is released
   for (const [key, label] of [['job', 'The delivery'], ['passenger', 'Your passenger']]) {
     const o = state[key];
     if (o && Math.hypot(o.x, o.z) > R - 30) { state[key] = null; if (state.tracked === key) state.tracked = null; toast(`${label} was bound beyond the fog. It is let go, and nothing is lost.`, false, 6000); }
   }
-  rt.gateFog = R === Infinity ? 0 : clamp((d - (R - 160)) / 160, 0, 1);
+  rt.gateFog = R === Infinity ? 0 : clamp((d - (R - 160)) / 160, 0, 1) * (how ? 0.7 : 1);
   rt.gateLost = null;
-  if (d > R) {   // past the fog wall: lost (fogLost takes the helm and the ship drifts back toward Tama)
+  if (d > R && !how) {   // past the fog wall: lost (fogLost takes the helm and the ship drifts back toward Tama)
     rt.gateLost = { x: -G.ship.pos.x / d, z: -G.ship.pos.z / d };
     G.objectives.remark('gate', rt.dread); if (state.hut && state.hut.rolls.length) G.objectives.remark('gate2', rt.dread);   // after the hut: where the way through is
     if ((rt.gateToastT -= dt) <= 0) { rt.gateToastT = 25; toast('The fog swallows everything. The helm will not answer; somehow the bow comes round toward home.', false, 5000); }
@@ -147,7 +150,7 @@ export function seaTick(dt, windNow) {
       if (!seen[ev.lane.name]) { seen[ev.lane.name] = 1; toast(`A current: ${ev.lane.name}. Ride it and it carries you; fight it and it holds you back.`, false, 6000); }
     }
   }
-  const pm = G.places.tick(dt, G.ship, state.upgrades, scene.fog.color, false, leadPass);   // leadPass: the Halved Isle by light (trial)
+  const pm = G.places.tick(dt, G.ship, state.upgrades, scene.fog.color, false, barrierPass);   // other ways in through a barrier (systems/passes.js, T4)
   if (pm) { toast(pm.text, false, 5000); if (pm.hurt) hurtPlayer(pm.hurt); }
 }
 /** 1 while the ship is in Free Cays waters (their sector), else 0: the night music there is a lone guitar with silences */

@@ -92,8 +92,10 @@ import { hailShip, renderShipTrade, initShipTrade } from './ui/shiptrade.js';
 import { renderHarbour, lettersAt, PETS, companions, petOffer, takePet, tabOpened, showGreeting, greetAdvance, buyUpgrade, initHarbour } from './ui/harbour.js';
 import { HUT_NOTES, perrinNote, hutNod, revealHut, showDemoEnd, fogLost, WHITE_MIST, seamTick, clueTick, seaGate, seaTick, oilOn, freeCaysNow, oilTick, SAIL_LIMIT, sailTick, toggleLamp, buyOil, tackTick, hurtPlayer, onHitEnemy, initStoryBeats } from './systems/storybeats.js';
 import { getInteract, tryInteract, anchorTick, digLeaveTick } from './systems/interact.js';
-import { bottleWord, passengerWord } from './systems/hutword.js';   // hearing of the hut (T2)
-import { leadTick, leaderDesc, offLine } from './systems/leadlight.js';   // the Halved Isle by light (trial)
+import { bottleWord, passengerWord } from './systems/hutword.js';
+import { rLetter } from './systems/rletters.js';   // hearing of the hut (T2)
+import { leadTick, leaderDesc, offLine } from './systems/leadlight.js';   // the Halved Isle by light
+import { passesTick, wallPass, ribsLull } from './systems/passes.js';   // the other ways through (T4)
 import { econ, econTick, econLine } from './systems/econ.js';   // ?econ=1: gold per hour by source (G-25)
 import { after, laterTick, laterPending } from './systems/later.js';
 import { ringNoon, noonBellTick, noonPending } from './systems/noonbell.js';
@@ -299,7 +301,7 @@ sea.onEvent = (e) => {
   } else if (e.type === 'bottle') {
     const cur = objectives.current, hutNote = cur && cur.id === 'bottles' ? HUT_NOTES[(state.stats.bottles - (state.story.b0 || 0)) % HUT_NOTES.length] : null;
     if (hutNote && hutNote.includes('{fate}')) { state.story.fate = state.story.fate || 3 + Math.floor(mulberry32(hash2(state.seed, 20, 20))() * 7); state.story.fateRead = true; }
-    const way = hutNote ? null : bottleWord();   // once the bottles goal is done, a bottle may carry the hut's way (systems/hutword.js, T2)
+    const way = hutNote ? null : bottleWord() || rLetter(regionAt(ship.pos.x, ship.pos.z, state.seed));   // R.'s letters in their own water (systems/rletters.js, T7)   // once the bottles goal is done, a bottle may carry the hut's way (systems/hutword.js, T2)
     const text = hutNote ? hutNote.replace(/\{fate\}/g, numberWord(state.story.fate)) : way || bottleNote(mulberry32(hash2(e.o.x | 0, e.o.z | 0, state.seed + 3)), stageOf(e.o.dread));
     state.notes.push({ text, dark: idx >= 2 }); state.stats.bottles++;
     toast(`Message in a bottle: "${text}"`, idx >= 2, 10000);
@@ -1088,7 +1090,10 @@ function discover(isl) {
   state.discovered[d.id] = { name: d.name, type: d.type, x: Math.round(d.x), z: Math.round(d.z) };
   state.gold += 5;
   const rum = state.rumoured[d.id]; if (rum) rum.found = true;
-  if (!onbQuiet() && rt.dread < 0.5) toast(`Charted: ${d.name} (+5 gold)`);   // no gold toasts in the deep dread
+  if (d.type === 'harbour' && d.id !== '0,-1' && !rt.modal) {   // a harbour found for the first time: its name, big (owner, 2026-11-19: "bring back the land ho for the harbours")
+    const el = $('landho'); el.querySelector('b').textContent = 'LAND HO'; el.querySelector('span').textContent = d.name; el.querySelector('small').textContent = '';
+    el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
+  } else if (!onbQuiet() && rt.dread < 0.5) toast(`Charted: ${d.name} (+5 gold)`);   // no gold toasts in the deep dread
   if (rum && rum.fake !== undefined) after(1.8, () => resolveFalseRumour(d, rum));
   audio.play('discover');
 }
@@ -1163,7 +1168,8 @@ function frame() {
   const vdt = live || ashore || rt.titleScene ? rawDt : 0;  // ashore the world keeps moving (people, gulls, waves) while the clock stands still
   rt.tNow += dt; rt.animT += vdt;
   noonBellTick(vdt);   // Tama's bell swings at noon (world time: it keeps going ashore)
-  leadTick();   // the Halved Isle by light: the leader's beam lies still (systems/leadlight.js, ?leadlight=1)
+  leadTick();   // the Halved Isle by light: the leader's beam lies still (systems/leadlight.js)
+  passesTick(vdt);   // the other ways through: still beams, slicks, the Ribs' sets (systems/passes.js, T4)
   stampNotes(state.notes, regionAt(ship.pos.x, ship.pos.z, state.seed));   // the Ship's book keeps the water each note was taken down in (item 3)
   laterTick();   // story delays that have come due (systems/later.js): never inside a menu, and they wait out the quiet
   const stepT = Math.floor(rt.animT * 12) / 12;
@@ -1486,7 +1492,7 @@ $('oilrow').addEventListener('pointerdown', (e) => { if (rt.started && !rt.modal
 $('oilrow').classList.toggle('off', !!state.story.lampOff);
 installGamepad(() => toast('Controller connected: stick to sail, A to interact, Y for the log, Start to pause.', false, 6000));
 installInput(() => { if (rt.helpMode === 'full' || rt.helpMode === 'legacy') helpEl.innerHTML = helpText(rt.helpMode === 'full'); });
-window.__game = { leaderDesc, offLine, secrets, regionWeights, tideAt: () => tideAt(), lostState: () => ({ lostK: rt.lostK, gateLost: rt.gateLost, placesLost: places.lost, heading: ship.heading, trim: ship.trim }), places, seaplay, glimpse, fishing, sails: () => ({ torn: state.sailsTorn, kits: state.patchKits, strain: rt.sailStrain }), oilState: () => ({ oil: state.oil, lampOut: rt.lampOut }),
+window.__game = { leaderDesc, offLine, wallPass, ribsLull, secrets, regionWeights, tideAt: () => tideAt(), lostState: () => ({ lostK: rt.lostK, gateLost: rt.gateLost, placesLost: places.lost, heading: ship.heading, trim: ship.trim }), places, seaplay, glimpse, fishing, sails: () => ({ torn: state.sailsTorn, kits: state.patchKits, strain: rt.sailStrain }), oilState: () => ({ oil: state.oil, lampOut: rt.lampOut }),
   readArch, partnerOf, maraMood, windfx, logbook, econ,
   life, localGames, openHarbour(id, tab = 'board') { const isl = [...world.islands.values()].find((i) => i.desc.id === id); if (!isl) return false; closeModal(true); rt.harbourIsl = isl; rt.hbTab = tab; frameVillage(isl.desc); openModal('harbour'); return true; }, renderHarbour: () => renderHarbour(),
   audio,

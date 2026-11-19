@@ -30,9 +30,10 @@ import { shipwrightLine } from '../upgrades.js';
 import { angleDiff, hash2, mulberry32 } from '../util.js';
 import { isFestival, isLanternNight, isMarketDay, nightKey, tideAt } from './calendar.js';
 import { mendSails, oilOn } from './storybeats.js';
-import { letterRumour } from './perrin.js';
+import { letterRumour, placeRumour } from './perrin.js';
 import { supperTarget, startSupper } from './lantern.js';
 import { raceHere, joinRace } from './race.js';
+import { pilotSaying } from './passes.js';
 
 export function getInteract() {
   const hi = G.world.nearest(G.ship.pos.x, G.ship.pos.z, 18);
@@ -180,6 +181,8 @@ function doInteract(tg) {
     }
     if (!say && ending && h && h.rolls.length) { say = rollGreeting(h.rolls[h.rolls.length - 1].n, state.time * 24, Math.random); say.endsDemo = true; state.story.rollSeen = h.rolls.length; }
     if (!say && window.__BUILD !== 'demo') say = letterRumour(state, G.objectives.pending ? null : G.objectives.current, d, state.time * 24);   // asking around for Perrin's letter (systems/perrin.js)
+    if (!say && free && window.__BUILD !== 'demo') say = placeRumour(state, d, state.time * 24);
+    if (!say && free && window.__BUILD !== 'demo') say = pilotSaying(d);   // how a way through is heard of (systems/passes.js, T4)   // asking around never runs out (T6 c, systems/perrin.js)
     if (!say && free && G.laterOK()) say = renamedGreeting(state, d, Math.random);   // a place that was not always called that (D3)
     if (!say && free && G.laterOK() && window.__BUILD !== 'demo' && !state.story.lullRumour && sectorAt(d.x, d.z, state.seed).faction.id === 'free') { state.story.lullRumour = 1; say = { speaker: 'oldsalt', text: 'In the Cays they say the dark keeps quiet while somebody plays.', story: true }; }   // points at the Two Players (the gentle ending)
     if (!say && free && !state.story.tellGreet && G.lateTell() && Math.random() < 0.5) { state.story.tellGreet = 1; say = { speaker: 'harbourmaster', text: 'Captain. Just yourself again? I will put you down as one.', story: true }; }   // a tell: they greet only you

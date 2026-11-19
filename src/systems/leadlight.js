@@ -1,4 +1,4 @@
-// The Halved Isle by light (owner, 2026-11-19: "build the halved isle by light"; a trial behind ?leadlight=1, RULES 35).
+// The Halved Isle by light (owner, 2026-11-19: "build the halved isle by light"; first a trial, kept the same day with T4).
 // A second way through the fog bank round the Halved Isle, beside the lens lantern (BARRIERS.broken in landmarks.js). Real pilots
 // do this: a leading light marks a safe line, and you keep it on that line behind you.
 //   - One Guild light near the bank is the leader (the nearest lit Guild light outside the bank, by the seed). At night its beam does
@@ -12,13 +12,13 @@
 // lane is narrowest at the light's end. No text: nothing says any of this. Full game only.
 import { state } from '../core/state.js';
 import { G } from '../core/runtime.js';
-import { params, DEMO } from '../core/config.js';
+import { DEMO } from '../core/config.js';
 import { LM, BARRIERS } from '../landmarks.js';
 import { CELL, hasLighthouse } from '../world.js';
 import { lampDead } from '../regions.js';
 import { nightKey } from './calendar.js';
 
-export const LEAD_ON = !DEMO && params.get('leadlight') === '1';
+export const LEAD_ON = !DEMO;   // was the trial ?leadlight=1; kept (owner, 2026-11-19: T4 "build all of them")
 export const LEAD_HALF = 0.06;        // rad (about 3.4 degrees) either side of the line, in the fog: some 25 units wide at the bank
 export const LEAD_SEEK = 520;         // the leader is the nearest Guild light within this of the isle, outside the bank
 
