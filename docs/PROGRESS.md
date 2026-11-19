@@ -2290,3 +2290,8 @@ dread there eased for a while after it.
   vertices). Not reproduced. Two safeguards added: `float.js` tips, then lifts, the hull until neither end is more than 0.45 under the
   water at it and the low side the same; `ui/camera.js` lifts the lens over a crest between it and the deck (five points on the line
   of sight). Neither changed the numbers in the tests (no crest hid the deck in 540 storm frames before or after). Open: when it happens.
+
+## 2026-11-19 (night): visual QA pass
+- See `docs/VISUAL_QA_2026-11-19.md`. Fixed: nights in rain and fog no longer brighter than clear (`weather.js`), the sea's rim and the sky
+  below the horizon meet in the fog colour (`ocean.js`, `sky.js`), the Drowned belt's white water softened and lit (`systems/drowned.js`),
+  the wake's bow-tie (`wake.js`). Harness in `tools/visualqa/` (test tooling only). Each fix re-captured before/after.
