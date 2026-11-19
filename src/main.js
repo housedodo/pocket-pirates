@@ -1252,7 +1252,8 @@ function frame() {
   }
 
   // ---- dread + stage palette + time of day
-  const target = rt.forced !== null ? rt.forced : unseenDread(guitarDread(lullDread(clamp(felt() + (window.__BUILD === 'demo' ? 0 : homeShift(dreamShift(), Math.hypot(ship.pos.x, ship.pos.z))), 0, 1))));   // the Cays' night quiet holds it down (systems/lullaby.js); the guitar's night, the Unseen Throw's turn (systems/endgame.js)
+  const dreamsKept = !!(state.story.ending && state.story.ending.id === 'dreams');   // after Good Dreams there is no dread at all, anywhere (owner, 2026-11-19)
+  const target = rt.forced !== null ? rt.forced : dreamsKept ? 0 : unseenDread(guitarDread(lullDread(clamp(felt() + (window.__BUILD === 'demo' ? 0 : homeShift(dreamShift(), Math.hypot(ship.pos.x, ship.pos.z))), 0, 1))));   // the Cays' night quiet holds it down (systems/lullaby.js); the guitar's night, the Unseen Throw's turn (systems/endgame.js)
   rt.dread += (target - rt.dread) * Math.min(1, rawDt * (rt.forced !== null ? 1.2 : 0.4));
   if (params.get('shot')) rt.dread = target;
   if (rt.glitchT > 0) { rt.glitchT -= rawDt; rt.dread = settings.comfort.flash ? 1 : rt.preGlitch; if (rt.glitchT <= 0) { rt.dread = rt.preGlitch; hutEl.classList.remove('glitching'); } } // the hut's bad throw

@@ -1,5 +1,7 @@
 // The camera: zoom (wheel), tilt and orbit (drag), and the per-frame follow: the swell, shake, the title shot, ashore views,
 // the opening cinematic, the shipyard turntable and dev overrides. Its values live in rt (zoom, pitch, camYaw, camHeading...).
+import { waveHeight } from '../ocean.js';
+import { U } from '../psx.js';
 import * as THREE from 'three';
 import { clamp, smoothstep, angleDiff } from '../util.js';
 import { params, settings } from '../core/config.js';
@@ -43,6 +45,19 @@ export function updateCamera(rawDt, live, ashore) {
   rt.lookK = rt.lookK == null ? LOOK_REST : rt.lookK + (lookT - rt.lookK) * Math.min(1, rawDt * LOOK_EASE);
   camLook.set(G.ship.pos.x + fx * rt.zoom * rt.lookK, 1.5 + rt.camSwell * 0.7 + rt.lookUpK * 9 + skyK * rt.zoom * 0.42, G.ship.pos.z + fz * rt.zoom * rt.lookK);
   camPos.y = Math.max(camPos.y, 3.2);                                 // never at or under the waterline
+  { // a crest between the lens and the ship must not hide her (owner, 2026-11-19: "the boat sometimes still goes underwater going in and out
+    // of waves": the hull was not under the water, a nearer crest was in the way). The water is read at a few points on the line to the deck,
+    // and the lens is lifted just enough to see over the highest one; up quickly, down slowly.
+    const F = G.ship.float, deck = (F && F.y !== undefined ? F.y : 0) + 1.1, sx = G.ship.pos.x, sz = G.ship.pos.z, t = U.uTime.value, amp = U.uWave.value;
+    let need = -1e9;
+    for (const f of [0.25, 0.45, 0.6, 0.72, 0.82]) {
+      const x = camPos.x + (sx - camPos.x) * f, z = camPos.z + (sz - camPos.z) * f, h = waveHeight(x, z, t, amp) + 0.35;
+      need = Math.max(need, (h - deck * f) / (1 - f));
+    }
+    const lift = Math.max(0, need - camPos.y);
+    rt.camClear = (rt.camClear || 0) + (lift - (rt.camClear || 0)) * Math.min(1, rawDt * (lift > (rt.camClear || 0) ? 6 : 1.2));
+    camPos.y += rt.camClear;
+  }
   const still = !settings.comfort.shake;   // comfort: no shake, no tremor, no roll (G4)
   if (rt.shake > 0) { rt.shake = Math.max(0, rt.shake - rawDt * 1.8); if (!still) { camPos.x += Math.sin(rt.tNow * 70) * rt.shake; camPos.y += Math.cos(rt.tNow * 63) * rt.shake * 0.7; } }
   if (rt.dread > 0.85 && live && !still) { const s = (rt.dread - 0.85) * 0.5; camPos.x += Math.sin(rt.tNow * 31) * s; camPos.y += Math.sin(rt.tNow * 23 + 1) * s; }

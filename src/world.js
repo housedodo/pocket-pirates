@@ -1578,7 +1578,7 @@ export class Island {
     const terrain = buildTerrain(d, rng);
     decorate(d, rng, A, B, D, extra);
     abyssForms(d, D, extra);
-    regionDecor(d, A, extra, { shoreR, terrainHeight });
+    regionDecor(d, A, extra, { shoreR, terrainHeight, desc: (cx, cz) => (CUR_WORLD ? CUR_WORLD.desc(cx, cz) : null), seed: CUR_WORLD ? CUR_WORLD.seed : 0 });
     if (extra.lamp) d.lampAt = { x: d.x + extra.lamp.x, z: d.z + extra.lamp.z, y: extra.lamp.y };   // where its light is (the Guild's lights, oil burn)   // the region's own things on the water (buoys, stilt houses, coral, lamps, roofs)
 
     const add = (builder, mat, order = 0) => {
@@ -1734,8 +1734,10 @@ export class Island {
 // ---------------------------------------------------------------------------
 // Streaming world
 // ---------------------------------------------------------------------------
+let CUR_WORLD = null;   // the decor asks about neighbouring cells while an island is built (regiondecor.js towerHere)
 export class World {
   constructor(scene, seed, dugSet) {
+    CUR_WORLD = this;
     this.scene = scene;
     this.seed = seed;
     this.dug = dugSet;

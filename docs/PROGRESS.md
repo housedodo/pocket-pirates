@@ -2277,3 +2277,16 @@ dread there eased for a while after it.
 - **Good Dreams** (`endcards.js` dreamsSetup): time 0.775 instead of 0.9. Screenshot: the Gull and the sea readable.
 - **The Guild's towers** (`regiondecor.js` `guildTower`, trial `?guildtower=a|b|c|d`, default the old column): the bastion light, the keep
   light, the sea-wall light, the martello light. Screenshots for the owner; the losers go once one is chosen.
+- **Good Dreams keeps the sea bright** (`main.js` dread target: 0 while `story.ending.id === 'dreams'`). Checked: at (1300, -1800) dread
+  0.93 before, 0.00 after.
+- **The Guild's tower, A without its drum** (`regiondecor.js`, `?guildtower=a1|a2|a3`): a1 banded with a crenellated parapet, a2 tapering
+  bands with a corbelled battlement and a square lamp turret, a3 slim with arrow slits and a corbelled side turret. B, C, D deleted;
+  plain stone texture (the house wall tile drew window frames on the shafts). Screenshots for the owner.
+- **The towers, all three, spaced** (`regiondecor.js` towerHere: a candidate isle carries one only if no higher-ranked candidate stands
+  within TOWER_GAP 420; `world.js` passes a cell lookup in `h.desc`). Seed 1: 19 Lantern isles, 3 towers, nearest two 976 apart. The
+  `?guildtower` trial and the old column are deleted.
+- **The hull under the water** (owner's report). Measured: in a storm swell (wave 2.2) the bow and stern were never more than 0.28 under
+  the water the physics reads, and the drawn sea is the same formula, clock and island list (the mesh can only sit lower between its
+  vertices). Not reproduced. Two safeguards added: `float.js` tips, then lifts, the hull until neither end is more than 0.45 under the
+  water at it and the low side the same; `ui/camera.js` lifts the lens over a crest between it and the deck (five points on the line
+  of sight). Neither changed the numbers in the tests (no crest hid the deck in 540 storm frames before or after). Open: when it happens.

@@ -26,6 +26,7 @@ export function hullWater(x, z, h, t, wave, L = 7.6, B = 3.8) {   // read over a
   const mean = sum / N;
   for (let i = 0; i < N; i++) { const A = HA[i], C = HC[i], y = HY[i]; sa += A * (y - mean); saa += A * A; sc += C * (y - mean); scc += C * C; }
   W.mean = mean; W.centre = centre; W.along = sa / (saa || 1); W.across = sc / (scc || 1); W.lo = lo; W.hi = hi;
+  W.bow = HY[6]; W.stern = HY[0]; W.side = Math.max(HY[7], HY[8]); W.L = L; W.B = B;   // the water at the ends and the sides (the ends check below)
   return W;   // one shared result: every caller reads it at once (ship.js, traffic.js) and keeps nothing
 }
 
@@ -55,5 +56,19 @@ export function rideWaves(F, w, dt, extra = {}) {
   if (F.y < lowest) { F.y = lowest; if (F.vy < 0) F.vy = 0; }
   if (F.y > highest) { F.y = highest; if (F.vy > 0) F.vy = 0; }
   if (Math.abs(F.y - tY) > 4) { F.y = tY; F.vy = 0; }   // after a teleport
+  // the ends and the sides stay out of the water (owner, 2026-11-19: "the boat sometimes still goes underwater going in and out of waves").
+  // The middle was kept above the water, but on a short steep wave the pitch (a soft spring, and capped) lags the face and a whole end of
+  // the hull sat under the crest. Now: tip the hull until neither end is deeper than SUB under the water at it; if no tilt within the limit
+  // can do that (a crest at both ends, or a face steeper than the limit), lift it. The sides the same way, by lifting.
+  const SUB = extra.sub ?? 0.45, hl = (w.L || 7.6) / 2, hb = (w.B || 3.8) / 2, SMAX = Math.sin(0.62);
+  if (w.bow !== undefined) {
+    let lo = (w.bow - SUB - F.y) / hl, hi = (F.y + SUB - w.stern) / hl;   // the bounds on sin(pitch): bow high enough, stern high enough
+    lo = Math.max(lo, -SMAX); hi = Math.min(hi, SMAX);
+    if (lo > hi) { const up = ((lo - hi) * hl) / 2; F.y += up; lo -= up / hl; hi += up / hl; if (F.vy < 0) F.vy = 0; }
+    const sp = Math.sin(F.p), sn = Math.min(hi, Math.max(lo, sp));
+    if (sn !== sp) { const np = Math.asin(clamp(sn, -SMAX, SMAX)); if ((np - F.p) * F.vp < 0) F.vp = 0; F.p = np; }
+    const low = F.y - Math.abs(Math.sin(F.r)) * hb, deep = w.side - SUB - low;
+    if (deep > 0) { F.y += deep; if (F.vy < 0) F.vy = 0; }
+  }
   return F;
 }
