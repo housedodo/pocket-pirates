@@ -1699,6 +1699,11 @@ export class Island {
           beam.rotation.z += (-Math.atan2(drop, dist) - beam.rotation.z) * 0.08;           // tipped down onto the deck
           beam.scale.x = Math.min(7, Math.max(1, Math.hypot(dist, drop) / 44));          // long enough to reach you
           beam.scale.y = beam.scale.z = 0.6;
+        } else if (isl.lead) {   // the leading light (systems/leadlight.js, trial): the beam lies still along the water, into the fog bank
+          const dist = Math.hypot(isl.lead.x - bx, isl.lead.z - bz), drop = extra.beam.y - 2;
+          beam.rotation.y = Math.atan2(-(isl.lead.z - bz), isl.lead.x - bx);
+          beam.rotation.z = -Math.atan2(drop, dist);
+          beam.scale.x = isl.lead.short ? 1.4 : Math.min(7, Math.max(1, dist / 44)); beam.scale.y = beam.scale.z = 0.8;   // short: the rhythm is not on the chart
         } else { beam.rotation.y = extra.beamFixed ? ph : t * 0.9 + ph; beam.rotation.z *= 0.9; beam.scale.set(1, 1, 1); }
       });
     }

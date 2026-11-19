@@ -1,7 +1,7 @@
 HOIST (Pocket Pirates): THE MASTER STORY FILE
 ================================================================================================
 This is the main story file for the full game. Edit it, upload it again, and the next session puts every change
-into the game. Built from commit 97b30e9 on 2026-11-18. 1658 in-game lines carry an ID.
+into the game. Built from commit 264d95d on 2026-11-19. 1663 in-game lines carry an ID.
 
 CONTENTS
   A   HOW TO USE THIS FILE (IDs, status marks, how to add and remove things)
@@ -569,7 +569,7 @@ Where the story hides in the mechanics, and where its text lives (section J).
 # J  EVERY LINE IN THE GAME
 ################################################################################################
 Pulled from the code. Edit the text after the "|" (see part A). Sources are grouped by file; the CODE in front of every
-line says which file it goes back into. 1658 lines.
+line says which file it goes back into. 1663 lines.
 
 
 
@@ -2458,7 +2458,6 @@ line says which file it goes back into. 1658 lines.
   MAIN-0276 | The arch inscription reads: "${d.puzzle.text}"
   MAIN-0277 | Scratched small on the back of the arch: "${state.frags[d.id]}" It reads like the end of something else.
   MAIN-0278 | The two halves fit: "${ad.puzzle.text}" (${ad.name})
-  MAIN-0280 | The black hut? Out past the ${bearingName(world.hutDesc.x - d.x, world.hutDesc.z - d.z)} water. There is a table, they say.
   MAIN-0281 | Nothing here but sand. Reread the riddle in your orders and try another shore.
   MAIN-0282 | Somebody dug here first, and stopped a spade short. Lucky us.
   MAIN-0283 | The ${plural(fruitName(f, d.dread), 2)} here are picked clean for today.
@@ -2542,6 +2541,14 @@ line says which file it goes back into. 1658 lines.
   MAIN-0342 | In ahead of ${of + 1 - n} of them. There is a purse for that at the harbourmaster's.
   MAIN-0343 | They went without us, Captain. We can still go round, if we hurry.
 
+### MAIN / ADDED 2026-11-19
+  MAIN-0344 | The black hut? Out past the ${w} water. There is a table, they say.
+  MAIN-0345 | Everybody asks about the black hut, sooner or later. It is ${w} of here.
+  MAIN-0346 | There is a hut out ${w}. Black boards. Somebody always home. We row round it.
+  MAIN-0347 | Out ${w} there is a hut with a light in it. Nobody built it, that I know of.
+  MAIN-0348 | The hut is ${wayFrom(0, 0)} of Tama, past where the water goes dark. Black boards, one window lit. Do not knock twice. - R.
+  MAIN-0349 | I will not go near the black hut, before you ask. It is ${wayFrom(x, z)} of here. I am only saying so you do not go by accident.
+
 ### MAIN / RETIRED (the text is no longer in the game; these IDs are never used again)
     was MAIN-0001 | A floating market, with bunting on every line. (Friday)
     was MAIN-0002 | A regatta! Five boats, racing.
@@ -2572,6 +2579,7 @@ line says which file it goes back into. 1658 lines.
     was MAIN-0262 | Rumour: ${t.name}, ${bearingName(t.x - d.x, t.z - d.z)} of here, ~${Math.round(dist)} fathoms. Marked on your map.
     was MAIN-0271 | It is in your orders now, Captain: M.
     was MAIN-0279 | Hm? ... Nothing. Flat water plays tricks.
+    was MAIN-0280 | The black hut? Out past the ${bearingName(world.hutDesc.x - d.x, world.hutDesc.z - d.z)} water. There is a table, they say.
     was MAIN-0289 | A table at the water's edge. One chair on this side, one on the other. A die, waiting.${memory ? ' Mara, quietly: "I do not think we are here to throw."' : ''}
 
 

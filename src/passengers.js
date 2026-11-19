@@ -91,6 +91,7 @@ export function passengerTalk(pass, dt, ctx) {   // ctx: { mate, world, ship, st
   const roll = Math.random();
   if (ctx.storm > 0.4 && roll < 0.6) { say(SEASICK[Math.floor(Math.random() * SEASICK.length)]); if (Math.random() < 0.4) ctx.mate.say('Lean over the downwind side. The OTHER side!'); return; }
   if (dk && roll < 0.5) { say(DARK_LINES[pass.said++ % DARK_LINES.length], true); return; }
+  if (ctx.hutWord) { const t = ctx.hutWord(ctx.ship.pos.x, ctx.ship.pos.z); if (t) { say(t, true); return; } }   // the hut's way, now and then (systems/hutword.js, T2)
   if (roll < 0.3) {                                                // a treasure hint: it goes on your chart
     const r = findRumour(ctx.world, { x: ctx.ship.pos.x, z: ctx.ship.pos.z }, ctx.state);
     if (r) {

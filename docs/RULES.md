@@ -14,12 +14,12 @@ need to break one, stop and ask the owner. `docs/CANON.md` says what is true in 
 8. **A wrong thing happens once.** One flag in `state.story`, set when it fires. No repeats, no log entry that names it, no achievement.
 9. **Lines are short: one idea each.** No emoji or symbol glyphs in text; icons are pixel sprites (`pxi()` in `src/pixelui.js`).
 10. **The village's name is never written anywhere**, in code, text or docs.
-11. **Goals are found, never marked.** Only the early goals (landfall, the first riddle, Perrin's letters, an errand in hand) have a place on the slip and a dot on the wind ring. Later goals get a "where to look" line (`where` in `MAIN_GOALS`).
+11. **Goals are found, never marked.** The game never points (owner, 2026-11-19, T5): no dot on the wind ring, no way line and no course on the chart for a goal, an errand's harbour, the regatta or Tama's quay. The dot, the slip's third line and the chart's course follow only a mark the captain set: a pin on the chart, or a rumour pinned from Orders. A goal's slip still names where (`goalWhere` in `ui/hud.js`; `where` in `MAIN_GOALS`). An errand's flag shows on the chart only at a harbour the captain has found.
 
 ## Interface
 12. **Three bookmarks: Chart, Orders, Ship's book.** New pages become sections of one of them, never a fourth bookmark.
 13. **Nothing is a locked tab.** A section the story has not reached is not printed. A greyed button stays readable and answers a click with one line.
-14. **The slip is always three lines in this order: what, where, which way and how long.** The same on the HUD, on Orders and on the chart.
+14. **The slip is always in this order: what, where, which way and how long.** The same on the HUD, on Orders and on the chart. The third line is there only when the captain has a mark of their own (RULES 11, 2026-11-19).
 15. **Distances are units** ("west · 232"), the same plain number everywhere the player reads them: the board, the slip, Orders, the chart (`etaText` in `ui/hud.js`). Not minutes: sailing time made it feel like a fetch game (owner, 2026-11-13).
 16. **The HUD stays wordless.** Gold, time, place, the slip. A new gauge names itself once (`nameMeter`), then is silent.
 17. **Mara's box never covers the ship** or the water ahead of the bow: bottom left at sea, under the book in the log.
@@ -30,7 +30,8 @@ need to break one, stop and ask the owner. `docs/CANON.md` says what is true in 
 ## Look
 21. **`docs/STYLE.md` is the law for looks.** If the look changes on purpose, STYLE.md changes in the same commit.
 22. **Two typefaces only:** DotGothic16 for interface text and headings (for now, 2026-11-12), Pirata One for the title logo, harbour names, the chart's harbour labels and the paper's masthead. (The Pirata One + Jersey 10 pairing is switched off, not deleted.) Bundled in `public/fonts`, open licence, no web fonts at run time. Never bold or italic.
-23. **The chart is an inked portolan:** painted means sailed; bare vellum elsewhere; ink sprites, no round badges. The bare paper stays quiet: it is reserved for a drawing in another hand.
+23. **The chart is an inked portolan:** painted means sailed; bare vellum elsewhere; ink sprites, no round badges. The bare paper stays quiet: it is reserved for a drawing in another hand. **Pencil means noticed** (2026-11-19): a place gone ashore on gets a small pencil tick; a place that said "not now" gets a pencil sign for what the sea must be doing (low water, high water, night) until it is seen; a fog wall the ship is not fitted for is drawn in its own slate ink along painted water. No words on any of them.
+23a. **The game never marks agreement** (owner, 2026-11-19): two sources that agree are never tied together by the game, not by a mark, a line, a sound or a word. The player makes the connection.
 24. **Everything is procedural and pixel-crisp.** No image or model files (one exception, owner 2026-11-18: the six ending cards, small PNGs painted by `tools/endcards/paint.cjs` from the game's own models and shipped in `src/endcards_data.js`). Half-resolution canvases shown pixelated; no anti-aliased strokes, no blur on text.
 24b. **Island variety never crowds the map** (owner, 2026-11-15): a new island look may change a rolled island's kind, outline or props,
     never add an island, move one (the one exception: the five clue places moved into their own region's water, owner 2026-11-18, D3; the hut and the harbours still roll as before), add land (total within +5%) or add props beyond the old kinds' range. `node scripts/isle_checks.cjs` checks it.

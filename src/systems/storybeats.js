@@ -22,6 +22,7 @@ import { scene } from '../core/engine.js';
 import { $, toast } from '../ui/dom.js';
 import { tideFalls } from './calendar.js';
 import { after } from './later.js';
+import { leadPass } from './leadlight.js';
 
 export let WHITE_MIST, oilOn;   // set by the init function(s) below, at the point in boot where main.js had them
 
@@ -59,6 +60,7 @@ export function hutNod(delay) {
 export function revealHut() {
   const h = G.world.hutDesc; if (!h) return;
   state.discovered[h.id] = state.discovered[h.id] || 1;
+  if (state.story.hutNod) return;   // already shown (a second source, or the goal's own step after hutword.js told it)
   state.story.hutNod = 'pending';
   after(60, () => hutNod(0));
 }
@@ -145,7 +147,7 @@ export function seaTick(dt, windNow) {
       if (!seen[ev.lane.name]) { seen[ev.lane.name] = 1; toast(`A current: ${ev.lane.name}. Ride it and it carries you; fight it and it holds you back.`, false, 6000); }
     }
   }
-  const pm = G.places.tick(dt, G.ship, state.upgrades, scene.fog.color, false);
+  const pm = G.places.tick(dt, G.ship, state.upgrades, scene.fog.color, false, leadPass);   // leadPass: the Halved Isle by light (trial)
   if (pm) { toast(pm.text, false, 5000); if (pm.hurt) hurtPlayer(pm.hurt); }
 }
 /** 1 while the ship is in Free Cays waters (their sector), else 0: the night music there is a lone guitar with silences */

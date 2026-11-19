@@ -151,6 +151,10 @@ function pixelate(c, w, h) {
 }
 const trackBtn = (state, id) => (state.tracked === id ? '<small class="tracked">&gt; following this one</small>' : `<button class="mini" data-track="${id}">Follow</button>`);
 const stars = (n) => pxi('star').repeat(n) + pxi('nostar').repeat(3 - n);
+/** the names of the waters, for the Ship's book (item 3); a note's `w` is stamped where it was taken down (stampNotes) */
+export const WATER_NAMES = { home: 'Home Sound', crown: 'Crown water', free: 'The Free Cays', reef: 'Reef water', lantern: 'Lantern water', drowned: 'The Drowned water', '': 'Earlier' };
+/** once a frame (main.js): every note taken down since the last frame gets the water the ship is in */
+export function stampNotes(notes, water) { for (let i = notes.length - 1; i >= 0 && notes[i].w === undefined; i--) notes[i].w = water; }
 const ent = (title, sub = '', right = '', cls = '', acts = '') => `<div class="ent ${cls}"><b>${title}</b>${right ? `<span class="r">${right}</span>` : ''}${sub ? `<small>${sub}</small>` : ''}${acts ? `<div class="acts">${acts}</div>` : ''}</div>`;   // acts: its buttons, kept inside the row (2026-11-13)
 const h3 = (t) => `<h3>${t}</h3>`;
 const dueClock = (d) => { const h = ((d % 1) + 1) % 1 * 24; return `${String(Math.floor(h)).padStart(2, '0')}:${String(Math.floor((h % 1) * 60)).padStart(2, '0')}`; };   // regions.js clockAt
@@ -243,8 +247,8 @@ export class Logbook {
     if (!this.sec('quests')) {   // deliveries, passengers and commissions: one list
       html += h3('Also in hand');
       const j = state.job, pg = state.passenger, far = (x, z) => { const dx = x - ship.pos.x, dz = z - ship.pos.z; return `${bearingName(dx, dz)} · ${this.d.eta ? this.d.eta(Math.hypot(dx, dz)) : Math.round(Math.hypot(dx, dz))}`; };
-      if (j) html += ent(`${pxi('letter')} ${j.item}`, `to ${j.toName} · ${far(j.x, j.z)}${j.due != null ? ` · by ${dueClock(j.due)}` : ''}`, `${j.reward}g`, '', trackBtn(state, 'job') + '<button class="mini" data-drop="job">Give it up</button>');
-      if (pg) html += ent(`${pxi('talk')} ${pg.name}`, `to ${pg.toName} · ${far(pg.x, pg.z)}`, `${pg.reward}g`, '', trackBtn(state, 'passenger') + '<button class="mini" data-drop="passenger">Give it up</button>');
+      if (j) html += ent(`${pxi('letter')} ${j.item}`, `to ${j.toName}${j.due != null ? ` · by ${dueClock(j.due)}` : ''}`, `${j.reward}g`, '', trackBtn(state, 'job') + '<button class="mini" data-drop="job">Give it up</button>');
+      if (pg) html += ent(`${pxi('talk')} ${pg.name}`, `to ${pg.toName}`, `${pg.reward}g`, '', trackBtn(state, 'passenger') + '<button class="mini" data-drop="passenger">Give it up</button>');
       for (const q of state.quests) {
         const need = questNeed(q), have = questProgress(q, state), done = have >= need;
         let where = `for ${q.giverName}`;
@@ -322,8 +326,11 @@ export class Logbook {
       html += `<div class="riddle"><b>${known ? d.name : 'A riddle with no address'}</b>${pid ? ' <span class="halfmark" title="only half a riddle">1/2</span>' : ''}${state.frags && state.frags[id] ? ' <span class="halfmark" title="carries the end of another riddle">+</span>' : ''}<p>\u201c${state.riddles[id]}\u201d</p>${half}${frag}${where ? `<small>${where}</small>` : ''}<button class="mini" data-pencil="${id}">Pencil on the map</button></div>`;
     }
     const rums = Object.values(state.rumoured).filter((r) => !r.found);
-    if (rums.length) { html += h3('Rumours'); for (const r of rums) { const dx = r.x - ship.pos.x, dz = r.z - ship.pos.z; html += ent(r.name, `${bearingName(dx, dz)} \u00b7 ${this.d.eta ? this.d.eta(Math.hypot(dx, dz)) : Math.round(Math.hypot(dx, dz))} \u00b7 ${r.source || ''}`, '?'); } }
+    if (rums.length) { html += h3('Rumours'); const pins = (state.story && state.story.pins) || []; for (const [i, r] of rums.entries()) { const dx = r.x - ship.pos.x, dz = r.z - ship.pos.z, on = pins.some((q) => q.on && q.x === r.x && q.z === r.z);
+      html += ent(r.name, `${bearingName(dx, dz)} \u00b7 ${this.d.eta ? this.d.eta(Math.hypot(dx, dz)) : Math.round(Math.hypot(dx, dz))} \u00b7 ${r.source || ''}`, '?', '', on ? '<small class="tracked">&gt; pinned</small>' : `<button class="mini" data-rpin="${i}">Pin</button>`); } }   // item 5: a rumour pinned to the HUD
     return [html, () => {
+    this.body.querySelectorAll('[data-rpin]').forEach((x) => x.addEventListener('click', () => { const r = rums[+x.dataset.rpin]; if (!r) return; const st = state.story, pins = st.pins || (st.pins = []);
+      for (const q of pins) q.on = false; pins.push({ x: r.x, z: r.z, on: true, label: r.name }); if (pins.length > 6) pins.shift(); this.render(); }));
     this.body.querySelectorAll('[data-pencil]').forEach((x) => x.addEventListener('click', () => { this._fromBoard = true; this.pencil = 'r:' + x.dataset.pencil; this.open('map'); this._fromBoard = false; }));
     }];
   }
@@ -362,7 +369,11 @@ export class Logbook {
     {   // the same line found again is one entry with a count, newest first (2026-11-13: echoing notes)
       const by = new Map(); for (const n of state.notes) { const k = n.text, o = by.get(k); by.delete(k); by.set(k, { n, c: (o ? o.c : 0) + 1 }); }
       const list = [...by.values()].reverse();
-      html += list.length ? list.slice(0, 8).map(({ n, c }) => `<div class="ent ${n.dark ? 'dk' : ''}"><small>“${n.text}”${c > 1 ? ` <span class="r">×${c}</span>` : ''}</small></div>`).join('') + more(list, 8) : ent('None yet', '', '', 'dim');
+      // grouped by the water they were taken down in (owner, 2026-11-19, item 3), the water with the newest note first; a note from
+      // before the book kept its water goes under "Earlier". Never grouped by what it means: the book does not explain.
+      const groups = new Map(); for (const e of list) { const w = e.n.w || ''; if (!groups.has(w)) groups.set(w, []); groups.get(w).push(e); }
+      const row = ({ n, c }) => `<div class="ent ${n.dark ? 'dk' : ''}"><small>“${n.text}”${c > 1 ? ` <span class="r">×${c}</span>` : ''}</small></div>`;
+      html += list.length ? [...groups.entries()].map(([w, es]) => `<div class="ent waterhead"><b>${WATER_NAMES[w] || WATER_NAMES['']}</b></div>` + es.map(row).join('')).join('') : ent('None yet', '', '', 'dim');
     }
     if (isOpen(state, 'know', 'tally') && state.hut && state.hut.rolls.length) {   // the bells have been counted: the throws, as tick marks
       html += h3('Counted') + state.hut.rolls.slice(-8).map((r) => ent(`Day ${r.day}`, `${'|||| '.repeat(Math.floor(r.n / 5))}${'|'.repeat(r.n % 5)}`)).join('');

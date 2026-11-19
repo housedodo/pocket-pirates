@@ -2,6 +2,7 @@
 // and the anchor that holds her still meanwhile (anchorTick, HEAVE_KINDS: RULES 18, E works under way). Moved out of main.js (task R5).
 // main.js computes the interaction once a frame into rt.tg (frame step 4); the prompt, the anchor and E all read that one value.
 // Everything main.js owns comes through G, read at call time; screens (ui/ other than dom.js) too, since systems sit below them.
+import { pierWord } from './hutword.js';
 import { guitarDock } from './endgame.js';
 import { markSeen, tableOpen } from '../clues.js';
 import { G, rt } from '../core/runtime.js';
@@ -167,7 +168,7 @@ function doInteract(tg) {
     { const cur = G.objectives.current;
       if (cur && cur.id === 'harbour' && d.id === '0,-1' && !state.story.letterP1) state.story.letterP1 = 'wait';   // landfall done: the letter is already waiting, before the goal catches up
       if (cur && cur.id === 'perrin' && d.id === '0,-1' && !state.story.perrinNote && !state.story.letterP2) state.story.letterP2 = 'wait';   // the note waits as a letter; the player takes it
-      if (cur && cur.id === 'gossip' && d.id !== '0,-1' && !state.story.hutKnown) { state.story.hutKnown = true; say = { speaker: 'fisher', text: `The black hut? Out past the ${bearingName(G.world.hutDesc.x - d.x, G.world.hutDesc.z - d.z)} water. There is a table, they say.`, dark: true, story: true }; } }
+      say = pierWord(d, !!(cur && cur.id === 'gossip')); }   // the hut's way: certain while "Ask around" is open, now and then once the bottles talk (systems/hutword.js, T2)
     const g = state.greet, h = state.hut, told = state.story.rollSeen || 0, ending = state.story.demoEnd === 'pending', free = g.lastDay !== state.dayN || ending;   // one voice a day, wherever you dock
     if (!say && free && h && h.rolls.length > told) {   // someone already knows: always after the first throw, then now and then (E6: a chance, and not two within ROLL_GREET_GAP days)
       state.story.rollSeen = h.rolls.length;

@@ -650,3 +650,16 @@ E6, a greeter after a low throw (about one throw in three, never two within thre
      Not changed, for you: after a throw of one the greeter still says only "One." (the number first, alone); the
      mid, ten, high and twenty greeters still open with the number ("Twenty. You could hear...").
 E5: "A natural twenty. Somewhere far below, something is disappointed." is cut (MAIN-0019 retired).
+
+
+4.9  DRAFTS: HEARING OF THE HUT (2026-11-19; owner T2: more sources; src/systems/hutword.js)
+  Before, one fisher said where the hut is. Now any of these can, whichever the captain meets first. Each says the way, never a number.
+  Pier (any harbour but Tama):
+    fisher     "The black hut? Out past the {way} water. There is a table, they say."   (the old line, kept)
+    netmender  "Everybody asks about the black hut, sooner or later. It is {way} of here."
+    oldsalt    "There is a hut out {way}. Black boards. Somebody always home. We row round it."
+    innkeeper  "Out {way} there is a hut with a light in it. Nobody built it, that I know of."
+  Bottle (after the bottles goal):
+    "The hut is {way} of Tama, past where the water goes dark. Black boards, one window lit. Do not knock twice. - R."
+  Passenger:
+    "I will not go near the black hut, before you ask. It is {way} of here. I am only saying so you do not go by accident."

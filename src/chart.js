@@ -66,7 +66,7 @@ export function renderChart(lb) {
       const st = lb.d.state.story, pins = st.pins || (st.pins = []);
       const hit = pins.findIndex((q) => Math.hypot(q.x - wx, q.z - wz) < 22 / v.sc + 4);
       if (hit >= 0) pins.splice(hit, 1);
-      else { for (const q of pins) q.on = false; pins.push({ x: Math.round(wx), z: Math.round(wz), on: true }); if (pins.length > 6) pins.shift(); }
+      else { for (const q of pins) q.on = false; pins.push({ x: Math.round(wx), z: Math.round(wz), on: true, label: pinLabel(lb, wx, wz, 22 / v.sc + 6) }); if (pins.length > 6) pins.shift(); }
       drawChart(lb); return;
     }
     const near = lb.d.world.nearest(wx, wz, 40 / v.sc + 12), B = lb.d.state.board || (lb.d.state.board = { pos: {}, ties: [], note: '', guess: [] });
@@ -115,6 +115,14 @@ function hover(lb, e, [wx, wz]) {
 /** a 9x9 icon as an inline pixel SVG (for the panel and the card) */
 function iconHtml(k) { const m = ICONS[k]; if (!m) return ''; let s = ''; m.forEach((row, j) => { for (let i = 0; i < 9; i++) if (row[i] === '#') s += `M${i} ${j}h1v1h-1z`; }); return `<svg viewBox="0 0 9 9" shape-rendering="crispEdges"><path d="${s}" fill="#fff"/></svg>`; }
 
+/** a pin put on or by something the chart already shows takes its name: a rumour, or an island you have seen (T5) */
+function pinLabel(lb, wx, wz, r) {
+  const { state, world } = lb.d;
+  for (const q of Object.values(state.rumoured)) if (!q.found && Math.hypot(q.x - wx, q.z - wz) < r + 10) return q.name;
+  const near = world.nearest(wx, wz, r + 30);
+  if (near && state.discovered[near.desc.id]) return near.desc.name;
+  return null;
+}
 /** the side panel: where you are, the errand you follow, what is shown, this week, the line key */
 function side(lb) {
   const { state, world, ship, seed } = lb.d, v = lb.view, el = document.getElementById('chartSide'); if (!el) return;
@@ -128,10 +136,10 @@ function side(lb) {
   const week = harb.map((d) => ({ d, n: (d.festival - (state.dayN % 7) + 7) % 7 })).sort((a, b) => a.n - b.n).slice(0, 3)
     .map(({ d, n }) => `<div class="cs-ev"><b>${life.gameOf(d).event}</b><small>${d.name.replace(/^(Harbour|Haven|Port) /, '')} · ${n === 0 ? 'today' : n === 1 ? 'tomorrow' : life.WEEKDAYS[d.festival]}</small></div>`).join('');
   el.innerHTML = `<h4 class="cs-title">${info.name}</h4><small class="cs-sub">${info.faction.name} · ${disc.length} ${disc.length === 1 ? 'isle' : 'isles'} charted</small>
-    <div class="cs-h">FOLLOWING</div>${tr ? `<div class="cs-follow"><i class="mc-ic" style="--c:${P.gold}">${iconHtml('errand')}</i><div><b>${tr.label}</b><small>${bearingName(tr.x - ship.pos.x, tr.z - ship.pos.z)} · ${lb.d.eta ? lb.d.eta(Math.hypot(tr.x - ship.pos.x, tr.z - ship.pos.z)) : Math.round(Math.hypot(tr.x - ship.pos.x, tr.z - ship.pos.z))}</small></div></div>` : '<small class="cs-none">nothing: pick one in Orders</small>'}
+    <div class="cs-h">FOLLOWING</div>${tr ? `<div class="cs-follow"><i class="mc-ic" style="--c:${P.gold}">${iconHtml('note')}</i><div><b>${tr.label}</b><small>${bearingName(tr.x - ship.pos.x, tr.z - ship.pos.z)} · ${lb.d.eta ? lb.d.eta(Math.hypot(tr.x - ship.pos.x, tr.z - ship.pos.z)) : Math.round(Math.hypot(tr.x - ship.pos.x, tr.z - ship.pos.z))}</small></div></div>` : '<small class="cs-none">nothing: click the chart to pin</small>'}
     <div class="cs-h">ON THE CHART</div>${chip('harbour', 'Harbours', counts.harbour)}${chip('treasure', 'Treasure', counts.treasure)}${chip('rumour', 'Rumours', counts.rumour)}${chip('errand', 'Errands', counts.errand)}${chip('note', 'My pins', counts.note)}${chip('names', 'Island names')}
     ${week ? `<div class="cs-h">THIS WEEK</div>${week}` : ''}
-    <div class="cs-h">LINES</div><div class="cs-line"><i style="--c:${P.gold}"></i>course to errand</div><div class="cs-line dot"><i style="--c:#dff0f0"></i>current</div>
+    <div class="cs-h">LINES</div><div class="cs-line"><i style="--c:${P.gold}"></i>course to your pin</div><div class="cs-line dot"><i style="--c:#dff0f0"></i>current</div>
     <div class="cs-keys">drag · wheel zoom · click to pin</div>`;
   el.querySelectorAll('input[data-show]').forEach((b) => b.addEventListener('change', () => { v.show[b.dataset.show] = b.checked; drawChart(lb); }));
 }

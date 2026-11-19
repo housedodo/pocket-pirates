@@ -26,7 +26,7 @@ const TH = {
   a: {
     paper: [[231, 213, 168], [221, 201, 152]], fox: [201, 174, 122], edge: [196, 170, 120],
     sea: [[150, 190, 176], [130, 174, 166]], rim: [98, 146, 146], shoal: [190, 216, 190],
-    ink: [52, 32, 18], soft: [120, 92, 60], red: [158, 46, 28], gold: [164, 104, 22], pencil: [58, 58, 122],
+    ink: [52, 32, 18], soft: [120, 92, 60], red: [158, 46, 28], gold: [164, 104, 22], pencil: [58, 58, 122], wall: [70, 82, 96],
     rh: [[176, 148, 104], [150, 164, 112], [194, 130, 100]], rhSea: [[98, 132, 122], [92, 140, 110], [150, 122, 104]],
     land: { sand: [240, 224, 176], green: [176, 184, 124], rock: [198, 184, 158], dark: [150, 128, 116], shade: [150, 122, 84] },
     lagoon: [190, 216, 190], current: [244, 236, 208], txt: '#34200f', txtRed: '#9a2c1a', txtSoft: '#6e5236', halo: null,
@@ -222,6 +222,35 @@ export function drawVariant(lb, key) {
   // pencil marks the world has taught (clues.js capabilities)
   if (isKnown(state, 'wreckticks')) for (const k of ['ribs', 'wreck']) { const l = LM[k], x = Math.round(X(l.x)), z = Math.round(Z(l.z)); for (let i = -2; i <= 2; i++) { dot(x + i, z + i - 7, PENCIL); dot(x + i, z - i - 7, PENCIL); } }
   if (isKnown(state, 'cupmark')) { const l = LM.cup, x = Math.round(X(l.x)) + 6, z = Math.round(Z(l.z)) - 8; ['#.#', '#.#', '##.', '#.#', '#.#'].forEach((row, j) => { for (let i = 0; i < 3; i++) if (row[i] === '#') dot(x + i, z + j, PENCIL); }); }
+  // ---- pencil means noticed (owner, 2026-11-19, item 1): a hand-made place you have gone ashore on gets a small pencil tick, no words.
+  // Painted means sailed; pencil means noticed; the bare sheet stays bare (RULES 23).
+  const PEN = PENCIL, NOTED = state.story.lm || {}, NOTYET = state.story.notyet || {};
+  for (const l of Object.values(LM)) {
+    if (!l || NOTED[l.lm] === undefined) continue;
+    const x = Math.round(X(l.x)) - 8, z = Math.round(Z(l.z)) - 7;
+    for (const [a, b] of [[0, 2], [1, 3], [2, 4], [3, 3], [4, 2], [5, 1], [6, 0]]) dot(x + a, z + b, PEN);
+  }
+  // ---- a place that said "not now" (K6, owner 2026-11-19): a pencil sign beside it for what the sea must be doing, no words; it goes
+  // when the place has been seen as it should be. low: a wave over an arrow down; high: a wave under an arrow up; night: a crescent.
+  const NOTE_SPR = { low: ['#.#.#', '.#.#.', '.....', '#...#', '.#.#.', '..#..'], high: ['..#..', '.#.#.', '#...#', '.....', '#.#.#', '.#.#.'], night: ['.##.', '#...', '#...', '#...', '.##.'] };
+  for (const [lm, how] of Object.entries(NOTYET)) {
+    const l = LM[lm], m = NOTE_SPR[how]; if (!l || !m || NOTED[lm] !== undefined) continue;
+    const x0 = Math.round(X(l.x)) + 7, y0 = Math.round(Z(l.z)) - 9;
+    m.forEach((row, j) => { for (let i = 0; i < row.length; i++) if (row[i] === '#') dot(x0 + i, y0 + j, PEN); });
+  }
+  // ---- the wall you are not fitted for (owner, 2026-11-19, item 6): where the paint stops at the fog wall, the edge is drawn in its own
+  // slate ink with short ticks outward, a line a chartmaker draws where the ship could not go; unsailed water just stays bare.
+  if (gate !== Infinity) {
+    const WALL = css(T.wall), R = gate * sc / 2, cx0 = X(0), cz0 = Z(0), steps = Math.max(64, Math.round(R * 6.3));
+    for (let s2 = 0; s2 < steps; s2++) {
+      const a = (s2 / steps) * Math.PI * 2, x = cx0 + Math.cos(a) * R, y = cz0 + Math.sin(a) * R;
+      if (x < 1 || y < 1 || x >= w2 - 1 || y >= h2 - 1) continue;
+      if (seenAt(Math.min(w2 - 2, Math.max(0, x - Math.cos(a) * 8)), Math.min(h2 - 2, Math.max(0, y - Math.sin(a) * 8))) > 20) continue;   // only along water you have painted
+      if (s2 % 4 === 3) continue;
+      dot(x, y, WALL);
+      if (s2 % 8 === 0) { dot(x + Math.cos(a), y + Math.sin(a), WALL); dot(x + Math.cos(a) * 2, y + Math.sin(a) * 2, WALL); }
+    }
+  }
 
   // ---- one marker language: anchor = harbour, cross = treasure, question mark = hearsay, pennant = errand, ringed cross = your pin
   const labels = [];
@@ -240,8 +269,9 @@ export function drawVariant(lb, key) {
   }
   for (const r of Object.values(state.rumoured)) if (!r.found && show.rumour) spr('query', X(r.x) - 9, Z(r.z) - 9, RED, groundAt(X(r.x) - 9, Z(r.z) - 9));
   const flag = (x, y) => { const g = groundAt(x, y); spr('flag', x, y, INK, g); c.fillStyle = GOLD; c.fillRect(Math.round(x - 3) + 1, Math.round(y - 4) + 1, 4, 3); };
-  if (state.job && show.errand) flag(X(state.job.x) + 10, Z(state.job.z) - 10);
-  if (state.passenger && show.errand) flag(X(state.passenger.x) + 10, Z(state.passenger.z) - 10);
+  const foundAt = (x, z) => { const n = world.nearest(x, z, 80); return !!(n && state.discovered[n.desc.id]); };   // T5: an errand's harbour shows once you have found it yourself
+  if (state.job && show.errand && foundAt(state.job.x, state.job.z)) flag(X(state.job.x) + 10, Z(state.job.z) - 10);
+  if (state.passenger && show.errand && foundAt(state.passenger.x, state.passenger.z)) flag(X(state.passenger.x) + 10, Z(state.passenger.z) - 10);
   for (const qq of ((state.story && state.story.pins) || [])) if (show.note) spr('pin', X(qq.x), Z(qq.z), qq.on ? PENCIL : SOFT, groundAt(X(qq.x), Z(qq.z)));
 
   // ---- your ship: a red arrow on her heading inside a ring, with clear ground round it (drawn last, above the lettering)

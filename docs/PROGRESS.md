@@ -2162,3 +2162,33 @@ dread there eased for a while after it.
   bridge, a dark neck, pegs), leaning on your chair. Your Seat follows the owner's interior reference inside the round hut: curved log
   walls, the thatch's beams overhead, bone charms on strings, a small window glowing purple with torn grey curtains, the door open on the
   night sea (a ship's light, someone coming up the boards), her book open on the table under the candle, a closed red book, the die.
+
+
+## 2026-11-19: discovery without hand-holding (owner's answers to the architecture audit)
+- **T2, hearing of the hut** (`src/systems/hutword.js`): once the `bottles` goal is reached the way to the hut can come from a pier
+  voice at any harbour but Tama (certain during "Ask around", 35% a dock before), a bottle (after the bottles goal) or a passenger (12% of
+  their lines). First source wins; `state.story.hutHeard` keeps which. `revealHut` no longer re-arms Mara's chart line if it already fired.
+  Lines are drafts (WRITER_TODO 4.9). T1 (chapter fog) and T3 (services by goal) unchanged, as the owner asked.
+- **T5, no dot from the game** (`ui/hud.js`): `trackTarget` returns only the captain's own active pin; `goalTarget` is gone, a goal's slip
+  names its place (`goalWhere`) and has a way line only for the captain's pin. The regatta and the guitar rows name the place, no way.
+  Orders lists errands without a bearing; the chart's errand flag shows only at a harbour already found; the chart's side panel says
+  "click the chart to pin". A pin dropped on a rumour or a known island takes its name.
+- **Item 5, rumours pinned to the HUD** (`logbook.js` Rumours): a Pin button makes the rumour the active pin; the HUD shows its name,
+  way and distance, and the wind ring's dot follows it.
+- **Item 1, pencil means noticed; K6, "not now" signs; item 6, the wall's ink** (`chartstyles.js`): a pencil tick at every hand-made
+  place gone ashore on (`story.lm`); a pencil sign (low water, high water, a crescent for night) at a place that turned the captain away
+  (`story.notyet`, set by `places.visit` from each place's `when`) until it is seen; the fog wall drawn as a dotted slate line with
+  outward ticks, only along painted water.
+- **Item 3, the Ship's book by water** (`logbook.js`): every note is stamped with the water it was taken down in (`stampNotes`, once a
+  frame); Letters and bottles are grouped under the water's name, newest water first, all notes shown; old notes go under "Earlier".
+- **The Halved Isle by light** (`src/systems/leadlight.js`, trial `?leadlight=1`, full game only): the nearest Guild light within 520 of
+  the isle is the leader; at night its beam lies still across the water into the fog bank. In the bank, at night, with the leader lit
+  and its rhythm on the chart, a ship within 0.06 rad of the leader's line keeps the helm (fog 0.7 instead of 1); otherwise the fog takes
+  the helm as before. Without the rhythm the beam stops at the white inside the bank, so the rule is seen.
+- **Verified** (headless, swiftshader): the build; `npm run smoke`; seed 1's leader is Port Galia (about 370 from the isle). On the line
+  with the rhythm at night: not lost. Without the rhythm, 30 units off the line, or by day: lost. Screenshots of the beam from outside and
+  from inside the bank, the book by water, the chart's pencil tick, the HUD with a pinned rumour. T2's three sources each set `hutKnown`;
+  Tama's pier never does. **Not verified:** feel, how the beam reads at real speed, whether a new player finds the line (owner playtest),
+  and how the HUD reads with no dot in the first fifteen minutes.
+- **Open, proposals first:** T4 (two harder ways past each upgrade gate), T6 (after Perrin's letters), T7 (the questions that cannot reach
+  level 3), K5 (events, riddles, letters and remnants that build the picture), T8 (the words at the end).

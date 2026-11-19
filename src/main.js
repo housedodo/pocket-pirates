@@ -33,7 +33,7 @@ import { THREAD_IDS } from './marks.js';
 import { Traffic } from './traffic.js';
 import { SeaFeatures } from './seafeatures.js';
 import { repOf, bearingName, nearby, questProgress, questNeed, fruitOf, fruitName, plural } from './jobs.js';
-import { Logbook } from './logbook.js';
+import { Logbook, stampNotes } from './logbook.js';
 import { Hut } from './hut.js';
 import { passengerTalk } from './passengers.js';
 import { sectorAt } from './sectors.js';
@@ -92,6 +92,8 @@ import { hailShip, renderShipTrade, initShipTrade } from './ui/shiptrade.js';
 import { renderHarbour, lettersAt, PETS, companions, petOffer, takePet, tabOpened, showGreeting, greetAdvance, buyUpgrade, initHarbour } from './ui/harbour.js';
 import { HUT_NOTES, perrinNote, hutNod, revealHut, showDemoEnd, fogLost, WHITE_MIST, seamTick, clueTick, seaGate, seaTick, oilOn, freeCaysNow, oilTick, SAIL_LIMIT, sailTick, toggleLamp, buyOil, tackTick, hurtPlayer, onHitEnemy, initStoryBeats } from './systems/storybeats.js';
 import { getInteract, tryInteract, anchorTick, digLeaveTick } from './systems/interact.js';
+import { bottleWord, passengerWord } from './systems/hutword.js';   // hearing of the hut (T2)
+import { leadTick, leaderDesc, offLine } from './systems/leadlight.js';   // the Halved Isle by light (trial)
 import { econ, econTick, econLine } from './systems/econ.js';   // ?econ=1: gold per hour by source (G-25)
 import { after, laterTick, laterPending } from './systems/later.js';
 import { ringNoon, noonBellTick, noonPending } from './systems/noonbell.js';
@@ -297,7 +299,8 @@ sea.onEvent = (e) => {
   } else if (e.type === 'bottle') {
     const cur = objectives.current, hutNote = cur && cur.id === 'bottles' ? HUT_NOTES[(state.stats.bottles - (state.story.b0 || 0)) % HUT_NOTES.length] : null;
     if (hutNote && hutNote.includes('{fate}')) { state.story.fate = state.story.fate || 3 + Math.floor(mulberry32(hash2(state.seed, 20, 20))() * 7); state.story.fateRead = true; }
-    const text = hutNote ? hutNote.replace(/\{fate\}/g, numberWord(state.story.fate)) : bottleNote(mulberry32(hash2(e.o.x | 0, e.o.z | 0, state.seed + 3)), stageOf(e.o.dread));
+    const way = hutNote ? null : bottleWord();   // once the bottles goal is done, a bottle may carry the hut's way (systems/hutword.js, T2)
+    const text = hutNote ? hutNote.replace(/\{fate\}/g, numberWord(state.story.fate)) : way || bottleNote(mulberry32(hash2(e.o.x | 0, e.o.z | 0, state.seed + 3)), stageOf(e.o.dread));
     state.notes.push({ text, dark: idx >= 2 }); state.stats.bottles++;
     toast(`Message in a bottle: "${text}"`, idx >= 2, 10000);
     audio.play('bottle');
@@ -1160,6 +1163,8 @@ function frame() {
   const vdt = live || ashore || rt.titleScene ? rawDt : 0;  // ashore the world keeps moving (people, gulls, waves) while the clock stands still
   rt.tNow += dt; rt.animT += vdt;
   noonBellTick(vdt);   // Tama's bell swings at noon (world time: it keeps going ashore)
+  leadTick();   // the Halved Isle by light: the leader's beam lies still (systems/leadlight.js, ?leadlight=1)
+  stampNotes(state.notes, regionAt(ship.pos.x, ship.pos.z, state.seed));   // the Ship's book keeps the water each note was taken down in (item 3)
   laterTick();   // story delays that have come due (systems/later.js): never inside a menu, and they wait out the quiet
   const stepT = Math.floor(rt.animT * 12) / 12;
 
@@ -1317,7 +1322,7 @@ function frame() {
     rt.musingT -= dt;
     if (rt.musingT <= 0 && !objectives.mate.busy && !eventQuiet()) { rt.musingT = 240 + Math.random() * 200; const m = MUSINGS.filter((x) => !state.hints['muse:' + x] && (!/bell back home/.test(x) || (state.story.maraMem || 0) >= 1)); /* the bell musing waits until she has remembered the bell */ if (m.length) { const l = m[Math.floor(Math.random() * m.length)]; state.hints['muse:' + l] = true; objectives.mate.say(l); } }
   }
-  if (live && state.passenger && ship.speed > 1) passengerTalk(state.passenger, dt, { mate: objectives.mate, world, ship, state, dread: rt.dread, storm: weather.storm });
+  if (live && state.passenger && ship.speed > 1) passengerTalk(state.passenger, dt, { mate: objectives.mate, world, ship, state, dread: rt.dread, storm: weather.storm, hutWord: passengerWord });
   if (live) {
     if (tod.night > 0.35 || tod.twilight > 0.6) objectives.remark('dusk');
     if (weather.storm > 0.4) objectives.remark('storm'); else if (weather.rain > 0.4) objectives.remark('rain'); else if (weather.fog > 0.5) objectives.remark('fog');
@@ -1481,7 +1486,7 @@ $('oilrow').addEventListener('pointerdown', (e) => { if (rt.started && !rt.modal
 $('oilrow').classList.toggle('off', !!state.story.lampOff);
 installGamepad(() => toast('Controller connected: stick to sail, A to interact, Y for the log, Start to pause.', false, 6000));
 installInput(() => { if (rt.helpMode === 'full' || rt.helpMode === 'legacy') helpEl.innerHTML = helpText(rt.helpMode === 'full'); });
-window.__game = { secrets, regionWeights, tideAt: () => tideAt(), lostState: () => ({ lostK: rt.lostK, gateLost: rt.gateLost, placesLost: places.lost, heading: ship.heading, trim: ship.trim }), places, seaplay, glimpse, fishing, sails: () => ({ torn: state.sailsTorn, kits: state.patchKits, strain: rt.sailStrain }), oilState: () => ({ oil: state.oil, lampOut: rt.lampOut }),
+window.__game = { leaderDesc, offLine, secrets, regionWeights, tideAt: () => tideAt(), lostState: () => ({ lostK: rt.lostK, gateLost: rt.gateLost, placesLost: places.lost, heading: ship.heading, trim: ship.trim }), places, seaplay, glimpse, fishing, sails: () => ({ torn: state.sailsTorn, kits: state.patchKits, strain: rt.sailStrain }), oilState: () => ({ oil: state.oil, lampOut: rt.lampOut }),
   readArch, partnerOf, maraMood, windfx, logbook, econ,
   life, localGames, openHarbour(id, tab = 'board') { const isl = [...world.islands.values()].find((i) => i.desc.id === id); if (!isl) return false; closeModal(true); rt.harbourIsl = isl; rt.hbTab = tab; frameVillage(isl.desc); openModal('harbour'); return true; }, renderHarbour: () => renderHarbour(),
   audio,

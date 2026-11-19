@@ -51,19 +51,19 @@ const VISITS = {
     again: 'The ledger is open. Someone has left a second cup on the desk.',
   },
   teo: {
-    clue: 'CL-F1-a', need: (c) => c.night && c.still, no: 'A sandbar and a cold fire. He plays at night, when the water is quiet.',
+    clue: 'CL-F1-a', when: 'night', need: (c) => c.night && c.still, no: 'A sandbar and a cold fire. He plays at night, when the water is quiet.',
     once: { text: 'Teo, on the sand, plays eight bars and stops. Across the water a violin takes the tune where he left it. "She answers. We have never met. Forty years. It is manners."', note: 'Teo and Ilse: two players on two islands, forty years, never met.' },
     again: 'Teo plays eight bars and stops. "Never sat at her table. Never will. We play instead." The violin waits.',
     second: 'Teo tunes up. "Who began it? The violin did, long before me. I only answer."',   // L-38 C: each says the other began (a draft)
   },
   ilse: {
-    clue: 'CL-F1-a', need: (c) => c.night && c.still, no: 'A rock with a stool on it. She plays at night, when the water is quiet.',
+    clue: 'CL-F1-a', when: 'night', need: (c) => c.night && c.still, no: 'A rock with a stool on it. She plays at night, when the water is quiet.',
     once: { text: 'Ilse, on the rock: "He starts it. I finish it. If one of us goes quiet, the other waits."', note: 'Ilse finishes what Teo starts.' },
     again: 'The violin takes the tune where the guitar left it.',
     second: 'Ilse rosins her bow. "Who began it? The guitar did. I only answer it."',   // L-38 C
   },
   cup: {
-    clue: 'CL-F3-a', need: (c) => c.tide > 0.25, no: 'A white cloth on a beach, across a reef the water is too low to cross.',
+    clue: 'CL-F3-a', when: 'high', need: (c) => c.tide > 0.25, no: 'A white cloth on a beach, across a reef the water is too low to cross.',
     once: { text: 'A table laid for two on the sand, a lamp, a cup with MERRY GULL painted on it in a hand you do not know. The tea is still warm. The other cup has a name on it, rubbed out.', note: 'A table for two. One cup says Merry Gull. The other had a name; the first letter was a K.' },
     again: 'The cup is cold. The other cup is gone.',
   },
@@ -88,7 +88,7 @@ const VISITS = {
     again: 'The lamps burn blue. Every house has a second door facing the water.',
   },
   wreck: {
-    clue: 'CL-R2-a', need: (c) => c.tide < -0.3, no: 'A mast with a rag, and the sea over a hull. It is only bare at low water.',
+    clue: 'CL-R2-a', when: 'low', need: (c) => c.tide < -0.3, no: 'A mast with a rag, and the sea over a hull. It is only bare at low water.',
     once: { text: 'The schooner Marigold, hull split. In the cabin a table, a captain\'s chair, and a die with a number missing. A log: "Day 31. A 1 at the hut. Nothing happened. I was relieved and ashamed."', note: 'The Marigold: a die with no seven. The log is in a captain\'s hand.' },
     again: 'The chair is turned toward the door.',
   },
@@ -98,12 +98,12 @@ const VISITS = {
     again: 'The light burns at noon. The keeper does not look round.',
   },
   tower: {
-    clue: 'CL-L3-a', need: (c) => c.night && c.calm, no: 'A black tower, the door shut. On a calm night it stands open.',
+    clue: 'CL-L3-a', when: 'night', need: (c) => c.night && c.calm, no: 'A black tower, the door shut. On a calm night it stands open.',
     once: { text: 'The door is open. A stair goes down, and at the bottom a window looks up, through the sea, at the sky.', note: 'The Dark Tower: a window at the bottom of the stair, looking up through the water.' },
     again: 'The stair goes down. The window is still there.',
   },
   street: {
-    clue: 'CL-D1-a', need: (c) => c.tide < -0.55 && c.mara, no: 'Roof peaks, and the sea over a street. At the lowest water it shows.',
+    clue: 'CL-D1-a', when: 'low', need: (c) => c.tide < -0.55 && c.mara, no: 'Roof peaks, and the sea over a street. At the lowest water it shows.',
     once: { text: 'At the lowest water the roofs are bare: doors, a well, a cart. One door is blue. Mara goes very quiet, and then very kind.', note: 'The Sunken Street: a blue door. Mara did not say why.' },
     again: 'The street is under the water again. The blue door is the last to go.',
   },
@@ -144,13 +144,14 @@ export class Places {
   open(lm, upgrades) { const B = BARRIERS[lm]; return !B || (upgrades[B.up] || 0) >= B.lv; }
 
   /** each frame: keep the ship out of places it is not fitted for, thicken the fog in the bank. Returns a message to show, or null. */
-  tick(dt, ship, upgrades, fogColor, freeze) {
+  tick(dt, ship, upgrades, fogColor, freeze, pass) {   // pass(lm, ship): another way through a fog bank (systems/leadlight.js, trial)
     let msg = null;
     this.fog = 0; this.lost = null;
     for (const [lm, B] of Object.entries(BARRIERS)) {
       const l = LM[lm], dx = ship.pos.x - l.x, dz = ship.pos.z - l.z, d = Math.hypot(dx, dz);
-      if (B.kind === 'fog') this.fog = Math.max(this.fog, smoothstep(B.R + 70, B.R - 30, d) * (this.open(lm, upgrades) ? 0.45 : 1));
-      if (d > B.R + 4 || freeze) continue;
+      const byLight = B.kind === 'fog' && !this.open(lm, upgrades) && d < B.R + 70 && !!pass && pass(lm, ship);   // on the leading light's line
+      if (B.kind === 'fog') this.fog = Math.max(this.fog, smoothstep(B.R + 70, B.R - 30, d) * (this.open(lm, upgrades) ? 0.45 : byLight ? 0.7 : 1));
+      if (d > B.R + 4 || freeze || byLight) continue;
       const k = `${lm}`;
       if (this.open(lm, upgrades)) {
         if (!this.toastT[k + 'ok'] && d < B.R) { this.toastT[k + 'ok'] = 1; msg = { text: B.yes }; }
@@ -181,7 +182,7 @@ export class Places {
   visit(lm, state, ctx = {}) {
     const v = VISITS[lm]; if (!v || !lmHere(lm)) return null;
     if (lm === 'table' && !tableOpen(state)) return { text: v.bare, nothing: true };   // the table stands once you have thrown at the hut (or understood three questions)
-    if (v.need && !v.need(ctx)) return { text: v.no, nothing: true };               // the sea must be doing the right thing for the clue to be there
+    if (v.need && !v.need(ctx)) { if (v.when) (state.story.notyet = state.story.notyet || {})[lm] = v.when; return { text: v.no, nothing: true }; }   // K6: the chart keeps a pencil sign of what the sea must be doing               // the sea must be doing the right thing for the clue to be there
     const seen = (state.story.lm = state.story.lm || {});
     const first = seen[lm] === undefined;
     if (first) { seen[lm] = state.dayN; return { ...v.once, first: true, clue: v.clue }; }
