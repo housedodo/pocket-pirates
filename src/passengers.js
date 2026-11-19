@@ -14,11 +14,11 @@ const PEOPLE = [
   { name: 'Pippa Fairweather', who: 'a travelling cartographer\'s apprentice', lines: [
     'Master Perrin sends his maps by bottle now. Nobody has seen him hand one over in years.',
     'I drew this coast three times. It came out different every time. The coast, I mean. Not my drawing.',
-    'Did you know islands have handwriting? You can tell who drew them by how they curl.', 'I have drawn this coast four times. It is different every time. My master says that is my fault.', 'If two things line up, one behind the other, you are on a line. That is the first thing they teach you. The second is lunch.'] },
+    'Did you know islands have handwriting? You can tell who drew them by how they curl.', 'The Guild lamps are blue because of the glass, not the oil. They will tell you it is the oil.', 'I have drawn this coast four times. It is different every time. My master says that is my fault.', 'If two things line up, one behind the other, you are on a line. That is the first thing they teach you. The second is lunch.'] },
   { name: 'Brother Ansel', who: 'a lighthouse monk', lines: [
     'We keep the lamps lit so the ships can find the harbours. And so the harbours can find the ships.',
     'Count the lighthouses on your way. Then count them on your way back. Tell me if the numbers match.',
-    'The oil smells of the deep. We do not ask where the guild gets it.', 'Every lighthouse has its own rhythm. I could tell you which one by the blinking, if I were awake at night. I never am.', 'We pray for sailors. We do not say which way we face while we do it.'] },
+    'The oil smells of the deep. We do not ask where the guild gets it.', 'Every lighthouse has its own rhythm. I could tell you which one by the blinking, if I were awake at night. I never am.', 'The lamps burn blue because of the oil, captain. Anyone in the Guild will tell you so.', 'We pray for sailors. We do not say which way we face while we do it.'] },
   { name: 'Mags & Tully', who: 'two fish-wives with a lot of luggage', lines: [
     'Tully says I talk too much. Tully, I do NOT talk too much. See, captain? She is not even listening.',
     'We are visiting our cousin. She owes us a goat. It is a long story. The goat is longer.',

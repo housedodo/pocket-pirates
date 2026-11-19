@@ -204,3 +204,15 @@ G3  Two more pilots' sayings  (src/systems/passes.js SAYINGS)
                the other and sail in.
       pilot    (fisher)   The Reef boats go into the Ribs every day. Stay in their wake and you will not touch.
     yours:
+
+====================================================================================================================================
+PART H  NEW 2026-11-19 (night): THE SEA'S SMALL EVENTS, THE LORE CONNECTIONS IN THE GAME
+====================================================================================================================================
+H1  The sea's small events  (src/systems/seaevents.js; in place of the choice cards)
+    The old cards' lines, cut down to what happens. Refine, and say which more you want (a gull with a ring, a squall, far sails).
+    yours:
+H2  The lore connections' lines  (docs/proposals/LORE_CONNECTIONS.md says where each one lives)
+    The Fort clerk's note; the two Crown voices on the archive; the Cays harbourmaster on counting; the lamplighter's "something to
+    watch"; the two passengers on the blue; R.'s fading signature and the two harbourmasters; the Reef's seven; the chart slips; the
+    shell from the glass water ("Put it away, Captain. Please.").
+    yours:

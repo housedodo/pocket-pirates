@@ -2241,3 +2241,17 @@ dread there eased for a while after it.
   passes on its line and not 25 off it at low tide under sail; the Ribs' canoe comes and goes in; a lost rowboat met by sailing
   close (clue set) with no E prompt. Screenshots of the chest and the capped reef rock. **Not verified:** the figurehead and sails on
   the ship, selling at a harbour, the clapper's catch, the cap on the far peak seen from the transit, feel.
+
+## 2026-11-19 (night): the sea's small events, the lore connections
+- **Sea events** (`src/systems/seaevents.js`): `tabletopTick` spawns `eventCard(drawEvent())` on the old card timer; `sighting.js` calls
+  `onEvent` each frame and `near` offers E only for chest, dinghy and buoy (`actEvent` in interact.js). Chest: E, and above speed 2.5 it
+  hurts 6 and sinks; dinghy: E buys a rumour for 12; buoy: rings (the `bell` cue) within 45, E takes 8 to 19 gold once; castaway within
+  16 signs on; stowaway within 14 gives 15; rowboat keeps 30 off for a minute, and lying still within 12 gives the speed buff; shoal
+  within 25 makes bites come at 0.15 of the wait; glass patch (dread 0.4 up) slows the ship and six seconds still gives the `shell`
+  remnant. The card modal is no longer reached from the sea; `tabletop.js` CARDS stay for now.
+- **Lore connections** (adopted): the archive's `second` visit line; seven customs lines (`g: 'full'`, after the hut); two passenger
+  lines; `rletters.js` fades R.'s signature (- R., - R, R, none) and `rGreeting` (two harbourmasters, once each, 30% of docks after a
+  letter); the `slips` remnant (Wick's Rock, a later visit after the hut); six white notches on the Drowned tide pole above the weed.
+- **Verified** (headless): build; smoke; chest hauled slow (+22), buoy coin (+8), castaway aboard, stowaway (+15), shoal line, dinghy
+  refused at 5 gold with E prompts only on the three; R.'s four signatures and both harbourmasters. **Not verified:** the rowboat's
+  company, the glass patch, the tide pole notches on screen, how the lines read in play.

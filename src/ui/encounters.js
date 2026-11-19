@@ -14,9 +14,9 @@ import { state } from '../core/state.js';
 import { rt, G } from '../core/runtime.js';
 import { $, toast } from './dom.js';
 import { markFromRoll } from '../systems/storyflags.js';
+import { drawEvent, eventCard } from '../systems/seaevents.js';
 
-/** the sea's choice cards are switched off for now (owner, 2026-11-19: "remove the choice cards for now in general"); the deck stays in tabletop.js */
-export const CARDS_ON = false;
+/** the sea's choice cards are gone (owner, 2026-11-19): the same signs now come as events (systems/seaevents.js); the deck stays in tabletop.js for now */
 export let localGames, pig, caveScene, COLOUR_DEEP, COLOUR_SHALLOW, daysLeft;   // set by the init function(s) below, at the point in boot where main.js had them
 
 // ---------------------------------------------------------------- tabletop: encounter cards, crew wishes, dice
@@ -110,10 +110,10 @@ export function tabletopTick(dt) {
   // encounter signs: rare, out on open water, never in weather, never part of any story
   G.sighting.update(dt, rt.tNow, G.ship);
   G.caves.update(dt, G.ship, window.__BUILD !== 'demo' && G.laterOK() && rt.dread < 0.5);   // caves are a full-game feature: not in the demo build
-  if (CARDS_ON && unlocked(state, 'cards') && !G.sighting.active && G.ship.speed > 2 && rt.dread < 0.95 && G.weather.fog < 0.3 && G.weather.storm < 0.3 && !G.world.nearest(G.ship.pos.x, G.ship.pos.z, 90) && !G.fishing.active) {
+  if (unlocked(state, 'cards') && !G.sighting.active && G.ship.speed > 2 && rt.dread < 0.95 && G.weather.fog < 0.3 && G.weather.storm < 0.3 && !G.world.nearest(G.ship.pos.x, G.ship.pos.z, 90) && !G.fishing.active) {
     rt.cardT -= dt;
     if (rt.cardT <= 0) {
-      const card = drawCard(window.__BUILD === 'demo' ? 0 : rt.dread, state.cardsSeen, SIGHTS);   // the demo draws only the cosy cards, whatever the dread
+      const card = eventCard(drawEvent(window.__BUILD === 'demo' ? 0 : rt.dread, state.cardsSeen));   // the sea's small events (systems/seaevents.js); the demo keeps to the cosy ones
       if (card && G.sighting.spawn(card, G.ship, G.world)) { state.cardsSeen.push(card.id); if (state.cardsSeen.length > 5) state.cardsSeen.shift(); rt.cardT = 1500 + Math.random() * 1000; }
       else rt.cardT = 30;
     }

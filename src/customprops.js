@@ -23,5 +23,6 @@ export function customProps(d, A, h) {
     A.cyl(x, -4, z, 0.35, 0.3, 10, 6, '#2e2826', TILE.bark);
     for (let k = 0; k < 5; k++) A.cyl(x, -1.6 + k * 0.7, z, 0.4, 0.4, 0.22, 6, k ? '#e8e6dc' : '#b8b4a8', TILE.white, false);   // the keepers' rings, the oldest at the bottom
     A.cyl(x, 2.4, z, 0.44, 0.44, 0.7, 6, '#3c5a30', TILE.white, false);   // the weed line, above them all
+    for (let k = 0; k < 6; k++) A.box(x + 0.36, 3.4 + k * 0.42, z, 0.18, 0.07, 0.3, '#d8d4c4', TILE.white);   // a second scale, no units, its lowest notch above any water remembered (lore micro 3, 2026-11-19); nobody says
   }
 }

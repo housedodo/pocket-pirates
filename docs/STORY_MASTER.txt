@@ -1,7 +1,7 @@
 HOIST (Pocket Pirates): THE MASTER STORY FILE
 ================================================================================================
 This is the main story file for the full game. Edit it, upload it again, and the next session puts every change
-into the game. Built from commit ee5a79e on 2026-11-19. 1682 in-game lines carry an ID.
+into the game. Built from commit dab7cae on 2026-11-19. 1709 in-game lines carry an ID.
 
 CONTENTS
   A   HOW TO USE THIS FILE (IDs, status marks, how to add and remove things)
@@ -569,7 +569,7 @@ Where the story hides in the mechanics, and where its text lives (section J).
 # J  EVERY LINE IN THE GAME
 ################################################################################################
 Pulled from the code. Edit the text after the "|" (see part A). Sources are grouped by file; the CODE in front of every
-line says which file it goes back into. 1682 lines.
+line says which file it goes back into. 1709 lines.
 
 
 
@@ -888,6 +888,10 @@ line says which file it goes back into. 1682 lines.
 
 ### PAS / ADDED 2026-11-13
   PAS-0119 | Today is {day}. We'll manage.
+
+### PAS / ADDED 2026-11-19
+  PAS-0120 | The Guild lamps are blue because of the glass, not the oil. They will tell you it is the oil.
+  PAS-0121 | The lamps burn blue because of the oil, captain. Anyone in the Guild will tell you so.
 
 ### PAS / RETIRED (the text is no longer in the game; these IDs are never used again)
     was PAS-0044 | Sleep is for people who do not have a captain.
@@ -1314,6 +1318,9 @@ line says which file it goes back into. 1682 lines.
 ### PLC / ADDED 2026-11-18
   PLC-0070 | Teo tunes up. "Who began it? The violin did, long before me. I only answer."
   PLC-0071 | Ilse rosins her bow. "Who began it? The guitar did. I only answer it."
+
+### PLC / ADDED 2026-11-19
+  PLC-0072 | Tucked into the first shelf, a slip for the next clerk: "The black pages are in order. The small numbers beside them are not ours. I have checked every hand in the building. None of them is above nine. I tried to add one. I wrote a ten beside a bad day in the spring before last. In the morning it was a one, and the ink was dry. Do not try to add one." The name is scratched through.
 
 ### PLC / RETIRED (the text is no longer in the game; these IDs are never used again)
     was PLC-0020 | Gannets on every ledge, and nothing grows. On the top, a cairn; in it, a tin box with a list of ships in many hands, the last one crossed out: KESTREL. You add the Merry Gull. On the lid someone has scratched a little drawing: a white post, standing exactly in front of this rock. And two places.
@@ -2574,6 +2581,29 @@ line says which file it goes back into. 1682 lines.
   MAIN-0366 | Your own ship's name on it, Captain. I will not take that.
   MAIN-0367 | Into the sea chest: ${CHEST[id].name}.
 
+### MAIN / ADDED 2026-11-19
+  MAIN-0368 | R.? Came through last week. Asked after you, I think.
+  MAIN-0369 | R.? That was before my grandmother. Before the lamps, even.
+  MAIN-0370 | It came up in the still water. Held to the ear it hums, and the hum sounds like a name.
+  MAIN-0371 | Strips of paper a chartmaker pastes over a coast that has changed. Under each slip there is an older slip. Under the oldest, the coast is drawn just as it is now.
+  MAIN-0372 | Chart slips. Somebody has been correcting the same coast for a long time.
+
+### MAIN / ADDED 2026-11-19
+  MAIN-0373 | Buy a map from the peddler (${MAP_PRICE} gold)
+  MAIN-0374 | It swings into the hull on the way up. The chest sinks. The dent stays.
+  MAIN-0375 | Heavy, wet, and full of coins. +${g} gold.
+  MAIN-0376 | He looks at your purse and rows on, singing about money.
+  MAIN-0377 | He sells you a map. It is of a place you have already been. Still, nice drawing.
+  MAIN-0378 | Coins are tied to its chain, like offerings. You take a few. (+${g} gold) The tune stops.
+  MAIN-0379 | A buoy rings with no wind and no waves. It is ringing a tune.
+  MAIN-0380 | Someone climbs off the raft and onto your deck. ${t}
+  MAIN-0381 | The crate bumps the hull and a small face looks out. By morning the deck is scrubbed, and there is a purse wedged in the planks. +15 gold.
+  MAIN-0382 | An empty rowboat drifts alongside, oars stowed, a cup of tea still steaming on the seat.
+  MAIN-0383 | Mara takes the cup. It is very good tea. Everyone feels quick and cheerful for a while.
+  MAIN-0384 | It follows you for an hour. Then it does not.
+  MAIN-0385 | The water boils with little fish all around the hull.
+  MAIN-0386 | The sea goes perfectly still in a circle around the ship. Something is singing under it.
+
 ### MAIN / RETIRED (the text is no longer in the game; these IDs are never used again)
     was MAIN-0001 | A floating market, with bunting on every line. (Friday)
     was MAIN-0002 | A regatta! Five boats, racing.
@@ -3130,6 +3160,13 @@ line says which file it goes back into. 1682 lines.
   CUST-0065 | Someone at the next stall laughs. "Ah. That is a candle. Buy the next round and we will say no more."
   CUST-0066 | A twenty is scratched on the loom of the oar. For luck, the last owner said.
   CUST-0067 | The Brotherhood remembers a debt both ways, Captain.
+
+### CUST / ADDED 2026-11-19
+  CUST-0068 | The archive was here before the Fort. We built the Fort round it.
+  CUST-0069 | A governor started the archive. Nobody can find his portrait. Nobody can find his name.
+  CUST-0070 | In the Cays we do not count. So nothing is wrong with our numbers.
+  CUST-0071 | Keep it burning. It has to have something to watch.
+  CUST-0072 | Find a die at sea, scratch the seven off. So it cannot come up.
 
 
 

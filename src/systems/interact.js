@@ -35,6 +35,8 @@ import { supperTarget, startSupper } from './lantern.js';
 import { raceHere, joinRace } from './race.js';
 import { pilotSaying } from './passes.js';
 import { chestAdd } from '../chest.js';
+import { actEvent } from './seaevents.js';
+import { rGreeting } from './rletters.js';
 
 export function getInteract() {
   const hi = G.world.nearest(G.ship.pos.x, G.ship.pos.z, 18);
@@ -129,7 +131,7 @@ export function tryInteract() {
   if (rt.dig && !rt.dig.at) { rt.dig.tg = tg; rt.dig.at = { x: G.ship.pos.x, z: G.ship.pos.z, r: tg.kind === 'patch' ? Infinity : (ACTION_RANGE[tg.kind] || 16) + ACTION_LEASH }; }
 }
 function doInteract(tg) {
-  if (tg.kind === 'sighting') { G.openCard(tg.s.card); return; }
+  if (tg.kind === 'sighting') { if (tg.s.card.ev) actEvent(tg.s); else G.openCard(tg.s.card); return; }   // an event's ordinary action (seaevents.js)
   // E under way: the anchor goes down first, and the crew goes ashore as soon as she lies still (no need to stop her by hand)
   if (HEAVE_KINDS.has(tg.kind) && G.ship.speed > 0.3) { if (!rt.heave || rt.heave.key !== tg.key) G.audio.play('ui'); rt.heave = { key: tg.key, tg, t: rt.tNow, x: G.ship.pos.x, z: G.ship.pos.z }; return; }
   if (tg.kind === 'thread') { tg.th.run(); return; }
@@ -183,7 +185,8 @@ function doInteract(tg) {
     if (!say && ending && h && h.rolls.length) { say = rollGreeting(h.rolls[h.rolls.length - 1].n, state.time * 24, Math.random); say.endsDemo = true; state.story.rollSeen = h.rolls.length; }
     if (!say && window.__BUILD !== 'demo') say = letterRumour(state, G.objectives.pending ? null : G.objectives.current, d, state.time * 24);   // asking around for Perrin's letter (systems/perrin.js)
     if (!say && free && window.__BUILD !== 'demo') say = placeRumour(state, d, state.time * 24);
-    if (!say && free && window.__BUILD !== 'demo') say = pilotSaying(d);   // how a way through is heard of (systems/passes.js, T4)   // asking around never runs out (T6 c, systems/perrin.js)
+    if (!say && free && window.__BUILD !== 'demo') say = pilotSaying(d);
+    if (!say && free && window.__BUILD !== 'demo') say = rGreeting(d);   // lore connection C: when R. came through (rletters.js)   // how a way through is heard of (systems/passes.js, T4)   // asking around never runs out (T6 c, systems/perrin.js)
     if (!say && free && G.laterOK()) say = renamedGreeting(state, d, Math.random);   // a place that was not always called that (D3)
     if (!say && free && G.laterOK() && window.__BUILD !== 'demo' && !state.story.lullRumour && sectorAt(d.x, d.z, state.seed).faction.id === 'free') { state.story.lullRumour = 1; say = { speaker: 'oldsalt', text: 'In the Cays they say the dark keeps quiet while somebody plays.', story: true }; }   // points at the Two Players (the gentle ending)
     if (!say && free && !state.story.tellGreet && G.lateTell() && Math.random() < 0.5) { state.story.tellGreet = 1; say = { speaker: 'harbourmaster', text: 'Captain. Just yourself again? I will put you down as one.', story: true }; }   // a tell: they greet only you
@@ -307,6 +310,7 @@ export function goAshore(tg) {
       if (d.lm === 'ribs' && r.first) chestAdd('leadline', w);
       else if (d.lm === 'ribs' && !r.nothing) chestAdd('ribsfigure', w);
       if (d.lm === 'cup' && !r.first && r.nothing && r.clue) chestAdd('cup', w);
+      if (d.lm === 'keeper' && !r.first && state.hut && state.hut.rolls.length) chestAdd('slips', w);   // lore micro 2: left on Wick's step
       if ((d.lm === 'teo' || d.lm === 'ilse') && r.nothing && r.clue && state.story.lm2 && state.story.lm2[d.lm]) chestAdd('cayssails', w); }
     if (r.note) state.notes.push({ text: r.note, dark: false });
     toast(text + (bits.length ? ` (${bits.join(', ')})` : ''), !!r.dark && !demo, 9000);

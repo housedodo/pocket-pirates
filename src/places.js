@@ -81,6 +81,7 @@ const VISITS = {
     clue: 'CL-C2-a',
     once: { text: 'A clerk lets you into a long room of shelves. "Every bad day of the sea, as far back as we have it. We never worked out why we keep it." Beside every black page, in a tiny hand, a number. Never above nine.', note: "The Governor's Fort: every bad day of the sea, with a small number beside it." },
     again: 'The clerk is at a different shelf. A page with the date is tabbed.',
+    second: 'Tucked into the first shelf, a slip for the next clerk: "The black pages are in order. The small numbers beside them are not ours. I have checked every hand in the building. None of them is above nine. I tried to add one. I wrote a ten beside a bad day in the spring before last. In the morning it was a one, and the ink was dry. Do not try to add one." The name is scratched through.',   // lore connection A (2026-11-19): every ledger is a copy; a draft
   },
   press: {
     clue: 'CL-L1-a',

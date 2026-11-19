@@ -1,6 +1,8 @@
 # Lore connections: proposals (2026-11-19)
 
-Every line here is a **proposal**, not canon. Nothing goes in `docs/CANON.md` until the owner picks it. Built only from what
+**Adopted 2026-11-19** (owner: "apply the lore connections"; CANON row of that date). The words are drafts. Where each lives in the game: A in `places.js` (the archive's second visit) and `customs.js`; B in `customs.js` and `passengers.js`; C in `systems/rletters.js`; D in what already exists; the three small things in `customs.js`, `chest.js` (slips) and `customprops.js` (the tide pole).
+
+Every line here was first a **proposal**, not canon. Nothing goes in `docs/CANON.md` until the owner picks it. Built only from what
 `CANON.md` already holds; where a proposal touches something section 8 lists as open, it says so. In-game text follows RULES 1-11
 (no lid, eye, sleeper, Lady; implied, never explained).
 

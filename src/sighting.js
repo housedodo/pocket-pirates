@@ -116,13 +116,13 @@ export class Sighting {
       const mesh = new THREE.Mesh(GEO[def.model], mats.props);
       mesh.position.set(x, 0, z); mesh.rotation.y = Math.random() * 6.28;
       this.scene.add(mesh);
-      this.cur = { card, label: def.label, mesh, x, z, age: 0, sink: 0, spin: (Math.random() - 0.5) * 0.12 };
+      this.cur = { card, label: card.prompt || def.label, mesh, x, z, age: 0, sink: 0, spin: (Math.random() - 0.5) * 0.12 };
       return true;
     }
     return false;
   }
   /** the sign within reach (it can only be answered up close) */
-  near(px, pz, r = 15) { const c = this.cur; return c && !c.sink && !c.card.lost && Math.hypot(px - c.x, pz - c.z) < r ? c : null; }   // the lost sailors are not answered (2026-11-19)
+  near(px, pz, r = 15) { const c = this.cur; return c && !c.sink && !c.card.lost && !(c.card.ev && !c.card.e) && Math.hypot(px - c.x, pz - c.z) < r ? c : null; }   // the lost sailors are not answered (2026-11-19)
   /** it slips under the water once answered or left behind */
   dismiss() { if (this.cur) this.cur.sink = 0.001; }
   update(dt, t, ship) {
@@ -134,6 +134,7 @@ export class Sighting {
     c.mesh.position.set(c.x, y + (still ? 0 : 0.1), c.z);
     if (!still) c.mesh.rotation.z = Math.sin(t * 1.2 + c.x) * 0.06;
     const dist = Math.hypot(ship.pos.x - c.x, ship.pos.z - c.z);
+    if (c.card.ev && !c.sink && this.onEvent) this.onEvent(c, dist, dt);   // the sea's small events (systems/seaevents.js)
     if (c.card.lost) {   // a lost sailor: met by coming close; then each does its one thing (systems/lostsailors.js)
       if (!c.seen && dist < 30) { c.seen = c.age; this.onLost && this.onLost(c.card, 'line'); }
       if (c.seen != null && !c.afterSaid && dist > 70) { c.afterSaid = true; this.onLost && this.onLost(c.card, 'after'); }
@@ -145,5 +146,5 @@ export class Sighting {
     if (dist > 260 || c.age > 300) this.dismiss();
   }
   solids(out) { const c = this.cur; if (c && !c.sink) out.push({ x: c.x, z: c.z, r: 1.3 }); return out; }
-  clear() { if (!this.cur) return; this.scene.remove(this.cur.mesh); this.cur = null; }
+  clear() { if (!this.cur) return; if (this.cur.card.id === 'shoal') this.onShoalGone && this.onShoalGone(); this.scene.remove(this.cur.mesh); this.cur = null; }
 }

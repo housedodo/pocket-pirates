@@ -14,6 +14,8 @@ export const CHEST = {
   ribsfigure: { kind: 'look', name: 'The figurehead from the Ribs', text: 'Dug out of the sand at the Ribs, where she stood up to her waist. Any shipyard can fit her.' },
   cayssails: { kind: 'look', name: 'Patched sailcloth', text: 'A bolt of patched cloth, left on the deck after the music on the sandbar. Any shipyard can cut sails from it.' },
   clapper: { kind: 'remnant', name: 'A bell clapper', text: 'It came up on the line near the Drowned Bell. Heavy, and wet a long time.', value: 30, sell: 'A clapper. Nobody round here has a bell that size.' },
+  shell: { kind: 'remnant', name: 'A shell', text: 'It came up in the still water. Held to the ear it hums, and the hum sounds like a name.', value: 0, refuse: 'Put it away, Captain. Please.' },
+  slips: { kind: 'remnant', name: 'Chart slips', text: 'Strips of paper a chartmaker pastes over a coast that has changed. Under each slip there is an older slip. Under the oldest, the coast is drawn just as it is now.', value: 5, sell: 'Chart slips. Somebody has been correcting the same coast for a long time.' },
   cup: { kind: 'remnant', name: 'A cup', text: 'It says MERRY GULL, in a hand you do not know.', value: 0, refuse: 'Your own ship\'s name on it, Captain. I will not take that.' },
 };
 export const KINDS = [['keep', 'Keepsakes'], ['look', 'For the ship'], ['remnant', 'Remnants']];

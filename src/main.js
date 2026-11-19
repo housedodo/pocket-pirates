@@ -94,7 +94,8 @@ import { HUT_NOTES, perrinNote, hutNod, revealHut, showDemoEnd, fogLost, WHITE_M
 import { getInteract, tryInteract, anchorTick, digLeaveTick } from './systems/interact.js';
 import { bottleWord, passengerWord } from './systems/hutword.js';
 import { rLetter } from './systems/rletters.js';
-import { chestAdd } from './chest.js';   // hearing of the hut (T2)
+import { chestAdd } from './chest.js';
+import { eventTick, EVENTS, eventCard } from './systems/seaevents.js';   // hearing of the hut (T2)
 import { leadTick, leaderDesc, offLine } from './systems/leadlight.js';   // the Halved Isle by light
 import { passesTick, wallPass, ribsLull } from './systems/passes.js';   // the other ways through (T4)
 import { econ, econTick, econLine } from './systems/econ.js';   // ?econ=1: gold per hour by source (G-25)
@@ -233,6 +234,7 @@ traffic.onCustoms = () => {   // a Crown customs cutter has looked in the hold (
 };
 const sea = new SeaFeatures(scene, world, state.seed, state.collected);
 const sighting = new Sighting(scene);
+sighting.onEvent = (c, dist, dt) => eventTick(c, dist, dt); sighting.onShoalGone = () => { rt.shoalNear = false; };
 sighting.onLost = (card, what) => { if (what === 'line') { lostSeen(card); toast(card.line, true, 9000); } else toast(card.after, true, 5000); };   // the lost sailors: things on the water, no card (2026-11-19)
 const caves = new Caves(scene, world, state);
 const threads = new Threads(scene, world, state);
@@ -398,7 +400,7 @@ function fishEnv() {
 }
 const fishing = new Fishing(scene, ship, {
   toast: (t) => toast(t),
-  getCtx: () => ({ bonus: Math.max(0, ship.mods.lootMul - 1) + (life.meal(state) === 'stew' ? 0.8 : 0), dread: rt.dread, waitMul: homeMarks.atMark(ship.pos.x, ship.pos.z) ? MARK_WAIT : 1 }),
+  getCtx: () => ({ bonus: Math.max(0, ship.mods.lootMul - 1) + (life.meal(state) === 'stew' ? 0.8 : 0), dread: rt.dread, waitMul: (homeMarks.atMark(ship.pos.x, ship.pos.z) ? MARK_WAIT : 1) * (rt.shoalNear ? 0.15 : 1) }),   // a silver shoal: bites at once (seaevents.js)
   onStrike: (k) => audio.chime(k === 'miss' ? 'strike_miss' : k === 'gold' ? 'strike_gold' : 'strike'),   // the bite ring: a soft note per strike
   onStart: () => audio.play('cast'),
   onSplash: () => { audio.play('splash', { vol: 0.4 }); toast('Line cast. Wait for a bite...', false, 2500); },
@@ -1500,7 +1502,7 @@ window.__game = { leaderDesc, offLine, wallPass, ribsLull, secrets, regionWeight
   life, localGames, openHarbour(id, tab = 'board') { const isl = [...world.islands.values()].find((i) => i.desc.id === id); if (!isl) return false; closeModal(true); rt.harbourIsl = isl; rt.hbTab = tab; frameVillage(isl.desc); openModal('harbour'); return true; }, renderHarbour: () => renderHarbour(),
   audio,
   objectives, perrinNote, gateRadius: () => gateRadius(state, tideFalls()), trackTarget: () => trackTarget(), digGame,
-  openCard, openTable, edge: () => startEdge(ship, $('fade')), sighting, spawnSight: (id) => { if (LOST_CARDS[id]) return sighting.spawn(LOST_CARDS[id], ship, world, 38, 0.35); const c = (SIGHTS[id] && drawCard(0, [], { [id]: 1 })); return c && sighting.spawn(c, ship, world); },
+  openCard, openTable, edge: () => startEdge(ship, $('fade')), sighting, spawnSight: (id) => { if (LOST_CARDS[id]) return sighting.spawn(LOST_CARDS[id], ship, world, 38, 0.35); return EVENTS[id] ? sighting.spawn(eventCard(id), ship, world) : false; },   // the sea's events (seaevents.js)
   weather,
   setDread(v) { rt.forced = v; rt.dread = v; },
   get dread() { return rt.dread; },

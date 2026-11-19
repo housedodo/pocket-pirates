@@ -28,6 +28,14 @@ export const SAY = [
   // the Crown: lines and books (L-08), the buoys (L-09), the loud bells (L-10), "off the book" (L-06), the old charts (L-03), fog (L-29)
   { id: 'lane', r: 'crown', who: 'harbourmaster', g: 'any', c: (x) => x.lane, text: 'Between the buoys you are in the book, Captain. Outside them you are weather.' },
   { id: 'clean', r: 'crown', who: 'harbourmaster', g: 'any', text: 'Clean lines, calm water. My father said it, and his.' },
+  // lore connections (2026-11-19, docs/proposals/LORE_CONNECTIONS.md; drafts): A, every ledger is a copy, told two ways that disagree
+  { id: 'archold', r: 'crown', who: 'harbourmaster', g: 'full', text: 'The archive was here before the Fort. We built the Fort round it.' },
+  { id: 'archgov', r: 'crown', who: 'oldsalt', g: 'full', text: 'A governor started the archive. Nobody can find his portrait. Nobody can find his name.' },
+  { id: 'nocount', r: 'free', who: 'harbourmaster', g: 'full', text: 'In the Cays we do not count. So nothing is wrong with our numbers.' },
+  // B, the lights give something to look at
+  { id: 'watch', r: 'lantern', who: 'lamplighter', g: 'full', text: 'Keep it burning. It has to have something to watch.' },
+  // micro 1, the Reef's dice
+  { id: 'seven', r: 'reef', who: 'fisher', g: 'full', text: 'Find a die at sea, scratch the seven off. So it cannot come up.' },
   { id: 'loud', r: 'crown', who: 'docker', g: 'any', text: 'Tama? Your bell is too soft to count by. Ours you can count from the next island.' },
   { id: 'offbook', r: 'crown', who: 'harbourmaster', g: 'any', text: 'Out past the lanes? That is off the book, Captain.' },
   { id: 'rename', r: 'crown', who: 'harbourmaster', g: 'any', text: 'On the old charts this quay had another name. The old charts are wrong about a lot.' },
