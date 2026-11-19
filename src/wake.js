@@ -9,6 +9,7 @@ const N = 48;          // trail points kept
 const LIFE = 4.2;      // seconds a point lives
 const STEP = 0.09;     // seconds between points
 const SEG = N - 1;
+const JUMP = 12;        // units: a stern further than this from the last trail point has jumped, not sailed
 const QUADS = SEG * 3 + 4;   // two arms + the middle strip, plus four bow-wave quads
 
 export class Wake {
@@ -42,6 +43,8 @@ export class Wake {
     this.acc += dt;
     if (this.acc >= STEP) {
       this.acc = 0;
+      const head = this.pts[0], sx = s.pos.x - fx * this.len * 0.5, sz = s.pos.z - fz * this.len * 0.5;
+      if (head && Math.hypot(head.x - sx, head.z - sz) > JUMP) this.pts.length = 0;   // a jump (a teleport, a reload): the old trail is cut, never stretched across
       if (sp > 0.6) this.pts.unshift({ x: s.pos.x - fx * this.len * 0.5, z: s.pos.z - fz * this.len * 0.5, rx, rz, k, age: 0, n: 0.45 + 0.55 * Math.random(), m: Math.random() });
       if (this.pts.length > N) this.pts.length = N;
     }
@@ -52,7 +55,7 @@ export class Wake {
     const pts = this.pts;
     for (let i = 0; i < SEG; i++) {
       const a = pts[i], b = pts[i + 1];
-      if (!a || !b) { this.hide(q++); this.hide(q++); this.hide(q++); continue; }
+      if (!a || !b || a.rx * b.rx + a.rz * b.rz < 0.2) { this.hide(q++); this.hide(q++); this.hide(q++); continue; }   // a stretch whose ends face too differently would cross itself into a white bow-tie (visual QA 2026-11-19): not drawn
       // the arms open out at about 19 degrees as the point ages (the Kelvin wedge), and thin and fade as they go
       const arm = (p, sgn, w) => { const spread = this.beam * 0.5 + p.age * 3.4 * (0.35 + p.k) + Math.sin(p.age * 3 + p.m * 6) * 0.15; const cx = p.x + p.rx * spread * sgn, cz = p.z + p.rz * spread * sgn; return [[cx - p.rx * w * sgn * 0.5, cz - p.rz * w * sgn * 0.5], [cx + p.rx * w * sgn * 0.5, cz + p.rz * w * sgn * 0.5]]; };
       const fa = (p) => Math.max(0, 1 - p.age / LIFE) ** 1.3 * (0.35 + 0.65 * p.k) * 0.75 * light * p.n;   // broken foam: each stretch its own strength
