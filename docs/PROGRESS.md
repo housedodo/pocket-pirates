@@ -2192,3 +2192,7 @@ dread there eased for a while after it.
   and how the HUD reads with no dot in the first fifteen minutes.
 - **Open, proposals first:** T4 (two harder ways past each upgrade gate), T6 (after Perrin's letters), T7 (the questions that cannot reach
   level 3), K5 (events, riddles, letters and remnants that build the picture), T8 (the words at the end).
+
+- **The regatta and the guitar by finding** (owner, same day): `raceTarget` and `guitarTarget` are gone and the HUD has no rows for them.
+  At the regatta's line the prompt is `[E] Race` (`raceHere`/`joinRace` in `systems/race.js`, before hails in `getInteract`); E starts the
+  count as the automatic stop used to. After the start, `[E] Race (they have started)` joins late until the first boat is in.

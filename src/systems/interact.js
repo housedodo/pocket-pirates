@@ -32,6 +32,7 @@ import { isFestival, isLanternNight, isMarketDay, nightKey, tideAt } from './cal
 import { mendSails, oilOn } from './storybeats.js';
 import { letterRumour } from './perrin.js';
 import { supperTarget, startSupper } from './lantern.js';
+import { raceHere, joinRace } from './race.js';
 
 export function getInteract() {
   const hi = G.world.nearest(G.ship.pos.x, G.ship.pos.z, 18);
@@ -56,6 +57,7 @@ export function getInteract() {
   if (isl) return { kind: isl.desc.type, key: isl.desc.id, isl };
   if (G.sea.nearWreck) return { kind: 'wreck', key: G.sea.nearWreck.o.id, o: G.sea.nearWreck.o };
   if (state.sailsTorn && state.patchKits > 0) return { kind: 'patch', key: 'patch' };   // anywhere at sea: patch the sail with a kit (above fruit and hails, G-13)
+  { const ra = raceHere(); if (ra) return ra; }   // at the regatta's start line: E to race (race.js, owner 2026-11-19)
   const sh = G.traffic.nearestHail(G.ship.pos.x, G.ship.pos.z, 24);
   if (sh) return { kind: 'ship', key: 'ship' + sh.id, s: sh };
   const fi = G.world.nearest(G.ship.pos.x, G.ship.pos.z, 14, ['jungle', 'sandbar']);
@@ -137,6 +139,7 @@ function doInteract(tg) {
     if (!rt.dig) rt.dig = { key: tg.key, t: 0, label: tg.sc.kind === 'kestrel' ? 'Someone goes down on a rope...' : tg.sc.kind === 'camp' ? 'Going ashore...' : 'Salvaging...', need: tg.sc.kind === 'kestrel' ? 5 : 3.2, done: () => G.secretFound(tg.sc) };
     return;
   }
+  if (tg.kind === 'race') { joinRace(); return; }   // the regatta: confirm racing (race.js)
   if (tg.kind === 'supper') { if (!rt.dig) startSupper(tg); return; }   // the keeper's supper (lantern.js)
   if (tg.kind === 'relight') {   // the Lantern Guild's dead light: oil from your lamp, and the keeper pays and marks the waters
     if (state.oil < RELIGHT_OIL) { toast(`The lamp needs ${RELIGHT_OIL} oil. You have ${Math.floor(state.oil)}.`, false, 3500); return; }

@@ -2,8 +2,9 @@
 // the regatta gathers off Tama instead of sailing past: four boats hove-to beside a committee boat with a big flag, offshore and away
 // from the main pier, on a line buoyed out to a pin (red and white floats, a chequered flag: the start and the finish).
 // Since 2026-11-18 (owner: more instructions, an automatic stop, a GO, faster boats, an obvious line) they wait for the captain:
-// Mara says they are waiting and the slip points at the line; coming up to the line stops the ship by itself (the anchor, as for E),
-// a count of three, GO, and all make sail at once. If the captain does not come by RACE_WAIT they go without you (late is still allowed
+// Mara says they are waiting; the captain finds them by looking (since 2026-11-19 nothing points at the line, RULES 11). At the line
+// E confirms the race (owner, 2026-11-19: "press E to confirm racing will trigger the event"): the anchor holds the ship, a count of
+// three, GO, and all make sail at once. A late captain joins with E at the line too. If the captain does not come by RACE_WAIT they go without you (late is still allowed
 // until the first boat is in). The course: up the line's side of the rolled isle about 175 out, round behind it, down its other side
 // (so nobody cuts back across it) and back over the line. Finish ahead of at least one of them and Tama's harbourmaster has the purse
 // for you (one row on the board): 30 for beating one, 10 more for each other. Last in: nothing. Weekly.
@@ -124,8 +125,7 @@ export function raceTick(dt, ctx) {
   const mine = lineLocal(C, ship.pos.x, ship.pos.z), atLine = onLine(C, mine.a) && Math.abs(mine.b) < RACE_START_R;
   if (R.phase === 'gather') {   // they wait for the captain: Mara says so, the slip points at the line; there, the ship stops by itself
     if (!me.called && sched.hour >= RACE_START - 0.75 && !atLine) { me.called = true; say(RACE_SAY.waiting); }
-    if (atLine && !rt.modal) { R.phase = 'count'; R.count = 0; rt.raceHold = true; me.racing = true; say(RACE_SAY.here); }
-    else if (sched.hour >= RACE_WAIT) { go(); if (me.called) say(RACE_SAY.late); }
+    if (sched.hour >= RACE_WAIT) { go(); if (me.called) say(RACE_SAY.late); }   // the start waits for E at the line (raceHere, joinRace)
   }
   if (R.phase === 'count') {   // wait for the ship to settle, then three, two, one, GO
     if (ship.speed < 0.4) R.count += dt;
@@ -160,7 +160,6 @@ export function raceTick(dt, ctx) {
   if (R.phase === 'run' && R.finished >= live.length && live.length && (me.done || !me.racing)) R.phase = 'home';
   // the captain: start at the line (late is allowed until the first boat is in), round behind the isle, back over the line
   const at = (p, r) => Math.hypot(ship.pos.x - p.x, ship.pos.z - p.z) < r;
-  if (R.phase === 'run' && !me.racing && R.finished === 0 && atLine) me.racing = true;
   if (me.racing && !me.rounded && at(C.behind, RACE_ROUND_R)) me.rounded = true;
   if (me.rounded && !me.done && me.b > 0 && mine.b <= 0 && onLine(C, mine.a)) {
     me.done = true; const beaten = live.filter((s) => !s.done).length;
@@ -171,10 +170,18 @@ export function raceTick(dt, ctx) {
   if (R.phase === 'home') for (const s of [...live, R.cm]) if (Math.hypot(s.x - C.tama.x, s.z - C.tama.z) > HOME_SOUND_R) drop(traffic, s);
   if (R.phase === 'home' && R.cm && sched.hour >= RACE_END + 0.5) { R.cm.heading = Math.atan2(C.ux, -C.uz); R.cm.speed = 4; }
 }
-/** where the slip points while the regatta waits for the captain (ui/hud.js trackTarget) */
-export function raceTarget() {
-  if (!R || R.phase !== 'gather') return null;
-  return { x: R.C.mid.x - R.C.ux * 4, z: R.C.mid.z - R.C.uz * 4, label: 'The regatta' };
+/** getInteract (interact.js): at the start line, with the race not yet joined: E confirms racing. Late is allowed until the first boat is in. */
+export function raceHere() {
+  if (!R || R.me.racing || !(R.phase === 'gather' || (R.phase === 'run' && R.finished === 0))) return null;
+  const L = lineLocal(R.C, G.ship.pos.x, G.ship.pos.z);
+  if (!onLine(R.C, L.a) || Math.abs(L.b) >= RACE_START_R) return null;
+  return { kind: 'race', key: 'race', prompt: R.phase === 'gather' ? '[E] Race' : '[E] Race (they have started)' };
+}
+/** E at the line (interact.js tryInteract) */
+export function joinRace() {
+  if (!raceHere()) return;
+  R.me.racing = true;
+  if (R.phase === 'gather') { R.phase = 'count'; R.count = 0; rt.raceHold = true; say(RACE_SAY.here); }
 }
 function furl(s, k) { for (const sl of s.sails) { sl.pivot.scale.y = k * sl.s; if (sl.jib) sl.jib.scale.y = k; } }
 function drop(traffic, s) { const i = traffic.ships.indexOf(s); if (i < 0) return; traffic.scene.remove(s.root); if (s.wake) s.wake.dispose(traffic.scene); traffic.ships.splice(i, 1); }

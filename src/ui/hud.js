@@ -1,8 +1,5 @@
 // The HUD that follows the ship: the wind ring and compass, which errand is tracked and where it points, the slip (what, where, how
 // long), and the tracker panel. Drawn every frame from main.js.
-import { guitarTarget } from '../systems/endgame.js';
-import { raceTarget } from '../systems/race.js';
-import { GUITAR } from '../table.js';
 import { angleDiff } from '../util.js';
 import { bearingName, questProgress, questNeed, questTitle, questIcon } from '../jobs.js';
 import { goalCount } from '../objectives.js';
@@ -90,8 +87,7 @@ export function updateTracker() {
   if (tr === 'job') rows.push(`<div class="trow">${pxi('letter')} ${state.job.toName}${state.job.due != null ? ` · ${clockAt(state.job.due)}` : ''}</div>`);
   else if (tr === 'passenger') rows.push(`<div class="trow">${pxi('talk')} ${state.passenger.name} to ${state.passenger.toName}</div>`);
   else { const q = state.quests.find((x) => x.id === tr); if (q) rows.push(`<div class="trow">${questIcon(q)} ${questTitle(q, rt.dread)} <b>${questProgress(q, state)}/${questNeed(q)}</b></div>`); }
-  { const gt = guitarTarget(); if (gt) rows.push(`<div class="trow">${pxi('letter')} ${GUITAR.what}</div><div class="trow where">${gt.label}</div>`); }   // after the tune is kept (systems/endgame.js)
-  { const rt_ = raceTarget(); if (rt_) rows.push(`<div class="trow">${pxi('flag')} The regatta is waiting</div><div class="trow where">${rt_.label}</div>`); }
+  // the regatta and the guitar errand are found by the player, never pointed at (owner, 2026-11-19)
   if (!g) { const t = rt.trackNow; if (t) { const s = slipTo({ what: t.label }, t); rows.push(`<div class="trow">${pxi('flag')} ${t.label}</div><div class="trow way">${s.way}</div>`); } }   // the captain's own mark (T5, item 5)   // (systems/race.js)
   if (others > 0) rows.push(`<div class="thint">+${others} more in your orders (J)</div>`);
   const html = rows.length ? G.abyss.hud('track', rows.join('')) + '<div class="thint">[Q] hide</div>' : '';

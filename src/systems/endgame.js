@@ -16,7 +16,7 @@ import { state } from '../core/state.js';
 import { rt, G } from '../core/runtime.js';
 import { params, store, session, SAVE_KEY } from '../core/config.js';
 import { LM } from '../landmarks.js';
-import { pierOf, hutSpot } from '../world.js';
+import { hutSpot } from '../world.js';
 import { tableOpen } from '../clues.js';
 import { smoothstep } from '../util.js';
 import { paintStill } from '../cavescene.js';
@@ -174,11 +174,6 @@ export function guitarDock(d) {
   if (DEMO || st.guitar !== 'waiting' || d.id !== '0,-1') return;
   st.guitar = 'aboard';
   setTimeout(() => { toast(GUITAR.found, false, 9000); setTimeout(() => G.objectives.mate.say(GUITAR.mara), 3500); }, 1800);
-}
-/** where the errand points (ui/hud.js trackTarget) while the guitar waits */
-export function guitarTarget() {
-  if (DEMO || state.story.guitar !== 'waiting') return null;
-  const d = G.world.desc(0, -1), p = d && pierOf(d); return p ? { x: p.x, z: p.z, label: GUITAR.where } : null;
 }
 
 // ---------------------------------------------------------------- The Unseen Throw
