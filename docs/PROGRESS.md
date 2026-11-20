@@ -2295,3 +2295,10 @@ dread there eased for a while after it.
 - See `docs/VISUAL_QA_2026-11-19.md`. Fixed: nights in rain and fog no longer brighter than clear (`weather.js`), the sea's rim and the sky
   below the horizon meet in the fog colour (`ocean.js`, `sky.js`), the Drowned belt's white water softened and lit (`systems/drowned.js`),
   the wake's bow-tie (`wake.js`). Harness in `tools/visualqa/` (test tooling only). Each fix re-captured before/after.
+
+## 2026-11-20: owner's playtest notes
+- Orders shows each delivery's and passenger's direction again (a direction word, no distance) (`logbook.js`).
+- Stars are depth-tested (they were drawn over the ship) and the night's stars fade out before sunrise (`sky.js`); the dread's daylight
+  stars are unchanged.
+- The hut's island: its dark water fades smoothly (was five hard bands, `ocean.js` uMurk); the old flat murk sheet that the swell cut
+  through is no longer drawn for it (`world.js`). Screenshots before/after.

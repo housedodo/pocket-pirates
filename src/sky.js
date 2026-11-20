@@ -134,7 +134,7 @@ export class Sky {
     this.skyFlag = flag;
     this.starU = { uOpacity: { value: 0 }, uTime: { value: 0 }, uTwinkle: { value: 1 }, uDens: { value: 1 }, uBandK: { value: 1 } };
     this.starT = 0;
-    this.starMat = new THREE.ShaderMaterial({ uniforms: this.starU, vertexShader: STAR_VS, fragmentShader: STAR_FS, transparent: true, fog: false, depthWrite: false, depthTest: false });
+    this.starMat = new THREE.ShaderMaterial({ uniforms: this.starU, vertexShader: STAR_VS, fragmentShader: STAR_FS, transparent: true, fog: false, depthWrite: false, depthTest: true });   // depth-tested: the ship, islands and sea hide them (they were drawn over the ship: owner 2026-11-20); they sit at R 900, inside the far plane
     this.haloMat = new THREE.MeshBasicMaterial({ color: 0xffffff, fog: false, depthWrite: false, depthTest: false, transparent: true, opacity: 0 });
     this.halo = new THREE.Mesh(new THREE.RingGeometry(30, 37, 8), this.haloMat);   // an eight-sided ring round the moon
     this.halo.renderOrder = -21; this.halo.frustumCulled = false;
@@ -318,7 +318,7 @@ export class Sky {
     U.uSunDir.value.copy(moonDir).lerp(this.sunDirV, dayish).normalize();
     U.uSunColor.value.copy(stage.sun).lerp(C_SUN_NIGHT, 1 - dayish).lerp(C_SUN_DREAD, smoothstep(0.8, 1, stage.dread) * dayish);
 
-    const starOp = Math.max(stage.stars, tod.night * 0.95);
+    const starOp = Math.max(stage.stars, tod.night * 0.95 * (1 - smoothstep(0.3, 0.48, tod.day)));   // the night's stars go as the day comes (they lingered after sunrise: owner 2026-11-20); the dread's daylight stars stay
     this.starT += dt; this.starU.uTime.value = this.starT; this.starU.uOpacity.value = starOp;
     if (this.skyHalo) { this.halo.position.copy(this.moon.position); this.halo.quaternion.copy(this.moon.quaternion); this.halo.visible = this.moon.visible; this.haloMat.opacity = this.skyHalo.opacity * tod.night * (1 - 0.5 * stage.dread); } else this.halo.visible = false;
     this.eyeMat.opacity = smoothstep(0.8, 1.0, stage.dread);

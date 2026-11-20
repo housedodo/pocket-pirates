@@ -273,10 +273,10 @@ export class Ocean {
             outc = mix(outc, outc * vec3(0.66, 0.72, 0.8) + rip * 0.05 * uLight, gq * 0.75);
           }
           // round the hut's island: no turquoise. Dark, still, murky water, olive-black with drifting scum, the light dying in it;
-          // it thickens towards the shore and fades out over about 90 units, in bands like the shallows
+          // it thickens towards the shore and fades out over about 90 units, smoothly
           float mk = 1.0 - smoothstep(0.0, 90.0, length(vWP.xz - uMurk.xy) - uMurk.z);
           if (mk > 0.0) {
-            mk = floor(mk * 5.0 + 0.5) / 5.0;
+            mk = floor(mk * 16.0 + bay4(gl_FragCoord.xy)) / 16.0;   // a fine dithered gradient like the shallows, no hard rings (owner, 2026-11-20)
             vec3 murk = mix(vec3(0.045, 0.06, 0.055), vec3(0.13, 0.15, 0.1), tone * 0.55 + crest * 0.25);   // facets barely lit
             float scum = step(0.64, vn(floor(vWP.xz * 0.9) / 0.9 * 0.11 + vec2(uTime * 0.012, -uTime * 0.009)));   // slow drifting scum
             murk = mix(murk, vec3(0.22, 0.22, 0.13), scum * 0.45 * smoothstep(0.3, 1.0, mk));

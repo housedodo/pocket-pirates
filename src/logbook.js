@@ -263,9 +263,10 @@ export class Logbook {
     const quests = this.sec('quests') ? ['', () => {}] : this.partQuests();
     if (!this.sec('quests')) {   // deliveries, passengers and commissions: one list
       html += h3('Also in hand');
+      const way = (x, z) => bearingName(x - ship.pos.x, z - ship.pos.z);   // which way only, never how far (owner, 2026-11-20: the direction was said once and then lost)
       const j = state.job, pg = state.passenger, far = (x, z) => { const dx = x - ship.pos.x, dz = z - ship.pos.z; return `${bearingName(dx, dz)} · ${this.d.eta ? this.d.eta(Math.hypot(dx, dz)) : Math.round(Math.hypot(dx, dz))}`; };
-      if (j) html += ent(`${pxi('letter')} ${j.item}`, `to ${j.toName}${j.due != null ? ` · by ${dueClock(j.due)}` : ''}`, `${j.reward}g`, '', trackBtn(state, 'job') + '<button class="mini" data-drop="job">Give it up</button>');
-      if (pg) html += ent(`${pxi('talk')} ${pg.name}`, `to ${pg.toName}`, `${pg.reward}g`, '', trackBtn(state, 'passenger') + '<button class="mini" data-drop="passenger">Give it up</button>');
+      if (j) html += ent(`${pxi('letter')} ${j.item}`, `to ${j.toName} · ${way(j.x, j.z)}${j.due != null ? ` · by ${dueClock(j.due)}` : ''}`, `${j.reward}g`, '', trackBtn(state, 'job') + '<button class="mini" data-drop="job">Give it up</button>');
+      if (pg) html += ent(`${pxi('talk')} ${pg.name}`, `to ${pg.toName} · ${way(pg.x, pg.z)}`, `${pg.reward}g`, '', trackBtn(state, 'passenger') + '<button class="mini" data-drop="passenger">Give it up</button>');
       for (const q of state.quests) {
         const need = questNeed(q), have = questProgress(q, state), done = have >= need;
         let where = `for ${q.giverName}`;

@@ -1593,7 +1593,7 @@ export class Island {
     this.bright = add(B, mats.props);
     this.darkMesh = add(D, mats.props);
 
-    if (!SEA_ON || d.blight) {   // the flat pale sheet round the shore (the swell cut through it in jagged shapes); the new sea draws its shallows in the water itself (seawater.js)
+    if (!SEA_ON) {   // (the hut's island used this too, for its murk; the swell cut the flat sheet into hard rings: owner 2026-11-20 "smooth out the rings")   // the flat pale sheet round the shore (the swell cut through it in jagged shapes); the new sea draws its shallows in the water itself (seawater.js)
       const sh = new THREE.Mesh(buildRing(d, 0.9, 1.65, 0.22, 0.8, 0, 30, 3), d.blight ? mats.murkShallow : mats.shallow);
       sh.renderOrder = 1; this.group.add(sh); this.geos.push(sh.geometry);
     }
