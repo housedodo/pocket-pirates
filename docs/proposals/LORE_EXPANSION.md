@@ -50,7 +50,7 @@ No banned word, no village name, no "she" or "the hut" before the hut is known.
 - day 91: Oil is up again by itself. Did not ask.
 - day 92: Light.
 
-**LX-22** free, Q4, Teo's harbour board (full): fisher's tally.
+**LX-22** free, Q4, a Cays fisher's tally on the harbour board (full): fisher's tally.
 - day 3: eleven. day 4: eleven.
 - day 5: twelve. Threw one back.
 - day 6: eleven. day 7: eleven.
@@ -65,7 +65,7 @@ No banned word, no village name, no "she" or "the hut" before the hut is known.
 - day 44: Crew of four. Nobody remarks on it.
 - day 45: Steering.
 
-## 5. A corrupted shanty (draft; Free Cays night, the Players' set, event at sea, any)
+## 5. A corrupted shanty (draft; sung by a crew in a Cays tavern or heard from a passing boat at dusk; never by the Two Players, whose tune is the gentle ending's)
 
 "Heave Her Home, Boys"
 
@@ -108,6 +108,23 @@ Who is it counts? The ones who roam.
 | LX-03, LX-16 | passenger line | `src/passengers.js` |
 | LX-10, LX-11, LX-12, LX-14, LX-19, LX-18 | pilot's saying | `src/systems/passes.js` SAYINGS |
 | LX-05, LX-20, LX-22 | harbourmaster's board | `src/harbourlife.js` FRAGMENTS |
-| Shanty | event at sea (night, Cays only) | `src/systems/seaevents.js` |
+| Shanty | a tavern crew, or a passing boat at dusk (Cays) | `src/harbourlife.js` or `src/systems/seaevents.js` |
 
 Nothing here needs a new system.
+
+## Architect's review (2026-11-21)
+Fixed in place: LX-22 was credited to Teo (Teo plays on a sandbar; he keeps no board); the shanty was set in the Two Players' music
+(their tune is the only gentle ending, CANON 2026-11-11; Lune's song is unrelated, L-39), now a tavern crew or a passing boat.
+Needs the owner (nothing changed):
+1. Bell counts: LX-01 "seven bells" and LX-02 "six" would settle the bell's count, which the owner parked (WRITER_TODO 4.2 e, E5 in
+   LORE_TO_WRITE). Either strike the numbers or decide the count.
+2. LX-06 "We were above water once, the way you are": close to saying what the Drowned are and, through the Sunken Street, near Mara's
+   village (Mara stays a mystery forever, CANON 2026-11-18). Suggest cutting the first sentence.
+3. LX-12 "Pay the ferryman": the Ferryman's Coin is a Crown thread (CANON 2026-11-12); a Drowned saying about a ferryman crosses it.
+   Move it to the Crown or change the figure.
+4. LX-19 "It is sleeping": the word is not banned, but the line states the premise. Suggest "It is resting, or it is polite", or cut.
+5. LX-20 (the book writes "one aboard") is the one-head tell: it must be gated after the first throw and count as that tell, once.
+6. The shanty's chorus "Who is it counts? The ones who roam." half-answers question 1 (the answer is YOU, never said). Suggest the second
+   line not answer: "Who is it counts? Heave her home."
+7. LX-23 names a new ship, the Plover; the doc-only ship names are held in reserve (L-41 B). Use one of those or approve the name.
+Tone: consistent with the game's voice (short lines, a flat wrong detail, no adjective of fear). No banned words; no village name.
