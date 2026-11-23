@@ -66,8 +66,11 @@ function buildGroup(g, at) {
   if (g.id === 'cays') {
     for (const [x, z] of spots) {
       const r = 5 + rng() * 2.5;
-      b.blob(x, -0.6, z, r, 1.1, r * (0.7 + rng() * 0.3), SAND, TILE.sand, 0.15, Math.floor(rng() * 1e6));
-      b.blob(x + 1, -0.3, z - 0.5, r * 0.6, 0.9, r * 0.5, SAND2, TILE.sand, 0.2, Math.floor(rng() * 1e6));
+      b.darkSame = true;
+      b.blob(x, -0.7, z, r * 1.15, 2.1, r * (0.8 + rng() * 0.3), '#f4ead0', TILE.white, 0.12, Math.floor(rng() * 1e6));   // a low hump of white sand
+      b.blob(x + 1, -0.2, z - 0.5, r * 0.65, 1.7, r * 0.55, '#fff4dc', TILE.white, 0.15, Math.floor(rng() * 1e6));
+      b.blob(x - r * 0.3, -0.2, z + r * 0.4, r * 0.4, 0.8, r * 0.35, '#7a9a48', TILE.leaf, 0.3, Math.floor(rng() * 1e6));   // a scrub of beach grass
+      b.darkSame = false;
       for (let k = 0; k < 1 + Math.floor(rng() * 2); k++) palm(b, x + (rng() - 0.5) * r * 0.8, 0.3, z + (rng() - 0.5) * r * 0.6, 4 + rng() * 2, rng() - 0.5);
       isl.push([at.x + x, at.z + z, r * 0.9]);
     }
@@ -112,7 +115,7 @@ function buildGroup(g, at) {
     const sb = new Builder();
     for (const [i, j] of [[0, 1], [1, 2]]) {
       const [ax, az] = spots[i], [bx, bz] = spots[j], L = Math.hypot(bx - ax, bz - az);
-      sb.push((ax + bx) / 2, 0, (az + bz) / 2, -Math.atan2(bz - az, bx - ax)); sb.blob(0, -0.5, 0, L * 0.55, 0.7, 2.4, SAND, TILE.sand, 0.15, i * 7 + 3); sb.pop();
+      sb.push((ax + bx) / 2, 0, (az + bz) / 2, -Math.atan2(bz - az, bx - ax)); sb.darkSame = true; sb.blob(0, -0.5, 0, L * 0.55, 0.8, 4.2, '#f0e4c4', TILE.white, 0.12, i * 7 + 3); sb.darkSame = false; sb.pop();
     }
     spits = new THREE.Mesh(sb.geometry(), mats.props); root.add(spits);
   }
@@ -120,8 +123,8 @@ function buildGroup(g, at) {
   let flies = null;
   if (g.id === 'mangrove') {
     flies = new THREE.Group();
-    const fm = new THREE.MeshBasicMaterial({ color: 0xd8ff8a, transparent: true, opacity: 0.9, fog: false }), fg = new THREE.BoxGeometry(0.12, 0.12, 0.12);
-    for (let i = 0; i < 24; i++) { const m = new THREE.Mesh(fg, fm); m.userData.p = [(rng() - 0.5) * 34, 0.6 + rng() * 2.5, (rng() - 0.5) * 34, rng() * 6]; flies.add(m); }
+    const fm = new THREE.MeshBasicMaterial({ color: 0xe8ff9a, transparent: true, opacity: 1, fog: false, depthWrite: false }), fg = new THREE.BoxGeometry(0.28, 0.28, 0.28);
+    for (let i = 0; i < 40; i++) { const m = new THREE.Mesh(fg, fm); m.renderOrder = 9; m.userData.p = [(rng() - 0.5) * 34, 0.6 + rng() * 2.5, (rng() - 0.5) * 34, rng() * 6]; flies.add(m); }
     root.add(flies);
   }
   scene.add(root);
@@ -150,6 +153,7 @@ export function shelvesNear(x, z, R = 500) {
   return out;
 }
 const lowTide = () => tideAt() < -0.35;
+let lastFloat = null;
 /** each frame (gearplay.js): the Gull grounds on a shelf; the boat goes over shelves but not through islets (or the spits at low tide) */
 export function shallowsTick(dt, t) {
   if (!built) build();
@@ -158,11 +162,13 @@ export function shallowsTick(dt, t) {
   if (!boat) {
     let hit = null, best = 0;
     for (const s of shelves) { const d = Math.hypot(S.pos.x - s[0], S.pos.z - s[1]), inside = s[2] - GROUND_PAD - d; if (inside > best) { best = inside; hit = s; } }
-    if (hit) {   // aground: she stops dead and is set back off the way she came
-      const dx = S.pos.x - hit[0], dz = S.pos.z - hit[1], d = Math.hypot(dx, dz) || 1;
-      S.pos.x += dx / d * best; S.pos.z += dz / d * best;
+    if (hit) {   // aground: she stops dead where her keel first touched (the last place she floated), never pushed further in
+      if (lastFloat && Math.hypot(S.pos.x - lastFloat.x, S.pos.z - lastFloat.z) < 30) { S.pos.x = lastFloat.x; S.pos.z = lastFloat.z; }   // (after a jump, the old place is too far: pushed off instead)
+      else { const dx = S.pos.x - hit[0], dz = S.pos.z - hit[1], d = Math.hypot(dx, dz) || 1; S.pos.x += dx / d * best; S.pos.z += dz / d * best; }
       if (S.speed > 1.2) { G.audio.play('bump', { vol: Math.min(1, S.speed / 8) }); if (S.float) { S.float.vp = (S.float.vp || 0) + 0.25; S.float.vr = (S.float.vr || 0) + 0.15; } }
       S.speed = 0; if (S.vel) { S.vel.x = 0; S.vel.z = 0; } S.blockT = 0.8;
+    } else lastFloat = { x: S.pos.x, z: S.pos.z };
+    if (hit) {
       const told = state.story.shoalTold || (state.story.shoalTold = {});
       if (!told.any) { told.any = state.dayN; toast('She grounds with a long creak. The water here is too shallow for the Gull.', false, 5000); }
     }

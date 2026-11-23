@@ -2367,3 +2367,10 @@ dread there eased for a while after it.
   bar of rocks just breaking the water. The Gull is held off at the bar (`SHOAL_R` 11, `shoalTick`: a bump, and once per place "The keel
   touches rock. Too shallow for the Gull here."); the lagoon has no bar push (its reef already keeps her out, and Glass Lagoon's own
   landing stays reachable). The mooring post is gone. Screenshots checked for all three.
+- **Shallows and three island groups** (owner, 2026-11-23, `src/systems/shallows.js`): shelves are loose chains of discs fed to the sea's
+  shallow-water uniform (`uIsl`, now 20 slots: islands first, up to ten shelves) so the sea draws them like any shallows; the Gull grounds
+  on one (stops dead at the last place she floated, a bump, once a line), the boat rows over. Crown site: two sunken hulks across the
+  water gate; Lantern site: a rockfall (`gearplay.js boatScene`); the rock bar and its push are gone. Three groups placed by the seed in
+  nine open cells near a region's bearing: the Sandbar Cays (stilt hut, "[E] Climb the ladder"), the Mangroves (roots, canopies,
+  fireflies at night, a camp), the Tide Rocks (spits rise with the low tide and block the boat; the mooring stone only at low water).
+  "[E] Take the boat" near each. Checked headless: grounding, all three placed, the boat out and the hut found; screenshots of each.
