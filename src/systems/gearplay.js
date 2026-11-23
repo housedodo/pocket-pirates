@@ -130,7 +130,8 @@ export function gearInteract(inBoatMode) {
   if (inBoatMode) {
     const B = rt.boat;
     if (Math.hypot(G.ship.pos.x - B.ax, G.ship.pos.z - B.az) < BACK_R) return { kind: 'gear', key: 'gear:back', act: 'back', prompt: '[E] Climb back aboard the Gull' };
-    for (const s of SITES) if (s.gear === 'boat' && dist(siteAt(s)) < LAND_R) return { kind: 'gear', key: 'gear:' + s.id, act: 'land', site: s, prompt: siteDone(s) ? '[E] Go ashore again' : '[E] Go ashore' };
+    const lb = G.world.nearest(G.ship.pos.x, G.ship.pos.z, 16), onLm = lb && lb.desc.lm;   // ashore at the site's own island: its landing first, until it is found
+    for (const s of SITES) if (s.gear === 'boat' && (dist(siteAt(s)) < LAND_R || (onLm === s.lm && !siteDone(s)))) return { kind: 'gear', key: 'gear:' + s.id, act: 'land', site: s, prompt: siteDone(s) ? '[E] Go ashore again' : '[E] Go ashore' };
     return null;
   }
   for (const s of SITES) {
@@ -167,7 +168,7 @@ function found(s) {
   if (siteDone(s)) { toast(s.again || 'It is as you left it.', false, 5000); return; }
   G.seeClue(s.clue);
   state.notes.push({ text: s.find, dark: false });
-  toast(s.find, false, 9000);
+  if (rt.modal !== 'dive') toast(s.find, false, 9000);   // in the bell the line is under the view
   if (s.chest) setTimeout(() => chestAdd(s.chest, regionAt(G.ship.pos.x, G.ship.pos.z, state.seed)), 1200);
   if (s.id === 'drowned') state.story.maraQuiet = state.dayN;   // Mara says nothing at all this time (the storyboard, 5)
   G.audio.play('discover', { vol: 0.5 });
@@ -248,7 +249,7 @@ function diveE() {
   }
   G.closeModal();
 }
-export function diveClosed() { console.log("DIVECLOSE", D && D.air, new Error().stack.split("\n").slice(1,6).join(" | ")); D = null; keysDown.clear(); }
+export function diveClosed() { D = null; keysDown.clear(); }
 function frame(now) {
   if (!D || rt.modal !== 'dive') return;
   const dt = Math.min(0.1, (now - D.last) / 1000); D.last = now;
