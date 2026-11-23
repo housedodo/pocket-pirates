@@ -1,6 +1,6 @@
 # The diving bell and the ship's boat (design, 2026-11-23)
 
-A proposal: nothing plays yet. The two models are in the game behind `?gear=1` (`src/gear.js`): the bell on a davit at the starboard
+**Built 2026-11-23** (`src/systems/gearplay.js`; the owner's answers are in CANON 2026-11-23: bought at any harbour, taken along or left there, the boat a third way in, one bell-or-boat clue per region that gates the region). Differences from this proposal: sold at every shipwright, not only the Reef and the Cays (so no region can lock you out); the bell and the boat cost a little speed while aboard. The original proposal follows. The two models (`src/gear.js`): the bell on a davit at the starboard
 quarter, the boat towed astern. Pictures in `docs/proposals/gear/`. Both add a direction the sea did not have: **down** and **in**.
 Both obey the rules: no marker, no popup, one short line at most; what is found is found by looking; full game only unless cosy.
 

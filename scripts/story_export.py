@@ -42,6 +42,7 @@ CODES = {  # source file -> (ID code, what it holds)
     'harbourlife.js': ('HLF', 'residents, dishes, events, fragments, gossip'),
     'localgames.js': ('LGM', 'tavern games'),
     'systems/lostsailors.js': ('LOST', 'the sailors who went mad: three meetings in deep dread'),
+    'systems/gearplay.js': ('GEAR', 'the diving bell and the ship\'s boat: what is seen and found at their sites'),
     'newspaper.js': ('NEWS', 'the Friday paper'),
     'clues.js': ('CLUE', 'the clue log lines, in another hand (CL-T-* are drafts)'),
     'customs.js': ('CUST', 'regional customs: sayings, sights on the quay, Mara by region (the lore bible, drafts)'),

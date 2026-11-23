@@ -16,6 +16,9 @@ export const CHEST = {
   clapper: { kind: 'remnant', name: 'A bell clapper', text: 'It came up on the line near the Drowned Bell. Heavy, and wet a long time.', value: 30, sell: 'A clapper. Nobody round here has a bell that size.' },
   shell: { kind: 'remnant', name: 'A shell', text: 'It came up in the still water. Held to the ear it hums, and the hum sounds like a name.', value: 0, refuse: 'Put it away, Captain. Please.' },
   slips: { kind: 'remnant', name: 'Chart slips', text: 'Strips of paper a chartmaker pastes over a coast that has changed. Under each slip there is an older slip. Under the oldest, the coast is drawn just as it is now.', value: 5, sell: 'Chart slips. Somebody has been correcting the same coast for a long time.' },
+  lampglass: { kind: 'remnant', name: 'A lamp glass', text: 'From a doorstep under the Drowned Bell. It was warm when the bell brought it up. It went cold in the air.', value: 12, sell: 'A lamp glass. Good glass. Somebody will want it back.' },
+  grounddie: { kind: 'remnant', name: 'A die from the Marigold', text: 'One of a row in the Marigold\'s hold. One face is ground smooth, by hand, a long time ago.', value: 0, refuse: 'Not that one, Captain. Give it back to the sea.' },
+  tomorrowkey: { kind: 'remnant', name: 'A ledger key', text: 'On a string from the boat-shed under the fort. The label on the string says tomorrow. It says tomorrow every day.', value: 8, sell: 'A Crown key. I will give you a little for it and not ask.' },
   cup: { kind: 'remnant', name: 'A cup', text: 'It says MERRY GULL, in a hand you do not know.', value: 0, refuse: 'Your own ship\'s name on it, Captain. I will not take that.' },
 };
 export const KINDS = [['keep', 'Keepsakes'], ['look', 'For the ship'], ['remnant', 'Remnants']];

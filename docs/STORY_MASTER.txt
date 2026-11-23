@@ -1,7 +1,7 @@
 HOIST (Pocket Pirates): THE MASTER STORY FILE
 ================================================================================================
 This is the main story file for the full game. Edit it, upload it again, and the next session puts every change
-into the game. Built from commit dab7cae on 2026-11-19. 1709 in-game lines carry an ID.
+into the game. Built from commit b48f169 on 2026-11-23. 1745 in-game lines carry an ID.
 
 CONTENTS
   A   HOW TO USE THIS FILE (IDs, status marks, how to add and remove things)
@@ -569,7 +569,7 @@ Where the story hides in the mechanics, and where its text lives (section J).
 # J  EVERY LINE IN THE GAME
 ################################################################################################
 Pulled from the code. Edit the text after the "|" (see part A). Sources are grouped by file; the CODE in front of every
-line says which file it goes back into. 1709 lines.
+line says which file it goes back into. 1745 lines.
 
 
 
@@ -752,6 +752,10 @@ line says which file it goes back into. 1709 lines.
 
 ### OBJ / ADDED 2026-11-19
   OBJ-0192 | That is everything we set out to do, Captain. The harbours still talk, if we ask. Deliveries, errands and treasure are all still there.
+
+### OBJ / ADDED 2026-11-23
+  OBJ-0193 | Some of it is where only a small boat goes. The shipwrights sell boats.
+  OBJ-0194 | Whatever it is, it is under the water. The shipwrights sell diving bells.
 
 ### OBJ / RETIRED (the text is no longer in the game; these IDs are never used again)
     was OBJ-0012 | [text] Perrin's riddle is in your log (Journal). Find the right shore of Hollow Cay Galen and dig.
@@ -2604,6 +2608,16 @@ line says which file it goes back into. 1709 lines.
   MAIN-0385 | The water boils with little fish all around the hull.
   MAIN-0386 | The sea goes perfectly still in a circle around the ship. Something is singing under it.
 
+### MAIN / ADDED 2026-11-23
+  MAIN-0387 | The best of it is under the water. You would want a bell.
+  MAIN-0388 | The Gull will not get in. You would want a small boat.
+  MAIN-0389 | From a doorstep under the Drowned Bell. It was warm when the bell brought it up. It went cold in the air.
+  MAIN-0390 | A lamp glass. Good glass. Somebody will want it back.
+  MAIN-0391 | One of a row in the Marigold's hold. One face is ground smooth, by hand, a long time ago.
+  MAIN-0392 | Not that one, Captain. Give it back to the sea.
+  MAIN-0393 | On a string from the boat-shed under the fort. The label on the string says tomorrow. It says tomorrow every day.
+  MAIN-0394 | A Crown key. I will give you a little for it and not ask.
+
 ### MAIN / RETIRED (the text is no longer in the game; these IDs are never used again)
     was MAIN-0001 | A floating market, with bunting on every line. (Friday)
     was MAIN-0002 | A regatta! Five boats, racing.
@@ -3076,6 +3090,14 @@ line says which file it goes back into. 1709 lines.
   CLUE-0033 | In the Cays nobody counts anything, not fish, not days. I counted the boats for them anyway. Somebody had already written the number down. - R.
   CLUE-0034 | The water here is clear to the bottom, and the bottom is a long way down. Last night the bottom was closer. - R.
 
+### CLUE / ADDED 2026-11-23
+  CLUE-0035 | Under the Drowned Bell, the clapper on a doorstep, set down to come back for.
+  CLUE-0036 | In the Marigold's hold, a row of dice. The same face ground off every one.
+  CLUE-0037 | Behind the blue door the table is laid, and the chair pushed in.
+  CLUE-0038 | A stair in the lagoon goes down into the water. All the wear on it goes down.
+  CLUE-0039 | Under the fort the oldest books are kept dry. The newest is tied with tomorrow.
+  CLUE-0040 | In the cave under the press the oil comes up warm. Something turns over below.
+
 
 ####################################################################################################
 ## SOURCE CARD   (../index.html): the ending card, the credits and the demo end card (index.html)
@@ -3167,6 +3189,33 @@ line says which file it goes back into. 1709 lines.
   CUST-0070 | In the Cays we do not count. So nothing is wrong with our numbers.
   CUST-0071 | Keep it burning. It has to have something to watch.
   CUST-0072 | Find a die at sea, scratch the seven off. So it cannot come up.
+
+
+####################################################################################################
+## SOURCE GEAR   (systems/gearplay.js): the diving bell and the ship's boat: what is seen and found at their sites
+####################################################################################################
+
+### GEAR / ADDED 2026-11-23
+  GEAR-0001 | Under the water, roofs, and a doorstep. A diving bell could go down to it.
+  GEAR-0002 | On a doorstep under the tower, set down neatly, the bell's clapper. Beside it a lamp glass, still warm to the hand through the water.
+  GEAR-0003 | The Marigold's hold, under the sand and the sea. It would take a deep bell.
+  GEAR-0004 | The chain runs out before the bottom. A deeper bell, with a pump.
+  GEAR-0005 | In the hold, a plank with dice set out in a row. Every one has the same face ground smooth. Somebody did it carefully, one evening after another.
+  GEAR-0006 | The street goes on under the water, further than the low tide shows. Down there it is dark.
+  GEAR-0007 | Black, all the way down. The bell would need a lamp of its own.
+  GEAR-0008 | Behind the blue door, a kitchen. The table is laid. The chair is pushed in, the way you leave a chair for someone who is told to wait.
+  GEAR-0009 | Inside the reef, a stair cut in the inner shore. The Gull will never get in there. A small boat would.
+  GEAR-0010 | A stair cut into the inner shore of the lagoon, going down into the water. The steps are worn in the middle. None of the wear goes up.
+  GEAR-0011 | A water gate under the fort, too low for the Gull. A small boat would go in under it.
+  GEAR-0012 | Under the fort, a boat-shed. The oldest ledgers are kept dry in it, wrapped in oilcloth. The newest bundle is tied with a string, and on the label is tomorrow.
+  GEAR-0013 | A cave mouth under the press, low and black. A small boat could go in, with a light.
+  GEAR-0014 | Too dark in there to row. The boat needs a lantern.
+  GEAR-0015 | In the cave under the press the water is warm, and the oil comes up in rings. Something below turns over, slowly, the way you turn over in bed.
+  GEAR-0016 | I will mind her, Captain. Do not row out of sight.
+  GEAR-0017 | Lowering the bell...
+  GEAR-0018 | It is as you left it.
+  GEAR-0019 | The air runs short. The bell comes up.
+  GEAR-0020 | The Gull is a long way off. The boat turns for her.
 
 
 

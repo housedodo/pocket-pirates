@@ -97,7 +97,8 @@ import { rLetter } from './systems/rletters.js';
 import { chestAdd } from './chest.js';
 import { eventTick, EVENTS, eventCard } from './systems/seaevents.js';   // hearing of the hut (T2)
 import { leadTick, leaderDesc, offLine } from './systems/leadlight.js';   // the Halved Isle by light
-import { passesTick, wallPass, ribsLull } from './systems/passes.js';   // the other ways through (T4)
+import { passesTick, wallPass, ribsLull } from './systems/passes.js';
+import { gearTick, gearDrag, savePos, initDive, diveElement, diveClosed } from './systems/gearplay.js';   // the diving bell and the ship's boat (owner, 2026-11-23)   // the other ways through (T4)
 import { econ, econTick, econLine } from './systems/econ.js';   // ?econ=1: gold per hour by source (G-25)
 import { after, laterTick, laterPending } from './systems/later.js';
 import { ringNoon, noonBellTick, noonPending } from './systems/noonbell.js';
@@ -280,7 +281,7 @@ if (!saved && !params.has('x')) {
 }
 ship.pos.set(state.pos.x, 0, state.pos.z);
 ship.heading = state.pos.h;
-const refreshMods = () => { ship.mods = threads.modAdjust(computeMods(state.upgrades)); state.hp = Math.min(state.hp, ship.mods.maxHp); ship.setUpgradeLook(state.upgrades); };
+const refreshMods = () => { const m0 = computeMods(state.upgrades); m0.speed *= gearDrag(); ship.mods = threads.modAdjust(m0); state.hp = Math.min(state.hp, ship.mods.maxHp); ship.setUpgradeLook(state.upgrades); };
 ship.setCustom(state.custom);
 refreshMods();
 ship.setTorn(state.sailsTorn);
@@ -332,7 +333,7 @@ function giveMap(id, from, reveal = false, quiet = false) {
 function saveData(raw = false) {   // the voyage as the save keeps it (also copied aside on arriving at the Table: systems/endgame.js); raw: always (the Dev Studio's snapshots)
   if (!raw && ((params.get('fresh') && !session.sandbox) || session.noSave || PINNED)) return null;   // ?seed, ?x, ?z or ?time: the stored voyage is not this one
   trimState();
-  return { seed: state.seed, gold: state.gold, dug: [...state.dug], discovered: state.discovered, loot: state.loot, upgrades: state.upgrades, collected: [...state.collected], notes: state.notes, board: state.board, halves: state.halves, frags: state.frags, rumoured: state.rumoured, rep: state.rep, job: state.job, serial: state.serial, sectorsSeen: state.sectorsSeen, jobHistory: state.jobHistory, buffs: state.buffs, stats: state.stats, quests: state.quests, fruit: state.fruit, harvest: state.harvest, dayN: state.dayN, greet: state.greet, charts: state.charts, hp: state.hp, ammo: state.ammo, oil: state.oil, sailsTorn: state.sailsTorn, patchKits: state.patchKits, custom: state.custom, owned: [...state.owned], riddles: state.riddles, attempts: state.attempts, catch: state.catch, fishLog: state.fishLog, fishHeard: state.fishHeard, fishAsk: state.fishAsk, hut: state.hut, passenger: state.passenger, story: state.story, crew: state.crew, cardsSeen: state.cardsSeen, haggle: state.haggle, tracked: state.tracked, life: state.life, goals: state.goals, hints: state.hints, time: state.time, windT: wind.t, pos: { x: ship.pos.x, z: ship.pos.z, h: ship.heading } };
+  return { seed: state.seed, gold: state.gold, dug: [...state.dug], discovered: state.discovered, loot: state.loot, upgrades: state.upgrades, collected: [...state.collected], notes: state.notes, board: state.board, halves: state.halves, frags: state.frags, rumoured: state.rumoured, rep: state.rep, job: state.job, serial: state.serial, sectorsSeen: state.sectorsSeen, jobHistory: state.jobHistory, buffs: state.buffs, stats: state.stats, quests: state.quests, fruit: state.fruit, harvest: state.harvest, dayN: state.dayN, greet: state.greet, charts: state.charts, hp: state.hp, ammo: state.ammo, oil: state.oil, sailsTorn: state.sailsTorn, patchKits: state.patchKits, custom: state.custom, owned: [...state.owned], riddles: state.riddles, attempts: state.attempts, catch: state.catch, fishLog: state.fishLog, fishHeard: state.fishHeard, fishAsk: state.fishAsk, hut: state.hut, passenger: state.passenger, story: state.story, crew: state.crew, cardsSeen: state.cardsSeen, haggle: state.haggle, tracked: state.tracked, life: state.life, goals: state.goals, hints: state.hints, time: state.time, windT: wind.t, pos: savePos() };
 }
 function saveNow() {
   const data = saveData(); if (!data) return false;
@@ -551,7 +552,7 @@ function openModal(name) {
   rt.modal = name;
   keys.clear();
   fishing.suspend(); digGame.suspend();   // a menu never ends a line, a dig or a timed action: they wait under it (G-01)
-  ({ pause: pauseEl, chart: chartEl, harbour: harbourEl, ship: shipEl, yard: yardEl, hut: hutEl, card: cardEl, pig: pigEl, greet: greetEl, cave: caveEl, local: localGames.el })[name].classList.add('open');
+  ({ pause: pauseEl, chart: chartEl, harbour: harbourEl, ship: shipEl, yard: yardEl, hut: hutEl, card: cardEl, pig: pigEl, greet: greetEl, cave: caveEl, local: localGames.el, dive: diveElement() })[name].classList.add('open');
   if (name === 'pause') { showPauseMain(); }
   if (name === 'harbour') rt.openLetter = null;
   if (name === 'chart') { abyss.onMapOpen(ship);
@@ -572,7 +573,7 @@ function closeModal(silent = false) {
   rt.hbPaper = false; rt.tableCard = false;
   if (!rt.modal) return;
   document.body.classList.remove('ashore');
-  pauseEl.classList.remove('open'); chartEl.classList.remove('open'); harbourEl.classList.remove('open'); shipEl.classList.remove('open'); yardEl.classList.remove('open'); hutEl.classList.remove('open'); cardEl.classList.remove('open'); pigEl.classList.remove('open'); greetEl.classList.remove('open'); caveEl.classList.remove('open'); if (rt.modal === 'local') localGames.finish();
+  pauseEl.classList.remove('open'); chartEl.classList.remove('open'); harbourEl.classList.remove('open'); shipEl.classList.remove('open'); yardEl.classList.remove('open'); hutEl.classList.remove('open'); cardEl.classList.remove('open'); pigEl.classList.remove('open'); greetEl.classList.remove('open'); caveEl.classList.remove('open'); if (diveElement()) diveElement().classList.remove('open'); if (rt.modal === 'dive') diveClosed(); if (rt.modal === 'local') localGames.finish();
   if (rt.modal === 'pause') audio.setPaused(false);
   if (rt.modal === 'hut') hutLeft();
   if (rt.modal === 'card') sighting.dismiss();
@@ -611,6 +612,7 @@ window.addEventListener('keydown', (e) => {
     if (e.code === 'ArrowUp') { btns[(i - 1 + btns.length) % btns.length].focus(); e.preventDefault(); }
     return;
   }
+  if (rt.modal === 'dive') return;   // the bell's own screen reads its keys (systems/gearplay.js)
   if (rt.modal === 'greet') { if (['KeyE', 'Space', 'Enter', 'NumpadEnter'].includes(e.code)) { e.preventDefault(); greetAdvance(); } return; }
   if (rt.modal === 'cave') {
     if ($('roll').classList.contains('open')) return;
@@ -767,6 +769,7 @@ $('tP').addEventListener('pointerdown', (e) => { begin(); if (rt.modal) closeMod
 initPause2();   // (ui/pause.js)
 
 initHarbour();   // (ui/harbour.js)
+initDive();   // the diving bell's screen (systems/gearplay.js)
 
 initHud();   // (ui/hud.js)
 
@@ -1313,6 +1316,7 @@ function frame() {
   world.tick(rt.animT, tod);
   places.labelsTick(camera, ship, (state.upgrades.spyglass || 0), state.discovered, window.innerWidth, window.innerHeight, false /* no names on the water when sailing past (owner 2026-11-18) */, { fogFar: scene.fog.far, table: tableOpen(state) });   // far labels: ?, what it looks like, its name; fade with the fog
   ship.place(vdt, waveT, stage.wave, rt.dark, tod.night);
+  gearTick(vdt, waveT);   // the bell and the boat on the Gull, the boat on the water (systems/gearplay.js)
   if (rt.anchorBit) { rt.anchorBit = false; fauna.splash(ship.pos.x + Math.sin(ship.heading) * 3.2, ship.pos.z - Math.cos(ship.heading) * 3.2, stage.wave, waveT, 1.1); }   // the anchor bites: a ring of foam at the bow
   secrets.update(vdt, waveT, { ship, time: state.time, dayN: state.dayN, tide: tideAt(), wave: stage.wave, light: Math.min(1, 0.25 + stage.light * 0.9), dread: rt.dread, collected: state.collected, windX: Math.sin(wind.dir), windZ: -Math.cos(wind.dir), heading: ship.heading, fogFar: scene.fog.far });
   shipWake.update(vdt, waveT, stage.wave, { pos: ship.pos, heading: ship.heading, speed: ship.rowing ? ship.speed * 0.6 : ship.speed, max: 11 }, Math.min(1, 0.25 + stage.light * 0.9));

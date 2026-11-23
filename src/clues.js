@@ -45,6 +45,14 @@ export const CLUES = [
   { id: 'CL-RL-crown',   region: 'crown',   q: [7],    w: 1, cap: null, line: 'Somebody told me there is a song that ends it gently. Nobody would sing it for me. - R.' },
   { id: 'CL-RL-free',    region: 'free',    q: [1],    w: 1, cap: null, line: 'In the Cays nobody counts anything, not fish, not days. I counted the boats for them anyway. Somebody had already written the number down. - R.' },
   { id: 'CL-RL-drowned', region: 'drowned', q: [2],    w: 1, cap: null, line: 'The water here is clear to the bottom, and the bottom is a long way down. Last night the bottom was closer. - R.' },
+  // the bell and the boat (owner, 2026-11-23): one clue per region that only the diving bell or the ship's boat reaches (systems/gearplay.js
+  // SITES). `gear: true`: without it its region is not read (regionSeen), so the far sea and that region's letter stay shut. Drafts.
+  { id: 'CL-G-home',    region: 'home',    q: [5, 6], w: 1, cap: null, gear: true, line: 'Under the Drowned Bell, the clapper on a doorstep, set down to come back for.' },
+  { id: 'CL-G-reef',    region: 'reef',    q: [3, 4], w: 1, cap: null, gear: true, line: 'In the Marigold\'s hold, a row of dice. The same face ground off every one.' },
+  { id: 'CL-G-drowned', region: 'drowned', q: [6],    w: 1, cap: null, gear: true, line: 'Behind the blue door the table is laid, and the chair pushed in.' },
+  { id: 'CL-G-free',    region: 'free',    q: [2, 7], w: 1, cap: null, gear: true, line: 'A stair in the lagoon goes down into the water. All the wear on it goes down.' },
+  { id: 'CL-G-crown',   region: 'crown',   q: [1, 4], w: 1, cap: null, gear: true, line: 'Under the fort the oldest books are kept dry. The newest is tied with tomorrow.' },
+  { id: 'CL-G-lantern', region: 'lantern', q: [2],    w: 1, cap: null, gear: true, line: 'In the cave under the press the oil comes up warm. Something turns over below.' },
   { id: 'CL-T-hollow',  region: 'drowned', q: [1, 6], w: 1, cap: null, line: 'A harbour that knew we were coming, and had a place set.' },
 ];
 export const CLUE = Object.fromEntries(CLUES.map((c) => [c.id, c]));
@@ -69,16 +77,20 @@ export function level(state, q) {
   return Math.min(3, Object.values(best).reduce((a, b) => a + b, 0));
 }
 export const levels = (state) => [1, 2, 3, 4, 5, 6, 7].map((q) => level(state, q));
-/** distinct regions with at least one clue seen: the chart is readable once three are */
+/** a region is read once its bell-or-boat clue is seen (owner, 2026-11-23: "if you dont have the clue, you cannot proceed"); the deep
+ *  (met anywhere in deep dread) has none and counts with any clue */
+const GEAR_OF = Object.fromEntries(CLUES.filter((c) => c.gear).map((c) => [c.region, c.id]));
+export const regionRead = (state, r) => (GEAR_OF[r] ? hasSeen(state, GEAR_OF[r]) : CLUES.some((c) => c.region === r && hasSeen(state, c.id)));
+/** distinct regions read: the chart is readable once three are */
 export function regionsSeen(state) {
-  return new Set(CLUES.filter((c) => hasSeen(state, c.id)).map((c) => c.region)).size;
+  return new Set(CLUES.filter((c) => hasSeen(state, c.id) && regionRead(state, c.region)).map((c) => c.region)).size;
 }
 /** is a capability known? (gates.js uses this for buttons, routes and chart marks) */
 export const isKnown = (state, cap) => !DEMO_BUILD() && CLUES.some((c) => c.cap === cap && hasSeen(state, c.id));   // nothing is known in the demo: no capability acts there
 /** the table by the water shows on the chart once ANY three questions have reached level 2 */
 export const d3Open = (state) => levels(state).filter((n) => n >= 2).length >= 3;
-/** has any clue of this region been seen? (Perrin's letters after the hut) */
-export const regionSeen = (state, r) => CLUES.some((c) => c.region === r && hasSeen(state, c.id));
+/** is this region read? (Perrin's letters after the hut): its bell-or-boat clue seen (regionRead) */
+export const regionSeen = (state, r) => regionRead(state, r);
 /** the Table by the Water stands for every captain who has thrown at the hut once (CANON 6: a captain who saw nothing still gets a real
  *  ending), or who has understood three questions; what can be done there still depends on what was understood (table.js) */
 export const tableOpen = (state) => d3Open(state) || !!(state.hut && state.hut.rolls && state.hut.rolls.length);

@@ -323,7 +323,7 @@ export class Ship {
     this.flagDark.visible = false;
     this.flag.add(this.flagBright, this.flagDark);
     this.root.add(this.flag);
-    if (typeof location !== 'undefined' && new URLSearchParams(location.search).get('gear') === '1') { this.gear = makeGear(); this.root.add(this.gear.g); }   // the diving bell and the ship's boat: a design trial (src/gear.js)
+    this.gear = makeGear(); this.gear.bell.visible = this.gear.chain.visible = this.gear.boat.visible = this.gear.line.visible = false; this.root.add(this.gear.g);   // the diving bell and the ship's boat (src/gear.js): shown when bought and aboard (systems/gearplay.js)
 
     // oars: two a side, stowed along the rail until rowing (G). Chunky, no thin lines.
     this.oarArms = [];

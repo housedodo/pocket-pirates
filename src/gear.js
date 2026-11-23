@@ -1,5 +1,5 @@
 // The diving bell and the ship's boat (a design trial, owner 2026-11-23: "design both like other objects in game and show how it would
-// play out"; docs/proposals/DIVE_AND_BOAT.md). Only the models, behind ?gear=1 (RULES 35): nothing plays yet.
+// play out"; docs/proposals/DIVE_AND_BOAT.md). Played since 2026-11-23 (systems/gearplay.js): on the Gull when bought and aboard.
 //   the diving bell: a squat brass bell with two dark bands and three small round ports, an iron ring on top, hung on a chain from a
 //     davit at the starboard quarter. Stowed, it hangs just over the rail; lowered, the chain pays out to the water.
 //   the ship's boat: a small clinker boat with two thwarts and a pair of oars, towed astern on a line (its own model, not the sea's
@@ -44,6 +44,7 @@ export function makeGear() {
   const chain = new THREE.Mesh(new THREE.BoxGeometry(0.08, 1, 0.08), new THREE.MeshBasicMaterial({ color: 0x2a2622 })); g.add(chain);
   const boat = meshOf(buildBoat()); g.add(boat);
   const line = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.05, 1), new THREE.MeshBasicMaterial({ color: 0xc8b890 })); g.add(line);
+  g.userData.gearGroup = true; boat.userData.towed = line.userData.towed = true;
   const H = { g, bell, chain, boat, line, drop: 0, tow: 7.5 };
   H.place = () => {   // stowed or lowered (drop: how far the bell has gone down from the davit), and the boat at the end of its line
     const top = 3.62, by = top - 0.6 - H.drop;

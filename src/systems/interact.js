@@ -37,8 +37,14 @@ import { pilotSaying } from './passes.js';
 import { chestAdd } from '../chest.js';
 import { actEvent } from './seaevents.js';
 import { rGreeting } from './rletters.js';
+import { gearInteract, gearAct } from './gearplay.js';
 
 export function getInteract() {
+  if (rt.boat) {   // in the ship's boat (systems/gearplay.js): the Gull to climb back aboard, a landing, or a hand-made place's shore
+    const gb = gearInteract(true); if (gb) return gb;
+    const lb = G.world.nearest(G.ship.pos.x, G.ship.pos.z, 16); if (lb && lb.desc.lm) return { kind: 'landmark', key: 'lm' + lb.desc.id, isl: lb };
+    return null;
+  }
   const hi = G.world.nearest(G.ship.pos.x, G.ship.pos.z, 18);
   if (hi && hi.desc.hut && G.world.hutShown) return { kind: 'hut', key: 'hut', isl: hi };
   const sg = G.sighting.near(G.ship.pos.x, G.ship.pos.z); if (sg) return { kind: 'sighting', key: 'sight', s: sg };
@@ -55,6 +61,7 @@ export function getInteract() {
     if (G.world.lastEdge < 16) far = { kind: 'harbourfar', key: d.id, isl: hb };
   }
   const sc = G.secrets.near(G.ship.pos.x, G.ship.pos.z, state.collected); if (sc && !(sc.kind === 'camp' && state.story.secrets && state.story.secrets[sc.key + '@'] === state.dayN)) return { kind: 'secret', key: sc.key, sc };
+  { const gi = gearInteract(false); if (gi) return gi; }   // the bell's sites, the boat's (systems/gearplay.js)
   const lmI = G.world.nearest(G.ship.pos.x, G.ship.pos.z, 16);
   if (lmI && lmI.desc.lm) return { kind: 'landmark', key: 'lm' + lmI.desc.id, isl: lmI };
   const isl = G.world.nearest(G.ship.pos.x, G.ship.pos.z, 16, ['treasure']);
@@ -72,7 +79,7 @@ export function getInteract() {
 }
 
 export const ROLL_GREET_P = 0.35, ROLL_GREET_GAP = 3;   // E6: a greeter speaks of a later throw about one time in three, never two within three days
-export const HEAVE_KINDS = new Set(['thread', 'spring', 'cave', 'treasure', 'fruit', 'wreck', 'landmark', 'patch', 'supper']);
+export const HEAVE_KINDS = new Set(['gear', 'thread', 'spring', 'cave', 'treasure', 'fruit', 'wreck', 'landmark', 'patch', 'supper']);
 // E forgives (SYSTEMS_FEEL G-03, G-04, G-10; numbers to tune by hand):
 export const E_GRACE_T = 0.6;      // s: the last thing in reach stays E-able this long after it leaves reach...
 export const E_GRACE_D = 6;        // ...while the ship has moved no more than this since it was last in reach (about "its range + 6"; never a harbour)
@@ -81,7 +88,7 @@ export const HEAVE_GIVE_UP = 8;    // s: the heave gives up if she has not come 
 export const E_BUFFER = 0.25;      // s: an E with nothing in reach waits this long for something to come in reach
 export const ACTION_LEASH = 8;     // a running action ends only if the ship is moved more than its range + this from where it began (a sinking, a jump)
 export const DIG_LEAVE_HOLD = 0.8; // s: hold E on the beach to pack up (it counts as a failed dig)
-const ACTION_RANGE = { treasure: 16, landmark: 16, fruit: 14, wreck: 22, secret: 18, supper: 45 };   // the ranges in getInteract
+const ACTION_RANGE = { gear: 16, treasure: 16, landmark: 16, fruit: 14, wreck: 22, secret: 18, supper: 45 };   // the ranges in getInteract
 rt.heave = null, rt.anchorAt = null;   // heave: E was pressed under way, the anchor is going down; anchorAt: where she lies while it is down
 rt.tgLast = null, rt.tgRaw = null, rt.eBuf = null, rt.eDown = null, rt.digLeave = 0;
 /** can E do something with this target now? (the pier hint, a secret under way and a plundered isle cannot) */
@@ -134,6 +141,7 @@ function doInteract(tg) {
   if (tg.kind === 'sighting') { if (tg.s.card.ev) actEvent(tg.s); else G.openCard(tg.s.card); return; }   // an event's ordinary action (seaevents.js)
   // E under way: the anchor goes down first, and the crew goes ashore as soon as she lies still (no need to stop her by hand)
   if (HEAVE_KINDS.has(tg.kind) && G.ship.speed > 0.3) { if (!rt.heave || rt.heave.key !== tg.key) G.audio.play('ui'); rt.heave = { key: tg.key, tg, t: rt.tNow, x: G.ship.pos.x, z: G.ship.pos.z }; return; }
+  if (tg.kind === 'gear') { gearAct(tg); return; }
   if (tg.kind === 'thread') { tg.th.run(); return; }
   if (tg.kind === 'spring') { G.openCave({ id: `spring:${G.threads.c.src.id}`, kind: 'colourspring' }); return; }
   if (tg.kind === 'cave') { G.openCave(tg.site); return; }

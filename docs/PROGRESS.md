@@ -2307,3 +2307,23 @@ dread there eased for a while after it.
 - `docs/proposals/DIVE_AND_BOAT.md` (upgrade tables, how each plays, what it opens, a storyboard, owner questions) and pictures in
   `docs/proposals/gear/`. Models in `src/gear.js`, on the Gull behind `?gear=1` (a davit and the bell at the starboard quarter, the
   boat towed astern); nothing plays yet. The dive view is a pixel mock-up, not in the game.
+
+## The diving bell and the ship's boat, played (2026-11-23)
+- **Bought at any harbour's shipwright** (a second row of cards under the upgrades, "For going down and in"): the bell in three levels
+  (salvage, deep with a pump, lamp), the boat in two (the boat, the boat with a lantern). Aboard, the bell costs 4% speed and the boat 6%;
+  "Leave it here" puts it on that quay, and only that harbour gives it back ("Take it aboard"). Shown on the Gull when aboard (the davit
+  and bell, the boat towed astern). Full game only.
+- **Six bell-or-boat sites, one per region** (`SITES` in `src/systems/gearplay.js`, clues `CL-G-*` in `src/clues.js`, `gear: true`):
+  home, under the Drowned Bell (bell 1); the Reef, the Marigold's hold (bell 2); the Drowned, behind the blue door (bell 3); the Free
+  Cays, the stair inside Glass Lagoon (boat 1); the Crown, the water gate under the Governor's Fort (boat 1); the Lantern, the cave under
+  the Oil Press (boat 2). Each is seen in the world (a ring of bubbles; a mooring post); without the gear, E looks and says what would do.
+  Three new remnants for the sea chest (a lamp glass, a ground die, a ledger key).
+- **A region is read only through its site's clue** (RULES 32a): `regionSeen` / `regionsSeen` now need it, so the sea past 1950 (three
+  regions) and each of Perrin's five letters wait for it. The letters' pier rumour now names the site's place and says plainly whether a
+  bell or a small boat is wanted; each letter has a third hint from Mara pointing at the shipwrights.
+- **The dive** is its own screen: a painted 320x180 view out of the port (a street, a hold, a dark row of doors under the lamp), panned
+  with left and right; the rope on the left is the air (40 s, longer with each level); E on the glint looks closer and finds; E again,
+  or the air out, brings it up.
+- **The boat**: E near a boat site (or outside the Glass Lagoon's reef or the Ribs' breakers) puts it in the water; you row it, the
+  Gull waits at anchor (a copy of her, the save keeps her position). The reef and the breakers let the boat through (the third way in,
+  `passes.js barrierPass`). Past 260 from her the boat turns for home. E at the Gull climbs back aboard.

@@ -37,6 +37,7 @@ import { nightKey, tideAt } from './calendar.js';
 import { leadPass } from './leadlight.js';
 import { hurtPlayer } from './storybeats.js';
 import { chestHas } from '../chest.js';
+import { boatPass } from './gearplay.js';
 
 export const WALL_R = 1650;           // the wall these ways go through (objectives.js GATES' last, held by the lens lantern)
 export const LINE_HALF = 0.05;        // rad either side of a still beam's line
@@ -102,6 +103,7 @@ export function crossWall(how) { if (!state.story.crossed) state.story.crossed =
 /** Places.tick: another way in through a hand-made place's barrier. Once in by one, the ship may lie inside until it leaves. */
 const inside = {};
 export function barrierPass(lm, ship) {
+  if (boatPass(lm)) return true;   // the third way in: the ship's boat goes over the reef and through the breakers (systems/gearplay.js)
   if (lm === 'broken') return leadPass(lm, ship);
   if (!on() || !LM[lm] || !BARRIERS[lm]) return false;
   const B = BARRIERS[lm], d = Math.hypot(ship.pos.x - LM[lm].x, ship.pos.z - LM[lm].z);

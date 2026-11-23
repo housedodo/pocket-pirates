@@ -12,7 +12,7 @@ export const state = {
   dug: new Set((saved && saved.dug) || []),
   discovered: (saved && saved.discovered) || {},
   loot: (saved && saved.loot) || [],
-  upgrades: Object.assign({ sails: 0, rudder: 0, lantern: 0, spyglass: 0, crew: 0, hull: 0, cannons: 0 }, (saved && saved.upgrades) || {}),
+  upgrades: Object.assign({ sails: 0, rudder: 0, lantern: 0, spyglass: 0, crew: 0, hull: 0, cannons: 0, bell: 0, boat: 0 }, (saved && saved.upgrades) || {}),
   time: params.has('time') ? parseFloat(params.get('time')) : (saved && saved.time != null ? saved.time : 0.33),
   windT: (saved && saved.windT) || 0,
   collected: new Set((saved && saved.collected) || []),
@@ -61,7 +61,7 @@ export const state = {
 };
 // state.story is a free bag of flags (RULES 31). Its containers get their empty shape here, in one place; a plain flag that is
 // absent means "not yet" and stays absent until it happens. (`threads` is left out: absent means "pick the voyage's threads".)
-const STORY_SHAPE = { seen: {}, lm: {}, secrets: {}, marks: {}, keeps: [], lost: {}, relit: {}, lanes: {}, lh: {}, caves: {}, pets: {}, placeSet: {}, tp: {}, uiSeen: {}, pins: [], notyet: {}, chest: [], tales: {}, drownedKept: [], rhythm: {}, supper: {} };
+const STORY_SHAPE = { seen: {}, lm: {}, secrets: {}, marks: {}, keeps: [], lost: {}, relit: {}, lanes: {}, lh: {}, caves: {}, pets: {}, placeSet: {}, tp: {}, uiSeen: {}, pins: [], notyet: {}, chest: [], tales: {}, drownedKept: [], rhythm: {}, supper: {}, gearAt: {} };
 for (const [k, v] of Object.entries(STORY_SHAPE)) if (state.story[k] == null) state.story[k] = Array.isArray(v) ? [] : {};
 for (const n of state.notes) if (n.w === undefined) n.w = '';   // notes from before the book kept their water (item 3): "Earlier"
 

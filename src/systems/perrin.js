@@ -9,6 +9,7 @@ import { LM } from '../landmarks.js';
 import { bearingName } from '../jobs.js';
 import { pierOf } from '../world.js';
 import { caysAsleep } from '../regions.js';
+import { siteFor } from './gearplay.js';
 
 // drafts for the writer (docs/WRITER_TODO.txt 4.6): ordinary voices; a name and a way, never what is there
 const LINES = {
@@ -24,6 +25,7 @@ const phase = (h) => (h >= 5 && h < 8 ? 'dawn' : h >= 8 && h < 18 ? 'day' : h >=
 
 /** the nearest place to (x, z) whose clue counts for region r: { name, x, z } or null */
 export function letterPlace(r, x, z) {
+  const gs = siteFor(r); if (gs && LM[gs.lm]) return { lm: gs.lm, name: LM[gs.lm].name, x: LM[gs.lm].x, z: LM[gs.lm].z, gear: gs.gear };   // the place that reads the region (bell or boat, 2026-11-23)
   const reg = Object.fromEntries(CLUES.map((c) => [c.id, c.region]));
   let best = null;
   for (const p of CLUE_PLACES()) { if (reg[p.clue] !== r) continue; const d = Math.hypot(p.x - x, p.z - z); if (!best || d < best.d) best = { d, p }; }
@@ -40,8 +42,10 @@ export function letterRumour(state, g, d, hour) {
   asked[g.id] = state.dayN;
   state.rumoured['letter:' + g.id] = { name: p.name, x: Math.round(p.x), z: Math.round(p.z), source: d.name, found: false, letter: g.id };
   const who = WHO[phase(hour)], name = p.name.replace(/^The /, 'the ');   // mid-line: "Try the Governor's Fort"
-  return { speaker: who[Math.floor(Math.random() * who.length)], text: LINES[g.region](name, bearingName(p.x - pier.x, p.z - pier.z)), story: true, rumour: true };
+  return { speaker: who[Math.floor(Math.random() * who.length)], text: LINES[g.region](name, bearingName(p.x - pier.x, p.z - pier.z)) + (GEAR_TAIL[p.gear] || ''), story: true, rumour: true };
 }
+// how the place is reached, said plainly once (the bell and the boat, 2026-11-23): never what is there
+const GEAR_TAIL = { bell: ' The best of it is under the water. You would want a bell.', boat: ' The Gull will not get in. You would want a small boat.' };
 
 // T6 c (owner, 2026-11-19): asking around never runs out. After the first throw, docking at a harbour may get a voice on the pier naming
 // a place in that harbour's own water that the captain has not been ashore on yet, in the same voice as the letters' rumours (LINES).
