@@ -1,7 +1,7 @@
 HOIST (Pocket Pirates): THE MASTER STORY FILE
 ================================================================================================
 This is the main story file for the full game. Edit it, upload it again, and the next session puts every change
-into the game. Built from commit b2a3b3d on 2026-11-23. 1757 in-game lines carry an ID.
+into the game. Built from commit 17a19a6 on 2026-11-23. 1771 in-game lines carry an ID.
 
 CONTENTS
   A   HOW TO USE THIS FILE (IDs, status marks, how to add and remove things)
@@ -569,7 +569,7 @@ Where the story hides in the mechanics, and where its text lives (section J).
 # J  EVERY LINE IN THE GAME
 ################################################################################################
 Pulled from the code. Edit the text after the "|" (see part A). Sources are grouped by file; the CODE in front of every
-line says which file it goes back into. 1757 lines.
+line says which file it goes back into. 1771 lines.
 
 
 
@@ -3234,6 +3234,39 @@ line says which file it goes back into. 1757 lines.
   GEAR-0024 | It will come ashore somewhere, Captain. Boats do.
   GEAR-0025 | Your boat came in on the tide this morning, Captain. We pulled it up the slip for you.
   GEAR-0026 | A boat in the Gull's paint came ashore at ${e ? e.name : 'Tama'}, Captain. They have pulled it up for you.
+
+
+####################################################################################################
+## SOURCE VOY   (systems/voyage.js): the long voyage: Mara on stores and the crew, the night nerves
+####################################################################################################
+
+### VOY / ADDED 2026-11-23
+  VOY-0001 | The crew have gone quiet, Captain. A harbour would do them good.
+  VOY-0002 | Nobody is singing. They do the work, and not a stroke more.
+  VOY-0003 | Hear that? Somebody has started a song below.
+  VOY-0004 | We are down to the last of the biscuit, Captain.
+  VOY-0005 | The water casks are nearly dry, Captain.
+  VOY-0006 | There is nothing left to eat aboard. They are not saying anything. That is worse.
+  VOY-0007 | The casks are dry. Any land with a spring, Captain. Any at all.
+  VOY-0008 | In good spirits. Somebody sings below.
+  VOY-0009 | Steady. They do what is asked.
+  VOY-0010 | Quiet. Too long at sea.
+  VOY-0011 | Sullen. The work is slow.
+  VOY-0012 | Someone on deck is counting the crew under their breath. One too many, and they start again.
+
+
+####################################################################################################
+## SOURCE TRD   (systems/trade.js): trade runs: the goods and the pier voices
+####################################################################################################
+
+### TRD / ADDED 2026-11-23
+  TRD-0001 | They say ${r} cannot get enough ${g} just now.
+  TRD-0002 | If you have any ${g}, take it to ${r}. Not here. We are drowning in it.
+
+
+####################################################################################################
+## SOURCE SEA   (systems/sealog.js): seen at sea: the sketches in the Ship's book
+####################################################################################################
 
 
 

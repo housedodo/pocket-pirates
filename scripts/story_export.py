@@ -45,7 +45,7 @@ CODES = {  # source file -> (ID code, what it holds)
     'systems/gearplay.js': ('GEAR', 'the diving bell and the ship\'s boat: what is seen and found at their sites'),
     'systems/voyage.js': ('VOY', 'the long voyage: Mara on stores and the crew, the night nerves'),
     'systems/trade.js': ('TRD', 'trade runs: the goods and the pier voices'),
-    'systems/sealog.js': ('SEA', 'seen at sea: the Ship's book sketches'),
+    'systems/sealog.js': ('SEA', 'seen at sea: the sketches in the Ship\'s book'),
     'newspaper.js': ('NEWS', 'the Friday paper'),
     'clues.js': ('CLUE', 'the clue log lines, in another hand (CL-T-* are drafts)'),
     'customs.js': ('CUST', 'regional customs: sayings, sights on the quay, Mara by region (the lore bible, drafts)'),
