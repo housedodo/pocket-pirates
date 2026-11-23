@@ -37,6 +37,27 @@ function whaleGeo() {
   return b.geometry();
 }
 
+/** a flying bird, facing +z, its right wing out along +x from the shoulder at the origin (the left is the same, mirrored).
+ *  gull: white, a grey mantle, black wingtips, an orange beak, a short pale tail; crow: black all over, a heavy dark beak, a fanned
+ *  tail, and the ragged wingtip of a crow: four primaries spread like fingers */
+function birdModel(kind) {
+  const B = new Builder(), W = new Builder(); B.doubleSided = W.doubleSided = true; B.darkSame = W.darkSame = true; B.grime = W.grime = 0;
+  if (kind === 'gull') {
+    B.blob(0, -0.05, 0.05, 0.13, 0.12, 0.42, '#f6f4ee', TILE.white, 0.06, 2); B.blob(0, 0.02, 0.44, 0.09, 0.09, 0.11, '#f6f4ee', TILE.white, 0.05, 3);
+    B.box(0, 0.0, 0.53, 0.04, 0.04, 0.12, '#f0a030'); B.box(0, -0.05, -0.4, 0.18, 0.03, 0.22, '#e8e6e0');
+    W.quad([0, 0, 0.2], [0, 0, -0.16], [0.62, 0, -0.18], [0.6, 0, 0.18], '#aab2bc'); W.quad([0.6, 0, 0.18], [0.62, 0, -0.18], [1.05, 0, -0.32], [0.98, 0, 0.0], '#c4cad2');
+    W.tri([0.98, 0, 0.0], [1.05, 0, -0.32], [1.28, 0, -0.38], '#1e1e26');   // the black tip
+  } else {
+    const BL = '#16131a', BL2 = '#221e26';
+    B.blob(0, -0.04, 0.02, 0.14, 0.13, 0.4, BL, TILE.white, 0.06, 4); B.blob(0, 0.03, 0.42, 0.1, 0.1, 0.11, BL2, TILE.white, 0.05, 5);
+    B.cyl(0, 0.01, 0.5, 0.045, 0.012, 0.16, 4, '#3a3a40', TILE.white, false);   // the heavy beak, pointing ahead (a cone along +y, tipped below)
+    for (let k = -2; k <= 2; k++) B.tri([0, -0.04, -0.32], [k * 0.07 - 0.04, -0.04, -0.62], [k * 0.07 + 0.04, -0.04, -0.62], k % 2 ? BL : BL2);   // a fanned tail
+    W.quad([0, 0, 0.18], [0, 0, -0.18], [0.6, 0, -0.2], [0.58, 0, 0.2], BL); W.quad([0.58, 0, 0.2], [0.6, 0, -0.2], [0.86, 0, -0.18], [0.86, 0, 0.16], BL2);
+    for (let k = 0; k < 4; k++) { const z = 0.12 - k * 0.1; W.quad([0.86, 0, z + 0.03], [0.86, 0, z - 0.04], [1.22 - k * 0.04, 0, z - 0.06 - k * 0.03], [1.22 - k * 0.04, 0, z - 0.02 - k * 0.03], k % 2 ? BL : BL2); }   // the fingers
+  }
+  return { bodyGeo: B.geometry(), wingGeo: W.geometry() };
+}
+
 export class Fauna {
   constructor(scene, world) {
     this.scene = scene; this.world = world;
@@ -44,15 +65,13 @@ export class Fauna {
     this.t = 0;
 
     // ---- birds (two instanced wing meshes)
-    const wg = new THREE.BufferGeometry();
-    wg.setAttribute('position', new THREE.Float32BufferAttribute([
-      0, 0, 0, 1.1, 0, -0.5, 0.95, 0, 0.45,
-      0, 0, -0.7, 0.18, 0, 0.1, 0, 0, 0.6,
-    ], 3));
-    this.birdMat = psxMaterial({ color: 0xffffff, side: THREE.DoubleSide, key: 'Bd' });
-    this.wingR = new THREE.InstancedMesh(wg, this.birdMat, NB);
-    this.wingL = new THREE.InstancedMesh(wg, this.birdMat, NB);
-    for (const m of [this.wingR, this.wingL]) { m.frustumCulled = false; m.instanceMatrix.setUsage(THREE.DynamicDrawUsage); scene.add(m); }
+
+    // two real birds (owner, 2026-11-23: "you changed the model of the normal gulls, do that with the black ones as well"): a gull and a
+    // crow, each a body (head, beak, tail) and a pair of wings, instanced; the crows take over as the water darkens (`crow` below)
+    this.birdMat = psxMaterial({ vertexColors: true, side: THREE.DoubleSide, key: 'Bd' });
+    const inst = (geo) => { const m = new THREE.InstancedMesh(geo, this.birdMat, NB); m.frustumCulled = false; m.instanceMatrix.setUsage(THREE.DynamicDrawUsage); scene.add(m); return m; };
+    this.flocks = { gull: birdModel('gull'), crow: birdModel('crow') };
+    for (const f of Object.values(this.flocks)) { f.body = inst(f.bodyGeo); f.wR = inst(f.wingGeo); f.wL = inst(f.wingGeo); }
     this.birds = Array.from({ length: NB }, (_, i) => ({ anchor: null, ang: Math.random() * 6.28, r: 0, h: 0, phase: Math.random() * 10, spd: rnd(0.6, 1), i }));
 
     // ---- dolphins
@@ -140,7 +159,7 @@ export class Fauna {
     const watchers = dread >= 0.8;
     const nActive = watchers ? 9 : dread < 0.35 ? Math.round(10 * (1 - 0.5 * smoothstep(0.15, 0.32, dread))) : Math.round(5 + 23 * smoothstep(0.35, 0.78, dread));   // a few gulls, not a cloud; they thin out, and then the crows come, more and more of them (owner, 2026-11-23: the birds slowly appear)
     const crow = smoothstep(0.3, 0.55, dread);
-    this.birdMat.color.setRGB(lerp(1, 0.13, crow), lerp(1, 0.1, crow), lerp(1, 0.17, crow));
+    const kind = crow > 0.5 ? 'crow' : 'gull', F = this.flocks[kind], O = this.flocks[kind === 'crow' ? 'gull' : 'crow'];   // the whole flock is one or the other
     const flap = lerp(9, 3.5, smoothstep(0.3, 0.8, dread));
     const frozen = ctx.freeze != null ? ctx.freeze : 1 - smoothstep(0.3, 0.45, dread) * (1 - smoothstep(0.5, 0.6, dread));      // 1 normal .. 0 frozen (the glimpse freezes them too)
     const dirSign = dread > 0.5 ? -1 : 1;
@@ -178,14 +197,16 @@ export class Fauna {
         const fl = Math.sin(t * flap + b.phase) * (frozen < 0.5 && dread < 0.5 ? 0.08 : 0.55) * (0.15 + 0.85 * glide);
         const sc = watchers ? 1.7 : 1.25;
         d.position.set(x, y, z); d.rotation.set(0, yaw, 0); d.scale.set(sc, sc, sc);
-        d.rotation.z = fl; d.updateMatrix(); this.wingR.setMatrixAt(i, d.matrix);
-        d.scale.set(-sc, sc, sc); d.rotation.z = -fl; d.updateMatrix(); this.wingL.setMatrixAt(i, d.matrix);
+        d.rotation.z = 0; d.updateMatrix(); F.body.setMatrixAt(i, d.matrix);
+        d.rotation.z = fl; d.updateMatrix(); F.wR.setMatrixAt(i, d.matrix);
+        d.scale.set(-sc, sc, sc); d.rotation.z = -fl; d.updateMatrix(); F.wL.setMatrixAt(i, d.matrix);
+        d.scale.set(0, 0, 0); d.updateMatrix(); O.body.setMatrixAt(i, d.matrix); O.wR.setMatrixAt(i, d.matrix); O.wL.setMatrixAt(i, d.matrix);
       } else {
         d.scale.set(0, 0, 0); d.position.set(0, -50, 0); d.updateMatrix();
-        this.wingR.setMatrixAt(i, d.matrix); this.wingL.setMatrixAt(i, d.matrix);
+        for (const f of Object.values(this.flocks)) { f.body.setMatrixAt(i, d.matrix); f.wR.setMatrixAt(i, d.matrix); f.wL.setMatrixAt(i, d.matrix); }
       }
     }
-    this.wingR.instanceMatrix.needsUpdate = true; this.wingL.instanceMatrix.needsUpdate = true;
+    for (const f of Object.values(this.flocks)) for (const m of [f.body, f.wR, f.wL]) m.instanceMatrix.needsUpdate = true;
     this.nearBird = nearBird;   // distance to the closest visible gull (the ambience loop follows it)
     // gull cries (only while they still sound like gulls)
     this.gullTimer -= dt;

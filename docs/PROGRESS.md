@@ -2380,3 +2380,7 @@ dread there eased for a while after it.
   random stream (the bright layout never moves). `crow()` sits on snapped palms and stakes. `fauna.js`: the gulls thin to 5 by dread
   0.32, then the crows grow from 5 to 28 by 0.78. Checked headless with the dark mood on: an abandoned jungle isle and harbour, a picked
   jungle isle, sandbar and harbour, a wrong jungle isle.
+- **The circling birds are real birds** (owner, 2026-11-23: "do that with the black ones as well"): `fauna.js birdModel`: a gull (white
+  body and head, grey mantle, black wingtips, orange beak, pale tail) and a crow (black, a heavy dark beak, a fanned tail, four fingered
+  primaries), each an instanced body and two wings; the flock is crows once the water's crow factor passes one half (dread about 0.43).
+  The flat tinted triangles are gone. Checked headless close up at dread 0.1 (gull) and 0.66 (crow).
