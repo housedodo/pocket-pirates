@@ -23,15 +23,36 @@ export function buildBell() {
   b.box(0, 1.6, 0, 0.12, 0.34, 0.12, IRON); b.box(0, 1.85, 0, 0.42, 0.1, 0.1, IRON);   // the ring
   return b;
 }
-/** the ship's boat alone, about 3.4 long, its keel at y 0, bow toward -z */
+/** the ship's boat alone, about 3.6 long, its keel at y 0, bow toward -z: a lofted clinker hull (owner, 2026-11-23: "the boat looks
+ *  very flat"): the sheer rises to the bow and a little to the stern, two strakes of planking outside, the inside dark with ribs,
+ *  a transom, a stem post, two thwarts, rowlocks and a pair of oars shipped along the thwarts */
 export function buildBoat() {
   const b = new Builder();
-  b.box(0, 0, 0.1, 1.15, 0.45, 2.6, OAK, TILE.planks);                          // the body
-  b.box(0, 0.08, -1.45, 0.75, 0.38, 0.5, OAK, TILE.planks);                     // the bow, narrower
-  b.box(0, 0.16, -1.85, 0.35, 0.32, 0.35, OAK_D, TILE.planks);                  // the stem
-  b.box(0, 0.42, 0.1, 1.2, 0.08, 2.7, OAK_D, TILE.planks);                      // the gunwale
-  for (const z of [-0.5, 0.6]) b.box(0, 0.32, z, 1.1, 0.07, 0.28, '#c8a878', TILE.planks);   // two thwarts
-  for (const s of [-1, 1]) { b.box(s * 0.85, 0.42, 0.1, 1.1, 0.05, 0.08, '#c8a878', TILE.planks); b.box(s * 1.35, 0.4, 0.1, 0.35, 0.03, 0.14, '#c8a878', TILE.planks); }   // oars shipped along the sides
+  // stations bow (-1.8) to stern (+1.7): half-beam at the gunwale, sheer height, half-beam at the chine
+  const ST = [[-1.8, 0.04, 0.78, 0.02], [-1.45, 0.34, 0.66, 0.16], [-0.9, 0.6, 0.56, 0.36], [-0.2, 0.7, 0.52, 0.44], [0.6, 0.68, 0.53, 0.42], [1.25, 0.58, 0.58, 0.36], [1.7, 0.46, 0.66, 0.3]];
+  const OUT1 = '#8a5428', OUT2 = '#a0662e', IN = '#4a2c14', RIM = '#c8a878', KEEL = '#5a3418';
+  for (let i = 0; i < ST.length - 1; i++) {
+    const [z0, w0, h0, c0] = ST[i], [z1, w1, h1, c1] = ST[i + 1];
+    for (const sx of [-1, 1]) {
+      const g0 = [sx * w0, h0, z0], g1 = [sx * w1, h1, z1], m0 = [sx * (w0 * 0.5 + c0 * 0.5), (h0 + 0.12) * 0.5, z0], m1 = [sx * (w1 * 0.5 + c1 * 0.5), (h1 + 0.12) * 0.5, z1];
+      const k0 = [sx * c0, 0.12, z0], k1 = [sx * c1, 0.12, z1], q0 = [0, 0, z0], q1 = [0, 0, z1];
+      b.orient([0, 0.9, (z0 + z1) / 2]);   // outside: faces away from a point above the middle
+      b.quad(m0, m1, g1, g0, OUT2, TILE.planks); b.quad(k0, k1, m1, m0, OUT1, TILE.planks); b.quad(q0, q1, k1, k0, KEEL, TILE.planks);
+      const ins = (p) => [p[0] * 0.9, p[1] + 0.02, p[2]];   // inside: the same skin a little in, dark, facing in
+      b.orient([sx * 3, 0.6, (z0 + z1) / 2]);
+      b.quad(ins(m0), ins(m1), ins(g1), ins(g0), IN, TILE.planks); b.quad(ins(k0), ins(k1), ins(m1), ins(m0), IN, TILE.planks);
+    }
+    b.orient(null);
+    b.box(0, 0.14, (z0 + z1) / 2, Math.min(c0, c1) * 1.6, 0.04, Math.abs(z1 - z0) + 0.02, IN, TILE.planks);   // the bottom boards
+  }
+  b.orient(null);
+  for (let i = 1; i < ST.length - 1; i++) { const [z, w, h] = ST[i]; for (const sx of [-1, 1]) b.box(sx * w * 0.97, h - 0.02, z, 0.08, 0.07, Math.abs(ST[i + 1][0] - ST[i - 1][0]) * 0.55, RIM, TILE.planks); }   // the gunwale rail
+  for (const z of [-1.1, -0.45, 0.3, 0.95]) b.box(0, 0.16, z, 0.9, 0.36, 0.05, '#3a2210', TILE.planks);   // ribs
+  { const [z, w, h] = ST[ST.length - 1]; b.quad([-w, h, z], [w, h, z], [w * 0.5, 0.1, z], [-w * 0.5, 0.1, z], OUT1, TILE.planks); b.quad([-w * 0.5, 0.1, z], [w * 0.5, 0.1, z], [w, h, z], [-w, h, z], IN, TILE.planks); }   // the transom
+  b.box(0, 0, -1.82, 0.1, 0.92, 0.12, KEEL, TILE.planks);   // the stem post, standing a little proud of the bow
+  b.box(0, -0.05, 0, 0.08, 0.08, 3.3, KEEL, TILE.planks);    // the keel
+  for (const z of [-0.6, 0.55]) b.box(0, 0.48, z, 1.0, 0.06, 0.26, RIM, TILE.planks);   // two thwarts
+  for (const sx of [-1, 1]) { b.box(sx * 0.5, 0.72, 0.05, 0.05, 0.12, 0.05, '#2a2622'); b.box(sx * 0.18, 0.56, 0.05, 0.06, 0.05, 2.6, RIM, TILE.planks); b.box(sx * 0.18, 0.55, 1.4, 0.16, 0.03, 0.42, RIM, TILE.planks); }   // rowlocks; oars shipped fore and aft
   return b;
 }
 /** both on the Gull: the davit and the bell at the starboard quarter, the boat towed astern on a line. Returns handles to move them */

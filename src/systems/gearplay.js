@@ -23,6 +23,8 @@ import { toast } from '../ui/dom.js';
 import { regionAt } from '../regions.js';
 import { hasSeen } from '../clues.js';
 import { angleDiff, smoothstep } from '../util.js';
+import { hullWater, rideWaves } from '../float.js';
+import { waveHeight } from '../ocean.js';
 
 const DEMO = () => typeof window !== 'undefined' && window.__BUILD === 'demo';
 
@@ -115,7 +117,7 @@ function takeBoat() {
   scene.add(ghost);
   rt.boat = { ax: S.pos.x, az: S.pos.z, ah: S.heading, ghost, far: false };
   S.root.visible = false;
-  if (!boatMesh) { boatMesh = new THREE.Mesh(buildBoat().geometry(), mats.props); boatMesh.scale.setScalar(1.15); scene.add(boatMesh); }
+  if (!boatMesh) { boatMesh = new THREE.Mesh(buildBoat().geometry(), mats.props);  scene.add(boatMesh); }
   boatMesh.visible = true;
   const bx = Math.sin(S.heading), bz = -Math.cos(S.heading);
   S.pos.x -= bx * 9; S.pos.z -= bz * 9; S.speed = 0; S.vel = null; S.heading += Math.PI;   // she lies astern; the boat faces away
@@ -320,21 +322,97 @@ export function gearDock(d) {
   const e = state.discovered[A.boat];
   return `A boat in the Gull's paint came ashore at ${e ? e.name : 'Tama'}, Captain. They have pulled it up for you.`;
 }
-export function gearTick(dt, t) {
+// ---- the towed boat (owner, 2026-11-23: "the towline is very stiff and straight... make the rope act realistic, loosening when you
+// stop, the boat more responsive to manoeuvres and water"). The boat is its own thing on the water: it glides on, slows by drag, drifts
+// a little down the wind, rides its own waves, and yaws after its way through the water. The line is a rope of TOW_LEN from the Gull's
+// taffrail to the boat's stem: slack, it sags and lies on the water; taut, it pulls the boat after her with a small jerk.
+export const TOW_LEN = 10, TOW_SEGS = 16, TOW_DRAG_K = 0.55, TOW_DRIFT = 0.25;
+const T = { on: false, x: 0, z: 0, vx: 0, vz: 0, h: 0, F: {}, taut: 0, mesh: null, rope: [] };
+const _a = new THREE.Vector3(), _b = new THREE.Vector3();
+function floatBoat(F, x, z, h, t, wave, dt, roll = 0, pitch = 0) {
+  const w = hullWater(x, z, h, t, wave, 3.4, 1.5);
+  rideWaves(F, w, dt, { lift: 0.18, roll, pitch });
+  return F;
+}
+function towMake() {
+  T.mesh = new THREE.Mesh(buildBoat().geometry(), mats.props); scene.add(T.mesh);
+  const geo = new THREE.BoxGeometry(0.07, 0.07, 1), mat = new THREE.MeshBasicMaterial({ color: 0xb8a878 });
+  for (let i = 0; i < TOW_SEGS; i++) { const m = new THREE.Mesh(geo, mat); scene.add(m); T.rope.push(m); }
+}
+function towPlace(S) {   // behind her, at the end of the line, pointing after her
+  const bx = -Math.sin(S.heading), bz = Math.cos(S.heading);
+  T.x = S.pos.x + bx * (3.6 + TOW_LEN * 0.9); T.z = S.pos.z + bz * (3.6 + TOW_LEN * 0.9); T.vx = T.vz = 0; T.h = S.heading; T.F = {};
+}
+function towBoat(dt, t, wave) {
+  const S = G.ship, want = aboard('boat') && !rt.boat && gearOn();
+  if (!want) { if (T.mesh) { T.mesh.visible = false; for (const r of T.rope) r.visible = false; } T.on = false; return; }
+  if (!T.mesh) towMake();
+  if (!T.on || Math.hypot(T.x - S.pos.x, T.z - S.pos.z) > TOW_LEN + 30) { towPlace(S); T.on = true; }
+  T.mesh.visible = true;
+  const dtc = Math.min(dt, 0.05);
+  // the taffrail (the Gull's stern rail) and the boat's stem
+  const sh = S.heading, sx = -Math.sin(sh), sz = Math.cos(sh), Fy = S.float ? S.float.y : 0;
+  const px = S.pos.x + sx * 3.5, pz = S.pos.z + sz * 3.5, py = Fy + 1.25;
+  // the water: drag, a little drift down the wind
+  const k = Math.exp(-dtc * TOW_DRAG_K); T.vx *= k; T.vz *= k;
+  const wd = G.wind ? G.wind.dir : 0; T.vx += Math.sin(wd) * TOW_DRIFT * dtc; T.vz += -Math.cos(wd) * TOW_DRIFT * dtc;
+  T.x += T.vx * dtc; T.z += T.vz * dtc;
+  // the line: the stem may not be further than TOW_LEN from the taffrail
+  const fx = Math.sin(T.h), fz = -Math.cos(T.h), stemX = T.x + fx * 1.9, stemZ = T.z + fz * 1.9;
+  let dx = px - stemX, dz = pz - stemZ, d = Math.hypot(dx, dz) || 0.001;
+  const was = T.taut;
+  if (d > TOW_LEN) {   // taut: pulled after her; the boat takes the Gull's way along the line
+    const ex = d - TOW_LEN, ux = dx / d, uz = dz / d;
+    T.x += ux * ex; T.z += uz * ex;
+    const along = T.vx * ux + T.vz * uz, pull = ex / Math.max(dtc, 0.001);
+    if (along < pull) { T.vx += ux * (pull - along) * 0.9; T.vz += uz * (pull - along) * 0.9; }
+    T.taut = Math.min(1, T.taut + dtc * 4);
+    if (was < 0.3 && ex > 0.15 && T.F.init) T.F.vp = (T.F.vp || 0) - Math.min(0.6, ex * 1.5);   // the line comes up short: the bow jerks
+  } else T.taut = Math.max(0, T.taut - dtc * 2);
+  if (d < 3.2) { const ux = dx / d, uz = dz / d; T.x -= ux * (3.2 - d); T.z -= uz * (3.2 - d); T.vx -= ux * 1.2; T.vz -= uz * 1.2; }   // it bumps her stern, never through it
+  // yaw: under way the boat follows its way through the water; taut it points down the line; idle it swings slowly with the drift
+  const sp = Math.hypot(T.vx, T.vz), lineA = Math.atan2(dx, -dz), wayA = Math.atan2(T.vx, -T.vz);
+  const target = T.taut > 0.5 ? lineA : sp > 0.4 ? wayA : T.h + Math.sin(t * 0.13) * 0.002;
+  const yawRate = angleDiff(target, T.h) * Math.min(1, dtc * (T.taut > 0.5 ? 2.2 : 0.6 + sp * 0.3));
+  T.h += yawRate;
+  floatBoat(T.F, T.x, T.z, T.h, t, wave, dtc, -yawRate / Math.max(dtc, 0.001) * 0.25, -0.04 * T.taut);
+  T.mesh.position.set(T.x, T.F.y - 0.32, T.z); T.mesh.rotation.order = 'YXZ'; T.mesh.rotation.set(T.F.p, -T.h, T.F.r);
+  // the rope: from the taffrail to the stem; slack, it sags (a catenary, near enough) and lies on the water where it reaches it
+  const ex = stemX + 0, ey = T.F.y + 0.35, slack = Math.max(0, TOW_LEN - d), sag = Math.min(2.6, Math.sqrt(slack * TOW_LEN) * 0.55 + 0.08 * (1 - T.taut));
+  const sway = Math.sin(t * 1.7) * 0.25 * (1 - T.taut);
+  let prev = null;
+  for (let i = 0; i <= TOW_SEGS; i++) {
+    const u = i / TOW_SEGS, x = px + (stemX - px) * u + Math.cos(sh) * sway * Math.sin(u * Math.PI), z = pz + (stemZ - pz) * u + Math.sin(sh) * sway * Math.sin(u * Math.PI);
+    let y = py + (ey - py) * u - sag * 4 * u * (1 - u);
+    const wy = waveHeight(x, z, t, wave) + 0.04; if (y < wy) y = wy;   // it floats on the water, never through it
+    const cur = _b.set(x, y, z);
+    if (prev) { const m = T.rope[i - 1], L = prev.distanceTo(cur); m.position.copy(prev).add(cur).multiplyScalar(0.5); m.scale.set(1, 1, L); m.lookAt(cur); m.visible = true; }
+    prev = (prev || _a).copy(cur); if (prev !== _a) _a.copy(prev);
+  }
+}
+/** tests: where the towed boat and its line are */
+export const towState = () => ({ x: T.x, z: T.z, h: T.h, taut: T.taut, on: T.on });
+
+export function gearTick(dt, t, wave = 1) {
   if (!gearOn()) return;
   towTick(dt);
   if (!tick0) { tick0 = true; buildMarks(); }
   const S = G.ship, H = S.gear;
   if (H) {
     H.bell.visible = H.chain.visible = aboard('bell');
-    H.boat.visible = H.line.visible = aboard('boat') && !rt.boat;
+    H.boat.visible = H.line.visible = false;   // the towed boat is its own thing on the water now (towBoat)
     const want = (rt.dig && /bell/.test(rt.dig.label || '')) || rt.modal === 'dive' ? 2.4 : 0;
     H.drop += (want - H.drop) * Math.min(1, dt * 1.2); H.place();
   }
+  towBoat(dt, t, wave);
   for (const g of marks) { g.position.y = Math.sin(t * 0.9 + g.userData.bob) * 0.12; g.visible = Math.hypot(g.position.x - S.pos.x, g.position.z - S.pos.z) < 500; }
   const B = rt.boat; if (!B) return;
   S.rowing = true; S.oarOut = 1;
-  if (boatMesh) { boatMesh.position.set(S.pos.x, (S.float ? S.float.y : 0) - 0.25, S.pos.z); boatMesh.rotation.set(0, -S.heading, S.float ? S.float.r * 0.6 : 0); }
+  if (boatMesh) {   // rowed: the same hull on its own water, leaning into the turns
+    const yr = (B.lastH == null ? 0 : angleDiff(S.heading, B.lastH) / Math.max(dt, 0.001)); B.lastH = S.heading;
+    floatBoat(B.F || (B.F = {}), S.pos.x, S.pos.z, S.heading, t, wave, dt, -yr * 0.3, 0.03 * Math.min(1, S.speed / 4));
+    boatMesh.rotation.order = 'YXZ'; boatMesh.position.set(S.pos.x, B.F.y - 0.32, S.pos.z); boatMesh.rotation.set(B.F.p, -S.heading, B.F.r);
+  }
   B.ghost.position.y = Math.sin(t * 0.8) * 0.15;
   const d = Math.hypot(S.pos.x - B.ax, S.pos.z - B.az);
   if (d > TETHER) {   // too far from her: the boat turns for home by itself (never a fail state)
