@@ -2354,3 +2354,4 @@ dread there eased for a while after it.
   (extra masts first), and with none left she strikes her colours, drifts, stops firing, and E boards her for her hold (gold and
   cannonballs). The broadside bears only within 54 degrees of abeam ("bring your side round"); from upwind (the weather gauge) the shot
   is tighter and a fifth harder.
+- **Dev Studio** (2026-11-23): Money and goods has a raider row: spawn a Reef schooner or galleon raider 70 off the beam, heading for the Gull (tops cannonballs up to 10), and +10 chain shot.

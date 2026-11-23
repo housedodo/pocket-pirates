@@ -203,6 +203,7 @@ function html() {
   <div class="dslist">
   ${sec('money', 'Money and goods', `<div class="dsrow">${B('gold:10', '+10')}${B('gold:100', '+100')}${B('gold:1000', '+1000')}<input id="dsGold" type="number" min="0" step="1">${B('goldset', 'Set')}</div>
     <div class="dsrow">${B('oil', 'Fill oil')}${B('ammo', '+10 balls')}${B('hull', 'Repair hull')}${B('sails', 'Mend sails')}</div>
+    <div class="dsrow">Raider ${B('raider:schooner', 'Spawn schooner', 'a Reef raider 70 off the beam, coming for you')}${B('raider:galleon', 'Spawn galleon')}${B('chain', '+10 chain shot')}</div>
     ${up}
     <div class="dsrow"><select id="dsFish">${FISH.map((f) => `<option value="${f.id}">${f.name}</option>`).join('')}</select>${B('fish', 'Fish to hold')}</div>
     <div class="dsrow"><select id="dsFruit">${FRUIT_ORDER.map((f) => `<option>${f}</option>`).join('')}</select>${B('fruit', 'Fruit to hold')}${B('loot', 'A treasure')}</div>`)}
@@ -269,6 +270,13 @@ function act(a) {
     goldset: () => { const v = parseInt(el.querySelector('#dsGold').value, 10); if (v >= 0) state.gold = v; },
     oil: () => { state.oil = oilCap(state.upgrades); },
     ammo: () => { state.ammo += 10; },
+    chain: () => { st.chain = (st.chain || 0) + 10; },
+    raider: () => {   // a hostile Reef ship off the beam, heading for the Gull (traffic.js spawnAt); Space fires, B switches round and chain shot
+      const side = ship.heading + Math.PI / 2, x = ship.pos.x + Math.sin(side) * 70, z = ship.pos.z - Math.cos(side) * 70;
+      const r = gm.traffic.spawnAt(p, 'reef', x, z, Math.atan2(ship.pos.x - x, -(ship.pos.z - z)), 'live', null, true);
+      if (r) { r.age = 0; toast(`Dev: a ${p} raider off the beam`, false, 2500); }
+      if (state.ammo < 10) state.ammo = 10;
+    },
     hull: () => { state.hp = ship.mods.maxHp; },
     sails: () => { state.sailsTorn = false; ship.setTorn(false); rt.sailStrain = 0; },
     up: () => { state.upgrades[p] = Math.max(0, Math.min(MAX_LEVEL, (state.upgrades[p] || 0) + +q)); gm.refreshMods(); },
