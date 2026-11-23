@@ -25,7 +25,7 @@ export const GLSL_CALM = /* glsl */`uniform float uSeaOn;
 float shoreCalmF(vec2 p) { return 1.0 - 0.5 * min(uSeaOn, 1.0) * shoreF(p); }`;
 
 export const GLSL_SEA_HEAD = /* glsl */`uniform vec4 uSea; uniform float uSeaLead;
-float isleSm(vec2 p) { float s = 0.0; for (int i = 0; i < ${12}; i++) { vec3 I = uIsl[i]; s = max(s, 1.0 - smoothstep(10.0, 110.0, length(p - I.xy) - I.z * 1.1)); } return s; }`;
+float isleSm(vec2 p) { float s = 0.0; for (int i = 0; i < ${20}; i++) { vec3 I = uIsl[i]; s = max(s, 1.0 - smoothstep(10.0, 110.0, length(p - I.xy) - I.z * 1.1)); } return s; }`;
 
 // runs after the sea's look is chosen (outc), before the shallows and the seabed are laid over it
 // Every broad blend (smooth water, deep and bank patches, glassy lines, the Reef's white water, the oil) fades in 16 dithered steps:

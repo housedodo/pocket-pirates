@@ -14,7 +14,7 @@ export const U = {
   uShallow: { value: new THREE.Color('#4fe0d0') },
   uWave: { value: 1 },
   uRough: { value: 0 },     // how unruly the sea is, 0 calm toon swell .. 1 dark rollers (eased in main.js)
-  uIsl: { value: Array.from({ length: 12 }, () => new THREE.Vector3(1e6, 1e6, 0)) },   // the nearest islands (x, z, radius): shallow, lighter water around them
+  uIsl: { value: Array.from({ length: 20 }, () => new THREE.Vector3(1e6, 1e6, 0)) },   // the nearest islands (x, z, radius): shallow, lighter water around them
   uMurk: { value: new THREE.Vector3(1e6, 1e6, 0) },
   uOcean: { value: 0 },    // the water's look: 0 toon facets (the original) .. 4 (ocean.js OCEAN_STYLES)
   uWindDir: { value: new THREE.Vector2(0, 1) },

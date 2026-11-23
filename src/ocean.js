@@ -9,7 +9,7 @@ const CELL = 5, SEG = 150, SIZE = CELL * SEG;
 //  - the dark rollers (long steep swells, inky water, foam streaks), which the sea slowly grows into with distance, dread and storms (WATER.rough, 0..1, eased in main.js over about 25 seconds).
 // Near any island the water turns lighter and shallower (WATER.isl, the nearest twelve islands) and the swell flattens a little. Same formulas on the CPU (ship, fauna) and the GPU.
 export const WATER = { rough: 0, isl: [] };   // isl: [[x, z, radius], ...]
-export const NISL = 12;
+export const NISL = 20;   // the nearest islands and shallow shelves (systems/shallows.js)
 const W = 1.2566371, WR = 0.6283185;           // swell speed, roller speed (rad/s)
 const sstep = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 /** 0 in open water .. 1 right at an island's shore */

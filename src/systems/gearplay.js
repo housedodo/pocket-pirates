@@ -25,6 +25,7 @@ import { hasSeen } from '../clues.js';
 import { angleDiff, smoothstep } from '../util.js';
 import { hullWater, rideWaves } from '../float.js';
 import { waveHeight } from '../ocean.js';
+import { siteShelf, shallowsTick, shallowsInteract, shallowsFind, shallowsState } from './shallows.js';
 
 const DEMO = () => typeof window !== 'undefined' && window.__BUILD === 'demo';
 
@@ -101,6 +102,7 @@ function buildMarks() {
     } else {   // no sign: what is there, and a bar of rock in front of it the Gull cannot cross (owner, 2026-11-23: natural obstruction only)
       boatScene(b, s);
       const o = outward(s); g.rotation.y = Math.atan2(o.x, o.z);   // local +z faces the open water
+      if (s.id !== 'free') siteShelf(s.id, p.x, p.z, g.rotation.y);   // the shallows in front of it (systems/shallows.js): the Gull grounds there
     }
     const m = new THREE.Mesh(b.geometry(), mats.props); g.add(m);
     g.userData.site = s; g.userData.bob = Math.random() * 6;
@@ -135,28 +137,20 @@ function boatScene(b, s) {
     b.box(0, -0.5, -7.2, 2.4, 1.8, 0.1, DARK, TILE.white);                      // the mouth: low and black
     rock(0, 2.0, -7.6, 2.4, 1.0, CL2);                                           // the brow over it
   }
-  for (let i = 0; i < 11; i++) {   // the bar: rocks just breaking the water, in a loose line across the way in
-    const x = -9 + i * 1.8 + (((seed = (seed * 16807) % 2147483647) % 100) / 100 - 0.5) * 1.2, z = 5.2 + Math.sin(i * 1.7) * 1.1;
-    rock(x, -0.35, z, 0.5 + (i % 3) * 0.25, 0.45 + (i % 2) * 0.2, i % 2 ? ROCK : ROCK2);
+  if (s.id === 'crown') {   // two old hulks sunk across the way in, ribs and a broken mast showing; a gap between them for a small boat
+    for (const sx of [-1, 1]) {
+      b.push(sx * 5.2, -0.9, 4.5, sx * 0.35, 1, 1, 1, 0.12 * sx, sx * 0.28);
+      b.box(0, 0, 0, 2.6, 1.3, 7.5, '#3a2a1a', TILE.planks);                                        // the hull, half under
+      for (let k = -3; k <= 3; k++) b.box(sx * -1.1, 0.9, k * 1.05, 0.16, 1.4 - Math.abs(k) * 0.12, 0.16, '#2a1e12', TILE.planks);   // ribs, the planking gone
+      b.push(0, 1.1, -1.5, 0, 1, 1, 1, 0.6, -sx * 0.4); b.box(0, 0, 0, 0.22, 3.4, 0.22, '#4a3420', TILE.planks); b.pop();   // a mast, broken and leaning
+      b.pop();
+    }
+  } else if (s.id === 'lantern') {   // a rockfall from the cliff: slabs lying in the water at their own angles, a gap at the middle
+    const CL = '#8a8478', CL2 = '#9a9488';
+    for (const [x, z, w, h, d, ry, rx, rz] of [[-6, 3, 3.2, 1.6, 2.4, 0.4, 0.3, 0.2], [-3.4, 5, 2.4, 1.2, 2.0, -0.6, -0.2, 0.4], [4, 3.6, 3.6, 1.8, 2.6, 0.9, 0.25, -0.3], [6.8, 5.5, 2.2, 1.0, 1.8, -0.2, 0.4, 0.1], [-8.5, 1.5, 2.8, 2.2, 2.2, 0.2, -0.3, 0.2], [8.6, 1.6, 2.6, 2.0, 2.4, 1.2, 0.2, 0.3]])
+      { b.push(x, -0.7, z, ry, 1, 1, 1, rx, rz); b.box(0, 0, 0, w, h, d, Math.abs(x) > 7 ? CL2 : CL, TILE.stone); b.pop(); }
   }
 }
-/** the Gull at a boat site's bar: she touches rock and is held off (a rowing boat goes over). Once a site, a short line */
-export const SHOAL_R = 11;
-const toldNow = new Set();   // this session too, whatever happens to the saved flag
-function shoalTick() {
-  const S = G.ship; if (rt.boat) return;
-  for (const s of SITES) {
-    if (s.gear !== 'boat' || s.id === 'free') continue;   // the lagoon's own reef already keeps her out; inside, Glass Lagoon's landing must stay reachable
-    const p = siteAt(s), dx = S.pos.x - p.x, dz = S.pos.z - p.z, d = Math.hypot(dx, dz);
-    if (d >= SHOAL_R || d < 0.01) continue;
-    S.pos.x = p.x + dx / d * SHOAL_R; S.pos.z = p.z + dz / d * SHOAL_R;
-    if (S.speed > 1.5) G.audio.play('bump', { vol: Math.min(1, S.speed / 10) });
-    S.speed *= 0.4; S.blockT = 0.8;
-    const told = state.story.shoalTold || (state.story.shoalTold = {});
-    if (!told[s.id] && !toldNow.has(s.id)) { toldNow.add(s.id); told[s.id] = state.dayN; toast('The keel touches rock. Too shallow for the Gull here.', false, 4500); }
-  }
-}
-
 // ---- the boat out (rt.boat): the Gull is a copy left at anchor; the ship the player steers is the boat
 let boatMesh = null;
 export const inBoat = () => !!rt.boat;
@@ -196,6 +190,7 @@ export function gearInteract(inBoatMode) {
     const B = rt.boat;
     if (Math.hypot(G.ship.pos.x - B.ax, G.ship.pos.z - B.az) < BACK_R) return { kind: 'gear', key: 'gear:back', act: 'back', prompt: '[E] Climb back aboard the Gull' };
     const lb = G.world.nearest(G.ship.pos.x, G.ship.pos.z, 16), onLm = lb && lb.desc.lm;   // ashore at the site's own island: its landing first, until it is found
+    { const sh = shallowsInteract(); if (sh) return sh; }   // the middle of an island group (systems/shallows.js)
     for (const s of SITES) if (s.gear === 'boat' && (dist(siteAt(s)) < LAND_R || (onLm === s.lm && !siteDone(s)))) return { kind: 'gear', key: 'gear:' + s.id, act: 'land', site: s, prompt: siteDone(s) ? '[E] Go ashore again' : '[E] Go ashore' };
     return null;
   }
@@ -210,12 +205,14 @@ export function gearInteract(inBoatMode) {
       return { kind: 'gear', key: 'gear:boat', act: 'boat', prompt: '[E] Take the boat' };
     }
   }
+  if (aboard('boat')) for (const g of shallowsState().groups) { const d = Math.hypot(G.ship.pos.x - g.x, G.ship.pos.z - g.z); if (d < 75 && d > 30) return { kind: 'gear', key: 'gear:boat', act: 'boat', prompt: '[E] Take the boat' }; }   // the island groups in their shallows
   if (aboard('boat')) for (const lm of ['lagoon', 'ribs']) if (LM[lm] && dist(LM[lm]) < 110 && dist(LM[lm]) > 40) return { kind: 'gear', key: 'gear:boat', act: 'boat', prompt: '[E] Take the boat' };
   return null;
 }
 export function gearAct(tg) {
   const s = tg.site;
   if (tg.act === 'back') { boardGull(); return; }
+  if (tg.act === 'shallows') { if (!rt.dig) rt.dig = { key: tg.key, t: 0, label: 'Going over...', need: 2.4, done: () => shallowsFind(tg.g) }; return; }
   if (tg.act === 'boat') { takeBoat(); return; }
   if (tg.act === 'look') { toast(s.look, false, 6500); (state.story.gearLook = state.story.gearLook || {})[s.id] = state.dayN; return; }
   if (tg.act === 'land') {
@@ -454,7 +451,7 @@ export function gearTick(dt, t, wave = 1) {
     H.drop += (want - H.drop) * Math.min(1, dt * 1.2); H.place();
   }
   towBoat(dt, t, wave);
-  if (gearOn()) shoalTick();
+  if (gearOn()) shallowsTick(dt, t);   // shelves, the three island groups (systems/shallows.js)
   for (const g of marks) { g.position.y = Math.sin(t * 0.9 + g.userData.bob) * 0.12; g.visible = Math.hypot(g.position.x - S.pos.x, g.position.z - S.pos.z) < 500; }
   const B = rt.boat; if (!B) return;
   S.rowing = true; S.oarOut = 1;

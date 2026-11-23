@@ -99,7 +99,8 @@ import { eventTick, EVENTS, eventCard } from './systems/seaevents.js';   // hear
 import { leadTick, leaderDesc, offLine } from './systems/leadlight.js';   // the Halved Isle by light
 import { passesTick, wallPass, ribsLull } from './systems/passes.js';
 import { seaSpot } from './systems/sealog.js';
-import { voyageTick, moodMods } from './systems/voyage.js';   // stores, the crew's spirits, night nerves (owner, 2026-11-23)
+import { voyageTick, moodMods } from './systems/voyage.js';
+import { shelvesNear } from './systems/shallows.js';   // stores, the crew's spirits, night nerves (owner, 2026-11-23)
 import { gearTick, gearDrag, savePos, initDive, diveElement, diveClosed } from './systems/gearplay.js';   // the diving bell and the ship's boat (owner, 2026-11-23)   // the other ways through (T4)
 import { econ, econTick, econLine } from './systems/econ.js';   // ?econ=1: gold per hour by source (G-25)
 import { after, laterTick, laterPending } from './systems/later.js';
@@ -1315,7 +1316,9 @@ function frame() {
     rt.waterRough = rt.waterRough < 0 ? target : rt.waterRough + (target - rt.waterRough) * (1 - Math.exp(-Math.min(vdt, 0.5) / (25 - 13 * (weather.heavy || 0))));
     WATER.rough = rt.waterRough; U.uRough.value = rt.waterRough;
     const near = []; for (const isl of world.islands.values()) { const d = isl.desc, dd = Math.hypot(d.x - ship.pos.x, d.z - ship.pos.z); if (dd < 500) near.push([d.x, d.z, d.r, dd]); }
-    near.sort((a, b) => a[3] - b[3]); near.length = Math.min(near.length, NISL); WATER.isl = near;
+    near.sort((a, b) => a[3] - b[3]); near.length = Math.min(near.length, NISL - 10);   // the islands first; up to ten shelves of shallow water after them (systems/shallows.js)
+    for (const s of shelvesNear(ship.pos.x, ship.pos.z, 420).sort((a, b) => a[3] - b[3]).slice(0, NISL - near.length)) near.push(s);
+    WATER.isl = near.filter((n) => n[2] > 3);
     for (let i = 0; i < NISL; i++) { const n = near[i]; U.uIsl.value[i].set(n ? n[0] : 1e6, n ? n[1] : 1e6, n ? n[2] : 0); }
   }
   world.hutShown = hutReached();   // no hut on its island before the story gets there
