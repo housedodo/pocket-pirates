@@ -22,7 +22,7 @@ import { chestAdd } from '../chest.js';
 import { toast } from '../ui/dom.js';
 import { regionAt } from '../regions.js';
 import { hasSeen } from '../clues.js';
-import { angleDiff } from '../util.js';
+import { angleDiff, smoothstep } from '../util.js';
 
 const DEMO = () => typeof window !== 'undefined' && window.__BUILD === 'demo';
 
@@ -41,7 +41,12 @@ export const SOLD_ELSEWHERE = { reef: 'The deep bells come from the Reef yards. 
 /** can this harbour (its region) sell level lv+1? */
 export const soldHere = (id, lv, region) => { const r = (SOLD_IN[id] || [])[lv]; return !r || r === region; };
 export const priceHere = (id, region) => (CHEAP_IN[id] && CHEAP_IN[id][0] === region ? CHEAP_IN[id][1] : 1);
-export const GEAR_DRAG = { bell: 0.04, boat: 0.06 };   // speed lost while it is aboard (towed or swinging on its davit)
+export const GEAR_DRAG = { bell: 0.04, boat: 0 };   // flat speed lost while it is aboard (the bell on its davit); the towed boat's is TOW_DRAG
+// the towed boat drags by the point of sail (owner, 2026-11-23, option 2): a little running free, a lot beating into the wind
+export const TOW_DRAG = [0.02, 0.15], TOW_FREE = 0.35 * Math.PI, TOW_BEAT = 0.85 * Math.PI;
+// a real storm can part the tow line (owner, 2026-11-23, option 1): the boat is gone, and turns up on the quay of the nearest known
+// harbour, which says so at the next one the Gull docks at. Never lost for good.
+export const STORM_AT = 0.7, LINE_HOLDS = 45;   // storm strength that pulls at the line; mean s of such storm under way before it parts
 export const TETHER = 260, BOAT_NEAR = 90, BACK_R = 10, LAND_R = 12, BELL_R = 14;
 export const AIR = 40;   // s of air on the first bell; each level more
 const gearAt = () => state.story.gearAt || (state.story.gearAt = {});
@@ -50,7 +55,8 @@ export const owned = (id) => (state.upgrades[id] || 0) > 0;
 export const aboard = (id) => owned(id) && !gearAt()[id];
 export const leftAt = (id) => gearAt()[id] || null;
 export const leave = (id, harbourId) => { if (aboard(id)) { gearAt()[id] = harbourId; G.refreshMods(); } };
-export const takeBack = (id) => { delete gearAt()[id]; G.refreshMods(); };
+export const takeBack = (id) => { delete gearAt()[id]; if (id === 'boat') { delete gearAt().boatWashed; delete gearAt().boatTold; } G.refreshMods(); };
+export const washedUp = (id) => id === 'boat' && gearAt().boatWashed != null;
 /** the speed the gear costs (main.js refreshMods multiplies by it) */
 export const gearDrag = () => 1 - (aboard('bell') ? GEAR_DRAG.bell : 0) - (aboard('boat') ? GEAR_DRAG.boat : 0);
 export const gearOn = () => !DEMO();
@@ -288,8 +294,35 @@ function frame(now) {
 
 // ---- each frame (main.js, after ship.place): the gear on the Gull, the boat on the water, the marks, the tether
 let tick0 = false;
+function towTick(dt) {
+  const S = G.ship;
+  const towing = aboard('boat') && !rt.boat;
+  const k = towing ? smoothstep(TOW_FREE, TOW_BEAT, Math.abs(S.rel || 0)) : 0;
+  S.towDrag = towing ? 1 - (TOW_DRAG[0] + (TOW_DRAG[1] - TOW_DRAG[0]) * k) : 1;
+  if (!towing || !G.weather || G.weather.storm < STORM_AT || S.speed < 2 || rt.modal) return;
+  if (Math.random() < dt / LINE_HOLDS) partLine();
+}
+export function partLine() {   // exported for tests
+  const S = G.ship; let best = null;
+  for (const [id, e] of Object.entries(state.discovered || {})) { if (!e || e.type !== 'harbour') continue; const d = Math.hypot(e.x - S.pos.x, e.z - S.pos.z); if (!best || d < best.d) best = { id, d }; }
+  const at = best ? best.id : '0,-1';
+  gearAt().boat = at; gearAt().boatWashed = state.dayN; gearAt().boatTold = false;
+  G.refreshMods();
+  toast('The tow line parts in the storm. The boat is gone into the dark water.', false, 6000);
+  G.audio.play('ui');
+  if (G.objectives && G.objectives.mate && !G.objectives.mate.busy) setTimeout(() => G.objectives.mate.say('It will come ashore somewhere, Captain. Boats do.'), 2500);
+}
+/** docking (systems/interact.js): the first harbour after the line parted says where the boat came in. Returns a line or null */
+export function gearDock(d) {
+  const A = gearAt(); if (A.boatWashed == null || A.boatTold) return null;
+  A.boatTold = true;
+  if (A.boat === d.id) return 'Your boat came in on the tide this morning, Captain. We pulled it up the slip for you.';
+  const e = state.discovered[A.boat];
+  return `A boat in the Gull's paint came ashore at ${e ? e.name : 'Tama'}, Captain. They have pulled it up for you.`;
+}
 export function gearTick(dt, t) {
   if (!gearOn()) return;
+  towTick(dt);
   if (!tick0) { tick0 = true; buildMarks(); }
   const S = G.ship, H = S.gear;
   if (H) {

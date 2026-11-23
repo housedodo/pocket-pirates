@@ -10,7 +10,7 @@ import { sectorAt } from '../sectors.js';
 import { unlocked, goalReached } from '../objectives.js';
 import { pxi } from '../pixelui.js';
 import { UPGRADES, MAX_LEVEL, UP_CARD } from '../upgrades.js';
-import { GEAR, gearOn, aboard, leftAt, leave, takeBack, inBoat, soldHere, priceHere, SOLD_IN, SOLD_ELSEWHERE } from '../systems/gearplay.js';
+import { GEAR, gearOn, aboard, leftAt, leave, takeBack, inBoat, washedUp, soldHere, priceHere, SOLD_IN, SOLD_ELSEWHERE } from '../systems/gearplay.js';
 import { TRAITS, crewForHire, rollCheck } from '../tabletop.js';
 import { FISH, HABITAT } from '../fishing.js';
 import { oilCap } from '../oil.js';
@@ -456,11 +456,11 @@ function gearCards(d, rep) {
     const sold = maxed || soldHere(g.id, lv, d.region), away = lv > 0 && where && !here, cost = maxed ? 0 : gearCost(g, lv, rep, d.region), can = !maxed && sold && !away && state.gold >= cost;
     const pips = Array.from({ length: max }, (_, k) => `<i class="${k < lv ? 'on' : ''}"></i>`).join('');
     const awayName = away ? ((state.discovered[where] && state.discovered[where].name) || 'another harbour') : '';
-    const status = !lv ? '' : aboard(g.id) ? `<button data-gleave="${g.id}" ${inBoat() ? 'disabled' : ''}>Leave it here</button>` : here ? `<button data-gtake="${g.id}">Take it aboard</button>` : `<small class="short">Left at ${awayName}</small>`;
+    const status = !lv ? '' : aboard(g.id) ? `<button data-gleave="${g.id}" ${inBoat() ? 'disabled' : ''}>Leave it here</button>` : here ? `<button data-gtake="${g.id}">Take it aboard</button>` : `<small class="short">${washedUp(g.id) ? 'Washed up at' : 'Left at'} ${awayName}</small>`;
     return `<div class="upc${maxed ? ' max' : ''}${can ? '' : ' poor'}">
       <div class="upi">${pxi(g.icon)}</div>
       <div class="upb"><div class="upt"><b>${g.name}</b><span class="lvp">${pips}</span></div>
-        <div class="upnow">Now: ${lv ? g.text[lv - 1].split(':')[0] + (aboard(g.id) ? ', aboard (the Gull is a little slower)' : here ? ', on this quay' : '') : g.stock}</div>
+        <div class="upnow">Now: ${lv ? g.text[lv - 1].split(':')[0] + (aboard(g.id) ? (g.id === 'boat' ? ', towed astern (it drags into the wind)' : ', aboard (the Gull is a little slower)') : here ? (washedUp(g.id) ? ', pulled up on this quay after the storm' : ', on this quay') : '') : g.stock}</div>
         ${maxed ? '<div class="upnext done">The finest there is.</div>' : `<div class="upnext">${g.text[lv]}</div>`}
         ${sold ? '' : `<div class="upopen">"${SOLD_ELSEWHERE[SOLD_IN[g.id][lv]]}"</div>`}</div>
       <div class="upbuy">${maxed || !sold ? '' : `<button data-gbuy="${g.id}" ${can ? '' : 'disabled'}>${pxi('coin')}${cost}</button>`}${status}</div>

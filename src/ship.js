@@ -441,7 +441,7 @@ export class Ship {
     this.rel = angleDiff(this.heading, wind.dir);
     // the water pushes back: climbing a wave face costs speed, running down one gives a little (surfing)
     const slopeK = 1 - clamp((this.slope || 0) * 2.2, -0.18, 0.28);
-    const target = MAX_SPEED * this.mods.speed * this.buff * (this.gust || 1) * (this.torn ? 0.66 : 1) * this.eff * this.trim * wind.strength * slopeK;   // gust: a caught cat's paw (seaplay.js)
+    const target = MAX_SPEED * this.mods.speed * this.buff * (this.towDrag || 1) * (this.gust || 1) * (this.torn ? 0.66 : 1) * this.eff * this.trim * wind.strength * slopeK;   // gust: a caught cat's paw (seaplay.js)
     const rate = target > this.speed ? 0.5 : 0.7;
     this.speed += (target - this.speed) * Math.min(1, rate * dt);
     this.speed *= 1 - Math.abs(this.rudder) * clamp(this.speed / MAX_SPEED, 0, 1) * 0.22 * dt;   // a hard turn drags the hull

@@ -2330,3 +2330,7 @@ dread there eased for a while after it.
 - **Where they are sold** (owner, 2026-11-23): level 1 of each at any harbour; the deep and lamp bells only at Reef yards, the lantern boat
   only at Lantern Guild harbours (elsewhere the card says so in one line, in the shipwright's voice); the plain boat costs seven tenths in
   the Free Cays (`SOLD_IN`, `CHEAP_IN` in `src/systems/gearplay.js`). Pixel icons for both cards (`divebell`, `boat` in `src/pixelui.js`).
+- **What towing the boat costs** (owner, 2026-11-23, options 1 and 2): the towed boat drags by the point of sail (`TOW_DRAG` 2% free to
+  15% close-hauled, `ship.towDrag`), and in a storm of 0.7 or more under way the line can part (about once in 45 s of such storm): the
+  boat comes ashore at the nearest charted harbour, the next harbour docked at says where, and the shipwright's card reads "Washed up at".
+  Checked headless: 2% / 4% / 15% with, across and into the wind; the line parting, the dock line once, the boat off the Gull.

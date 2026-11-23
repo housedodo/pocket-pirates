@@ -37,7 +37,7 @@ import { pilotSaying } from './passes.js';
 import { chestAdd } from '../chest.js';
 import { actEvent } from './seaevents.js';
 import { rGreeting } from './rletters.js';
-import { gearInteract, gearAct } from './gearplay.js';
+import { gearInteract, gearAct, gearDock } from './gearplay.js';
 
 export function getInteract() {
   if (rt.boat) {   // in the ship's boat (systems/gearplay.js): the Gull to climb back aboard, a landing, or a hand-made place's shore
@@ -178,6 +178,7 @@ function doInteract(tg) {
     rt.hbShipLine = shipwrightLine(rng, idx);
     G.threads.onDock(d);
     guitarDock(d);   // after the tune is kept, something waits on Tama's quay (systems/endgame.js)
+    { const gl = gearDock(d); if (gl) setTimeout(() => toast(gl, false, 7000), 1800); }   // where the boat came ashore after a storm parted its line (gearplay.js)
     // someone on the pier may speak first: always on a first visit or a story beat, otherwise rarely
     let say = null;
     { const cur = G.objectives.current;
