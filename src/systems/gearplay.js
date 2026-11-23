@@ -74,13 +74,13 @@ export const SITES = [
   { id: 'drowned', region: 'drowned', gear: 'bell', lv: 3, lm: 'street', dx: 24, dz: -22, clue: 'CL-G-drowned', view: 'door',
     look: 'The street goes on under the water, further than the low tide shows. Down there it is dark.', short: 'Black, all the way down. The bell would need a lamp of its own.',
     find: 'Behind the blue door, a kitchen. The table is laid. The chair is pushed in, the way you leave a chair for someone who is told to wait.' },
-  { id: 'free', region: 'free', gear: 'boat', lv: 1, lm: 'lagoon', dx: -6, dz: -6, clue: 'CL-G-free', near: 70,
+  { id: 'free', region: 'free', gear: 'boat', lv: 1, lm: 'lagoon', dx: -4.5, dz: -4.5, clue: 'CL-G-free', near: 70,
     look: 'Inside the reef, a stair cut in the inner shore. The Gull will never get in there. A small boat would.',
     find: 'A stair cut into the inner shore of the lagoon, going down into the water. The steps are worn in the middle. None of the wear goes up.' },
   { id: 'crown', region: 'crown', gear: 'boat', lv: 1, lm: 'archive', dx: 0, dz: 24, clue: 'CL-G-crown', chest: 'tomorrowkey',
     look: 'A water gate under the fort, too low for the Gull. A small boat would go in under it.',
     find: 'Under the fort, a boat-shed. The oldest ledgers are kept dry in it, wrapped in oilcloth. The newest bundle is tied with a string, and on the label is tomorrow.' },
-  { id: 'lantern', region: 'lantern', gear: 'boat', lv: 2, lm: 'press', dx: -26, dz: -8, clue: 'CL-G-lantern',
+  { id: 'lantern', region: 'lantern', gear: 'boat', lv: 2, lm: 'press', dx: -21, dz: -6, clue: 'CL-G-lantern',
     look: 'A cave mouth under the press, low and black. A small boat could go in, with a light.', short: 'Too dark in there to row. The boat needs a lantern.',
     find: 'In the cave under the press the water is warm, and the oil comes up in rings. Something below turns over, slowly, the way you turn over in bed.' },
 ];
@@ -98,13 +98,62 @@ function buildMarks() {
     if (s.gear === 'bell') {   // a ring of pale bubbles, a little slick
       for (let i = 0; i < 9; i++) { const a = i * 0.7, r = 1.2 + (i % 3) * 0.9; b.box(Math.cos(a) * r, 0.08, Math.sin(a) * r, 0.22, 0.12, 0.22, '#e8f4f0', TILE.white); }
       b.box(0, 0.02, 0, 3.2, 0.02, 3.2, '#5a8a8a', TILE.white, false);
-    } else {   // a weathered post with a ring of rope at the landing
-      b.box(0, 0.9, 0, 0.32, 2.4, 0.32, '#5a3418', TILE.planks); b.box(0, 1.5, 0, 0.5, 0.14, 0.5, '#c8b890', TILE.white);
-      b.box(0.9, 0.2, 0.3, 0.9, 0.3, 0.6, '#8a7e6a', TILE.stone);
+    } else {   // no sign: what is there, and a bar of rock in front of it the Gull cannot cross (owner, 2026-11-23: natural obstruction only)
+      boatScene(b, s);
+      const o = outward(s); g.rotation.y = Math.atan2(o.x, o.z);   // local +z faces the open water
     }
     const m = new THREE.Mesh(b.geometry(), mats.props); g.add(m);
     g.userData.site = s; g.userData.bob = Math.random() * 6;
     scene.add(g); marks.push(g);
+  }
+}
+
+/** which way is open water from a boat site's landing (the lagoon's stair faces in, toward the middle of the lagoon) */
+function outward(s) { const k = s.id === 'free' ? -1 : 1, d = Math.hypot(s.dx, s.dz) || 1; return { x: k * s.dx / d, z: k * s.dz / d }; }
+/** the scenery at a boat site, local +z toward open water, the landing at the origin:
+ *  free: a stair cut in the inner shore, going down into the water; crown: a low water gate in the fort's sea wall, its grille raised
+ *  part way; lantern: a low cave mouth in the rock. In front of each, a bar of rock just breaking the water (the Gull's keel would
+ *  find it; a rowing boat goes over) */
+function boatScene(b, s) {
+  const ROCK = '#6a6258', ROCK2 = '#7e766a', STONE = '#b8b0a0', DARK = '#060504';
+  let seed = s.id.length * 13;
+  const rock = (x, y, z, r, h, col = ROCK) => b.blob(x, y, z, r, h, r * (0.8 + ((seed = (seed * 16807) % 2147483647) % 100) / 250), col, TILE.stone, 0.3, seed);
+  if (s.id === 'free') {
+    const CORAL = '#d8ccb0', CORAL2 = '#c4b494';   // cut in the pale coral stone of the ring
+    for (let i = 0; i < 7; i++) b.box(0, -0.7, -1.2 - i * 0.6, 3.0, 0.22 + i * 0.22, 0.64, i % 2 ? CORAL : CORAL2, TILE.stone);   // the steps, down into the lagoon
+    for (const sx of [-1, 1]) { rock(sx * 2.1, 0, -3, 0.8, 0.7, CORAL2); rock(sx * 2.3, 0.2, -5, 0.9, 1.0, CORAL); }   // the cut's two cheeks
+  } else if (s.id === 'crown') {
+    b.box(0, -0.6, -7, 12, 4.6, 1.4, '#8a8478', TILE.stone);                 // the sea wall under the fort
+    b.box(0, -0.6, -6.25, 2.8, 2.4, 0.1, DARK, TILE.white);                  // the opening: dark inside
+    for (const sx of [-1, 1]) b.box(sx * 1.7, -0.6, -6.2, 0.6, 3.0, 0.7, '#a09a8c', TILE.stone);   // its two piers
+    b.box(0, 2.0, -6.2, 4.0, 0.5, 0.7, '#a09a8c', TILE.stone);               // the lintel, low: a mast would never go under it
+    for (let i = -2; i <= 2; i++) b.box(i * 0.5, 1.2, -6.05, 0.08, 0.8, 0.08, '#2a2622');   // the grille, raised part way
+    b.box(0, 1.15, -6.05, 2.4, 0.08, 0.08, '#2a2622');
+  } else {
+    const CL = '#8a8478', CL2 = '#9a9488';   // the island's own grey (landmarks.js)
+    rock(0, 0.8, -11, 6, 4.6, CL); rock(-4.2, 0.2, -8.6, 3.2, 3.0, CL2); rock(4.2, 0.2, -8.6, 3.4, 3.2, CL); rock(-6, 0, -10, 3, 2.2, CL2); rock(6, 0, -10, 3, 2.4, CL2);   // the cliff foot over the mouth
+    b.box(0, -0.5, -7.2, 2.4, 1.8, 0.1, DARK, TILE.white);                      // the mouth: low and black
+    rock(0, 2.0, -7.6, 2.4, 1.0, CL2);                                           // the brow over it
+  }
+  for (let i = 0; i < 11; i++) {   // the bar: rocks just breaking the water, in a loose line across the way in
+    const x = -9 + i * 1.8 + (((seed = (seed * 16807) % 2147483647) % 100) / 100 - 0.5) * 1.2, z = 5.2 + Math.sin(i * 1.7) * 1.1;
+    rock(x, -0.35, z, 0.5 + (i % 3) * 0.25, 0.45 + (i % 2) * 0.2, i % 2 ? ROCK : ROCK2);
+  }
+}
+/** the Gull at a boat site's bar: she touches rock and is held off (a rowing boat goes over). Once a site, a short line */
+export const SHOAL_R = 11;
+const toldNow = new Set();   // this session too, whatever happens to the saved flag
+function shoalTick() {
+  const S = G.ship; if (rt.boat) return;
+  for (const s of SITES) {
+    if (s.gear !== 'boat' || s.id === 'free') continue;   // the lagoon's own reef already keeps her out; inside, Glass Lagoon's landing must stay reachable
+    const p = siteAt(s), dx = S.pos.x - p.x, dz = S.pos.z - p.z, d = Math.hypot(dx, dz);
+    if (d >= SHOAL_R || d < 0.01) continue;
+    S.pos.x = p.x + dx / d * SHOAL_R; S.pos.z = p.z + dz / d * SHOAL_R;
+    if (S.speed > 1.5) G.audio.play('bump', { vol: Math.min(1, S.speed / 10) });
+    S.speed *= 0.4; S.blockT = 0.8;
+    const told = state.story.shoalTold || (state.story.shoalTold = {});
+    if (!told[s.id] && !toldNow.has(s.id)) { toldNow.add(s.id); told[s.id] = state.dayN; toast('The keel touches rock. Too shallow for the Gull here.', false, 4500); }
   }
 }
 
@@ -405,6 +454,7 @@ export function gearTick(dt, t, wave = 1) {
     H.drop += (want - H.drop) * Math.min(1, dt * 1.2); H.place();
   }
   towBoat(dt, t, wave);
+  if (gearOn()) shoalTick();
   for (const g of marks) { g.position.y = Math.sin(t * 0.9 + g.userData.bob) * 0.12; g.visible = Math.hypot(g.position.x - S.pos.x, g.position.z - S.pos.z) < 500; }
   const B = rt.boat; if (!B) return;
   S.rowing = true; S.oarOut = 1;
@@ -422,3 +472,4 @@ export function gearTick(dt, t, wave = 1) {
   } else if (d < TETHER - 40) B.far = false;
 }
 export const diveState = () => D;   // tests only
+export const siteOut = (s) => outward(s);   // tests only

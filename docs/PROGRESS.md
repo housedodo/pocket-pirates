@@ -2361,3 +2361,9 @@ dread there eased for a while after it.
   water (`gearplay.js` towBoat): it glides on and slows by drag, drifts down the wind, rides its own waves, leans into its turns and yaws
   after its way; the line (`TOW_LEN` 10) pulls it taut under way with a small jerk at the bow, and stopped it sags and lies on the water.
   The rowed boat floats the same way and leans into the turns. Checked headless under sail (taut), turning, and stopped (slack).
+- **The boat's places look like places** (owner, 2026-11-23: "no drawn circles or other game signs, only natural obstruction"):
+  `gearplay.js boatScene`: the lagoon's stair cut in the pale coral of the inner shore; the Governor's Fort's low water gate in a sea
+  wall, its grille half raised; the Oil Press's low cave mouth at the cliff foot, in the island's grey; before the gate and the cave a
+  bar of rocks just breaking the water. The Gull is held off at the bar (`SHOAL_R` 11, `shoalTick`: a bump, and once per place "The keel
+  touches rock. Too shallow for the Gull here."); the lagoon has no bar push (its reef already keeps her out, and Glass Lagoon's own
+  landing stays reachable). The mooring post is gone. Screenshots checked for all three.
