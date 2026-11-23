@@ -2327,3 +2327,6 @@ dread there eased for a while after it.
 - **The boat**: E near a boat site (or outside the Glass Lagoon's reef or the Ribs' breakers) puts it in the water; you row it, the
   Gull waits at anchor (a copy of her, the save keeps her position). The reef and the breakers let the boat through (the third way in,
   `passes.js barrierPass`). Past 260 from her the boat turns for home. E at the Gull climbs back aboard.
+- **Where they are sold** (owner, 2026-11-23): level 1 of each at any harbour; the deep and lamp bells only at Reef yards, the lantern boat
+  only at Lantern Guild harbours (elsewhere the card says so in one line, in the shipwright's voice); the plain boat costs seven tenths in
+  the Free Cays (`SOLD_IN`, `CHEAP_IN` in `src/systems/gearplay.js`). Pixel icons for both cards (`divebell`, `boat` in `src/pixelui.js`).

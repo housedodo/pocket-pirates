@@ -28,11 +28,19 @@ const DEMO = () => typeof window !== 'undefined' && window.__BUILD === 'demo';
 
 // ---- buying: the two cards at the shipwright (ui/harbour.js)
 export const GEAR = [
-  { id: 'bell', name: 'Diving bell', icon: 'anchor', stock: 'Nothing to go down in', cost: [150, 320, 600],
+  { id: 'bell', name: 'Diving bell', icon: 'divebell', stock: 'Nothing to go down in', cost: [150, 320, 600],
     text: ['Salvage bell: shallow water, a short breath', 'Deep bell, with a pump: deeper, and longer down', 'Lamp bell: a glass port and a lantern, for the dark'] },
-  { id: 'boat', name: "Ship's boat", icon: 'hull', stock: 'Nothing small enough', cost: [120, 300],
+  { id: 'boat', name: "Ship's boat", icon: 'boat', stock: 'Nothing small enough', cost: [120, 300],
     text: ['A clinker boat and a pair of oars: over reefs, into lagoons', 'The boat with a lantern: into sea caves, and at night'] },
 ];
+// where each level is sold (owner, 2026-11-23): the first level at any harbour; the deep and lamp bells only in Reef yards (salvage water),
+// the lantern boat only in Lantern Guild harbours (they light the dark). The Free Cays sell the plain boat cheaper (they live in small boats).
+export const SOLD_IN = { bell: [null, 'reef', 'reef'], boat: [null, 'lantern'] };
+export const CHEAP_IN = { boat: ['free', 0.7] };
+export const SOLD_ELSEWHERE = { reef: 'The deep bells come from the Reef yards. Nobody else will make one.', lantern: 'A boat with a lamp of its own? The Guild fits those. Nobody else.' };
+/** can this harbour (its region) sell level lv+1? */
+export const soldHere = (id, lv, region) => { const r = (SOLD_IN[id] || [])[lv]; return !r || r === region; };
+export const priceHere = (id, region) => (CHEAP_IN[id] && CHEAP_IN[id][0] === region ? CHEAP_IN[id][1] : 1);
 export const GEAR_DRAG = { bell: 0.04, boat: 0.06 };   // speed lost while it is aboard (towed or swinging on its davit)
 export const TETHER = 260, BOAT_NEAR = 90, BACK_R = 10, LAND_R = 12, BELL_R = 14;
 export const AIR = 40;   // s of air on the first bell; each level more

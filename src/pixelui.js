@@ -71,6 +71,8 @@ const GLYPHS = {
   spy: ['.......', '##.....', '#yB....', '.#yBB..', '..#yBB.', '...#yy#', '....##.'],
   crew: ['..RRR..', '.RRRRR.', '..SSS..', '..SSS..', '.bbbbb.', '.bbbbb.', '.b...b.'],
   lamp: ['..###..', '.#...#.', '#.yYy.#', '#.YYY.#', '#.oyo.#', '.#####.', '..###..'],
+  divebell: ['...#...', '..ooo..', '.oyyyo.', '.oKyKo.', 'oyyyyyo', 'ooooooo', '.......'],   // the diving bell (systems/gearplay.js)
+  boat: ['.......', '.......', '#.....#', 'BB#B#BB', '.BBBBB.', '..BBB..', 'bbbbbbb'],   // the ship's boat
 };
 export const pxi = (name) => `<i class="pxi ${name}"></i>`;
 

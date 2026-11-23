@@ -10,7 +10,7 @@ import { sectorAt } from '../sectors.js';
 import { unlocked, goalReached } from '../objectives.js';
 import { pxi } from '../pixelui.js';
 import { UPGRADES, MAX_LEVEL, UP_CARD } from '../upgrades.js';
-import { GEAR, gearOn, aboard, leftAt, leave, takeBack, inBoat } from '../systems/gearplay.js';
+import { GEAR, gearOn, aboard, leftAt, leave, takeBack, inBoat, soldHere, priceHere, SOLD_IN, SOLD_ELSEWHERE } from '../systems/gearplay.js';
 import { TRAITS, crewForHire, rollCheck } from '../tabletop.js';
 import { FISH, HABITAT } from '../fishing.js';
 import { oilCap } from '../oil.js';
@@ -449,11 +449,11 @@ export function greetAdvance() {
   $('hbSaid').textContent = ''; { const q = $('hbLine'); q.textContent = said.slow ? '' : `"${said.text}"`; q.style.display = said.slow ? 'none' : 'block'; }   // the line stays at the top of the board panel while you are ashore
   G.openModal('harbour');
 }
-const gearCost = (g, lv, rep) => Math.ceil(g.cost[lv] * discount(rep) * G.costMul());
+const gearCost = (g, lv, rep, region) => Math.ceil(g.cost[lv] * priceHere(g.id, region) * discount(rep) * G.costMul());
 function gearCards(d, rep) {
   return '<div class="sec">FOR GOING DOWN AND IN</div><div class="upgrid">' + GEAR.map((g) => {
     const lv = state.upgrades[g.id] || 0, max = g.cost.length, maxed = lv >= max, where = leftAt(g.id), here = where === d.id;
-    const away = lv > 0 && where && !here, cost = maxed ? 0 : gearCost(g, lv, rep), can = !maxed && !away && state.gold >= cost;
+    const sold = maxed || soldHere(g.id, lv, d.region), away = lv > 0 && where && !here, cost = maxed ? 0 : gearCost(g, lv, rep, d.region), can = !maxed && sold && !away && state.gold >= cost;
     const pips = Array.from({ length: max }, (_, k) => `<i class="${k < lv ? 'on' : ''}"></i>`).join('');
     const awayName = away ? ((state.discovered[where] && state.discovered[where].name) || 'another harbour') : '';
     const status = !lv ? '' : aboard(g.id) ? `<button data-gleave="${g.id}" ${inBoat() ? 'disabled' : ''}>Leave it here</button>` : here ? `<button data-gtake="${g.id}">Take it aboard</button>` : `<small class="short">Left at ${awayName}</small>`;
@@ -461,15 +461,16 @@ function gearCards(d, rep) {
       <div class="upi">${pxi(g.icon)}</div>
       <div class="upb"><div class="upt"><b>${g.name}</b><span class="lvp">${pips}</span></div>
         <div class="upnow">Now: ${lv ? g.text[lv - 1].split(':')[0] + (aboard(g.id) ? ', aboard (the Gull is a little slower)' : here ? ', on this quay' : '') : g.stock}</div>
-        ${maxed ? '<div class="upnext done">The finest there is.</div>' : `<div class="upnext">${g.text[lv]}</div>`}</div>
-      <div class="upbuy">${maxed ? '' : `<button data-gbuy="${g.id}" ${can ? '' : 'disabled'}>${pxi('coin')}${cost}</button>`}${status}</div>
+        ${maxed ? '<div class="upnext done">The finest there is.</div>' : `<div class="upnext">${g.text[lv]}</div>`}
+        ${sold ? '' : `<div class="upopen">"${SOLD_ELSEWHERE[SOLD_IN[g.id][lv]]}"</div>`}</div>
+      <div class="upbuy">${maxed || !sold ? '' : `<button data-gbuy="${g.id}" ${can ? '' : 'disabled'}>${pxi('coin')}${cost}</button>`}${status}</div>
     </div>`;
   }).join('') + '</div>';
 }
 function buyGear(id, d, rep) {
   const g = GEAR.find((x) => x.id === id), lv = state.upgrades[id] || 0;
-  if (!g || lv >= g.cost.length || (leftAt(id) && leftAt(id) !== d.id)) return;
-  const cost = gearCost(g, lv, rep); if (state.gold < cost) return;
+  if (!g || lv >= g.cost.length || !soldHere(id, lv, d.region) || (leftAt(id) && leftAt(id) !== d.id)) return;
+  const cost = gearCost(g, lv, rep, d.region); if (state.gold < cost) return;
   state.gold -= cost; state.upgrades[id] = lv + 1;
   if (!lv) takeBack(id); else G.refreshMods();   // a new one comes aboard; a better one stays where the old one was
   G.audio.play('buy'); toast(`${g.name}: ${g.text[lv].split(':')[0]}.`, false, 4000);

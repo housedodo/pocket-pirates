@@ -1,7 +1,7 @@
 HOIST (Pocket Pirates): THE MASTER STORY FILE
 ================================================================================================
 This is the main story file for the full game. Edit it, upload it again, and the next session puts every change
-into the game. Built from commit b48f169 on 2026-11-23. 1745 in-game lines carry an ID.
+into the game. Built from commit 886d606 on 2026-11-23. 1747 in-game lines carry an ID.
 
 CONTENTS
   A   HOW TO USE THIS FILE (IDs, status marks, how to add and remove things)
@@ -569,7 +569,7 @@ Where the story hides in the mechanics, and where its text lives (section J).
 # J  EVERY LINE IN THE GAME
 ################################################################################################
 Pulled from the code. Edit the text after the "|" (see part A). Sources are grouped by file; the CODE in front of every
-line says which file it goes back into. 1745 lines.
+line says which file it goes back into. 1747 lines.
 
 
 
@@ -3216,6 +3216,10 @@ line says which file it goes back into. 1745 lines.
   GEAR-0018 | It is as you left it.
   GEAR-0019 | The air runs short. The bell comes up.
   GEAR-0020 | The Gull is a long way off. The boat turns for her.
+
+### GEAR / ADDED 2026-11-23
+  GEAR-0021 | The deep bells come from the Reef yards. Nobody else will make one.
+  GEAR-0022 | A boat with a lamp of its own? The Guild fits those. Nobody else.
 
 
 
