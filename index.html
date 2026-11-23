@@ -197,6 +197,12 @@
     #diveCv { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated; }
     #diveSay { position: relative; max-width: min(760px, 90vw); margin: 0 0 4vh; font-size: 22px; line-height: 1.3; color: #fff4d8; text-shadow: 2px 2px 0 #000; text-align: center; }
     #diveSay:empty { display: none; }
+    /* the Ship's book, seen at sea: pencil sketches on the page (systems/sealog.js) */
+    .sketches { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; margin: 6px 0 10px; }
+    .sketch { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 6px 4px; box-shadow: inset 0 0 0 1px rgba(58,42,26,.35); }
+    .sketch img { width: 60px; height: 42px; image-rendering: pixelated; margin-bottom: 4px; }
+    .sketch b { font-size: 14px; } .sketch small { font-size: 12px; opacity: .75; line-height: 1.2; }
+    .sketch.blank i { display: block; width: 60px; height: 42px; margin-bottom: 4px; box-shadow: inset 0 0 0 1px rgba(58,42,26,.2); } .sketch.blank b { opacity: .4; }
     body:has(#dive.open) #mate { visibility: hidden; }
     #card { align-items: flex-end; background: rgba(8,6,22,.18); }
     #cardWide { width: min(900px, 94vw); margin-bottom: 40px; text-align: left; display: grid; grid-template-columns: 64px 1fr; column-gap: 16px; align-items: start; --pxedge: var(--gold-dim); }

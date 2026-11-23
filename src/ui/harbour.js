@@ -10,6 +10,9 @@ import { sectorAt } from '../sectors.js';
 import { unlocked, goalReached } from '../objectives.js';
 import { pxi } from '../pixelui.js';
 import { UPGRADES, MAX_LEVEL, UP_CARD } from '../upgrades.js';
+import { storesNeed, fillStores, STORE_PRICE } from '../systems/voyage.js';
+import { GOODS, tradeOn, price as tradePrice, sellPrice, cargo, carried, room, buy as tradeBuy, sellAll } from '../systems/trade.js';
+import { CHAIN_COST } from '../combat.js';
 import { GEAR, gearOn, aboard, leftAt, leave, takeBack, inBoat, washedUp, soldHere, priceHere, SOLD_IN, SOLD_ELSEWHERE } from '../systems/gearplay.js';
 import { TRAITS, crewForHire, rollCheck } from '../tabletop.js';
 import { FISH, HABITAT } from '../fishing.js';
@@ -220,6 +223,17 @@ export function renderHarbour() {
     }
     if (d.region === 'lantern' && G.oilOn() && state.oil > 10) { const ov = Math.round((state.oil - 10) * OIL_SELL * hm); html += `<div class="qrow"><div><b>${pxi('lamp')} Lamp oil</b><br><small>the Guild buys all but a little for the way home</small></div><button id="sellOil">+${ov}g</button></div>`; }   // the Lantern Guild buys oil (regions.js)
     if (unlocked(state, 'cannons')) html += `<div class="sec">BUY</div><div class="qrow"><div><b>${pxi('ball')} 10 cannonballs</b><br><small>you have ${state.ammo}</small></div><button id="buyAmmo" ${state.gold >= ammoCost ? '' : 'disabled'}>${ammoCost}g</button></div>`;
+    const chainCost = Math.ceil(CHAIN_COST * discount(rep) * G.costMul() * buyMul(d, 'ammo'));
+    if (unlocked(state, 'cannons')) html += `<div class="qrow"><div><b>${pxi('chain')} 10 chain shot</b><br><small>you have ${state.story.chain || 0}: two balls on a chain, for masts and rigging (B to load)</small></div><button id="buyChain" ${state.gold >= chainCost ? '' : 'disabled'}>${chainCost}g</button></div>`;
+    const storeMul = discount(rep) * G.costMul(), sn = window.__BUILD === 'demo' ? null : storesNeed(), sCost = sn ? Math.ceil((sn.food + sn.water) * STORE_PRICE * storeMul) : 0;   // food and water (systems/voyage.js)
+    if (sn) html += `<div class="sec">STORES</div><div class="qrow"><div><b>${pxi('crate')} Food and water</b><br><small>${sn.food + sn.water < 0.5 ? 'the casks and the bread locker are full' : 'biscuit, salt pork and fresh water, to fill the casks'}</small></div>${sn.food + sn.water < 0.5 ? '<button disabled>Full</button>' : `<button id="buyStores" ${state.gold >= sCost ? '' : 'disabled'}>${sCost}g</button>`}</div>`;
+    if (tradeOn(d)) {   // trade runs (systems/trade.js): a crate at a time
+      html += `<div class="sec">CARGO</div><small>The hold: ${carried()} of ${room()} crates.</small>`;
+      for (const [k, gd] of Object.entries(GOODS)) {
+        const pb = Math.ceil(tradePrice(d.region, k) * discount(rep)), ps = Math.round(sellPrice(d.region, k) * hm), have = cargo()[k] || 0;
+        html += `<div class="qrow"><div><b>${pxi('crate')} ${gd.name}</b><br><small>${have ? `${have} aboard · ` : ''}${gd.from === d.region ? 'made here' : 'buy'} ${pb}g · sell ${ps}g</small></div><span>${have ? `<button data-tsell="${k}">+${ps * have}g</button>` : ''}<button data-tbuy="${k}" ${state.gold >= pb && carried() < room() ? '' : 'disabled'}>Buy 1</button></span></div>`;
+      }
+    }
     if (G.oilOn()) { const kc = Math.ceil(35 * discount(rep) * G.costMul() * buyMul(d, 'kit')); html += `<div class="sec">SAILCLOTH</div><div class="qrow"><div><b>${pxi('sail')} Sail patch kit</b> <span class="kits">${[0, 1, 2].map((k) => `<i class="${k < state.patchKits ? 'on' : ''}"></i>`).join('')}</span><br><small>${state.patchKits} aboard, room for 3: mends a torn sail at sea</small></div>${state.patchKits < 3 ? `<button id="buyKit" ${state.gold >= kc ? '' : 'disabled'}>${kc}g</button>` : '<button disabled>Full</button>'}</div>`; }
     if (G.oilOn()) { const { need, cost } = G.buyOil(discount(rep) * G.costMul()); html += `<div class="sec">LAMP OIL</div><div class="qrow"><div><b>${pxi('lamp')} Fill the lantern</b><span class="gauge"><i style="width:${Math.round(state.oil / oilCap(state.upgrades) * 100)}%"></i></span><br><small>${Math.round(state.oil)} of ${oilCap(state.upgrades)}: it burns at night, in fog and in storms</small></div>${need >= 1 ? `<button id="buyOil" ${state.gold >= cost ? '' : 'disabled'}>${cost}g</button>` : '<button disabled>Full</button>'}</div>`; }
     { // the paper comes in on the Friday boat: one copy a week (newspaper.js)
@@ -231,6 +245,10 @@ export function renderHarbour() {
     }
     html += `<div class="sec">SHIPYARD</div><div class="qrow"><div><b>${pxi('paint')} Paint, sails, pennants, figureheads</b></div><button id="openYard">Open</button></div>`;
     pane.innerHTML = html;
+    { const bc = $('buyChain'); if (bc) bc.addEventListener('click', () => { if (state.gold < chainCost) return; state.gold -= chainCost; state.story.chain = (state.story.chain || 0) + 10; G.audio.play('buy'); renderHarbour(); }); }
+    { const bs = $('buyStores'); if (bs) bs.addEventListener('click', () => { if (fillStores(storeMul)) { G.audio.play('buy'); toast('The casks are filled and the bread locker stocked.', false, 3000); } renderHarbour(); }); }
+    pane.querySelectorAll('[data-tbuy]').forEach((b) => b.addEventListener('click', () => { if (tradeBuy(d.region, b.dataset.tbuy, discount(rep))) G.audio.play('buy'); renderHarbour(); }));
+    pane.querySelectorAll('[data-tsell]').forEach((b) => b.addEventListener('click', () => { const g = sellAll(d.region, b.dataset.tsell, hm); if (g) { G.audio.play('buy'); toast(`Sold for ${g} gold.`, false, 2500); } renderHarbour(); }));
     { const bk = $('buyKit'); if (bk) bk.addEventListener('click', () => { const kc = Math.ceil(35 * discount(rep) * G.costMul() * buyMul(d, 'kit')); if (state.gold < kc || state.patchKits >= 3) return; state.gold -= kc; state.patchKits++; G.audio.play('buy'); renderHarbour(); }); }
     { const bo = $('buyOil'); if (bo) bo.addEventListener('click', () => { const { cost } = G.buyOil(discount(rep) * G.costMul()); if (state.gold < cost) return; state.gold -= cost; state.oil = oilCap(state.upgrades); G.audio.play('buy'); toast('The lantern is full.', false, 2500); renderHarbour(); }); }
     const sf = $('sellFish'); if (sf) sf.addEventListener('click', () => { state.gold += fishVal; toast(`Sold ${sale.fish.length} fish for ${fishVal} gold.`);

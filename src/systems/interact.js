@@ -38,6 +38,8 @@ import { chestAdd } from '../chest.js';
 import { actEvent } from './seaevents.js';
 import { rGreeting } from './rletters.js';
 import { gearInteract, gearAct, gearDock } from './gearplay.js';
+import { voyageDock } from './voyage.js';
+import { tradeRumour } from './trade.js';
 
 export function getInteract() {
   if (rt.boat) {   // in the ship's boat (systems/gearplay.js): the Gull to climb back aboard, a landing, or a hand-made place's shore
@@ -69,6 +71,7 @@ export function getInteract() {
   if (G.sea.nearWreck) return { kind: 'wreck', key: G.sea.nearWreck.o.id, o: G.sea.nearWreck.o };
   if (state.sailsTorn && state.patchKits > 0) return { kind: 'patch', key: 'patch' };   // anywhere at sea: patch the sail with a kit (above fruit and hails, G-13)
   { const ra = raceHere(); if (ra) return ra; }   // at the regatta's start line: E to race (race.js, owner 2026-11-19)
+  for (const s of G.traffic.ships) if (s.struck && !s.boarded && !s.sinking && Math.hypot(s.x - G.ship.pos.x, s.z - G.ship.pos.z) < 16) return { kind: 'board', key: 'board' + s.id, s, prompt: '[E] Board her' };   // dismasted by chain shot (combat.js)
   const sh = G.traffic.nearestHail(G.ship.pos.x, G.ship.pos.z, 24);
   if (sh) return { kind: 'ship', key: 'ship' + sh.id, s: sh };
   const fi = G.world.nearest(G.ship.pos.x, G.ship.pos.z, 14, ['jungle', 'sandbar']);
@@ -79,7 +82,7 @@ export function getInteract() {
 }
 
 export const ROLL_GREET_P = 0.35, ROLL_GREET_GAP = 3;   // E6: a greeter speaks of a later throw about one time in three, never two within three days
-export const HEAVE_KINDS = new Set(['gear', 'thread', 'spring', 'cave', 'treasure', 'fruit', 'wreck', 'landmark', 'patch', 'supper']);
+export const HEAVE_KINDS = new Set(['board', 'gear', 'thread', 'spring', 'cave', 'treasure', 'fruit', 'wreck', 'landmark', 'patch', 'supper']);
 // E forgives (SYSTEMS_FEEL G-03, G-04, G-10; numbers to tune by hand):
 export const E_GRACE_T = 0.6;      // s: the last thing in reach stays E-able this long after it leaves reach...
 export const E_GRACE_D = 6;        // ...while the ship has moved no more than this since it was last in reach (about "its range + 6"; never a harbour)
@@ -88,7 +91,7 @@ export const HEAVE_GIVE_UP = 8;    // s: the heave gives up if she has not come 
 export const E_BUFFER = 0.25;      // s: an E with nothing in reach waits this long for something to come in reach
 export const ACTION_LEASH = 8;     // a running action ends only if the ship is moved more than its range + this from where it began (a sinking, a jump)
 export const DIG_LEAVE_HOLD = 0.8; // s: hold E on the beach to pack up (it counts as a failed dig)
-const ACTION_RANGE = { gear: 16, treasure: 16, landmark: 16, fruit: 14, wreck: 22, secret: 18, supper: 45 };   // the ranges in getInteract
+const ACTION_RANGE = { board: 16, gear: 16, treasure: 16, landmark: 16, fruit: 14, wreck: 22, secret: 18, supper: 45 };   // the ranges in getInteract
 rt.heave = null, rt.anchorAt = null;   // heave: E was pressed under way, the anchor is going down; anchorAt: where she lies while it is down
 rt.tgLast = null, rt.tgRaw = null, rt.eBuf = null, rt.eDown = null, rt.digLeave = 0;
 /** can E do something with this target now? (the pier hint, a secret under way and a plundered isle cannot) */
@@ -142,6 +145,15 @@ function doInteract(tg) {
   // E under way: the anchor goes down first, and the crew goes ashore as soon as she lies still (no need to stop her by hand)
   if (HEAVE_KINDS.has(tg.kind) && G.ship.speed > 0.3) { if (!rt.heave || rt.heave.key !== tg.key) G.audio.play('ui'); rt.heave = { key: tg.key, tg, t: rt.tNow, x: G.ship.pos.x, z: G.ship.pos.z }; return; }
   if (tg.kind === 'gear') { gearAct(tg); return; }
+  if (tg.kind === 'board') {   // a raider that struck her colours: her hold, and she is left to drift
+    if (!rt.dig) rt.dig = { key: tg.key, t: 0, label: 'Boarding...', need: 3.5, done: () => {
+      const s = tg.s; if (s.boarded) return; s.boarded = true; s.hostile = false; s.state = 'done';
+      const gold = Math.round((70 + Math.random() * 90) * (s.scale || 1)), balls = 4 + Math.floor(Math.random() * 6);
+      state.gold += gold; state.ammo += balls; state.stats.boarded = (state.stats.boarded || 0) + 1; state.stats.sunk++;
+      G.audio.play('treasure'); toast(`Her crew put up their hands. Her hold: +${gold} gold, +${balls} cannonballs. She is left to drift.`, false, 6000);
+    } };
+    return;
+  }
   if (tg.kind === 'thread') { tg.th.run(); return; }
   if (tg.kind === 'spring') { G.openCave({ id: `spring:${G.threads.c.src.id}`, kind: 'colourspring' }); return; }
   if (tg.kind === 'cave') { G.openCave(tg.site); return; }
@@ -178,6 +190,7 @@ function doInteract(tg) {
     rt.hbShipLine = shipwrightLine(rng, idx);
     G.threads.onDock(d);
     guitarDock(d);   // after the tune is kept, something waits on Tama's quay (systems/endgame.js)
+    { const vl = voyageDock(d); if (vl) setTimeout(() => toast(vl, false, 7000), 3200); }   // the crew's spirits (voyage.js)
     { const gl = gearDock(d); if (gl) setTimeout(() => toast(gl, false, 7000), 1800); }   // where the boat came ashore after a storm parted its line (gearplay.js)
     // someone on the pier may speak first: always on a first visit or a story beat, otherwise rarely
     let say = null;
@@ -204,6 +217,7 @@ function doInteract(tg) {
     if (!say && free && G.laterOK() && rt.dread < 0.6 && Math.random() < 0.35) say = customLine(state, d, cx);   // a regional custom (customs.js, the lore bible)
     { const mr = G.laterOK() ? maraAt(state, d, cx) : null; if (mr) setTimeout(() => { if (!G.objectives.mate.busy) G.objectives.mate.say(mr); }, 2600); }   // Mara, once per region, while the water is light (L-34)
     if (!say && free && G.laterOK() && rt.dread < 0.6) say = G.taleAt(d);
+    if (!say && free && G.laterOK()) say = tradeRumour(d);   // where a good price is this week (trade.js)
     if (!say && free && G.laterOK() && (g.day[d.id] == null || Math.random() < 0.3)) say = pickGreeting({ hour: state.time * 24, weather: G.weather.label, dread: rt.dread, rnd: Math.random, custom: d.custom, event: isFestival(d) ? 'festival' : isMarketDay() ? 'market' : isLanternNight() ? 'lantern' : null, boat: (() => { const b = boatStatus(d, state.dayN, rt.dread, state.seed); return b.today === 'stayed' ? 'stayed' : b.yesterday === 'lost' ? 'lost' : null; })() });
     if (!say && free && window.__BUILD !== 'demo') { const tl = G.threads.harbourLine(d); if (tl) say = { speaker: 'fisher', text: tl, dark: true, story: true }; }
     if (laneArrival(state, d, rt.lane && rt.tNow - rt.lane.t < 90 ? rt.lane : null)) setTimeout(() => toast('In by the buoys. The harbourmaster ticks a line in the book.', false, 4500), 1400);   // the Crown's record (regions.js)

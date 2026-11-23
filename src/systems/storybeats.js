@@ -22,6 +22,7 @@ import { scene } from '../core/engine.js';
 import { $, toast } from '../ui/dom.js';
 import { tideFalls } from './calendar.js';
 import { after } from './later.js';
+import { CHAIN_RIG } from '../combat.js';
 import { wallPass, crossWall, tuneGapWay, barrierPass } from './passes.js';
 
 export let WHITE_MIST, oilOn;   // set by the init function(s) below, at the point in boot where main.js had them
@@ -214,7 +215,12 @@ export function hurtPlayer(dmg) {
   if (state.hp / G.ship.mods.maxHp < 0.35) G.objectives.remark('lowhp', rt.dread);
   if (state.hp <= 0) sinkPlayer();
 }
-export function onHitEnemy(s, dmg) {
+export function onHitEnemy(s, dmg, kind) {
+  if (kind === 'chain') {   // chain shot (combat.js): the rigging goes; with none left she strikes her colours and waits to be boarded
+    s.rig = Math.max(0, (s.rig == null ? 1 : s.rig) - CHAIN_RIG); if (s.rig < 0.01) s.rig = 0; s.hp = Math.max(1, s.hp - dmg);
+    if (s.rig <= 0 && !s.struck) { s.struck = true; s.engaged = false; toast('Her masts are down. She strikes her colours. Come alongside and board her (E).', false, 6000); }
+    return;
+  }
   s.hp -= dmg;
   if (s.hp > 0) return;
   s.sinking = true; s.hostile = false; s.state = 'done'; s.engaged = false;

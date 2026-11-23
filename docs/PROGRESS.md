@@ -2334,3 +2334,23 @@ dread there eased for a while after it.
   15% close-hauled, `ship.towDrag`), and in a storm of 0.7 or more under way the line can part (about once in 45 s of such storm): the
   boat comes ashore at the nearest charted harbour, the next harbour docked at says where, and the shipwright's card reads "Washed up at".
   Checked headless: 2% / 4% / 15% with, across and into the wind; the line parting, the dock line once, the boat off the Gull.
+
+## Six systems for the voyage (2026-11-23, owner: "do 4, 6, 7, 8, 9, 10")
+- **Seen at sea** (`src/systems/sealog.js`): the first dolphins, flying fish, turtle, whale, the eastward whales, jellyfish, a bird on a
+  log and drift weed each get a pencil sketch in the Ship's book with the day and the water. Two frames stay blank until deep water
+  (the long shadow: a whale met at dread 0.6+; lights below: jellyfish at 0.5+). Fed by `fauna.onSpot` and `rt.seaSpot` (sealife.js).
+- **Food and water, the crew's spirits, night nerves** (`src/systems/voyage.js`): stores in days (6 at most, a day of each a day, more
+  with hired hands; a fish or fruit puts a little by; Hollowgreen fills the water; the market's STORES row fills both). Spirits 0..1 in
+  four bands (glad, steady, quiet, sullen) moved by time at sea, storms, empty stores, nerves (down) and docking, a night ashore, music in
+  the Cays, a raider sunk, a chest dug (up); the band changes dig time and reload (`moodMods`), Mara says when it drops or lifts, and
+  below 0.12 a hired hand goes ashore at the next harbour. The Ship's book has "Crew and stores" in words. Nerves: after the first throw,
+  at night, more than 140 from land: a light keeping pace astern (gone when the bow or the camera turns to it), a bell with no ship, the
+  count one too many; the lamp, a full crew and good spirits slow it, the dawn clears it. None of it in the demo.
+- **Trade runs** (`src/systems/trade.js`): cloth (Crown), spice (Cays), rum (Reef), lamp glass (Guild), salt (Tama); each water wants
+  another (Crown spice, Cays cloth, Reef salt, Guild rum, Tama glass); made here 0.55, wanted 1.75, a weekly drift of 22%; the hold takes
+  4 crates and 2 more per hull level; the market's CARGO rows buy a crate and sell all; a docker on the pier says where a price is good.
+- **Two kinds of shot** (`src/combat.js`, `storybeats.onHitEnemy`, `traffic.js`): B loads round or chain shot (the HUD's ball glyph
+  changes); chain shot is bought ten at a time (35 g), does 30% of the hull damage and tears 20% of the rigging a ball; she slows with it
+  (extra masts first), and with none left she strikes her colours, drifts, stops firing, and E boards her for her hold (gold and
+  cannonballs). The broadside bears only within 54 degrees of abeam ("bring your side round"); from upwind (the weather gauge) the shot
+  is tighter and a fifth harder.

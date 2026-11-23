@@ -21,6 +21,8 @@ import { CHEST, KINDS as CHEST_KINDS, chestAny, chestSell } from './chest.js';
 // Four bookmarks: the Chart is where things are, Orders is what to do, the Ship's book is what you have done and seen, the Sea chest
 // is what you carry (owner, 2026-11-19; it is there from the first thing put in it). (Until 2026-11 there were seven; the old names
 // still open the bookmark their page moved to.)
+import { partSeaLife } from './systems/sealog.js';
+import { partCrew } from './systems/voyage.js';
 const TABS = [['map', 'Chart', ''], ['orders', 'Orders', ''], ['book', "Ship's book", ''], ['chest', 'Sea chest', '']];
 const ALIAS = { goals: 'orders', quests: 'orders', riddles: 'orders', journal: 'book', ship: 'book', standing: 'book' };
 const W = 880, H = 470;
@@ -298,6 +300,8 @@ export class Logbook {
     if (!this.sec('journal')) parts.push(this.partJournal());
     if (!this.sec('ship')) { const p = this.partShip(); parts.push([p[0].replace('<h3>', '<h3 class="brk">'), p[1]]); }
     if (!this.sec('standing')) { const p = this.partStanding(); parts.push([p[0].replace('<h3>', '<h3 class="brk">'), p[1]]); }
+    { const cr = partCrew(h3, ent); if (cr) parts.push([cr[0].replace('<h3>', '<h3 class="brk">'), cr[1]]); }   // crew and stores (systems/voyage.js)
+    { const sl = partSeaLife(h3); if (sl) parts.push([sl[0].replace('<h3>', '<h3 class="brk">'), sl[1]]); }   // seen at sea (systems/sealog.js)
     { const st = this.d.state.stats; parts.push([h3('Voyage') + ent(`${Math.round(st.dist)} sailed`, `${st.fish} fish · ${st.treasures} treasures · ${st.wrecks} wrecks · ${st.sunk} raiders · ${st.deliveries} deliveries`), () => {}]); }
     this.compose(parts);
   }

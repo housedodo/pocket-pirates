@@ -125,6 +125,7 @@ export class SeaLife {
     for (const o of this.items.values()) {
       o.g.visible = !hide;
       const toShip = Math.atan2(sx - o.x, sz - o.z), dShip = Math.hypot(sx - o.x, sz - o.z);
+      if (dShip < 30 && !o.spotted && !hide) { o.spotted = true; if (rt.seaSpot) rt.seaSpot(o.kind === 'log' ? (o.gone || dread >= 0.75 ? 'log' : 'logbird') : o.kind, dread); }   // the Ship's book sketches it (systems/sealog.js)
       if (o.kind === 'weed') {
         const dir = dread >= 0.5 ? -1 : 1;   // from dread 0.5 it drifts up into the wind
         o.x += wx * 0.35 * dir * dt; o.z += wz * 0.35 * dir * dt;

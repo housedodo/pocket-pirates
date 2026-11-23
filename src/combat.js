@@ -7,6 +7,12 @@ import { KINDS } from './traffic.js';
 // and you can outrun them, pay tribute, or fight. Space auto-aims a broadside at the nearest raider.
 const G = 16, SPEED = 38;
 const WARN = 0.7;   // seconds between a raider's tell and her shot (G-22)
+// two kinds of shot (owner, 2026-11-23: "chain cannonballs to destroy masts and reduce movement, and normal ones to fully destroy it"):
+// round shot holes the hull and sinks her; chain shot tears the rigging (s.rig 1..0) and slows her, and with the rigging gone she strikes
+// her colours and can be boarded (E) for more than her wreck would give. B loads the other kind (state.story.shot).
+export const CHAIN_COST = 35, CHAIN_RIG = 0.2, CHAIN_HULL = 0.3;   // gold for ten; rigging torn per ball; of the hull damage it still does
+export const BEAR = 0.95;      // rad either side of abeam the broadside bears (the guns are on her sides: keep your side to them)
+export const GAUGE = { spread: 0.6, dmg: 1.2 };   // from upwind of her (the weather gauge): tighter and harder
 export const FIRE_BUFFER = 0.25;   // s: Space this close to the end of the reload fires when it ends (SYSTEMS_FEEL G-07; tune by hand)
 const rnd = (a, b) => a + Math.random() * (b - a);
 
@@ -37,7 +43,8 @@ export class Combat {
     const a = Math.atan2(dx, dz) + (Math.random() - 0.5) * spread, dd = d * (1 + (Math.random() - 0.5) * spread * 0.6);
     b.m.position.set(fx, y0, fz);
     b.vx = Math.sin(a) * dd / T; b.vz = Math.cos(a) * dd / T; b.vy = (yT - y0 + 0.5 * G * T * T) / T;
-    b.on = true; b.owner = owner; b.dmg = dmg; b.life = T + 1.5; b.m.visible = true;
+    b.on = true; b.owner = owner; b.dmg = dmg; b.kind = this.nextKind || 'round'; this.nextKind = null;
+    b.m.scale.set(b.kind === 'chain' ? 1.9 : 1, b.kind === 'chain' ? 0.6 : 1, 1); b.life = T + 1.5; b.m.visible = true;
     this.puff(fx, 2, fz, 1.1); this.puff(fx + Math.sin(a) * 1.5, 2.2, fz + Math.cos(a) * 1.5, 0.8);
   }
 
@@ -52,20 +59,28 @@ export class Combat {
     return best;
   }
 
-  playerFire(ship, traffic, state, mods) {
+  playerFire(ship, traffic, state, mods, wind) {
     if (this.reload > 0) { if (this.reload <= FIRE_BUFFER) this.queued = true; return 'reload'; }
     this.queued = false;
-    if (state.ammo <= 0) return 'ammo';
+    const chain = state.story.shot === 'chain';
+    if (chain ? !(state.story.chain > 0) : state.ammo <= 0) return chain ? 'chain' : 'ammo';
     const tg = this.target(ship, traffic);
     if (!tg) return 'target';
     const rx = Math.cos(ship.heading), rz = Math.sin(ship.heading);
     const side = ((tg.x - ship.pos.x) * rx + (tg.z - ship.pos.z) * rz) >= 0 ? 1 : -1;
+    { const fwd = (tg.x - ship.pos.x) * Math.sin(ship.heading) - (tg.z - ship.pos.z) * Math.cos(ship.heading), sideD = Math.abs((tg.x - ship.pos.x) * rx + (tg.z - ship.pos.z) * rz);
+      if (Math.abs(Math.atan2(fwd, sideD)) > BEAR) return 'bear'; }   // she is off the bow or the stern: the guns do not bear
+    let spread = 0.09, dmg = mods.dmg;
+    if (wind) { const wx = Math.sin(wind.dir), wz = -Math.cos(wind.dir); if ((ship.pos.x - tg.x) * wx + (ship.pos.z - tg.z) * wz < 0) { spread *= GAUGE.spread; dmg *= GAUGE.dmg; } }   // upwind of her
+    if (chain) dmg *= CHAIN_HULL;
     for (let i = 0; i < 2; i++) {
+      this.nextKind = chain ? 'chain' : 'round';
       const off = (i - 0.5) * 1.8;
       this.launch(0, ship.pos.x + rx * side * 1.4 + Math.sin(ship.heading) * off, ship.pos.z + rz * side * 1.4 - Math.cos(ship.heading) * off,
-        tg.x, tg.z, Math.sin(tg.heading) * tg.speed, -Math.cos(tg.heading) * tg.speed, mods.dmg, 0.09);
+        tg.x, tg.z, Math.sin(tg.heading) * tg.speed, -Math.cos(tg.heading) * tg.speed, dmg, spread);
     }
-    state.ammo--; this.reload = mods.reload;
+    if (chain) state.story.chain--; else state.ammo--;
+    this.reload = mods.reload;
     return 'ok';
   }
 
@@ -81,7 +96,7 @@ export class Combat {
       if (s.hp < s.maxHp * 0.5 && (s.smokeT = (s.smokeT || 0) - dt) <= 0) {   // hurt: a thin smoke trails from her deck (G-22; no bars, no numbers)
         s.smokeT = 0.3; this.puff(s.x - Math.sin(s.heading) * 1.2 * sc, 2.6 * sc, s.z + Math.cos(s.heading) * 1.2 * sc, 0.32);
       }
-      if (!s.engaged) { s.warned = false; continue; }
+      if (!s.engaged || s.struck) { s.warned = false; continue; }   // a ship that has struck her colours fires no more
       const rx = Math.cos(s.heading), rz = Math.sin(s.heading);
       const side = ((ship.pos.x - s.x) * rx + (ship.pos.z - s.z) * rz) >= 0 ? 1 : -1;
       s.fireCd -= dt;
@@ -107,7 +122,7 @@ export class Combat {
       if (b.owner === 0) {
         for (const s of traffic.ships) {
           if (!s.hostile || s.hp <= 0 || s.sinking) continue;
-          if (Math.hypot(s.x - p.x, s.z - p.z) < 3.4 * KINDS[s.kind].scale && p.y < 4.5) { onHitEnemy(s, b.dmg); this.puff(p.x, p.y, p.z, 1.4); done = true; break; }
+          if (Math.hypot(s.x - p.x, s.z - p.z) < 3.4 * KINDS[s.kind].scale && p.y < 4.5) { onHitEnemy(s, b.dmg, b.kind); this.puff(p.x, p.y, p.z, 1.4); done = true; break; }
         }
       } else if (Math.hypot(ship.pos.x - p.x, ship.pos.z - p.z) < 3.3 && p.y < 4.5) { onHitPlayer(b.dmg); this.puff(p.x, p.y, p.z, 1.4); done = true; }
       if (!done && p.y < waveHeight(p.x, p.z, t, wave) + 0.1) { this.fauna.splash(p.x, p.z, wave, t, 1.2); done = true; }

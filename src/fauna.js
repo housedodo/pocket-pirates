@@ -256,6 +256,7 @@ export class Fauna {
       this.fishTimer -= dt;
       if (this.fishTimer <= 0 && this.fish.every((f) => f.u >= 1)) {
         this.fishTimer = rnd(40, 90) * ({ crown: 1.6, free: 0.5, reef: 0.4, lantern: 1.1, drowned: 2 }[ctx.faction] || 1);
+        if (this.onSpot) this.onSpot('flyfish');   // the Ship's book sketches it (systems/sealog.js)
         const side = Math.random() < 0.5 ? -1 : 1, off = rnd(6, 14), ahead = rnd(4, 16);
         const ang = ship.heading + side * rnd(0.3, 0.9);
         this.fish.forEach((f, i) => {

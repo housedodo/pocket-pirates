@@ -294,7 +294,9 @@ export class Traffic {
         if (dd < 24) { s.inspected = true; s.heading += Math.PI * 0.6; if (this.onCustoms) this.onCustoms(s); }
       }
       if (s.mode === 'derelict') s.heading += Math.sin(s.age * 0.07 + i) * 0.03 * dt;
-      s.x += Math.sin(s.heading) * s.speed * dt; s.z -= Math.cos(s.heading) * s.speed * dt;
+      const rigK = s.struck ? 0.12 : s.rig == null ? 1 : 0.3 + 0.7 * s.rig;   // chain shot tears the rigging: she slows, and dismasted she only drifts (combat.js)
+      if (s.struck && s.hostile) { s.engaged = false; s.heading += 0.05 * dt; }
+      s.x += Math.sin(s.heading) * s.speed * rigK * dt; s.z -= Math.cos(s.heading) * s.speed * rigK * dt;
       if (s.mode !== 'ghost') {
         this.tmp.set(s.x, 0, s.z);
         if (this.world.collide(this.tmp, 3.5 * K.scale)) { s.x = this.tmp.x; s.z = this.tmp.z; s.heading += 0.9 * dt + 0.02; }
@@ -325,6 +327,8 @@ export class Traffic {
         sl.pivot.scale.set(sl.s, flat * sl.s, sl.s);
         if (sl.jib) { sl.jib.scale.x = s.sgn; sl.jib.scale.y = flat; }
       }
+      if (s.rig != null) s.sails.forEach((sl, k) => { sl.pivot.visible = s.rig > 0 && (k === 0 || s.rig > 0.5); });   // chain shot: the extra masts go first, then the main
+      if (s.struck) s.flag.visible = false;   // colours struck
       s.flag.rotation.y = Math.PI - rel + Math.sin(t * 8 + i) * 0.2;
       if (s.lamps) s.lamps.visible = s.mode === 'live' && !s.sinking && mats.glow.opacity > 0.3;   // lit at night and in a storm (the world's lamp level)
       if (s.sinking) { s.root.position.y -= s.sinkT * 0.9; s.root.rotation.z += s.sinkT * 0.25; s.root.rotation.x += s.sinkT * 0.1; }

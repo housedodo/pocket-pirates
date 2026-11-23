@@ -71,6 +71,7 @@ const GLYPHS = {
   spy: ['.......', '##.....', '#yB....', '.#yBB..', '..#yBB.', '...#yy#', '....##.'],
   crew: ['..RRR..', '.RRRRR.', '..SSS..', '..SSS..', '.bbbbb.', '.bbbbb.', '.b...b.'],
   lamp: ['..###..', '.#...#.', '#.yYy.#', '#.YYY.#', '#.oyo.#', '.#####.', '..###..'],
+  chain: ['.......', '.KK....', 'KkKK...', '.KK.k..', '...k.KK', '...KKkK', '....KK.'],   // chain shot
   divebell: ['...#...', '..ooo..', '.oyyyo.', '.oKyKo.', 'oyyyyyo', 'ooooooo', '.......'],   // the diving bell (systems/gearplay.js)
   boat: ['.......', '.......', '#.....#', 'BB#B#BB', '.BBBBB.', '..BBB..', 'bbbbbbb'],   // the ship's boat
 };

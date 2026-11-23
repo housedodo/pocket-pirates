@@ -98,6 +98,8 @@ import { chestAdd } from './chest.js';
 import { eventTick, EVENTS, eventCard } from './systems/seaevents.js';   // hearing of the hut (T2)
 import { leadTick, leaderDesc, offLine } from './systems/leadlight.js';   // the Halved Isle by light
 import { passesTick, wallPass, ribsLull } from './systems/passes.js';
+import { seaSpot } from './systems/sealog.js';
+import { voyageTick, moodMods } from './systems/voyage.js';   // stores, the crew's spirits, night nerves (owner, 2026-11-23)
 import { gearTick, gearDrag, savePos, initDive, diveElement, diveClosed } from './systems/gearplay.js';   // the diving bell and the ship's boat (owner, 2026-11-23)   // the other ways through (T4)
 import { econ, econTick, econLine } from './systems/econ.js';   // ?econ=1: gold per hour by source (G-25)
 import { after, laterTick, laterPending } from './systems/later.js';
@@ -266,6 +268,7 @@ traffic.onEvent = (what) => {
   if (what === 'regatta') { if (!state.hints.regattaSeen && laterOK() && !eventQuiet()) { state.hints.regattaSeen = true; after(2.5, () => objectives.mate.say('A regatta! Look at them go. I wonder who they are racing, and who is giving the prize.')); } }
 };
 fauna.onSpot = (what) => {
+  seaSpot(what);   // the Ship's book sketches it (systems/sealog.js)
   if (!laterOK()) return;   // no dolphins or whales for the first goals
   const k = what === 'migration' ? 'whales' : what; state.stats[k] = (state.stats[k] || 0) + 1;
   // no message: the sea just has them (owner, 2026-11-13); they still count for the stats and the sea goals
@@ -281,7 +284,7 @@ if (!saved && !params.has('x')) {
 }
 ship.pos.set(state.pos.x, 0, state.pos.z);
 ship.heading = state.pos.h;
-const refreshMods = () => { const m0 = computeMods(state.upgrades); m0.speed *= gearDrag(); ship.mods = threads.modAdjust(m0); state.hp = Math.min(state.hp, ship.mods.maxHp); ship.setUpgradeLook(state.upgrades); };
+const refreshMods = () => { const m0 = moodMods(computeMods(state.upgrades)); m0.speed *= gearDrag(); ship.mods = threads.modAdjust(m0); state.hp = Math.min(state.hp, ship.mods.maxHp); ship.setUpgradeLook(state.upgrades); };
 ship.setCustom(state.custom);
 refreshMods();
 ship.setTorn(state.sailsTorn);
@@ -684,6 +687,7 @@ window.addEventListener('keydown', (e) => {
   if (e.code === 'KeyE') { if (digGame.active) { digGame.press(); rt.eDown = rt.tNow; } else tryInteract(); }   // held on the beach: the crew packs up (G-10)
   if (e.code === 'KeyH') $('hud').classList.toggle('hidden');
   if (e.code === 'F1') { e.preventDefault(); rt.helpMode = rt.helpMode === 'full' ? 'off' : 'full'; helpEl.innerHTML = helpText(true); helpEl.style.opacity = rt.helpMode === 'full' ? '1' : '0'; }
+  if (e.code === 'KeyB' && !rt.modal && rt.started && unlocked(state, 'cannons')) { state.story.shot = state.story.shot === 'chain' ? 'round' : 'chain'; toast(state.story.shot === 'chain' ? `Chain shot loaded (${state.story.chain || 0})` : 'Round shot loaded', false, 2000); audio.play('ui', { vol: 0.3 }); }   // two kinds of shot (combat.js)
   if (e.code === 'KeyG' && !rt.modal && rt.started && unlocked(state, 'oars')) { ship.rowing = !ship.rowing; toast(ship.rowing ? 'Oars out' : 'Oars in, sails up', false, 2200); if (ship.rowing) objectives.remark('oars', rt.dread); }
   if (e.code === 'KeyQ' && !rt.modal) { settings.tracker = settings.tracker === false; store.set(SETTINGS_KEY, settings); }
   if (!DEV) return;   // test keys only with ?dev=1
@@ -876,8 +880,10 @@ const shipInput = { steer: 0, sail: 0 };
 const MOVE_CODES = new Set(['KeyA', 'KeyD', 'KeyW', 'KeyS', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown']);
 
 function fireCannons() {
-  const r = combat.playerFire(ship, traffic, state, ship.mods);
-  if (r !== 'ammo' && r !== 'target') audio.play('cannon');
+  const r = combat.playerFire(ship, traffic, state, ship.mods, wind);
+  if (r === 'ok' || r === 'reload') { if (r === 'ok') audio.play('cannon'); }
+  if (r === 'chain') toast('No chain shot aboard. B loads round shot.', false, 3000);
+  if (r === 'bear') { setHelp('The guns are on her sides: bring your side round to them'); setTimeout(() => { if (rt.helpMode === 'tip') setHelp(''); }, 3500); }
   if (r === 'ammo') { toast('Out of cannonballs! Buy more at a harbour.'); objectives.remark('noammo'); }
   else if (r === 'target') { setHelp('Space fires only at raiders that are attacking you'); setTimeout(() => { if (rt.helpMode === 'tip') setHelp(''); }, 4000); }
 }
@@ -1316,6 +1322,7 @@ function frame() {
   world.tick(rt.animT, tod);
   places.labelsTick(camera, ship, (state.upgrades.spyglass || 0), state.discovered, window.innerWidth, window.innerHeight, false /* no names on the water when sailing past (owner 2026-11-18) */, { fogFar: scene.fog.far, table: tableOpen(state) });   // far labels: ?, what it looks like, its name; fade with the fog
   ship.place(vdt, waveT, stage.wave, rt.dark, tod.night);
+  voyageTick(dt);
   gearTick(vdt, waveT);   // the bell and the boat on the Gull, the boat on the water (systems/gearplay.js)
   if (rt.anchorBit) { rt.anchorBit = false; fauna.splash(ship.pos.x + Math.sin(ship.heading) * 3.2, ship.pos.z - Math.cos(ship.heading) * 3.2, stage.wave, waveT, 1.1); }   // the anchor bites: a ring of foam at the bow
   secrets.update(vdt, waveT, { ship, time: state.time, dayN: state.dayN, tide: tideAt(), wave: stage.wave, light: Math.min(1, 0.25 + stage.light * 0.9), dread: rt.dread, collected: state.collected, windX: Math.sin(wind.dir), windZ: -Math.cos(wind.dir), heading: ship.heading, fogFar: scene.fog.far });
@@ -1462,7 +1469,7 @@ function frame() {
       $('hpfill').parentNode.style.display = 'none';
     }
   }
-  setText($('ammonum'), state.ammo);   // the number only: the ball is a pixel glyph, and the name tag nameMeter hangs on #ammotxt survives
+  { const ch = state.story.shot === 'chain'; setText($('ammonum'), ch ? (state.story.chain || 0) : state.ammo); const ic = $('ammotxt').querySelector('.pxi'); if (ic) ic.className = 'pxi ' + (ch ? 'chain' : 'shot'); }   // the loaded shot: round or chain (combat.js)   // the number only: the ball is a pixel glyph, and the name tag nameMeter hangs on #ammotxt survives
   document.body.classList.toggle('nooil', !oilOn());
   if (oilOn() && rt.started && !rt.modal) nameOnce('oil', $('oilrow'), 'Lamp oil');
   { const f = state.oil / oilCap(state.upgrades); setWidth($('oilfill'), f * 100); $('oilrow').classList.toggle('low', f < 0.25); }
