@@ -2374,3 +2374,9 @@ dread there eased for a while after it.
   nine open cells near a region's bearing: the Sandbar Cays (stilt hut, "[E] Climb the ladder"), the Mangroves (roots, canopies,
   fireflies at night, a camp), the Tide Rocks (spits rise with the low tide and block the boat; the mooring stone only at low water).
   "[E] Take the boat" near each. Checked headless: grounding, all three placed, the boat out and the hut found; screenshots of each.
+- **Dark islands with ruin styles; the crows come** (owner, 2026-11-23): `world.js darkStyle(d)` (abandoned below dread 0.62, picked to
+  0.82, wrong above; 15% take the style below, 25% the one above), `DSTYLE` steers `palm`'s dark crown, `monolith`, `mushroom`, the
+  harbour square, the atoll's centre, the moss spores and the treasure arch; `darkRuins` adds the run-down props from the island's own
+  random stream (the bright layout never moves). `crow()` sits on snapped palms and stakes. `fauna.js`: the gulls thin to 5 by dread
+  0.32, then the crows grow from 5 to 28 by 0.78. Checked headless with the dark mood on: an abandoned jungle isle and harbour, a picked
+  jungle isle, sandbar and harbour, a wrong jungle isle.

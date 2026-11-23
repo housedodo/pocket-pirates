@@ -348,7 +348,20 @@ export function palm(A, B, D, x, y, z, rng, s = 1) {
     B.tri(base, mid, tip, '#ffffff', TILE.leaf, [[0.5, 0], [0, 0.45], [0.5, 1]]);
     B.tri(base, tip, mid2, '#ffffff', TILE.leaf, [[0.5, 0], [0.5, 1], [1, 0.45]]);
   }
-  // eerie crown: bare, claw-like fronds + a glowing pod
+  // the dark crown, by the island's ruin style (owner, 2026-11-23: "not everything purple orbs... it should look run down or scary")
+  if (DSTYLE === 'abandoned') {   // dead: brown fronds hanging straight down, a few gone
+    for (let i = 0; i < 6; i++) { if (hsh(x, z, i) < 0.3) continue; const a = (i / 6) * Math.PI * 2, dx = Math.cos(a), dz = Math.sin(a), L = 1.9 * s;
+      D.tri([px, py, pz], [px + dx * 0.5 * s - dz * 0.3, py - 0.1 * s, pz + dz * 0.5 * s + dx * 0.3], [px + dx * 0.8 * s, py - L, pz + dz * 0.8 * s], '#7a6448', TILE.leaf, [[0.5, 0], [0, 0.5], [0.5, 1]]); }
+    if (hsh(x, z, 9) < 0.25) crow(D, px + 0.3 * s, py + 0.05, pz, hsh(x, z, 3) * 6);
+    return;
+  }
+  if (DSTYLE === 'picked') {   // snapped off: a jagged stub, one frond left; often a crow on it
+    D.cyl(px, py - 0.5 * s, pz, 0.26 * s, 0.1 * s, 0.6 * s, 4, '#4a3a2a', TILE.bark, false);
+    D.tri([px, py - 0.3 * s, pz], [px + 0.3, py - 0.4 * s, pz + 0.2], [px + 0.5 * s, py - 1.8 * s, pz + 0.6 * s], '#5a4a34', TILE.leaf, [[0.5, 0], [0, 0.5], [0.5, 1]]);
+    if (hsh(x, z, 9) < 0.55) crow(D, px, py + 0.12, pz, hsh(x, z, 3) * 6);
+    return;
+  }
+  // wrong (the deepest water): bare, claw-like fronds + a glowing pod
   for (let i = 0; i < 5; i++) {
     const a = (i / 5) * Math.PI * 2 + rng() * 0.6;
     const dx = Math.cos(a), dz = Math.sin(a), L = (1.6 + rng() * 0.8) * s;
@@ -710,10 +723,59 @@ function mossRock(b, x, y, z, r, rng) {
 }
 
 function monolith(D, x, y, z, h = 3.2, w = 0.9) {
+  if (DSTYLE === 'abandoned') {   // a driftwood marker, leaning, a rag tied on
+    D.push(x, y - 0.2, z, hsh(x, z, 1) * 6, 1, 1, 1, 0.18, 0.1); D.box(0, 0, 0, 0.18, h * 0.6, 0.18, '#8a7a62', TILE.bark); D.box(0, h * 0.42, 0, 0.9, 0.14, 0.14, '#8a7a62', TILE.bark); D.box(0.25, h * 0.3, 0.1, 0.3, 0.5, 0.04, '#6a5a4a', TILE.white); D.pop();
+    return;
+  }
+  if (DSTYLE === 'picked') {   // a cairn of flat stones, too neat
+    for (let k = 0; k < 5; k++) D.blob(x, y - 0.1 + k * 0.42 * w, z, w * (1.1 - k * 0.16), 0.24 * w, w * (1.0 - k * 0.15), k % 2 ? '#8a8478' : '#a09a8c', TILE.stone, 0.2, k + 3);
+    return;
+  }
   D.cyl(x, y - 0.3, z, w, w * 0.62, h, 4, '#ffffff', TILE.void, true);
+}
+/** a crow, sitting (the dark islands; owner, 2026-11-23: the birds slowly appear) */
+function crow(D, x, y, z, ry) {
+  D.push(x, y, z, ry);
+  D.box(0, 0, 0, 0.22, 0.2, 0.42, '#141016'); D.box(0, 0.16, -0.22, 0.16, 0.16, 0.16, '#141016'); D.box(0, 0.17, -0.34, 0.05, 0.05, 0.12, '#5a5a5a'); D.box(0, 0.04, 0.28, 0.12, 0.05, 0.22, '#141016');
+  D.pop();
+}
+// the dark mood's ruin style per island (by its dread, with a seeded chance of the neighbouring style, so no two waters look alike):
+// abandoned (first dark): dead palms, a collapsed lean-to, a holed boat, rags on a line, empty nets, driftwood markers;
+// picked (deeper): snapped palms with crows, a bleached ribcage, a ring of stakes, cairns, burnt stumps;
+// wrong (the deepest): the old look (claw fronds, glowing pods and caps, black monoliths). Only there are things lit.
+let DSTYLE = 'wrong';
+const hsh = (x, z, k) => { const v = Math.sin(x * 12.9898 + z * 78.233 + k * 37.719) * 43758.5453; return v - Math.floor(v); };
+export function darkStyle(d) {
+  const k = d.dread || 0, u = hsh(d.x, d.z, 5);
+  const base = k < 0.62 ? 0 : k < 0.82 ? 1 : 2, nb = u < 0.15 ? base - 1 : u > 0.75 ? base + 1 : base;
+  return ['abandoned', 'picked', 'wrong'][Math.max(0, Math.min(2, nb))];
+}
+/** the run-down things on a dark island, from its own random stream (so the island's bright layout never moves) */
+function darkRuins(d, D) {
+  if (DSTYLE === 'wrong') return;
+  const rng = mulberry32(d.seed * 131 + 17), at = (t0, t1, h) => spot(d, rng, t0, t1, h);
+  if (DSTYLE === 'abandoned') {
+    { const p = at(0.3, 0.7, 0.6); if (p) { D.push(p[0], p[1], p[2], rng() * 6);   // a lean-to, fallen in
+      D.push(-1, 0, 0, 0, 1, 1, 1, 0, 0.5); D.box(0, 0, 0, 0.16, 2.0, 0.16, '#6a5a42', TILE.bark); D.pop(); D.box(1, 0, 0.8, 0.16, 1.3, 0.16, '#6a5a42', TILE.bark);
+      D.push(0, 0.6, 0, 0, 1, 1, 1, 0.1, 0.55); D.box(0, 0, 0, 2.6, 0.08, 2.2, '#7a6a50', TILE.planks); D.pop(); D.pop(); } }
+    { const p = at(0.85, 0.97, 0.1); if (p) { D.push(p[0], p[1] - 0.2, p[2], rng() * 6, 1, 1, 1, 0.1, 0.45);   // a boat on its side, holed
+      D.box(0, 0, 0, 1.2, 0.5, 3.2, '#5a4230', TILE.planks); D.box(0.62, 0.15, 0.3, 0.06, 0.3, 0.8, '#0c0806'); D.pop(); } }
+    if (rng() < 0.7) { const p = at(0.4, 0.8, 0.5); if (p) { D.push(p[0], p[1], p[2], rng() * 6);   // rags on a line between two poles
+      for (const sx of [-1.6, 1.6]) D.box(sx, 0, 0, 0.12, 1.8, 0.12, '#6a5a42', TILE.bark);
+      D.box(0, 1.65, 0, 3.2, 0.03, 0.03, '#8a7a62'); for (const k of [-0.9, 0.1, 0.8]) D.box(k, 1.2, 0, 0.45, 0.6 + rng() * 0.3, 0.03, k > 0 ? '#7a6a5a' : '#8a7058', TILE.white); D.pop(); } }
+    if (rng() < 0.6) { const p = at(0.8, 0.95, 0.2); if (p) D.blob(p[0], p[1] + 0.1, p[2], 1.1, 0.35, 0.8, '#6a6450', TILE.rope, 0.35, 4); }   // a heap of net, nobody mending it
+  } else {
+    if (rng() < 0.7) { const p = at(0.82, 0.96, 0.1); if (p) { D.push(p[0], p[1] - 0.3, p[2], rng() * 6);   // a big ribcage, bleached, half in the sand
+      for (let k = 0; k < 7; k++) for (const sx of [-1, 1]) { D.push(sx * 0.4, 0, -2.4 + k * 0.8, 0, 1, 1, 1, 0, -sx * 0.5); D.box(0, 0, 0, 0.16, 2.2 - Math.abs(k - 3) * 0.2, 0.16, '#d8d0bc', TILE.bone); D.pop(); }
+      D.box(0, 0, 0, 0.3, 0.3, 5.6, '#c8c0aa', TILE.bone); D.pop(); } }
+    { const p = at(0.2, 0.6, 0.6); if (p) { const n = 7; for (let k = 0; k < n; k++) { const a = k / n * Math.PI * 2, x = p[0] + Math.cos(a) * 2.2, z = p[2] + Math.sin(a) * 2.2;   // a ring of stakes
+      D.push(x, terrainHeight(d, x, z) - 0.2, z, a, 1, 1, 1, 0.12, 0); D.box(0, 0, 0, 0.14, 1.4 + rng() * 0.6, 0.14, '#3a2e24', TILE.bark); D.pop(); if (k === 2) crow(D, x, terrainHeight(d, x, z) + 1.6, z, a); } } }
+    for (let i = 0; i < 3; i++) { const p = at(0.2, 0.9, 0.5); if (p) D.cyl(p[0], p[1] - 0.1, p[2], 0.3, 0.2, 0.6 + rng() * 0.8, 5, '#1c1612', TILE.bark, true, '#0c0806'); }   // burnt stumps
+  }
 }
 
 function mushroom(D, x, y, z, s = 1) {
+  if (DSTYLE !== 'wrong') { D.blob(x, y + 0.15 * s, z, 0.4 * s, 0.14 * s, 0.32 * s, '#a89a80', TILE.bone, 0.2, x * 3 + z); return; }   // pale bracket fungus, nothing lit
   D.cyl(x, y, z, 0.16 * s, 0.12 * s, 0.8 * s, 5, '#d8d0e0', TILE.bone, false);
   D.blob(x, y + 0.85 * s, z, 0.6 * s, 0.34 * s, 0.6 * s, '#ffffff', TILE.spore, 0.1, x * 3 + z);
 }
@@ -1249,6 +1311,7 @@ function decorate(d, rng, A, B, D, extra) {
   const T = d.type, band = isleBand(d);
   if (d.lm) { lmDecor(d, rng, A, B, D, extra, { terrainHeight, shoreR, spot, palm, fern, flowers, mossRock, houseKind, person, beachedBoat, washing, crateBox, barrel, driftwood, chest, lighthouse }); return; }
   if (d.blight) { blightDecor(d, rng, A); extra.hutB = new Builder(); darkHut(d, rng, extra.hutB); return; }   // the hut in its own mesh: hidden until the story reaches it
+  DSTYLE = darkStyle(d);
   const palms = (n, t0, t1, hMin = 0.8, s0 = 0.9) => {
     for (let i = 0; i < n; i++) { const p = spot(d, rng, t0, t1, hMin); if (p) palm(A, B, D, p[0], p[1], p[2], rng, s0 + rng() * 0.5); }
   };
@@ -1299,7 +1362,7 @@ function decorate(d, rng, A, B, D, extra) {
     case 'volcano': {
       const rim = terrainHeight(d, shoreR(d, 0) * 0.22, 0);
       A.blob(0, rim - d.H * 0.1, 0, d.r * 0.2, 0.3, d.r * 0.2, '#ffffff', TILE.glow, 0.15, 7);              // lava in the crater
-      D.blob(0, rim - d.H * 0.08, 0, d.r * 0.19, 0.28, d.r * 0.19, '#ffffff', TILE.spore, 0.15, 8);          // ...sick magenta when it is dark
+      if (DSTYLE === 'wrong') D.blob(0, rim - d.H * 0.08, 0, d.r * 0.19, 0.28, d.r * 0.19, '#ffffff', TILE.spore, 0.15, 8);          // ...sick magenta when it is dark
       for (let i = 0; i < 3; i++) { const a = rng() * 6.28; A.box(Math.cos(a) * d.r * 0.3, rim - d.H * 0.25, Math.sin(a) * d.r * 0.3, 0.4, d.H * 0.2, 0.4, '#ffffff', TILE.glow); } // lava trickles
       for (let i = 0; i < 6; i++) A.blob(Math.sin(i * 1.7) * 0.6 + i * 0.5, rim + 1.2 + i * 1.3, Math.cos(i * 2.3) * 0.6, 0.6 + i * 0.3, 0.45 + i * 0.2, 0.6 + i * 0.3, i < 2 ? '#8a8486' : '#c8c4c6', TILE.white, 0.35, i + 30); // smoke
       for (let i = 0; i < 4; i++) { const p = spot(d, rng, 0.45, 0.8, 0.5); if (p) { A.cyl(p[0], p[1] - 0.2, p[2], 0.14, 0.06, 2.4, 4, '#2a2224', TILE.bark, false); A.push(p[0], p[1] + 1.5, p[2], rng() * 6, 1, 1, 1, 0, 0.9); A.cyl(0, 0, 0, 0.05, 0.02, 0.9, 3, '#2a2224', TILE.bark, false); A.pop(); } }
@@ -1327,7 +1390,7 @@ function decorate(d, rng, A, B, D, extra) {
         }
         for (let k = 0; k < 4; k++) A.blob(x + (k - 1.5) * 0.9 * s, h + 3.2 * s + (k % 2) * 0.4, z + (k % 2 ? 0.6 : -0.5) * s, 1.6 * s, 0.75 * s, 1.4 * s, k % 2 ? '#2e5e34' : '#5a8a2a', TILE.white, 0.25, k + x);
         for (let k = 0; k < 3; k++) D.box(x + (k - 1) * 0.7 * s, h + 1.4 * s, z, 0.06, 1.1 * s, 0.06, '#7a8a6a', TILE.rope);   // hanging moss
-        D.box(x + 0.2, h + 0.5, z + 0.5, 0.08, 0.06, 0.06, '#ffffff', TILE.spore); D.box(x + 0.4, h + 0.5, z + 0.5, 0.08, 0.06, 0.06, '#ffffff', TILE.spore);
+        if (DSTYLE === 'wrong') D.box(x + 0.2, h + 0.5, z + 0.5, 0.08, 0.06, 0.06, '#ffffff', TILE.spore); D.box(x + 0.4, h + 0.5, z + 0.5, 0.08, 0.06, 0.06, '#ffffff', TILE.spore);
       };
       for (let i = 0; i < 9; i++) { const th = rng() * Math.PI * 2, t = 0.25 + rng() * 0.8; tree(Math.cos(th) * shoreR(d, th) * t, Math.sin(th) * shoreR(d, th) * t, 0.8 + rng() * 0.5); }
       for (let i = 0; i < 2; i++) { const th = rng() * Math.PI * 2, x = Math.cos(th) * shoreR(d, th) * 1.05, z = Math.sin(th) * shoreR(d, th) * 1.05; // herons in the shallows
@@ -1372,7 +1435,7 @@ function decorate(d, rng, A, B, D, extra) {
       A.box(1.5, 0, 0, 0.9, 2.4, 0.9, '#ffffff', TILE.stone);
       A.box(-0.4, 3.2, 0, 3.6, 0.7, 0.9, '#ffffff', TILE.stone);
       A.pop();
-      D.push(ap[0], ap[1] - 0.2, ap[2], 0); D.box(0, 0, 0.1, 0.9, 1.2, 0.9, '#ffffff', TILE.void); D.pop();
+      if (DSTYLE === 'wrong') { D.push(ap[0], ap[1] - 0.2, ap[2], 0); D.box(0, 0, 0.1, 0.9, 1.2, 0.9, '#ffffff', TILE.void); D.pop(); }
       // the chest's hiding place is decided by the island's riddle (see lore.makePuzzle)
       {
         const pz = d.puzzle;
@@ -1522,9 +1585,15 @@ function decorate(d, rng, A, B, D, extra) {
       }
       extra.walkers = [0, 1, 2].map((i) => ({ th: dockTh, z0: R * 0.5, z1: R + 10, off: (i - 1) * 0.55, phase: rng() * 40, speed: 0.55 + rng() * 0.3, col: pickCol(rng, SHIRTS), rng: rng() }));
       // dark mood: a totem in the middle of the square
-      D.box(0, d.H - 0.2, 0, 1.4, 1.6, 1.4, '#ffffff', TILE.void);
-      D.box(0, d.H + 1.4, 0, 1.1, 1.6, 1.1, '#ffffff', TILE.void);
-      D.blob(0, d.H + 3.4, 0, 0.9, 0.9, 0.9, '#ffffff', TILE.spore, 0.1, 5);
+      if (DSTYLE === 'wrong') {
+        D.box(0, d.H - 0.2, 0, 1.4, 1.6, 1.4, '#ffffff', TILE.void);
+        D.box(0, d.H + 1.4, 0, 1.1, 1.6, 1.1, '#ffffff', TILE.void);
+        D.blob(0, d.H + 3.4, 0, 0.9, 0.9, 0.9, '#ffffff', TILE.spore, 0.1, 5);
+      } else {   // the square: a burnt-out bonfire, a pole with a rag; a crow on it further out
+        D.blob(0, d.H - 0.1, 0, 1.3, 0.35, 1.3, '#1c1612', TILE.bark, 0.3, 5); for (let k = 0; k < 4; k++) { D.push(0, d.H, 0, k * 1.6, 1, 1, 1, 0.9, 0); D.box(0, 0, 0, 0.14, 1.4, 0.14, '#2a2018', TILE.bark); D.pop(); }
+        D.box(1.8, d.H - 0.2, 0.6, 0.14, 3.2, 0.14, '#4a3a2a', TILE.bark); D.box(2.05, d.H + 2.4, 0.6, 0.5, 0.7, 0.03, '#6a5a4a', TILE.white);
+        if (DSTYLE === 'picked') crow(D, 1.8, d.H + 3.05, 0.6, 1);
+      }
       if (!SD.build) palms(4, 0.2, 0.7, 0.9, 0.9);
       // bunting poles in bright mood
       if (!SD.build) {
@@ -1534,6 +1603,7 @@ function decorate(d, rng, A, B, D, extra) {
       break;
     }
   }
+  darkRuins(d, D);   // the run-down things of its dark mood (DSTYLE)
 }
 
 // ---------------------------------------------------------------------------

@@ -138,7 +138,7 @@ export class Fauna {
 
     // ================= birds =================
     const watchers = dread >= 0.8;
-    const nActive = watchers ? 9 : Math.round(10 * (1 - 0.5 * smoothstep(0.15, 0.45, dread)));   // a few gulls, not a cloud
+    const nActive = watchers ? 9 : dread < 0.35 ? Math.round(10 * (1 - 0.5 * smoothstep(0.15, 0.32, dread))) : Math.round(5 + 23 * smoothstep(0.35, 0.78, dread));   // a few gulls, not a cloud; they thin out, and then the crows come, more and more of them (owner, 2026-11-23: the birds slowly appear)
     const crow = smoothstep(0.3, 0.55, dread);
     this.birdMat.color.setRGB(lerp(1, 0.13, crow), lerp(1, 0.1, crow), lerp(1, 0.17, crow));
     const flap = lerp(9, 3.5, smoothstep(0.3, 0.8, dread));
