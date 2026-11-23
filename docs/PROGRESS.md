@@ -2356,3 +2356,8 @@ dread there eased for a while after it.
   is tighter and a fifth harder.
 - **Dev Studio** (2026-11-23): Money and goods has a raider row: spawn a Reef schooner or galleon raider 70 off the beam, heading for the Gull (tops cannonballs up to 10), and +10 chain shot.
 - **Home Sound is home again** (2026-11-23): the peak floor (85% of the worst dread reached) fades out from 600 to 450 units from Tama (main.js felt()); checked headless with a peak of 0.7: 120 out 0.03 (stage 1), 380 out 0.10 (stage 1), 520 out 0.32, 700 and 1000 out 0.60.
+- **The towed boat, alive** (owner, 2026-11-23: "the towline is very stiff... the boat looks very flat"): a lofted clinker hull (`gear.js`
+  buildBoat: sheer rising to the bow, two strakes, dark inside with ribs, transom, stem, rowlocks, oars). Towed, it is its own thing on the
+  water (`gearplay.js` towBoat): it glides on and slows by drag, drifts down the wind, rides its own waves, leans into its turns and yaws
+  after its way; the line (`TOW_LEN` 10) pulls it taut under way with a small jerk at the bow, and stopped it sags and lies on the water.
+  The rowed boat floats the same way and leans into the turns. Checked headless under sail (taut), turning, and stopped (slack).

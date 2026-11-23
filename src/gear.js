@@ -30,7 +30,7 @@ export function buildBoat() {
   const b = new Builder();
   // stations bow (-1.8) to stern (+1.7): half-beam at the gunwale, sheer height, half-beam at the chine
   const ST = [[-1.8, 0.04, 0.78, 0.02], [-1.45, 0.34, 0.66, 0.16], [-0.9, 0.6, 0.56, 0.36], [-0.2, 0.7, 0.52, 0.44], [0.6, 0.68, 0.53, 0.42], [1.25, 0.58, 0.58, 0.36], [1.7, 0.46, 0.66, 0.3]];
-  const OUT1 = '#8a5428', OUT2 = '#a0662e', IN = '#4a2c14', RIM = '#c8a878', KEEL = '#5a3418';
+  const OUT1 = '#9a6230', OUT2 = '#b87a3a', IN = '#6a4220', RIM = '#d8b888', KEEL = '#5a3418';
   for (let i = 0; i < ST.length - 1; i++) {
     const [z0, w0, h0, c0] = ST[i], [z1, w1, h1, c1] = ST[i + 1];
     for (const sx of [-1, 1]) {

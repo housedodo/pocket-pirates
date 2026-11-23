@@ -376,7 +376,7 @@ function towBoat(dt, t, wave) {
   const yawRate = angleDiff(target, T.h) * Math.min(1, dtc * (T.taut > 0.5 ? 2.2 : 0.6 + sp * 0.3));
   T.h += yawRate;
   floatBoat(T.F, T.x, T.z, T.h, t, wave, dtc, -yawRate / Math.max(dtc, 0.001) * 0.25, -0.04 * T.taut);
-  T.mesh.position.set(T.x, T.F.y - 0.32, T.z); T.mesh.rotation.order = 'YXZ'; T.mesh.rotation.set(T.F.p, -T.h, T.F.r);
+  T.mesh.position.set(T.x, T.F.y - 0.12, T.z); T.mesh.rotation.order = 'YXZ'; T.mesh.rotation.set(T.F.p, -T.h, T.F.r);
   // the rope: from the taffrail to the stem; slack, it sags (a catenary, near enough) and lies on the water where it reaches it
   const ex = stemX + 0, ey = T.F.y + 0.35, slack = Math.max(0, TOW_LEN - d), sag = Math.min(2.6, Math.sqrt(slack * TOW_LEN) * 0.55 + 0.08 * (1 - T.taut));
   const sway = Math.sin(t * 1.7) * 0.25 * (1 - T.taut);
@@ -411,7 +411,7 @@ export function gearTick(dt, t, wave = 1) {
   if (boatMesh) {   // rowed: the same hull on its own water, leaning into the turns
     const yr = (B.lastH == null ? 0 : angleDiff(S.heading, B.lastH) / Math.max(dt, 0.001)); B.lastH = S.heading;
     floatBoat(B.F || (B.F = {}), S.pos.x, S.pos.z, S.heading, t, wave, dt, -yr * 0.3, 0.03 * Math.min(1, S.speed / 4));
-    boatMesh.rotation.order = 'YXZ'; boatMesh.position.set(S.pos.x, B.F.y - 0.32, S.pos.z); boatMesh.rotation.set(B.F.p, -S.heading, B.F.r);
+    boatMesh.rotation.order = 'YXZ'; boatMesh.position.set(S.pos.x, B.F.y - 0.12, S.pos.z); boatMesh.rotation.set(B.F.p, -S.heading, B.F.r);
   }
   B.ghost.position.y = Math.sin(t * 0.8) * 0.15;
   const d = Math.hypot(S.pos.x - B.ax, S.pos.z - B.az);
