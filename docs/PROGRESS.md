@@ -2302,3 +2302,8 @@ dread there eased for a while after it.
   stars are unchanged.
 - The hut's island: its dark water fades smoothly (was five hard bands, `ocean.js` uMurk); the old flat murk sheet that the swell cut
   through is no longer drawn for it (`world.js`). Screenshots before/after.
+
+## 2026-11-23: the diving bell and the ship's boat, designed
+- `docs/proposals/DIVE_AND_BOAT.md` (upgrade tables, how each plays, what it opens, a storyboard, owner questions) and pictures in
+  `docs/proposals/gear/`. Models in `src/gear.js`, on the Gull behind `?gear=1` (a davit and the bell at the starboard quarter, the
+  boat towed astern); nothing plays yet. The dive view is a pixel mock-up, not in the game.

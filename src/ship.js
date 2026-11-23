@@ -6,6 +6,7 @@ import { waveHeight } from './ocean.js';
 import { hullWater, rideWaves } from './float.js';
 import { clamp, lerp, smoothstep, angleDiff } from './util.js';
 import { computeMods } from './upgrades.js';
+import { makeGear } from './gear.js';
 import { HULLS, SAILS, FLAGS, byId, DEFAULT_CUSTOM } from './customize.js';
 
 export const MAX_SPEED = 11;
@@ -322,6 +323,7 @@ export class Ship {
     this.flagDark.visible = false;
     this.flag.add(this.flagBright, this.flagDark);
     this.root.add(this.flag);
+    if (typeof location !== 'undefined' && new URLSearchParams(location.search).get('gear') === '1') { this.gear = makeGear(); this.root.add(this.gear.g); }   // the diving bell and the ship's boat: a design trial (src/gear.js)
 
     // oars: two a side, stowed along the rail until rowing (G). Chunky, no thin lines.
     this.oarArms = [];
