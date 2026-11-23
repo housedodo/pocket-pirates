@@ -104,7 +104,7 @@ import { gearTick, gearDrag, savePos, initDive, diveElement, diveClosed } from '
 import { econ, econTick, econLine } from './systems/econ.js';   // ?econ=1: gold per hour by source (G-25)
 import { after, laterTick, laterPending } from './systems/later.js';
 import { ringNoon, noonBellTick, noonPending } from './systems/noonbell.js';
-import { homeShift, homeTick, homeLook } from './systems/home.js';
+import { homeShift, homeTick, homeLook, HOME_R, HOME_OUT } from './systems/home.js';
 import { HomeMarks } from './systems/homemarks.js';
 import { lineLate, laneOars, pennantsAt } from './systems/crown.js';
 import { farLightTick, LIGHTS_LINE, LAMP_OUT_FAR } from './systems/farlights.js';
@@ -784,7 +784,8 @@ function felt() {
   if (window.__BUILD === 'demo') return dist;
   const st = state.story; if (dist > (st.peakDread || 0)) st.peakDread = dist;
   const nightK = strataIndex(Math.hypot(ship.pos.x, ship.pos.z)) >= 2 ? 0.05 * clamp(tod.night, 0, 1) : 0;
-  return dreadWithPeak(dist, st.peakDread) + nightK;
+  const r = Math.hypot(ship.pos.x, ship.pos.z), atSea = smoothstep(HOME_R, HOME_OUT, r);   // the floor holds at sea and lets go in Home Sound: back at Tama it is home again (owner, 2026-11-23: stage 1 never came back)
+  return dist + (dreadWithPeak(dist, st.peakDread) - dist) * atSea + nightK;
 }
 rt.dread = rt.forced !== null ? rt.forced : dreadAtDistance(Math.hypot(ship.pos.x, ship.pos.z));
 rt.dark = rt.dread > DARK_THRESHOLD;

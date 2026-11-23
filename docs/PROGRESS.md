@@ -2355,3 +2355,4 @@ dread there eased for a while after it.
   cannonballs). The broadside bears only within 54 degrees of abeam ("bring your side round"); from upwind (the weather gauge) the shot
   is tighter and a fifth harder.
 - **Dev Studio** (2026-11-23): Money and goods has a raider row: spawn a Reef schooner or galleon raider 70 off the beam, heading for the Gull (tops cannonballs up to 10), and +10 chain shot.
+- **Home Sound is home again** (2026-11-23): the peak floor (85% of the worst dread reached) fades out from 600 to 450 units from Tama (main.js felt()); checked headless with a peak of 0.7: 120 out 0.03 (stage 1), 380 out 0.10 (stage 1), 520 out 0.32, 700 and 1000 out 0.60.

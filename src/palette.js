@@ -85,5 +85,6 @@ export function strataDread(d) {
 }
 /** the demo build is the bright game: no dread by distance at all (the dev build keeps it for testing) */
 export const dreadAtDistance = (d) => (window.__BUILD === 'demo' ? 0 : strataDread(d));
-/** turning back is not a reset: dread never falls below 85% of the worst you have sailed into (peak is 0..1) */
+/** turning back is not a reset: at sea dread never falls below 85% of the worst you have sailed into (peak is 0..1); main.js felt()
+ *  lets the floor go inside Home Sound (owner, 2026-11-23) */
 export const dreadWithPeak = (dist, peak) => Math.max(dist, 0.85 * (peak || 0));
