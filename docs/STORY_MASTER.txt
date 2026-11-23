@@ -1,7 +1,7 @@
 HOIST (Pocket Pirates): THE MASTER STORY FILE
 ================================================================================================
 This is the main story file for the full game. Edit it, upload it again, and the next session puts every change
-into the game. Built from commit 0a378e2 on 2026-11-23. 1751 in-game lines carry an ID.
+into the game. Built from commit b2a3b3d on 2026-11-23. 1757 in-game lines carry an ID.
 
 CONTENTS
   A   HOW TO USE THIS FILE (IDs, status marks, how to add and remove things)
@@ -569,7 +569,7 @@ Where the story hides in the mechanics, and where its text lives (section J).
 # J  EVERY LINE IN THE GAME
 ################################################################################################
 Pulled from the code. Edit the text after the "|" (see part A). Sources are grouped by file; the CODE in front of every
-line says which file it goes back into. 1751 lines.
+line says which file it goes back into. 1757 lines.
 
 
 
@@ -2617,6 +2617,14 @@ line says which file it goes back into. 1751 lines.
   MAIN-0392 | Not that one, Captain. Give it back to the sea.
   MAIN-0393 | On a string from the boat-shed under the fort. The label on the string says tomorrow. It says tomorrow every day.
   MAIN-0394 | A Crown key. I will give you a little for it and not ask.
+
+### MAIN / ADDED 2026-11-23
+  MAIN-0395 | Chain shot loaded (${state.story.chain || 0})
+  MAIN-0396 | No chain shot aboard. B loads round shot.
+  MAIN-0397 | Her crew put up their hands. Her hold: +${gold} gold, +${balls} cannonballs. She is left to drift.
+  MAIN-0398 | The casks are filled and the bread locker stocked.
+  MAIN-0399 | Sold for ${g} gold.
+  MAIN-0400 | Her masts are down. She strikes her colours. Come alongside and board her (E).
 
 ### MAIN / RETIRED (the text is no longer in the game; these IDs are never used again)
     was MAIN-0001 | A floating market, with bunting on every line. (Friday)

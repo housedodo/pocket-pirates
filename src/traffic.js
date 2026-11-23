@@ -327,7 +327,7 @@ export class Traffic {
         sl.pivot.scale.set(sl.s, flat * sl.s, sl.s);
         if (sl.jib) { sl.jib.scale.x = s.sgn; sl.jib.scale.y = flat; }
       }
-      if (s.rig != null) s.sails.forEach((sl, k) => { sl.pivot.visible = s.rig > 0 && (k === 0 || s.rig > 0.5); });   // chain shot: the extra masts go first, then the main
+      if (s.rig != null) s.sails.forEach((sl, k) => { sl.pivot.visible = s.rig > 0 && (k === 0 || s.rig > 0.5); if (sl.jib) sl.jib.visible = s.rig > 0.5; });   // chain shot: the extra masts go first, then the main
       if (s.struck) s.flag.visible = false;   // colours struck
       s.flag.rotation.y = Math.PI - rel + Math.sin(t * 8 + i) * 0.2;
       if (s.lamps) s.lamps.visible = s.mode === 'live' && !s.sinking && mats.glow.opacity > 0.3;   // lit at night and in a storm (the world's lamp level)
