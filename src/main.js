@@ -102,7 +102,8 @@ import { seaSpot } from './systems/sealog.js';
 import { voyageTick, moodMods } from './systems/voyage.js';
 import { shelvesNear } from './systems/shallows.js';
 import { crewTick } from './systems/raiders.js';
-import { handMods } from './systems/hands.js';   // stores, the crew's spirits, night nerves (owner, 2026-11-23)
+import { handMods } from './systems/hands.js';
+import { spiceTick } from './systems/spice.js';   // stores, the crew's spirits, night nerves (owner, 2026-11-23)
 import { gearTick, gearDrag, savePos, initDive, diveElement, diveClosed } from './systems/gearplay.js';   // the diving bell and the ship's boat (owner, 2026-11-23)   // the other ways through (T4)
 import { econ, econTick, econLine } from './systems/econ.js';   // ?econ=1: gold per hour by source (G-25)
 import { after, laterTick, laterPending } from './systems/later.js';
@@ -1368,6 +1369,7 @@ function frame() {
   for (const c of Object.values(companions)) { c.m.g.visible = c.fly > 0 || rt.dread < 0.6; if (c.m.g.visible) c.update(vdt); }
   traffic.update(dt, waveT, lifeCtx);
   crewTick(dt);   // the raider crews (systems/raiders.js)
+  spiceTick();   // the herbalist names a spice place as it comes into view (systems/spice.js)
   if (live) raceTick(dt, { world, traffic, ship, sched: lifeCtx.sched, ok: laterOK(), wind: windNow });   // the Sunday race (systems/race.js)
   homeMarks.update(waveT, { ship, hour: state.time * 24, wave: stage.wave, dread: rt.dread });   // the fishers' marks in Home Sound (systems/homemarks.js)
   if (live) reefTick(dt);   // the Reef: coral, the shoals that move at dawn, storm wrecks (systems/reef.js)

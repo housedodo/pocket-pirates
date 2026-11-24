@@ -231,9 +231,10 @@ export function renderHarbour() {
     if (tradeOn(d)) {   // trade runs (systems/trade.js): a crate at a time
       html += `<div class="sec">CARGO</div><small>The hold: ${carried()} of ${room()} crates.</small>`;
       for (const [k, gd] of Object.entries(GOODS)) {
+        if (gd.found && !(cargo()[k] > 0)) continue;   // a spice shows only once you carry it (systems/spice.js)
         const tk = handOn('trader') ? [0.9, 1.1] : [1, 1];   // the trader aboard (systems/hands.js)
         const pb = Math.ceil(tradePrice(d.region, k) * discount(rep) * tk[0]), ps = Math.round(sellPrice(d.region, k) * hm * tk[1]), have = cargo()[k] || 0;
-        html += `<div class="qrow"><div><b>${pxi('crate')} ${gd.name}</b><br><small>${have ? `${have} aboard · ` : ''}${gd.from === d.region ? 'made here' : 'buy'} ${pb}g · sell ${ps}g</small></div><span>${have ? `<button data-tsell="${k}">+${ps * have}g</button>` : ''}<button data-tbuy="${k}" ${state.gold >= pb && carried() < room() ? '' : 'disabled'}>Buy 1</button></span></div>`;
+        html += `<div class="qrow"><div><b>${pxi('crate')} ${gd.name}</b><br><small>${have ? `${have} aboard · ` : ''}${gd.found ? 'found, not sold' : `${gd.from === d.region ? 'made here' : 'buy'} ${pb}g`} · sell ${ps}g</small></div><span>${have ? `<button data-tsell="${k}">+${ps * have}g</button>` : ''}${gd.found ? '' : `<button data-tbuy="${k}" ${state.gold >= pb && carried() < room() ? '' : 'disabled'}>Buy 1</button>`}</span></div>`;
       }
     }
     if (G.oilOn()) { const kc = Math.ceil(35 * discount(rep) * G.costMul() * buyMul(d, 'kit')); html += `<div class="sec">SAILCLOTH</div><div class="qrow"><div><b>${pxi('sail')} Sail patch kit</b> <span class="kits">${[0, 1, 2].map((k) => `<i class="${k < state.patchKits ? 'on' : ''}"></i>`).join('')}</span><br><small>${state.patchKits} aboard, room for 3: mends a torn sail at sea</small></div>${state.patchKits < 3 ? `<button id="buyKit" ${state.gold >= kc ? '' : 'disabled'}>${kc}g</button>` : '<button disabled>Full</button>'}</div>`; }

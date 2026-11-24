@@ -8,12 +8,18 @@ import { hash2, mulberry32 } from '../util.js';
 const DEMO = () => typeof window !== 'undefined' && window.__BUILD === 'demo';
 export const GOODS = {
   cloth: { name: 'Bolts of cloth', one: 'cloth', from: 'crown', base: 22 },
-  spice: { name: 'Spice', one: 'spice', from: 'free', base: 26 },
+  coir:  { name: 'Coir rope', one: 'coir rope', from: 'free', base: 18 },
+  // spices (owner, 2026-11-24: "spices are only available in specific spots"): never sold at a market, only found (systems/spice.js);
+  // wanted dear in their waters, and the Guild pays well for any
+  pepper:   { name: 'Pepper', one: 'pepper', found: true, base: 46, wanted: ['crown', 'lantern'] },
+  saffron:  { name: 'Saffron', one: 'saffron', found: true, base: 70, wanted: ['crown'] },
+  clove:    { name: 'Cloves', one: 'cloves', found: true, base: 52, wanted: ['reef', 'lantern'] },
+  bluesalt: { name: 'Blue salt', one: 'blue salt', found: true, base: 90, wanted: ['crown', 'free', 'reef', 'lantern', 'home'] },
   rum:   { name: 'Casks of rum', one: 'rum', from: 'reef', base: 20 },
   glass: { name: 'Lamp glass', one: 'glass', from: 'lantern', base: 24 },
   salt:  { name: 'Salt', one: 'salt', from: 'home', base: 14 },
 };
-export const WANTS = { crown: 'spice', free: 'cloth', reef: 'salt', lantern: 'rum', home: 'glass' };
+export const WANTS = { crown: 'coir', free: 'cloth', reef: 'salt', lantern: 'rum', home: 'glass' };
 export const MADE_MUL = 0.55, WANT_MUL = 1.75, DRIFT = 0.22, SELL_CUT = 0.9;   // made here: cheap; wanted here: dear; the weekly drift; what you get back of a price
 export const HOLD = 4, HOLD_HULL = 2;     // crates the hold takes, and more per hull level
 export const RUMOUR_P = 0.3;
@@ -23,14 +29,17 @@ const week = () => Math.floor((state.dayN || 0) / 7);
 const drift = (region, good) => 1 + (mulberry32(hash2(week(), region.length * 31 + good.length, (state.seed || 1) + 77))() - 0.5) * 2 * DRIFT;
 /** the price of one crate of `good` in a harbour of `region`, this week */
 export function price(region, good) {
-  const G = GOODS[good], k = G.from === region ? MADE_MUL : WANTS[region] === good ? WANT_MUL : 1;
+  const G = GOODS[good];
+  if (G.found) return Math.max(2, Math.round(G.base * ((G.wanted || []).includes(region) ? 1.6 : 0.8) * (region === 'lantern' ? 1.25 : 1) * drift(region, good)));   // spice: only sold, never bought
+  const k = G.from === region ? MADE_MUL : WANTS[region] === good ? WANT_MUL : 1;
   return Math.max(2, Math.round(G.base * k * drift(region, good)));
 }
 export const sellPrice = (region, good) => Math.max(1, Math.round(price(region, good) * SELL_CUT));
-export const cargo = () => state.story.cargo || (state.story.cargo = {});
+export const cargo = () => { const c = state.story.cargo || (state.story.cargo = {}); if (c.spice) { c.pepper = (c.pepper || 0) + c.spice; delete c.spice; } return c; };   // (saves from before the spices carried 'spice')
 export const carried = () => Object.values(cargo()).reduce((a, b) => a + b, 0);
 export const room = () => HOLD + HOLD_HULL * ((state.upgrades && state.upgrades.hull) || 0);
 export function buy(region, good, mul = 1) {
+  if (GOODS[good].found) return 0;
   const p = Math.ceil(price(region, good) * mul);
   if (state.gold < p || carried() >= room()) return 0;
   state.gold -= p; cargo()[good] = (cargo()[good] || 0) + 1; return p;
@@ -50,7 +59,7 @@ const LINES = [
 export function tradeRumour(d) {
   if (!tradeOn(d) || Math.random() >= RUMOUR_P) return null;
   let best = null;
-  for (const good of Object.keys(GOODS)) for (const r of Object.keys(RNAME)) {
+  for (const good of Object.keys(GOODS).filter((g) => !GOODS[g].found)) for (const r of Object.keys(RNAME)) {
     if (r === d.region) continue;
     const gain = sellPrice(r, good) - price(d.region, good);
     if (!best || gain > best.gain) best = { gain, good, r };
