@@ -21,6 +21,7 @@ import { CELL } from '../world.js';
 import { hash2, mulberry32 } from '../util.js';
 import { tod } from '../daynight.js';
 import { tideAt } from './calendar.js';
+import { handOn } from './hands.js';
 
 const DEMO = () => typeof window !== 'undefined' && window.__BUILD === 'demo';
 export const GROUND_PAD = 1.5;   // the Gull's keel finds the shelf this far inside its edge
@@ -153,7 +154,7 @@ export function shelvesNear(x, z, R = 500) {
   return out;
 }
 const lowTide = () => tideAt() < -0.35;
-let lastFloat = null;
+let lastFloat = null, groundT = -99;
 /** each frame (gearplay.js): the Gull grounds on a shelf; the boat goes over shelves but not through islets (or the spits at low tide) */
 export function shallowsTick(dt, t) {
   if (!built) build();
@@ -161,7 +162,10 @@ export function shallowsTick(dt, t) {
   const S = G.ship, boat = !!rt.boat;
   if (!boat) {
     let hit = null, best = 0;
-    for (const s of shelves) { const d = Math.hypot(S.pos.x - s[0], S.pos.z - s[1]), inside = s[2] - GROUND_PAD - d; if (inside > best) { best = inside; hit = s; } }
+    const pad = GROUND_PAD + (handOn('pilot') ? 4 : 0);   // the pilot at the bow: she edges further in (systems/hands.js)
+    for (const s of shelves) { const d = Math.hypot(S.pos.x - s[0], S.pos.z - s[1]), inside = s[2] - pad - d; if (inside > best) { best = inside; hit = s; } }
+    if (hit && rt.tNow - groundT > 8) state.story.grounded = (state.story.grounded || 0) + 1;   // counted once per grounding, not per frame of it (the pilot is earned by two)
+    if (hit) groundT = rt.tNow;
     if (hit) {   // aground: she stops dead where her keel first touched (the last place she floated), never pushed further in
       if (lastFloat && Math.hypot(S.pos.x - lastFloat.x, S.pos.z - lastFloat.z) < 30) { S.pos.x = lastFloat.x; S.pos.z = lastFloat.z; }   // (after a jump, the old place is too far: pushed off instead)
       else { const dx = S.pos.x - hit[0], dz = S.pos.z - hit[1], d = Math.hypot(dx, dz) || 1; S.pos.x += dx / d * best; S.pos.z += dz / d * best; }

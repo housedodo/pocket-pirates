@@ -16,6 +16,7 @@ import { scene } from '../core/engine.js';
 import { DAY_LENGTH, tod } from '../daynight.js';
 import { toast } from '../ui/dom.js';
 import { angleDiff, clamp } from '../util.js';
+import { handLeaves } from './hands.js';
 
 const DEMO = () => typeof window !== 'undefined' && window.__BUILD === 'demo';
 // ---- the numbers (tune by hand)
@@ -56,6 +57,7 @@ export function voyageDock(d) {
     const c = state.crew.pop();
     return `${c.name} picks up a bag and goes down the gangplank without a word. Nobody tries to stop them.`;
   }
+  if (mood() < LEAVE_AT) return handLeaves(d);   // then a specialist (systems/hands.js)
   return null;
 }
 /** the market's row (ui/harbour.js): how many days are missing, and what filling them costs here */

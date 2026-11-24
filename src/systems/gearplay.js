@@ -25,6 +25,7 @@ import { hasSeen } from '../clues.js';
 import { angleDiff, smoothstep } from '../util.js';
 import { hullWater, rideWaves } from '../float.js';
 import { waveHeight } from '../ocean.js';
+import { handOn } from './hands.js';
 import { siteShelf, shallowsTick, shallowsInteract, shallowsFind, shallowsState } from './shallows.js';
 
 const DEMO = () => typeof window !== 'undefined' && window.__BUILD === 'demo';
@@ -293,7 +294,9 @@ export const diveElement = () => diveEl;
 export function openDive(s) {
   if (!diveEl) return;
   const lv = state.upgrades.bell || 1;
-  D = { s, pan: 80 + (hash(s.id.length, 3, 7) * 140 | 0), air: AIR * (1 + 0.5 * (lv - 1)), max: AIR * (1 + 0.5 * (lv - 1)), looked: false, last: performance.now(), line: '' };
+  state.stats.dives = (state.stats.dives || 0) + 1;
+  const airK = (1 + 0.5 * (lv - 1)) * (handOn('diver') ? 1.5 : 1);   // the diver aboard (systems/hands.js)
+  D = { s, pan: 80 + (hash(s.id.length, 3, 7) * 140 | 0), air: AIR * airK, max: AIR * airK, looked: false, last: performance.now(), line: '' };
   views[VIEWS[s.view] ? s.view : 'street'] = views[s.view] || paintView(s.view);
   document.getElementById('diveSay').textContent = '';
   G.openModal('dive');

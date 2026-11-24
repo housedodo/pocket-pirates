@@ -101,7 +101,8 @@ import { passesTick, wallPass, ribsLull } from './systems/passes.js';
 import { seaSpot } from './systems/sealog.js';
 import { voyageTick, moodMods } from './systems/voyage.js';
 import { shelvesNear } from './systems/shallows.js';
-import { crewTick } from './systems/raiders.js';   // stores, the crew's spirits, night nerves (owner, 2026-11-23)
+import { crewTick } from './systems/raiders.js';
+import { handMods } from './systems/hands.js';   // stores, the crew's spirits, night nerves (owner, 2026-11-23)
 import { gearTick, gearDrag, savePos, initDive, diveElement, diveClosed } from './systems/gearplay.js';   // the diving bell and the ship's boat (owner, 2026-11-23)   // the other ways through (T4)
 import { econ, econTick, econLine } from './systems/econ.js';   // ?econ=1: gold per hour by source (G-25)
 import { after, laterTick, laterPending } from './systems/later.js';
@@ -286,7 +287,7 @@ if (!saved && !params.has('x')) {
 }
 ship.pos.set(state.pos.x, 0, state.pos.z);
 ship.heading = state.pos.h;
-const refreshMods = () => { const m0 = moodMods(computeMods(state.upgrades)); m0.speed *= gearDrag(); ship.mods = threads.modAdjust(m0); state.hp = Math.min(state.hp, ship.mods.maxHp); ship.setUpgradeLook(state.upgrades); };
+const refreshMods = () => { const m0 = handMods(moodMods(computeMods(state.upgrades))); m0.speed *= gearDrag(); ship.mods = threads.modAdjust(m0); state.hp = Math.min(state.hp, ship.mods.maxHp); ship.setUpgradeLook(state.upgrades); };
 ship.setCustom(state.custom);
 refreshMods();
 ship.setTorn(state.sailsTorn);

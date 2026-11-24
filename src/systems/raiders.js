@@ -23,6 +23,7 @@ import { angleDiff, clamp } from '../util.js';
 import { tod } from '../daynight.js';
 import { CHEST } from '../chest.js';
 import { unlocked } from '../objectives.js';
+import { handOn } from './hands.js';
 
 const DEMO = () => typeof window !== 'undefined' && window.__BUILD === 'demo';
 export const CREW_GAP = 1.5, CREW_TRY = 25, CREW_P = 0.14;   // days before the same crew comes again; s between tries; the chance a try finds one
@@ -31,6 +32,7 @@ const crews = () => state.story.crews || (state.story.crews = {});
 const C = (id) => crews()[id] || (crews()[id] = { met: 0, beat: 0, day: -99 });
 const say = (l) => { if (G.objectives && G.objectives.mate && !G.objectives.mate.busy) G.objectives.mate.say(l); };
 
+const GUNNER = { wolves: 'Red sails. That is Vosk. She will not talk, Captain.', tollmen: 'Grey brig, ports shut. They want paying, not fighting.', beggars: 'Patched sail. Hungry, not dangerous. Not yet.', collectors: 'I do not know what that is. I would not shoot at it.' };
 export const CREWS = {
   wolves: { name: 'the Red Widow', kind: 'schooner', faction: 'reef', where: (r, k, c) => (r === 'reef' && k < 0.55 && c.beat < 2) || (c.beat === 2 && k >= 0.6), hostile: true,   // her last beat is far out
     hull: '#2a1c1c', sail: [0.62, 0.16, 0.14], line: 'A woman in a long coat at the rail, one hand on a pistol, not drawing it. "You are not her. Lower in the water, she was. Still: your hold."' },
@@ -130,6 +132,7 @@ export function spawnCrew(id, x, z) {
   dress(s, id);
   const c = C(id); c.met++; c.day = state.dayN + state.time;
   if (derelict) s.crewDerelict = true;
+  if (handOn('gunner') && !derelict) setTimeout(() => toast(`Hask, at the guns: "${GUNNER[id]}"`, false, 5000), 1500);   // the gunner reads her (systems/hands.js)
   return s;
 }
 /** each frame (main.js): bring one in now and then; each kind keeps its own way of coming at you */
