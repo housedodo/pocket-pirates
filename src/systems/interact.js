@@ -43,6 +43,7 @@ import { REFUSE_AT, owed, payOwed, mark } from './standing.js';
 import { handOn } from './hands.js';
 import { crewBoarded } from './raiders.js';
 import { tradeRumour } from './trade.js';
+import { wreckRumour } from './wrecks.js';
 import { spiceInteract, spiceAct } from './spice.js';
 
 export function getInteract() {
@@ -233,7 +234,8 @@ function doInteract(tg) {
     if (!say && free && G.laterOK() && rt.dread < 0.6 && Math.random() < 0.35) say = customLine(state, d, cx);   // a regional custom (customs.js, the lore bible)
     { const mr = G.laterOK() ? maraAt(state, d, cx) : null; if (mr) setTimeout(() => { if (!G.objectives.mate.busy) G.objectives.mate.say(mr); }, 2600); }   // Mara, once per region, while the water is light (L-34)
     if (!say && free && G.laterOK() && rt.dread < 0.6) say = G.taleAt(d);
-    if (!say && free && G.laterOK()) say = tradeRumour(d);   // where a good price is this week (trade.js)
+    if (!say && free && G.laterOK()) say = tradeRumour(d);
+    if (!say && free && G.laterOK() && window.__BUILD !== 'demo') say = wreckRumour(G.world, d);   // a wreck in its water (wrecks.js)   // where a good price is this week (trade.js)
     if (!say && free && G.laterOK() && (g.day[d.id] == null || Math.random() < 0.3)) say = pickGreeting({ hour: state.time * 24, weather: G.weather.label, dread: rt.dread, rnd: Math.random, custom: d.custom, event: isFestival(d) ? 'festival' : isMarketDay() ? 'market' : isLanternNight() ? 'lantern' : null, boat: (() => { const b = boatStatus(d, state.dayN, rt.dread, state.seed); return b.today === 'stayed' ? 'stayed' : b.yesterday === 'lost' ? 'lost' : null; })() });
     if (!say && free && window.__BUILD !== 'demo') { const tl = G.threads.harbourLine(d); if (tl) say = { speaker: 'fisher', text: tl, dark: true, story: true }; }
     if (laneArrival(state, d, rt.lane && rt.tNow - rt.lane.t < 90 ? rt.lane : null)) setTimeout(() => toast('In by the buoys. The harbourmaster ticks a line in the book.', false, 4500), 1400);   // the Crown's record (regions.js)
@@ -313,6 +315,13 @@ function doInteract(tg) {
   } else if (tg.kind === 'wreck' && !rt.dig) {
     const o = tg.o;
     rt.dig = { key: tg.key, t: 0, label: 'Salvaging the wreck...', need: 3.4 * G.ship.mods.digTime * (state.buffs.dig > 0 ? 0.7 : 1), done: () => {
+      if (o.fixed) {   // a named wreck (systems/wrecks.js): its own find, once
+        const f = o.fixed, g = Math.round(f.gold * G.ship.mods.lootMul); o.salvaged = true; state.collected.add(o.id); state.stats.wrecks++; state.gold += g;
+        if (f.oil && state.oil < oilCap(state.upgrades)) state.oil = oilCap(state.upgrades);
+        state.notes.push({ text: f.text, dark: !!f.dark }); toast(f.text + (g ? ` (+${g} gold)` : ''), !!f.dark, 9000);
+        const rk = 'wreck:' + f.id; if (state.rumoured[rk]) state.rumoured[rk].found = true;
+        G.audio.play(g ? 'treasure' : 'discover'); return;
+      }
       const loot = G.abyss.wrongLoot(lootFor(mulberry32(o.rngSeed), o.dread), state);
       loot.value = Math.round(loot.value * 1.3 * G.ship.mods.lootMul * (tideAt() < -0.45 ? 1.3 : 1) * G.threads.salvageMul() * (SALVAGE_MUL[regionAt(o.x, o.z, state.seed)] || 1));   // the tide has uncovered more; the Reef keeps the ships that come (regions.js)
       loot.name = `From the wreck: ${loot.name}`;

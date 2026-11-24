@@ -25,6 +25,7 @@ import { CHEST } from '../chest.js';
 import { unlocked } from '../objectives.js';
 import { handOn } from './hands.js';
 import { mark } from './standing.js';
+import { revealWreck } from './wrecks.js';
 
 const DEMO = () => typeof window !== 'undefined' && window.__BUILD === 'demo';
 export const CREW_GAP = 1.5, CREW_TRY = 25, CREW_P = 0.14;   // days before the same crew comes again; s between tries; the chance a try finds one
@@ -249,7 +250,7 @@ export function crewOffer(s, o) {
         : c.helped === 2 ? 'This time she has something for you: a scrap of chart, a cross on it in the shallows. "My husband found that. He did not come back from it. You might."'
         : 'They are looking for somewhere to stop for good. She asks about the stilt hut on the Sandbar Cays. "Nobody lives there?" You do not know what to tell her.';
       toast(L, false, 8000);
-      if (c.helped === 2) { state.story.patienceChart = state.dayN; if (G.revealWreck) G.revealWreck('patience'); }
+      if (c.helped === 2) { state.story.patienceChart = state.dayN; revealWreck(G.world, 'husband', 'the Patience'); }   // her husband's boat goes on the chart (systems/wrecks.js)
       if (c.helped >= 3) state.story.patienceHome = state.dayN;   // shallows.js: they live at the stilt hut now
       break;
     }

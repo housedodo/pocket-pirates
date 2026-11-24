@@ -7,6 +7,7 @@ import { waveHeight } from './ocean.js';
 import { hash2, mulberry32, smoothstep, clamp } from './util.js';
 import { CELL } from './world.js';
 import { dreadAtDistance } from './palette.js';
+import { wreckInCell } from './systems/wrecks.js';
 // made once: the frame's tints (task R6)
 // sail into it to pick it up: distance from the ship's centre (SYSTEMS_FEEL G-17; tune by hand; was barrel 4.8, crate 5.2)
 export const PICK_BARREL = 6.0, PICK_CRATE = 6.0, PICK_BOTTLE = 6.5;
@@ -141,6 +142,8 @@ export class SeaFeatures {
   makeCell(cx, cz) {
     const items = [];
     if (this.world.desc(cx, cz)) return items;
+    { const fw = wreckInCell(this.world, cx, cz);   // a named wreck (systems/wrecks.js)
+      if (fw) { const id = 'fw:' + fw.id, g = wreckMesh(hash2(cx, cz, 9) % 628 / 100, fw.x, fw.z); items.push({ type: 'wreck', id, x: fw.x, z: fw.z, mesh: g, dread: dreadAtDistance(Math.hypot(fw.x, fw.z)), salvaged: this.collected.has(id), rngSeed: hash2(cx, cz, this.seed + 5), fixed: fw }); this.scene.add(g); return items; } }
     const rng = mulberry32(hash2(cx, cz, this.seed + 777));
     const roll = rng();
     const bx = cx * CELL + (rng() - 0.5) * 70, bz = cz * CELL + (rng() - 0.5) * 70;
@@ -163,11 +166,7 @@ export class SeaFeatures {
         const glint = new THREE.Mesh(glintGeo, mats.props); this.scene.add(glint);
         add({ type: 'bottle', id, x: bx, z: bz, mesh: m, glint, phase: rng() * 6, dread });
       }
-    } else if (roll < 0.34) {   // wrecks: a rare find (8% of open cells, was 20%); still about ten inside the fog once salvage opens
-      const id = `w:${cx},${cz}`;
-      const g = wreckMesh(rng() * 6.28, bx, bz);
-      add({ type: 'wreck', id, x: bx, z: bz, mesh: g, dread, salvaged: this.collected.has(id), rngSeed: hash2(cx, cz, this.seed + 5) });
-    } else if (roll < 0.46) {   // nothing: open water
+    } else if (roll < 0.46) {   // nothing: open water (the random wrecks are gone: systems/wrecks.js puts six named ones in fixed places)
     } else if (roll < 0.54 && dread > 0.08) {
       add({ type: 'whirl', id: `wp:${cx},${cz}`, x: bx, z: bz, mesh: new THREE.Mesh(whirlGeo, this.whirlMat), dread });
     } else if (roll < 0.66) {
