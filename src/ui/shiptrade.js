@@ -8,6 +8,7 @@ import { tod } from '../daynight.js';
 import { state } from '../core/state.js';
 import { rt, G } from '../core/runtime.js';
 import { $, toast } from './dom.js';
+import { crewOffers, crewOffer, crewLine } from '../systems/raiders.js';
 
 export let hailChance;   // set by the init function(s) below, at the point in boot where main.js had them
 
@@ -25,6 +26,7 @@ export const REFUSALS = ['The crew glances at you and looks away.', 'A sailor wa
 export function hailShip(sh) {
   const rng = mulberry32(sh.seed);
   state.stats.hails++;
+  if (sh.crew) { sh.offers = null; rt.tradeShip = sh; G.openModal('ship'); return; }   // a raider crew: what she wants (systems/raiders.js)
   if (sh.hostile && sh.hp > 0) { sh.state = 'open'; rt.tradeShip = sh; G.openModal('ship'); return; }
   if (sh.special === 'regatta') { sh.state = 'done'; toast('They wave without slowing down. It is a race, and they are winning.', false, 5000); return; }
   if (sh.special === 'market') { sh.state = 'open'; rt.tradeShip = sh; G.openModal('ship'); return; }
@@ -52,6 +54,7 @@ export const FACTION_GREET = {
   lantern: 'The Lantern Guild keeps the lamps burning. State your business.',
 };
 export function shipOffers(sh) {
+  if (sh.crew) return crewOffers(sh);
   if (sh.offers) return sh.offers;
   if (sh.hostile) return (sh.offers = [
     { id: 'tribute', label: 'Pay tribute', cost: 30 + Math.round(KINDS[sh.kind].scale * 15), desc: 'they take the coin and let you pass in peace', used: false },
@@ -77,7 +80,7 @@ export function shipOffers(sh) {
 export function renderShipTrade() {
   const sh = rt.tradeShip;
   $('shName').textContent = sh.name;
-  $('shLine').textContent = sh.special === 'market' ? 'A trader leans on the rail among the lanterns: "Everything must go. Everything always goes. Come aboard, captain."' : sh.hostile ? 'The raider captain grins: "Nice ship. Shame if something happened to it. A little tribute, perhaps?"' : (FACTION_GREET[sh.faction.id] || 'Ahoy!');
+  $('shLine').textContent = sh.crew ? crewLine(sh) : sh.special === 'market' ? 'A trader leans on the rail among the lanterns: "Everything must go. Everything always goes. Come aboard, captain."' : sh.hostile ? 'The raider captain grins: "Nice ship. Shame if something happened to it. A little tribute, perhaps?"' : (FACTION_GREET[sh.faction.id] || 'Ahoy!');
   $('shGold').textContent = state.gold;
   $('shList').innerHTML = shipOffers(sh).map((o, i) => `<div class="up"><div><span class="nm">${i + 1}. ${o.label}</span></div>
     <button data-i="${i}" ${o.used || state.gold < o.cost ? 'disabled' : ''}>${o.used ? 'Done' : o.cost ? `${o.cost}g` : 'Free'}</button><div class="ds">${o.desc}</div></div>`).join('');
@@ -87,6 +90,7 @@ export function doOffer(i) {
   const sh = rt.tradeShip, o = shipOffers(sh)[i];
   if (!o || o.used || state.gold < o.cost) return;
   const rng = mulberry32(sh.seed + 77 + i);
+  if (sh.crew && crewOffer(sh, o)) { state.gold -= o.cost; o.used = true; if (rt.modal === 'ship') { sh.offers = sh.state === 'none' ? null : sh.offers; renderShipTrade(); } return; }
   const idx = stageOf(rt.dread);
   if (o.id === 'sellall') {
     const sale = sellable(state);   // what an errand in hand needs stays aboard (G-08)

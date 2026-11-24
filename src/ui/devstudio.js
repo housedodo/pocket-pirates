@@ -27,6 +27,7 @@ import { leaveEdge } from '../systems/edge.js';
 import { CAVES } from '../caves.js';
 import { NIGHT_MODES } from '../daynight.js';
 import { toast } from './dom.js';
+import { spawnCrew } from '../systems/raiders.js';
 
 const SLOTS_KEY = 'pocket-pirates-dev-slots-v1', UI_KEY = 'pocket-pirates-dev-studio-ui', NSLOT = 5;
 const ss = { get: (k) => { try { return sessionStorage.getItem(k); } catch (e) { return null; } }, set: (k, v) => { try { if (v == null) sessionStorage.removeItem(k); else sessionStorage.setItem(k, v); } catch (e) { /* blocked */ } } };
@@ -204,6 +205,7 @@ function html() {
   ${sec('money', 'Money and goods', `<div class="dsrow">${B('gold:10', '+10')}${B('gold:100', '+100')}${B('gold:1000', '+1000')}<input id="dsGold" type="number" min="0" step="1">${B('goldset', 'Set')}</div>
     <div class="dsrow">${B('oil', 'Fill oil')}${B('ammo', '+10 balls')}${B('hull', 'Repair hull')}${B('sails', 'Mend sails')}</div>
     <div class="dsrow">Raider ${B('raider:schooner', 'Spawn schooner', 'a Reef raider 70 off the beam, coming for you')}${B('raider:galleon', 'Spawn galleon')}${B('chain', '+10 chain shot')}</div>
+    <div class="dsrow">Crew ${B('crew:wolves', 'Red Widow')}${B('crew:tollmen', 'The Toll')}${B('crew:beggars', 'The Patience')}${B('crew:collectors', 'Quiet Hand')}</div>
     ${up}
     <div class="dsrow"><select id="dsFish">${FISH.map((f) => `<option value="${f.id}">${f.name}</option>`).join('')}</select>${B('fish', 'Fish to hold')}</div>
     <div class="dsrow"><select id="dsFruit">${FRUIT_ORDER.map((f) => `<option>${f}</option>`).join('')}</select>${B('fruit', 'Fruit to hold')}${B('loot', 'A treasure')}</div>`)}
@@ -271,6 +273,7 @@ function act(a) {
     oil: () => { state.oil = oilCap(state.upgrades); },
     ammo: () => { state.ammo += 10; },
     chain: () => { st.chain = (st.chain || 0) + 10; },
+    crew: () => { const s = spawnCrew(p, ship.pos.x + Math.sin(ship.heading + 1.3) * 80, ship.pos.z - Math.cos(ship.heading + 1.3) * 80); if (s) toast(`Dev: the ${s.name}`, false, 2500); if (state.ammo < 10) state.ammo = 10; },   // a raider crew (systems/raiders.js)
     raider: () => {   // a hostile Reef ship off the beam, heading for the Gull (traffic.js spawnAt); Space fires, B switches round and chain shot
       const side = ship.heading + Math.PI / 2, x = ship.pos.x + Math.sin(side) * 70, z = ship.pos.z - Math.cos(side) * 70;
       const r = gm.traffic.spawnAt(p, 'reef', x, z, Math.atan2(ship.pos.x - x, -(ship.pos.z - z)), 'live', null, true);

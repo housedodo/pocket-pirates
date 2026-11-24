@@ -2385,3 +2385,14 @@ dread there eased for a while after it.
   primaries), each an instanced body and two wings; the flock is crows once the water's crow factor passes one half (dread about 0.43).
   The flat tinted triangles are gone. Checked headless close up at dread 0.1 (gull) and 0.66 (crow).
 - **The towed boat relaxes** (owner, 2026-11-24: "pulled the wrong way and never relaxed"): the wind drift that kept it pulling away is a breath now (`TOW_DRIFT` 0.04), it carries its way longer than the Gull (`TOW_DRAG_K` 0.32) so it runs up slack when she slows, the line gives it at most her speed, and once she is nearly stopped it settles straight astern at two thirds of the line (`TOW_REST`). Checked headless with W then S: taut under sail, slack within seconds of furling, the boat 10 astern.
+
+## Raider crews, crew, reputation, spices, wrecks, deep seas (2026-11-24, owner: "do all of them in your suggested order, founders as story")
+- **Raider crews** (`src/systems/raiders.js`): four named ships, one at a time, now and then where their water is (`CREW_TRY` 25 s,
+  `CREW_P` 0.14, 1.5 days before the same one again), only after the cannons; each its own paint (vertex colours remapped dark to light,
+  `recolour`; the Toll and the Quiet Hand without wood grain) and things on deck (a jawbone and a long red streamer; a toll booth, a
+  lantern pole and a chain, a black ring on the sail; patched sails, washing and a goat, a leaning mast, low in the water; lanterns down
+  both rails, slack sails, no flag). Behaviour: the Widow attacks; the Toll comes alongside and turns hostile if refused or run from;
+  the Patience follows if refused and may try at night; the Quiet Hand keeps company and lifts the night nerves. Parley in the ship
+  screen (`crewOffers`/`crewOffer`); three story beats each (state.story.crews). A named ship strikes instead of sinking (`crewStruck`),
+  boarding gives a beat (`crewBoarded`). Dev Studio: a Crew row spawns each. Checked headless: each ship close up, each parley, the
+  Widow struck and boarded.

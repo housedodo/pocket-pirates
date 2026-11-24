@@ -214,6 +214,12 @@ export function shallowsInteract() {
 }
 export function shallowsFind(g) {
   const F = FIND[g.id], seen = state.story.shallows || (state.story.shallows = {});
+  if (g.id === 'cays' && state.story.patienceHome != null) {   // the Patience's family live here now (systems/raiders.js, beggars)
+    const first = !seen.patience; seen.patience = state.dayN;
+    toast(first ? 'The Patience is moored under the hut, her patched sail furled. The kettle is on. The woman pours you a cup and says nothing about who was here before.' : 'The children are fishing off the ladder. The goat is on the roof.', false, 8000);
+    if (first) state.notes.push({ text: 'The Patience\'s family live in the stilt hut on the Sandbar Cays now.', dark: false });
+    return;
+  }
   if (seen[g.id] == null) { seen[g.id] = state.dayN; state.notes.push({ text: F.once, dark: false }); toast(F.once, false, 9000); }
   else toast(F.again, false, 4000);
 }

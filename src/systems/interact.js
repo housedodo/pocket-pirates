@@ -39,6 +39,7 @@ import { actEvent } from './seaevents.js';
 import { rGreeting } from './rletters.js';
 import { gearInteract, gearAct, gearDock } from './gearplay.js';
 import { voyageDock } from './voyage.js';
+import { crewBoarded } from './raiders.js';
 import { tradeRumour } from './trade.js';
 
 export function getInteract() {
@@ -151,6 +152,7 @@ function doInteract(tg) {
       const gold = Math.round((70 + Math.random() * 90) * (s.scale || 1)), balls = 4 + Math.floor(Math.random() * 6);
       state.gold += gold; state.ammo += balls; state.stats.boarded = (state.stats.boarded || 0) + 1; state.stats.sunk++;
       G.audio.play('treasure'); toast(`Her crew put up their hands. Her hold: +${gold} gold, +${balls} cannonballs. She is left to drift.`, false, 6000);
+      { const cl = crewBoarded(s); if (cl) { state.notes.push({ text: cl, dark: false }); after(3, () => toast(cl, false, 8000)); } }   // a beat of her crew's story (raiders.js)
     } };
     return;
   }

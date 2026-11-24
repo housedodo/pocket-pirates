@@ -23,6 +23,7 @@ import { $, toast } from '../ui/dom.js';
 import { tideFalls } from './calendar.js';
 import { after } from './later.js';
 import { CHAIN_RIG } from '../combat.js';
+import { crewStruck } from './raiders.js';
 import { wallPass, crossWall, tuneGapWay, barrierPass } from './passes.js';
 
 export let WHITE_MIST, oilOn;   // set by the init function(s) below, at the point in boot where main.js had them
@@ -223,6 +224,7 @@ export function onHitEnemy(s, dmg, kind) {
   }
   s.hp -= dmg;
   if (s.hp > 0) return;
+  if (crewStruck(s)) return;   // a named ship strikes instead of sinking (systems/raiders.js)
   s.sinking = true; s.hostile = false; s.state = 'done'; s.engaged = false;
   const gold = Math.round((45 + Math.random() * 70) * KINDS[s.kind].scale);   // cannonballs are only ever bought, so every volley counts
   state.gold += gold; state.stats.sunk++; life.news(state, 'raider');
