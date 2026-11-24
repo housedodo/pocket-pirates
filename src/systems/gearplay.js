@@ -372,7 +372,8 @@ export function gearDock(d) {
 // stop, the boat more responsive to manoeuvres and water"). The boat is its own thing on the water: it glides on, slows by drag, drifts
 // a little down the wind, rides its own waves, and yaws after its way through the water. The line is a rope of TOW_LEN from the Gull's
 // taffrail to the boat's stem: slack, it sags and lies on the water; taut, it pulls the boat after her with a small jerk.
-export const TOW_LEN = 10, TOW_SEGS = 16, TOW_DRAG_K = 0.55, TOW_DRIFT = 0.25;
+export const TOW_LEN = 10, TOW_SEGS = 16, TOW_DRAG_K = 0.32, TOW_DRIFT = 0.04;   // the boat carries its way longer than the Gull, so it runs up slack when she slows (owner, 2026-11-24: it was never relaxed)
+export const TOW_REST = 0.65, TOW_SETTLE = 0.35;   // nearly stopped, it settles this far down the line astern, this gently
 const T = { on: false, x: 0, z: 0, vx: 0, vz: 0, h: 0, F: {}, taut: 0, mesh: null, rope: [] };
 const _a = new THREE.Vector3(), _b = new THREE.Vector3();
 function floatBoat(F, x, z, h, t, wave, dt, roll = 0, pitch = 0) {
@@ -402,6 +403,11 @@ function towBoat(dt, t, wave) {
   // the water: drag, a little drift down the wind
   const k = Math.exp(-dtc * TOW_DRAG_K); T.vx *= k; T.vz *= k;
   const wd = G.wind ? G.wind.dir : 0; T.vx += Math.sin(wd) * TOW_DRIFT * dtc; T.vz += -Math.cos(wd) * TOW_DRIFT * dtc;
+  if (S.speed < 1.2 && T.taut < 0.5) {   // she has (nearly) stopped: the boat settles astern of her with the line hanging slack
+    const rx = px + sx * TOW_LEN * TOW_REST, rz = pz + sz * TOW_LEN * TOW_REST;
+    T.vx += (rx - T.x) * TOW_SETTLE * dtc; T.vz += (rz - T.z) * TOW_SETTLE * dtc;
+    T.vx *= Math.exp(-dtc * 0.6); T.vz *= Math.exp(-dtc * 0.6);
+  }
   T.x += T.vx * dtc; T.z += T.vz * dtc;
   // the line: the stem may not be further than TOW_LEN from the taffrail
   const fx = Math.sin(T.h), fz = -Math.cos(T.h), stemX = T.x + fx * 1.9, stemZ = T.z + fz * 1.9;
@@ -411,7 +417,8 @@ function towBoat(dt, t, wave) {
     const ex = d - TOW_LEN, ux = dx / d, uz = dz / d;
     T.x += ux * ex; T.z += uz * ex;
     const along = T.vx * ux + T.vz * uz, pull = ex / Math.max(dtc, 0.001);
-    if (along < pull) { T.vx += ux * (pull - along) * 0.9; T.vz += uz * (pull - along) * 0.9; }
+    const shipV = Math.max(0, S.speed);   // it takes her speed along the line, never more (a jerk, not a catapult)
+    if (along < Math.min(pull, shipV)) { const add = Math.min(pull, shipV) - along; T.vx += ux * add; T.vz += uz * add; }
     T.taut = Math.min(1, T.taut + dtc * 4);
     if (was < 0.3 && ex > 0.15 && T.F.init) T.F.vp = (T.F.vp || 0) - Math.min(0.6, ex * 1.5);   // the line comes up short: the bow jerks
   } else T.taut = Math.max(0, T.taut - dtc * 2);

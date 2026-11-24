@@ -2384,3 +2384,4 @@ dread there eased for a while after it.
   body and head, grey mantle, black wingtips, orange beak, pale tail) and a crow (black, a heavy dark beak, a fanned tail, four fingered
   primaries), each an instanced body and two wings; the flock is crows once the water's crow factor passes one half (dread about 0.43).
   The flat tinted triangles are gone. Checked headless close up at dread 0.1 (gull) and 0.66 (crow).
+- **The towed boat relaxes** (owner, 2026-11-24: "pulled the wrong way and never relaxed"): the wind drift that kept it pulling away is a breath now (`TOW_DRIFT` 0.04), it carries its way longer than the Gull (`TOW_DRAG_K` 0.32) so it runs up slack when she slows, the line gives it at most her speed, and once she is nearly stopped it settles straight astern at two thirds of the line (`TOW_REST`). Checked headless with W then S: taut under sail, slack within seconds of furling, the boat 10 astern.
