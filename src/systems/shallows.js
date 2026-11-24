@@ -48,6 +48,8 @@ function openAt(cx, cz) {   // nine cells of open water round (cx, cz), on this 
   for (let dz = -1; dz <= 1; dz++) for (let dx = -1; dx <= 1; dx++) if (G.world.desc(cx + dx, cz + dz)) return false;
   return true;
 }
+/** where the three groups lie on this seed (pure: wrecks.js keeps clear of them) */
+export const groupSpots = () => GROUPS.map((g) => ({ id: g.id, ...(placeGroup(g) || { x: 1e9, z: 1e9 }) }));
 function placeGroup(g) {
   const a = g.a * Math.PI / 180, bx = Math.cos(a) * g.r, bz = Math.sin(a) * g.r;
   const c0x = Math.round(bx / CELL), c0z = Math.round(bz / CELL);

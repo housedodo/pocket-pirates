@@ -1,7 +1,7 @@
 HOIST (Pocket Pirates): THE MASTER STORY FILE
 ================================================================================================
 This is the main story file for the full game. Edit it, upload it again, and the next session puts every change
-into the game. Built from commit 8675093 on 2026-11-23. 1771 in-game lines carry an ID.
+into the game. Built from commit a0ab3bd on 2026-11-24. 1848 in-game lines carry an ID.
 
 CONTENTS
   A   HOW TO USE THIS FILE (IDs, status marks, how to add and remove things)
@@ -569,7 +569,7 @@ Where the story hides in the mechanics, and where its text lives (section J).
 # J  EVERY LINE IN THE GAME
 ################################################################################################
 Pulled from the code. Edit the text after the "|" (see part A). Sources are grouped by file; the CODE in front of every
-line says which file it goes back into. 1771 lines.
+line says which file it goes back into. 1848 lines.
 
 
 
@@ -2626,6 +2626,13 @@ line says which file it goes back into. 1771 lines.
   MAIN-0399 | Sold for ${g} gold.
   MAIN-0400 | Her masts are down. She strikes her colours. Come alongside and board her (E).
 
+### MAIN / ADDED 2026-11-24
+  MAIN-0401 | You pay the harbourmaster ${g} gold. A boy comes down and takes your line.
+  MAIN-0402 | They want ${owed(d.region)} gold before anyone will take your line.
+  MAIN-0403 | Nobody comes down to take your line. The harbourmaster watches from a window. (E again: pay what they say is owed, ${owed(d.region)} gold.)
+  MAIN-0404 | Somebody on the quay starts to say something, sees who it is, and talks about the weather instead.
+  MAIN-0405 | Ines comes back from the quay: "${h.text}"
+
 ### MAIN / RETIRED (the text is no longer in the game; these IDs are never used again)
     was MAIN-0001 | A floating market, with bunting on every line. (Friday)
     was MAIN-0002 | A regatta! Five boats, racing.
@@ -3235,6 +3242,9 @@ line says which file it goes back into. 1771 lines.
   GEAR-0025 | Your boat came in on the tide this morning, Captain. We pulled it up the slip for you.
   GEAR-0026 | A boat in the Gull's paint came ashore at ${e ? e.name : 'Tama'}, Captain. They have pulled it up for you.
 
+### GEAR / ADDED 2026-11-24
+  GEAR-0027 | Not in this, Captain. She would be over before she touched the water.
+
 
 ####################################################################################################
 ## SOURCE VOY   (systems/voyage.js): the long voyage: Mara on stores and the crew, the night nerves
@@ -3267,6 +3277,112 @@ line says which file it goes back into. 1771 lines.
 ####################################################################################################
 ## SOURCE SEA   (systems/sealog.js): seen at sea: the sketches in the Ship's book
 ####################################################################################################
+
+
+####################################################################################################
+## SOURCE RAID   (systems/raiders.js): the raider crews: the Red Widow, the Toll, the Patience, the Quiet Hand
+####################################################################################################
+
+### RAID / ADDED 2026-11-24
+  RAID-0001 | Red sails. That is Vosk. She will not talk, Captain.
+  RAID-0002 | Grey brig, ports shut. They want paying, not fighting.
+  RAID-0003 | Patched sail. Hungry, not dangerous. Not yet.
+  RAID-0004 | I do not know what that is. I would not shoot at it.
+  RAID-0005 | A woman in a long coat at the rail, one hand on a pistol, not drawing it. "You are not her. Lower in the water, she was. Still: your hold."
+  RAID-0006 | A thin man in a grey coat holds up a ledger and a pen. "The toll for the passage, Captain. It has always been paid. It is your turn."
+  RAID-0007 | A woman at the tiller, three children along the rail, a goat. "We have not had water in two days. Anything, Captain. We will remember it."
+  RAID-0008 | Someone at the rail in a white collar, very polite, writing as they speak. "We collect, Captain. You have something of ours."
+  RAID-0009 | Hask, at the guns: "${GUNNER[id]}"
+  RAID-0010 | A grey brig comes alongside, gunports shut. A man at her rail holds up a ledger.
+  RAID-0011 | You did not stop for the toll. Her gunports open.
+  RAID-0012 | In the dark the Patience comes in fast. They are going to try to take it.
+  RAID-0013 | Nobody aboard. Her log is open on the chart table. The last line, in Vosk's hand: "Found her. Lower in the water, as I said. She was ours all along."
+  RAID-0014 | Vosk takes the purse without counting it. "Not the one," she says, to nobody, and her ship turns away.
+  RAID-0015 | She looks a long time at your waterline. "No. Too high." She lets you pass.
+  RAID-0016 | "They all say that." She draws.
+  RAID-0017 | He writes THE MERRY GULL in the ledger and blots it. "Paid. Good sailing."
+  RAID-0018 | He turns the ledger round to show you. Your ship is on every page, far ahead, every toll already paid. The hand is yours.
+  RAID-0019 | "You are paid up, Captain. All the way." He closes the ledger. He does not open it for you again.
+  RAID-0020 | He writes it down. He does not look up.
+  RAID-0021 | The Toll's ledger: our ship on every page ahead, every toll paid, in my own hand.
+  RAID-0022 | He takes the crate and writes it down as paid in full.
+  RAID-0023 | He runs his pen down a page and finds something. "So you are." He lets you go.
+  RAID-0024 | He looks at you for a long moment, then closes the ledger. Her gunports open.
+  RAID-0025 | He closes the ledger without a word. Her gunports open.
+  RAID-0026 | The children wave until they are out of sight. The woman does not; she nods once, and writes your ship's name on the inside of the hatch.
+  RAID-0027 | This time she has something for you: a scrap of chart, a cross on it in the shallows. "My husband found that. He did not come back from it. You might."
+  RAID-0028 | They are looking for somewhere to stop for good. She asks about the stilt hut on the Sandbar Cays. "Nobody lives there?" You do not know what to tell her.
+  RAID-0029 | They watch you go. A while later, their patched sail is still behind you.
+  RAID-0030 | They take it as if it had been lent. "Thank you. That is one." The lanterns go away down the wind.
+  RAID-0031 | You tell them. They do not write it down. "We know," they say. "We wanted to hear you say it."
+  RAID-0032 | They hold up a figurehead, wet, old, carved. It is your own, from the bow of the Gull. You can still see her there, at the bow, where she has always been.
+  RAID-0033 | "Of course." They do not go anywhere.
+  RAID-0034 | The ${s.name} strikes her colours. Come alongside and board her (E).
+  RAID-0035 | In Vosk's cabin, a page of her log: "Not the one. Lower in the water, she was. I will know her."
+  RAID-0036 | Vosk does not look at you this time. "You again. Not you. Never you."
+  RAID-0037 | In the booth, the ledger. Your ship is on every page, far ahead. You do not take it.
+  RAID-0038 | They had almost nothing. The children watch you take it.
+
+
+####################################################################################################
+## SOURCE HAND   (systems/hands.js): the specialist hands
+####################################################################################################
+
+### HAND / ADDED 2026-11-24
+  HAND-0001 | Sink or take three raiders.
+  HAND-0002 | "I watched you take that last one. I have done this before. Do you want me or not?"
+  HAND-0003 | Run ten crates of cargo.
+  HAND-0004 | "You buy cheap and sell dear. Mostly. I can make it always."
+  HAND-0005 | Do the Cays a kindness.
+  HAND-0006 | "You were kind to people who could not pay you. I can smell pepper from the beach. Take me with you."
+  HAND-0007 | Run aground, twice, and come back.
+  HAND-0008 | "Twice aground and you still have a ship. Let me stand at the bow."
+  HAND-0009 | Go down in the bell three times.
+  HAND-0010 | "Three times down and you came up each time. I like the odds."
+  HAND-0011 | Make six deliveries.
+  HAND-0012 | "My uncle keeps the light at the Rock. People talk to me. They have stopped talking to you, have you noticed?"
+
+
+####################################################################################################
+## SOURCE SPC   (systems/spice.js): spice and the herbalist
+####################################################################################################
+
+### SPC / ADDED 2026-11-24
+  SPC-0001 | Pepper. On that one. You can smell it from here.
+  SPC-0002 | In the roots. Saffron, the wild kind. Take the boat in.
+  SPC-0003 | Cloves on the rocks, when the water goes down. Wait for the bottom of the tide.
+  SPC-0004 | Blue salt on that shore. I would not ask where it comes from.
+  SPC-0005 | Tansy, at the rail: "${TANSY[s.spice]}"
+  SPC-0006 | Tansy goes looking...
+  SPC-0007 | Tansy comes back with her arms full, and there is no room in the hold for any of it.
+
+
+####################################################################################################
+## SOURCE WRK   (systems/wrecks.js): the named wrecks
+####################################################################################################
+
+### WRK / ADDED 2026-11-24
+  WRK-0001 | A Crown payship on her side, her strongboxes split. The coins left in them are all of one year, and the year has not come yet.
+  WRK-0002 | A Guild oil tender, low and broad. Her barrels are still sealed. One of them is warm to the hand.
+  WRK-0003 | An old hulk with chains along her hold, every one of them open. The keys hang on a nail by the hatch, neatly, in a row.
+  WRK-0004 | A small boat on its side, the Patience's colours under the weed. Inside the hatch a name is carved, and under it, smaller, the Merry Gull.
+  WRK-0005 | A merchant brig run hard aground on nothing. Her chart is open on the table: it shows a reef here. There has never been a reef here.
+  WRK-0006 | A ship in the Gull's colours, lower in the water than she ought to be. Her name on the stern is your ship's name, and the paint is older than yours.
+  WRK-0007 | There is ${w.name} gone down ${bearingName(w.x - pier.x, w.z - pier.z)} of here. Nobody goes out to her. You might.
+
+
+####################################################################################################
+## SOURCE DEEP   (systems/deepseas.js): the deep seas and the foundering
+####################################################################################################
+
+### DEEP / ADDED 2026-11-24
+  DEEP-0001 | Green water comes over the bow and runs the length of the deck.
+  DEEP-0002 | The boat fills over her gunwale and goes down at the end of her line. You cut it.
+  DEEP-0003 | The sea comes over the rail and does not go back.
+  DEEP-0004 | Somebody is ringing the bell. Nobody is at the bell.
+  DEEP-0005 | Tama. Morning. The Gull at her pier, dry, her lines made fast in a hand that is not yours.
+  DEEP-0006 | The Gull went down in the deep water. We woke at Tama, and she was at the pier, dry.
+  DEEP-0007 | We are home, Captain. I do not remember the way.
 
 
 

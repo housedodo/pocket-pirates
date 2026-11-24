@@ -68,9 +68,10 @@ export function getInteract() {
     if (dk && Math.hypot(G.ship.pos.x - (d.x + dk.x), G.ship.pos.z - (d.z + dk.z)) < 22) return (!G.onbAll() && !goalReached(state, 'harbour')) ? null : { kind: 'harbour', key: d.id, isl: hb };   // no "visit" at the very start: Mara sends you when it is time
     if (G.world.lastEdge < 16) far = { kind: 'harbourfar', key: d.id, isl: hb };
   }
+  { const sp = spiceInteract(); if (sp) return sp; }   // with the herbalist aboard (spice.js): before the island's other things
   const sc = G.secrets.near(G.ship.pos.x, G.ship.pos.z, state.collected); if (sc && !(sc.kind === 'camp' && state.story.secrets && state.story.secrets[sc.key + '@'] === state.dayN)) return { kind: 'secret', key: sc.key, sc };
   { const gi = gearInteract(false); if (gi) return gi; }
-  { const sp = spiceInteract(); if (sp) return sp; }   // with the herbalist aboard (spice.js)   // the bell's sites, the boat's (systems/gearplay.js)
+  // (the bell's sites and the boat's are above; spice comes before the island's secrets)
   const lmI = G.world.nearest(G.ship.pos.x, G.ship.pos.z, 16);
   if (lmI && lmI.desc.lm) return { kind: 'landmark', key: 'lm' + lmI.desc.id, isl: lmI };
   const isl = G.world.nearest(G.ship.pos.x, G.ship.pos.z, 16, ['treasure']);

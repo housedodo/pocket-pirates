@@ -2396,3 +2396,19 @@ dread there eased for a while after it.
   screen (`crewOffers`/`crewOffer`); three story beats each (state.story.crews). A named ship strikes instead of sinking (`crewStruck`),
   boarding gives a beat (`crewBoarded`). Dev Studio: a Crew row spawns each. Checked headless: each ship close up, each parley, the
   Widow struck and boarded.
+- **Specialist hands** (`src/systems/hands.js`): six, earned by deeds (`HANDS[id].earned`), two aboard (`HANDS_MAX`), the tavern's
+  SPECIALISTS rows (sign on / leave ashore), a sullen crew loses one (`handLeaves`). Effects: gunner reload x0.8 and a line naming a
+  raider crew; trader 10% on cargo both ways; herbalist finds spice; pilot lets the Gull 4 further into a shelf; diver air x1.5;
+  go-between brings a place rumour from every harbour after the first throw.
+- **Standing** (`src/systems/standing.js`, `jobs.js friendLevel` now -2..3): region marks (three points a level), the fade (from 12 days,
+  a point every 5), the losses and gains listed in CANON, prices up below zero, the empty quay at -2 (E again pays what is owed: 25 g a
+  point), cold piers after the first throw below level 1 (once a day a line), stars become "remembered badly" below zero.
+- **Spice** (`src/systems/spice.js`, `trade.js` found goods): the herbalist names a place in view once a day; E searches (4 s), a crate
+  or two into the hold, regrows in 3 days. Old saves' 'spice' cargo becomes pepper.
+- **Wrecks** (`src/systems/wrecks.js`, `seafeatures.js`): the random wrecks are gone; six named ones, each within three cells of its
+  bearing, clear of the island groups and each other; their own find and line; a pier voice in their water marks one (25%).
+- **Deep seas** (`src/systems/deepseas.js`): `deepSwell` (up to 40% more swell, applied to the stage's wave so the sea and every hull
+  share it), green water, the towed boat swamping (about once in 70 s of deep sailing, more in a storm), no launching in big seas, the
+  hull worked in the deepest storms (a point every 6 s), and `founder()` in place of the ordinary sinking there.
+- Checked headless: every wreck placed and the brig salvaged with its line; the herbalist earned and signed on; two crates of pepper
+  found; a harbour at -2 refusing, 300 g owed and paid, standing back to 0; foundering: next dawn, at Tama's pier, cargo gone.

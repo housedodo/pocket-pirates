@@ -14,7 +14,7 @@ import { cargo, carried, room, GOODS } from './trade.js';
 import { shallowsState } from './shallows.js';
 import { tideAt } from './calendar.js';
 
-export const SPICE_REGROW = 3, SPICE_NOSE = 70, SPICE_NEAR = 16;
+export const SPICE_REGROW = 3, SPICE_NOSE = 70, SPICE_NEAR = 24;
 const at = () => state.story.spiceAt || (state.story.spiceAt = {});
 const ready = (key) => at()[key] == null || state.dayN - at()[key] >= SPICE_REGROW;
 const TANSY = { pepper: 'Pepper. On that one. You can smell it from here.', saffron: 'In the roots. Saffron, the wild kind. Take the boat in.', clove: 'Cloves on the rocks, when the water goes down. Wait for the bottom of the tide.', bluesalt: 'Blue salt on that shore. I would not ask where it comes from.' };

@@ -26,6 +26,7 @@ import { angleDiff, smoothstep } from '../util.js';
 import { hullWater, rideWaves } from '../float.js';
 import { waveHeight } from '../ocean.js';
 import { handOn } from './hands.js';
+import { tooRough } from './deepseas.js';
 import { siteShelf, shallowsTick, shallowsInteract, shallowsFind, shallowsState } from './shallows.js';
 
 const DEMO = () => typeof window !== 'undefined' && window.__BUILD === 'demo';
@@ -214,7 +215,7 @@ export function gearAct(tg) {
   const s = tg.site;
   if (tg.act === 'back') { boardGull(); return; }
   if (tg.act === 'shallows') { if (!rt.dig) rt.dig = { key: tg.key, t: 0, label: 'Going over...', need: 2.4, done: () => shallowsFind(tg.g) }; return; }
-  if (tg.act === 'boat') { takeBoat(); return; }
+  if (tg.act === 'boat') { if (tooRough()) { toast('Not in this, Captain. She would be over before she touched the water.', false, 4500); return; } takeBoat(); return; }   // big seas (deepseas.js)
   if (tg.act === 'look') { toast(s.look, false, 6500); (state.story.gearLook = state.story.gearLook || {})[s.id] = state.dayN; return; }
   if (tg.act === 'land') {
     if ((state.upgrades.boat || 0) < s.lv) { toast(s.short, false, 5000); return; }

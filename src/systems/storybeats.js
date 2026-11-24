@@ -24,6 +24,7 @@ import { tideFalls } from './calendar.js';
 import { after } from './later.js';
 import { CHAIN_RIG } from '../combat.js';
 import { crewStruck } from './raiders.js';
+import { foundersHere, founder } from './deepseas.js';
 import { wallPass, crossWall, tuneGapWay, barrierPass } from './passes.js';
 
 export let WHITE_MIST, oilOn;   // set by the init function(s) below, at the point in boot where main.js had them
@@ -234,6 +235,7 @@ export function onHitEnemy(s, dmg, kind) {
   if (state.stats.sunk === 1) toast('Unlocked: skull figurehead (see the shipyard).', false, 5000);
 }
 export function sinkPlayer() {
+  if (foundersHere()) { founder(); return; }   // in the deepest water she founders, and the captain wakes at Tama (systems/deepseas.js)
   state.hp = G.ship.mods.maxHp;
   const lost = Math.round(state.gold * 0.25);
   state.gold -= lost;

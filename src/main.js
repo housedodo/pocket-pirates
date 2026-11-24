@@ -103,7 +103,8 @@ import { voyageTick, moodMods } from './systems/voyage.js';
 import { shelvesNear } from './systems/shallows.js';
 import { crewTick } from './systems/raiders.js';
 import { handMods } from './systems/hands.js';
-import { spiceTick } from './systems/spice.js';   // stores, the crew's spirits, night nerves (owner, 2026-11-23)
+import { spiceTick } from './systems/spice.js';
+import { deepTick, deepSwell } from './systems/deepseas.js';   // stores, the crew's spirits, night nerves (owner, 2026-11-23)
 import { gearTick, gearDrag, savePos, initDive, diveElement, diveClosed } from './systems/gearplay.js';   // the diving bell and the ship's boat (owner, 2026-11-23)   // the other ways through (T4)
 import { econ, econTick, econLine } from './systems/econ.js';   // ?econ=1: gold per hour by source (G-25)
 import { after, laterTick, laterPending } from './systems/later.js';
@@ -1273,6 +1274,7 @@ function frame() {
   if (rt.glitchT > 0) { rt.glitchT -= rawDt; rt.dread = settings.comfort.flash ? 1 : rt.preGlitch; if (rt.glitchT <= 0) { rt.dread = rt.preGlitch; hutEl.classList.remove('glitching'); } } // the hut's bad throw
   rt.dark = rt.dread > DARK_THRESHOLD;
   const stage = sampleStage(rt.dread);
+  stage.wave *= deepSwell(rt.dread);   // the deep seas' swell: one number for the drawn sea and every floating hull (systems/deepseas.js)
   regionLook(stage, ship.pos, rawDt, rt.dread, state.seed);   // each region's own light, blended slowly across borders (systems/regionlook.js)
   nightViewNow();
   applyTimeOfDay(stage, state.time, rt.dread);
@@ -1369,6 +1371,7 @@ function frame() {
   for (const c of Object.values(companions)) { c.m.g.visible = c.fly > 0 || rt.dread < 0.6; if (c.m.g.visible) c.update(vdt); }
   traffic.update(dt, waveT, lifeCtx);
   crewTick(dt);   // the raider crews (systems/raiders.js)
+  deepTick(dt);   // green water, the boat swamped, the hull worked in the deepest storms (systems/deepseas.js)
   spiceTick();   // the herbalist names a spice place as it comes into view (systems/spice.js)
   if (live) raceTick(dt, { world, traffic, ship, sched: lifeCtx.sched, ok: laterOK(), wind: windNow });   // the Sunday race (systems/race.js)
   homeMarks.update(waveT, { ship, hour: state.time * 24, wave: stage.wave, dread: rt.dread });   // the fishers' marks in Home Sound (systems/homemarks.js)
