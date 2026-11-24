@@ -22,6 +22,7 @@ import { CHEST, KINDS as CHEST_KINDS, chestAny, chestSell } from './chest.js';
 // is what you carry (owner, 2026-11-19; it is there from the first thing put in it). (Until 2026-11 there were seven; the old names
 // still open the bookmark their page moved to.)
 import { partSeaLife } from './systems/sealog.js';
+import { mark } from './systems/standing.js';
 import { partCrew } from './systems/voyage.js';
 const TABS = [['map', 'Chart', ''], ['orders', 'Orders', ''], ['book', "Ship's book", ''], ['chest', 'Sea chest', '']];
 const ALIAS = { goals: 'orders', quests: 'orders', riddles: 'orders', journal: 'book', ship: 'book', standing: 'book' };
@@ -154,7 +155,7 @@ function pixelate(c, w, h) {
   c.putImageData(img, 0, 0);
 }
 const trackBtn = (state, id) => (state.tracked === id ? '<small class="tracked">&gt; following this one</small>' : `<button class="mini" data-track="${id}">Follow</button>`);
-const stars = (n) => pxi('star').repeat(n) + pxi('nostar').repeat(3 - n);
+const stars = (n) => (n < 0 ? '<small>remembered badly</small>' : pxi('star').repeat(Math.min(3, n)) + pxi('nostar').repeat(3 - Math.min(3, n)));   // below zero: words, not stars (systems/standing.js)
 /** the names of the waters, for the Ship's book (item 3); a note's `w` is stamped where it was taken down (stampNotes) */
 export const WATER_NAMES = { home: 'Home Sound', crown: 'Crown water', free: 'The Free Cays', reef: 'Reef water', lantern: 'Lantern water', drowned: 'The Drowned water', '': 'Earlier' };
 /** once a frame (main.js): every note taken down since the last frame gets the water the ship is in */
@@ -327,7 +328,8 @@ export class Logbook {
     const hist = state.jobHistory || [];
     html += '<h3 class="brk">Done</h3>' + (hist.length ? hist.slice(-4).reverse().map((h) => ent(h.item, `to ${h.to}`, `+${h.reward}g`)).join('') : ent('Nothing yet', '', '', 'dim'));
     return [html, () => {
-    this.body.querySelectorAll('[data-drop]').forEach((x) => x.addEventListener('click', () => { state[x.dataset.drop] = null; if (state.tracked === x.dataset.drop) state.tracked = null; this.d.retrack(); this.render(); }));
+    this.body.querySelectorAll('[data-drop]').forEach((x) => x.addEventListener('click', () => { if (x.dataset.drop === 'job' && state.job) mark(state.job.fromRegion, -2); state[x.dataset.drop] = null;   // a delivery given up: its water remembers (systems/standing.js)
+      if (state.tracked === x.dataset.drop) state.tracked = null; this.d.retrack(); this.render(); }));
     this.body.querySelectorAll('[data-track]').forEach((x) => x.addEventListener('click', () => { state.tracked = x.dataset.track; this.d.retrack(); this.render(); }));
     }];
   }

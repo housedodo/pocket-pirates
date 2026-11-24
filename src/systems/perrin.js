@@ -51,8 +51,8 @@ const GEAR_TAIL = { bell: ' The best of it is under the water. You would want a 
 // a place in that harbour's own water that the captain has not been ashore on yet, in the same voice as the letters' rumours (LINES).
 // Once per place; one in PLACE_P docks; never while a letter's own rumour is due. It goes on the chart as a rumour the captain can pin.
 export const PLACE_P = 0.4;
-export function placeRumour(state, d, hour) {
-  if (!LINES[d.region] || !(state.hut && state.hut.rolls && state.hut.rolls.length) || caysAsleep(d.region, hour, null) || Math.random() >= PLACE_P) return null;
+export function placeRumour(state, d, hour, force = false) {   // force: the go-between asks for you (systems/hands.js), whoever is on the pier
+  if (!LINES[d.region] || !(state.hut && state.hut.rolls && state.hut.rolls.length) || (!force && (caysAsleep(d.region, hour, null) || Math.random() >= PLACE_P))) return null;
   const asked = state.story.placeAsk || (state.story.placeAsk = {}), been = state.story.lm || {}, reg = Object.fromEntries(CLUES.map((c) => [c.id, c.region]));
   const pier = pierOf(d);
   let best = null;

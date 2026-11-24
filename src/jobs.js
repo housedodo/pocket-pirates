@@ -1,4 +1,5 @@
 import { deadlineFor } from './regions.js';
+import { standingPoints } from './systems/standing.js';
 import { hash2, mulberry32, pick, smoothstep } from './util.js';
 import { FISH } from './fishing.js';
 import { FRUIT_ORDER, FRUITS, fruitOf, fruitName, plural } from './fruit.js';
@@ -51,7 +52,7 @@ export function findRumour(world, from, state) {
 }
 
 export const repOf = (state, id) => state.rep[id] || (state.rep[id] = { visits: 0, deliveries: 0 });
-export const friendLevel = (r) => Math.min(3, Math.floor((r.visits + 2 * r.deliveries) / 3));
+export const friendLevel = (r) => Math.max(-2, Math.min(3, Math.floor(standingPoints(r) / 3)));   // -2..3: the water's name and time away count too (systems/standing.js)
 export const discount = (r) => 1 - 0.05 * friendLevel(r);
 export const RUMOUR_COST = 40;
 

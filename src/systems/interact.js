@@ -39,6 +39,8 @@ import { actEvent } from './seaevents.js';
 import { rGreeting } from './rletters.js';
 import { gearInteract, gearAct, gearDock } from './gearplay.js';
 import { voyageDock } from './voyage.js';
+import { REFUSE_AT, owed, payOwed, mark } from './standing.js';
+import { handOn } from './hands.js';
 import { crewBoarded } from './raiders.js';
 import { tradeRumour } from './trade.js';
 
@@ -169,7 +171,7 @@ function doInteract(tg) {
   if (tg.kind === 'supper') { if (!rt.dig) startSupper(tg); return; }   // the keeper's supper (lantern.js)
   if (tg.kind === 'relight') {   // the Lantern Guild's dead light: oil from your lamp, and the keeper pays and marks the waters
     if (state.oil < RELIGHT_OIL) { toast(`The lamp needs ${RELIGHT_OIL} oil. You have ${Math.floor(state.oil)}.`, false, 3500); return; }
-    const d = tg.isl.desc; state.oil -= RELIGHT_OIL; (state.story.relit = state.story.relit || {})[d.id] = nightKey(); state.gold += RELIGHT_PAY;
+    const d = tg.isl.desc; state.oil -= RELIGHT_OIL; mark('lantern', 1);   // the Guild remembers (systems/standing.js) (state.story.relit = state.story.relit || {})[d.id] = nightKey(); state.gold += RELIGHT_PAY;
     const k = G.revealAround(d.x, d.z); tg.isl.setLit(G.world.lit); G.audio.play('discover', { vol: 0.5 });
     toast(`The light is burning again. The keeper pays ${RELIGHT_PAY} gold${k ? ` and marks ${k} island${k > 1 ? 's' : ''} on your chart` : ''}.`, false, 6000);
     if (firstTime(state, 'relitLog')) { state.notes.push({ text: RELIT_LOG, dark: false }); setTimeout(() => toast(RELIT_LOG, false, 7000), 6500); if (rt.dread < HUSH.lantern) setTimeout(() => { if (!G.objectives.mate.busy) G.objectives.mate.say(RELIT_MARA); }, 2500); }   // L-19 (customs.js)
@@ -181,6 +183,11 @@ function doInteract(tg) {
   }
   if (tg.kind === 'harbour') {
     const d = tg.isl.desc, rep = repOf(state, d.id);
+    rep.region = d.region;   // its water's name counts toward it (systems/standing.js)
+    if (window.__BUILD !== 'demo' && friendLevel(rep) <= REFUSE_AT) {   // the empty quay: nobody takes your line until what is owed is paid
+      if (rt.oweAsk === d.id) { const g = payOwed(d.region); if (g) { rt.oweAsk = null; G.audio.play('buy'); toast(`You pay the harbourmaster ${g} gold. A boy comes down and takes your line.`, false, 6000); } else toast(`They want ${owed(d.region)} gold before anyone will take your line.`, false, 4000); return; }
+      rt.oweAsk = d.id; toast(`Nobody comes down to take your line. The harbourmaster watches from a window. (E again: pay what they say is owed, ${owed(d.region)} gold.)`, false, 7000); return;
+    }
     const now = state.dayN + state.time;   // game days (task R8); a save from before kept a wall-clock time here, which reads as long ago
     if (!(rep.last < 1e6) || now - rep.last > VISIT_GAP) rep.visits++;
     rep.last = now;
@@ -208,7 +215,10 @@ function doInteract(tg) {
     }
     if (!say && ending && h && h.rolls.length) { say = rollGreeting(h.rolls[h.rolls.length - 1].n, state.time * 24, Math.random); say.endsDemo = true; state.story.rollSeen = h.rolls.length; }
     if (!say && window.__BUILD !== 'demo') say = letterRumour(state, G.objectives.pending ? null : G.objectives.current, d, state.time * 24);   // asking around for Perrin's letter (systems/perrin.js)
-    if (!say && free && window.__BUILD !== 'demo') say = placeRumour(state, d, state.time * 24);
+    const cold = window.__BUILD !== 'demo' && state.hut && state.hut.rolls && state.hut.rolls.length && friendLevel(rep) < 1;   // after the first throw, low standing: nobody tells you anything
+    if (!say && free && window.__BUILD !== 'demo' && !cold) say = placeRumour(state, d, state.time * 24);
+    if (cold && !handOn('gobetween') && free && (state.story.coldDay !== state.dayN)) { state.story.coldDay = state.dayN; setTimeout(() => toast('Somebody on the quay starts to say something, sees who it is, and talks about the weather instead.', false, 6000), 3400); }
+    if (handOn('gobetween') && window.__BUILD !== 'demo') { const h = placeRumour(state, d, state.time * 24, true); if (h) setTimeout(() => toast(`Ines comes back from the quay: "${h.text}"`, false, 8000), 4200); }   // the go-between (systems/hands.js)
     if (!say && free && window.__BUILD !== 'demo') say = pilotSaying(d);
     if (!say && free && window.__BUILD !== 'demo') say = rGreeting(d);   // lore connection C: when R. came through (rletters.js)   // how a way through is heard of (systems/passes.js, T4)   // asking around never runs out (T6 c, systems/perrin.js)
     if (!say && free && G.laterOK()) say = renamedGreeting(state, d, Math.random);   // a place that was not always called that (D3)

@@ -24,6 +24,7 @@ import { tod } from '../daynight.js';
 import { CHEST } from '../chest.js';
 import { unlocked } from '../objectives.js';
 import { handOn } from './hands.js';
+import { mark } from './standing.js';
 
 const DEMO = () => typeof window !== 'undefined' && window.__BUILD === 'demo';
 export const CREW_GAP = 1.5, CREW_TRY = 25, CREW_P = 0.14;   // days before the same crew comes again; s between tries; the chance a try finds one
@@ -155,7 +156,7 @@ export function crewTick(dt) {
   const steer = (want, spd, rate = 0.6) => { s.heading += clamp(angleDiff(want, s.heading), -rate * dt, rate * dt); s.speed = spd; };
   if (s.crew === 'tollmen' && !s.hostile) {
     if (!s.asked) { if (d > 22) steer(toYou, 7); else { s.asked = true; s.speed = 2; toast('A grey brig comes alongside, gunports shut. A man at her rail holds up a ledger.', false, 5500); } }
-    else if (s.state !== 'paid') { steer(toYou + 0.9, Math.min(S.speed + 0.5, 8)); if (d > 140 && !s.warned) { s.warned = true; refuse(s, 'You did not stop for the toll. Her gunports open.'); } }
+    else if (s.state !== 'paid') { steer(toYou + 0.9, Math.min(S.speed + 0.5, 8)); if (d > 140 && !s.warned) { s.warned = true; mark('crown', -2); refuse(s, 'You did not stop for the toll. Her gunports open.'); } }
     else steer(s.heading, 6);
   } else if (s.crew === 'beggars' && !s.hostile) {
     if (s.state === 'none' && d > 26) steer(toYou, 4);
@@ -236,14 +237,14 @@ export function crewOffer(s, o) {
     case 'cw_tbluff': {
       let lv = 0; for (const r of Object.values(state.rep || {})) lv = Math.max(lv, Math.min(3, Math.floor((r.visits + 2 * r.deliveries) / 3)));
       if (Math.random() < 0.2 + 0.18 * lv) { c.paid = state.dayN; leave(); toast('He runs his pen down a page and finds something. "So you are." He lets you go.', false, 6000); }
-      else refuse(s, 'He looks at you for a long moment, then closes the ledger. Her gunports open.');
+      else { mark('crown', -2); refuse(s, 'He looks at you for a long moment, then closes the ledger. Her gunports open.'); }   // the Crown hears of it (systems/standing.js)
       break;
     }
-    case 'cw_refuse': refuse(s, 'He closes the ledger without a word. Her gunports open.'); break;
+    case 'cw_refuse': mark('crown', -2); refuse(s, 'He closes the ledger without a word. Her gunports open.'); break;
     case 'cw_water': case 'cw_kit': case 'cw_coin': {
       if (o.id === 'cw_water') { const S = state.story.stores; S.food -= 1; S.water -= 1; }
       if (o.id === 'cw_kit') state.patchKits--;
-      c.helped = (c.helped || 0) + 1; c.beat = Math.min(3, c.helped); leave(); bumpMood(0.08);
+      c.helped = (c.helped || 0) + 1; c.beat = Math.min(3, c.helped); leave(); bumpMood(0.08); mark('free', 2);   // the Cays hear of it
       const L = c.helped === 1 ? 'The children wave until they are out of sight. The woman does not; she nods once, and writes your ship\'s name on the inside of the hatch.'
         : c.helped === 2 ? 'This time she has something for you: a scrap of chart, a cross on it in the shallows. "My husband found that. He did not come back from it. You might."'
         : 'They are looking for somewhere to stop for good. She asks about the stilt hut on the Sandbar Cays. "Nobody lives there?" You do not know what to tell her.';
@@ -273,6 +274,6 @@ export function crewBoarded(s) {
   const c = C(s.crew);
   if (s.crew === 'wolves') { c.beat = Math.min(2, c.beat + 1); return c.beat === 1 ? 'In Vosk\'s cabin, a page of her log: "Not the one. Lower in the water, she was. I will know her."' : 'Vosk does not look at you this time. "You again. Not you. Never you."'; }
   if (s.crew === 'tollmen') return 'In the booth, the ledger. Your ship is on every page, far ahead. You do not take it.';
-  if (s.crew === 'beggars') { c.refused = (c.refused || 0) + 1; return 'They had almost nothing. The children watch you take it.'; }
+  if (s.crew === 'beggars') { c.refused = (c.refused || 0) + 1; mark('free', -4); return 'They had almost nothing. The children watch you take it.'; }
   return null;
 }
