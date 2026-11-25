@@ -39,3 +39,5 @@ The main session coordinates: brief each specialist with only its slice, then ch
 
 - `src/harbourlife.js` (gameplay: residents, house dishes, events, gossip, fragments), `src/newspaper.js` (gameplay: the Friday paper; its look is in `index.html`, `.paper`) and `src/localgames.js` (gameplay: the eight tavern games).
 - Scripts: `scripts/story_export.py` (gameplay: rebuilds STORY_MASTER.txt from the code), `scripts/single.py` (the single-file games), `scripts/world_checks.cjs` (gameplay: strata walls), `scripts/art_checks.cjs` (design), `scripts/studio_ogg.py` (audio).
+
+The skill `.claude/skills/hoist-artstyle/SKILL.md` condenses the look (STYLE.md, ART_SPEC.md) with how to build and check it; load it for any visual work.

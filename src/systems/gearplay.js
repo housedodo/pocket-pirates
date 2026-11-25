@@ -430,7 +430,7 @@ function towBoat(dt, t, wave) {
   // yaw: under way the boat follows its way through the water; taut it points down the line; idle it swings slowly with the drift
   const sp = Math.hypot(T.vx, T.vz), lineA = Math.atan2(dx, -dz), wayA = Math.atan2(T.vx, -T.vz);
   const target = T.taut > 0.5 ? lineA : sp > 0.4 ? wayA : T.h + Math.sin(t * 0.13) * 0.002;
-  const yawRate = angleDiff(target, T.h) * Math.min(1, dtc * (T.taut > 0.5 ? 2.2 : 0.6 + sp * 0.3));
+  const yawRate = angleDiff(T.h, target) * Math.min(1, dtc * (T.taut > 0.5 ? 2.2 : 0.6 + sp * 0.3));
   T.h += yawRate;
   floatBoat(T.F, T.x, T.z, T.h, t, wave, dtc, -yawRate / Math.max(dtc, 0.001) * 0.25, -0.04 * T.taut);
   T.mesh.position.set(T.x, T.F.y - 0.12, T.z); T.mesh.rotation.order = 'YXZ'; T.mesh.rotation.set(T.F.p, -T.h, T.F.r);
@@ -467,7 +467,7 @@ export function gearTick(dt, t, wave = 1) {
   const B = rt.boat; if (!B) return;
   S.rowing = true; S.oarOut = 1;
   if (boatMesh) {   // rowed: the same hull on its own water, leaning into the turns
-    const yr = (B.lastH == null ? 0 : angleDiff(S.heading, B.lastH) / Math.max(dt, 0.001)); B.lastH = S.heading;
+    const yr = (B.lastH == null ? 0 : angleDiff(B.lastH, S.heading) / Math.max(dt, 0.001)); B.lastH = S.heading;
     floatBoat(B.F || (B.F = {}), S.pos.x, S.pos.z, S.heading, t, wave, dt, -yr * 0.3, 0.03 * Math.min(1, S.speed / 4));
     boatMesh.rotation.order = 'YXZ'; boatMesh.position.set(S.pos.x, B.F.y - 0.12, S.pos.z); boatMesh.rotation.set(B.F.p, -S.heading, B.F.r);
   }
@@ -475,7 +475,7 @@ export function gearTick(dt, t, wave = 1) {
   const d = Math.hypot(S.pos.x - B.ax, S.pos.z - B.az);
   if (d > TETHER) {   // too far from her: the boat turns for home by itself (never a fail state)
     const want = Math.atan2(B.ax - S.pos.x, -(B.az - S.pos.z));
-    S.heading += angleDiff(want, S.heading) * Math.min(1, dt * 1.5);
+    S.heading += angleDiff(S.heading, want) * Math.min(1, dt * 1.5);
     if (!B.far) { B.far = true; toast('The Gull is a long way off. The boat turns for her.', false, 4000); }
   } else if (d < TETHER - 40) B.far = false;
 }

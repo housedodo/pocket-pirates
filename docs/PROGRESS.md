@@ -2412,3 +2412,13 @@ dread there eased for a while after it.
   hull worked in the deepest storms (a point every 6 s), and `founder()` in place of the ordinary sinking there.
 - Checked headless: every wreck placed and the brig salvaged with its line; the herbalist earned and signed on; two crates of pepper
   found; a harbour at -2 refusing, 300 g owed and paid, standing back to 0; foundering: next dawn, at Tama's pier, cargo gone.
+- **The raider crews' silhouettes and ways** (owner, 2026-11-25, "do 2 and 3"): `raiders.js SHAPE` stretches each hull and rig
+  (the Widow long, low, raked; the Toll tall and boxy, short rig; the Patience short with a stump mast; the Quiet Hand too tall and
+  narrow); `rig()` sets the rig after traffic.js each frame (the Patience's sail luffs and shakes; the Quiet Hand's sails flat fore and
+  aft). Ways: the Widow works round to your stern before she fires (her guns wait) and holds about 18 off it; the Toll keeps station
+  one length off your starboard beam, matching you; the Quiet Hand keeps 45 to windward. Checked headless with the Gull at full sail:
+  the Toll settles at 16 off the beam, the Widow at 17-25 astern, the Quiet Hand to windward.
+- **`angleDiff(a, b)` is b - a**: four places this session had it reversed: the crews' steering, the Toll's heading match, the boat's
+  tether turn, and **the towed boat's yaw (it was towed stern-first: the owner's "pulled the wrong way")**. Fixed; the towed boat's bow
+  now points down the line (0.01 rad off) and rides 15 astern.
+- **The art-style skill** `.claude/skills/hoist-artstyle/SKILL.md`: the look, the kit, the palette, the dread versions, the traps, how to check.

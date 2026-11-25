@@ -65,6 +65,11 @@ function recolour(mesh, [d, l]) {
   }
   mesh.geometry = recoloured[key];
 }
+// each crew's silhouette, read before her colours (owner, 2026-11-25, "do 2 and 3"): hull scale [beam, height, length], rig height, mast rake
+//   the Widow long, low and raked; the Toll tall and boxy with a short rig; the Patience short with a stump of a mast; the Quiet Hand too
+//   tall and narrow, like a church
+const SHAPE = { wolves: { hull: [0.85, 0.72, 1.32], rig: 1.08, rake: 0.2 }, tollmen: { hull: [1.28, 1.32, 0.86], rig: 0.82 }, beggars: { hull: [1.0, 0.9, 0.74], rig: 0.66 }, collectors: { hull: [0.74, 1.2, 1.06], rig: 1.45 } };
+const _v = new THREE.Vector3();
 let mtl = null;
 function materials() {
   if (mtl) return mtl;
@@ -80,7 +85,10 @@ function materials() {
 function dress(s, id) {
   const M = materials()[id], root = s.root, extra = new Builder();
   { const old = root.children[0].material;   // the hull, the castle and the spare masts: every piece in the hull's material, in her own paint
-    for (const m of root.children) if (m.isMesh && m.material === old) { recolour(m, PAINT[id]); m.material = M.h; } }
+    for (const m of root.children) if (m.isMesh && m.material === old) { recolour(m, PAINT[id]); m.material = M.h; m.scale.multiply(_v.set(...SHAPE[id].hull)); } }
+  { const sh = SHAPE[id];   // her own silhouette (owner, 2026-11-25): the masts stand where the stretched hull puts them, raked if she is a Widow
+    for (const sl of s.sails) { sl.pivot.position.y *= sh.hull[1]; sl.pivot.position.z *= sh.hull[2]; sl.pivot.rotation.x = sh.rake || 0; }
+    s.flag.position.y *= sh.hull[1] * sh.rig; s.flag.position.z *= sh.hull[2]; s.rigK = sh.rig; }
   for (const sl of s.sails) sl.sail.material = M.s;
   if (s.sails[0] && s.sails[0].jib) s.sails[0].jib.material = M.s;
   if (id === 'wolves') {   // a jawbone lashed to the bowsprit, a long red streamer, black patches on the red canvas
@@ -153,20 +161,43 @@ export function crewTick(dt) {
     return;
   }
   const s = on, dx = S.pos.x - s.x, dz = S.pos.z - s.z, d = Math.hypot(dx, dz), toYou = Math.atan2(dx, -dz), c = C(s.crew);
+  rig(s, rt.tNow);
   if (s.crewDerelict) return;
-  const steer = (want, spd, rate = 0.6) => { s.heading += clamp(angleDiff(want, s.heading), -rate * dt, rate * dt); s.speed = spd; };
+  const steer = (want, spd, rate = 0.6) => { s.heading += clamp(angleDiff(s.heading, want), -rate * dt, rate * dt); s.speed = spd; };   // angleDiff(a, b) is b - a
+  const toward = (x, z) => Math.atan2(x - s.x, -(z - s.z));
+  const fx = Math.sin(S.heading), fz = -Math.cos(S.heading), rx = Math.cos(S.heading), rz = Math.sin(S.heading);
+  // the Widow (owner, 2026-11-25: her way of coming at you is part of her look): she always works round to your stern before she fires
+  if (s.crew === 'wolves' && s.hostile && !s.struck) {
+    const ax = S.pos.x - fx * 26, az = S.pos.z - fz * 26, astern = (-dx * fx + -dz * fz) < -0.75 * d;   // her bearing from you is behind your stern
+    if (!astern) { steer(toward(ax + rx * 6 * s.circle, az + rz * 6 * s.circle), Math.max(9.5, S.speed + 2.5), 0.9); s.fireCd = Math.max(s.fireCd, 0.8); }
+    else { const hx = S.pos.x - fx * 18, hz = S.pos.z - fz * 18; steer(toward(hx, hz), clamp(S.speed + (Math.hypot(hx - s.x, hz - s.z) - 2) * 0.4, 2, S.speed + 3), 1.0); }   // then she holds there, a little off your stern, and fires
+  }
   if (s.crew === 'tollmen' && !s.hostile) {
-    if (!s.asked) { if (d > 22) steer(toYou, 7); else { s.asked = true; s.speed = 2; toast('A grey brig comes alongside, gunports shut. A man at her rail holds up a ledger.', false, 5500); } }
-    else if (s.state !== 'paid') { steer(toYou + 0.9, Math.min(S.speed + 0.5, 8)); if (d > 140 && !s.warned) { s.warned = true; mark('crown', -2); refuse(s, 'You did not stop for the toll. Her gunports open.'); } }
+    if (!s.asked) { if (d > 22) steer(toYou, Math.max(7, S.speed + 3), 1.0); else { s.asked = true; s.speed = 2; toast('A grey brig comes alongside, gunports shut. A man at her rail holds up a ledger.', false, 5500); } }
+    else if (s.state !== 'paid') {   // she keeps station exactly one length off your beam, matching you, ledger up
+      const tx = S.pos.x + rx * 14, tz = S.pos.z + rz * 14, td = Math.hypot(tx - s.x, tz - s.z);
+      if (td > 4) steer(toward(tx, tz), clamp(S.speed + td * 0.5, 1, Math.max(11, S.speed + 4)), 1.2); else { s.heading += clamp(angleDiff(s.heading, S.heading), -dt, dt); s.speed = S.speed; } if (d > 140 && !s.warned) { s.warned = true; mark('crown', -2); refuse(s, 'You did not stop for the toll. Her gunports open.'); } }
     else steer(s.heading, 6);
   } else if (s.crew === 'beggars' && !s.hostile) {
     if (s.state === 'none' && d > 26) steer(toYou, 4);
     else if (s.shadow) { steer(toYou + Math.sin(rt.tNow * 0.1), Math.min(6, Math.max(3, d / 20))); if (tod.night > 0.6 && d < 60 && !s.tried) { s.tried = true; s.hostile = true; s.engaged = true; s.maxHp = s.hp = 25; toast('In the dark the Patience comes in fast. They are going to try to take it.', false, 5500); } }
   } else if (s.crew === 'collectors') {
     if (s.state === 'paid') steer(s.heading, 5);
-    else { steer(toYou + 1.2, Math.min(9, Math.max(2, (d - 40) / 6)), 0.9); if (rt.nerves != null && d < 120) rt.nerves = Math.min(1, rt.nerves + dt / 200); }
+    else {   // she keeps to windward of you, sailing straight into the wind as fast as she likes, her sails flat and empty
+      const w = G.wind ? G.wind.dir : 0, ux = -Math.sin(w), uz = Math.cos(w), tx = S.pos.x + ux * 45, tz = S.pos.z + uz * 45;
+      steer(toward(tx, tz), clamp(Math.hypot(tx - s.x, tz - s.z) / 4, 2, Math.max(9, S.speed + 3)), 0.9);
+      if (rt.nerves != null && d < 120) rt.nerves = Math.min(1, rt.nerves + dt / 200);
+    }
   }
-  for (const sl of s.sails) if (sl.limp) sl.pivot.scale.y = sl.s * 0.55;   // the Quiet Hand's sails never fill
+}
+/** after traffic.js has set the sails for the wind: each crew's rig (height, the Patience's luffing, the Quiet Hand's flat empty sails) */
+function rig(s, t) {
+  s.sails.forEach((sl, i) => {
+    sl.pivot.scale.y *= s.rigK || 1;
+    if (sl.jib) sl.jib.scale.y *= s.rigK || 1;
+    if (s.crew === 'beggars') { sl.pivot.rotation.y += Math.sin(t * 7 + i) * 0.22; sl.sail.scale.x *= 0.75 + 0.25 * Math.sin(t * 11 + i * 2); }   // they cannot trim her: the sail luffs and shakes
+    if (sl.limp) { sl.pivot.scale.y *= 0.55; sl.pivot.rotation.y = 0; sl.sail.scale.x = 0.25; }   // the Quiet Hand: flat fore and aft whatever the wind
+  });
 }
 function refuse(s, line) {
   s.hostile = true; s.engaged = true; s.fireCd = 1.2; s.state = 'none';
