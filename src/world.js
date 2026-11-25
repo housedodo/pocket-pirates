@@ -1252,11 +1252,9 @@ function boatAt(b, x, z, ry, lantern) {
 }
 // ---- the harbour's state (owner, 2026-11-25: "harbours show how they're doing" and "events seen from the sea"; systems/harbours.js).
 // Layers shown by LAYER_RULES from isl.plenty (-2..3) and isl.event. Its own random stream: nothing of the village moves.
-// Three ways to show plenty, tried side by side (?harbourlook=a|b|c, all three by default): A the quay, B the market, C the houses.
-// Two looks per event (?eventlook=b): fire, fever, blockade, feast.
-const QS = typeof location !== 'undefined' ? new URLSearchParams(location.search) : new URLSearchParams();
-export const HLOOK = QS.get('harbourlook') || 'all', EVLOOK = QS.get('eventlook') === 'b' ? 'b' : 'a';
-const hl = (k) => HLOOK === 'all' || HLOOK === k;
+// Plenty shows three ways at once (owner, 2026-11-25: "all looks"): the quay, the waterfront market, the houses.
+// The events, one look each (the owner took the lead's picks): a house burning, fever flags with boats kept out and chalk crosses,
+// a log boom with one dark ship behind it, a maypole with bunting.
 function bigSmoke(b, x, y, z, n, dark) {   // a column of smoke you see from the sea: puffs growing as they rise, drifting off with height
   for (let i = 0; i < n; i++) { const s = 0.7 + i * 0.32; b.blob(x + i * i * 0.05, y + i * 1.6, z + Math.sin(i * 0.9) * 0.6, s, s * 0.8, s, i < 3 && dark ? '#4a4446' : i < 6 ? '#8a8486' : '#bcb8ba', TILE.white, 0.35, i + Math.round(x)); }
 }
@@ -1308,35 +1306,28 @@ function harbourState(d, cr, g) {
     for (let i = 0; i < 4; i++) b.blob(-1 + i * 0.7, 0.2, 1.5, 0.4, 0.35, 0.3, '#5a7a3a', TILE.leaf, 0.3, i); b.pop(); }
   // ---- events, two looks each
   { const [x, z] = dockAt(R * 0.32, -7), face = -dockTh - Math.PI / 2;   // a house near the waterfront
-    const a = L('ev_fire_a'); a.push(x, yy, z, face); a.box(0, 0, 0, 2.8, 2.2, 2.4, '#5a4a3a', TILE.wall);
+    const a = L('ev_fire'); a.push(x, yy, z, face); a.box(0, 0, 0, 2.8, 2.2, 2.4, '#5a4a3a', TILE.wall);
     for (const ox of [-0.7, 0.7]) a.box(ox, 0.9, 1.21, 0.5, 0.5, 0.06, '#ff8a3a', TILE.glow);   // fire behind the windows
     a.box(0, 2.2, 0, 2.6, 0.5, 2.2, '#ff7a2a', TILE.glow); a.pop(); bigSmoke(a, x, yy + 3, z, 12, true);   // the roof alight, a column of black smoke seen from far off
-    const b = L('ev_fire_b'); b.push(x, yy, z, face); for (const [sx, sz, w, dd] of [[-1.3, 0, 0.25, 2.4], [1.3, 0, 0.25, 2.4], [0, -1.15, 2.8, 0.25]]) b.box(sx, 0, sz, w, 1.6 + Math.abs(sx) * 0.3, dd, '#1a1612', TILE.wall);   // a burnt shell
-    for (let i = 0; i < 3; i++) { b.push(-0.8 + i * 0.8, 1.8, 0, 0, 1, 1, 1, 0.3 * (i - 1), 0.4); b.box(0, 0, 0, 0.16, 0.16, 2.6, '#120e0c', TILE.bark); b.pop(); }   // charred roof beams
-    b.pop(); bigSmoke(b, x, yy + 1.6, z, 7, false); for (let i = 0; i < 6; i++) { const [bx, bz] = dockAt(R * 0.3 + i * 1.4, 1.8); b.cyl(bx, yy, bz, 0.35, 0.35, 0.75, 6, '#6a4a2e', TILE.planks); }   // a line of buckets and barrels up from the water
   }
-  { const fa = L('ev_fever_a'), fb = L('ev_fever_b');
-    for (const f of [fa, fb]) { f.push(0, 0, 0, ry); f.box(0, 0.84, z1 - 0.6, 0.22, 8, 0.22, '#5a3a22', TILE.bark); f.box(0, 7.0, z1 - 0.6 + 1.4, 0.06, 1.8, 2.6, '#e8c838', TILE.white); f.pop();   // the yellow flag at the pier head, big enough to read from the sea
+  { const fb = L('ev_fever');
+    for (const f of [fb]) { f.push(0, 0, 0, ry); f.box(0, 0.84, z1 - 0.6, 0.22, 8, 0.22, '#5a3a22', TILE.bark); f.box(0, 7.0, z1 - 0.6 + 1.4, 0.06, 1.8, 2.6, '#e8c838', TILE.white); f.pop();   // the yellow flag at the pier head, big enough to read from the sea
       f.box(0, yy, 0, 0.22, 9, 0.22, '#5a3a22', TILE.bark); f.box(0, yy + 8, 1.3, 0.06, 1.6, 2.4, '#e8c838', TILE.white); }   // and one over the square
     fb.push(0, 0, 0, ry); for (const sx of [-1, 1]) { boatAt(fb, sx * 14, z1 + 16, 0.3 * sx, false); fb.box(sx * 14, 0.4, z1 + 17, 0.08, 2.4, 0.08, '#3a2e22', TILE.bark); fb.box(sx * 14, 2.6, z1 + 17.4, 0.04, 0.5, 0.8, '#e8c838', TILE.white); } fb.pop();   // two boats kept out at anchor, flying yellow
     for (let i = 0; i < 3; i++) { const [x, z] = dockAt(R * 0.5 - i * 3, (i - 1) * 9 + 1), face = -dockTh - Math.PI / 2; fb.push(x, yy, z, face); fb.box(0, 0, 0, 2.4, 2.2, 2.2, '#c8b89a', TILE.wall); fb.gable(0, 2.2, 0, 2.7, 0.9, 2.5, '#8a5a3a', TILE.roof, '#c8b89a');
       fb.push(0, 1.0, 1.12, 0, 1, 1, 1, 0, 0.78); fb.box(0, 0, 0, 1.0, 0.14, 0.04, '#f4f0e6'); fb.pop(); fb.push(0, 1.0, 1.13, 0, 1, 1, 1, 0, -0.78); fb.box(0, 0, 0, 1.0, 0.14, 0.04, '#f4f0e6'); fb.pop(); fb.pop(); }   // a chalk cross on the door
   }
-  { const ba = L('ev_block_a'), bb = L('ev_block_b');
-    ba.push(0, 0, 0, ry); for (const sx of [-1, 0, 1]) shipSil(ba, sx * 16, z1 + 30 + Math.abs(sx) * 4, Math.PI / 2 + sx * 0.15, 0.9, null, '#2a1e16'); ba.pop();   // three ships at anchor across the way in
+  { const bb = L('ev_block');
     bb.push(0, 0, 0, ry); for (let i = -6; i <= 6; i++) { bb.push(i * 2.4, 0.15, z1 + 20 + Math.cos(i * 0.4) * 1.2, i * 0.3); bb.box(0, 0, 0, 0.6, 0.5, 2.2, '#4a3a28', TILE.bark); bb.pop(); }   // a boom of logs chained across the mouth
     shipSil(bb, 0, z1 + 34, Math.PI / 2, 1.2, '#6a3a26', '#1a120c'); bb.pop();   // one big dark ship behind it, sails set
   }
-  { const fa = L('ev_feast_a'), fb = L('ev_feast_b');
+  { const fa = L('ev_feast');
     { const [ax, az] = dockAt(R * 0.6, 1.4), pts = [[ax, yy + 4, az]]; fa.box(ax, yy, az, 0.2, 4.2, 0.2, '#6b4a2e', TILE.bark);   // bunting from the pier to the square, and lanterns along it
       for (let i = 1; i <= 3; i++) { const t = i / 3, x = ax * (1 - t), z = az * (1 - t); fa.box(x, yy, z, 0.2, 4.2, 0.2, '#6b4a2e', TILE.bark); pts.push([x, yy + 4, z]); }
       for (let i = 0; i < 3; i++) { flagLine(fa, pts[i], pts[i + 1], i); fa.box((pts[i][0] + pts[i + 1][0]) / 2, yy + 3.1, (pts[i][2] + pts[i + 1][2]) / 2, 0.3, 0.36, 0.3, '#ffd890', TILE.glow); } }
     { const [mx, mz] = dockAt(R * 0.3, 0); fa.box(mx, yy, mz, 0.35, 14, 0.35, '#6b4a2e', TILE.bark); fa.box(mx, yy + 14, mz, 0.8, 0.8, 0.8, '#d24a3e', TILE.flag);   // a maypole by the landing, bunting running down from it
       for (let i = 0; i < 6; i++) { const a = (i / 6) * Math.PI * 2, ex = mx + Math.cos(a) * 10, ez = mz + Math.sin(a) * 10; fa.box(ex, yy, ez, 0.2, 3.2, 0.2, '#6b4a2e', TILE.bark); flagLine(fa, [mx, yy + 13.6, mz], [ex, yy + 3.2, ez], i); }
       for (let i = 0; i < 8; i++) { const a = (i / 8) * Math.PI * 2, x = mx + Math.cos(a) * 3.2, z = mz + Math.sin(a) * 3.2; villager(fa, x, yy, z, a + Math.PI / 2, rng, pickCol(rng, ['fisher', 'oldsalt', 'child', 'docker'])); } }   // dancing round it
-    fb.push(0, 0, 0, ry); for (const [bx, bz] of [[-3.8, z1 - 9], [3.9, z1 - 15]]) { boatAt(fb, bx, bz, 0, false); fb.box(bx, 0.4, bz, 0.12, 7, 0.12, '#6b4a2e', TILE.bark); flagLine(fb, [bx, 7.3, bz], [bx, 0.6, bz - 4], 1); flagLine(fb, [bx, 7.3, bz], [bx, 0.6, bz + 4], 3); flagLine(fb, [bx, 7.3, bz], [bx + 3, 0.6, bz], 5); } fb.pop();   // boats dressed overall
-    { const th = dockTh + 0.9, rho = shoreR(d, th) * 0.92, x = Math.cos(th) * rho, z = Math.sin(th) * rho;   // a bonfire on the beach, people round it
-      fb.cyl(x, 0.3, z, 1.6, 0.3, 2.4, 5, '#ff9a3a', TILE.glow); bigSmoke(fb, x, 2.8, z, 6, false); for (let i = 0; i < 5; i++) { const a = i * 1.26; villager(fb, x + Math.cos(a) * 2.4, 0.3, z + Math.sin(a) * 2.4, a + Math.PI, rng, pickCol(rng, ['fisher', 'child', 'docker'])); } }
   }
 }
 function weekAndCustoms(d, rng, cr, g) {
@@ -1719,13 +1710,10 @@ const LAYER_RULES = {
   statuesNight: (i, ph) => ph === 'evening' || ph === 'night',
   resident: (i) => !!i.lifeDone,
   grow1: (i) => (i.growth || 0) >= 1, grow2: (i) => (i.growth || 0) >= 2, grow3: (i) => (i.growth || 0) >= 3,
-  pl_quayRich: (i) => hl('a') && (i.plenty ?? 0) >= 2, pl_quayPoor: (i) => hl('a') && (i.plenty ?? 0) <= -1,
-  pl_marketFull: (i, ph) => hl('b') && (i.plenty ?? 0) >= 1 && (ph === 'day' || ph === 'siesta' || ph === 'dawn') && i.event !== 'fever', pl_marketBare: (i) => hl('b') && (i.plenty ?? 0) <= -1,
-  pl_build: (i) => hl('c') && (i.plenty ?? 0) === 2, pl_newhouse: (i) => hl('c') && (i.plenty ?? 0) >= 3, pl_shut: (i) => hl('c') && (i.plenty ?? 0) <= -1, pl_ruin: (i) => hl('c') && (i.plenty ?? 0) <= -2,
-  ev_fire_a: (i) => i.event === 'fire' && EVLOOK === 'a', ev_fire_b: (i) => i.event === 'fire' && EVLOOK === 'b',
-  ev_fever_a: (i) => i.event === 'fever' && EVLOOK === 'a', ev_fever_b: (i) => i.event === 'fever' && EVLOOK === 'b',
-  ev_block_a: (i) => i.event === 'blockade' && EVLOOK === 'a', ev_block_b: (i) => i.event === 'blockade' && EVLOOK === 'b',
-  ev_feast_a: (i) => i.event === 'feast' && EVLOOK === 'a', ev_feast_b: (i) => i.event === 'feast' && EVLOOK === 'b',
+  pl_quayRich: (i) => (i.plenty ?? 0) >= 2, pl_quayPoor: (i) =>(i.plenty ?? 0) <= -1,
+  pl_marketFull: (i, ph) =>(i.plenty ?? 0) >= 1 && (ph === 'day' || ph === 'siesta' || ph === 'dawn') && i.event !== 'fever', pl_marketBare: (i) =>(i.plenty ?? 0) <= -1,
+  pl_build: (i) =>(i.plenty ?? 0) === 2, pl_newhouse: (i) =>(i.plenty ?? 0) >= 3, pl_shut: (i) =>(i.plenty ?? 0) <= -1, pl_ruin: (i) =>(i.plenty ?? 0) <= -2,
+  ev_fire: (i) => i.event === 'fire', ev_fever: (i) => i.event === 'fever', ev_block: (i) => i.event === 'blockade', ev_feast: (i) => i.event === 'feast',
 };
 /** the sea mist's colour: main.js sets it to the fog colour each frame */
 export const mistMat = psxMaterial({ haze: false, vertexColors: true, transparent: true, opacity: 0.22, depthWrite: false, side: THREE.DoubleSide, key: 'Lc', fragmentColor: { head: '', body: 'diffuseColor.rgb /= max(uLight, 0.05);' } });   // snaps (G2); its colour is the fog's, already dark at night, so the light is not applied twice
