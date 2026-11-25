@@ -47,18 +47,41 @@ export const CREWS = {
 };
 
 // ---- the ships: each is the ordinary hull and rig (traffic.js) in its own paint, with its own things on deck
-const PAINT = { wolves: ['#120c0c', '#6a2420'], tollmen: ['#34343a', '#d4d4d0'], beggars: ['#1e3450', '#7aa4c8'], collectors: ['#1e1e22', '#f6f4ec'] };
+// each crew's livery (owner, 2026-11-25: "redesigns... all look like wooden ships, not grey or an unnatural colour for that time; ships
+// from Port Royale and Pirates! as a reference"): period ship types in wood, tar, the natural paints of the day (ochre, red ochre,
+// verdigris, white lead, gilt) and canvas (natural, tanned, mildewed). Two designs each while the owner chooses (?shipstyle=b; RULES 35).
+// paint: [tar below the wale, the planking, the rails and wales] (recolour); sail: canvas tint; deck: [wood, roof] for houses on deck;
+// patch: patch and laundry colours; flag: the streamer; shape: overrides SHAPE
+export const LIVERY = {
+  wolves: {
+    a: { name: 'tarred brigantine', paint: ['#120d0a', '#3a2818', '#c89a48'], sail: [0.7, 0.4, 0.28], patch: ['#4a2618', '#6a3a24'], flag: 0x7a1810 },
+    b: { name: 'privateer sloop', paint: ['#24160c', '#7a4824', '#a83a22'], sail: [0.92, 0.86, 0.72], patch: ['#7a6a50', '#5a4a36'], flag: 0x5a1210, shape: { hull: [0.9, 0.78, 1.2], rig: 1.22, rake: 0.1 } },
+  },
+  tollmen: {
+    a: { name: 'Dutch fluyt', paint: ['#1a120a', '#8a5a2c', '#e0b048'], sail: [0.98, 0.94, 0.82], deck: ['#9a7448', '#5a3a22'], flag: 0x2a3a6a },
+    b: { name: 'guarda costa', paint: ['#140e0a', '#5a3a20', '#4e7a64'], sail: [0.94, 0.9, 0.78], deck: ['#7a5634', '#3a2a1a'], flag: 0x8a1a14 },
+  },
+  beggars: {
+    a: { name: 'weathered sloop', paint: ['#2a241e', '#7a6c5a', '#c4b49a'], sail: [0.92, 0.86, 0.72], patch: ['#a0583a', '#c8b898', '#6a5a44', '#8a7a5a', '#d8ccb0'] },
+    b: { name: 'faded pinnace', paint: ['#2a1a12', '#8a4428', '#d8ccb4'], sail: [0.82, 0.62, 0.46], patch: ['#c8b898', '#e0d4bc', '#7a5a3a', '#a08a6a', '#5a4a36'] },
+  },
+  collectors: {
+    a: { name: 'salt-bleached galleon', paint: ['#3a342c', '#9a9078', '#e8e0c8'], sail: [0.64, 0.62, 0.52], trim: '#2a241c' },
+    b: { name: 'tarred galleon', paint: ['#0c0a08', '#2e2418', '#7a5e2c'], sail: [0.5, 0.44, 0.38], trim: '#6a5228' },   // the gilt worn to a dull brass
+  },
+};
+export const SHIP_STYLE = (typeof location !== 'undefined' && new URLSearchParams(location.search).get('shipstyle') === 'b') ? 'b' : 'a';
 const hx2 = (h) => [parseInt(h.slice(1, 3), 16) / 255, parseInt(h.slice(3, 5), 16) / 255, parseInt(h.slice(5, 7), 16) / 255];
 const recoloured = {};
-/** the same hull, painted: each vertex colour's brightness picks a colour between the crew's dark and light paint */
-function recolour(mesh, [d, l]) {
-  const key = mesh.geometry.uuid + d + l;
+/** the same hull, painted: each vertex colour's brightness picks a colour along the livery's three paints (tar, planking, rails) */
+function recolour(mesh, [d, m, l]) {
+  const key = mesh.geometry.uuid + d + m + l;
   if (!recoloured[key]) {
-    const g = mesh.geometry.clone(), D = hx2(d), L = hx2(l);
+    const g = mesh.geometry.clone(), D = hx2(d), Mid = hx2(m), L = hx2(l);
     for (const name of Object.keys(g.attributes)) {
       if (!/^color/.test(name)) continue;
       const a = g.attributes[name], n = a.itemSize;
-      for (let i = 0; i < a.count; i++) { const r = a.getX(i), gg = a.getY(i), b = a.getZ(i), t = Math.min(1, (0.3 * r + 0.59 * gg + 0.11 * b) * 1.6); a.setXYZ(i, D[0] + (L[0] - D[0]) * t, D[1] + (L[1] - D[1]) * t, D[2] + (L[2] - D[2]) * t); }
+      for (let i = 0; i < a.count; i++) { const r = a.getX(i), gg = a.getY(i), b = a.getZ(i), t = Math.min(1, (0.3 * r + 0.59 * gg + 0.11 * b) * 1.6), A = t < 0.5 ? D : Mid, B = t < 0.5 ? Mid : L, u = t < 0.5 ? t * 2 : t * 2 - 1; a.setXYZ(i, A[0] + (B[0] - A[0]) * u, A[1] + (B[1] - A[1]) * u, A[2] + (B[2] - A[2]) * u); }
       a.needsUpdate = true; void n;
     }
     recoloured[key] = g;
@@ -70,51 +93,48 @@ function recolour(mesh, [d, l]) {
 //   tall and narrow, like a church
 const SHAPE = { wolves: { hull: [0.85, 0.72, 1.32], rig: 1.08, rake: 0.2 }, tollmen: { hull: [1.28, 1.32, 0.86], rig: 0.82 }, beggars: { hull: [1.0, 0.9, 0.74], rig: 0.66 }, collectors: { hull: [0.74, 1.2, 1.06], rig: 1.45 } };
 const _v = new THREE.Vector3();
-let mtl = null;
-function materials() {
-  if (mtl) return mtl;
-  const atlas = getAtlas(); mtl = {};
-  for (const [id, c] of Object.entries(CREWS)) {
-    const painted = id === 'tollmen' || id === 'collectors';   // painted hulls: no wood grain through the paint
-    const h = psxMaterial({ map: painted ? null : atlas, vertexColors: true, dark: true, side: THREE.DoubleSide, key: 'Rh' + id + (painted ? 'p' : '') });   // white: the paint is in the vertex colours (recolour)
-    const s = psxMaterial({ map: atlas, vertexColors: true, dark: true, side: THREE.DoubleSide, key: 'Rs' + id }); s.color.setRGB(...c.sail);
-    mtl[id] = { h, s };
-  }
-  return mtl;
+const mtl = {};
+function materials(id, st) {
+  const key = id + st; if (mtl[key]) return mtl[key];
+  const atlas = getAtlas(), L = LIVERY[id][st];
+  const h = psxMaterial({ map: atlas, vertexColors: true, dark: true, alphaTest: 0.5, side: THREE.DoubleSide, key: 'Rh' + key });   // wood grain through the paint; the paint is in the vertex colours
+  const s = psxMaterial({ map: atlas, vertexColors: true, dark: true, side: THREE.DoubleSide, key: 'Rs' + key }); s.color.setRGB(...L.sail);
+  return (mtl[key] = { h, s });
 }
-function dress(s, id) {
-  const M = materials()[id], root = s.root, extra = new Builder();
+function dress(s, id, st = SHIP_STYLE) {
+  const L = LIVERY[id][st], SH = { ...SHAPE[id], ...(L.shape || {}) }, M = materials(id, st), root = s.root, extra = new Builder();
+  s.livery = st;
   { const old = root.children[0].material;   // the hull, the castle and the spare masts: every piece in the hull's material, in her own paint
-    for (const m of root.children) if (m.isMesh && m.material === old) { recolour(m, PAINT[id]); m.material = M.h; m.scale.multiply(_v.set(...SHAPE[id].hull)); } }
-  { const sh = SHAPE[id];   // her own silhouette (owner, 2026-11-25): the masts stand where the stretched hull puts them, raked if she is a Widow
+    for (const m of root.children) if (m.isMesh && m.material === old) { recolour(m, L.paint); m.material = M.h; m.scale.multiply(_v.set(...SH.hull)); } }
+  { const sh = SH;   // her own silhouette (owner, 2026-11-25): the masts stand where the stretched hull puts them, raked if she is a Widow
     for (const sl of s.sails) { sl.pivot.position.y *= sh.hull[1]; sl.pivot.position.z *= sh.hull[2]; sl.pivot.rotation.x = sh.rake || 0; }
     s.flag.position.y *= sh.hull[1] * sh.rig; s.flag.position.z *= sh.hull[2]; s.rigK = sh.rig; }
   for (const sl of s.sails) sl.sail.material = M.s;
   if (s.sails[0] && s.sails[0].jib) s.sails[0].jib.material = M.s;
   if (id === 'wolves') {   // a jawbone lashed to the bowsprit, a long red streamer, black patches on the red canvas
     extra.box(0, 1.7, -4.2, 0.2, 0.2, 0.9, '#d8d0bc', TILE.bone); for (let k = 0; k < 5; k++) extra.box(0, 1.45, -3.9 - k * 0.15, 0.5 - k * 0.06, 0.12, 0.06, '#e8e0cc', TILE.bone);
-    for (const [x, y] of [[0.4, 3.4], [-0.5, 4.6], [0.2, 5.6]]) extra.box(x, y, -0.55, 0.7, 0.6, 0.04, '#1a1010');
-    s.flag.scale.set(1, 1, 2.4); s.flag.material = new THREE.MeshBasicMaterial({ color: 0xa01818, side: THREE.DoubleSide });
+    for (const sl of s.sails) { const pb = new Builder(); pb.doubleSided = true; for (let k = 0; k < 3; k++) pb.box(0.36, 1.2 + k * 1.3, 0.8 + (k % 2) * 1.1, 0.06, 0.8, 0.9, L.patch[k % 2]); sl.sail.add(new THREE.Mesh(pb.geometry(), mats.props)); }   // darker canvas patched in
+    s.flag.scale.set(1, 1, 2.4); s.flag.material = new THREE.MeshBasicMaterial({ color: L.flag, side: THREE.DoubleSide });
   } else if (id === 'tollmen') {   // a toll booth on deck, a lantern on a pole over the bow with a chain hanging from it, a black ring on the mainsail
-    extra.box(0, 1.1, 1.2, 1.6, 1.3, 1.4, '#a8a49c', TILE.planks); extra.gable(0, 2.4, 1.2, 1.8, 0.6, 1.6, '#4a4a52', TILE.roof, '#a8a49c');
+    extra.box(0, 1.1, 1.2, 1.6, 1.3, 1.4, L.deck[0], TILE.planks); extra.gable(0, 2.4, 1.2, 1.8, 0.6, 1.6, L.deck[1], TILE.roof, L.deck[0]);   // a timber toll booth, shingled
     extra.box(0, 1.6, -3.6, 0.12, 2.6, 0.12, '#3a3632'); extra.box(0, 4.1, -3.6, 0.32, 0.4, 0.32, '#ffd890', TILE.glow);
     for (let k = 0; k < 6; k++) extra.box(0, 3.8 - k * 0.3, -3.75, 0.1, 0.2, 0.06, '#2a2622');
-    for (let k = 0; k < 12; k++) { const a = k / 12 * Math.PI * 2; extra.box(Math.cos(a) * 0.9, 4.4 + Math.sin(a) * 0.9, -0.6, 0.3, 0.3, 0.04, '#1a1a1e'); }
-    s.flag.material = new THREE.MeshBasicMaterial({ color: 0x2a2a30, side: THREE.DoubleSide });
+    for (let k = 0; k < 12; k++) { const a = k / 12 * Math.PI * 2; extra.box(Math.cos(a) * 0.9, 4.4 + Math.sin(a) * 0.9, -0.6, 0.3, 0.3, 0.04, '#3a2818'); }   // a ring painted on the mainsail in tar
+    s.flag.material = new THREE.MeshBasicMaterial({ color: L.flag, side: THREE.DoubleSide });
   } else if (id === 'beggars') {   // patches in every colour, a mast that leans, washing on a line, the goat
-    const P = ['#c84a3a', '#3a8a5a', '#d8b040', '#5a6ab8', '#e8e0d0'];
+    const P = L.patch;   // canvas, tanned and undyed cloth: what a poor family would have
     for (const sl of s.sails) {   // patches sewn onto the sail itself, so they swing with it
       const pb = new Builder(); pb.doubleSided = true;
       for (let k = 0; k < 6; k++) pb.box(0.36, 0.8 + (k % 3) * 1.3, 0.5 + Math.floor(k / 3) * 1.4 + (k % 2) * 0.3, 0.06, 0.9, 0.9, P[k % P.length]);
       sl.sail.add(new THREE.Mesh(pb.geometry(), mats.props));
     }
-    extra.box(-0.6, 1.0, 1.4, 0.06, 0.06, 2.4, '#8a7a62'); for (const [z, c] of [[0.6, '#c84a3a'], [1.2, '#e8e0d0'], [1.9, '#5a6ab8']]) extra.box(-0.6, 0.65, z, 0.04, 0.6, 0.4, c);
+    extra.box(-0.6, 1.0, 1.4, 0.06, 0.06, 2.4, '#8a7a62'); for (const [z, c] of [[0.6, P[0]], [1.2, P[4]], [1.9, P[2]]]) extra.box(-0.6, 0.65, z, 0.04, 0.6, 0.4, c);
     extra.box(0.4, 0.9, 1.8, 0.3, 0.3, 0.6, '#d8d0c0'); extra.box(0.4, 1.15, 1.45, 0.2, 0.22, 0.24, '#d8d0c0'); for (const z of [1.6, 2.0]) for (const x of [0.3, 0.5]) extra.box(x, 0.65, z, 0.06, 0.3, 0.06, '#6a5a4a');   // the goat
     if (s.sails[0]) s.sails[0].pivot.rotation.z = 0.12;   // the jury-rigged mast leans
     root.position.y -= 0.25;                                // low in the water
   } else if (id === 'collectors') {   // a row of small lanterns down both rails, lit day and night; slack sails; no flag
     for (const sx of [-1, 1]) for (let k = 0; k < 7; k++) extra.box(sx * 1.25, 1.8, -2.6 + k * 0.85, 0.18, 0.24, 0.18, '#fff0c0', TILE.glow);
-    extra.box(0, 1.3, -2.0, 2.4, 0.08, 4.4, '#1a1a1e');   // the black trim along her waist
+    extra.box(0, 1.3, -2.0, 2.4, 0.08, 4.4, L.trim);   // the trim along her waist (tar, or worn gilt)
     for (const sl of s.sails) sl.limp = true;
     s.flag.visible = false;
   }
@@ -133,13 +153,13 @@ function canSpawn(id) {
   if (id === 'beggars' && c.beat >= 3) return false;  // they have a home now
   return true;
 }
-export function spawnCrew(id, x, z) {
+export function spawnCrew(id, x, z, st) {   // st: a livery to try (the previews); otherwise ?shipstyle
   const S = G.ship, def = CREWS[id];
   if (x == null) { const a = S.heading + (Math.random() - 0.5) * 1.6, d = 200; x = S.pos.x + Math.sin(a) * d; z = S.pos.z - Math.cos(a) * d; }
   const derelict = id === 'wolves' && C(id).beat === 2 && rt.dread >= 0.6;   // her last beat: found adrift, far out
   const s = G.traffic.spawnAt(def.kind, def.faction, x, z, Math.atan2(S.pos.x - x, -(S.pos.z - z)), derelict ? 'derelict' : 'live', derelict ? 0.8 : null, def.hostile && !derelict);
   s.crew = id; s.name = def.name.replace(/^the /, '');   // 'Red Widow': the prompt says "Hail the Red Widow" s.special = 'crew'; s.maxHp *= 1.4; s.hp = s.maxHp;
-  dress(s, id);
+  dress(s, id, st || SHIP_STYLE);
   const c = C(id); c.met++; c.day = state.dayN + state.time;
   if (derelict) s.crewDerelict = true;
   if (handOn('gunner') && !derelict) setTimeout(() => toast(`Hask, at the guns: "${GUNNER[id]}"`, false, 5000), 1500);   // the gunner reads her (systems/hands.js)

@@ -2422,3 +2422,9 @@ dread there eased for a while after it.
   tether turn, and **the towed boat's yaw (it was towed stern-first: the owner's "pulled the wrong way")**. Fixed; the towed boat's bow
   now points down the line (0.01 rad off) and rides 15 astern.
 - **The art-style skill** `.claude/skills/hoist-artstyle/SKILL.md`: the look, the kit, the palette, the dread versions, the traps, how to check.
+- **The raider crews redesigned in wood** (owner, 2026-11-25: "all look like wooden ships, not grey or an unnatural colour for that
+  time; Port Royale and Pirates! as a reference"): `raiders.js LIVERY`, two designs each, period types in tar, oak, ochre, red ochre,
+  verdigris, white lead, worn gilt and canvas (natural, tanned, mildewed); the hull keeps its wood grain (`recolour` now maps three paints:
+  tar, planking, rails). A: tarred brigantine, Dutch fluyt, weathered sloop, salt-bleached galleon. B: privateer sloop, guarda costa,
+  faded pinnace, tarred galleon. A is the default; `?shipstyle=b` shows B (RULES 35: the loser is deleted when the owner picks).
+  Preview sheet checked headless at deviceScaleFactor 2.
