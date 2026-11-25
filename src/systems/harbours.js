@@ -8,12 +8,22 @@
 //            a glad crew. Help raises plenty and standing; Tama has only fires and feasts. Full game only.
 //   reports  (Crown harbours) what you have found since your last report: isles charted, wrecks found, sketches in the Ship's book,
 //            paid once, and written in their book. After the first throw, once, the clerk shows you they were there already.
+//   law      (owner, 2026-11-25: "do 1, 2 and 4"; Pirates! 1987: struggling towns "trade with almost anyone", wealthy ones "follow the
+//            letter of the law") a thriving harbour turns you away a level sooner; a dying one never does and asks nothing. In the deep
+//            the dying ones are glad of you, and it is not right.
+//   back door a harbour that will not take your line (or is blockaded) can be reached at night by the ship's boat, up a water stair on
+//            the far side from the pier (world.js d.backStair): one buyer in the fish shed, a corner of the tavern, the pier's talk;
+//            nobody signs on, the yard is shut, nothing is bought, and it is no visit in their book.
+//   wants    what a water wants shows as a gap in the harbour (an empty rope walk, bare frames, a dry rack); sell it there and the gap is
+//            filled for a week. What it makes lies piled on the pier while it is doing well (world.js harbourState, wt_* layers).
 //   lifeline any harbour, when the purse is nearly empty: a morning's plain work for a few coins, once a day there.
 import { state } from '../core/state.js';
 import { rt, G } from '../core/runtime.js';
 import { toast } from '../ui/dom.js';
 import { hash2 } from '../util.js';
-import { mark } from './standing.js';
+import { mark, REFUSE_AT } from './standing.js';
+import { friendLevel } from '../jobs.js';
+import { WANTS } from './trade.js';
 import { pxi } from '../pixelui.js';
 import { goalReached } from '../objectives.js';
 
@@ -98,6 +108,7 @@ const fruitCount = () => Object.values(state.fruit || {}).reduce((a, b) => a + b
 export function harbourRows(d) {
   if (DEMO()) return '';
   let html = '';
+  if (rt.backDoor === d.id) return html;   // nobody at the board at night
   const ev = eventOf(d), E = hev()[d.id];
   if (ev && E) E.seen = true;
   if (E && E.owed) html += `<div class="sec">THE HARBOUR</div><div class="qrow"><div><b>${pxi('coin')} They remember who lifted the boom</b><br><small>the harbourmaster pays what was promised</small></div><button data-hb="owed">+${E.owed}g</button></div>`;
@@ -155,5 +166,37 @@ export const FEEL = {
     board: 'The board is crowded. Everybody wants something carried, and they pay well.', tavern: 'Loud, warm, full. A fiddler and a drum. Somebody buys your crew a round.',
     market: 'Everything is to be had, and they are glad to see you.', wright: 'The best yard on this coast, and they know your ship by name.' },
 };
+// the back door, at night: what can be had by the water stair
+export const NIGHT = { buy: 1, sell: 0.8, music: 0, hire: false, dice: false, game: false, yardTop: false, yardShut: true, stores: 0, ammo: false, made: false, luxury: false, jobs: 0, noBuy: true, back: true,
+  board: 'The board is a dark shape by the harbourmaster\'s door. Nobody reads it at this hour.',
+  tavern: 'In by the kitchen door. They let you stand by the fire, and nobody says your name.',
+  market: 'One man at the back of the fish shed buys what you have. He does not ask where it came from, and he does not pay much.',
+  wright: 'The yard is locked and dark. A dog behind the gate knows you are there.' };
 /** what this harbour is like ashore today (the demo and harbours before the story reach them: as ordinary) */
-export const feelOf = (d) => (DEMO() || !d ? FEEL[0] : FEEL[plentyLevel(d)] || FEEL[0]);
+export const feelOf = (d) => (DEMO() || !d ? FEEL[0] : rt.backDoor && rt.backDoor === d.id ? NIGHT : FEEL[plentyLevel(d)] || FEEL[0]);
+
+// ---- the law (idea 2): the level at or below which this harbour will not take your line, or null if it takes anyone's
+export function refuseAt(d) {
+  if (DEMO() || !d) return null;
+  if (d.id === '0,-1') return REFUSE_AT;   // home is home
+  const p = plentyLevel(d);
+  return p >= 2 ? REFUSE_AT + 1 : p <= -1 ? null : REFUSE_AT;
+}
+export const refuses = (d, rep) => { const t = refuseAt(d); return t != null && friendLevel(rep) <= t; };
+/** a dying harbour asks nothing: a line on docking, once a day, when they would have turned you away anywhere else */
+export function noQuestions(d, rep) {
+  if (DEMO() || refuseAt(d) != null || friendLevel(rep) > REFUSE_AT + 1) return null;
+  const Q = state.story.noQ || (state.story.noQ = {}); if (Q[d.id] === state.dayN) return null; Q[d.id] = state.dayN;
+  return (d.dread || 0) >= 0.55 ? 'They are glad to see you. Everyone on the quay stops to watch you tie up, and they are so glad.'
+    : 'Nobody asks where you have been. Nobody here asks anything any more.';
+}
+/** the refusal's words: a thriving harbour keeps a book */
+export const refuseLine = (d) => (plentyLevel(d) >= 2 ? 'The harbourmaster has your name in his book. Nobody takes your line until it is settled.' : 'Nobody comes down to take your line. The harbourmaster watches from a window.');
+export const isNight = () => { const h = (state.time || 0) * 24; return h >= 20 || h < 5; };
+/** the back stair (idea 1): its foot, in world space, or null */
+export function stairOf(d) { const b = d && d.backStair; return b ? { x: d.x + Math.cos(b.th) * b.r, z: d.z + Math.sin(b.th) * b.r } : null; }
+
+// ---- the wants (idea 4): the wanted good sold here in the last week fills the gap
+export const FED_DAYS = 7;
+export function fedOf(d) { const r = d && state.rep[d.id], w = d && WANTS[d.region]; return !!(r && w && r.fed && r.fed[w] != null && (state.dayN || 0) - r.fed[w] <= FED_DAYS); }
+export function noteSold(d, good) { const r = state.rep[d.id]; if (!r) return; (r.fed || (r.fed = {}))[good] = state.dayN || 0; }

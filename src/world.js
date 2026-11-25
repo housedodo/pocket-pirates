@@ -1265,6 +1265,51 @@ function shipSil(b, x, z, ry, s, sail, hull = '#3a2a1c') {   // a ship at anchor
   if (sail) b.quad([-1.5, 5.5, -0.35], [1.5, 5.5, -0.35], [1.7, 2.2, -0.45], [-1.7, 2.2, -0.45], sail, TILE.sail); else b.box(0, 5.4, -0.4, 3.0, 0.4, 0.4, '#c8bca0', TILE.sail);
   b.pop();
 }
+const WANT_OF = { crown: 'rope', free: 'cloth', reef: 'salt', lantern: 'rum', home: 'glass' }, MAKE_OF = { crown: 'cloth', free: 'rope', reef: 'rum', lantern: 'glass', home: 'salt' };
+function wantsAndMakes(d, L, g) {
+  const want = WANT_OF[d.region], make = MAKE_OF[d.region]; if (!want) return;
+  const { yy, R, dockTh, z1, dockAt } = g, ry = Math.PI / 2 - dockTh, face = -dockTh - Math.PI / 2;
+  let [wx, wz] = dockAt(R * 0.7, 12.5);
+  { const th = Math.atan2(wz, wx), lim = shoreR(d, th) * 0.86, rho = Math.hypot(wx, wz); if (rho > lim) { wx *= lim / rho; wz *= lim / rho; } }   // on land, back from the shore
+  const wy = Math.min(yy, terrainHeight(d, wx, wz) - 0.05), gap = L('wt_gap'), fed = L('wt_fed');
+  const post = (b, x, h) => b.box(x, 0, 0, 0.2, h, 0.2, '#5a4632', TILE.bark);
+  const cask = (b, x, y, z, lying, k) => { b.push(x, y, z, 0, 1, 1, 1, 0, lying ? Math.PI / 2 : 0); b.cyl(0, lying ? -0.45 : 0, 0, 0.38, 0.34, 0.9, 7, k ? '#7a4a2a' : '#6a3e22', TILE.planks); b.cyl(0, (lying ? -0.45 : 0) + 0.22, 0, 0.4, 0.4, 0.08, 7, '#2e2a26'); b.pop(); };
+  for (const b of [gap, fed]) b.push(wx, wy, wz, face);
+  if (want === 'rope') {   // a rope walk: posts with hooks, the rope stretched along them; or bare posts and one frayed end
+    for (let i = 0; i < 4; i++) for (const b of [gap, fed]) { post(b, -2.4 + i * 1.6, 1.5); b.box(-2.4 + i * 1.6, 1.3, 0.15, 0.06, 0.06, 0.3, '#2e2a26'); }
+    fed.box(0, 1.28, 0.28, 5.0, 0.14, 0.14, '#b89a6a', TILE.rope); for (const x of [-1.6, 1.2]) fed.cyl(x, 0, 1.0, 0.55, 0.55, 0.3, 8, '#a88a5a', TILE.rope);
+    gap.push(0.8, 1.3, 0.25, 0, 1, 1, 1, 0, 0.15); gap.box(0, -0.7, 0, 0.08, 0.7, 0.08, '#9a8a6a', TILE.rope); gap.pop();
+  } else if (want === 'cloth') {   // drying frames: cloth hung to air, or empty frames and a slack line
+    for (const x of [-1.6, 1.6]) for (const b of [gap, fed]) { post(b, x - 1, 2.2); post(b, x + 1, 2.2); b.box(x, 2.1, 0, 2.2, 0.12, 0.12, '#5a4632', TILE.bark); }
+    ['#d8c8a0', '#b84a3a', '#3a6a9a', '#e8dcc0'].forEach((c, i) => fed.box(-2.2 + i * 1.45, 0.6, 0.02, 1.1, 1.45, 0.05, c, TILE.sail));
+    gap.box(-1.6, 1.7, 0, 1.9, 0.04, 0.04, '#8a7a5a', TILE.rope);
+  } else if (want === 'salt') {   // salting: a rack of split fish and barrels topped white; or bare rails and empty barrels on their sides
+    for (const b of [gap, fed]) { post(b, -2, 1.6); post(b, 0.4, 1.6); for (const y of [0.8, 1.4]) b.box(-0.8, y, 0, 2.6, 0.08, 0.08, '#5a4632', TILE.bark); }
+    for (let i = 0; i < 6; i++) fed.box(-1.8 + (i % 3) * 0.55, i < 3 ? 0.45 : 1.05, 0.05, 0.3, 0.35, 0.04, '#b8c0c8', TILE.white);
+    for (let i = 0; i < 3; i++) { cask(fed, 1.4 + i * 0.85, 0, 0.3, false, i % 2); fed.box(1.4 + i * 0.85, 0.92, 0.3, 0.6, 0.06, 0.6, '#f0f0ea', TILE.white); cask(gap, 1.5 + i * 0.95, 0.38, 0.3 + (i % 2) * 0.4, true, i % 2); }
+  } else if (want === 'rum') {   // a cask rack: two tiers of casks, or the empty frame and one staved in
+    for (const b of [gap, fed]) { for (const x of [-2, 0, 2]) post(b, x, 1.7); for (const y of [0.15, 0.95]) b.box(0, y, 0, 4.3, 0.1, 0.7, '#5a4632', TILE.planks); }
+    for (let t = 0; t < 2; t++) for (let i = 0; i < 4; i++) cask(fed, -1.5 + i, 0.25 + t * 0.8 + 0.38, 0, true, (i + t) % 2);
+    gap.push(1.4, 0.25, 0.1, 0.4, 1, 1, 1, 0, 0); for (let i = 0; i < 4; i++) gap.box(Math.cos(i) * 0.3, 0, Math.sin(i) * 0.3, 0.12, 0.08, 0.7, '#6a3e22', TILE.planks); gap.pop();
+  } else {   // glass: the lamp-maker's shelf, glazed lamps catching the light, or empty dark frames
+    for (const b of [gap, fed]) { post(b, -2.2, 1.5); post(b, 2.2, 1.5); b.box(0, 1.0, 0, 4.6, 0.1, 0.6, '#5a4632', TILE.planks); b.box(0, 0.3, 0, 4.6, 0.1, 0.6, '#5a4632', TILE.planks); }
+    for (let i = 0; i < 5; i++) for (const y of [0.4, 1.1]) { const x = -1.8 + i * 0.9; gap.box(x, y, 0, 0.36, 0.5, 0.36, '#2e2a26'); fed.box(x, y, 0, 0.36, 0.5, 0.36, '#bfe0e8', TILE.white); fed.box(x, y + 0.5, 0, 0.2, 0.08, 0.2, '#3a3036'); }
+  }
+  gap.pop(); fed.pop();
+  // the made good, piled on the pier near its end
+  for (const [k, n0, n1] of [['wt_heap', 0, 4], ['wt_heap2', 4, 9]]) {
+    const b = L(k); b.push(0, 0, 0, ry);
+    for (let i = n0; i < n1; i++) {
+      const x = 0.75 + (i % 2) * -0.1, z = z1 - 7 + Math.floor(i / 2) * 0.95 - (i >= 4 ? 4.5 : 0), y = 0.84 + (i >= 6 && i % 3 === 0 ? 0.8 : 0);
+      if (make === 'cloth') { b.box(x, y, z, 0.8, 0.7, 0.8, i % 2 ? '#d8c8a0' : '#c8b088', TILE.sail); b.box(x, y + 0.3, z, 0.84, 0.1, 0.84, '#7a5a3a', TILE.rope); }
+      else if (make === 'rope') b.cyl(x, y, z, 0.45, 0.45, 0.32, 8, i % 2 ? '#b08a5a' : '#9a7a4a', TILE.rope);
+      else if (make === 'rum') cask(b, x, y, z, false, i % 2);
+      else if (make === 'glass') { b.box(x, y, z, 0.75, 0.6, 0.75, '#c8a868', TILE.planks); b.box(x, y + 0.6, z, 0.65, 0.08, 0.65, '#e8d890', TILE.leaf); }
+      else b.blob(x, y + 0.3, z, 0.42, 0.35, 0.4, i % 2 ? '#e8e0d0' : '#d8d0c0', TILE.white, 0.2, i);   // salt in sacks
+    }
+    b.pop();
+  }
+}
 function harbourState(d, cr, g) {
   const { yy, R, dockTh, z1, at, dockAt } = g, ry = Math.PI / 2 - dockTh, rng = mulberry32(d.seed * 977 + 5);
   const L = (k) => (cr[k] = cr[k] || new Builder());
@@ -1304,7 +1349,10 @@ function harbourState(d, cr, g) {
     const [x, z] = dockAt(R * 0.45, 9.5), face = -dockTh - Math.PI / 2, b = L('pl_ruin');   // a roof fallen in, weeds in the doorway
     b.push(x, yy, z, face); b.box(0, 0, 0, 2.8, 1.8, 2.5, '#9a8c78', TILE.wall); b.push(0.4, 1.6, 0, 0, 1, 1, 1, 0.5, 0.35); b.gable(0, 0, 0, 3.0, 0.9, 2.6, '#5a4434', TILE.roof, '#9a8c78'); b.pop();
     for (let i = 0; i < 4; i++) b.blob(-1 + i * 0.7, 0.2, 1.5, 0.4, 0.35, 0.3, '#5a7a3a', TILE.leaf, 0.3, i); b.pop(); }
-  // ---- events, two looks each
+  // ---- what this water wants and what it makes (systems/harbours.js idea 4): the wanted good's place stands empty until you bring it
+  // (wt_gap / wt_fed), and the made good lies piled on the pier while the harbour does well (wt_heap, more at 2+: wt_heap2)
+  wantsAndMakes(d, L, g);
+  // ---- events, one look each
   { const [x, z] = dockAt(R * 0.32, -7), face = -dockTh - Math.PI / 2;   // a house near the waterfront
     const a = L('ev_fire'); a.push(x, yy, z, face); a.box(0, 0, 0, 2.8, 2.2, 2.4, '#5a4a3a', TILE.wall);
     for (const ox of [-0.7, 0.7]) a.box(ox, 0.9, 1.21, 0.5, 0.5, 0.06, '#ff8a3a', TILE.glow);   // fire behind the windows
@@ -1609,6 +1657,21 @@ function decorate(d, rng, A, B, D, extra) {
         A.box(0, 0.4, -0.2, 0.1, 2.6, 0.1, '#ffffff', TILE.bark);
         A.pop();
         A.pop(); }
+      // the back stair (systems/harbours.js, the back door): stone steps down into the water on the far side from the jetty, a gate at the top
+      { const sTh = dockTh - (hash2(d.seed, 31, 7) & 1 ? 1 : -1) * 1.05, sR = shoreR(d, sTh), r0 = sR * 0.86, r1 = sR + 2.6, n = 8;
+        const h0 = Math.max(0.7, Math.min(d.H - 0.1, terrainHeight(d, Math.cos(sTh) * r0, Math.sin(sTh) * r0)));
+        d.backStair = { th: sTh, r: sR + 4 };
+        A.push(0, 0, 0, Math.PI / 2 - sTh);
+        const sl = (r1 - r0) / n;
+        for (let i = 0; i < n; i++) {
+          const y = h0 - (h0 + 0.9) * (i / (n - 1)), z = r0 + sl * (i + 0.5), wet = y < 0.4;
+          A.box(0, -1.8, z, 1.8, y + 1.8, sl + 0.05, wet ? '#5a6650' : '#8a8478', TILE.stone);   // a step; the low ones green with weed
+          for (const sx of [-1.1, 1.1]) A.box(sx, -1.8, z, 0.4, y + 2.1, sl + 0.05, wet ? '#4e5a46' : '#7a746a', TILE.stone);   // the cheek walls
+        }
+        A.cyl(1.35, -0.6, r1 - 0.4, 0.12, 0.12, 1.5, 5, '#3a3430', TILE.bark); A.box(1.35, 0.75, r1 - 0.4, 0.34, 0.06, 0.34, '#2e2a26');   // a mooring post with an iron ring
+        for (const sx of [-1.15, 1.15]) A.box(sx, h0, r0 - 0.4, 0.3, 2.3, 0.3, '#7a746a', TILE.stone);   // the gate posts
+        A.box(0, h0, r0 - 0.4, 1.9, 1.9, 0.12, '#4a3626', TILE.planks);   // and the gate, shut
+        A.pop(); }
       // quayside clutter
       for (let i = 0; i < 6; i++) {
         let th = dockTh + (rng() - 0.5) * 1.1; const rho = shoreR(d, th) * (0.5 + rng() * 0.3);
@@ -1713,6 +1776,7 @@ const LAYER_RULES = {
   pl_quayRich: (i) => (i.plenty ?? 0) >= 2, pl_quayPoor: (i) =>(i.plenty ?? 0) <= -1,
   pl_marketFull: (i, ph) =>(i.plenty ?? 0) >= 1 && (ph === 'day' || ph === 'siesta' || ph === 'dawn') && i.event !== 'fever', pl_marketBare: (i) =>(i.plenty ?? 0) <= -1,
   pl_build: (i) =>(i.plenty ?? 0) === 2, pl_newhouse: (i) =>(i.plenty ?? 0) >= 3, pl_shut: (i) =>(i.plenty ?? 0) <= -1, pl_ruin: (i) =>(i.plenty ?? 0) <= -2,
+  wt_gap: (i) => !!i.trade && !i.fed, wt_fed: (i) => !!i.trade && !!i.fed, wt_heap: (i) => !!i.trade && (i.plenty ?? 0) >= 0, wt_heap2: (i) => !!i.trade && (i.plenty ?? 0) >= 2,
   ev_fire: (i) => i.event === 'fire', ev_fever: (i) => i.event === 'fever', ev_block: (i) => i.event === 'blockade', ev_feast: (i) => i.event === 'feast',
 };
 /** the sea mist's colour: main.js sets it to the fog colour each frame */
@@ -1967,7 +2031,7 @@ export class World {
   }
   /** rebuild the loaded islands that match (the Reef's shoals move each dawn): they are dropped here and built again by update() */
   refresh(pred) { for (const [k, isl] of this.islands) if (pred(isl.desc)) { this.scene.remove(isl.group); isl.dispose(); this.islands.delete(k); } }
-  tick(t, tod) { for (const isl of this.islands.values()) { isl.tod = tod; isl.stare = this.stare; isl.week = this.week; isl.growth = this.growthOf ? this.growthOf(isl.desc.id) : 0; isl.plenty = this.plentyOf ? this.plentyOf(isl.desc) : 0; isl.event = this.eventOf ? this.eventOf(isl.desc) : null; isl.landed = this.landedOf ? this.landedOf(isl.desc.id) : false; isl.lifeDone = this.lifeDoneOf ? this.lifeDoneOf(isl.desc.id) : false; isl.tide = this.tide; isl.gctx = this.gctx || {}; isl.group.position.y = -this.tide * 0.32; for (const f of isl.anim) f(t, isl); } }   // the sea rises over the beach and falls back
+  tick(t, tod) { for (const isl of this.islands.values()) { isl.tod = tod; isl.stare = this.stare; isl.week = this.week; isl.growth = this.growthOf ? this.growthOf(isl.desc.id) : 0; isl.plenty = this.plentyOf ? this.plentyOf(isl.desc) : 0; isl.event = this.eventOf ? this.eventOf(isl.desc) : null; isl.trade = this.tradeOf ? this.tradeOf(isl.desc) : false; isl.fed = isl.trade && this.fedOf ? this.fedOf(isl.desc) : false; isl.landed = this.landedOf ? this.landedOf(isl.desc.id) : false; isl.lifeDone = this.lifeDoneOf ? this.lifeDoneOf(isl.desc.id) : false; isl.tide = this.tide; isl.gctx = this.gctx || {}; isl.group.position.y = -this.tide * 0.32; for (const f of isl.anim) f(t, isl); } }   // the sea rises over the beach and falls back
 
   collide(pos, radius) {
     let hit = false;

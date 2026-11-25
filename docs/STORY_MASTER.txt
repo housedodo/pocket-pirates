@@ -1,7 +1,7 @@
 HOIST (Pocket Pirates): THE MASTER STORY FILE
 ================================================================================================
 This is the main story file for the full game. Edit it, upload it again, and the next session puts every change
-into the game. Built from commit f928da6 on 2026-11-25. 1856 in-game lines carry an ID.
+into the game. Built from commit b01611d on 2026-11-25. 1882 in-game lines carry an ID.
 
 CONTENTS
   A   HOW TO USE THIS FILE (IDs, status marks, how to add and remove things)
@@ -569,7 +569,7 @@ Where the story hides in the mechanics, and where its text lives (section J).
 # J  EVERY LINE IN THE GAME
 ################################################################################################
 Pulled from the code. Edit the text after the "|" (see part A). Sources are grouped by file; the CODE in front of every
-line says which file it goes back into. 1856 lines.
+line says which file it goes back into. 1882 lines.
 
 
 
@@ -2629,9 +2629,11 @@ line says which file it goes back into. 1856 lines.
 ### MAIN / ADDED 2026-11-24
   MAIN-0401 | You pay the harbourmaster ${g} gold. A boy comes down and takes your line.
   MAIN-0402 | They want ${owed(d.region)} gold before anyone will take your line.
-  MAIN-0403 | Nobody comes down to take your line. The harbourmaster watches from a window. (E again: pay what they say is owed, ${owed(d.region)} gold.)
   MAIN-0404 | Somebody on the quay starts to say something, sees who it is, and talks about the weather instead.
   MAIN-0405 | Ines comes back from the quay: "${h.text}"
+
+### MAIN / ADDED 2026-11-25
+  MAIN-0406 | There is a water stair round the far side, Captain. Nobody watches it after dark.
 
 ### MAIN / RETIRED (the text is no longer in the game; these IDs are never used again)
     was MAIN-0001 | A floating market, with bunting on every line. (Friday)
@@ -2665,6 +2667,7 @@ line says which file it goes back into. 1856 lines.
     was MAIN-0279 | Hm? ... Nothing. Flat water plays tricks.
     was MAIN-0280 | The black hut? Out past the ${bearingName(world.hutDesc.x - d.x, world.hutDesc.z - d.z)} water. There is a table, they say.
     was MAIN-0289 | A table at the water's edge. One chair on this side, one on the other. A die, waiting.${memory ? ' Mara, quietly: "I do not think we are here to throw."' : ''}
+    was MAIN-0403 | Nobody comes down to take your line. The harbourmaster watches from a window. (E again: pay what they say is owed, ${owed(d.region)} gold.)
 
 
 ####################################################################################################
@@ -3245,6 +3248,10 @@ line says which file it goes back into. 1856 lines.
 ### GEAR / ADDED 2026-11-24
   GEAR-0027 | Not in this, Captain. She would be over before she touched the water.
 
+### GEAR / ADDED 2026-11-25
+  GEAR-0028 | Not in daylight. Half the quay would see you come up.
+  GEAR-0029 | Up the stair, quietly...
+
 
 ####################################################################################################
 ## SOURCE VOY   (systems/voyage.js): the long voyage: Mara on stores and the crew, the night nerves
@@ -3398,6 +3405,32 @@ line says which file it goes back into. 1856 lines.
   HBR-0006 | The clerk pays you ${R.pay} gold, then turns back a page to show you something: the same finds, already entered, in your own hand, dated next week.
   HBR-0007 | The clerk writes it all down in a tall book and pays you ${R.pay} gold.
   HBR-0008 | A morning unloading salt. Your back says so. (+${PAY.lifeline} gold)
+
+### HBR / ADDED 2026-11-25
+  HBR-0009 | Most of the notices on the board are old and curling. Nobody is sending anything anywhere.
+  HBR-0010 | Chairs up on the tables. The fire is out. A man behind the bar wipes the same cup and does not look up.
+  HBR-0011 | Half the stalls are boarded. What there is, they sell dear and they buy cheap.
+  HBR-0012 | The yard is shut. One old man mends what he can; nothing new is built here now.
+  HBR-0013 | Fewer notices than there used to be.
+  HBR-0014 | A few men at one table, talking low. Nobody is looking for a berth.
+  HBR-0015 | The stalls are thin. Prices are up.
+  HBR-0016 | No ironwood or storm silk has come in for weeks. The best work cannot be had here.
+  HBR-0017 | The board is crowded. Everybody wants something carried.
+  HBR-0018 | Every table taken, and somebody playing in the corner.
+  HBR-0019 | The stalls are full, and a merchant has something fine for sale.
+  HBR-0020 | The yard is busy; good timber is stacked to the roof.
+  HBR-0021 | The board is crowded. Everybody wants something carried, and they pay well.
+  HBR-0022 | Loud, warm, full. A fiddler and a drum. Somebody buys your crew a round.
+  HBR-0023 | Everything is to be had, and they are glad to see you.
+  HBR-0024 | The best yard on this coast, and they know your ship by name.
+  HBR-0025 | The board is a dark shape by the harbourmaster's door. Nobody reads it at this hour.
+  HBR-0026 | In by the kitchen door. They let you stand by the fire, and nobody says your name.
+  HBR-0027 | One man at the back of the fish shed buys what you have. He does not ask where it came from, and he does not pay much.
+  HBR-0028 | The yard is locked and dark. A dog behind the gate knows you are there.
+  HBR-0029 | They are glad to see you. Everyone on the quay stops to watch you tie up, and they are so glad.
+  HBR-0030 | Nobody asks where you have been. Nobody here asks anything any more.
+  HBR-0031 | The harbourmaster has your name in his book. Nobody takes your line until it is settled.
+  HBR-0032 | Nobody comes down to take your line. The harbourmaster watches from a window.
 
 
 

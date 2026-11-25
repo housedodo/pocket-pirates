@@ -12,7 +12,7 @@ import { pxi } from '../pixelui.js';
 import { UPGRADES, MAX_LEVEL, UP_CARD } from '../upgrades.js';
 import { storesNeed, fillStores, STORE_PRICE } from '../systems/voyage.js';
 import { handRows, bindHandRows, handOn } from '../systems/hands.js';
-import { harbourRows, bindHarbourRows, feastAt, feelOf } from '../systems/harbours.js';
+import { harbourRows, bindHarbourRows, feastAt, feelOf, noteSold } from '../systems/harbours.js';
 import { GOODS, tradeOn, price as tradePrice, sellPrice, cargo, carried, room, buy as tradeBuy, sellAll } from '../systems/trade.js';
 import { CHAIN_COST } from '../combat.js';
 import { GEAR, gearOn, aboard, leftAt, leave, takeBack, inBoat, washedUp, soldHere, priceHere, SOLD_IN, SOLD_ELSEWHERE } from '../systems/gearplay.js';
@@ -96,6 +96,7 @@ export function renderHarbour() {
   let html = '';
   $('hbWide').classList.toggle('shop', rt.hbTab === 'wright' || rt.hbTab === 'market');   // shops get a wider panel
   const FL = feelOf(rt.harbourIsl && rt.harbourIsl.desc), feelLine = (t) => (t ? `<p class="quote">${t}</p>` : '');   // how the harbour is doing, felt ashore (systems/harbours.js FEEL)
+  if (rt.hbTab === 'board' && FL.back) { pane.innerHTML = html + feelLine(FL.board); lockPane(state, $('hbPane')); tutorialMarks(); return; }   // the back door: nobody at the board at night (systems/harbours.js)
   if (rt.hbTab === 'board') {
     // finish what you came for first: deliveries, passengers and finished commissions for this harbour
     const due = [];
@@ -231,34 +232,34 @@ export function renderHarbour() {
     if (unlocked(state, 'cannons') && FL.ammo) html += `<div class="sec">BUY</div><div class="qrow"><div><b>${pxi('ball')} 10 cannonballs</b><br><small>you have ${state.ammo}</small></div><button id="buyAmmo" ${state.gold >= ammoCost ? '' : 'disabled'}>${ammoCost}g</button></div>`;
     const chainCost = Math.ceil(CHAIN_COST * discount(rep) * G.costMul() * buyMul(d, 'ammo'));
     if (unlocked(state, 'cannons') && FL.ammo) html += `<div class="qrow"><div><b>${pxi('chain')} 10 chain shot</b><br><small>you have ${state.story.chain || 0}: two balls on a chain, for masts and rigging (B to load)</small></div><button id="buyChain" ${state.gold >= chainCost ? '' : 'disabled'}>${chainCost}g</button></div>`;
-    const storeMul = discount(rep) * G.costMul(), sn = window.__BUILD === 'demo' ? null : storesNeed(FL.stores), sCost = sn ? Math.ceil((sn.food + sn.water) * STORE_PRICE * storeMul) : 0;   // food and water (systems/voyage.js)
+    const storeMul = discount(rep) * G.costMul(), sn = window.__BUILD === 'demo' || FL.back ? null : storesNeed(FL.stores), sCost = sn ? Math.ceil((sn.food + sn.water) * STORE_PRICE * storeMul) : 0;   // food and water (systems/voyage.js)
     if (sn) html += `<div class="sec">STORES</div><div class="qrow"><div><b>${pxi('crate')} Food and water</b><br><small>${sn.food + sn.water < 0.5 ? 'the casks and the bread locker are full' : 'biscuit, salt pork and fresh water, to fill the casks'}</small></div>${sn.food + sn.water < 0.5 ? '<button disabled>Full</button>' : `<button id="buyStores" ${state.gold >= sCost ? '' : 'disabled'}>${sCost}g</button>`}</div>`;
     if (tradeOn(d)) {   // trade runs (systems/trade.js): a crate at a time
       html += `<div class="sec">CARGO</div><small>The hold: ${carried()} of ${room()} crates.</small>`;
       for (const [k, gd] of Object.entries(GOODS)) {
         if (gd.found && !(cargo()[k] > 0)) continue;   // a spice shows only once you carry it (systems/spice.js)
-        const sells = !gd.found && (gd.luxury ? FL.luxury && gd.from === d.region : FL.made || gd.from !== d.region);   // a dying harbour has nothing of its own to sell; a thriving one has its fine goods
+        const sells = !gd.found && !FL.noBuy && (gd.luxury ? FL.luxury && gd.from === d.region : FL.made || gd.from !== d.region);   // a dying harbour has nothing of its own to sell; a thriving one has its fine goods
         if (!sells && !(cargo()[k] > 0)) continue;
         const tk = handOn('trader') ? [0.9, 1.1] : [1, 1];   // the trader aboard (systems/hands.js)
         const pb = Math.ceil(tradePrice(d.region, k) * discount(rep) * tk[0] * FL.buy), ps = Math.round(sellPrice(d.region, k) * hm * tk[1]), have = cargo()[k] || 0;
         html += `<div class="qrow"><div><b>${pxi('crate')} ${gd.name}</b><br><small>${have ? `${have} aboard · ` : ''}${!sells ? (gd.found ? 'found, not sold' : 'none to be had here') : `${gd.from === d.region ? (gd.luxury ? 'fine goods, made here' : 'made here') : 'buy'} ${pb}g`} · sell ${ps}g</small></div><span>${have ? `<button data-tsell="${k}">+${ps * have}g</button>` : ''}${!sells ? '' : `<button data-tbuy="${k}" ${state.gold >= pb && carried() < room() ? '' : 'disabled'}>Buy 1</button>`}</span></div>`;
       }
     }
-    if (G.oilOn()) { const kc = Math.ceil(35 * discount(rep) * G.costMul() * buyMul(d, 'kit')); html += `<div class="sec">SAILCLOTH</div><div class="qrow"><div><b>${pxi('sail')} Sail patch kit</b> <span class="kits">${[0, 1, 2].map((k) => `<i class="${k < state.patchKits ? 'on' : ''}"></i>`).join('')}</span><br><small>${state.patchKits} aboard, room for 3: mends a torn sail at sea</small></div>${state.patchKits < 3 ? `<button id="buyKit" ${state.gold >= kc ? '' : 'disabled'}>${kc}g</button>` : '<button disabled>Full</button>'}</div>`; }
-    if (G.oilOn()) { const { need, cost } = G.buyOil(discount(rep) * G.costMul()); html += `<div class="sec">LAMP OIL</div><div class="qrow"><div><b>${pxi('lamp')} Fill the lantern</b><span class="gauge"><i style="width:${Math.round(state.oil / oilCap(state.upgrades) * 100)}%"></i></span><br><small>${Math.round(state.oil)} of ${oilCap(state.upgrades)}: it burns at night, in fog and in storms</small></div>${need >= 1 ? `<button id="buyOil" ${state.gold >= cost ? '' : 'disabled'}>${cost}g</button>` : '<button disabled>Full</button>'}</div>`; }
-    { // the paper comes in on the Friday boat: one copy a week (newspaper.js)
+    if (G.oilOn() && !FL.back) { const kc = Math.ceil(35 * discount(rep) * G.costMul() * buyMul(d, 'kit')); html += `<div class="sec">SAILCLOTH</div><div class="qrow"><div><b>${pxi('sail')} Sail patch kit</b> <span class="kits">${[0, 1, 2].map((k) => `<i class="${k < state.patchKits ? 'on' : ''}"></i>`).join('')}</span><br><small>${state.patchKits} aboard, room for 3: mends a torn sail at sea</small></div>${state.patchKits < 3 ? `<button id="buyKit" ${state.gold >= kc ? '' : 'disabled'}>${kc}g</button>` : '<button disabled>Full</button>'}</div>`; }
+    if (G.oilOn() && !FL.back) { const { need, cost } = G.buyOil(discount(rep) * G.costMul()); html += `<div class="sec">LAMP OIL</div><div class="qrow"><div><b>${pxi('lamp')} Fill the lantern</b><span class="gauge"><i style="width:${Math.round(state.oil / oilCap(state.upgrades) * 100)}%"></i></span><br><small>${Math.round(state.oil)} of ${oilCap(state.upgrades)}: it burns at night, in fog and in storms</small></div>${need >= 1 ? `<button id="buyOil" ${state.gold >= cost ? '' : 'disabled'}>${cost}g</button>` : '<button disabled>Full</button>'}</div>`; }
+    if (!FL.back) { // the paper comes in on the Friday boat: one copy a week (newspaper.js)
       const cp = paper.thisWeeks(state);
       html += `<div class="sec">THE PAPER</div>`;
       if (cp) html += `<div class="qrow"><div><b>${pxi('letter')} ${cp.stage >= 4 ? 'The Tidings' : 'The Harbour Tidings'}</b><br><small>this week's, bought in ${cp.at}</small></div><button id="readPaper">Read</button></div>`;
       else if (paper.onSale(state)) html += `<div class="qrow"><div><b>${pxi('letter')} The Harbour Tidings</b><br><small>the weather, a face from the harbour, the news</small></div><button id="buyPaper" ${state.gold >= paper.PAPER_COST ? '' : 'disabled'}>${paper.PAPER_COST}g</button></div>`;
       else html += `<small>The paper comes in on ${paper.nextLine(state)}.</small>`;
     }
-    html += `<div class="sec">SHIPYARD</div><div class="qrow"><div><b>${pxi('paint')} Paint, sails, pennants, figureheads</b></div><button id="openYard">Open</button></div>`;
+    if (!FL.back) html += `<div class="sec">SHIPYARD</div><div class="qrow"><div><b>${pxi('paint')} Paint, sails, pennants, figureheads</b></div><button id="openYard">Open</button></div>`;
     pane.innerHTML = html;
     { const bc = $('buyChain'); if (bc) bc.addEventListener('click', () => { if (state.gold < chainCost) return; state.gold -= chainCost; state.story.chain = (state.story.chain || 0) + 10; G.audio.play('buy'); renderHarbour(); }); }
     { const bs = $('buyStores'); if (bs) bs.addEventListener('click', () => { if (fillStores(storeMul, FL.stores)) { G.audio.play('buy'); toast('The casks are filled and the bread locker stocked.', false, 3000); } renderHarbour(); }); }
     pane.querySelectorAll('[data-tbuy]').forEach((b) => b.addEventListener('click', () => { if (tradeBuy(d.region, b.dataset.tbuy, discount(rep) * (handOn('trader') ? 0.9 : 1) * FL.buy)) G.audio.play('buy'); renderHarbour(); }));
-    pane.querySelectorAll('[data-tsell]').forEach((b) => b.addEventListener('click', () => { const nSold = (cargo()[b.dataset.tsell] || 0), g = sellAll(d.region, b.dataset.tsell, hm * (handOn('trader') ? 1.1 : 1)); if (g) { const rr = repOf(state, d.id); rr.sold = (rr.sold || 0) + nSold; } if (g) { G.audio.play('buy'); toast(`Sold for ${g} gold.`, false, 2500); } renderHarbour(); }));
+    pane.querySelectorAll('[data-tsell]').forEach((b) => b.addEventListener('click', () => { const nSold = (cargo()[b.dataset.tsell] || 0), g = sellAll(d.region, b.dataset.tsell, hm * (handOn('trader') ? 1.1 : 1)); if (g && !FL.back) { const rr = repOf(state, d.id); rr.sold = (rr.sold || 0) + nSold; noteSold(d, b.dataset.tsell); } if (g) { G.audio.play('buy'); toast(`Sold for ${g} gold.`, false, 2500); } renderHarbour(); }));
     { const bk = $('buyKit'); if (bk) bk.addEventListener('click', () => { const kc = Math.ceil(35 * discount(rep) * G.costMul() * buyMul(d, 'kit')); if (state.gold < kc || state.patchKits >= 3) return; state.gold -= kc; state.patchKits++; G.audio.play('buy'); renderHarbour(); }); }
     { const bo = $('buyOil'); if (bo) bo.addEventListener('click', () => { const { cost } = G.buyOil(discount(rep) * G.costMul()); if (state.gold < cost) return; state.gold -= cost; state.oil = oilCap(state.upgrades); G.audio.play('buy'); toast('The lantern is full.', false, 2500); renderHarbour(); }); }
     const sf = $('sellFish'); if (sf) sf.addEventListener('click', () => { state.gold += fishVal; toast(`Sold ${sale.fish.length} fish for ${fishVal} gold.`);
@@ -270,7 +271,7 @@ export function renderHarbour() {
     { const so = $('sellOil'); if (so) so.addEventListener('click', () => { const v = Math.round((state.oil - 10) * OIL_SELL * hm); state.gold += v; state.oil = 10; G.audio.play('buy'); toast(`The Guild takes the oil: +${v} gold.`, false, 3500); renderHarbour(); }); }
     const sfr = $('sellFruit'); if (sfr) sfr.addEventListener('click', () => { state.gold += fruitVal; toast(`Sold fruit for ${fruitVal} gold.`); state.fruit = { ...sale.fruitLeft }; G.audio.play('buy'); renderHarbour(); });
     if ($('buyAmmo')) $('buyAmmo').addEventListener('click', () => { if (state.gold < ammoCost) return; state.gold -= ammoCost; state.ammo += 10; G.audio.play('buy'); renderHarbour(); });
-    $('openYard').addEventListener('click', () => G.openModal('yard'));
+    { const oy = $('openYard'); if (oy) oy.addEventListener('click', () => G.openModal('yard')); }
     { const bp = $('buyPaper'); if (bp) bp.addEventListener('click', () => {
       if (state.gold < paper.PAPER_COST || paper.thisWeeks(state) || !paper.onSale(state)) return;
       const fac = sectorAt(d.x, d.z, state.seed).faction;
@@ -288,11 +289,11 @@ export function renderHarbour() {
       const dish = life.DISHES[d.style] || life.DISHES.classic, cur = life.meal(state), dc = Math.ceil(dish.cost * G.costMul());
       html += `<div class="sec">THE HOUSE DISH</div><div class="qrow"><div><b>${pxi('fish')} ${dish.name}</b><br><small>${dish.text}, until the dawn after next${cur ? ` · you have eaten: ${Object.values(life.DISHES).find((x) => x.id === cur).name}` : ''}</small></div><button id="eatDish" ${state.gold >= dc && cur !== dish.id ? '' : 'disabled'}>${cur === dish.id ? 'Full' : `${dc}g`}</button></div>`;
       const gm = life.gameOf(d), played = life.playedToday(state, d), ev = life.isEvent(d, state);
-      html += `<div class="sec">${ev ? gm.event.toUpperCase() + ' (TODAY)' : 'THE LOCAL GAME'}</div><div class="qrow"><div><b>${pxi('pip')} ${gm.name}</b><br><small>${played ? 'you have played here today' : `${gm.how} · stake 5g · ${ev ? 'double prizes today' : `double on ${life.WEEKDAYS[d.festival]}`}`}</small></div><button id="playLocal" ${!played && state.gold >= 5 ? '' : 'disabled'}>Play</button></div>`;
+      if (FL.game) html += `<div class="sec">${ev ? gm.event.toUpperCase() + ' (TODAY)' : 'THE LOCAL GAME'}</div><div class="qrow"><div><b>${pxi('pip')} ${gm.name}</b><br><small>${played ? 'you have played here today' : `${gm.how} · stake 5g · ${ev ? 'double prizes today' : `double on ${life.WEEKDAYS[d.festival]}`}`}</small></div><button id="playLocal" ${!played && state.gold >= 5 ? '' : 'disabled'}>Play</button></div>`;
       const fr = asleep ? null : life.fragmentAt(state, d, goalReached(state, 'riddle2') && !!state.story.hutKnown);   // RULES 6: nothing about her before the hut is known
       if (fr && !fr.locked) html += `<div class="sec">AN OLD STORY</div><div class="qrow letter"><div><b>${pxi('talk')} ${fr.src}</b><br><small>the locals know you now</small></div><button id="takeFrag">Listen</button></div>`;
     }
-    { // rooms are let from 17:00, you wake at 06:00 with the hull mended
+    if (!FL.back) { // rooms are let from 17:00, you wake at 06:00 with the hull mended (not up the back stair)
       const hour = state.time * 24, open = hour >= 17 || hour < 5, bedCost = Math.ceil(8 * discount(rep) * G.costMul());
       html += `<div class="sec">ROOMS</div><div class="qrow"><div><b>${pxi('bed')} A bed for the night</b><br><small>${open ? 'sleep until 06:00, the crew mends the hull' : 'rooms are let from 17:00'}</small></div><button id="restBed" ${open && state.gold >= bedCost ? '' : 'disabled'}>${bedCost}g</button></div>`;
     }
@@ -306,7 +307,7 @@ export function renderHarbour() {
       html += '<div class="sec">AT THE TABLES</div>';
       if (hand && !state.crew.some((c) => c.name === hand.name)) html += `<div class="qrow"><div><b>${pxi('talk')} ${hand.name}, ${hand.look}</b><br><small>${TRAITS[hand.trait].name}: ${TRAITS[hand.trait].text} · ${hand.wish.text} · stays ${hand.stay || 4} days</small></div><button id="hireHand" ${state.gold >= hand.cost && state.crew.length < 2 ? '' : 'disabled'}>${state.crew.length < 2 ? `Hire ${hand.cost}g` : 'Crew full'}</button></div>`;
       for (const c of state.crew) html += c.permanent ? `<div class="qrow"><div><b>${pxi('talk')} ${c.name}</b> <small>(${TRAITS[c.trait].name}, stays)</small></div></div>` : `<div class="qrow"><div><b>${pxi('talk')} ${c.name}</b> <small>(${TRAITS[c.trait].name}, ${G.daysLeft(c)} days left)</small></div><button data-dismiss="${c.name}">Let go</button></div>`;
-      html += handRows(d);   // specialists earned by deeds (systems/hands.js)
+      html += FL.back ? '' : handRows(d);   // specialists earned by deeds (systems/hands.js)
       if (FL.dice) html += `<div class="qrow"><div><b>${pxi('pip')} Dice with the locals</b><br><small>first to 30 · stake 10g</small></div><button id="playPig" ${state.gold >= 10 ? '' : 'disabled'}>Sit down</button></div>`;
       rt.pendingHand = hand;
     } else html += '<small>A fiddler, a fire, a lot of very old chairs. Nobody here knows you yet.</small>';
@@ -326,7 +327,7 @@ export function renderHarbour() {
       toast(fr.text, true, 14000); setTimeout(() => toast(`Written in your journal. (${n} of ${life.FRAG_TOTAL} old stories)`, false, 5000), 1500);
       if (fr.mara) setTimeout(() => toast('Mara does not say anything for a long while.', false, 6000), 7000);   // her village, in an earlier dream; she never explains
       G.audio.play('ui'); renderHarbour(); }); }
-    $('restBed').addEventListener('click', () => restAtTavern(Math.ceil(8 * discount(rep) * G.costMul())));
+    { const rb = $('restBed'); if (rb) rb.addEventListener('click', () => restAtTavern(Math.ceil(8 * discount(rep) * G.costMul()))); }
     const af = $('askFish'); if (af) af.addEventListener('click', () => {
       const cl = G.threads.c;
       if (cl && !cl.found && !cl.rumoured && state.fishAsk[d.id] !== state.dayN && Math.random() < 0.5) { cl.rumoured = true; state.fishAsk[d.id] = state.dayN; toast(`A fisher at the quay: "Out by ${cl.src.name} the water has gone a shade I have no word for. The fish there are too big. Nobody has eaten one twice."`, false, 11000); G.audio.play('ui'); renderHarbour(); return; }

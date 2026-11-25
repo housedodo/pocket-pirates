@@ -2455,3 +2455,22 @@ dread there eased for a while after it.
   (no level-3 work below 0, shut at -2, mending free on docking as before). A line at the top of each tab in the place's own words.
   Slower: neglect from 21 days at 0.25 a day, trouble left 2 a time, and the level moves one step per 3 days toward its target
   (`state.story.plenty`). Checked headless at -2 and 3 on every tab.
+
+## 2026-11-25: the back door, the law, the wants (owner: "do 1, 2 and 4", from the second research pass)
+- **The law** (`systems/harbours.js refuseAt/refuses/noQuestions`; Pirates! 1987: struggling towns "trade with almost anyone",
+  wealthy ones "follow the letter of the law"): a thriving harbour (plenty 2+) refuses at standing -1 with its own line ("your name
+  in his book"); a dying one (-1 and below) never refuses, the cold quay does not apply, and on docking where you would have been
+  turned away: "Nobody asks where you have been." In deep water: "They are glad to see you... they are so glad." Tama as before.
+- **The back door** (`harbours.js NIGHT`, `gearplay.js` stair, `interact.js openBackDoor`): every harbour has a stone water stair
+  on the far side from the jetty, a gate shut at the top (`world.js`, `d.backStair`). Off a harbour that refuses you or is
+  blockaded, the boat can be taken; at the stair foot "[E] Go up the stair": by day "Not in daylight"; at night the harbour opens
+  as a back door: the board dark, one buyer in the fish shed (sells at 0.8, nothing bought, no stores, oil, kits or paper), the
+  kitchen door of the tavern (no hands, no dice, no game, no room, no specialists), the yard locked; the pier's talk as a greeting.
+  No visit counted, nothing sold counts toward plenty. Mara names the stair once after a refusal if the boat is aboard.
+- **The wants** (`world.js wantsAndMakes`, layers wt_gap / wt_fed / wt_heap / wt_heap2; `harbours.js fedOf/noteSold`): each water's
+  wanted good has a place in the harbour that stands empty (Crown: a bare rope walk; Cays: empty drying frames; Reef: bare salting
+  rails and empty barrels on their sides; Guild: an empty cask rack and one staved in; Tama: dark empty lamp frames). Sell it there
+  and the place is full for 7 days. The good a water makes lies piled near the pier end at plenty 0+, more at 2+ (cloth bales,
+  coir coils, rum casks, straw-packed glass crates, salt sacks). Checked headless in all five waters.
+- Fixed: a comment from the harbours work had swallowed `world.landedOf`, `lifeDoneOf` and `world.tide` in main.js; restored.
+  The FEEL table's `game` flag was never read; it now hides the local game in dying harbours.

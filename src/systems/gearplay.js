@@ -27,6 +27,7 @@ import { hullWater, rideWaves } from '../float.js';
 import { waveHeight } from '../ocean.js';
 import { handOn } from './hands.js';
 import { tooRough } from './deepseas.js';
+import { refuses, eventOf, isNight, stairOf } from './harbours.js';
 import { siteShelf, shallowsTick, shallowsInteract, shallowsFind, shallowsState } from './shallows.js';
 
 const DEMO = () => typeof window !== 'undefined' && window.__BUILD === 'demo';
@@ -186,6 +187,12 @@ export const boatPass = (lm) => !!rt.boat && (lm === 'lagoon' || lm === 'ribs');
 
 // ---- what E does (systems/interact.js getInteract asks first while the boat is out, and before landmarks otherwise)
 const dist = (p) => Math.hypot(G.ship.pos.x - p.x, G.ship.pos.z - p.z);
+const STAIR_R = 9;
+/** a harbour near by that will not take your line, or is blockaded (the back door is for these) */
+function shutHarbour(range) {
+  const h = G.world.nearest(G.ship.pos.x, G.ship.pos.z, range, ['harbour']); if (!h) return null;
+  const d = h.desc; return refuses(d, state.rep[d.id] || { visits: 0, deliveries: 0, region: d.region }) || eventOf(d) === 'blockade' ? h : null;
+}
 export function gearInteract(inBoatMode) {
   if (!gearOn()) return null;
   if (inBoatMode) {
@@ -193,6 +200,7 @@ export function gearInteract(inBoatMode) {
     if (Math.hypot(G.ship.pos.x - B.ax, G.ship.pos.z - B.az) < BACK_R) return { kind: 'gear', key: 'gear:back', act: 'back', prompt: '[E] Climb back aboard the Gull' };
     const lb = G.world.nearest(G.ship.pos.x, G.ship.pos.z, 16), onLm = lb && lb.desc.lm;   // ashore at the site's own island: its landing first, until it is found
     { const sh = shallowsInteract(); if (sh) return sh; }   // the middle of an island group (systems/shallows.js)
+    { const h = shutHarbour(30); if (h) { const p = stairOf(h.desc); if (p && dist(p) < STAIR_R) return { kind: 'gear', key: 'gear:stair', act: 'stair', isl: h, prompt: '[E] Go up the stair' }; } }   // the back door (harbours.js)
     for (const s of SITES) if (s.gear === 'boat' && (dist(siteAt(s)) < LAND_R || (onLm === s.lm && !siteDone(s)))) return { kind: 'gear', key: 'gear:' + s.id, act: 'land', site: s, prompt: siteDone(s) ? '[E] Go ashore again' : '[E] Go ashore' };
     return null;
   }
@@ -207,6 +215,7 @@ export function gearInteract(inBoatMode) {
       return { kind: 'gear', key: 'gear:boat', act: 'boat', prompt: '[E] Take the boat' };
     }
   }
+  if (aboard('boat') && shutHarbour(40) && G.world.lastEdge > 6) return { kind: 'gear', key: 'gear:boat', act: 'boat', prompt: '[E] Take the boat' };   // off a harbour that will not have you
   if (aboard('boat')) for (const g of shallowsState().groups) { const d = Math.hypot(G.ship.pos.x - g.x, G.ship.pos.z - g.z); if (d < 75 && d > 30) return { kind: 'gear', key: 'gear:boat', act: 'boat', prompt: '[E] Take the boat' }; }   // the island groups in their shallows
   if (aboard('boat')) for (const lm of ['lagoon', 'ribs']) if (LM[lm] && dist(LM[lm]) < 110 && dist(LM[lm]) > 40) return { kind: 'gear', key: 'gear:boat', act: 'boat', prompt: '[E] Take the boat' };
   return null;
@@ -216,6 +225,11 @@ export function gearAct(tg) {
   if (tg.act === 'back') { boardGull(); return; }
   if (tg.act === 'shallows') { if (!rt.dig) rt.dig = { key: tg.key, t: 0, label: 'Going over...', need: 2.4, done: () => shallowsFind(tg.g) }; return; }
   if (tg.act === 'boat') { if (tooRough()) { toast('Not in this, Captain. She would be over before she touched the water.', false, 4500); return; } takeBoat(); return; }   // big seas (deepseas.js)
+  if (tg.act === 'stair') {
+    if (!isNight()) { toast('Not in daylight. Half the quay would see you come up.', false, 4500); return; }
+    if (!rt.dig) rt.dig = { key: tg.key, t: 0, label: 'Up the stair, quietly...', need: 2.2, done: () => G.openBackDoor(tg.isl) };
+    return;
+  }
   if (tg.act === 'look') { toast(s.look, false, 6500); (state.story.gearLook = state.story.gearLook || {})[s.id] = state.dayN; return; }
   if (tg.act === 'land') {
     if ((state.upgrades.boat || 0) < s.lv) { toast(s.short, false, 5000); return; }

@@ -37,17 +37,35 @@ import { pilotSaying } from './passes.js';
 import { chestAdd } from '../chest.js';
 import { actEvent } from './seaevents.js';
 import { rGreeting } from './rletters.js';
-import { gearInteract, gearAct, gearDock } from './gearplay.js';
+import { gearInteract, gearAct, gearDock, aboard } from './gearplay.js';
 import { voyageDock } from './voyage.js';
 import { REFUSE_AT, owed, payOwed, mark } from './standing.js';
 import { handOn } from './hands.js';
-import { dockBlocked } from './harbours.js';
+import { dockBlocked, refuses, refuseAt, refuseLine, noQuestions } from './harbours.js';
 import { crewBoarded } from './raiders.js';
 import { tradeRumour } from './trade.js';
 import { wreckRumour } from './wrecks.js';
 import { spiceInteract, spiceAct } from './spice.js';
 
+// ---- the back door (systems/harbours.js, idea 1): up the water stair at night, in the ship's boat
+function backHint() {   // Mara knows the way, once, if the boat is aboard
+  if (state.story.backHint || !aboard('boat')) return;
+  state.story.backHint = state.dayN;
+  setTimeout(() => { if (G.objectives && G.objectives.mate && !G.objectives.mate.busy) G.objectives.mate.say('There is a water stair round the far side, Captain. Nobody watches it after dark.'); }, 2600);
+}
+export function openBackDoor(isl) {
+  const d = isl.desc;
+  rt.backDoor = d.id; rt.harbourIsl = isl; rt.hbTab = 'market'; G.frameVillage(d);
+  state.stats.backDoor = (state.stats.backDoor || 0) + 1;
+  harbourEl.classList.toggle('dark', stageOf(rt.dread) >= 3);
+  $('hbBannerName').textContent = d.name; $('hbSaid').textContent = ''; $('hbLine').style.display = 'none'; $('hbDay').textContent = G.dayLine(d);
+  const say = placeRumour(state, d, state.time * 24, true) || tradeRumour(d);   // the pier's talk, from the dark under it
+  if (say) G.showGreeting(d, say); else G.openModal('harbour');
+  G.audio.play('ui', { vol: 0.5 });
+}
+G.openBackDoor = openBackDoor;
 export function getInteract() {
+  if (rt.backDoor && !rt.modal) rt.backDoor = null;
   if (rt.boat) {   // in the ship's boat (systems/gearplay.js): the Gull to climb back aboard, a landing, or a hand-made place's shore
     const gb = gearInteract(true); if (gb) return gb;
     { const sp = spiceInteract(); if (sp) return sp; }   // saffron in the Mangroves, cloves on the Tide Rocks (spice.js)
@@ -191,11 +209,13 @@ function doInteract(tg) {
   if (tg.kind === 'harbour') {
     const d = tg.isl.desc, rep = repOf(state, d.id);
     rep.region = d.region;   // its water's name counts toward it (systems/standing.js)
-    { const bl = window.__BUILD !== 'demo' && dockBlocked(d); if (bl) { toast(bl, false, 7000); return; } }   // a blockade: nobody comes out (systems/harbours.js)
-    if (window.__BUILD !== 'demo' && friendLevel(rep) <= REFUSE_AT) {   // the empty quay: nobody takes your line until what is owed is paid
+    { const bl = window.__BUILD !== 'demo' && dockBlocked(d); if (bl) { toast(bl, false, 7000); backHint(); return; } }   // a blockade: nobody comes out (systems/harbours.js)
+    if (window.__BUILD !== 'demo' && refuses(d, rep)) {   // the empty quay: nobody takes your line until what is owed is paid (a thriving harbour sooner, a dying one never: harbours.js refuseAt)
       if (rt.oweAsk === d.id) { const g = payOwed(d.region); if (g) { rt.oweAsk = null; G.audio.play('buy'); toast(`You pay the harbourmaster ${g} gold. A boy comes down and takes your line.`, false, 6000); } else toast(`They want ${owed(d.region)} gold before anyone will take your line.`, false, 4000); return; }
-      rt.oweAsk = d.id; toast(`Nobody comes down to take your line. The harbourmaster watches from a window. (E again: pay what they say is owed, ${owed(d.region)} gold.)`, false, 7000); return;
+      rt.oweAsk = d.id; toast(`${refuseLine(d)} (E again: pay what they say is owed, ${owed(d.region)} gold.)`, false, 7000); backHint(); return;
     }
+    rt.backDoor = null;
+    { const nq = window.__BUILD !== 'demo' && noQuestions(d, rep); if (nq) setTimeout(() => toast(nq, (d.dread || 0) >= 0.55, 6500), 2200); }   // a dying harbour asks nothing (harbours.js)
     const now = state.dayN + state.time;   // game days (task R8); a save from before kept a wall-clock time here, which reads as long ago
     if (!(rep.last < 1e6) || now - rep.last > VISIT_GAP) rep.visits++;
     rep.last = now;
@@ -223,7 +243,7 @@ function doInteract(tg) {
     }
     if (!say && ending && h && h.rolls.length) { say = rollGreeting(h.rolls[h.rolls.length - 1].n, state.time * 24, Math.random); say.endsDemo = true; state.story.rollSeen = h.rolls.length; }
     if (!say && window.__BUILD !== 'demo') say = letterRumour(state, G.objectives.pending ? null : G.objectives.current, d, state.time * 24);   // asking around for Perrin's letter (systems/perrin.js)
-    const cold = window.__BUILD !== 'demo' && state.hut && state.hut.rolls && state.hut.rolls.length && friendLevel(rep) < 1;   // after the first throw, low standing: nobody tells you anything
+    const cold = window.__BUILD !== 'demo' && state.hut && state.hut.rolls && state.hut.rolls.length && friendLevel(rep) < 1 && refuseAt(d) != null;   // (a dying harbour talks to anyone)   // after the first throw, low standing: nobody tells you anything
     if (!say && free && window.__BUILD !== 'demo' && !cold) say = placeRumour(state, d, state.time * 24);
     if (cold && !handOn('gobetween') && free && (state.story.coldDay !== state.dayN)) { state.story.coldDay = state.dayN; setTimeout(() => toast('Somebody on the quay starts to say something, sees who it is, and talks about the weather instead.', false, 6000), 3400); }
     if (handOn('gobetween') && window.__BUILD !== 'demo') { const h = placeRumour(state, d, state.time * 24, true); if (h) setTimeout(() => toast(`Ines comes back from the quay: "${h.text}"`, false, 8000), 4200); }   // the go-between (systems/hands.js)
