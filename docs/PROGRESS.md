@@ -2449,3 +2449,10 @@ dread there eased for a while after it.
 - **A morning's work** (any harbour, under 20 gold, once a day there): three hours, 12 g.
 - Checked headless: the previews (`docs/proposals/harbours/`), plenty busy 2 / neglected 0 / deep -2, events over 600 harbour-windows
   (fire 25, fever 37, blockade 13, feast 19), the work, report and fever rows. Not yet checked: a blockade lifted in play.
+- **The harbour's state felt ashore** (owner, 2026-11-25): `harbours.js FEEL` per level (-2..3) read by `ui/harbour.js` and `main.js`:
+  prices (`costMul` x buy 1.3..0.9; sales x sell 0.75..1.1), the board (jobs 0..3; at -2 no delivery), the market (stores only to 2 or
+  4 days, no shot at -2, the harbour's own good gone at -2, its fine goods at 2+: `trade.js` luxury: silver, tobacco, powder, candles,
+  linen, 0.8 at home and 1.5 everywhere else), the tavern (no hands below 0, no dice at -2, music x0 / 0.4 / 1 / 1.15 / 1.3), the yard
+  (no level-3 work below 0, shut at -2, mending free on docking as before). A line at the top of each tab in the place's own words.
+  Slower: neglect from 21 days at 0.25 a day, trouble left 2 a time, and the level moves one step per 3 days toward its target
+  (`state.story.plenty`). Checked headless at -2 and 3 on every tab.

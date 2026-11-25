@@ -103,7 +103,7 @@ import { voyageTick, moodMods } from './systems/voyage.js';
 import { shelvesNear } from './systems/shallows.js';
 import { crewTick } from './systems/raiders.js';
 import { handMods } from './systems/hands.js';
-import { plentyLevel, eventOf, harboursTick } from './systems/harbours.js';
+import { plentyLevel, eventOf, harboursTick, feelOf } from './systems/harbours.js';
 import { spiceTick } from './systems/spice.js';
 import { deepTick, deepSwell } from './systems/deepseas.js';   // stores, the crew's spirits, night nerves (owner, 2026-11-23)
 import { gearTick, gearDrag, savePos, initDive, diveElement, diveClosed } from './systems/gearplay.js';   // the diving bell and the ship's boat (owner, 2026-11-23)   // the other ways through (T4)
@@ -479,7 +479,7 @@ function dreamShift() { const n = lastThrow(); if (LANDING && n && n < 10) retur
 function dreamCost(id) { const n = lastThrow(); if (LANDING) return landedAt(state, id) ? 1.15 : n >= 17 ? 0.9 : 1; return n && n < 10 ? 1.15 : n >= 17 ? 0.9 : 1; }   // harbours feel it in their prices
 function costMul() {   // today's prices here: the dream, plus a harbour you insulted with a natural 1
   const id = rt.harbourIsl && rt.harbourIsl.desc.id, hg = state.haggle;
-  return dreamCost(id) * (hg && hg.id === id && hg.day === state.dayN && hg.n === 1 ? 1.1 : 1);
+  return dreamCost(id) * (hg && hg.id === id && hg.day === state.dayN && hg.n === 1 ? 1.1 : 1) * (rt.harbourIsl ? feelOf(rt.harbourIsl.desc).buy : 1);   // a dying harbour charges more, a thriving one less (systems/harbours.js)
 }
 const MARA_THROW = {
   low: 'Captain... is the water thicker? It looks thicker.', ten: 'Nothing happened. Why does that feel like something happened?',
@@ -1499,7 +1499,7 @@ function frame() {
   audio.setLoop('forest', forestLevel(ashore) * 0.3);   // ashore on a forest island: very quietly under everything
   if (ashore) audio.setLoop('gulls', gullLevel(tod.night) * 0.3 * 0.9);   // moored: the colony is a background murmur, not a racket
   audio.hutUpdate(rawDt, hutMusicTarget());   // the hut's theme, first visit only
-  audio.tavernUpdate(rawDt, rt.modal === 'pig' || (rt.modal === 'harbour' && rt.hbTab === 'tavern') ? 1 : ashore ? 0.35 : 0);   // tavern music through the wall
+  audio.tavernUpdate(rawDt, (rt.modal === 'pig' || (rt.modal === 'harbour' && rt.hbTab === 'tavern') ? 1 : ashore ? 0.35 : 0) * (rt.harbourIsl ? feelOf(rt.harbourIsl.desc).music : 1));   // a dying harbour's tavern is quiet, then silent; a thriving one louder (systems/harbours.js)   // tavern music through the wall
   if (live) {
     audio.update(dt, { dread: rt.dread, speed: ship.speed / 11, night: tod.night, freecays: freeCaysNow(), players: window.__BUILD === 'demo' ? null : playersEar(ship), lull: rt.lullK || 0, guitar: rt.guitarK, steer: tunePan(ship.heading, rt.tuneWay), wind: wind.strength, rain: weather.rain, storm: weather.storm, gulls: gullLevel(tod.night),
       quests: state.goals.i, open: openSea(), battle: inBattle() });

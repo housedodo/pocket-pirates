@@ -18,7 +18,7 @@ import { pxi } from '../pixelui.js';
 import { goalReached } from '../objectives.js';
 
 const DEMO = () => typeof window !== 'undefined' && window.__BUILD === 'demo';
-export const EVENT_DAYS = 3, EVENT_P = 18, NEGLECT_FROM = 10, NEGLECT_PER_DAY = 0.6;
+export const EVENT_DAYS = 3, EVENT_P = 18, NEGLECT_FROM = 21, NEGLECT_PER_DAY = 0.25, STEP_DAYS = 3;   // slow on purpose (owner, 2026-11-25: "make sure it does not change that fast, otherwise it would be a chore"): three weeks away before it starts, and the level moves one step every three days at most
 export const PAY = { fire: 20, fever: 35, blockade: 45, island: 5, wreck: 25, sketch: 10, lifeline: 12 };
 const idHash = (id) => { let h = 7; for (const c of id) h = (h * 31 + c.charCodeAt(0)) | 0; return h; };
 
@@ -32,8 +32,11 @@ export function plentyLevel(d) {
   let lv = 0;
   if (r) {
     const away = (state.dayN || 0) + (state.time || 0) - (r.last < 1e6 ? r.last : (state.dayN || 0));
-    const sc = (r.deliveries || 0) * 2 + (r.visits || 0) + (r.sold || 0) * 0.5 + (r.helped || 0) * 4 - (r.scar || 0) * 3 - Math.max(0, away - NEGLECT_FROM) * NEGLECT_PER_DAY;
-    lv = sc >= 20 ? 3 : sc >= 10 ? 2 : sc >= 4 ? 1 : sc >= -3 ? 0 : sc >= -8 ? -1 : -2;
+    const sc = (r.deliveries || 0) * 2 + (r.visits || 0) + (r.sold || 0) * 0.5 + (r.helped || 0) * 4 - (r.scar || 0) * 2 - Math.max(0, away - NEGLECT_FROM) * NEGLECT_PER_DAY;
+    const target = sc >= 20 ? 3 : sc >= 10 ? 2 : sc >= 4 ? 1 : sc >= -3 ? 0 : sc >= -8 ? -1 : -2;
+    const P = state.story.plenty || (state.story.plenty = {}), m = P[d.id] || (P[d.id] = { lv: target, day: state.dayN || 0 });
+    if (target !== m.lv && (state.dayN || 0) - m.day >= STEP_DAYS) { m.lv += Math.sign(target - m.lv); m.day = state.dayN || 0; }   // a step at a time
+    lv = m.lv;
   }
   if (DEMO()) return Math.max(0, lv);
   const k = d.dread || 0;   // in deep water the growth runs backwards
@@ -131,3 +134,26 @@ export function bindHarbourRows(pane, d, rerender) {
     rerender();
   }));
 }
+
+// ---- what the harbour's state means ashore (owner, 2026-11-25: "the status can be felt when going to the tavern, shipwright or market...
+// consequences of not taking care of a harbour"). One table, read by ui/harbour.js and main.js (the tavern's music).
+export const FEEL = {
+  [-2]: { buy: 1.3, sell: 0.75, music: 0, hire: false, dice: false, game: false, yardTop: false, yardShut: true, stores: 2, ammo: false, made: false, luxury: false, jobs: 0,
+    board: 'Most of the notices on the board are old and curling. Nobody is sending anything anywhere.',
+    tavern: 'Chairs up on the tables. The fire is out. A man behind the bar wipes the same cup and does not look up.',
+    market: 'Half the stalls are boarded. What there is, they sell dear and they buy cheap.',
+    wright: 'The yard is shut. One old man mends what he can; nothing new is built here now.' },
+  [-1]: { buy: 1.15, sell: 0.9, music: 0.4, hire: false, dice: true, game: true, yardTop: false, yardShut: false, stores: 4, ammo: true, made: true, luxury: false, jobs: 1,
+    board: 'Fewer notices than there used to be.', tavern: 'A few men at one table, talking low. Nobody is looking for a berth.',
+    market: 'The stalls are thin. Prices are up.', wright: 'No ironwood or storm silk has come in for weeks. The best work cannot be had here.' },
+  0: { buy: 1, sell: 1, music: 1, hire: true, dice: true, game: true, yardTop: true, yardShut: false, stores: 6, ammo: true, made: true, luxury: false, jobs: 2, board: '', tavern: '', market: '', wright: '' },
+  1: { buy: 1, sell: 1, music: 1, hire: true, dice: true, game: true, yardTop: true, yardShut: false, stores: 6, ammo: true, made: true, luxury: false, jobs: 2, board: '', tavern: '', market: '', wright: '' },
+  2: { buy: 0.95, sell: 1.05, music: 1.15, hire: true, dice: true, game: true, yardTop: true, yardShut: false, stores: 6, ammo: true, made: true, luxury: true, jobs: 3,
+    board: 'The board is crowded. Everybody wants something carried.', tavern: 'Every table taken, and somebody playing in the corner.',
+    market: 'The stalls are full, and a merchant has something fine for sale.', wright: 'The yard is busy; good timber is stacked to the roof.' },
+  3: { buy: 0.9, sell: 1.1, music: 1.3, hire: true, dice: true, game: true, yardTop: true, yardShut: false, stores: 6, ammo: true, made: true, luxury: true, jobs: 3,
+    board: 'The board is crowded. Everybody wants something carried, and they pay well.', tavern: 'Loud, warm, full. A fiddler and a drum. Somebody buys your crew a round.',
+    market: 'Everything is to be had, and they are glad to see you.', wright: 'The best yard on this coast, and they know your ship by name.' },
+};
+/** what this harbour is like ashore today (the demo and harbours before the story reach them: as ordinary) */
+export const feelOf = (d) => (DEMO() || !d ? FEEL[0] : FEEL[plentyLevel(d)] || FEEL[0]);

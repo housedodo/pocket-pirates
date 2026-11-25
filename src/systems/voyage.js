@@ -61,11 +61,11 @@ export function voyageDock(d) {
   return null;
 }
 /** the market's row (ui/harbour.js): how many days are missing, and what filling them costs here */
-export const storesNeed = () => { const S = stores(); return { food: Math.max(0, STORE_MAX - S.food), water: Math.max(0, STORE_MAX - S.water) }; };
-export function fillStores(mul = 1) {
-  const n = storesNeed(), cost = Math.ceil((n.food + n.water) * STORE_PRICE * mul);
+export const storesNeed = (cap = STORE_MAX) => { const S = stores(); return { food: Math.max(0, cap - S.food), water: Math.max(0, cap - S.water) }; };   // cap: what this harbour can spare (systems/harbours.js FEEL)
+export function fillStores(mul = 1, cap = STORE_MAX) {
+  const n = storesNeed(cap), cost = Math.ceil((n.food + n.water) * STORE_PRICE * mul);
   if (state.gold < cost) return 0;
-  state.gold -= cost; const S = stores(); S.food = STORE_MAX; S.water = STORE_MAX; return cost;
+  state.gold -= cost; const S = stores(); S.food = Math.max(S.food, cap); S.water = Math.max(S.water, cap); return cost;
 }
 const DAYS = ['none', 'a day', 'two days', 'three days', 'four days', 'five days', 'six days'];
 const daysWord = (n) => DAYS[Math.max(0, Math.min(6, Math.floor(n + 0.2)))];

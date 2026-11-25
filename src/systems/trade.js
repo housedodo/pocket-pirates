@@ -16,6 +16,13 @@ export const GOODS = {
   clove:    { name: 'Cloves', one: 'cloves', found: true, base: 52, wanted: ['reef', 'lantern'] },
   bluesalt: { name: 'Blue salt', one: 'blue salt', found: true, base: 90, wanted: ['crown', 'free', 'reef', 'lantern', 'home'] },
   rum:   { name: 'Casks of rum', one: 'rum', from: 'reef', base: 20 },
+  // fine goods (owner, 2026-11-25: "special ones when the harbour is thriving"): sold only by a thriving harbour of their water (FEEL.luxury),
+  // and wanted dear everywhere else: a reason to keep a harbour well
+  silver:  { name: 'Crown silver plate', one: 'silver plate', from: 'crown', base: 62, luxury: true },
+  tobacco: { name: 'Cays tobacco', one: 'tobacco', from: 'free', base: 40, luxury: true },
+  powder:  { name: 'Reef powder', one: 'powder', from: 'reef', base: 46, luxury: true },
+  candles: { name: 'Guild candles', one: 'candles', from: 'lantern', base: 34, luxury: true },
+  linen:   { name: 'Tama linen', one: 'linen', from: 'home', base: 30, luxury: true },
   glass: { name: 'Lamp glass', one: 'glass', from: 'lantern', base: 24 },
   salt:  { name: 'Salt', one: 'salt', from: 'home', base: 14 },
 };
@@ -31,6 +38,7 @@ const drift = (region, good) => 1 + (mulberry32(hash2(week(), region.length * 31
 export function price(region, good) {
   const G = GOODS[good];
   if (G.found) return Math.max(2, Math.round(G.base * ((G.wanted || []).includes(region) ? 1.6 : 0.8) * (region === 'lantern' ? 1.25 : 1) * drift(region, good)));   // spice: only sold, never bought
+  if (G.luxury) return Math.max(2, Math.round(G.base * (G.from === region ? 0.8 : 1.5) * drift(region, good)));
   const k = G.from === region ? MADE_MUL : WANTS[region] === good ? WANT_MUL : 1;
   return Math.max(2, Math.round(G.base * k * drift(region, good)));
 }
@@ -59,7 +67,7 @@ const LINES = [
 export function tradeRumour(d) {
   if (!tradeOn(d) || Math.random() >= RUMOUR_P) return null;
   let best = null;
-  for (const good of Object.keys(GOODS).filter((g) => !GOODS[g].found)) for (const r of Object.keys(RNAME)) {
+  for (const good of Object.keys(GOODS).filter((g) => !GOODS[g].found && !GOODS[g].luxury)) for (const r of Object.keys(RNAME)) {
     if (r === d.region) continue;
     const gain = sellPrice(r, good) - price(d.region, good);
     if (!best || gain > best.gain) best = { gain, good, r };

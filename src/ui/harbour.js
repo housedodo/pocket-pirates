@@ -12,7 +12,7 @@ import { pxi } from '../pixelui.js';
 import { UPGRADES, MAX_LEVEL, UP_CARD } from '../upgrades.js';
 import { storesNeed, fillStores, STORE_PRICE } from '../systems/voyage.js';
 import { handRows, bindHandRows, handOn } from '../systems/hands.js';
-import { harbourRows, bindHarbourRows, feastAt } from '../systems/harbours.js';
+import { harbourRows, bindHarbourRows, feastAt, feelOf } from '../systems/harbours.js';
 import { GOODS, tradeOn, price as tradePrice, sellPrice, cargo, carried, room, buy as tradeBuy, sellAll } from '../systems/trade.js';
 import { CHAIN_COST } from '../combat.js';
 import { GEAR, gearOn, aboard, leftAt, leave, takeBack, inBoat, washedUp, soldHere, priceHere, SOLD_IN, SOLD_ELSEWHERE } from '../systems/gearplay.js';
@@ -95,6 +95,7 @@ export function renderHarbour() {
   const pane = $('hbPane');
   let html = '';
   $('hbWide').classList.toggle('shop', rt.hbTab === 'wright' || rt.hbTab === 'market');   // shops get a wider panel
+  const FL = feelOf(rt.harbourIsl && rt.harbourIsl.desc), feelLine = (t) => (t ? `<p class="quote">${t}</p>` : '');   // how the harbour is doing, felt ashore (systems/harbours.js FEEL)
   if (rt.hbTab === 'board') {
     // finish what you came for first: deliveries, passengers and finished commissions for this harbour
     const due = [];
@@ -115,8 +116,8 @@ export function renderHarbour() {
       html += `<div class="sec">THIS WEEK</div><small>${life.eventLine(d, state)}: ${life.gameOf(d).name} in the tavern pays double.</small>`;
       { const sg = sightsAt(state, d, { region: regionAt(d.x, d.z, state.seed), market: isMarketDay() }); if (sg.length) html += `<div class="sec">ON THE QUAY</div>${sg.map((x) => `<small class="${x.dark ? 'darkline' : ''}">${x.text}</small>`).join('<br>')}`; }   // what the region keeps (customs.js)
     }
-    html += '<div class="sec">DELIVERY</div>';
-    const jo = state.job ? null : makeJob(G.world, d, state.serial[d.id] || 0, !goalReached(state, 'tavern') ? 420 : 750);   // the first jobs stay close
+    html += feelLine(FL.board) + '<div class="sec">DELIVERY</div>';
+    const jo = state.job || !FL.jobs ? null : makeJob(G.world, d, state.serial[d.id] || 0, !goalReached(state, 'tavern') ? 420 : 750);   // the first jobs stay close
     const j = state.job || (asleep && jo && regionAt(jo.x, jo.z, state.seed) === 'free' ? null : jo);   // by day a Cays board posts only deliveries out of the Cays
     if (state.job && state.job.toId === d.id) html += '<small>Deliver the one above first.</small>';
     else if (state.job) html += `<div class="qrow"><div><b>${pxi('letter')} ${state.job.item}</b><br><small>to ${state.job.toName} · ${bearingName(state.job.x - d.x, state.job.z - d.z)}</small></div><small>${state.job.reward}g</small></div>`;
@@ -131,7 +132,7 @@ export function renderHarbour() {
       const need = questNeed(q), have = questProgress(q, state);
       if (have < need) html += `<div class="qrow"><div><b>${questIcon(q)} ${questTitle(q, rt.dread)}</b><br><small>${have}/${need} · ${q.reward}g</small></div></div>`;
     }
-    const offers = asleep ? [] : commissionsFor(G.world, d, state.serial[d.id + '#c'] || 0).filter((o) => !state.quests.some((x) => x.id === o.id));
+    const offers = asleep ? [] : commissionsFor(G.world, d, state.serial[d.id + '#c'] || 0).filter((o) => !state.quests.some((x) => x.id === o.id)).slice(0, FL.jobs);   // a dying harbour sends little, a thriving one a lot
     for (const o of offers) {
       const q = { ...o, base: 0 };
       html += `<div class="qrow"><div><b>${questIcon(o)} ${questTitle(q, rt.dread)}</b><br><small>${o.type === 'crates' ? `lost ${bearingName(o.center.x - d.x, o.center.z - d.z)} of here · ` : ''}${o.reward}g</small></div><button data-accept="${o.id}" ${state.quests.length >= 3 ? 'disabled' : ''}>Accept</button></div>`;
@@ -208,7 +209,7 @@ export function renderHarbour() {
       toast(tk ? `They fill the lamp, fold sailcloth into the locker and mend the hull. They keep ${tk.label}. Nobody says thank you.` : 'They fill the lamp, fold sailcloth into the locker and mend the hull. They ask for nothing. That is worse.', true, 7000);
       G.audio.play('buy'); renderHarbour(); });
   } else if (rt.hbTab === 'market') {
-    const hg = state.haggle && state.haggle.id === d.id && state.haggle.day === state.dayN ? state.haggle : null, hm = (hg ? hg.mult : 1) * (feastAt(d) ? 1.2 : 1) / G.dreamCost(d.id) * (isMarketDay() ? 1.25 : 1) * (G.threads.touched(d) ? 1.15 : 1) * G.threads.priceMul(d);
+    const hg = state.haggle && state.haggle.id === d.id && state.haggle.day === state.dayN ? state.haggle : null, hm = (hg ? hg.mult : 1) * (feastAt(d) ? 1.2 : 1) * FL.sell / G.dreamCost(d.id) * (isMarketDay() ? 1.25 : 1) * (G.threads.touched(d) ? 1.15 : 1) * G.threads.priceMul(d);
     const quiet = caysQuiet(rt.lullK, state.time * 24, window.__BUILD === 'demo'), shut = d.region === 'free' && !quiet;   // are the Cays quiet (somebody plays)? Their stalls open then (regions.js, L5)
     const sale = sellable(state);   // what an errand in hand needs stays aboard (G-08)
     const fishVal = Math.round(sale.fish.reduce((a, f) => a + f.value, 0) * 0.7 * (1 + 0.05 * lvl) * hm * (isFestival(d) ? 1.5 : 1) * sellMul(d, 'fish', quiet));
@@ -226,18 +227,21 @@ export function renderHarbour() {
       if (cb && hold.length && !cb.end) html += `<div class="sec">A QUIET BUYER</div><div class="qrow"><div><b>${pxi('fish')} The bright ones</b><br><small>a stranger in a grey coat would take ${hold.length} off your hands at more than twice the price, and not ask where</small></div><button id="sellBright">+${bv}g</button></div>`;
     }
     if (d.region === 'lantern' && G.oilOn() && state.oil > 10) { const ov = Math.round((state.oil - 10) * OIL_SELL * hm); html += `<div class="qrow"><div><b>${pxi('lamp')} Lamp oil</b><br><small>the Guild buys all but a little for the way home</small></div><button id="sellOil">+${ov}g</button></div>`; }   // the Lantern Guild buys oil (regions.js)
-    if (unlocked(state, 'cannons')) html += `<div class="sec">BUY</div><div class="qrow"><div><b>${pxi('ball')} 10 cannonballs</b><br><small>you have ${state.ammo}</small></div><button id="buyAmmo" ${state.gold >= ammoCost ? '' : 'disabled'}>${ammoCost}g</button></div>`;
+    html = html.replace('<div class="sec">SELL</div>', feelLine(FL.market) + '<div class="sec">SELL</div>');
+    if (unlocked(state, 'cannons') && FL.ammo) html += `<div class="sec">BUY</div><div class="qrow"><div><b>${pxi('ball')} 10 cannonballs</b><br><small>you have ${state.ammo}</small></div><button id="buyAmmo" ${state.gold >= ammoCost ? '' : 'disabled'}>${ammoCost}g</button></div>`;
     const chainCost = Math.ceil(CHAIN_COST * discount(rep) * G.costMul() * buyMul(d, 'ammo'));
-    if (unlocked(state, 'cannons')) html += `<div class="qrow"><div><b>${pxi('chain')} 10 chain shot</b><br><small>you have ${state.story.chain || 0}: two balls on a chain, for masts and rigging (B to load)</small></div><button id="buyChain" ${state.gold >= chainCost ? '' : 'disabled'}>${chainCost}g</button></div>`;
-    const storeMul = discount(rep) * G.costMul(), sn = window.__BUILD === 'demo' ? null : storesNeed(), sCost = sn ? Math.ceil((sn.food + sn.water) * STORE_PRICE * storeMul) : 0;   // food and water (systems/voyage.js)
+    if (unlocked(state, 'cannons') && FL.ammo) html += `<div class="qrow"><div><b>${pxi('chain')} 10 chain shot</b><br><small>you have ${state.story.chain || 0}: two balls on a chain, for masts and rigging (B to load)</small></div><button id="buyChain" ${state.gold >= chainCost ? '' : 'disabled'}>${chainCost}g</button></div>`;
+    const storeMul = discount(rep) * G.costMul(), sn = window.__BUILD === 'demo' ? null : storesNeed(FL.stores), sCost = sn ? Math.ceil((sn.food + sn.water) * STORE_PRICE * storeMul) : 0;   // food and water (systems/voyage.js)
     if (sn) html += `<div class="sec">STORES</div><div class="qrow"><div><b>${pxi('crate')} Food and water</b><br><small>${sn.food + sn.water < 0.5 ? 'the casks and the bread locker are full' : 'biscuit, salt pork and fresh water, to fill the casks'}</small></div>${sn.food + sn.water < 0.5 ? '<button disabled>Full</button>' : `<button id="buyStores" ${state.gold >= sCost ? '' : 'disabled'}>${sCost}g</button>`}</div>`;
     if (tradeOn(d)) {   // trade runs (systems/trade.js): a crate at a time
       html += `<div class="sec">CARGO</div><small>The hold: ${carried()} of ${room()} crates.</small>`;
       for (const [k, gd] of Object.entries(GOODS)) {
         if (gd.found && !(cargo()[k] > 0)) continue;   // a spice shows only once you carry it (systems/spice.js)
+        const sells = !gd.found && (gd.luxury ? FL.luxury && gd.from === d.region : FL.made || gd.from !== d.region);   // a dying harbour has nothing of its own to sell; a thriving one has its fine goods
+        if (!sells && !(cargo()[k] > 0)) continue;
         const tk = handOn('trader') ? [0.9, 1.1] : [1, 1];   // the trader aboard (systems/hands.js)
-        const pb = Math.ceil(tradePrice(d.region, k) * discount(rep) * tk[0]), ps = Math.round(sellPrice(d.region, k) * hm * tk[1]), have = cargo()[k] || 0;
-        html += `<div class="qrow"><div><b>${pxi('crate')} ${gd.name}</b><br><small>${have ? `${have} aboard · ` : ''}${gd.found ? 'found, not sold' : `${gd.from === d.region ? 'made here' : 'buy'} ${pb}g`} · sell ${ps}g</small></div><span>${have ? `<button data-tsell="${k}">+${ps * have}g</button>` : ''}${gd.found ? '' : `<button data-tbuy="${k}" ${state.gold >= pb && carried() < room() ? '' : 'disabled'}>Buy 1</button>`}</span></div>`;
+        const pb = Math.ceil(tradePrice(d.region, k) * discount(rep) * tk[0] * FL.buy), ps = Math.round(sellPrice(d.region, k) * hm * tk[1]), have = cargo()[k] || 0;
+        html += `<div class="qrow"><div><b>${pxi('crate')} ${gd.name}</b><br><small>${have ? `${have} aboard · ` : ''}${!sells ? (gd.found ? 'found, not sold' : 'none to be had here') : `${gd.from === d.region ? (gd.luxury ? 'fine goods, made here' : 'made here') : 'buy'} ${pb}g`} · sell ${ps}g</small></div><span>${have ? `<button data-tsell="${k}">+${ps * have}g</button>` : ''}${!sells ? '' : `<button data-tbuy="${k}" ${state.gold >= pb && carried() < room() ? '' : 'disabled'}>Buy 1</button>`}</span></div>`;
       }
     }
     if (G.oilOn()) { const kc = Math.ceil(35 * discount(rep) * G.costMul() * buyMul(d, 'kit')); html += `<div class="sec">SAILCLOTH</div><div class="qrow"><div><b>${pxi('sail')} Sail patch kit</b> <span class="kits">${[0, 1, 2].map((k) => `<i class="${k < state.patchKits ? 'on' : ''}"></i>`).join('')}</span><br><small>${state.patchKits} aboard, room for 3: mends a torn sail at sea</small></div>${state.patchKits < 3 ? `<button id="buyKit" ${state.gold >= kc ? '' : 'disabled'}>${kc}g</button>` : '<button disabled>Full</button>'}</div>`; }
@@ -252,8 +256,8 @@ export function renderHarbour() {
     html += `<div class="sec">SHIPYARD</div><div class="qrow"><div><b>${pxi('paint')} Paint, sails, pennants, figureheads</b></div><button id="openYard">Open</button></div>`;
     pane.innerHTML = html;
     { const bc = $('buyChain'); if (bc) bc.addEventListener('click', () => { if (state.gold < chainCost) return; state.gold -= chainCost; state.story.chain = (state.story.chain || 0) + 10; G.audio.play('buy'); renderHarbour(); }); }
-    { const bs = $('buyStores'); if (bs) bs.addEventListener('click', () => { if (fillStores(storeMul)) { G.audio.play('buy'); toast('The casks are filled and the bread locker stocked.', false, 3000); } renderHarbour(); }); }
-    pane.querySelectorAll('[data-tbuy]').forEach((b) => b.addEventListener('click', () => { if (tradeBuy(d.region, b.dataset.tbuy, discount(rep) * (handOn('trader') ? 0.9 : 1))) G.audio.play('buy'); renderHarbour(); }));
+    { const bs = $('buyStores'); if (bs) bs.addEventListener('click', () => { if (fillStores(storeMul, FL.stores)) { G.audio.play('buy'); toast('The casks are filled and the bread locker stocked.', false, 3000); } renderHarbour(); }); }
+    pane.querySelectorAll('[data-tbuy]').forEach((b) => b.addEventListener('click', () => { if (tradeBuy(d.region, b.dataset.tbuy, discount(rep) * (handOn('trader') ? 0.9 : 1) * FL.buy)) G.audio.play('buy'); renderHarbour(); }));
     pane.querySelectorAll('[data-tsell]').forEach((b) => b.addEventListener('click', () => { const nSold = (cargo()[b.dataset.tsell] || 0), g = sellAll(d.region, b.dataset.tsell, hm * (handOn('trader') ? 1.1 : 1)); if (g) { const rr = repOf(state, d.id); rr.sold = (rr.sold || 0) + nSold; } if (g) { G.audio.play('buy'); toast(`Sold for ${g} gold.`, false, 2500); } renderHarbour(); }));
     { const bk = $('buyKit'); if (bk) bk.addEventListener('click', () => { const kc = Math.ceil(35 * discount(rep) * G.costMul() * buyMul(d, 'kit')); if (state.gold < kc || state.patchKits >= 3) return; state.gold -= kc; state.patchKits++; G.audio.play('buy'); renderHarbour(); }); }
     { const bo = $('buyOil'); if (bo) bo.addEventListener('click', () => { const { cost } = G.buyOil(discount(rep) * G.costMul()); if (state.gold < cost) return; state.gold -= cost; state.oil = oilCap(state.upgrades); G.audio.play('buy'); toast('The lantern is full.', false, 2500); renderHarbour(); }); }
@@ -279,6 +283,7 @@ export function renderHarbour() {
         state.haggle = { id: d.id, day: state.dayN, n, mult: ok ? (n === 20 ? 1.5 : 1.3) : n === 1 ? 0.8 : 0.9 };
         toast(ok ? 'The fishmonger laughs and gives in.' : n === 1 ? 'The fishmonger spits on the planks. By noon the whole harbour has heard.' : 'The fishmonger folds their arms. Prices just got worse.', false, 4000); if (!ok && n <= 5 && afterHut(state) && firstTime(state, 'candle')) setTimeout(() => toast(CANDLE, false, 6000), 4200); if (rt.harbourIsl) renderHarbour(); }); });
   } else if (rt.hbTab === 'tavern') {
+    html += feelLine(FL.tavern);
     if (G.lifeOn()) {   // the house dish, the local game, and the old story this harbour keeps (harbourlife.js)
       const dish = life.DISHES[d.style] || life.DISHES.classic, cur = life.meal(state), dc = Math.ceil(dish.cost * G.costMul());
       html += `<div class="sec">THE HOUSE DISH</div><div class="qrow"><div><b>${pxi('fish')} ${dish.name}</b><br><small>${dish.text}, until the dawn after next${cur ? ` · you have eaten: ${Object.values(life.DISHES).find((x) => x.id === cur).name}` : ''}</small></div><button id="eatDish" ${state.gold >= dc && cur !== dish.id ? '' : 'disabled'}>${cur === dish.id ? 'Full' : `${dc}g`}</button></div>`;
@@ -297,12 +302,12 @@ export function renderHarbour() {
     }
     if (window.__BUILD !== 'demo' && G.laterOK() && !asleep) { const cl = G.threads.clueLines(); if (cl.length) html += `<div class="sec">OVERHEARD</div><small>${cl[Math.abs(hash2(d.seed, state.dayN, 5)) % cl.length]}</small>`; }
     if (unlocked(state, 'crew')) { // hands for hire, and dice with the locals
-      const hand = crewForHire(d, state.dayN, state, G.world);
+      const hand = FL.hire ? crewForHire(d, state.dayN, state, G.world) : null;   // nobody looks for a berth in a dying harbour
       html += '<div class="sec">AT THE TABLES</div>';
       if (hand && !state.crew.some((c) => c.name === hand.name)) html += `<div class="qrow"><div><b>${pxi('talk')} ${hand.name}, ${hand.look}</b><br><small>${TRAITS[hand.trait].name}: ${TRAITS[hand.trait].text} · ${hand.wish.text} · stays ${hand.stay || 4} days</small></div><button id="hireHand" ${state.gold >= hand.cost && state.crew.length < 2 ? '' : 'disabled'}>${state.crew.length < 2 ? `Hire ${hand.cost}g` : 'Crew full'}</button></div>`;
       for (const c of state.crew) html += c.permanent ? `<div class="qrow"><div><b>${pxi('talk')} ${c.name}</b> <small>(${TRAITS[c.trait].name}, stays)</small></div></div>` : `<div class="qrow"><div><b>${pxi('talk')} ${c.name}</b> <small>(${TRAITS[c.trait].name}, ${G.daysLeft(c)} days left)</small></div><button data-dismiss="${c.name}">Let go</button></div>`;
       html += handRows(d);   // specialists earned by deeds (systems/hands.js)
-      html += `<div class="qrow"><div><b>${pxi('pip')} Dice with the locals</b><br><small>first to 30 · stake 10g</small></div><button id="playPig" ${state.gold >= 10 ? '' : 'disabled'}>Sit down</button></div>`;
+      if (FL.dice) html += `<div class="qrow"><div><b>${pxi('pip')} Dice with the locals</b><br><small>first to 30 · stake 10g</small></div><button id="playPig" ${state.gold >= 10 ? '' : 'disabled'}>Sit down</button></div>`;
       rt.pendingHand = hand;
     } else html += '<small>A fiddler, a fire, a lot of very old chairs. Nobody here knows you yet.</small>';
     pane.innerHTML = html;
@@ -339,10 +344,12 @@ export function renderHarbour() {
   } else {
     if (rt.hbShipLine) html += `<p class="quote">${rt.hbShipLine}</p>`;
     html += priceNote();   // the shipwright talks here, not over the welcome
+    html += feelLine(FL.wright);
+    if (FL.yardShut) { pane.innerHTML = html; lockPane(state, $('hbPane')); tutorialMarks(); return; }   // nothing is built here now (systems/harbours.js)
     // one card per upgrade: icon, level, what you have, what the next level gives, what it opens up, the price
     html += '<div class="upgrid">' + UPGRADES.map((u) => {
       const lv = state.upgrades[u.id], maxed = lv >= MAX_LEVEL, C = UP_CARD[u.id] || {};
-      const cost = maxed ? 0 : upCost(u, lv, rep), can = !maxed && state.gold >= cost, opens = !maxed && C.opens && C.opens[lv + 1];
+      const top = !FL.yardTop && lv + 1 >= MAX_LEVEL, cost = maxed ? 0 : upCost(u, lv, rep), can = !maxed && !top && state.gold >= cost, opens = !maxed && C.opens && C.opens[lv + 1];
       const now = lv ? u.text[lv - 1].split(':')[0] : C.stock;
       const pips = Array.from({ length: MAX_LEVEL }, (_, k) => `<i class="${k < lv ? 'on' : ''}${k === lv - 1 && rt.upFlash === u.id ? ' pop' : ''}"></i>`).join('');
       return `<div class="upc${maxed ? ' max' : ''}${can ? '' : ' poor'}${rt.upFlash === u.id ? ' bought' : ''}">
@@ -350,7 +357,7 @@ export function renderHarbour() {
         <div class="upb"><div class="upt"><b>${u.name}</b><span class="lvp">${pips}</span></div>
           <div class="upnow">Now: ${now}</div>
           ${maxed ? '<div class="upnext done">The finest there is.</div>' : `<div class="upnext">${u.text[lv]}</div>`}
-          ${opens ? `<div class="upopen">${pxi('open')}${opens}</div>` : ''}</div>
+          ${opens ? `<div class="upopen">${pxi('open')}${opens}</div>` : ''}${top ? '<div class="upopen">Not to be had here now: no materials come in.</div>' : ''}</div>
         <div class="upbuy">${maxed ? '<span class="upmax">MASTERWORK</span>' : `<button data-id="${u.id}" ${can ? '' : 'disabled'}>${pxi('coin')}${cost}</button>${can ? '' : `<small class="short">${cost - state.gold} short</small>`}`}</div>
       </div>`;
     }).join('') + '</div>';
