@@ -37,8 +37,23 @@ export let upCost, tutorialGoal, priceNote;   // set by the init function(s) bel
 
 // ---------------------------------------------------------------- harbour shipwright
 export const UP_MUL = [1.3, 1.6, 1.9];   // economy: the shipwright charges more, steeply for the higher levels
-export function handIn(q, d) {
-  const need = questNeed(q);
+// a fruit commission the crew got into (systems/voyage.js): handed over short it pays less; too short, and it is not taken
+export const SHORT_MIN = 0.6, SHORT_PAY = 0.75;
+export function shortOf(q) {
+  if (q.type !== 'fruit' || !q.eaten) return null;
+  const have = Math.min(q.n, state.fruit[q.fruit] || 0); if (have >= q.n) return null;
+  return { have, miss: q.n - have, ok: have >= Math.ceil(q.n * SHORT_MIN), pay: Math.round(q.reward * (have / q.n) * SHORT_PAY) };
+}
+export function handIn(q, d, short = false) {
+  const need = questNeed(q), sh = short && shortOf(q);
+  if (sh && sh.ok) {   // they count it twice, and pay for what is there, less for the trouble
+    state.fruit[q.fruit] -= sh.have; state.gold += sh.pay; repOf(state, d.id).deliveries++;
+    state.serial[d.id + '#c'] = (state.serial[d.id + '#c'] || 0) + 1;
+    state.quests = state.quests.filter((x) => x.id !== q.id); G.sea.syncQuests(state.quests.filter((x) => x.id === state.tracked));
+    state.stats.commissions = (state.stats.commissions || 0) + 1;
+    toast(`They count the fruit twice and look at you. ${sh.miss} short. They pay for what is there, and a little less. (+${sh.pay} gold)`, false, 7000);
+    G.audio.play('buy'); return;
+  }
   if (questProgress(q, state) < need) return;
   if (q.type === 'fish') { let n = need; state.catch = state.catch.filter((f) => (f.id === q.species && n > 0 ? (n--, false) : true)); }
   if (q.type === 'fruit') state.fruit[q.fruit] -= need;
@@ -103,6 +118,11 @@ export function renderHarbour() {
     if (state.job && state.job.toId === d.id) due.push(`<div class="qrow"><div><b>${pxi('letter')} Deliver ${state.job.item}</b><br><small>+${state.job.reward}g</small></div><button id="doDeliver">Deliver</button></div>`);
     if (state.passenger && state.passenger.toId === d.id) due.push(`<div class="qrow"><div><b>${pxi('talk')} ${state.passenger.name} goes ashore</b><br><small>+${state.passenger.reward}g fare</small></div><button id="doDropoff">Drop off</button></div>`);
     if (purseAt(d)) due.push(`<div class="qrow"><div><b>${pxi('coin')} The regatta purse</b><br><small>+${purseAt(d)}g</small></div><button id="takePurse">Collect</button></div>`);   // the Sunday race (systems/race.js)
+    for (const q of state.quests.filter((x) => x.giverId === d.id && questProgress(x, state) < questNeed(x))) {   // short: the crew ate some of it
+      const sh = shortOf(q); if (!sh) continue;
+      due.push(sh.ok ? `<div class="qrow"><div><b>${questIcon(q)} ${questTitle(q, rt.dread)}</b><br><small>${sh.miss} short: the crew got into it · they would pay +${sh.pay}g</small></div><button data-short="${q.id}">Hand over</button></div>`
+        : `<div class="qrow"><div><b>${questIcon(q)} ${questTitle(q, rt.dread)}</b><br><small>${sh.miss} short: the crew got into it. Not enough to take; bring the rest.</small></div></div>`);
+    }
     for (const q of state.quests.filter((x) => x.giverId === d.id && questProgress(x, state) >= questNeed(x))) due.push(`<div class="qrow"><div><b>${questIcon(q)} ${questTitle(q, rt.dread)}</b><br><small>done · +${q.reward}g</small></div><button data-hand="${q.id}">Finish</button></div>`);
     if (rt.openLetter) html += `<div class="sec">A LETTER</div><div class="letterOpen"><p>${rt.openLetter.text}</p><small>${rt.openLetter.from} · kept in your log</small></div>`;
     for (const lt of lettersAt(d)) html += `<div class="sec">A LETTER</div><div class="qrow letter"><div><b>${pxi('letter')} ${lt.title}</b><br><small>${lt.sub}</small></div><button id="takeLetter" data-letter="${lt.key}">Take it</button></div>`;
@@ -182,6 +202,7 @@ export function renderHarbour() {
       state.passenger = pass; state.serial[d.id + '#p'] = (state.serial[d.id + '#p'] || 0) + 1; state.tracked = 'passenger';
       toast(`${pass.name} ${/&/.test(pass.name) ? 'come' : 'comes'} aboard, bound for ${pass.toName}.`, false, 5000); renderHarbour(); });
     pane.querySelectorAll('[data-hand]').forEach((b) => b.addEventListener('click', () => { handIn(state.quests.find((q) => q.id === b.dataset.hand), d); renderHarbour(); }));
+    pane.querySelectorAll('[data-short]').forEach((b) => b.addEventListener('click', () => { handIn(state.quests.find((q) => q.id === b.dataset.short), d, true); renderHarbour(); }));
     pane.querySelectorAll('[data-accept]').forEach((b) => b.addEventListener('click', () => { acceptCommission(offers.find((o) => o.id === b.dataset.accept)); renderHarbour(); }));
     const rb = $('rumourBuy');
     if (rb) rb.addEventListener('click', () => {

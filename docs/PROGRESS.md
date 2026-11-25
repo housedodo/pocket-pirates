@@ -2487,3 +2487,8 @@ dread there eased for a while after it.
   and reload 15% and 10% slower, spirits fall. At 9, once a voyage, a hand (or an unnamed sailor) too sick to stand goes home on a
   fishing boat. The Ship's book has a Health row in words. Rats: about one game day in five a day of food goes, unless the ship's cat
   is aboard (then now and then a rat on your step). Checked headless; nothing tuned in play.
+- **The crew gets into a fruit commission** (owner, 2026-11-25): the crew eats spare fruit first (`jobs.js sellable`); when only a
+  commission's fruit is left and they want fresh food, about one try a day (0.45, more when sick) one or two go, the commission
+  remembers it (`q.eaten`) and Mara says so. At the giver's board a short delivery shows "N short: the crew got into it": at 60% or
+  more it can be handed over for that share of the reward at 0.75 (`ui/harbour.js shortOf/handIn`); below that it is not taken
+  until the rest is brought. Checked headless (5 asked, 2 eaten: 27 g of 60; 2 of 5: refused).

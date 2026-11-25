@@ -22,6 +22,7 @@ import { DAY_LENGTH, tod } from '../daynight.js';
 import { toast } from '../ui/dom.js';
 import { angleDiff, clamp } from '../util.js';
 import { handLeaves } from './hands.js';
+import { sellable } from '../jobs.js';
 
 const DEMO = () => typeof window !== 'undefined' && window.__BUILD === 'demo';
 // ---- the numbers (tune by hand)
@@ -35,7 +36,8 @@ export const BANDS = [[0.65, 'glad'], [0.4, 'steady'], [0.2, 'quiet'], [0, 'sull
 export const WORK = { glad: [0.88, 0.92], steady: [1, 1], quiet: [1.15, 1.1], sullen: [1.35, 1.25] };   // [dig time, reload] multipliers
 export const LEAVE_AT = 0.12;                                  // below this a hired hand goes ashore at the next harbour
 export const FRESH_EAT = 3, SICK_AT = 6, LOSE_AT = 9;          // days without fresh food: fruit aboard is eaten; gums bleed; a hand goes home
-export const SICK_WORK = [1.15, 1.1], RAT_P = 0.22, RAT_FOOD = 1;   // the sick crew's work; the chance a day that rats get at the stores, and what they take
+export const SICK_WORK = [1.15, 1.1], RAT_P = 0.22, RAT_FOOD = 1;
+export const PILFER_P = 0.45;   // with only a commission's fruit aboard, the chance (each time they would eat) that the crew gets into it anyway   // the sick crew's work; the chance a day that rats get at the stores, and what they take
 export const NERVE_FAR = 140, NERVE_RISE = 1 / 90, NERVE_FALL = 1 / 40;   // units from land; per s alone in the dark; per s otherwise
 
 const SAY = {   // Mara (drafts)
@@ -61,6 +63,7 @@ const nowD = () => (state.dayN || 0) + (state.time || 0);
 export const freshDays = () => { if (state.story.fresh == null) state.story.fresh = nowD(); return Math.max(0, nowD() - state.story.fresh); };
 export const sick = () => !DEMO() && freshDays() >= SICK_AT;
 const fruitAboard = () => Object.keys(state.fruit || {}).find((k) => state.fruit[k] > 0);
+const spareFruit = () => { const f = sellable(state).fruit; return Object.keys(f).find((k) => f[k] > 0); };   // fruit no commission is waiting for
 /** main.js refreshMods: the crew's spirits in the work */
 export function moodMods(m) { if (DEMO()) return m; const w = WORK[band()]; m.digTime *= w[0]; m.reload *= w[1]; if (sick()) { m.digTime *= SICK_WORK[0]; m.reload *= SICK_WORK[1]; } return m; }
 const bump = (d) => { state.story.mood = clamp(mood() + d, 0, 1); };
@@ -131,7 +134,19 @@ function nervesTick(dt) {
 let ratAcc = 0;
 function healthTick(days) {
   const was = sick();
-  if (freshDays() >= FRESH_EAT) { const f = fruitAboard(); if (f) { state.fruit[f]--; state.story.fresh = nowD(); if (!state.story.ateOnce) { state.story.ateOnce = 1; say('ate'); } } }
+  if (freshDays() >= FRESH_EAT) {
+    const f = spareFruit();
+    if (f) { state.fruit[f]--; state.story.fresh = nowD(); if (!state.story.ateOnce) { state.story.ateOnce = 1; say('ate'); } }
+    else if (fruitAboard() && (state.story.pilferTry == null || nowD() - state.story.pilferTry >= 1)) {   // only the fruit for a commission is left: at most a try a day
+      state.story.pilferTry = nowD();
+      const q = (state.quests || []).find((x) => x.type === 'fruit' && (state.fruit[x.fruit] || 0) > 0);
+      if (q && Math.random() < PILFER_P * (freshDays() >= SICK_AT ? 1.6 : 1)) {   // hungrier when sick
+        const n = Math.min(state.fruit[q.fruit], 1 + (Math.random() < 0.35 ? 1 : 0));
+        state.fruit[q.fruit] -= n; q.eaten = (q.eaten || 0) + n; state.story.fresh = nowD();
+        const m = G.objectives && G.objectives.mate; if (m && !m.busy) m.say(n > 1 ? 'Somebody has been at the fruit we are carrying for the commission. Two are gone. Nobody saw anything, of course.' : 'One of the fruit for the commission is gone. There is a peel behind the water casks.');
+      }
+    }
+  }
   const fd = freshDays();
   if (fd >= SICK_AT && !was) { say('sick'); G.refreshMods(); }
   if (fd >= LOSE_AT && !state.story.lostSick) {   // once a voyage: the sickest goes home

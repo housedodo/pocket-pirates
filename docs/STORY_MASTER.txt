@@ -1,7 +1,7 @@
 HOIST (Pocket Pirates): THE MASTER STORY FILE
 ================================================================================================
 This is the main story file for the full game. Edit it, upload it again, and the next session puts every change
-into the game. Built from commit 25cc0e2 on 2026-11-25. 1889 in-game lines carry an ID.
+into the game. Built from commit 2359fcc on 2026-11-25. 1892 in-game lines carry an ID.
 
 CONTENTS
   A   HOW TO USE THIS FILE (IDs, status marks, how to add and remove things)
@@ -569,7 +569,7 @@ Where the story hides in the mechanics, and where its text lives (section J).
 # J  EVERY LINE IN THE GAME
 ################################################################################################
 Pulled from the code. Edit the text after the "|" (see part A). Sources are grouped by file; the CODE in front of every
-line says which file it goes back into. 1889 lines.
+line says which file it goes back into. 1892 lines.
 
 
 
@@ -2634,6 +2634,9 @@ line says which file it goes back into. 1889 lines.
 ### MAIN / ADDED 2026-11-25
   MAIN-0406 | There is a water stair round the far side, Captain. Nobody watches it after dark.
 
+### MAIN / ADDED 2026-11-25
+  MAIN-0407 | They count the fruit twice and look at you. ${sh.miss} short. They pay for what is there, and a little less. (+${sh.pay} gold)
+
 ### MAIN / RETIRED (the text is no longer in the game; these IDs are never used again)
     was MAIN-0001 | A floating market, with bunting on every line. (Friday)
     was MAIN-0002 | A regatta! Five boats, racing.
@@ -3280,6 +3283,10 @@ line says which file it goes back into. 1889 lines.
   VOY-0018 | Gums bleeding. They need fruit.
   VOY-0019 | Hale, for now. Nothing fresh aboard.
   VOY-0020 | One of the crew is too sick to stand. A fishing boat bound for Tama takes them off, wrapped in your second-best coat.
+
+### VOY / ADDED 2026-11-25
+  VOY-0021 | Somebody has been at the fruit we are carrying for the commission. Two are gone. Nobody saw anything, of course.
+  VOY-0022 | One of the fruit for the commission is gone. There is a peel behind the water casks.
 
 
 ####################################################################################################
