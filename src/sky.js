@@ -95,15 +95,15 @@ export class Sky {
     this.domeMat = new THREE.ShaderMaterial({
       uniforms: { uTop: { value: new THREE.Color() }, uHorizon: { value: new THREE.Color() }, uFogC: { value: new THREE.Color() }, uGlow: { value: new THREE.Color('#ff6a7a') }, uGlowK: { value: 0 }, uSunXZ: { value: new THREE.Vector2(0, -1) },
         uBank: { value: 0 }, uBankDir: { value: new THREE.Vector2(0, -1) }, uBankC: { value: new THREE.Color('#363c46') }, uT: { value: 0 },
-        uPaint: { value: 0 }, uStreak: { value: 0 }, uCov: { value: 0.3 }, uOff: { value: new THREE.Vector2() }, uWA: { value: 0 },
+        uPaint: { value: 0 }, uCov: { value: 0.3 }, uOff: { value: new THREE.Vector2() }, uWA: { value: 0 },
         uCLit: { value: new THREE.Color('#ffffff') }, uCShade: { value: new THREE.Color('#a0a8b8') } },
       vertexShader: 'varying float vY; varying vec2 vXZ; void main(){ vec3 n = normalize(position); vY = n.y; vXZ = n.xz; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }',
       // seven bands with an ordered-dither seam between them (STYLE 2: no smooth gradients; G2). Below the horizon the dome is the fog:
-      // where the sea ends (seen from high up) there is no seam (visual QA 2026-11-19). The storm bank and the painted clouds (?clouds=b|c,
-      // 2026-11-25) are drawn here too, so they are made of the sky's own colours and cannot stand apart from it.
+      // where the sea ends (seen from high up) there is no seam (visual QA 2026-11-19). The storm bank and the painted clouds (owner,
+      // 2026-11-25: B) are drawn here too, so they are made of the sky's own colours and cannot stand apart from it.
       fragmentShader: `uniform vec3 uTop; uniform vec3 uHorizon; uniform vec3 uFogC; uniform vec3 uGlow; uniform float uGlowK; uniform vec2 uSunXZ;
 uniform float uBank; uniform vec2 uBankDir; uniform vec3 uBankC; uniform float uT;
-uniform float uPaint; uniform float uStreak; uniform float uCov; uniform vec2 uOff; uniform float uWA; uniform vec3 uCLit; uniform vec3 uCShade;
+uniform float uPaint; uniform float uCov; uniform vec2 uOff; uniform float uWA; uniform vec3 uCLit; uniform vec3 uCShade;
 varying float vY; varying vec2 vXZ;
 float b2(vec2 a){ return fract(dot(a, vec2(0.5, a.y * 0.75))); } float b4(vec2 a){ a = floor(a); return b2(floor(0.5 * a)) * 0.25 + b2(a); }
 float h21(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
@@ -116,7 +116,6 @@ void main(){
   if (uPaint > 0.5 && vY > 0.0) {   // painted clouds: noise on a plane overhead, three tones, dithered edges, thinning into the horizon haze
     vec2 p = vXZ / (vY + 0.14) * 1.5;
     float ca = cos(uWA), sa = sin(uWA); p = vec2(ca * p.x + sa * p.y, -sa * p.x + ca * p.y);
-    if (uStreak > 0.5) p *= vec2(0.32, 1.7);
     p += uOff;
     float f = fbm(p), thr = 0.78 - uCov * 0.62;
     float e = f - thr + dth * 0.045;
@@ -221,55 +220,14 @@ void main(){
     this.moon.renderOrder = -20;
     this.group.add(this.moon);
 
-    // the cloud look on trial (owner, 2026-11-25: "make them blend with the sky"): ?clouds=a shaded puffs coloured from the sky,
-    // b painted into the sky, c painted streaks; without it, the old puffs and the old storm wall
-    this.look = (() => { try { const q = new URLSearchParams(location.search).get('clouds'); return q === 'a' || q === 'b' || q === 'c' ? q : 'old'; } catch (e) { return 'old'; } })();
-    this.domeMat.uniforms.uPaint.value = this.look === 'b' || this.look === 'c' ? 1 : 0; this.domeMat.uniforms.uStreak.value = this.look === 'c' ? 1 : 0;
-    this.puffU = { uTop: { value: new THREE.Color() }, uHorizon: { value: new THREE.Color() }, uLit: { value: new THREE.Color() }, uShade: { value: new THREE.Color() }, uCam: { value: new THREE.Vector3() } };
-    // clouds: flat-bottomed low-poly puffs that drift with the wind
-    const ico = new THREE.IcosahedronGeometry(1, 0);
-    const pos = ico.attributes.position;
-    const cols = new Float32Array(pos.count * 3);
-    for (let i = 0; i < pos.count; i += 3) {
-      const y = (pos.getY(i) + pos.getY(i + 1) + pos.getY(i + 2)) / 3;
-      const v = y > 0.1 ? 1 : 0.72;
-      for (let k = 0; k < 3; k++) cols.set([v, v, v], (i + k) * 3);
-    }
-    ico.setAttribute('color', new THREE.BufferAttribute(cols, 3));
-    this.cloudMat = this.look === 'a' ? new THREE.ShaderMaterial({ uniforms: this.puffU, fog: false,   // A: lit top, shaded belly, and the far ones dissolve into the sky behind them
-      vertexShader: 'varying vec3 vW; varying float vNY; void main(){ vec4 w = modelMatrix * vec4(position, 1.0); vW = w.xyz; vNY = normalize(mat3(modelMatrix) * normal).y; gl_Position = projectionMatrix * viewMatrix * w; gl_Position.xy = floor(gl_Position.xy / gl_Position.w * 160.0 + 0.5) / 160.0 * gl_Position.w; }',
-      fragmentShader: `uniform vec3 uTop; uniform vec3 uHorizon; uniform vec3 uLit; uniform vec3 uShade; uniform vec3 uCam; varying vec3 vW; varying float vNY;
-float b2(vec2 a){ return fract(dot(a, vec2(0.5, a.y * 0.75))); } float b4(vec2 a){ a = floor(a); return b2(floor(0.5 * a)) * 0.25 + b2(a); }
-void main(){ float dth = b4(gl_FragCoord.xy) - 0.5; vec3 d = normalize(vW - uCam);
-  float t = pow(clamp(d.y, 0.0, 1.0), 0.5); vec3 sky = mix(uHorizon, uTop, floor(t * 7.0 + dth * 0.4 + 0.5) / 7.0);
-  float tone = floor(clamp(vNY * 0.9 + 0.55, 0.0, 1.0) * 2.0 + dth * 0.7 + 0.5) / 2.0; vec3 col = mix(uShade, uLit, tone);
-  float fade = smoothstep(250.0, 480.0, length(vW.xz - uCam.xz)) * 0.5 + (1.0 - smoothstep(0.02, 0.16, d.y)) * 0.45;
-  col = mix(col, sky, floor(clamp(fade, 0.0, 1.0) * 3.0 + dth * 0.6 + 0.5) / 3.0); gl_FragColor = vec4(col, 1.0); }` })
-      : psxMaterial({ vertexColors: true, fog: true, key: 'Lc', fragmentColor: { head: '', body: 'diffuseColor.rgb /= max(uLight, 0.05);' } });   // snaps (G2); stage.cloud already darkens them at night
-    this.clouds = [];
-    const rc = mulberry32(5);   // the clouds past the first sixteen only come with overcast weather, and use their own dice so nothing else moves
-    for (let i = 0; i < 28; i++) {
-      const rng = i < 16 ? rng0 : rc;
-      const g = new THREE.Group();
-      const lumps = 3 + Math.floor(rng() * 3);
-      for (let k = 0; k < lumps; k++) {
-        const m = new THREE.Mesh(ico, this.cloudMat);
-        m.scale.set(8 + rng() * 8, 3 + rng() * 2.5, 6 + rng() * 5);
-        m.position.set((k - lumps / 2) * 9 + rng() * 4, rng() * 2, rng() * 6);
-        g.add(m);
-      }
-      const a = rng() * Math.PI * 2, d = 120 + rng() * 300;
-      g.position.set(Math.cos(a) * d, 55 + rng() * 40, Math.sin(a) * d);
-      g.scale.setScalar(1.2 + rng());
-      g.userData.base = g.scale.x; g.userData.k = 1;
-      this.clouds.push(g);
-      scene.add(g);
-    }
+    // clouds (owner, 2026-11-25: "go with B"): painted into the dome (its shader above), so they are made of the sky's own colours
+    this.domeMat.uniforms.uPaint.value = 1;
     this.sunDir = new THREE.Vector3();
     this.dayLook = (() => { try { return new URLSearchParams(location.search).get('day') !== '0'; } catch (e) { return true; } })();   // ?day=0: the old day
     this.dayMoodFlag = (() => { try { const q = new URLSearchParams(location.search).get('daymood'); return q == null ? -1 : (+q || 0) % 4; } catch (e) { return -1; } })();
-    this.mood = DAY_MOODS[0]; this.moodSeen = null; this.tallK = 1; this.topK = 0; this.moodTop = new THREE.Color('#2c74e0');
-    // a high layer: thin streaks of cirrus far above the puffs, drifting slowly
+    this.mood = DAY_MOODS[0]; this.moodSeen = null; this.topK = 0; this.moodTop = new THREE.Color('#2c74e0');
+    // a high layer: thin streaks of cirrus far above the painted clouds, drifting slowly
+    const ico = new THREE.IcosahedronGeometry(1, 0);
     this.highMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.55, fog: false, depthWrite: false });
     this.high = [];
     for (let i = 0; i < 9; i++) {
@@ -279,25 +237,7 @@ void main(){ float dth = b4(gl_FragCoord.xy) - 0.5; vec3 d = normalize(vW - uCam
       m.scale.set(40 + rng() * 50, 0.6, 4 + rng() * 5); m.rotation.y = rng() * 0.6;
       this.high.push(m); scene.add(m);
     }
-    // the storm wall: a dark, towering bank on the horizon, upwind. It rises over the horizon as a storm or a front comes near
-    this.wallMat = new THREE.MeshBasicMaterial({ color: 0x2a3038, fog: false });
-    const rnd = new THREE.IcosahedronGeometry(1, 1);
-    this.wall = new THREE.Group();
-    for (let row = 0; row < 2; row++) for (let i = 0; i < 16; i++) {
-      const m = new THREE.Mesh(rnd, this.wallMat);
-      m.position.set((i - 8) * 30 + rng() * 14, row ? 92 + rng() * 20 : 62 + rng() * 10, row * 18 + rng() * 12);   // a bank of cloud in the sky, not land
-      m.scale.set(30 + rng() * 22, row ? 22 + rng() * 14 : 16 + rng() * 8, 22 + rng() * 10);
-      this.wall.add(m);
-    }
-    // grey curtains of rain hanging from it down to the sea
-    this.curtainMat = new THREE.MeshBasicMaterial({ color: 0x5a626c, transparent: true, opacity: 0.4, fog: false, depthWrite: false, side: THREE.DoubleSide });
-    for (let i = 0; i < 7; i++) {
-      const c = new THREE.Mesh(new THREE.PlaneGeometry(30 + rng() * 30, 70), this.curtainMat);
-      c.position.set((i - 3) * 62 + rng() * 20, 28, 6 + rng() * 10); c.rotation.z = (rng() - 0.5) * 0.25;
-      this.wall.add(c);
-    }
-    this.wall.visible = false; scene.add(this.wall);
-
+    // the storm bank is drawn in the dome too (uBank): it rises over the horizon upwind as a storm or a front comes near
     // shooting star
     const mg = new THREE.BufferGeometry();
     mg.setAttribute('position', new THREE.Float32BufferAttribute(new Float32Array(6), 3));
@@ -328,20 +268,8 @@ void main(){ float dth = b4(gl_FragCoord.xy) - 0.5; vec3 d = normalize(vW - uCam
     const u = this.domeMat.uniforms, sx = Math.sin(tod.sunAz), sz = -Math.cos(tod.sunAz), sl = Math.hypot(sx, sz) || 1;
     u.uSunXZ.value.set(sx / sl, sz / sl);
     u.uGlowK.value = Math.min(1, tod.twilight * 1.1) * (1 - stage.dread) * (1 - 0.5 * (fx.storm || 0));
-    // clouds: some days few, some many and tall; they drift with the wind and wrap round you
-    this.tallK += (m.tall + (1 - m.tall) * cover - this.tallK) * Math.min(1, dt * 0.25);   // overcast: a low, flat layer
-    const wx = Math.sin(windDir) * 1.6, wz = -Math.cos(windDir) * 1.6;
-    this.clouds.forEach((g, i) => {
-      const want = i < m.clouds + (28 - m.clouds) * cover ? 1 : 0;   // overcast fills the sky
-      g.userData.k += (want - g.userData.k) * Math.min(1, dt * 0.4);
-      g.position.x += wx * dt; g.position.z += wz * dt;
-      const dx = g.position.x - cam.position.x, dz = g.position.z - cam.position.z;
-      if (dx * dx + dz * dz > 440 * 440) { g.position.x = cam.position.x - dx * 0.9; g.position.z = cam.position.z - dz * 0.9; g.userData.k = 0; }
-      const b = g.userData.base, k = g.userData.k;
-      const wide = 1 + 0.8 * cover;   // and the puffs run together
-      g.scale.set(b * k * wide, b * k * this.tallK, b * k * wide); g.visible = k > 0.03 && this.look !== 'b' && this.look !== 'c';
-    });
-    { // the painted clouds' cover and drift (?clouds=b|c)
+    // clouds: some days few, some many; they drift with the wind (painted in the dome)
+    { // the painted clouds' cover and drift with the wind
       const du = this.domeMat.uniforms; du.uCov.value = Math.min(1, (m.clouds / 28) * 1.1 + cover * 0.75); du.uWA.value = windDir;
       du.uOff.value.x += 0.006 * dt; du.uT.value += dt;
     }
@@ -428,12 +356,10 @@ void main(){ float dth = b4(gl_FragCoord.xy) - 0.5; vec3 d = normalize(vW - uCam
     } else this.meteorMat.opacity = 0;
 
     // sunrise and sunset colour the clouds; at night they go dark with the sky
-    if (this.cloudMat.color) this.cloudMat.color.copy(stage.cloud).lerp(stage.sun, Math.min(0.6, tod.twilight * 0.6));
-    if (this.look !== 'old') {   // the new looks take their colours from the sky itself: lit like the cloud colour, shaded like the sky low down
-      const du = this.domeMat.uniforms, cov = Math.min(1, fx.cover || 0), P = this.puffU;
+    {   // the painted clouds take their colours from the sky itself: lit like the cloud colour, shaded like the sky low down
+      const du = this.domeMat.uniforms, cov = Math.min(1, fx.cover || 0);
       const lit = du.uCLit.value.copy(stage.cloud).lerp(stage.sun, Math.min(0.5, tod.twilight * 0.5)).lerp(du.uHorizon.value, 0.22).lerp(GREY_TOP, cov * 0.35);
       du.uCShade.value.copy(du.uHorizon.value).lerp(du.uTop.value, 0.3).multiplyScalar(0.9 - 0.18 * cov).lerp(lit, 0.3);
-      P.uTop.value.copy(du.uTop.value); P.uHorizon.value.copy(du.uHorizon.value); P.uLit.value.copy(lit); P.uShade.value.copy(du.uCShade.value); P.uCam.value.copy(cam.position);
     }
     this.highMat.color.copy(stage.cloud).lerp(stage.sun, Math.min(0.7, tod.twilight * 0.8));
     this.highMat.opacity = 0.5 * (this.dayLook ? this.cirrusK * 2 * 0.5 : 1) * (1 - 0.7 * tod.night) * (1 - 0.6 * (fx.storm || 0));
@@ -442,18 +368,10 @@ void main(){ float dth = b4(gl_FragCoord.xy) - 0.5; vec3 d = normalize(vW - uCam
       const dx = m.position.x - cam.position.x, dz = m.position.z - cam.position.z;
       if (dx * dx + dz * dz > 560 * 560) { m.position.x = cam.position.x - dx * 0.92; m.position.z = cam.position.z - dz * 0.92; }
     }
-    { // the storm wall stands on the horizon where the wind comes from
-      const k = Math.max(0, Math.min(1, fx.stormWall || 0));
-      this.wall.visible = k > 0.02 && this.look === 'old';
-      const du = this.domeMat.uniforms; du.uBank.value = this.look === 'old' ? 0 : k;
-      if (this.look !== 'old') { const up = windDir + Math.PI; du.uBankDir.value.set(Math.sin(up), -Math.cos(up)); du.uBankC.value.set('#363c46').lerp(stage.skyHorizon, 0.3).multiplyScalar(0.6 + 0.4 * (1 - tod.night)); }
-      if (this.wall.visible) {
-        const up = windDir + Math.PI, D = 430;
-        this.wall.position.set(cam.position.x + Math.sin(up) * D, -110 + 110 * k, cam.position.z - Math.cos(up) * D);   // rises as the weather comes
-        this.wall.rotation.y = -up;
-        this.wallMat.color.set('#363c46').lerp(stage.skyHorizon, 0.35).multiplyScalar(0.55 + 0.45 * (1 - tod.night));
-        this.curtainMat.color.copy(this.wallMat.color).lerp(stage.skyHorizon, 0.4); this.curtainMat.opacity = 0.45 * k;
-      }
+    { // the storm bank stands on the horizon where the wind comes from (drawn in the dome)
+      const k = Math.max(0, Math.min(1, fx.stormWall || 0)), du = this.domeMat.uniforms, up = windDir + Math.PI;
+      du.uBank.value = k; du.uBankDir.value.set(Math.sin(up), -Math.cos(up));
+      du.uBankC.value.set('#363c46').lerp(stage.skyHorizon, 0.3).multiplyScalar(0.6 + 0.4 * (1 - tod.night));
     }
   }
 }

@@ -2504,3 +2504,9 @@ toward it, grey veils of rain under its belly, and its foot dissolving into the 
 - **B, painted** (dome shader): the clouds are painted into the sky itself: noise on a plane overhead, three tones with a lit side
   toward the sun, dithered edges, thinning into the horizon haze; under full cover the layer goes flat and even.
 - **C, streaks**: B stretched along the wind: long banks of stratocumulus.
+- **Picked B** (owner, 2026-11-25: "go with B"): the clouds are painted into the sky dome; the old 3D puffs, the old storm wall and
+  the trial flag (with A and C) are deleted. The storm bank is drawn in the dome in every weather.
+- **Rain blends in** (owner: "make the rain blend in a bit more", `weather.js`): the streaks take the haze's colour (fog and horizon,
+  a little lighter) instead of a fixed pale blue, fade toward the tail of each streak, fade out within a few units of the eye (the
+  bright radiating spokes in a storm) and toward the edge of the rain round you, and are 15% fainter. Preview:
+  `docs/proposals/sky/clouds_b_and_rain.png` (top: before; bottom: now).

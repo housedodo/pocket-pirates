@@ -36,7 +36,13 @@ export class Weather {
     const g = new THREE.BufferGeometry();
     g.setAttribute('position', new THREE.BufferAttribute(this.verts, 3));
     g.setDrawRange(0, 0);
-    this.lines = new THREE.LineSegments(g, new THREE.LineBasicMaterial({ color: 0xc4def2, transparent: true, opacity: 0.55, fog: false, depthWrite: false }));
+    // the streaks (owner, 2026-11-25: "make the rain blend in a bit more"): the colour of the haze, a touch lighter, not a fixed blue;
+    // each streak fades toward its tail, and they fade out right at the eye (no bright spokes) and toward the edge of the rain round you
+    { const t = new Float32Array(N * 2); for (let i = 0; i < N; i++) t[i * 2 + 1] = 1; g.setAttribute('aT', new THREE.BufferAttribute(t, 1)); }
+    this.rainU = { uC: { value: new THREE.Color(0xc4def2) }, uOp: { value: 0.5 } };
+    this.lines = new THREE.LineSegments(g, new THREE.ShaderMaterial({ uniforms: this.rainU, transparent: true, fog: false, depthWrite: false,
+      vertexShader: 'attribute float aT; varying float vT; varying float vD; void main(){ vec4 w = modelMatrix * vec4(position, 1.0); vT = aT; vD = distance(w.xyz, cameraPosition); gl_Position = projectionMatrix * viewMatrix * w; }',
+      fragmentShader: 'uniform vec3 uC; uniform float uOp; varying float vT; varying float vD; void main(){ float a = uOp * (1.0 - 0.8 * vT) * smoothstep(3.0, 10.0, vD) * (1.0 - smoothstep(26.0, 44.0, vD)); gl_FragColor = vec4(uC, a); }' }));
     this.lines.frustumCulled = false;
     this.lines.renderOrder = 5;
     scene.add(this.lines);
@@ -106,8 +112,7 @@ export class Weather {
     this.lines.visible = count > 4;
     if (this.lines.visible) {
       this.lines.geometry.setDrawRange(0, count * 2);
-      this.lines.material.opacity = (0.4 + 0.2 * wet) * (1 - h) + (0.5 + 0.25 * wet) * h;
-      this.lines.material.color.setRGB(0.77 - 0.2 * h, 0.87 - 0.17 * h, 0.95 - 0.13 * h);
+      this.rainU.uOp.value = ((0.4 + 0.2 * wet) * (1 - h) + (0.5 + 0.25 * wet) * h) * 0.85;   // its colour is set in apply(), from the haze
       const fall = 26 + 44 * h, len = 0.8 + 1.8 * h, slant = (0.25 + 1.1 * h) * windStr;
       const wx = Math.sin(windDir) * slant, wz = -Math.cos(windDir) * slant;
       const v = this.verts;
@@ -154,6 +159,7 @@ export class Weather {
     stage.fogNear = Math.max(8, stage.fogNear * (1 - 0.7 * this.fog));
     if (this.redSky > 0.02) { stage.skyHorizon.lerp(RED_SKY, this.redSky * 0.6); stage.skyTop.lerp(RED_TOP, this.redSky * 0.35); stage.fog.lerp(RED_SKY, this.redSky * 0.3); }
     stage.wave *= 1 - 0.75 * this.calm;
+    if (this.rainU) this.rainU.uC.value.copy(stage.fog).lerp(stage.skyHorizon, 0.5).lerp(WHITE, 0.22 + 0.1 * (1 - this.heavy));   // the rain is the haze's colour, a little lighter (before the lightning)
     const fl = this.flash * (settings.comfort.flash ? 1 : 0.12);   // comfort: lightning only brightens the sky a little (G4)
     if (fl > 0) {
       stage.skyTop.lerp(WHITE, fl * 0.75);
