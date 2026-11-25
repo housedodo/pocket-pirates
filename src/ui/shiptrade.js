@@ -9,6 +9,7 @@ import { state } from '../core/state.js';
 import { rt, G } from '../core/runtime.js';
 import { $, toast } from './dom.js';
 import { crewOffers, crewOffer, crewLine } from '../systems/raiders.js';
+import { hailNews } from '../systems/news.js';
 
 export let hailChance;   // set by the init function(s) below, at the point in boot where main.js had them
 
@@ -70,10 +71,11 @@ export function shipOffers(sh) {
   if (findRumour(G.world, { x: sh.x, z: sh.z }, state)) pool.push({ id: 'chart', label: 'Sea-chart scrap', cost: 35, desc: 'marks a treasure isle on your map' });
   pool.push({ id: 'supplies', label: 'Fresh supplies', cost: 25, desc: '+15% speed for 3 minutes' });
   pool.push({ id: 'rum', label: 'Rum rations', cost: 20, desc: 'your crew digs 30% faster for 3 minutes' });
-  pool.push({ id: 'news', label: 'Swap news', cost: 0, desc: 'a forecast and a rumour of the sea' });
+  pool.push({ id: 'news', label: 'Swap news', cost: 0, desc: 'the weather, and how the harbours she came from are doing' });
   pool.push({ id: 'tale', label: 'Swap tall tales', cost: 0, desc: 'you jot one down in your journal' });
   if (nearby(G.world, sh.x, sh.z, 0, 700, 'harbour').length) pool.push({ id: 'message', label: 'Carry a message', cost: 0, desc: 'a delivery job for a nearby harbour' });
   for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
+  { const ni = pool.findIndex((o) => o.id === 'news'); if (ni > 2 && Object.keys(state.discovered).length) [pool[2], pool[ni]] = [pool[ni], pool[2]]; }   // she always has news of the harbours (systems/news.js)
   sh.offers = pool.slice(0, 3).map((o) => ({ ...o, used: false }));
   return sh.offers;
 }
@@ -116,7 +118,8 @@ export function doOffer(i) {
   else if (o.id === 'rum') { state.buffs.dig = 180; toast('Rum rations handed out: the crew is in high spirits.'); }
   else if (o.id === 'news') {
     const lines = [G.wind.fromName ? `Winds from the ${G.wind.fromName}, they say, and shifting.` : '', G.weather.storm > 0.3 || G.weather.stormAhead > 0.3 ? 'Watch the evening sky. Red means a blow.' : G.weather.rain > 0.3 ? 'Rain all week out east.' : 'Fair skies for the next day or so.', tod.night > 0.5 ? 'Keep to the lit harbours after dark.' : 'Lighthouses burn only after dusk, so mind your hour.'];
-    toast(`News from the ${sh.name}: ${lines[Math.floor(rng() * lines.length)]}`, false, 7000);
+    const hn = hailNews(sh, rng);   // the harbours she came from, written on your chart (systems/news.js)
+    toast(`News from the ${sh.name}: ${lines[Math.floor(rng() * lines.length)]}${hn ? ' ' + hn : ''}`, !!(hn && hn.includes('tomorrow')), hn ? 10000 : 7000);
   } else if (o.id === 'tale') {
     const text = bottleNote(rng, idx);
     state.notes.push({ text, dark: idx >= 2 });

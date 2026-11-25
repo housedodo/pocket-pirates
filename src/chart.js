@@ -4,6 +4,7 @@
 import { sectorInfo, sectorCoord } from './sectors.js';
 import { bearingName } from './jobs.js';
 import * as life from './harbourlife.js';
+import { newsLine } from './systems/news.js';
 import { CHART_STYLE, drawVariant } from './chartstyles.js';
 
 // ---- palette (the game's colours, a little muted for paper)
@@ -99,6 +100,7 @@ function hover(lb, e, [wx, wz]) {
     const L = life.lifeOf(state), a = L.arcs[d.id], A = life.ARCS[life.arcIdOf(d)];
     if (a && a.done) row('harbour', A.after, P.red); else if (a) row('harbour', `${A.who}: ${a.step} of 4`, P.red); else row('harbour', A.who, P.red);
     row('note', life.eventLine(d, state).replace(' here', ''), P.blue);
+    { const nl = newsLine(d); if (nl) row('note', nl, nl.includes('tomorrow') ? '#3a1838' : P.gold); }   // as you last knew it (systems/news.js)
     if (L.frags.some((f) => f.at === d.name)) row('note', 'You have heard its old story', P.purple);
   }
   if (d.type === 'treasure') row('treasure', state.dug.has(d.id) ? 'Dug up' : 'A chest is buried here', P.red);

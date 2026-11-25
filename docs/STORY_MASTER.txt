@@ -1,7 +1,7 @@
 HOIST (Pocket Pirates): THE MASTER STORY FILE
 ================================================================================================
 This is the main story file for the full game. Edit it, upload it again, and the next session puts every change
-into the game. Built from commit b01611d on 2026-11-25. 1882 in-game lines carry an ID.
+into the game. Built from commit 25cc0e2 on 2026-11-25. 1889 in-game lines carry an ID.
 
 CONTENTS
   A   HOW TO USE THIS FILE (IDs, status marks, how to add and remove things)
@@ -569,7 +569,7 @@ Where the story hides in the mechanics, and where its text lives (section J).
 # J  EVERY LINE IN THE GAME
 ################################################################################################
 Pulled from the code. Edit the text after the "|" (see part A). Sources are grouped by file; the CODE in front of every
-line says which file it goes back into. 1882 lines.
+line says which file it goes back into. 1889 lines.
 
 
 
@@ -2274,7 +2274,6 @@ line says which file it goes back into. 1882 lines.
   MAIN-0145 | marks a treasure isle on your map
   MAIN-0146 | +15% speed for 3 minutes
   MAIN-0147 | your crew digs 30% faster for 3 minutes
-  MAIN-0148 | a forecast and a rumour of the sea
   MAIN-0149 | you jot one down in your journal
   MAIN-0150 | a delivery job for a nearby harbour
 
@@ -2655,6 +2654,7 @@ line says which file it goes back into. 1882 lines.
     was MAIN-0100 | Bring the ship to a stop to patch the sail (S, and wait).
     was MAIN-0108 | Nothing here but sand. Reread the riddle in your log (Journal) and try another shore.
     was MAIN-0121 | Down in the green dark: a ship on her side, KESTREL on the stern. Her strongbox comes up, and her bell, still ringing. (+180 gold)
+    was MAIN-0148 | a forecast and a rumour of the sea
     was MAIN-0213 | The harbourmaster hands you a folded note from Old Perrin. (Journal)
     was MAIN-0236 | The crew came back empty-handed. Hold still!
     was MAIN-0240 | Stop the ship completely (S)
@@ -3271,6 +3271,16 @@ line says which file it goes back into. 1882 lines.
   VOY-0011 | Sullen. The work is slow.
   VOY-0012 | Someone on deck is counting the crew under their breath. One too many, and they start again.
 
+### VOY / ADDED 2026-11-25
+  VOY-0013 | The cook cut up the fruit for the crew. They ate it standing, skins and all.
+  VOY-0014 | Two of the men have gums that bleed, Captain. They need something green. Fruit, limes, anything.
+  VOY-0015 | Rats in the bread locker. A day of biscuit, gone.
+  VOY-0016 | The cat has left a rat on your step again. Like a receipt.
+  VOY-0017 | Sick. Some cannot stand.
+  VOY-0018 | Gums bleeding. They need fruit.
+  VOY-0019 | Hale, for now. Nothing fresh aboard.
+  VOY-0020 | One of the crew is too sick to stand. A fishing boat bound for Tama takes them off, wrapped in your second-best coat.
+
 
 ####################################################################################################
 ## SOURCE TRD   (systems/trade.js): trade runs: the goods and the pier voices
@@ -3393,7 +3403,7 @@ line says which file it goes back into. 1882 lines.
 
 
 ####################################################################################################
-## SOURCE HBR   (systems/harbours.js): harbour events, the customs house, a morning's work
+## SOURCE HBR   (systems/harbours.js): how a harbour is doing: its feel ashore, events, the law, the back door, the customs house
 ####################################################################################################
 
 ### HBR / ADDED 2026-11-25
@@ -3431,6 +3441,11 @@ line says which file it goes back into. 1882 lines.
   HBR-0030 | Nobody asks where you have been. Nobody here asks anything any more.
   HBR-0031 | The harbourmaster has your name in his book. Nobody takes your line until it is settled.
   HBR-0032 | Nobody comes down to take your line. The harbourmaster watches from a window.
+
+
+####################################################################################################
+## SOURCE HNEWS   (systems/news.js): what the chart says of a harbour, as last seen or heard
+####################################################################################################
 
 
 

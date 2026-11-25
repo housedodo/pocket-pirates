@@ -100,6 +100,7 @@ import { leadTick, leaderDesc, offLine } from './systems/leadlight.js';   // the
 import { passesTick, wallPass, ribsLull } from './systems/passes.js';
 import { seaSpot } from './systems/sealog.js';
 import { voyageTick, moodMods } from './systems/voyage.js';
+import { newsTick } from './systems/news.js';
 import { shelvesNear } from './systems/shallows.js';
 import { crewTick } from './systems/raiders.js';
 import { handMods } from './systems/hands.js';
@@ -1333,7 +1334,7 @@ function frame() {
   world.tick(rt.animT, tod);
   places.labelsTick(camera, ship, (state.upgrades.spyglass || 0), state.discovered, window.innerWidth, window.innerHeight, false /* no names on the water when sailing past (owner 2026-11-18) */, { fogFar: scene.fog.far, table: tableOpen(state) });   // far labels: ?, what it looks like, its name; fade with the fog
   ship.place(vdt, waveT, stage.wave, rt.dark, tod.night);
-  voyageTick(dt);
+  voyageTick(dt); newsTick(dt);   // what you know of each harbour, as you last saw it (systems/news.js)
   gearTick(vdt, waveT, stage.wave);   // the bell and the boat on the Gull, the boat on the water (systems/gearplay.js)
   if (rt.anchorBit) { rt.anchorBit = false; fauna.splash(ship.pos.x + Math.sin(ship.heading) * 3.2, ship.pos.z - Math.cos(ship.heading) * 3.2, stage.wave, waveT, 1.1); }   // the anchor bites: a ring of foam at the bow
   secrets.update(vdt, waveT, { ship, time: state.time, dayN: state.dayN, tide: tideAt(), wave: stage.wave, light: Math.min(1, 0.25 + stage.light * 0.9), dread: rt.dread, collected: state.collected, windX: Math.sin(wind.dir), windZ: -Math.cos(wind.dir), heading: ship.heading, fogFar: scene.fog.far });

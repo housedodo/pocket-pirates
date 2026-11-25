@@ -6,6 +6,11 @@
 //           harbour, a night's rest, music in the Cays, a raider sunk or a chest dug bring it up. It shows in Mara's words and in the
 //           Ship's book, and in the work: a glad crew digs and loads faster, a sullen one slower, and at the very bottom a hired hand
 //           goes ashore at the next harbour.
+//   health  (owner, 2026-11-25: "do 3 and 5"; Uncharted Waters: scurvy after long weeks from port, lime juice and a cat for the rats)
+//           days without fresh food (state.story.fresh): a harbour or fruit picked resets it, and fruit carried aboard is eaten when it
+//           has been a few days. Long without, gums bleed and the work is slow; longer, a hand is too sick to stand and is put aboard
+//           a passing boat for home. Rats get into the bread locker now and then, unless the ship's cat is aboard. Shown only in
+//           Mara's words and the Ship's book.
 //   nerves  night far from land (after the first throw; never in the demo): alone in the dark, small wrong things gather (rt.nerves,
 //           not saved). A light that keeps pace astern and is gone when you turn to it; a bell with no ship; a count of the crew that
 //           comes out one too many. The lamp, a full crew and good spirits keep it back; the dawn clears it.
@@ -25,10 +30,12 @@ export const STORE_BURN = 1, STORE_HAND = 0.25;               // days used per g
 export const FISH_FOOD = 0.15, FRUIT_FOOD = 0.2;              // a fish caught, a fruit picked: part of a day put by
 export const STORE_PRICE = 3;                                  // gold per day of food or water at a market
 export const MOOD_START = 0.7;
-export const MOOD = { sea: -0.12, storm: -0.6, hungry: -0.5, thirsty: -0.8, dock: 0.1, rest: 0.35, music: 1.2, sunk: 0.1, chest: 0.1, nerves: -0.25 };   // per game day; dock/rest/sunk/chest once each
+export const MOOD = { sea: -0.12, storm: -0.6, hungry: -0.5, thirsty: -0.8, dock: 0.1, rest: 0.35, music: 1.2, sunk: 0.1, chest: 0.1, nerves: -0.25, sick: -0.3 };   // per game day; dock/rest/sunk/chest once each
 export const BANDS = [[0.65, 'glad'], [0.4, 'steady'], [0.2, 'quiet'], [0, 'sullen']];
 export const WORK = { glad: [0.88, 0.92], steady: [1, 1], quiet: [1.15, 1.1], sullen: [1.35, 1.25] };   // [dig time, reload] multipliers
 export const LEAVE_AT = 0.12;                                  // below this a hired hand goes ashore at the next harbour
+export const FRESH_EAT = 3, SICK_AT = 6, LOSE_AT = 9;          // days without fresh food: fruit aboard is eaten; gums bleed; a hand goes home
+export const SICK_WORK = [1.15, 1.1], RAT_P = 0.22, RAT_FOOD = 1;   // the sick crew's work; the chance a day that rats get at the stores, and what they take
 export const NERVE_FAR = 140, NERVE_RISE = 1 / 90, NERVE_FALL = 1 / 40;   // units from land; per s alone in the dark; per s otherwise
 
 const SAY = {   // Mara (drafts)
@@ -39,20 +46,30 @@ const SAY = {   // Mara (drafts)
   water: 'The water casks are nearly dry, Captain.',
   foodOut: 'There is nothing left to eat aboard. They are not saying anything. That is worse.',
   waterOut: 'The casks are dry. Any land with a spring, Captain. Any at all.',
+  ate: 'The cook cut up the fruit for the crew. They ate it standing, skins and all.',
+  sick: 'Two of the men have gums that bleed, Captain. They need something green. Fruit, limes, anything.',
+  rats: 'Rats in the bread locker. A day of biscuit, gone.',
+  cat: 'The cat has left a rat on your step again. Like a receipt.',
 };
 const say = (k) => { if (G.objectives && G.objectives.mate && !G.objectives.mate.busy) G.objectives.mate.say(SAY[k]); };
 
 export const stores = () => state.story.stores || (state.story.stores = { food: STORE_START, water: STORE_START });
 export const mood = () => (state.story.mood == null ? (state.story.mood = MOOD_START) : state.story.mood);
 export const band = (m = mood()) => BANDS.find(([k]) => m >= k)[1];
+const nowD = () => (state.dayN || 0) + (state.time || 0);
+/** days since fresh food (a harbour, fruit) */
+export const freshDays = () => { if (state.story.fresh == null) state.story.fresh = nowD(); return Math.max(0, nowD() - state.story.fresh); };
+export const sick = () => !DEMO() && freshDays() >= SICK_AT;
+const fruitAboard = () => Object.keys(state.fruit || {}).find((k) => state.fruit[k] > 0);
 /** main.js refreshMods: the crew's spirits in the work */
-export function moodMods(m) { if (DEMO()) return m; const w = WORK[band()]; m.digTime *= w[0]; m.reload *= w[1]; return m; }
+export function moodMods(m) { if (DEMO()) return m; const w = WORK[band()]; m.digTime *= w[0]; m.reload *= w[1]; if (sick()) { m.digTime *= SICK_WORK[0]; m.reload *= SICK_WORK[1]; } return m; }
 const bump = (d) => { state.story.mood = clamp(mood() + d, 0, 1); };
 
 // ---- docking (systems/interact.js): spirits up; a hand at the end of his rope goes ashore
 export function voyageDock(d) {
   const V = state.story.voyage || (state.story.voyage = {});
   if (V.dockDay !== state.dayN || V.dockAt !== d.id) { V.dockDay = state.dayN; V.dockAt = d.id; bump(MOOD.dock); }
+  { const was = sick(); state.story.fresh = nowD(); state.story.lostSick = false; if (was) G.refreshMods(); }   // fresh food ashore
   if (mood() < LEAVE_AT && state.crew && state.crew.length) {
     const c = state.crew.pop();
     return `${c.name} picks up a bag and goes down the gangplank without a word. Nobody tries to stop them.`;
@@ -74,7 +91,8 @@ export function partCrew(h3, ent) {
   if (DEMO()) return null;
   const S = stores(), b = band();
   const how = { glad: 'In good spirits. Somebody sings below.', steady: 'Steady. They do what is asked.', quiet: 'Quiet. Too long at sea.', sullen: 'Sullen. The work is slow.' }[b];
-  return [h3('Crew and stores') + ent('The crew', how) + ent('Food', `for ${daysWord(S.food)}`, '', S.food < 1 ? 'dim' : '') + ent('Water', `for ${daysWord(S.water)}`, '', S.water < 1 ? 'dim' : ''), () => {}];
+  const fd = freshDays(), hale = fd >= LOSE_AT ? 'Sick. Some cannot stand.' : fd >= SICK_AT ? 'Gums bleeding. They need fruit.' : fd >= FRESH_EAT + 1 && !fruitAboard() ? 'Hale, for now. Nothing fresh aboard.' : 'Hale.';
+  return [h3('Crew and stores') + ent('The crew', how) + ent('Health', hale, '', fd >= SICK_AT ? 'dim' : '') + ent('Food', `for ${daysWord(S.food)}`, '', S.food < 1 ? 'dim' : '') + ent('Water', `for ${daysWord(S.water)}`, '', S.water < 1 ? 'dim' : ''), () => {}];
 }
 
 // ---- night nerves: the light astern
@@ -109,6 +127,28 @@ function nervesTick(dt) {
   return on ? n : 0;
 }
 
+// ---- health (fresh food, sickness, rats)
+let ratAcc = 0;
+function healthTick(days) {
+  const was = sick();
+  if (freshDays() >= FRESH_EAT) { const f = fruitAboard(); if (f) { state.fruit[f]--; state.story.fresh = nowD(); if (!state.story.ateOnce) { state.story.ateOnce = 1; say('ate'); } } }
+  const fd = freshDays();
+  if (fd >= SICK_AT && !was) { say('sick'); G.refreshMods(); }
+  if (fd >= LOSE_AT && !state.story.lostSick) {   // once a voyage: the sickest goes home
+    state.story.lostSick = true; bump(-0.1);
+    const c = state.crew && state.crew.length ? state.crew.pop() : null;
+    toast(c ? `${c.name} is too sick to stand. You put them aboard a fishing boat bound for Tama, wrapped in your second-best coat.` : 'One of the crew is too sick to stand. A fishing boat bound for Tama takes them off, wrapped in your second-best coat.', false, 8000);
+  }
+  if (!was && sick()) G.refreshMods();
+  ratAcc += days;   // once a game day: the rats
+  if (ratAcc >= 1) {
+    ratAcc -= 1;
+    const S = stores();
+    if (state.story.pets && state.story.pets.cat) { if (Math.random() < RAT_P * 0.5) say('cat'); }
+    else if (Math.random() < RAT_P && S.food > 1) { S.food = Math.max(0, S.food - RAT_FOOD); say('rats'); }
+  }
+}
+
 // ---- each frame (main.js)
 const seen = { fish: null, fruit: null, sunk: null, chest: null, rest: null, grove: null };
 export function voyageTick(dt) {
@@ -125,8 +165,10 @@ export function voyageTick(dt) {
     if (f0 > 0 && S.food <= 0) say('foodOut'); if (w0 > 0 && S.water <= 0) say('waterOut');
   }
   if ((st.fish || 0) > seen.fish) { S.food = Math.min(STORE_MAX, S.food + FISH_FOOD * (st.fish - seen.fish)); seen.fish = st.fish; }
-  if ((st.fruitPicked || 0) > seen.fruit) { S.food = Math.min(STORE_MAX, S.food + FRUIT_FOOD * 2 * (st.fruitPicked - seen.fruit)); seen.fruit = st.fruitPicked; }
+  if ((st.fruitPicked || 0) > seen.fruit) { state.story.fresh = nowD(); S.food = Math.min(STORE_MAX, S.food + FRUIT_FOOD * 2 * (st.fruitPicked - seen.fruit)); seen.fruit = st.fruitPicked; }
   { const g = state.story.lm && state.story.lm.grove; if (g != null && g !== seen.grove) { seen.grove = g; S.water = STORE_MAX; } }   // Hollowgreen's spring
+  // health: fruit eaten when it has been a while; then sickness; rats in the stores
+  if (live) healthTick(days);
   // mood
   const b0 = band();
   if (live) {
@@ -135,6 +177,7 @@ export function voyageTick(dt) {
     if (S.food <= 0) d += MOOD.hungry * days;
     if (S.water <= 0) d += MOOD.thirsty * days;
     if ((rt.lullK || 0) > 0.5) d += MOOD.music * days;
+    if (sick()) d += MOOD.sick * days;
     d += MOOD.nerves * nervesTick(dt) * days * 4;
     bump(d);
   }

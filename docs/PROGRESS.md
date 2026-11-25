@@ -2474,3 +2474,16 @@ dread there eased for a while after it.
   coir coils, rum casks, straw-packed glass crates, salt sacks). Checked headless in all five waters.
 - Fixed: a comment from the harbours work had swallowed `world.landedOf`, `lifeDoneOf` and `world.tide` in main.js; restored.
   The FEEL table's `game` flag was never read; it now hides the local game in dying harbours.
+
+## 2026-11-25: news goes stale; days from land (owner: "do 3 and 5 from the ranked list")
+- **News goes stale** (`src/systems/news.js`; Pirates! 1987): the chart card of a harbour carries what you last knew of it, with when
+  and how: "Seen 3 days ago: smoke over the roofs", "Ashore today: busy", "Heard yesterday: a yellow flag at the pier". It changes only
+  when you see the harbour again (within 260 of it, from the ship), dock there (the back door too), or hail a ship: her "Swap news"
+  (now always offered once you know a harbour) carries how the two known harbours nearest her were when she left them, one to three
+  days back. In deep water (0.55+) her news is dated tomorrow, and the chart says so. Not built: the sighting ladder (masts, hull,
+  colours); a visual change to traffic.js, left for a later pass.
+- **Days from land** (`voyage.js` health; Uncharted Waters): days without fresh food (`state.story.fresh`; a harbour or a fruit picked
+  resets it). From 3 days, fruit carried aboard is eaten (one at a time; Mara says so once). From 6 days, gums bleed: Mara's line, dig
+  and reload 15% and 10% slower, spirits fall. At 9, once a voyage, a hand (or an unnamed sailor) too sick to stand goes home on a
+  fishing boat. The Ship's book has a Health row in words. Rats: about one game day in five a day of food goes, unless the ship's cat
+  is aboard (then now and then a rat on your step). Checked headless; nothing tuned in play.
