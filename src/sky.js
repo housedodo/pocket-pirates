@@ -93,10 +93,58 @@ export class Sky {
 
     // gradient dome
     this.domeMat = new THREE.ShaderMaterial({
-      uniforms: { uTop: { value: new THREE.Color() }, uHorizon: { value: new THREE.Color() }, uFogC: { value: new THREE.Color() }, uGlow: { value: new THREE.Color('#ff6a7a') }, uGlowK: { value: 0 }, uSunXZ: { value: new THREE.Vector2(0, -1) } },
+      uniforms: { uTop: { value: new THREE.Color() }, uHorizon: { value: new THREE.Color() }, uFogC: { value: new THREE.Color() }, uGlow: { value: new THREE.Color('#ff6a7a') }, uGlowK: { value: 0 }, uSunXZ: { value: new THREE.Vector2(0, -1) },
+        uBank: { value: 0 }, uBankDir: { value: new THREE.Vector2(0, -1) }, uBankC: { value: new THREE.Color('#363c46') }, uT: { value: 0 },
+        uPaint: { value: 0 }, uStreak: { value: 0 }, uCov: { value: 0.3 }, uOff: { value: new THREE.Vector2() }, uWA: { value: 0 },
+        uCLit: { value: new THREE.Color('#ffffff') }, uCShade: { value: new THREE.Color('#a0a8b8') } },
       vertexShader: 'varying float vY; varying vec2 vXZ; void main(){ vec3 n = normalize(position); vY = n.y; vXZ = n.xz; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }',
-      // seven bands with an ordered-dither seam between them (STYLE 2: no smooth gradients; G2)
-      fragmentShader: 'uniform vec3 uTop; uniform vec3 uHorizon; uniform vec3 uFogC; uniform vec3 uGlow; uniform float uGlowK; uniform vec2 uSunXZ; varying float vY; varying vec2 vXZ; float b2(vec2 a){ return fract(dot(a, vec2(0.5, a.y * 0.75))); } float b4(vec2 a){ a = floor(a); return b2(floor(0.5 * a)) * 0.25 + b2(a); } void main(){ float t = pow(clamp(vY,0.0,1.0), 0.5); float b = floor(t * 7.0 + (b4(gl_FragCoord.xy) - 0.5) * 0.4 + 0.5) / 7.0; vec3 c = mix(uHorizon, uTop, clamp(b, 0.0, 1.0)); float g = uGlowK * (1.0 - smoothstep(0.0, 0.34, vY)) * (0.3 + 0.7 * max(0.0, dot(normalize(vXZ + 1e-4), uSunXZ))); float q = floor(g * 4.0 + (b4(gl_FragCoord.xy) - 0.5) * 0.5 + 0.5) / 4.0; c = mix(c, uGlow, clamp(q, 0.0, 1.0) * 0.8); c = mix(c, uFogC, smoothstep(0.0, -0.04, vY)); gl_FragColor = vec4(c, 1.0); }',   // below the horizon the dome is the fog: where the sea ends (seen from high up) there is no seam (visual QA 2026-11-19)
+      // seven bands with an ordered-dither seam between them (STYLE 2: no smooth gradients; G2). Below the horizon the dome is the fog:
+      // where the sea ends (seen from high up) there is no seam (visual QA 2026-11-19). The storm bank and the painted clouds (?clouds=b|c,
+      // 2026-11-25) are drawn here too, so they are made of the sky's own colours and cannot stand apart from it.
+      fragmentShader: `uniform vec3 uTop; uniform vec3 uHorizon; uniform vec3 uFogC; uniform vec3 uGlow; uniform float uGlowK; uniform vec2 uSunXZ;
+uniform float uBank; uniform vec2 uBankDir; uniform vec3 uBankC; uniform float uT;
+uniform float uPaint; uniform float uStreak; uniform float uCov; uniform vec2 uOff; uniform float uWA; uniform vec3 uCLit; uniform vec3 uCShade;
+varying float vY; varying vec2 vXZ;
+float b2(vec2 a){ return fract(dot(a, vec2(0.5, a.y * 0.75))); } float b4(vec2 a){ a = floor(a); return b2(floor(0.5 * a)) * 0.25 + b2(a); }
+float h21(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+float vn(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f); return mix(mix(h21(i), h21(i + vec2(1.0, 0.0)), f.x), mix(h21(i + vec2(0.0, 1.0)), h21(i + vec2(1.0, 1.0)), f.x), f.y); }
+float fbm(vec2 p){ float s = 0.0, a = 0.5; for (int i = 0; i < 4; i++) { s += a * vn(p); p = p * 2.03 + vec2(1.7, 9.2); a *= 0.5; } return s; }
+void main(){
+  float dth = b4(gl_FragCoord.xy) - 0.5;
+  float t = pow(clamp(vY,0.0,1.0), 0.5); float b = floor(t * 7.0 + dth * 0.4 + 0.5) / 7.0; vec3 c = mix(uHorizon, uTop, clamp(b, 0.0, 1.0));
+  float g = uGlowK * (1.0 - smoothstep(0.0, 0.34, vY)) * (0.3 + 0.7 * max(0.0, dot(normalize(vXZ + 1e-4), uSunXZ))); float q = floor(g * 4.0 + dth * 0.5 + 0.5) / 4.0; c = mix(c, uGlow, clamp(q, 0.0, 1.0) * 0.8);
+  if (uPaint > 0.5 && vY > 0.0) {   // painted clouds: noise on a plane overhead, three tones, dithered edges, thinning into the horizon haze
+    vec2 p = vXZ / (vY + 0.14) * 1.5;
+    float ca = cos(uWA), sa = sin(uWA); p = vec2(ca * p.x + sa * p.y, -sa * p.x + ca * p.y);
+    if (uStreak > 0.5) p *= vec2(0.32, 1.7);
+    p += uOff;
+    float f = fbm(p), thr = 0.78 - uCov * 0.62;
+    float e = f - thr + dth * 0.045;
+    if (e > 0.0) {
+      float s = fbm(p + vec2(uSunXZ.x, -uSunXZ.y) * 0.18 + vec2(0.0, 0.12));
+      float lit = mix(clamp((f - s) * 7.0 + 0.55, 0.0, 1.0), 0.45, uCov * uCov * 0.75);   // under full cover the layer goes flat and even
+      vec3 body = mix(uCShade, uCLit, floor(lit * 2.0 + dth * 0.6 + 0.5) / 2.0);
+      float edge = step(e, 0.035);
+      body = mix(body, mix(c, uCLit, 0.55), edge);
+      float k = smoothstep(0.0, 0.2, vY + dth * 0.05);
+      c = mix(c, body, floor(k * 3.0 + dth * 0.5 + 0.5) / 3.0);
+    }
+  }
+  if (uBank > 0.0) {   // the storm bank: it rises over the horizon upwind, ragged on top, rain hanging from it to the sea
+    float bw = smoothstep(0.15, 0.9, dot(normalize(vXZ + 1e-4), uBankDir));
+    float az = atan(vXZ.y, vXZ.x);
+    float top = sqrt(uBank) * bw * (0.12 + 0.2 * vn(vec2(az * 5.0 + uT * 0.015, 0.0)) + 0.03 * vn(vec2(az * 11.0, 3.0)));
+    c = mix(c, mix(uBankC, uHorizon, 0.45), 0.3 * uBank * bw * (1.0 - smoothstep(0.0, 0.45, vY - top)));   // the sky above it darkens toward it
+    if (vY < top + dth * 0.014) {
+      float lip = smoothstep(top - 0.035, top, vY);
+      vec3 bc = mix(uBankC, mix(uBankC, uHorizon, 0.5), floor(lip * 2.0 + dth * 0.6 + 0.5) / 2.0);
+      float shaft = smoothstep(0.45, 0.8, vn(vec2(az * 9.0 + uT * 0.02, 1.0))) * (1.0 - smoothstep(0.0, top * 0.7, vY));   // soft grey veils of rain under the belly
+      c = mix(bc, mix(uBankC, uHorizon, 0.3), floor(shaft * 2.0 + dth * 0.7 + 0.5) / 2.0 * 0.7);
+      float low = 1.0 - smoothstep(0.0, top * 0.4, vY);   // its foot dissolves into the haze where the sea ends: no hard line above the water
+      c = mix(c, uFogC, floor(low * 3.0 + dth * 0.8 + 0.5) / 3.0 * 0.85);
+    }
+  }
+  c = mix(c, uFogC, smoothstep(0.0, -0.04, vY)); gl_FragColor = vec4(c, 1.0); }`,
       side: THREE.BackSide, depthWrite: false, depthTest: false, fog: false,
     });
     const dome = new THREE.Mesh(new THREE.SphereGeometry(R, 14, 8), this.domeMat);
@@ -173,6 +221,11 @@ export class Sky {
     this.moon.renderOrder = -20;
     this.group.add(this.moon);
 
+    // the cloud look on trial (owner, 2026-11-25: "make them blend with the sky"): ?clouds=a shaded puffs coloured from the sky,
+    // b painted into the sky, c painted streaks; without it, the old puffs and the old storm wall
+    this.look = (() => { try { const q = new URLSearchParams(location.search).get('clouds'); return q === 'a' || q === 'b' || q === 'c' ? q : 'old'; } catch (e) { return 'old'; } })();
+    this.domeMat.uniforms.uPaint.value = this.look === 'b' || this.look === 'c' ? 1 : 0; this.domeMat.uniforms.uStreak.value = this.look === 'c' ? 1 : 0;
+    this.puffU = { uTop: { value: new THREE.Color() }, uHorizon: { value: new THREE.Color() }, uLit: { value: new THREE.Color() }, uShade: { value: new THREE.Color() }, uCam: { value: new THREE.Vector3() } };
     // clouds: flat-bottomed low-poly puffs that drift with the wind
     const ico = new THREE.IcosahedronGeometry(1, 0);
     const pos = ico.attributes.position;
@@ -183,7 +236,16 @@ export class Sky {
       for (let k = 0; k < 3; k++) cols.set([v, v, v], (i + k) * 3);
     }
     ico.setAttribute('color', new THREE.BufferAttribute(cols, 3));
-    this.cloudMat = psxMaterial({ vertexColors: true, fog: true, key: 'Lc', fragmentColor: { head: '', body: 'diffuseColor.rgb /= max(uLight, 0.05);' } });   // snaps (G2); stage.cloud already darkens them at night
+    this.cloudMat = this.look === 'a' ? new THREE.ShaderMaterial({ uniforms: this.puffU, fog: false,   // A: lit top, shaded belly, and the far ones dissolve into the sky behind them
+      vertexShader: 'varying vec3 vW; varying float vNY; void main(){ vec4 w = modelMatrix * vec4(position, 1.0); vW = w.xyz; vNY = normalize(mat3(modelMatrix) * normal).y; gl_Position = projectionMatrix * viewMatrix * w; gl_Position.xy = floor(gl_Position.xy / gl_Position.w * 160.0 + 0.5) / 160.0 * gl_Position.w; }',
+      fragmentShader: `uniform vec3 uTop; uniform vec3 uHorizon; uniform vec3 uLit; uniform vec3 uShade; uniform vec3 uCam; varying vec3 vW; varying float vNY;
+float b2(vec2 a){ return fract(dot(a, vec2(0.5, a.y * 0.75))); } float b4(vec2 a){ a = floor(a); return b2(floor(0.5 * a)) * 0.25 + b2(a); }
+void main(){ float dth = b4(gl_FragCoord.xy) - 0.5; vec3 d = normalize(vW - uCam);
+  float t = pow(clamp(d.y, 0.0, 1.0), 0.5); vec3 sky = mix(uHorizon, uTop, floor(t * 7.0 + dth * 0.4 + 0.5) / 7.0);
+  float tone = floor(clamp(vNY * 0.9 + 0.55, 0.0, 1.0) * 2.0 + dth * 0.7 + 0.5) / 2.0; vec3 col = mix(uShade, uLit, tone);
+  float fade = smoothstep(250.0, 480.0, length(vW.xz - uCam.xz)) * 0.5 + (1.0 - smoothstep(0.02, 0.16, d.y)) * 0.45;
+  col = mix(col, sky, floor(clamp(fade, 0.0, 1.0) * 3.0 + dth * 0.6 + 0.5) / 3.0); gl_FragColor = vec4(col, 1.0); }` })
+      : psxMaterial({ vertexColors: true, fog: true, key: 'Lc', fragmentColor: { head: '', body: 'diffuseColor.rgb /= max(uLight, 0.05);' } });   // snaps (G2); stage.cloud already darkens them at night
     this.clouds = [];
     const rc = mulberry32(5);   // the clouds past the first sixteen only come with overcast weather, and use their own dice so nothing else moves
     for (let i = 0; i < 28; i++) {
@@ -277,8 +339,12 @@ export class Sky {
       if (dx * dx + dz * dz > 440 * 440) { g.position.x = cam.position.x - dx * 0.9; g.position.z = cam.position.z - dz * 0.9; g.userData.k = 0; }
       const b = g.userData.base, k = g.userData.k;
       const wide = 1 + 0.8 * cover;   // and the puffs run together
-      g.scale.set(b * k * wide, b * k * this.tallK, b * k * wide); g.visible = k > 0.03;
+      g.scale.set(b * k * wide, b * k * this.tallK, b * k * wide); g.visible = k > 0.03 && this.look !== 'b' && this.look !== 'c';
     });
+    { // the painted clouds' cover and drift (?clouds=b|c)
+      const du = this.domeMat.uniforms; du.uCov.value = Math.min(1, (m.clouds / 28) * 1.1 + cover * 0.75); du.uWA.value = windDir;
+      du.uOff.value.x += 0.006 * dt; du.uT.value += dt;
+    }
     this.cirrusK = m.cirrus;
   }
 
@@ -362,7 +428,13 @@ export class Sky {
     } else this.meteorMat.opacity = 0;
 
     // sunrise and sunset colour the clouds; at night they go dark with the sky
-    this.cloudMat.color.copy(stage.cloud).lerp(stage.sun, Math.min(0.6, tod.twilight * 0.6));
+    if (this.cloudMat.color) this.cloudMat.color.copy(stage.cloud).lerp(stage.sun, Math.min(0.6, tod.twilight * 0.6));
+    if (this.look !== 'old') {   // the new looks take their colours from the sky itself: lit like the cloud colour, shaded like the sky low down
+      const du = this.domeMat.uniforms, cov = Math.min(1, fx.cover || 0), P = this.puffU;
+      const lit = du.uCLit.value.copy(stage.cloud).lerp(stage.sun, Math.min(0.5, tod.twilight * 0.5)).lerp(du.uHorizon.value, 0.22).lerp(GREY_TOP, cov * 0.35);
+      du.uCShade.value.copy(du.uHorizon.value).lerp(du.uTop.value, 0.3).multiplyScalar(0.9 - 0.18 * cov).lerp(lit, 0.3);
+      P.uTop.value.copy(du.uTop.value); P.uHorizon.value.copy(du.uHorizon.value); P.uLit.value.copy(lit); P.uShade.value.copy(du.uCShade.value); P.uCam.value.copy(cam.position);
+    }
     this.highMat.color.copy(stage.cloud).lerp(stage.sun, Math.min(0.7, tod.twilight * 0.8));
     this.highMat.opacity = 0.5 * (this.dayLook ? this.cirrusK * 2 * 0.5 : 1) * (1 - 0.7 * tod.night) * (1 - 0.6 * (fx.storm || 0));
     for (const m of this.high) {
@@ -372,7 +444,9 @@ export class Sky {
     }
     { // the storm wall stands on the horizon where the wind comes from
       const k = Math.max(0, Math.min(1, fx.stormWall || 0));
-      this.wall.visible = k > 0.02;
+      this.wall.visible = k > 0.02 && this.look === 'old';
+      const du = this.domeMat.uniforms; du.uBank.value = this.look === 'old' ? 0 : k;
+      if (this.look !== 'old') { const up = windDir + Math.PI; du.uBankDir.value.set(Math.sin(up), -Math.cos(up)); du.uBankC.value.set('#363c46').lerp(stage.skyHorizon, 0.3).multiplyScalar(0.6 + 0.4 * (1 - tod.night)); }
       if (this.wall.visible) {
         const up = windDir + Math.PI, D = 430;
         this.wall.position.set(cam.position.x + Math.sin(up) * D, -110 + 110 * k, cam.position.z - Math.cos(up) * D);   // rises as the weather comes

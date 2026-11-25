@@ -2492,3 +2492,15 @@ dread there eased for a while after it.
   remembers it (`q.eaten`) and Mara says so. At the giver's board a short delivery shows "N short: the crew got into it": at 60% or
   more it can be handed over for that share of the reward at 0.75 (`ui/harbour.js shortOf/handIn`); below that it is not taken
   until the rest is brought. Checked headless (5 asked, 2 eaten: 27 g of 60; 2 of 5: refused).
+
+## 2026-11-25: clouds that belong to the sky (owner: "make them blend perfectly with the rest of the sky... give me a couple of designs")
+Trial behind `?clouds=a|b|c` (RULES 35; default still the old look until the owner picks; preview `docs/proposals/sky/clouds_abc.png`,
+rows: now, A, B, C; columns: clear, cloudy, rain, storm, dusk). All three replace the storm wall (a dark blob floating mid-sky) with
+a **storm bank drawn in the sky dome**: upwind, rising from the horizon with the weather, a soft ragged top, the sky above darkening
+toward it, grey veils of rain under its belly, and its foot dissolving into the haze where the sea ends.
+- **A, shaded puffs** (`sky.js` puff shader): the 3D puffs keep their shape; lit top and shaded belly in dithered steps, coloured
+  from the sky (the cloud colour toward the horizon's; the shade is the low sky's), and the far and low ones dissolve into the sky
+  behind them.
+- **B, painted** (dome shader): the clouds are painted into the sky itself: noise on a plane overhead, three tones with a lit side
+  toward the sun, dithered edges, thinning into the horizon haze; under full cover the layer goes flat and even.
+- **C, streaks**: B stretched along the wind: long banks of stratocumulus.
