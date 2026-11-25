@@ -1250,6 +1250,95 @@ function boatAt(b, x, z, ry, lantern) {
   if (lantern) { b.box(0, 0.4, 1.1, 0.08, 1.6, 0.08, '#3a3036', TILE.bark); b.box(0, 2.0, 1.1, 0.18, 0.22, 0.18, '#ffd890', TILE.glow); }
   b.pop();
 }
+// ---- the harbour's state (owner, 2026-11-25: "harbours show how they're doing" and "events seen from the sea"; systems/harbours.js).
+// Layers shown by LAYER_RULES from isl.plenty (-2..3) and isl.event. Its own random stream: nothing of the village moves.
+// Three ways to show plenty, tried side by side (?harbourlook=a|b|c, all three by default): A the quay, B the market, C the houses.
+// Two looks per event (?eventlook=b): fire, fever, blockade, feast.
+const QS = typeof location !== 'undefined' ? new URLSearchParams(location.search) : new URLSearchParams();
+export const HLOOK = QS.get('harbourlook') || 'all', EVLOOK = QS.get('eventlook') === 'b' ? 'b' : 'a';
+const hl = (k) => HLOOK === 'all' || HLOOK === k;
+function bigSmoke(b, x, y, z, n, dark) {   // a column of smoke you see from the sea: puffs growing as they rise, drifting off with height
+  for (let i = 0; i < n; i++) { const s = 0.7 + i * 0.32; b.blob(x + i * i * 0.05, y + i * 1.6, z + Math.sin(i * 0.9) * 0.6, s, s * 0.8, s, i < 3 && dark ? '#4a4446' : i < 6 ? '#8a8486' : '#bcb8ba', TILE.white, 0.35, i + Math.round(x)); }
+}
+function shipSil(b, x, z, ry, s, sail, hull = '#3a2a1c') {   // a ship at anchor, plain: a hull, a mast, a furled or a set sail
+  b.push(x, 0, z, ry, s, s, s);
+  b.box(0, -0.3, 0, 2.2, 1.1, 6, hull, TILE.planks); b.box(0, -0.2, -3.4, 1.4, 0.9, 1.2, hull, TILE.planks); b.box(0, 0.8, 0, 2.3, 0.14, 6.1, '#5a3a22', TILE.planks);
+  b.cyl(0, 0.8, -0.4, 0.14, 0.1, 6.5, 5, '#4a3424', TILE.bark); b.box(0, 5.6, -0.4, 3.2, 0.14, 0.14, '#4a3424', TILE.bark);
+  if (sail) b.quad([-1.5, 5.5, -0.35], [1.5, 5.5, -0.35], [1.7, 2.2, -0.45], [-1.7, 2.2, -0.45], sail, TILE.sail); else b.box(0, 5.4, -0.4, 3.0, 0.4, 0.4, '#c8bca0', TILE.sail);
+  b.pop();
+}
+function harbourState(d, cr, g) {
+  const { yy, R, dockTh, z1, at, dockAt } = g, ry = Math.PI / 2 - dockTh, rng = mulberry32(d.seed * 977 + 5);
+  const L = (k) => (cr[k] = cr[k] || new Builder());
+  // A the quay: a crane, cargo, a third boat; or a boat sunk by the pier and a gap where the end planks were
+  { const b = L('pl_quayRich'); b.push(0, 0, 0, ry); const zc = (R * 0.55 + z1) / 2;
+    b.box(1.2, 0.84, zc, 0.3, 5.2, 0.3, '#5a3a22', TILE.bark); b.push(1.2, 5.8, zc, 0, 1, 1, 1, 0.55, 0); b.box(0, 0, -1.6, 0.22, 0.22, 4.2, '#5a3a22', TILE.bark); b.pop();
+    b.box(1.2, 3.4, zc - 3.2, 0.06, 2.2, 0.06, '#c8b890'); b.box(1.2, 2.6, zc - 3.2, 1.0, 0.8, 1.0, '#8a6a3a', TILE.planks);   // a crane, a load on its rope
+    for (let i = 0; i < 6; i++) b.box(-0.7 + (i % 2) * 0.7, 0.84 + Math.floor(i / 2) * 0.55, zc + 2 + (i % 3) * 0.2, 0.6, 0.55, 0.6, i % 2 ? '#9a6a3a' : '#c8a868', TILE.planks);   // bales and crates
+    b.pop(); b.push(0, 0, 0, ry); boatAt(b, -4.2, z1 - 4, -0.2, false); b.pop(); }
+  { const b = L('pl_quayPoor'); b.push(0, 0, 0, ry);
+    b.push(3.6, -0.6, z1 - 7, 0.3, 1, 1, 1, 0.25, 0.5); b.box(0, 0, 0, 1.4, 0.5, 3.2, '#4a3a2a', TILE.planks); b.box(0, 0.2, 0.3, 0.08, 2.4, 0.08, '#3a2e22', TILE.bark); b.pop();   // a boat sunk at her mooring, the mast leaning
+    b.box(0, 0.6, z1 - 1.6, 2.85, 0.26, 3.4, '#0e1012', TILE.white);   // the end planks gone: water shows through
+    b.push(-4.4, -0.7, z1 - 13, -0.4, 1, 1, 1, -0.3, -0.6); b.box(0, 0, 0, 1.4, 0.5, 3.2, '#3a2e22', TILE.planks); b.box(0, 0.2, -0.4, 0.09, 3.2, 0.09, '#2e2418', TILE.bark); b.pop();   // another, rotting where it lies
+    for (let i = 0; i < 3; i++) b.push(-0.9 + i * 0.9, 0.86, z1 - 5 - i, i * 0.7, 1, 1, 1, 0.1 * i, 0), b.box(0, 0, 0, 0.22, 0.06, 1.6, '#6a5640', TILE.planks), b.pop();   // loose planks
+    b.pop(); }
+  // B the market: three more stalls with goods and people; or bare frames, a torn awning, empty crates, nobody
+  for (let i = 0; i < 3; i++) {
+    const [x, z] = dockAt(R * 0.62 - i * 0.6, (i - 1) * 4.4 + (i === 1 ? 0 : Math.sign(i - 1) * 2)), face = -dockTh - Math.PI / 2;   // on the waterfront by the pier, facing the water: the first thing seen coming in
+    marketStall(L('pl_marketFull'), x, yy, z, face, rng); villager(L('pl_marketFull'), x * 0.75, yy, z * 0.75, face + Math.PI, rng, pickCol(rng, ['fisher', 'oldsalt', 'docker', 'child']));
+    const k = L('pl_marketBare'); k.push(x, yy, z, face);
+    for (const [sx, sz] of [[-0.9, -0.5], [0.9, -0.5], [-0.9, 0.5], [0.9, 0.5]]) k.box(sx, 0, sz, 0.1, 1.8, 0.1, '#5a4a38', TILE.bark);
+    k.box(0, 0, 0.45, 1.9, 0.75, 0.5, '#7a6a52', TILE.planks);
+    k.push(-0.5, 1.6, -0.2, 0, 1, 1, 1, 0.9, 0.2); k.box(0, 0, 0, 0.9, 0.06, 0.9, '#8a8478', TILE.flag); k.pop();   // what is left of the awning, hanging
+    k.box(1.4, 0, -0.6, 0.6, 0.5, 0.6, '#6a5a44', TILE.planks); k.pop();   // an empty crate
+  }
+  // C the houses: a new house going up under scaffolding, then finished; or doors boarded up, then a roof fallen in and weeds
+  { const [x, z] = dockAt(R * 0.45, 9.5), face = -dockTh - Math.PI / 2, b = L('pl_build');   // beside the landing, where a new house would go
+    b.push(x, yy, z, face); b.box(0, 0, 0, 3, 1.2, 2.6, '#c8b08a', TILE.wall);
+    for (const [sx, sz] of [[-1.6, -1.4], [1.6, -1.4], [-1.6, 1.4], [1.6, 1.4]]) b.box(sx, 0, sz, 0.14, 3.6, 0.14, '#8a6a42', TILE.bark);
+    b.box(0, 1.8, 1.5, 3.4, 0.1, 0.5, '#8a6a42', TILE.planks); b.box(0, 3.0, 1.5, 3.4, 0.1, 0.5, '#8a6a42', TILE.planks);   // scaffold boards
+    b.push(2.1, 0, 0.6, 0, 1, 1, 1, 0, -0.3); b.box(0, 0, 0, 0.1, 3.2, 0.5, '#6a5236', TILE.bark); b.pop(); b.pop();   // a ladder
+    const n = L('pl_newhouse'); n.push(x, yy, z, face); n.box(0, 0, 0, 3, 2.4, 2.6, '#e8dcc0', TILE.wall); n.gable(0, 2.4, 0, 3.3, 1.2, 2.9, pickCol(rng, TERRACOTTA), TILE.roof, '#e8dcc0'); n.box(0, 0, 1.31, 0.8, 1.5, 0.06, pickCol(rng, SHUTTERS)); n.pop(); }
+  { for (let i = 0; i < 2; i++) { const [x, z] = dockAt(R * 0.42 - i * 3.2, -9 - i * 2), face = -dockTh - Math.PI / 2, b = L('pl_shut');   // a house shut up: boards nailed across the door and window
+      b.push(x, yy, z, face); b.box(0, 0, 0, 2.6, 2.2, 2.4, '#a89a86', TILE.wall); b.gable(0, 2.2, 0, 2.9, 1.0, 2.7, '#7a5a44', TILE.roof, '#a89a86');
+      for (const [ox, oy] of [[-0.6, 0.6], [0.7, 1.3]]) { b.push(ox, oy, 1.22, 0, 1, 1, 1, 0, 0.6); b.box(0, 0, 0, 1.1, 0.14, 0.05, '#5a4632', TILE.planks); b.pop(); b.push(ox, oy, 1.23, 0, 1, 1, 1, 0, -0.6); b.box(0, 0, 0, 1.1, 0.14, 0.05, '#5a4632', TILE.planks); b.pop(); }
+      b.pop(); }
+    const [x, z] = dockAt(R * 0.45, 9.5), face = -dockTh - Math.PI / 2, b = L('pl_ruin');   // a roof fallen in, weeds in the doorway
+    b.push(x, yy, z, face); b.box(0, 0, 0, 2.8, 1.8, 2.5, '#9a8c78', TILE.wall); b.push(0.4, 1.6, 0, 0, 1, 1, 1, 0.5, 0.35); b.gable(0, 0, 0, 3.0, 0.9, 2.6, '#5a4434', TILE.roof, '#9a8c78'); b.pop();
+    for (let i = 0; i < 4; i++) b.blob(-1 + i * 0.7, 0.2, 1.5, 0.4, 0.35, 0.3, '#5a7a3a', TILE.leaf, 0.3, i); b.pop(); }
+  // ---- events, two looks each
+  { const [x, z] = dockAt(R * 0.32, -7), face = -dockTh - Math.PI / 2;   // a house near the waterfront
+    const a = L('ev_fire_a'); a.push(x, yy, z, face); a.box(0, 0, 0, 2.8, 2.2, 2.4, '#5a4a3a', TILE.wall);
+    for (const ox of [-0.7, 0.7]) a.box(ox, 0.9, 1.21, 0.5, 0.5, 0.06, '#ff8a3a', TILE.glow);   // fire behind the windows
+    a.box(0, 2.2, 0, 2.6, 0.5, 2.2, '#ff7a2a', TILE.glow); a.pop(); bigSmoke(a, x, yy + 3, z, 12, true);   // the roof alight, a column of black smoke seen from far off
+    const b = L('ev_fire_b'); b.push(x, yy, z, face); for (const [sx, sz, w, dd] of [[-1.3, 0, 0.25, 2.4], [1.3, 0, 0.25, 2.4], [0, -1.15, 2.8, 0.25]]) b.box(sx, 0, sz, w, 1.6 + Math.abs(sx) * 0.3, dd, '#1a1612', TILE.wall);   // a burnt shell
+    for (let i = 0; i < 3; i++) { b.push(-0.8 + i * 0.8, 1.8, 0, 0, 1, 1, 1, 0.3 * (i - 1), 0.4); b.box(0, 0, 0, 0.16, 0.16, 2.6, '#120e0c', TILE.bark); b.pop(); }   // charred roof beams
+    b.pop(); bigSmoke(b, x, yy + 1.6, z, 7, false); for (let i = 0; i < 6; i++) { const [bx, bz] = dockAt(R * 0.3 + i * 1.4, 1.8); b.cyl(bx, yy, bz, 0.35, 0.35, 0.75, 6, '#6a4a2e', TILE.planks); }   // a line of buckets and barrels up from the water
+  }
+  { const fa = L('ev_fever_a'), fb = L('ev_fever_b');
+    for (const f of [fa, fb]) { f.push(0, 0, 0, ry); f.box(0, 0.84, z1 - 0.6, 0.22, 8, 0.22, '#5a3a22', TILE.bark); f.box(0, 7.0, z1 - 0.6 + 1.4, 0.06, 1.8, 2.6, '#e8c838', TILE.white); f.pop();   // the yellow flag at the pier head, big enough to read from the sea
+      f.box(0, yy, 0, 0.22, 9, 0.22, '#5a3a22', TILE.bark); f.box(0, yy + 8, 1.3, 0.06, 1.6, 2.4, '#e8c838', TILE.white); }   // and one over the square
+    fb.push(0, 0, 0, ry); for (const sx of [-1, 1]) { boatAt(fb, sx * 14, z1 + 16, 0.3 * sx, false); fb.box(sx * 14, 0.4, z1 + 17, 0.08, 2.4, 0.08, '#3a2e22', TILE.bark); fb.box(sx * 14, 2.6, z1 + 17.4, 0.04, 0.5, 0.8, '#e8c838', TILE.white); } fb.pop();   // two boats kept out at anchor, flying yellow
+    for (let i = 0; i < 3; i++) { const [x, z] = dockAt(R * 0.5 - i * 3, (i - 1) * 9 + 1), face = -dockTh - Math.PI / 2; fb.push(x, yy, z, face); fb.box(0, 0, 0, 2.4, 2.2, 2.2, '#c8b89a', TILE.wall); fb.gable(0, 2.2, 0, 2.7, 0.9, 2.5, '#8a5a3a', TILE.roof, '#c8b89a');
+      fb.push(0, 1.0, 1.12, 0, 1, 1, 1, 0, 0.78); fb.box(0, 0, 0, 1.0, 0.14, 0.04, '#f4f0e6'); fb.pop(); fb.push(0, 1.0, 1.13, 0, 1, 1, 1, 0, -0.78); fb.box(0, 0, 0, 1.0, 0.14, 0.04, '#f4f0e6'); fb.pop(); fb.pop(); }   // a chalk cross on the door
+  }
+  { const ba = L('ev_block_a'), bb = L('ev_block_b');
+    ba.push(0, 0, 0, ry); for (const sx of [-1, 0, 1]) shipSil(ba, sx * 16, z1 + 30 + Math.abs(sx) * 4, Math.PI / 2 + sx * 0.15, 0.9, null, '#2a1e16'); ba.pop();   // three ships at anchor across the way in
+    bb.push(0, 0, 0, ry); for (let i = -6; i <= 6; i++) { bb.push(i * 2.4, 0.15, z1 + 20 + Math.cos(i * 0.4) * 1.2, i * 0.3); bb.box(0, 0, 0, 0.6, 0.5, 2.2, '#4a3a28', TILE.bark); bb.pop(); }   // a boom of logs chained across the mouth
+    shipSil(bb, 0, z1 + 34, Math.PI / 2, 1.2, '#6a3a26', '#1a120c'); bb.pop();   // one big dark ship behind it, sails set
+  }
+  { const fa = L('ev_feast_a'), fb = L('ev_feast_b');
+    { const [ax, az] = dockAt(R * 0.6, 1.4), pts = [[ax, yy + 4, az]]; fa.box(ax, yy, az, 0.2, 4.2, 0.2, '#6b4a2e', TILE.bark);   // bunting from the pier to the square, and lanterns along it
+      for (let i = 1; i <= 3; i++) { const t = i / 3, x = ax * (1 - t), z = az * (1 - t); fa.box(x, yy, z, 0.2, 4.2, 0.2, '#6b4a2e', TILE.bark); pts.push([x, yy + 4, z]); }
+      for (let i = 0; i < 3; i++) { flagLine(fa, pts[i], pts[i + 1], i); fa.box((pts[i][0] + pts[i + 1][0]) / 2, yy + 3.1, (pts[i][2] + pts[i + 1][2]) / 2, 0.3, 0.36, 0.3, '#ffd890', TILE.glow); } }
+    { const [mx, mz] = dockAt(R * 0.3, 0); fa.box(mx, yy, mz, 0.35, 14, 0.35, '#6b4a2e', TILE.bark); fa.box(mx, yy + 14, mz, 0.8, 0.8, 0.8, '#d24a3e', TILE.flag);   // a maypole by the landing, bunting running down from it
+      for (let i = 0; i < 6; i++) { const a = (i / 6) * Math.PI * 2, ex = mx + Math.cos(a) * 10, ez = mz + Math.sin(a) * 10; fa.box(ex, yy, ez, 0.2, 3.2, 0.2, '#6b4a2e', TILE.bark); flagLine(fa, [mx, yy + 13.6, mz], [ex, yy + 3.2, ez], i); }
+      for (let i = 0; i < 8; i++) { const a = (i / 8) * Math.PI * 2, x = mx + Math.cos(a) * 3.2, z = mz + Math.sin(a) * 3.2; villager(fa, x, yy, z, a + Math.PI / 2, rng, pickCol(rng, ['fisher', 'oldsalt', 'child', 'docker'])); } }   // dancing round it
+    fb.push(0, 0, 0, ry); for (const [bx, bz] of [[-3.8, z1 - 9], [3.9, z1 - 15]]) { boatAt(fb, bx, bz, 0, false); fb.box(bx, 0.4, bz, 0.12, 7, 0.12, '#6b4a2e', TILE.bark); flagLine(fb, [bx, 7.3, bz], [bx, 0.6, bz - 4], 1); flagLine(fb, [bx, 7.3, bz], [bx, 0.6, bz + 4], 3); flagLine(fb, [bx, 7.3, bz], [bx + 3, 0.6, bz], 5); } fb.pop();   // boats dressed overall
+    { const th = dockTh + 0.9, rho = shoreR(d, th) * 0.92, x = Math.cos(th) * rho, z = Math.sin(th) * rho;   // a bonfire on the beach, people round it
+      fb.cyl(x, 0.3, z, 1.6, 0.3, 2.4, 5, '#ff9a3a', TILE.glow); bigSmoke(fb, x, 2.8, z, 6, false); for (let i = 0; i < 5; i++) { const a = i * 1.26; villager(fb, x + Math.cos(a) * 2.4, 0.3, z + Math.sin(a) * 2.4, a + Math.PI, rng, pickCol(rng, ['fisher', 'child', 'docker'])); } }
+  }
+}
 function weekAndCustoms(d, rng, cr, g) {
   const { yy, R, dockTh, z1, at, dockAt } = g, ry = Math.PI / 2 - dockTh;
   const L = (k) => (cr[k] = cr[k] || new Builder());
@@ -1573,6 +1662,7 @@ function decorate(d, rng, A, B, D, extra) {
         // siesta (sleepy villages only, midday): hammocks between the houses, nobody else
         if (d.sleepy) for (let i = 0; i < 2; i++) { const [x, z] = at(0.2, 0.5); hammockSleeper(cr.siesta, x, yy, z, rng() * 6.28, rng); }
         weekAndCustoms(d, rng, cr, { yy, R: Rp, dockTh, z1, n, at, dockAt });
+        harbourState(d, cr, { yy, R: Rp, dockTh, z1, n, at, dockAt });   // plenty and events (systems/harbours.js)
       }
       PAINT = null; NO_CHILD = false; CUR_FLAG = null; FIN = null; CUR_EXTRA = null;
       if (tamaLook) tamaPolish({ ...VS, R, z0, z1 }, tamaLook, tamaHouses);   // its own rng: nothing after it moves
@@ -1629,6 +1719,13 @@ const LAYER_RULES = {
   statuesNight: (i, ph) => ph === 'evening' || ph === 'night',
   resident: (i) => !!i.lifeDone,
   grow1: (i) => (i.growth || 0) >= 1, grow2: (i) => (i.growth || 0) >= 2, grow3: (i) => (i.growth || 0) >= 3,
+  pl_quayRich: (i) => hl('a') && (i.plenty ?? 0) >= 2, pl_quayPoor: (i) => hl('a') && (i.plenty ?? 0) <= -1,
+  pl_marketFull: (i, ph) => hl('b') && (i.plenty ?? 0) >= 1 && (ph === 'day' || ph === 'siesta' || ph === 'dawn') && i.event !== 'fever', pl_marketBare: (i) => hl('b') && (i.plenty ?? 0) <= -1,
+  pl_build: (i) => hl('c') && (i.plenty ?? 0) === 2, pl_newhouse: (i) => hl('c') && (i.plenty ?? 0) >= 3, pl_shut: (i) => hl('c') && (i.plenty ?? 0) <= -1, pl_ruin: (i) => hl('c') && (i.plenty ?? 0) <= -2,
+  ev_fire_a: (i) => i.event === 'fire' && EVLOOK === 'a', ev_fire_b: (i) => i.event === 'fire' && EVLOOK === 'b',
+  ev_fever_a: (i) => i.event === 'fever' && EVLOOK === 'a', ev_fever_b: (i) => i.event === 'fever' && EVLOOK === 'b',
+  ev_block_a: (i) => i.event === 'blockade' && EVLOOK === 'a', ev_block_b: (i) => i.event === 'blockade' && EVLOOK === 'b',
+  ev_feast_a: (i) => i.event === 'feast' && EVLOOK === 'a', ev_feast_b: (i) => i.event === 'feast' && EVLOOK === 'b',
 };
 /** the sea mist's colour: main.js sets it to the fog colour each frame */
 export const mistMat = psxMaterial({ haze: false, vertexColors: true, transparent: true, opacity: 0.22, depthWrite: false, side: THREE.DoubleSide, key: 'Lc', fragmentColor: { head: '', body: 'diffuseColor.rgb /= max(uLight, 0.05);' } });   // snaps (G2); its colour is the fog's, already dark at night, so the light is not applied twice
@@ -1699,7 +1796,7 @@ export class Island {
     if (extra.crowd) this.anim.push((t, isl) => {
       const phase = isl.tod ? villagePhase(isl.tod.t * 24, d.sleepy) : 'day';
       isl.phase = phase;
-      for (const [k, m] of Object.entries(isl.crowd)) { const rule = LAYER_RULES[k]; m.visible = !isl.isDark && !isl.landed && (rule ? rule(isl, phase, d) : k === phase); }   // landed: where a low throw landed, the quay is empty
+      for (const [k, m] of Object.entries(isl.crowd)) { const rule = LAYER_RULES[k]; m.visible = !isl.isDark && !isl.landed && (rule ? rule(isl, phase, d) : k === phase && (isl.plenty ?? 0) > -2 && isl.event !== 'fever'); }   // nobody about in a dying harbour or one with fever (harbourState)   // landed: where a low throw landed, the quay is empty
     });
     this.walkers = [];
     for (const w of extra.walkers || []) {
@@ -1882,7 +1979,7 @@ export class World {
   }
   /** rebuild the loaded islands that match (the Reef's shoals move each dawn): they are dropped here and built again by update() */
   refresh(pred) { for (const [k, isl] of this.islands) if (pred(isl.desc)) { this.scene.remove(isl.group); isl.dispose(); this.islands.delete(k); } }
-  tick(t, tod) { for (const isl of this.islands.values()) { isl.tod = tod; isl.stare = this.stare; isl.week = this.week; isl.growth = this.growthOf ? this.growthOf(isl.desc.id) : 0; isl.landed = this.landedOf ? this.landedOf(isl.desc.id) : false; isl.lifeDone = this.lifeDoneOf ? this.lifeDoneOf(isl.desc.id) : false; isl.tide = this.tide; isl.gctx = this.gctx || {}; isl.group.position.y = -this.tide * 0.32; for (const f of isl.anim) f(t, isl); } }   // the sea rises over the beach and falls back
+  tick(t, tod) { for (const isl of this.islands.values()) { isl.tod = tod; isl.stare = this.stare; isl.week = this.week; isl.growth = this.growthOf ? this.growthOf(isl.desc.id) : 0; isl.plenty = this.plentyOf ? this.plentyOf(isl.desc) : 0; isl.event = this.eventOf ? this.eventOf(isl.desc) : null; isl.landed = this.landedOf ? this.landedOf(isl.desc.id) : false; isl.lifeDone = this.lifeDoneOf ? this.lifeDoneOf(isl.desc.id) : false; isl.tide = this.tide; isl.gctx = this.gctx || {}; isl.group.position.y = -this.tide * 0.32; for (const f of isl.anim) f(t, isl); } }   // the sea rises over the beach and falls back
 
   collide(pos, radius) {
     let hit = false;

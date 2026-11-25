@@ -43,6 +43,7 @@ CODES = {  # source file -> (ID code, what it holds)
     'localgames.js': ('LGM', 'tavern games'),
     'systems/lostsailors.js': ('LOST', 'the sailors who went mad: three meetings in deep dread'),
     'systems/gearplay.js': ('GEAR', 'the diving bell and the ship\'s boat: what is seen and found at their sites'),
+    'systems/harbours.js': ('HBR', 'harbour events, the customs house, a morning\'s work'),
     'systems/raiders.js': ('RAID', 'the raider crews: the Red Widow, the Toll, the Patience, the Quiet Hand'),
     'systems/hands.js': ('HAND', 'the specialist hands'),
     'systems/spice.js': ('SPC', 'spice and the herbalist'),

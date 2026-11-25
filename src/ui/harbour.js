@@ -12,6 +12,7 @@ import { pxi } from '../pixelui.js';
 import { UPGRADES, MAX_LEVEL, UP_CARD } from '../upgrades.js';
 import { storesNeed, fillStores, STORE_PRICE } from '../systems/voyage.js';
 import { handRows, bindHandRows, handOn } from '../systems/hands.js';
+import { harbourRows, bindHarbourRows, feastAt } from '../systems/harbours.js';
 import { GOODS, tradeOn, price as tradePrice, sellPrice, cargo, carried, room, buy as tradeBuy, sellAll } from '../systems/trade.js';
 import { CHAIN_COST } from '../combat.js';
 import { GEAR, gearOn, aboard, leftAt, leave, takeBack, inBoat, washedUp, soldHere, priceHere, SOLD_IN, SOLD_ELSEWHERE } from '../systems/gearplay.js';
@@ -104,6 +105,7 @@ export function renderHarbour() {
     if (rt.openLetter) html += `<div class="sec">A LETTER</div><div class="letterOpen"><p>${rt.openLetter.text}</p><small>${rt.openLetter.from} · kept in your log</small></div>`;
     for (const lt of lettersAt(d)) html += `<div class="sec">A LETTER</div><div class="qrow letter"><div><b>${pxi('letter')} ${lt.title}</b><br><small>${lt.sub}</small></div><button id="takeLetter" data-letter="${lt.key}">Take it</button></div>`;
     if (due.length) html += `<div class="sec">FINISH HERE</div>${due.join('')}`;
+    html += harbourRows(d);   // the harbour's trouble, the customs house, a morning's work (systems/harbours.js)
     if (G.lifeOn()) {   // the harbour's own person and their story (harbourlife.js), and this harbour's day in the week
       for (const r of asleep ? [] : life.residentRows(state, G.world, d, { night: state.time * 24 >= 19 || state.time * 24 < 5 })) {
         if (r.after) html += `<div class="sec">${r.who.toUpperCase()}</div><small class="${r.dark ? 'darkline' : ''}">${r.after}</small>`;
@@ -159,6 +161,7 @@ export function renderHarbour() {
       toast(r.toast, r.dark, 7000); G.audio.play(r.ended ? 'discover' : 'ui', { vol: r.ended ? 0.5 : 0.4 });
       if (r.ended) { G.autosave(); setTimeout(() => toast(`${d.name} will not be quite the same again.`, r.dark, 5000), 2600); }
       renderHarbour(); }));
+    bindHarbourRows(pane, d, renderHarbour);
     const tl = $('takeLetter'); if (tl) tl.addEventListener('click', () => { takeLetter(tl.dataset.letter); renderHarbour(); });
     const tpu = $('takePurse'); if (tpu) tpu.addEventListener('click', () => { const g = takePurse(); toast(`+${g} gold`, false, 4000); G.audio.play('treasure'); renderHarbour(); });
     const dv = $('doDeliver'); if (dv) dv.addEventListener('click', () => { G.completeJobIfHere(d); renderHarbour(); });
@@ -205,7 +208,7 @@ export function renderHarbour() {
       toast(tk ? `They fill the lamp, fold sailcloth into the locker and mend the hull. They keep ${tk.label}. Nobody says thank you.` : 'They fill the lamp, fold sailcloth into the locker and mend the hull. They ask for nothing. That is worse.', true, 7000);
       G.audio.play('buy'); renderHarbour(); });
   } else if (rt.hbTab === 'market') {
-    const hg = state.haggle && state.haggle.id === d.id && state.haggle.day === state.dayN ? state.haggle : null, hm = (hg ? hg.mult : 1) / G.dreamCost(d.id) * (isMarketDay() ? 1.25 : 1) * (G.threads.touched(d) ? 1.15 : 1) * G.threads.priceMul(d);
+    const hg = state.haggle && state.haggle.id === d.id && state.haggle.day === state.dayN ? state.haggle : null, hm = (hg ? hg.mult : 1) * (feastAt(d) ? 1.2 : 1) / G.dreamCost(d.id) * (isMarketDay() ? 1.25 : 1) * (G.threads.touched(d) ? 1.15 : 1) * G.threads.priceMul(d);
     const quiet = caysQuiet(rt.lullK, state.time * 24, window.__BUILD === 'demo'), shut = d.region === 'free' && !quiet;   // are the Cays quiet (somebody plays)? Their stalls open then (regions.js, L5)
     const sale = sellable(state);   // what an errand in hand needs stays aboard (G-08)
     const fishVal = Math.round(sale.fish.reduce((a, f) => a + f.value, 0) * 0.7 * (1 + 0.05 * lvl) * hm * (isFestival(d) ? 1.5 : 1) * sellMul(d, 'fish', quiet));
@@ -251,7 +254,7 @@ export function renderHarbour() {
     { const bc = $('buyChain'); if (bc) bc.addEventListener('click', () => { if (state.gold < chainCost) return; state.gold -= chainCost; state.story.chain = (state.story.chain || 0) + 10; G.audio.play('buy'); renderHarbour(); }); }
     { const bs = $('buyStores'); if (bs) bs.addEventListener('click', () => { if (fillStores(storeMul)) { G.audio.play('buy'); toast('The casks are filled and the bread locker stocked.', false, 3000); } renderHarbour(); }); }
     pane.querySelectorAll('[data-tbuy]').forEach((b) => b.addEventListener('click', () => { if (tradeBuy(d.region, b.dataset.tbuy, discount(rep) * (handOn('trader') ? 0.9 : 1))) G.audio.play('buy'); renderHarbour(); }));
-    pane.querySelectorAll('[data-tsell]').forEach((b) => b.addEventListener('click', () => { const g = sellAll(d.region, b.dataset.tsell, hm * (handOn('trader') ? 1.1 : 1)); if (g) { G.audio.play('buy'); toast(`Sold for ${g} gold.`, false, 2500); } renderHarbour(); }));
+    pane.querySelectorAll('[data-tsell]').forEach((b) => b.addEventListener('click', () => { const nSold = (cargo()[b.dataset.tsell] || 0), g = sellAll(d.region, b.dataset.tsell, hm * (handOn('trader') ? 1.1 : 1)); if (g) { const rr = repOf(state, d.id); rr.sold = (rr.sold || 0) + nSold; } if (g) { G.audio.play('buy'); toast(`Sold for ${g} gold.`, false, 2500); } renderHarbour(); }));
     { const bk = $('buyKit'); if (bk) bk.addEventListener('click', () => { const kc = Math.ceil(35 * discount(rep) * G.costMul() * buyMul(d, 'kit')); if (state.gold < kc || state.patchKits >= 3) return; state.gold -= kc; state.patchKits++; G.audio.play('buy'); renderHarbour(); }); }
     { const bo = $('buyOil'); if (bo) bo.addEventListener('click', () => { const { cost } = G.buyOil(discount(rep) * G.costMul()); if (state.gold < cost) return; state.gold -= cost; state.oil = oilCap(state.upgrades); G.audio.play('buy'); toast('The lantern is full.', false, 2500); renderHarbour(); }); }
     const sf = $('sellFish'); if (sf) sf.addEventListener('click', () => { state.gold += fishVal; toast(`Sold ${sale.fish.length} fish for ${fishVal} gold.`);

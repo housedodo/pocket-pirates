@@ -103,6 +103,7 @@ import { voyageTick, moodMods } from './systems/voyage.js';
 import { shelvesNear } from './systems/shallows.js';
 import { crewTick } from './systems/raiders.js';
 import { handMods } from './systems/hands.js';
+import { plentyLevel, eventOf, harboursTick } from './systems/harbours.js';
 import { spiceTick } from './systems/spice.js';
 import { deepTick, deepSwell } from './systems/deepseas.js';   // stores, the crew's spirits, night nerves (owner, 2026-11-23)
 import { gearTick, gearDrag, savePos, initDive, diveElement, diveClosed } from './systems/gearplay.js';   // the diving bell and the ship's boat (owner, 2026-11-23)   // the other ways through (T4)
@@ -1306,7 +1307,7 @@ function frame() {
   const lp = abyss.lightPhase;
   world.setLit(lp === 'stare' || glimpse.k > 0.5 ? true : lp === 'dead' ? false : tod.sunHeight < 0.12 || weather.darkness > 0.6);
   world.stare = lp === 'stare' || glimpse.k > 0.5 ? ship.pos : null;
-  world.week = { wd: weekday(), market: isMarketDay(), lantern: isLanternNight() }; world.growthOf = growthOf; world.landedOf = (id) => landedAt(state, id); world.lifeDoneOf = (id) => life.arcDone(state, id); world.tide = tideAt();
+  world.week = { wd: weekday(), market: isMarketDay(), lantern: isLanternNight() }; world.growthOf = (id) => { const [cx, cz] = id.split(',').map(Number), hd = world.desc(cx, cz); return hd ? Math.max(0, plentyLevel(hd)) : growthOf(id); }; world.plentyOf = plentyLevel; world.eventOf = eventOf;   // the harbour's state (systems/harbours.js) world.landedOf = (id) => landedAt(state, id); world.lifeDoneOf = (id) => life.arcDone(state, id); world.tide = tideAt();
   { // a storm front every sixth afternoon (after chapter III), warned by a red sky the evening before; and the sector's own weather
     const h = state.time * 24, fd = state.dayN % 6 === 5 && unlocked(state, 'passengers'), fa = state.dayN % 6 === 4 && unlocked(state, 'passengers');
     weather.front = fd ? smoothstep(12, 16, h) * (1 - smoothstep(19, 22, h)) * (0.55 + 0.45 * rt.dread) : 0;
@@ -1371,6 +1372,7 @@ function frame() {
   for (const c of Object.values(companions)) { c.m.g.visible = c.fly > 0 || rt.dread < 0.6; if (c.m.g.visible) c.update(vdt); }
   traffic.update(dt, waveT, lifeCtx);
   crewTick(dt);   // the raider crews (systems/raiders.js)
+  harboursTick();   // a blockade lifts when her raider is gone (systems/harbours.js)
   deepTick(dt);   // green water, the boat swamped, the hull worked in the deepest storms (systems/deepseas.js)
   spiceTick();   // the herbalist names a spice place as it comes into view (systems/spice.js)
   if (live) raceTick(dt, { world, traffic, ship, sched: lifeCtx.sched, ok: laterOK(), wind: windNow });   // the Sunday race (systems/race.js)

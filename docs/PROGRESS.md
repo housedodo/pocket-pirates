@@ -2429,3 +2429,23 @@ dread there eased for a while after it.
   faded pinnace, tarred galleon. A is the default; `?shipstyle=b` shows B (RULES 35: the loser is deleted when the owner picks).
   Preview sheet checked headless at deviceScaleFactor 2.
 - **Liveries chosen** (owner, 2026-11-25: "go A on all of them"): the B designs and `?shipstyle` are deleted (RULES 35).
+
+## Harbours that show how they are doing, events from the sea, discovery reports, a morning's work (2026-11-25, owner: "do 1, 2, 3 and 10")
+- **Plenty** (`src/systems/harbours.js plentyLevel`, -2..3): deliveries, visits, cargo sold there and help raise it; from 10 days away
+  it falls 0.6 a day; trouble seen and left scars it; in deep water it runs backwards (dread 0.55: down one, 0.7: down two). The old
+  growth layers follow it (max 0). Shown by `world.js harbourState` layers, three signal sets on trial (`?harbourlook=a|b|c`, all three
+  by default): A the quay (a crane, cargo, a third boat; or a boat sunk at her mooring, another rotting, the end planks gone), B the
+  waterfront market (three stalls with awnings, goods and people; or bare frames, a hanging torn awning, empty crates), C the houses
+  (a new house under scaffolding, then finished; or two houses boarded up, then a roof fallen in with weeds). At -2 and in fever nobody
+  is about.
+- **Events** (`eventOf`, a seeded three-day window, about one harbour in six): fire (a column of black smoke; lend the crew a morning:
+  20 g), fever (yellow flags at the pier head and over the square; leave three fruit: 35 g), blockade (nobody comes out; a Reef raider
+  lies off the mouth; when she is gone the harbour pays 45 g), feast (a fifth more for everything sold). Each helped: plenty and the
+  water's standing up. Tama has only fires and feasts. Two looks each on trial (`?eventlook=b`): fire A burning / B a burnt shell and
+  a bucket line; fever A flags / B flags, boats kept at anchor, chalk crosses on doors; blockade A three ships across the way in / B a
+  log boom and one big dark ship; feast A a maypole with bunting / B boats dressed overall and a bonfire on the beach.
+- **Discovery reports** (Crown harbours' board, THE CUSTOMS HOUSE): isles charted 5 g, wrecks 25 g, sketches 10 g, since the last
+  report; after the first throw, once, the same finds already written in your hand, dated next week.
+- **A morning's work** (any harbour, under 20 gold, once a day there): three hours, 12 g.
+- Checked headless: the previews (`docs/proposals/harbours/`), plenty busy 2 / neglected 0 / deep -2, events over 600 harbour-windows
+  (fire 25, fever 37, blockade 13, feast 19), the work, report and fever rows. Not yet checked: a blockade lifted in play.

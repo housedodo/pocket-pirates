@@ -1,7 +1,7 @@
 HOIST (Pocket Pirates): THE MASTER STORY FILE
 ================================================================================================
 This is the main story file for the full game. Edit it, upload it again, and the next session puts every change
-into the game. Built from commit a0ab3bd on 2026-11-24. 1848 in-game lines carry an ID.
+into the game. Built from commit f928da6 on 2026-11-25. 1856 in-game lines carry an ID.
 
 CONTENTS
   A   HOW TO USE THIS FILE (IDs, status marks, how to add and remove things)
@@ -569,7 +569,7 @@ Where the story hides in the mechanics, and where its text lives (section J).
 # J  EVERY LINE IN THE GAME
 ################################################################################################
 Pulled from the code. Edit the text after the "|" (see part A). Sources are grouped by file; the CODE in front of every
-line says which file it goes back into. 1848 lines.
+line says which file it goes back into. 1856 lines.
 
 
 
@@ -3383,6 +3383,21 @@ line says which file it goes back into. 1848 lines.
   DEEP-0005 | Tama. Morning. The Gull at her pier, dry, her lines made fast in a hand that is not yours.
   DEEP-0006 | The Gull went down in the deep water. We woke at Tama, and she was at the pier, dry.
   DEEP-0007 | We are home, Captain. I do not remember the way.
+
+
+####################################################################################################
+## SOURCE HBR   (systems/harbours.js): harbour events, the customs house, a morning's work
+####################################################################################################
+
+### HBR / ADDED 2026-11-25
+  HBR-0001 | A boom of logs lies across the harbour mouth, and nobody comes out to lift it. Out past it a dark ship rides at anchor.
+  HBR-0002 | The boom at ${d.name} comes up. Boats are already putting out.
+  HBR-0003 | The harbourmaster counts out ${E.owed} gold. "For the boom."
+  HBR-0004 | By noon the fire is out. Somebody brings the crew bread and does not let them pay for it.
+  HBR-0005 | You leave the fruit at the end of the pier. Later a lamp in a window is lit, then another.
+  HBR-0006 | The clerk pays you ${R.pay} gold, then turns back a page to show you something: the same finds, already entered, in your own hand, dated next week.
+  HBR-0007 | The clerk writes it all down in a tall book and pays you ${R.pay} gold.
+  HBR-0008 | A morning unloading salt. Your back says so. (+${PAY.lifeline} gold)
 
 
 

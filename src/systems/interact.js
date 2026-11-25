@@ -41,6 +41,7 @@ import { gearInteract, gearAct, gearDock } from './gearplay.js';
 import { voyageDock } from './voyage.js';
 import { REFUSE_AT, owed, payOwed, mark } from './standing.js';
 import { handOn } from './hands.js';
+import { dockBlocked } from './harbours.js';
 import { crewBoarded } from './raiders.js';
 import { tradeRumour } from './trade.js';
 import { wreckRumour } from './wrecks.js';
@@ -190,6 +191,7 @@ function doInteract(tg) {
   if (tg.kind === 'harbour') {
     const d = tg.isl.desc, rep = repOf(state, d.id);
     rep.region = d.region;   // its water's name counts toward it (systems/standing.js)
+    { const bl = window.__BUILD !== 'demo' && dockBlocked(d); if (bl) { toast(bl, false, 7000); return; } }   // a blockade: nobody comes out (systems/harbours.js)
     if (window.__BUILD !== 'demo' && friendLevel(rep) <= REFUSE_AT) {   // the empty quay: nobody takes your line until what is owed is paid
       if (rt.oweAsk === d.id) { const g = payOwed(d.region); if (g) { rt.oweAsk = null; G.audio.play('buy'); toast(`You pay the harbourmaster ${g} gold. A boy comes down and takes your line.`, false, 6000); } else toast(`They want ${owed(d.region)} gold before anyone will take your line.`, false, 4000); return; }
       rt.oweAsk = d.id; toast(`Nobody comes down to take your line. The harbourmaster watches from a window. (E again: pay what they say is owed, ${owed(d.region)} gold.)`, false, 7000); return;
