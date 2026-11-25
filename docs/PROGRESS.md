@@ -2428,3 +2428,4 @@ dread there eased for a while after it.
   tar, planking, rails). A: tarred brigantine, Dutch fluyt, weathered sloop, salt-bleached galleon. B: privateer sloop, guarda costa,
   faded pinnace, tarred galleon. A is the default; `?shipstyle=b` shows B (RULES 35: the loser is deleted when the owner picks).
   Preview sheet checked headless at deviceScaleFactor 2.
+- **Liveries chosen** (owner, 2026-11-25: "go A on all of them"): the B designs and `?shipstyle` are deleted (RULES 35).

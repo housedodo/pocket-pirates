@@ -49,28 +49,24 @@ export const CREWS = {
 // ---- the ships: each is the ordinary hull and rig (traffic.js) in its own paint, with its own things on deck
 // each crew's livery (owner, 2026-11-25: "redesigns... all look like wooden ships, not grey or an unnatural colour for that time; ships
 // from Port Royale and Pirates! as a reference"): period ship types in wood, tar, the natural paints of the day (ochre, red ochre,
-// verdigris, white lead, gilt) and canvas (natural, tanned, mildewed). Two designs each while the owner chooses (?shipstyle=b; RULES 35).
+// verdigris, white lead, gilt) and canvas (natural, tanned, mildewed). The owner chose design A for all four (2026-11-25).
 // paint: [tar below the wale, the planking, the rails and wales] (recolour); sail: canvas tint; deck: [wood, roof] for houses on deck;
 // patch: patch and laundry colours; flag: the streamer; shape: overrides SHAPE
 export const LIVERY = {
   wolves: {
     a: { name: 'tarred brigantine', paint: ['#120d0a', '#3a2818', '#c89a48'], sail: [0.7, 0.4, 0.28], patch: ['#4a2618', '#6a3a24'], flag: 0x7a1810 },
-    b: { name: 'privateer sloop', paint: ['#24160c', '#7a4824', '#a83a22'], sail: [0.92, 0.86, 0.72], patch: ['#7a6a50', '#5a4a36'], flag: 0x5a1210, shape: { hull: [0.9, 0.78, 1.2], rig: 1.22, rake: 0.1 } },
   },
   tollmen: {
     a: { name: 'Dutch fluyt', paint: ['#1a120a', '#8a5a2c', '#e0b048'], sail: [0.98, 0.94, 0.82], deck: ['#9a7448', '#5a3a22'], flag: 0x2a3a6a },
-    b: { name: 'guarda costa', paint: ['#140e0a', '#5a3a20', '#4e7a64'], sail: [0.94, 0.9, 0.78], deck: ['#7a5634', '#3a2a1a'], flag: 0x8a1a14 },
   },
   beggars: {
     a: { name: 'weathered sloop', paint: ['#2a241e', '#7a6c5a', '#c4b49a'], sail: [0.92, 0.86, 0.72], patch: ['#a0583a', '#c8b898', '#6a5a44', '#8a7a5a', '#d8ccb0'] },
-    b: { name: 'faded pinnace', paint: ['#2a1a12', '#8a4428', '#d8ccb4'], sail: [0.82, 0.62, 0.46], patch: ['#c8b898', '#e0d4bc', '#7a5a3a', '#a08a6a', '#5a4a36'] },
   },
   collectors: {
     a: { name: 'salt-bleached galleon', paint: ['#3a342c', '#9a9078', '#e8e0c8'], sail: [0.64, 0.62, 0.52], trim: '#2a241c' },
-    b: { name: 'tarred galleon', paint: ['#0c0a08', '#2e2418', '#7a5e2c'], sail: [0.5, 0.44, 0.38], trim: '#6a5228' },   // the gilt worn to a dull brass
   },
 };
-export const SHIP_STYLE = (typeof location !== 'undefined' && new URLSearchParams(location.search).get('shipstyle') === 'b') ? 'b' : 'a';
+export const SHIP_STYLE = 'a';
 const hx2 = (h) => [parseInt(h.slice(1, 3), 16) / 255, parseInt(h.slice(3, 5), 16) / 255, parseInt(h.slice(5, 7), 16) / 255];
 const recoloured = {};
 /** the same hull, painted: each vertex colour's brightness picks a colour along the livery's three paints (tar, planking, rails) */
@@ -153,7 +149,7 @@ function canSpawn(id) {
   if (id === 'beggars' && c.beat >= 3) return false;  // they have a home now
   return true;
 }
-export function spawnCrew(id, x, z, st) {   // st: a livery to try (the previews); otherwise ?shipstyle
+export function spawnCrew(id, x, z, st) {   // st: a livery key (only 'a' since the owner chose, 2026-11-25)
   const S = G.ship, def = CREWS[id];
   if (x == null) { const a = S.heading + (Math.random() - 0.5) * 1.6, d = 200; x = S.pos.x + Math.sin(a) * d; z = S.pos.z - Math.cos(a) * d; }
   const derelict = id === 'wolves' && C(id).beat === 2 && rt.dread >= 0.6;   // her last beat: found adrift, far out
