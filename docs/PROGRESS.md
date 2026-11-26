@@ -2690,3 +2690,15 @@ frame and wide map; moon phases and the Eye's shape (not in the summary list).
   `.away(days)`, `.state()`. Verified headless: every stage's fog, light and plenty; the list row gives and re-renders; neglect
   takes her at 16 days; docking then is refused and files the note once. Preview `docs/proposals/sky/foghaven_stages.png`.
   The Halved Isle itself (its clue, the lantern gate, the other ways in) is unchanged while the fog stands. Draft text: WRITER_TODO 4.9.
+- **The race spares a ship lying by an island in it** (owner: "what is damaging me... I lose health the whole time", at the Sala at night;
+  `systems/drowned.js`): the Sala (a Guild dead light) stands inside the Drowned belt (radius 1740-1800), so at high water the race
+  scraped a ship lying there every 2 s. Now an island in the belt has a lee (30 off its shore) where the race does not run, and the
+  race scrapes only a ship driving into it (speed > 1); one lying still is only carried out. Verified headless: no hits at the Sala.
+- **Fog at night and in Haven Hesk's streets** (owner: "the fog in the city... more dense and not dots in perfect rows", "why does the
+  fog look so odd in the dark"; `fogbank.js`): the bank takes the haze's own colour (it was drawn lighter: a pale block at night); a ring
+  seen edge-on fades out, so it has no straight sides; the ordered (Bayer) cut is gone: the clots come from noise in the world and a
+  fine random cut frays their edges. The harbour has its own street mist (eight low layers and three upright rings round the houses),
+  thinned only by people coming back, not by the lantern (which keeps your own deck clear). Preview `docs/proposals/sky/fog_night_town.png`.
+- **The stern lantern, three looks on trial** (owner; `ship.js sternLamp`, `?sternlamp=a|b|c`, without it the old post and cube):
+  a an iron-framed lantern with a peaked cap on a curled bracket out over the transom; b a gallows post with an arm reaching aft and a
+  small cage lantern on a chain; c two smaller quarter lanterns, one on each corner of the stern. Preview `docs/proposals/ship/sternlamp_trial.png`.

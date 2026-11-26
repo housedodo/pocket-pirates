@@ -15,7 +15,8 @@ import { TILE } from '../textures.js';
 
 const LOW = -0.3;   // the belt opens below this tide
 let foam = null, hitT = 0, lastR = null, push = 0, pushOut = 1;
-const PUSH = 12;   // the race throws a ship back at 12 units/s, dying over 1 s (G-23): read as water, never a snap
+const PUSH = 12, LEE = 30;   // LEE: calm water this far off the shore of an island standing in the belt
+   // the race throws a ship back at 12 units/s, dying over 1 s (G-23): read as water, never a snap
 const N = 48;
 
 function build() {   // white water along the belt near the ship: flat foam patches and black teeth (moved round with the ship)
@@ -53,12 +54,15 @@ export function drownedTick(dt, t, wave) {
     }
   }
   // the race: at high water the belt throws a ship back the way she came, and scrapes her
-  const inBelt = r > BELT[0] && r < BELT[1];
+  // an island standing in the belt (the Sala's dead light) has a lee: the race runs round it, and a ship lying by it is not thrown
+  // or scraped (owner, 2026-11-26: "I lose health the whole time" there)
+  const isl = r > BELT[0] - 60 && r < BELT[1] + 60 && G.world.nearest(p.x, p.z, 80), lee = !!isl && Math.hypot(p.x - isl.desc.x, p.z - isl.desc.z) < (isl.desc.r || 10) + LEE;
+  const inBelt = r > BELT[0] && r < BELT[1] && !lee;
   hitT -= dt;
   if (inBelt && !open && !rt.edge && !rt.modal) {
     const out = lastR != null ? Math.sign(lastR - (BELT[0] + BELT[1]) / 2) || 1 : 1;   // which side she came from
     if (push <= 0) { push = PUSH; pushOut = out; G.ship.speed *= 0.2; }   // each throw takes her way off her
-    if (hitT <= 0) { hurtPlayer(5); hitT = 2; G.objectives.remark('belt', rt.dread); }
+    if (hitT <= 0 && G.ship.speed > 1) { hurtPlayer(5); hitT = 2; G.objectives.remark('belt', rt.dread); }   // it scrapes a ship that drives into it; one lying still is only carried out
   } else if (!inBelt) lastR = r;
   if (push > 0 && !rt.edge && !rt.modal && r > 0) {
     const k = push * pushOut * dt / r; p.x += p.x * k; p.z += p.z * k;

@@ -21,6 +21,47 @@ const SECTIONS = [
 ];
 
 const mulHex = (hex, k) => '#' + [1, 3, 5].map((i) => Math.min(255, Math.round(parseInt(hex.slice(i, i + 2), 16) * k)).toString(16).padStart(2, '0')).join('');
+// the stern lantern (owner, 2026-11-26: "give me 3 redesigns of the lantern on the back of the ship"); on trial, ?sternlamp=a|b|c,
+// without it the old post and cube. Each returns where its flame sits (the flame mesh, oil.js).
+//   a  the stern lantern  an iron-framed lantern with a peaked cap, held out over the transom on a curled bracket
+//   b  the gallows lamp   a tall post with an arm reaching aft, a small cage lantern hanging from it on a short chain
+//   c  quarter lamps      two smaller lanterns, one on each corner of the stern rail
+const LAMP_LOOK = (() => { try { const q = new URLSearchParams(location.search).get('sternlamp'); return typeof window !== 'undefined' && window.__BUILD === 'full' ? null : q; } catch (e) { return null; } })();
+const IRON = '#2a2a30', BRASS = '#b08a3a';
+function cage(b, x, y, z, w, h) {   // an iron frame round a glowing core, a peaked cap and a ring on top; y is its base
+  b.box(x, y, z, w + 0.08, 0.06, w + 0.08, IRON, TILE.stone);                       // base plate
+  b.box(x, y + 0.06, z, w * 0.78, h, w * 0.78, '#ffffff', TILE.glow);              // the light
+  for (const [sx, sz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) b.box(x + sx * w * 0.42, y + 0.06, z + sz * w * 0.42, 0.05, h, 0.05, IRON, TILE.stone);   // corner bars
+  b.box(x, y + 0.06 + h, z, w + 0.06, 0.05, w + 0.06, IRON, TILE.stone);         // top plate
+  b.cyl(x, y + 0.11 + h, z, w * 0.62, 0.04, w * 0.55, 4, IRON, TILE.stone, true);   // peaked cap
+  b.box(x, y + 0.11 + h + w * 0.55, z, 0.04, 0.1, 0.04, BRASS, TILE.white);       // ring
+  return y + 0.06 + h;
+}
+export const LAMP_AT = { x: 0, y: 2.95, z: 2.9 };   // the flame's place (set by the look below)
+function sternLamp(b) {
+  if (LAMP_LOOK === 'a') {
+    b.box(0, 1.9, 2.75, 0.14, 0.75, 0.14, IRON, TILE.stone);                        // the stern post
+    b.box(0, 2.55, 2.75, 0.08, 0.08, 0.45, IRON, TILE.stone);                       // the bracket out over the transom
+    b.box(0, 2.38, 3.12, 0.08, 0.2, 0.08, IRON, TILE.stone);                        // its curl
+    const top = cage(b, 0, 2.2, 3.14, 0.36, 0.46); Object.assign(LAMP_AT, { x: 0, y: top - 0.12, z: 3.14 });
+  } else if (LAMP_LOOK === 'b') {
+    b.box(0, 1.9, 2.6, 0.14, 1.45, 0.14, '#6b4a2e', TILE.bark);                     // the post, taller
+    b.box(0, 3.3, 2.6, 0.1, 0.1, 0.75, '#6b4a2e', TILE.bark);                       // the arm, reaching aft
+    b.box(0, 3.15, 2.82, 0.06, 0.15, 0.06, '#6b4a2e', TILE.bark);                   // its brace
+    b.box(0, 3.0, 3.25, 0.03, 0.3, 0.03, IRON, TILE.stone);                         // the chain
+    const top = cage(b, 0, 2.5, 3.25, 0.3, 0.4); Object.assign(LAMP_AT, { x: 0, y: top - 0.1, z: 3.25 });
+  } else if (LAMP_LOOK === 'c') {
+    for (const sx of [-1, 1]) {
+      b.box(sx * 0.82, 1.9, 2.95, 0.1, 0.35, 0.1, IRON, TILE.stone);                // a short bracket on each quarter
+      b.box(sx * 0.9, 2.2, 2.95, 0.2, 0.06, 0.08, IRON, TILE.stone);
+      cage(b, sx * 0.98, 2.25, 2.95, 0.26, 0.34);
+    }
+    Object.assign(LAMP_AT, { x: 0.98, y: 2.55, z: 2.95 });
+  } else {
+    b.box(0.0, 1.9, 2.9, 0.18, 0.7, 0.18, '#6b4a2e', TILE.bark);
+    b.box(0.0, 2.55, 2.9, 0.4, 0.4, 0.4, '#ffffff', TILE.glow);
+  }
+}
 function buildHull(colors = {}) {
   const b = new Builder();
   b.doubleSided = true;
@@ -56,8 +97,7 @@ function buildHull(colors = {}) {
   b.box(0, 0.5, 1.9, 1.7, 1.25, 1.7, '#ffffff', TILE.wall, TILE.planks, '#7a4222');
   b.box(0, 1.75, 1.9, 2.0, 0.16, 2.0, '#6b3a1e', TILE.planks);
   // lanterns
-  b.box(0.0, 1.9, 2.9, 0.18, 0.7, 0.18, '#6b4a2e', TILE.bark);
-  b.box(0.0, 2.55, 2.9, 0.4, 0.4, 0.4, '#ffffff', TILE.glow);
+  sternLamp(b);
   b.box(0.0, 1.55, -3.2, 0.4, 0.4, 0.4, '#ffffff', TILE.glow);
   // mast, crow's nest, bowsprit, barrels
   b.cyl(0, 0.5, -0.3, 0.16, 0.1, 6.9, 5, '#ffffff', TILE.bark, false);
@@ -317,7 +357,7 @@ export class Ship {
       this.deckLight = new THREE.Mesh(pb.geometry(), psxMaterial({ color: 0x8a6020, vertexColors: true, transparent: true, opacity: 0.55, depthWrite: false, blending: THREE.AdditiveBlending, key: 'Dl', fragmentColor: { head: '', body: 'diffuseColor.rgb /= max(uLight, 0.05);' } }));
       this.deckLight.visible = false; this.root.add(this.deckLight); this.shadowMesh.renderOrder = 2; this.deckLight.renderOrder = 1; }
     { const fl = new Builder(); fl.cyl(0, 0, 0, 0.15, 0, 0.6, 4, '#ffffff', TILE.glow, false);   // the stern lantern's flame (task L6): upright at home, shorter and leaning far out
-      this.flameMesh = meshOf(fl, mats.hull); this.flameMesh.position.set(0, 2.95, 2.9); this.flameMesh.visible = false; this.root.add(this.flameMesh); }
+      this.flameMesh = meshOf(fl, mats.hull); this.flameMesh.position.set(LAMP_AT.x, LAMP_AT.y, LAMP_AT.z); this.flameMesh.visible = false; this.root.add(this.flameMesh); }
     this.flagBright = meshOf(fb, mats.flagP);
     this.flagDark = meshOf(db, mats.hull);
     this.flagDark.visible = false;

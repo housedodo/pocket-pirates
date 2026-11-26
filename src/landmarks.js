@@ -60,6 +60,8 @@ export const LM_BEFORE = {
 // the forced cells: the landmark itself, and open water in the eight cells round it so it stands alone on the horizon.
 // before = true: the cells as they were before D3 (the rolls that place the hut and the villages read these). Otherwise the moved
 // places stand where they are now, and where they were is open water too.
+/** the fog harbour beside the Halved Isle (systems/foghaven.js, world.js FORCED, places.js / fogbank.js its street mist) */
+export const HAVEN_AT = { id: '-12,-2', x: -1296, z: -190, r: 27 };
 export function forcedCells(before = false) {
   const out = {};
   const was = LANDMARKS.map((l) => (LM_BEFORE[l.lm] ? { ...l, ...LM_BEFORE[l.lm] } : l));

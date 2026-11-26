@@ -4,8 +4,8 @@
 import { rt } from './core/runtime.js';
 import { FogBank } from './fogbank.js';
 import * as THREE from 'three';
-import { LANDMARKS, LM, BARRIERS, lmHere } from './landmarks.js';
-const C_WHITE = new THREE.Color('#ffffff'), _lv = new THREE.Vector3();   // made once: these run every frame (task R6)
+import { LANDMARKS, LM, BARRIERS, lmHere, HAVEN_AT } from './landmarks.js';
+const _lv = new THREE.Vector3();   // made once: these run every frame (task R6)
 import { clamp, smoothstep } from './util.js';
 import { tableOpen } from './clues.js';
 
@@ -123,7 +123,7 @@ export class Places {
     this.toastT = {};
     // the fog bank: a ragged wall of fog standing round the Halved Isle (fogbank.js; owner, 2026-11-26: look a)
     const b = LM.broken, R = BARRIERS.broken.R;
-    this.bank = new FogBank(scene, b.x, b.z, R);
+    this.bank = new FogBank(scene, b.x, b.z, R, typeof window !== 'undefined' && window.__BUILD === 'demo' ? null : HAVEN_AT);   // the fog harbour's streets get their own mist (systems/foghaven.js)
     // labels for far shapes
     this.labels = new Map();
     this.layer = document.createElement('div'); this.layer.id = 'farlabels';
@@ -169,7 +169,7 @@ export class Places {
     }
     for (const k of Object.keys(this.toastT)) if (!k.endsWith('ok')) this.toastT[k] -= dt;
     // the dome takes the scene's fog colour, so it is grey at dusk and dark at night; thinner from inside
-    { const col = this._bc || (this._bc = new THREE.Color()); col.copy(fogColor).lerp(C_WHITE, 0.12); this.bank.update(dt, ship, col, (this.bankLit ?? 1) * (1 - 0.5 * this.fog) * (rt.haven ? rt.haven.fogDensity : 1), this.bankClear || 0); }
+    { const col = this._bc || (this._bc = new THREE.Color()); col.copy(fogColor);   /* the haze's own colour: no lighter, so at night it is not a pale block */ this.bank.update(dt, ship, col, (this.bankLit ?? 1) * (1 - 0.5 * this.fog) * (rt.haven ? rt.haven.fogDensity : 1), this.bankClear || 0, rt.haven ? rt.haven.fogDensity : 1); }   // the street mist: the lantern does not thin it, only people coming back
     return msg;
   }
 
