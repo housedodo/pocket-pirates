@@ -2568,3 +2568,9 @@ toward it, grey veils of rain under its belly, and its foot dissolving into the 
   and lift off when the ship comes within 22; crows fly 5 to 12 s, sit 30 to 80 s, face you, and do not lift off. At the deepest dread
   two in three sit on the Gull's rail facing outboard, the rest circle slowly. Landing and lifting off with busy wings, folded wings
   when sitting. Checked headless (10 of 10 gulls sitting, 19 of 19 crows, 6 on the rail); preview `docs/proposals/sky/birds_sitting.png`.
+- **A hail is a conversation first** (owner: "just like how Mara or a passenger would talk... so the screen isn't covered in text, first a
+  conversation, then the options appear at the bottom while the game is visible"; `ui/shiptrade.js startHail/hailTick`): their words go
+  through Mara's speech box under their own name (guest portrait), the game running; a click moves it on as with Mara. A beat after the
+  line is read the choices come up as the strip across the foot of the screen (only their name above them; the line is not repeated).
+  Sail off (90) or sink her before that and the hail is dropped. The two talk trials (`?talk`, the bubble) are deleted. Preview
+  `docs/proposals/ui/hail_talk.png`.

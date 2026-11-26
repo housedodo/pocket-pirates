@@ -381,20 +381,13 @@
     .menu .goldline { text-align: center; margin-bottom: 6px; } .menu .goldline b { color: var(--gold); }
     .job { padding: 8px 0; border-bottom: 1px solid #fff7d622; font-size: 13px; line-height: 1.5; }
     .job button { display: inline-block; width: auto; margin: 4px 0 0; padding: 5px 10px; font-size: 13px; }
-    /* the hail (owner, 2026-11-26: "go with D"): first they speak, then two or three choices in a strip across the foot of the screen, the sea left in view; a price only where something is paid. Two ways to speak on trial (?talk=1|2) */
+    /* the hail (owner, 2026-11-26: "go with D"): first they speak, then two or three choices in a strip across the foot of the screen, the sea left in view; a price only where something is paid. They speak first through the speech box (ui/shiptrade.js startHail) */
     #shipmodal #shList .ch { display: flex; align-items: center; gap: 12px; width: 100%; margin: 8px 0; padding: 10px 12px; text-align: left; font: inherit; font-size: 17px; cursor: pointer; color: inherit; }
     #shipmodal .ch .lb { flex: 1; min-width: 0; } #shipmodal .ch .lb small { display: block; font-size: 13px; font-weight: 400; opacity: .85; margin-top: 2px; letter-spacing: 0; }
     #shipmodal .ch .cost { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; font-weight: 700; }
     #shipmodal .ch .k { flex: none; display: inline-grid; place-items: center; width: 26px; height: 26px; font-weight: 700; }
     #shipmodal .ch:disabled { opacity: .55; cursor: default; }
-    #shipmodal.talking #shList, #shipmodal.talking #shClose, #shipmodal.talking .goldline { visibility: hidden; }
-    #shipmodal #shLine { min-height: 2.6em; font-size: 17px; text-align: left; max-width: 980px; }
-    #shipmodal .more { display: none; color: var(--gold); font-size: 13px; animation: blink 1s steps(2) infinite; } #shipmodal.talking.typed .more { display: inline; }
-    #shBubble { display: none; position: fixed; z-index: calc(var(--z-modal) + 1); max-width: 360px; padding: 10px 14px; background: #f4ead0; color: var(--ink-dark); font: 16px var(--pxfont); line-height: 1.3; pointer-events: none;
-      box-shadow: 0 -3px 0 #2a1608, 0 3px 0 #2a1608, -3px 0 0 #2a1608, 3px 0 0 #2a1608, 6px 6px 0 3px rgba(0,0,0,.35); transform: translate(-50%, -100%); }
-    #shBubble::after { content: ''; position: absolute; left: 50%; bottom: -15px; margin-left: -8px; border-top: 15px solid #2a1608; border-right: 15px solid transparent; }
-    #shBubble b { display: block; color: #8a2a18; font-size: 13px; margin-bottom: 3px; }
-    #shipmodal[data-talk="2"] #shLine { display: none; }
+    #shipmodal #shLine { display: none; }   /* they have said it already, in the speech box */
     #shipmodal { align-items: flex-end; background: linear-gradient(transparent 45%, rgba(8,6,22,.9) 75%); }
     #shipmodal #shWide { width: 100vw; max-width: 100vw; margin: 0; box-shadow: none !important; background: rgba(18,12,28,.92) !important; padding: 14px 28px 18px; }
     #shipmodal h2 { text-align: left; font-size: 20px !important; margin-bottom: 2px; } #shipmodal .goldline { position: absolute; right: 30px; margin-top: -30px; }
@@ -818,7 +811,7 @@
   <div id="mixer"><div class="mxhead"><b>SOUND MIXER</b><small>100% = as the file is. Play / solo to hear a sound; green rows are playing in the game right now.</small>
     <div class="mxbtns"><button id="mixSave">Save volumes.json</button><button id="mixZero" title="Every sound to 0%, then raise them one by one">All to 0%</button><button id="mixReset">Reset all</button><button id="mixClose">Close (F8)</button></div></div><div id="mixList"></div></div>
   <div id="roll"><canvas id="rollCv"></canvas><b id="rollLbl"></b><small id="rollMod"></small><div id="rollRes"></div></div>
-  <div id="shipmodal" class="modal"><div class="menu" id="shWide"><h2 id="shName"></h2><p class="quote" id="shLine"></p><div id="shBubble"></div><div class="goldline">Gold: <b id="shGold"></b></div><div id="shList"></div><button id="shClose">Wave goodbye</button></div></div>
+  <div id="shipmodal" class="modal"><div class="menu" id="shWide"><h2 id="shName"></h2><p class="quote" id="shLine"></p><div class="goldline">Gold: <b id="shGold"></b></div><div id="shList"></div><button id="shClose">Wave goodbye</button></div></div>
   <div id="greet" class="modal"><div class="hbBanner"><div class="hbName" id="grName"></div></div><div id="grBox"><img id="grFace" alt=""><div style="flex:1"><b id="grWho"></b><div id="grTxt"></div></div><span id="grMore"><i class="pxi down"></i></span></div></div>
   <div id="harbour" class="modal"><div class="hbBanner"><div class="hbName" id="hbBannerName"></div><div class="hbDay" id="hbDay"></div><div class="hbSaid" id="hbSaid"></div></div><div class="menu" id="hbWide"><h2 id="hbName" style="display:none"></h2><p class="quote" id="hbLine" style="display:none"></p><div class="goldline"><span id="hbPlace"></span><span>Gold: <b id="hbGold"></b></span></div><div id="hbPane"></div><button id="hbClose" style="display:none">Set sail [E]</button></div><div id="hbTabs"><button class="post" data-t="board">Board<em></em><small>1</small></button><button class="post" data-t="market">Market<em></em><small>2</small></button><button class="post" data-t="tavern">Tavern<em></em><small>3</small></button><button class="post" data-t="wright">Shipwright<em></em><small>4</small></button><button class="post" data-t="sail">Set sail<em></em><small>E</small></button></div></div>
   <div id="pause" class="modal"><div class="menu">

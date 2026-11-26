@@ -1,5 +1,3 @@
-import * as THREE from 'three';
-import { camera } from '../core/engine.js';
 // Hailing other ships at sea: whether they answer (your standing in these waters), what they offer, and the trade screen.
 import { clamp, mulberry32 } from '../util.js';
 import { stageOf } from '../palette.js';
@@ -30,10 +28,10 @@ export const REFUSALS = ['The crew glances at you and looks away.', 'A sailor wa
 export function hailShip(sh) {
   const rng = mulberry32(sh.seed);
   state.stats.hails++;
-  if (sh.crew) { sh.offers = null; rt.tradeShip = sh; rt.shTalkNew = true; G.openModal('ship'); return; }   // a raider crew: what she wants (systems/raiders.js)
-  if (sh.hostile && sh.hp > 0) { sh.state = 'open'; rt.tradeShip = sh; rt.shTalkNew = true; G.openModal('ship'); return; }
+  if (sh.crew) { sh.offers = null; startHail(sh); return; }   // a raider crew: what she wants (systems/raiders.js)
+  if (sh.hostile && sh.hp > 0) { sh.state = 'open'; startHail(sh); return; }
   if (sh.special === 'regatta') { sh.state = 'done'; toast('They wave without slowing down. It is a race, and they are winning.', false, 5000); return; }
-  if (sh.special === 'market') { sh.state = 'open'; rt.tradeShip = sh; rt.shTalkNew = true; G.openModal('ship'); return; }
+  if (sh.special === 'market') { sh.state = 'open'; startHail(sh); return; }
   if (sh.mode === 'derelict') {
     sh.state = 'done';
     const loot = G.abyss.wrongLoot(lootFor(rng, rt.dread), state); loot.value = Math.round(loot.value * 0.6);
@@ -44,7 +42,7 @@ export function hailShip(sh) {
     sh.state = 'done';
     toast('Your hail comes back as your own voice, from a very long way off.', true, 6000);
   } else if (sh.roll < hailChance(sh)) {
-    sh.state = 'open'; rt.tradeShip = sh; rt.shTalkNew = true; G.openModal('ship');
+    sh.state = 'open'; startHail(sh);
   } else {
     sh.state = 'refused';
     const hint = localStanding(sh.x, sh.z).max < 1 ? ' (Perhaps they would listen if you were better known in these waters.)' : '';
@@ -82,46 +80,33 @@ export function shipOffers(sh) {
   sh.offers = pool.slice(0, 3).map((o) => ({ ...o, used: false }));
   return sh.offers;
 }
-// First they speak, then you choose (owner, 2026-11-26: "the encounter starts with talk from the party... then the choices as in D").
-// Two ways to speak on trial (?talk=1|2; RULES 35): 1 the words type out in the strip itself; 2 they come in a bubble over their ship,
-// and the strip holds only the choices. E, Space or a click finishes the line, then the choices come.
-const TALK = (() => { try { return new URLSearchParams(location.search).get('talk') === '2' ? 2 : 1; } catch (e) { return 1; } })();
-let talkTimer = null;
-function talkPaint() {
-  const T = rt.shTalk, el = $('shipmodal'); if (!T) return;
-  const txt = T.text.slice(0, T.n);
-  el.classList.toggle('talking', !T.done); el.classList.toggle('typed', T.n >= T.text.length);
-  if (TALK === 1) $('shLine').innerHTML = `${txt}${T.n >= T.text.length && !T.done ? ' <span class="more">[E]</span>' : ''}`;
-  else { const b = $('shBubble'); b.style.display = 'block'; b.innerHTML = `<b>${T.who}</b>${txt}`; }
+// First they speak, then you choose (owner, 2026-11-26: "just like how Mara or a passenger would talk... first a conversation, then the
+// options appear at the bottom while the game is visible"): their words go through Mara's speech box under their own name, the game
+// running; when they have said it, the choices come up as a strip across the foot of the screen.
+function lineFor(sh) {
+  return sh.crew ? crewLine(sh) : sh.special === 'market' ? 'Everything must go. Everything always goes. Come aboard, Captain.' : sh.hostile ? 'Nice ship. Shame if something happened to it. A little tribute, perhaps?' : (FACTION_GREET[sh.faction.id] || 'Ahoy!');
 }
-function bubbleTrack() {   // (2) the bubble rides over their ship
-  const T = rt.shTalk; if (!T || rt.modal !== 'ship' || TALK !== 2) { $('shBubble').style.display = 'none'; return; }
-  const s = T.sh, v = new THREE.Vector3(s.x, 9 * ((KINDS[s.kind] && KINDS[s.kind].scale) || 1) + 4, s.z).project(camera);
-  const b = $('shBubble'); b.style.left = `${Math.max(190, Math.min(innerWidth - 190, (v.x * 0.5 + 0.5) * innerWidth))}px`; b.style.top = `${Math.max(b.offsetHeight + 16, (-v.y * 0.5 + 0.5) * innerHeight)}px`;   // never off the top
-  requestAnimationFrame(bubbleTrack);
+function startHail(sh) {
+  const m = G.objectives && G.objectives.mate;
+  if (!m) { rt.tradeShip = sh; G.openModal('ship'); return; }
+  m.queue.unshift({ text: lineFor(sh), dark: sh.crew === 'collectors', who: sh.name, hail: true });
+  rt.hailPending = sh;
 }
-function startTalk(sh, text) {
-  clearInterval(talkTimer);
-  rt.shTalk = { sh, text, n: 0, done: false, who: sh.name };
-  $('shipmodal').dataset.talk = TALK;
-  talkTimer = setInterval(() => {
-    const T = rt.shTalk; if (!T || rt.modal !== 'ship') { clearInterval(talkTimer); return; }
-    if (T.n < T.text.length) { T.n = Math.min(T.text.length, T.n + 2); if (T.n % 6 < 2 && /[A-Za-z]/.test(T.text[T.n - 1] || '')) G.audio.blip(!!sh.crew && sh.crew === 'collectors', true); talkPaint(); }
-  }, 34);
-  talkPaint(); if (TALK === 2) requestAnimationFrame(bubbleTrack);
-}
-/** E, Space, a click: the line at once; again, the choices */
-export function talkNext() {
-  const T = rt.shTalk; if (!T || T.done) return false;
-  if (T.n < T.text.length) T.n = T.text.length; else { T.done = true; clearInterval(talkTimer); if (TALK === 1) $('shLine').textContent = T.text; }
-  talkPaint(); return true;
+/** each frame (main.js): once they have said it (and a beat to read it), the choices */
+export function hailTick() {
+  const sh = rt.hailPending; if (!sh) return;
+  const m = G.objectives.mate;
+  if (sh.sinking || Math.hypot(sh.x - G.ship.pos.x, sh.z - G.ship.pos.z) > 90) { rt.hailPending = null; m.queue = m.queue.filter((q) => !q.hail); return; }   // gone, or you sailed off
+  const talking = m.queue.some((q) => q.hail) || (m.cur && m.cur.hail && (m.shown < m.cur.text.length || m.wait > m.holdTime() - 1.2));
+  if (talking || rt.modal) return;
+  if (m.cur && m.cur.hail) { m.cur = null; if (!m.queue.length) m.el.style.display = 'none'; }   // said: the box gives way to the choices
+  rt.hailPending = null; rt.tradeShip = sh; G.openModal('ship');
 }
 export function renderShipTrade() {
   const sh = rt.tradeShip;
   $('shName').textContent = sh.name;
   $('shLine').textContent = sh.crew ? crewLine(sh) : sh.special === 'market' ? 'A trader leans on the rail among the lanterns: "Everything must go. Everything always goes. Come aboard, captain."' : sh.hostile ? 'The raider captain grins: "Nice ship. Shame if something happened to it. A little tribute, perhaps?"' : (FACTION_GREET[sh.faction.id] || 'Ahoy!');
   $('shGold').textContent = state.gold;
-  if (rt.shTalkNew) { rt.shTalkNew = false; startTalk(sh, $('shLine').textContent); } else if (rt.shTalk && rt.shTalk.sh === sh) talkPaint();   // a fresh hail opens with their words
   // the choices (owner, 2026-11-26): two or three, never more; what cannot be done is not shown; a price only where something is paid
   const all = shipOffers(sh).map((o, i) => ({ o, i })).filter(({ o }) => !o.used && !o.hidden);
   { const h = shipOffers(sh).findIndex((o) => o.hidden && !o.used); rt.shRefuse = h >= 0 ? h : null; }   // closing a pay-only hail is refusing it
@@ -131,7 +116,7 @@ export function renderShipTrade() {
   $('shList').querySelectorAll('button').forEach((b) => b.addEventListener('click', () => doOffer(parseInt(b.dataset.i, 10))));
   $('shClose').textContent = shown.length === 1 && shown[0].o.must ? 'Refuse anyway' : 'Wave goodbye';
 }
-G.shipOffer = (i) => doOffer(i); G.talkNext = () => talkNext();
+G.shipOffer = (i) => doOffer(i);
 export function doOffer(i) {
   const sh = rt.tradeShip, o = shipOffers(sh)[i];
   if (!o || o.used || state.gold < o.cost) return;
@@ -183,6 +168,5 @@ export function doOffer(i) {
 
 /** boot code that ran at this point in main.js; main.js calls it in the same place */
 export function initShipTrade() {
-  $('shipmodal').addEventListener('click', (e) => { if (rt.shTalk && !rt.shTalk.done && !e.target.closest('button')) talkNext(); });   // a click moves their words on
   hailChance = (sh) => { const st = localStanding(sh.x, sh.z); return clamp(0.28 + 0.14 * st.max + 0.03 * Math.min(6, st.sum) + sh.faction.mood, 0.1, 0.88); };
 }

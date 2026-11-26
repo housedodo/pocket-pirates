@@ -88,7 +88,7 @@ import { PITCH_MIN, updateCamera, initCamera1, initCamera2, camInput } from './u
 import { titleEl, startTitle, titleCam, titleKey, INTRO_DUR, endIntro, skipIntro, begin, initTitle1, initTitle2 } from './ui/title.js';
 import { fsEl, fsOk, toggleFullscreen, nightViewNow, showPauseMain, pauseBack, mixer, studio, soundSituation, initPause1, initPause2 } from './ui/pause.js';
 import { renderYard, initShipyard } from './ui/shipyard.js';
-import { hailShip, renderShipTrade, initShipTrade } from './ui/shiptrade.js';
+import { hailShip, renderShipTrade, initShipTrade, hailTick } from './ui/shiptrade.js';
 import { renderHarbour, lettersAt, PETS, companions, petOffer, takePet, tabOpened, showGreeting, greetAdvance, buyUpgrade, initHarbour } from './ui/harbour.js';
 import { HUT_NOTES, perrinNote, hutNod, revealHut, showDemoEnd, fogLost, WHITE_MIST, seamTick, clueTick, seaGate, seaTick, oilOn, freeCaysNow, oilTick, SAIL_LIMIT, sailTick, toggleLamp, buyOil, tackTick, hurtPlayer, onHitEnemy, initStoryBeats } from './systems/storybeats.js';
 import { getInteract, tryInteract, anchorTick, digLeaveTick } from './systems/interact.js';
@@ -650,7 +650,6 @@ window.addEventListener('keydown', (e) => {
     return;
   }
   if (rt.modal === 'ship') {
-    if ((e.code === 'KeyE' || e.code === 'Space' || e.code === 'Enter') && G.talkNext()) { e.preventDefault(); return; }   // first their words (ui/shiptrade.js)
     if (e.code === 'KeyE') { $('shClose').click(); return; }   // the same as the button (a pay-only hail: refusing it)
     const n = parseInt(e.key, 10);
     if (n >= 1 && n <= 3) { const b = shipEl.querySelectorAll('#shList button')[n - 1]; if (b && !b.disabled) b.click(); }
@@ -1335,6 +1334,7 @@ function frame() {
   world.tick(rt.animT, tod);
   places.labelsTick(camera, ship, (state.upgrades.spyglass || 0), state.discovered, window.innerWidth, window.innerHeight, false /* no names on the water when sailing past (owner 2026-11-18) */, { fogFar: scene.fog.far, table: tableOpen(state) });   // far labels: ?, what it looks like, its name; fade with the fog
   ship.place(vdt, waveT, stage.wave, rt.dark, tod.night);
+  hailTick();   // a hail: they speak in the speech box, then the choices (ui/shiptrade.js)
   voyageTick(dt); newsTick(dt);   // what you know of each harbour, as you last saw it (systems/news.js)
   gearTick(vdt, waveT, stage.wave);   // the bell and the boat on the Gull, the boat on the water (systems/gearplay.js)
   if (rt.anchorBit) { rt.anchorBit = false; fauna.splash(ship.pos.x + Math.sin(ship.heading) * 3.2, ship.pos.z - Math.cos(ship.heading) * 3.2, stage.wave, waveT, 1.1); }   // the anchor bites: a ring of foam at the bow
