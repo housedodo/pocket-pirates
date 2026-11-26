@@ -2667,3 +2667,9 @@ frame and wide map; moon phases and the Eye's shape (not in the summary list).
 - **Fog bank: look a kept, blended in** (owner: "blend the fog in a bit more and go with a"): the wall is the Halved Isle's fog; the
   old dome, looks b and c and the `?fogbank` flag are gone. Its colour is closer to the haze, it rises out of the sea and fades into the
   sky over a longer dithered ramp, and it is thinner overall. Before/after `docs/proposals/sky/fogbank_a_blend.png`.
+- **Encounter audit fixes** (owner: "let a subagent check all the encounters"; audit by a Sonnet agent, headless + code-read):
+  a named ship's meeting (the Widow, the Toll, the Patience, the Quiet Hand) and a raider's tribute / bluff / defy now end the talk
+  with the choice (before, a paid toll could then be refused and she opened fire); a hail cut short by sailing off can be tried
+  again (the ship stayed un-hailable); a blockade no longer lifts and pays when you just sail away from it; the harbourmaster's
+  pay for the boom outlasts the 3-day trouble window; the Widow adrift says nothing when hailed. Verified headless (re-ran the audit's tests).
+  Left open for the owner: the resident stories run in the demo build too (singer, counter and other dark lines).

@@ -92,6 +92,7 @@ function lineFor(sh) {
 function startHail(sh) {
   if (rt.hailPending) return;   // already speaking: a second E does not queue her again (owner: "I could not do anything")
   const m = G.objectives && G.objectives.mate;
+  if (sh.crewDerelict) { rt.tradeShip = sh; G.openModal('ship'); return; }   // the Widow adrift: nobody answers, so nobody speaks (audit 2026-11-26)
   if (!m) { rt.tradeShip = sh; G.openModal('ship'); return; }
   m.queue.unshift({ text: lineFor(sh), dark: sh.crew === 'collectors', who: sh.name, hail: true });
   rt.hailPending = sh;
@@ -100,7 +101,7 @@ function startHail(sh) {
 export function hailTick() {
   const sh = rt.hailPending; if (!sh) return;
   const m = G.objectives.mate;
-  if (sh.sinking || Math.hypot(sh.x - G.ship.pos.x, sh.z - G.ship.pos.z) > 90) { rt.hailPending = null; rt.hailTyped = null; m.queue = m.queue.filter((q) => !q.hail); return; }   // gone, or you sailed off
+  if (sh.sinking || Math.hypot(sh.x - G.ship.pos.x, sh.z - G.ship.pos.z) > 90) { rt.hailPending = null; rt.hailTyped = null; m.queue = m.queue.filter((q) => !q.hail); if (sh.state === 'open') sh.state = 'none'; return; }   // gone, or you sailed off: she can be hailed again
   const typed = m.cur && m.cur.hail && m.shown >= m.cur.text.length;
   if (typed && rt.hailTyped == null) rt.hailTyped = rt.tNow;
   const talking = m.queue.some((q) => q.hail) || (m.cur && m.cur.hail && (!typed || rt.tNow - rt.hailTyped < 1.3));   // a beat after her last word, not Mara's long reading pause
@@ -128,7 +129,7 @@ export function doOffer(i) {
   const sh = rt.tradeShip, o = shipOffers(sh)[i];
   if (!o || o.used || state.gold < o.cost) return;
   const rng = mulberry32(sh.seed + 77 + i);
-  if (sh.crew && crewOffer(sh, o)) { state.gold -= o.cost; o.used = true; if (rt.modal === 'ship') { sh.offers = sh.state === 'none' ? null : sh.offers; renderShipTrade(); } return; }
+  if (sh.crew && crewOffer(sh, o)) { state.gold -= o.cost; o.used = true; if (sh.state === 'none') sh.offers = null; if (rt.modal === 'ship') G.closeModal(); return; }   // a named ship's meeting ends with the choice (audit 2026-11-26: one paid toll could then be refused)
   const idx = stageOf(rt.dread);
   if (o.id === 'sellall') {
     const sale = sellable(state);   // what an errand in hand needs stays aboard (G-08)
@@ -170,6 +171,7 @@ export function doOffer(i) {
     toast(`Message taken: deliver ${j.item} to ${j.toName} (+${j.reward}g)`, j.dark, 7000);
   }
   state.gold -= o.cost; o.used = true;
+  if (o.id === 'tribute' || o.id === 'bluff' || o.id === 'defy') { G.closeModal(); return; }   // a raider's answer ends the talk (paid, bluffed, or guns)
   renderShipTrade();
 }
 

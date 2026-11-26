@@ -64,7 +64,7 @@ export function eventOf(d) {
   const h = Math.abs(hash2(w, idHash(d.id), (state.seed || 1) + 313)) % 100;
   let kind = h < EVENT_P ? ['fire', 'fever', 'blockade', 'feast'][h % 4] : null;
   if (d.id === '0,-1' && (kind === 'fever' || kind === 'blockade')) kind = null;   // home has only fires and feasts
-  hev()[d.id] = { w, kind, done: !kind };
+  hev()[d.id] = { w, kind, done: !kind, owed: (E && E.owed) || 0 };   // what the harbourmaster owes you outlasts the trouble
   return kind;
 }
 const resolve = (d, kind, line, pay) => {
@@ -96,7 +96,8 @@ export function harboursTick() {
   for (const [id, E] of Object.entries(hev())) {
     if (E.kind !== 'blockade' || E.done) continue;
     const s = G.traffic.ships.find((q) => q.blockFor === id);
-    if (E.spawned && (!s || s.sinking || s.struck || !s.hostile)) {
+    if (E.spawned && !s) { E.spawned = false; continue; }   // you sailed off and she dropped out of sight: she is back on the next try to dock (audit 2026-11-26)
+    if (E.spawned && (s.sinking || s.struck || !s.hostile)) {
       const [cx, cz] = id.split(',').map(Number), d = G.world.desc(cx, cz);
       if (d) resolve(d, 'blockade', `The boom at ${d.name} comes up. Boats are already putting out.`, 0), (E.owed = PAY.blockade);
     }
