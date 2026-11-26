@@ -2656,3 +2656,11 @@ frame and wide map; moon phases and the Eye's shape (not in the summary list).
   washed (+25%, fading over about four minutes); overcast haze -15%; drizzle -45%; squall or storm about half (lit lighthouses still
   carry); fog -75%, and thick fog takes the near shapes too. Reference: island peaks 15-25 nm on a clear Caribbean day, 5-10 nm in haze,
   2-5 in drizzle, under a mile in a squall, under a kilometre in fog. Preview `docs/proposals/sky/visibility_before_after.png`.
+- **Each resident story lives in one harbour** (owner: "I found the ribbon mission on multiple islands"; `harbourlife.js homes()`):
+  the eight stories (the bakers, the dog, the bride and her ribbon, the singer, the boat, the keeper, the widow, the counter) are
+  given out once per seed to the harbours nearest Tama; harbours further out have none of them. Checked headless: 8 stories, 8 harbours.
+- **The Halved Isle's fog, three looks on trial** (owner: "redesign, three possible, the same logic as the rain, clouds and sun";
+  `fogbank.js`, `?fogbank=a|b|c`, without it the old dome): drawn in the haze colour, banded and cut pixel by pixel (no soft alpha),
+  drifting, opened round the ship by the lens lantern. a the wall (a ragged ring standing off the sea, fraying at the top),
+  b the bank (loose curtains of mist turned to you), c the sea mist (low layers on the water; masts and the isle's crown above).
+  Preview `docs/proposals/sky/fogbank_trial.png`.

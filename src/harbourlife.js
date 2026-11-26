@@ -9,6 +9,7 @@
 //    Never explained; you only see the whole by visiting them all.
 // main.js draws the rows (board and tavern) and calls these; state.life holds everything.
 import { hash2 } from './util.js';
+import { G } from './core/runtime.js';
 import { nearby } from './jobs.js';
 
 export const lifeOf = (state) => (state.life = state.life || { arcs: {}, ate: {}, played: {}, frags: [], fragAt: {}, news: [], told: {}, keep: [], meal: null });
@@ -128,12 +129,23 @@ export const ARCS = {
 const ARC_IDS = Object.keys(ARCS);
 
 /** which story lives in this harbour (Tama and the second harbour are fixed, the rest from the seed) */
-export function arcIdOf(d) {
-  if (d.id === '0,-1') return 'bakers';
-  if (d.id === '-2,-1') return 'dog';
-  const rest = ARC_IDS.filter((k) => k !== 'bakers' && k !== 'dog');
-  return rest[Math.abs(hash2(d.seed | 0, 41, 7)) % rest.length];
+// (owner, 2026-11-26: "I found the ribbon mission on multiple islands, limit those to specific islands"): each story lives in one
+// harbour only. Tama and its sister harbour keep theirs; the others go, in an order the seed shuffles, to the harbours nearest Tama, one
+// each. Harbours beyond have no resident story. A story already begun in a save keeps its harbour (residentRows reads a.arc first).
+let HOMES = null;
+function homes() {
+  if (HOMES) return HOMES;
+  const W = G.world; if (!W) return {};
+  const list = [];
+  for (let cx = -14; cx <= 14; cx++) for (let cz = -14; cz <= 14; cz++) { const d = W.desc(cx, cz); if (d && d.type === 'harbour' && d.id !== '0,-1' && d.id !== '-2,-1') list.push(d); }
+  list.sort((a, b) => Math.hypot(a.x, a.z + 118) - Math.hypot(b.x, b.z + 118));
+  const rest = ARC_IDS.filter((k) => k !== 'bakers' && k !== 'dog'), seed = (list[0] && list[0].seed) | 0;
+  for (let i = rest.length - 1; i > 0; i--) { const j = Math.abs(hash2(seed, i, 41)) % (i + 1); [rest[i], rest[j]] = [rest[j], rest[i]]; }
+  HOMES = { '0,-1': 'bakers', '-2,-1': 'dog' };
+  rest.forEach((k, i) => { if (list[i]) HOMES[list[i].id] = k; });
+  return HOMES;
 }
+export function arcIdOf(d) { return (d && homes()[d.id]) || null; }
 export const arcDone = (state, id) => !!(state.life && state.life.arcs[id] && state.life.arcs[id].done);
 
 /** the harbour the story sends you to: the nearest other harbour the fog allows (Tama's sister harbour for Tama) */
@@ -149,8 +161,9 @@ const fill = (t, a) => t.replace(/\{P\}/g, a.partnerName).replace(/\{H\}/g, a.ho
 export function residentRows(state, world, d, ctx) {
   const L = lifeOf(state), rows = [];
   // the home story
-  const id = d.id, arcId = arcIdOf(d), A = ARCS[arcId];
+  const id = d.id, arcId = (L.arcs[id] && L.arcs[id].arc) || arcIdOf(d), A = ARCS[arcId];
   let a = L.arcs[id];
+  if (!A) return otherRows(state, L, d, ctx, rows);   // no story of its own here
   if (!a) { const p = pickPartner(world, d); a = { arc: arcId, step: 0, day: -1, homeName: d.name, partnerName: p ? p.name : d.name, partner: p ? p.id : null }; }
   if (a.done) rows.push({ key: id, after: A.after, who: A.who, dark: ARCS[arcId].steps[3].dark });
   else {
@@ -158,6 +171,10 @@ export function residentRows(state, world, d, ctx) {
     if (s.at === 'home') rows.push(stepRow(state, d, a, A, s, id, ctx));
     else rows.push({ key: id, wait: true, who: A.who, text: fill(`${A.who} is waiting to hear from {P}.`, a) });
   }
+  return otherRows(state, L, d, ctx, rows);
+}
+function otherRows(state, L, d, ctx, rows) {
+  const id = d.id;
   // stories from other harbours whose next step is here
   for (const [hid, b] of Object.entries(L.arcs)) {
     if (hid === id || b.done || !b.partner || b.partner !== d.id) continue;
@@ -194,7 +211,7 @@ export function promises(state) {
 export function takeStep(state, world, d, key) {
   const L = lifeOf(state);
   let a = L.arcs[key];
-  if (!a) { const p = pickPartner(world, d); a = L.arcs[key] = { arc: arcIdOf(d), step: 0, day: -1, homeName: d.name, partner: p ? p.id : null, partnerName: p ? p.name : d.name }; }
+  if (!a) { if (!arcIdOf(d)) return null; const p = pickPartner(world, d); a = L.arcs[key] = { arc: arcIdOf(d), step: 0, day: -1, homeName: d.name, partner: p ? p.id : null, partnerName: p ? p.name : d.name }; }
   const A = ARCS[a.arc], s = A.steps[a.step];
   if (!s || a.done) return null;
   if (s.need === 'fish') { if (!state.catch.length) return null; state.catch.shift(); }

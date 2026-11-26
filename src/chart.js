@@ -97,8 +97,8 @@ function hover(lb, e, [wx, wz]) {
   if (state.passenger && state.passenger.toId === d.id) row('errand', `${state.passenger.name} goes ashore here`, P.gold);
   for (const q of state.quests) if (q.giverId === d.id) row('errand', 'A commission was given here', P.gold);
   if (d.type === 'harbour') {
-    const L = life.lifeOf(state), a = L.arcs[d.id], A = life.ARCS[life.arcIdOf(d)];
-    if (a && a.done) row('harbour', A.after, P.red); else if (a) row('harbour', `${A.who}: ${a.step} of 4`, P.red); else row('harbour', A.who, P.red);
+    const L = life.lifeOf(state), a = L.arcs[d.id], A = life.ARCS[(a && a.arc) || life.arcIdOf(d)];
+    if (A) { if (a && a.done) row('harbour', A.after, P.red); else if (a) row('harbour', `${A.who}: ${a.step} of 4`, P.red); else row('harbour', A.who, P.red); }
     row('note', life.eventLine(d, state).replace(' here', ''), P.blue);
     { const nl = newsLine(d); if (nl) row('note', nl, nl.includes('tomorrow') ? '#3a1838' : P.gold); }   // as you last knew it (systems/news.js)
     if (L.frags.some((f) => f.at === d.name)) row('note', 'You have heard its old story', P.purple);

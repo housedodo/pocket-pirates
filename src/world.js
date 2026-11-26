@@ -1415,7 +1415,7 @@ function weekAndCustoms(d, rng, cr, g) {
     }
   }
   // a resident's story has ended: the harbour keeps a mark of it by the pier for good (harbourlife.js)
-  { const prop = ARCS[arcIdOf(d)].prop, k = L('resident'), [x, z] = dockAt(R * 0.12, 4.2), [x2, z2] = dockAt(R * 0.12, -4.2), ry0 = -dockTh;
+  if (arcIdOf(d)) { const prop = ARCS[arcIdOf(d)].prop, k = L('resident'), [x, z] = dockAt(R * 0.12, 4.2), [x2, z2] = dockAt(R * 0.12, -4.2), ry0 = -dockTh;
     k.push(x, yy, z, ry0);
     if (prop === 'bunting') { k.box(0, 0, -2.5, 0.2, 4, 0.2, '#6b4a2e', TILE.bark); k.box(0, 0, 2.5, 0.2, 4, 0.2, '#6b4a2e', TILE.bark); flagLine(k, [0, 3.9, -2.5], [0, 3.9, 2.5], 1); k.box(0, 2.2, 0, 0.12, 0.9, 2.2, '#f4f0e6', TILE.planks); }
     if (prop === 'dog') { k.box(0, 0.35, 0, 0.9, 0.45, 0.4, '#8a5a30', TILE.white); k.box(0.55, 0.65, 0, 0.4, 0.38, 0.34, '#8a5a30', TILE.white); k.box(0.62, 0.92, -0.14, 0.12, 0.2, 0.08, '#5a3a1c', TILE.white); k.box(0.62, 0.92, 0.14, 0.12, 0.2, 0.08, '#5a3a1c', TILE.white); for (const sx of [-0.3, 0.3]) for (const sz of [-0.14, 0.14]) k.box(sx, 0, sz, 0.12, 0.36, 0.12, '#6b4a2e', TILE.white); k.box(0.42, 0.62, 0, 0.06, 0.08, 0.38, '#d24a3e', TILE.white); }

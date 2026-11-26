@@ -111,6 +111,7 @@ Nothing here is ever said to the player in these words.
 | 2026-11-26 | **No reefs for now** (owner: "remove reefs... a more elaborate solution later"): no shallow shelves, no coral heads, no Reef white water; the pilot waits for them. Stars hide behind clouds and fade into the haze. |
 | 2026-11-26 | **Sandbanks instead of reefs** (owner): shallow water under the surface, only where the story or progression needs the rowing boat (the boat landings, the three island groups): the Gull lies off and runs aground if she tries; stopped with the sails in, a current carries her at half its rate, and you can see and hear her drift. |
 | 2026-11-26 | **The moon has phases and there are eclipses** (owner): the moon goes round in 16 days in the real order and rises later each night; now and then a full moon goes copper (whole lunar eclipse) or the sun goes black at noon (whole solar), near ones more often. The sea lies down, a bell rings, the birds come down; far out, a black sun brings the Eye's stars. Harbours talk of it. |
+| 2026-11-26 | **One harbour per resident story** (owner): each of the eight harbour stories (the ribbon among them) happens in one harbour only, given out once per voyage; outer harbours have none. |
 | earlier | The title is HOIST. The Lady never speaks. Dread follows where you are, never time. The demo has no dread. |
 
 ## 4. The seven questions (the whole mystery)

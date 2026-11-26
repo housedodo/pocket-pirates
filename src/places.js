@@ -2,6 +2,7 @@
 // the fog bank you can see from far off, what you find when you go ashore, and the labels on far shapes that a spyglass
 // can read. main.js calls tick() each frame, visit() on E, and reads fog for the scene fog.
 import { rt } from './core/runtime.js';
+import { FogBank } from './fogbank.js';
 import * as THREE from 'three';
 import { LANDMARKS, LM, BARRIERS, lmHere } from './landmarks.js';
 const C_WHITE = new THREE.Color('#ffffff'), _lv = new THREE.Vector3();   // made once: these run every frame (task R6)
@@ -136,6 +137,8 @@ export class Places {
       this.fogGroup.add(m);
     }
     scene.add(this.fogGroup);
+    { const q = (() => { try { return new URLSearchParams(location.search).get('fogbank'); } catch (e) { return null; } })();   // three new looks on trial (fogbank.js)
+      if (q === 'a' || q === 'b' || q === 'c') { this.bank = new FogBank(scene, b.x, b.z, R, q); this.fogGroup.visible = false; } }
     // labels for far shapes
     this.labels = new Map();
     this.layer = document.createElement('div'); this.layer.id = 'farlabels';
@@ -157,7 +160,7 @@ export class Places {
       // go thin round you. With the lamp out it stays thick.
       const lit = this.open(lm, upgrades) && !rt.lampOut, clear = lit ? smoothstep(B.R * 0.3, B.R * 0.85, d) : 1;
       if (B.kind === 'fog') this.fog = Math.max(this.fog, smoothstep(B.R + 70, B.R - 30, d) * (lit ? 0.45 * clear : this.open(lm, upgrades) ? 0.7 : by ? 0.7 : 1));
-      if (B.kind === 'fog' && lm === 'broken') this.fogMat.opacity = 0.5 * (lit ? 0.25 + 0.75 * smoothstep(B.R * 0.4, B.R * 1.3, d) : 1);
+      if (B.kind === 'fog' && lm === 'broken') { this.bankLit = lit ? 0.25 + 0.75 * smoothstep(B.R * 0.4, B.R * 1.3, d) : 1; this.bankClear = lit && d < B.R * 1.4 ? 55 : 0; }
       if (d > B.R + 4 || freeze || by) continue;
       const k = `${lm}`;
       if (this.open(lm, upgrades)) {
@@ -181,7 +184,8 @@ export class Places {
     for (const k of Object.keys(this.toastT)) if (!k.endsWith('ok')) this.toastT[k] -= dt;
     // the dome takes the scene's fog colour, so it is grey at dusk and dark at night; thinner from inside
     this.fogMat.color.copy(fogColor).lerp(C_WHITE, 0.35);
-    this.fogMat.opacity = 0.55 * (1 - 0.8 * this.fog);
+    this.fogMat.opacity = 0.55 * (1 - 0.8 * this.fog) * (this.bankLit ?? 1);   // (the lantern thins it from inside: see above)
+    if (this.bank) { const col = this._bc || (this._bc = new THREE.Color()); col.copy(fogColor).lerp(C_WHITE, 0.3); this.bank.update(dt, ship, col, (this.bankLit ?? 1) * (1 - 0.5 * this.fog), this.bankClear || 0); }
     return msg;
   }
 
