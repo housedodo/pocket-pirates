@@ -2593,3 +2593,11 @@ Before/after sheets: `docs/proposals/audit/compare/` (world, interface, phone). 
 - The interface at 2x on 2400x1300 and larger (at 1920 the 2x crowded the tracker, Mara and the help strip; 1920 stays 1x: owner call).
 Not done: one font-size ladder for all ~40 off-grid sizes and the old leather-book CSS (RULES 22 keeps switched-off looks); the chart's
 frame and wide map; moon phases and the Eye's shape (not in the summary list).
+- **1920 pass and the rest of the audit** (owner, 2026-11-26): the interface is 2x from 1800x1000 up; between 1800 and 2399 wide Mara's
+  box is centred under the ship (the tracker keeps the left column), the help strip stays 1x, the prompt rides above Mara. All font sizes
+  snapped onto DotGothic's grid (16, 24, 32, 48; 98 declarations; Pirata One and small icon text left alone). The leather-book CSS is gone
+  (the texture rule and the always-true `:not(leather)` prefixes). The chart's book is capped at 1600 wide, its side column grows with the
+  screen (`minmax(270px, 22vw)`), and its backdrop is darker so the HUD does not show through.
+- **Dev panels fold away** (owner: "a dev file where I can minimise the dev panels... also for future builds"; `main.js` dev bar): F4 or
+  the [-] at the left of the dev bar folds the bar to a small DEV tab, hides the mixer and the studio, and dims the DEV side tab;
+  remembered between sessions (`localStorage hoist-devmin`). Part of every dev build from now on.

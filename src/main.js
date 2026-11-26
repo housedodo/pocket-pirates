@@ -754,8 +754,13 @@ if (DEV) {
   rt.devBar.innerHTML = `<button data-q="-1" title="previous quest (,)">&lt;</button><select title="jump to a quest">${MAIN_GOALS.map((g, i) => `<option value="${i}">${i + 1}. ${g.title}</option>`).join('')}<option value="${MAIN_GOALS.length}">(all done)</option></select><button data-q="1" title="next quest (.)">&gt;</button><span class="dvq"></span>
     <span class="dvsep"></span><button data-h="6.5" title="1">Dawn</button><button data-h="12" title="2">Noon</button><button data-h="19.2" title="3">Dusk</button><button data-h="0" title="4">Night</button><span class="dvt"></span>
     <span class="dvsep"></span><label for="dvDread">Dread</label><input id="dvDread" type="range" min="0" max="1" step="0.01" value="0"><button data-auto="1" title="dread follows the distance from Tama again (0)">auto</button><span class="dvd"></span>`;
+  rt.devBar.insertAdjacentHTML('afterbegin', '<button class="dvmin" title="fold the dev panels away (F4)">&minus;</button>');
+  const devFold = (on) => { document.body.classList.toggle('devmin', on); try { localStorage.setItem('hoist-devmin', on ? '1' : ''); } catch (e) { /* private window */ } rt.devBar.querySelector('.dvmin').innerHTML = on ? 'DEV' : '&minus;'; };
+  rt.devFold = devFold;
   document.body.appendChild(rt.devBar);
-  rt.devBar.addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; if (b.dataset.auto) { rt.forced = null; abyss.stopTest(); } else if (b.dataset.q) devQuest(state.goals.i + +b.dataset.q); else devTime(+b.dataset.h); b.blur(); devBarRender(); });
+  try { if (localStorage.getItem('hoist-devmin')) setTimeout(() => devFold(true), 0); } catch (e) { /* private window */ }
+  window.addEventListener('keydown', (e) => { if (e.code === 'F4' && !e.repeat) { devFold(!document.body.classList.contains('devmin')); e.preventDefault(); } });
+  rt.devBar.addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; if (b.classList.contains('dvmin')) { rt.devFold(!document.body.classList.contains('devmin')); b.blur(); return; } if (b.dataset.auto) { rt.forced = null; abyss.stopTest(); } else if (b.dataset.q) devQuest(state.goals.i + +b.dataset.q); else devTime(+b.dataset.h); b.blur(); devBarRender(); });
   rt.devBar.querySelector('#dvDread').addEventListener('input', (e) => { rt.forced = +e.target.value; devBarRender(); });   // the music and the world follow (eased, like sailing there)
   rt.devBar.querySelector('#dvDread').addEventListener('change', (e) => e.target.blur());
   rt.devBar.querySelector('select').addEventListener('change', (e) => { devQuest(+e.target.value); e.target.blur(); });
