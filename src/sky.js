@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { mulberry32, smoothstep, lerp } from './util.js';
 import { U, psxMaterial } from './psx.js';
+import { phaseAt } from './systems/moon.js';
 const C_SUN_NIGHT = new THREE.Color(0.3, 0.38, 0.7), C_SUN_DREAD = new THREE.Color(1, 0.4, 0.85);   // made once (task R6)
 
 const R = 900;
@@ -98,6 +99,22 @@ function buildStars(v, pts, dir) {
   return { geo, halo };
 }
 
+// the sun's and the moon's disc (owner, 2026-11-26: moon phases and eclipses; systems/moon.js): the lit part of the face by phase, the
+// rest a faint earthshine; a shadow crossing it for an eclipse (black for the sun, old copper for the moon). Stepped like the rest.
+function discMat(R, hex) {
+  const u = { uC: { value: new THREE.Color(hex) }, uOp: { value: 1 }, uR: { value: R }, uCos: { value: -1 }, uLit: { value: new THREE.Vector2(1, 0) }, uDark: { value: new THREE.Color('#1a2440') },
+    uOcc: { value: new THREE.Vector3(9, 0, 1) }, uOccC: { value: new THREE.Color('#000000') }, uOccA: { value: 0 } };
+  const m = new THREE.ShaderMaterial({ uniforms: u, transparent: true, depthWrite: false, depthTest: false, fog: false,
+    vertexShader: 'varying vec2 vP; void main(){ vP = position.xy; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+    fragmentShader: `uniform vec3 uC; uniform float uOp; uniform float uR; uniform float uCos; uniform vec2 uLit; uniform vec3 uDark; uniform vec3 uOcc; uniform vec3 uOccC; uniform float uOccA; varying vec2 vP;
+void main(){ vec2 p = (floor(vP / uR * 9.0) + 0.5) / 9.0;
+  float u = dot(p, uLit), w = dot(p, vec2(-uLit.y, uLit.x)), lim = uCos * sqrt(max(0.0, 1.0 - w * w));
+  vec3 c = u > lim ? uC : uDark; float a = u > lim ? uOp : uOp * 0.55;
+  if (length(p - uOcc.xy) < uOcc.z) { c = mix(c, uOccC, uOccA); a = max(a, uOp * uOccA); }
+  gl_FragColor = vec4(c, a); }` });
+  m.color = u.uC.value;   // the old code sets .color and .opacity; update() passes opacity on
+  return m;
+}
 export class Sky {
   constructor(scene) {
     this.group = new THREE.Group();
@@ -143,7 +160,7 @@ void main(){
   }
   if (uCir > 0.01 && vY > 0.05) {   // cirrus: thin streaks very high up, stretched along the wind, in the same dithered steps (audit: they were smooth lozenges)
     vec2 q = vXZ / (vY + 0.35) * 0.9; float ca = cos(uWA + 0.4), sa = sin(uWA + 0.4); q = vec2(ca * q.x + sa * q.y, -sa * q.x + ca * q.y) * vec2(0.18, 2.6) + uOff * vec2(0.25, 0.0);
-    float st = smoothstep(0.58, 0.8, vn(q) * 0.7 + vn(q * 2.3 + 7.0) * 0.3) * smoothstep(0.1, 0.4, vY) * (1.0 - uCov * 0.85);   // soft, and gone under cover
+    float st = smoothstep(0.58, 0.8, vn(q) * 0.7 + vn(q * 2.3 + 7.0) * 0.3) * smoothstep(0.1, 0.4, vY) * (1.0 - smoothstep(0.45, 0.8, vY)) * (1.0 - uCov * 0.85);   // soft, not overhead (it draws a line there), and gone under cover
     c = mix(c, uCLit, floor(st * uCir * 3.0 + dth * 0.9 + 0.5) / 3.0 * 0.32);
   }
   if (uBank > 0.0) {   // the storm bank: it rises over the horizon upwind, ragged on top, rain hanging from it to the sea
@@ -169,7 +186,7 @@ void main(){
     this.group.add(dome);
 
     // sun / black sun with corona
-    this.sunMat = new THREE.MeshBasicMaterial({ color: 0xffffff, fog: false, depthWrite: false, depthTest: false, transparent: true });
+    this.sunMat = discMat(40, 0xffffff);
     this.sun = new THREE.Mesh(new THREE.CircleGeometry(40, 8), this.sunMat);   // eight sides, like everything else (G2)
     this.sun.renderOrder = -20;
     this.coronaMat = new THREE.MeshBasicMaterial({ color: 0xff70d0, fog: false, depthWrite: false, depthTest: true, transparent: true, opacity: 0 });
@@ -232,7 +249,7 @@ void main(){
     this.group.add(this.sun2);
 
     // moon
-    this.moonMat = new THREE.MeshBasicMaterial({ color: 0xdfe8ff, fog: false, depthWrite: false, depthTest: false, transparent: true });
+    this.moonMat = discMat(26, 0xdfe8ff);
     this.moon = new THREE.Mesh(new THREE.CircleGeometry(26, 8), this.moonMat);
     this.moon.renderOrder = -20;
     this.group.add(this.moon);
@@ -318,8 +335,21 @@ void main(){
     this.sunHolder.visible = tod.sunElev > -0.08;
     this.sunHolder.scale.setScalar(stage.sunSize * (1 + 0.35 * tod.twilight));
     this.sunMat.color.copy(stage.sun);
-    { const cv = Math.min(1, fx.cover || 0), veil = 1 - 0.88 * smoothstep(0.35, 0.85, cv); this.sunMat.opacity = veil; this.moonMat.opacity = veil; }   // behind cloud the disc goes to a pale smudge (audit: it sat on top of overcast)
-    this.coronaMat.opacity = smoothstep(0.78, 1.0, stage.dread);
+    { const cv = Math.min(1, fx.cover || 0), veil = 1 - 0.88 * smoothstep(0.35, 0.85, cv); this.sunMat.uniforms.uOp.value = veil; this.moonMat.uniforms.uOp.value = veil * (0.35 + 0.65 * tod.night); }   // the day moon is pale
+    { // the moon's phase, lit from the sun's side; an eclipse's shadow crossing a disc (systems/moon.js)
+      const mu = this.moonMat.uniforms, su = this.sunMat.uniforms, e = tod.eclipse;
+      mu.uCos.value = Math.cos(phaseAt() * Math.PI * 2);
+      const v = this._lv || (this._lv = new THREE.Vector3()), q = this._lq || (this._lq = new THREE.Quaternion());
+      v.copy(this.sunHolder.position).sub(this.moon.position).applyQuaternion(q.copy(this.moon.quaternion).invert()); mu.uLit.value.set(v.x, v.y).normalize();
+      mu.uOccA.value = 0; su.uOccA.value = 0;
+      if (e && e.k > 0) {
+        const U2 = e.kind === 'lunar' ? mu : su, off = (1 - e.k) * 2.05;
+        U2.uOcc.value.set(off * 0.8, off * 0.6, e.kind === 'lunar' ? 1.15 : 1.02); U2.uOccA.value = e.kind === 'lunar' ? 0.8 : 1;
+        U2.uOccC.value.set(e.kind === 'lunar' ? '#c0502c' : '#050308');   // the moon goes old copper, still there; the sun goes out
+      }
+    }   // behind cloud the disc goes to a pale smudge (audit: it sat on top of overcast)
+    this.coronaMat.color.set(stage.dread >= 0.4 ? '#ff70d0' : '#fff0c8');   // an eclipse's ring is pale gold; far out it is the dread's pink
+    this.coronaMat.opacity = Math.max(smoothstep(0.78, 1.0, stage.dread), tod.eclipse && tod.eclipse.kind === 'solar' && tod.eclipse.whole ? 0.85 : 0);   // the black sun's ring: far out, and at a whole eclipse
     place(this.moon, tod.moonAz, tod.moonElev);
     const moonDir = this.sunDir.clone();
     this.moon.visible = tod.moonElev > -0.08;
@@ -335,7 +365,7 @@ void main(){
     this.starT += dt; this.starU.uTime.value = this.starT; this.starU.uOpacity.value = starOp;
     { const du = this.domeMat.uniforms, S = this.starU; S.uPaint.value = du.uPaint.value; S.uCov.value = du.uCov.value; S.uOff.value.copy(du.uOff.value); S.uWA.value = du.uWA.value; S.uSkyTop.value.copy(du.uTop.value); }   // the same clouds as the dome
     if (this.skyHalo) { this.halo.position.copy(this.moon.position); this.halo.quaternion.copy(this.moon.quaternion); this.halo.visible = this.moon.visible; this.haloMat.opacity = this.skyHalo.opacity * tod.night * (1 - 0.5 * stage.dread); } else this.halo.visible = false;
-    this.eyeMat.opacity = smoothstep(0.8, 1.0, stage.dread);
+    this.eyeMat.opacity = Math.max(smoothstep(0.8, 1.0, stage.dread), tod.eclipse && tod.eclipse.kind === 'solar' && tod.eclipse.whole && stage.dread >= 0.4 ? 0.9 : 0);   // the black sun, far out: a shape of stars that is there no other time
     // full dread: the eye turns to stay in front of you, and blinks
     if (fx.eyeYaw != null) {
       const want = -fx.eyeYaw;

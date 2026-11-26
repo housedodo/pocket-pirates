@@ -51,6 +51,7 @@ CODES = {  # source file -> (ID code, what it holds)
     'systems/deepseas.js': ('DEEP', 'the deep seas and the foundering'),
     'systems/voyage.js': ('VOY', 'the long voyage: Mara on stores and the crew, the night nerves'),
     'systems/news.js': ('HNEWS', 'what the chart says of a harbour, as last seen or heard'),
+    'systems/moon.js': ('MOON', 'the moon and her eclipses: Mara, the notes, the harbour talk'),
     'systems/trade.js': ('TRD', 'trade runs: the goods and the pier voices'),
     'systems/sealog.js': ('SEA', 'seen at sea: the sketches in the Ship\'s book'),
     'newspaper.js': ('NEWS', 'the Friday paper'),

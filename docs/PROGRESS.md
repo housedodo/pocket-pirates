@@ -2601,3 +2601,17 @@ frame and wide map; moon phases and the Eye's shape (not in the summary list).
 - **Dev panels fold away** (owner: "a dev file where I can minimise the dev panels... also for future builds"; `main.js` dev bar): F4 or
   the [-] at the left of the dev bar folds the bar to a small DEV tab, hides the mixer and the studio, and dims the DEV side tab;
   remembered between sessions (`localStorage hoist-devmin`). Part of every dev build from now on.
+
+## 2026-11-26: the moon's round and eclipses (owner: "make the moon phases fit like in real life, and a random event, a near eclipse or an eclipse")
+- `src/systems/moon.js`: a round of 16 days (`MONTH`; the real 29.5 is too long for a voyage), seeded, in the real order. The moon keeps
+  her own clock (`moonTime`): a young crescent sets soon after the sun, a full moon rises at sunset, an old moon is up in the morning; by day
+  she is pale. The disc (`sky.js discMat`) shows the lit part by phase on the sun's side, the rest a faint earthshine, stepped. The night's
+  light follows the lit face (`pause.js nightViewNow`: pitch dark, dark, moonlit, bright; `calendar.fullMoon` is now lit > 0.85).
+- Eclipses only where they can be: at a full moon around midnight (45% of full moons, a third of those whole) and at a new moon around
+  noon (30% of new moons, about a third whole); near ones take a bite and never close. Roughly one a month of 16 days.
+  Whole lunar: she goes old copper and stays in the sky, the night darkens, the sea lies down and the wind drops, a bell rings once with no
+  ship near. Whole solar: dusk at noon, the stars out, a pale gold ring round a black sun, every bird comes down; far out (dread 0.4+) the
+  ring is the dread's pink and the Eye's stars stand low for as long as it lasts. Mara speaks before, during and after; a Ship's book note;
+  the next harbour talks of it once (`eclipseTalk`). Tests: `?eclipse=lunar|lunarnear|solar|solarnear` (sets tonight's phase to match).
+- Also: lighthouse beams only at night (by day they read as a bar across the sky). Open: a pale segmented bar sometimes seen across the
+  daytime sky looking sunward (in "before" shots too; not the beam or the cirrus; not yet found).

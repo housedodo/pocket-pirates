@@ -1,7 +1,7 @@
 HOIST (Pocket Pirates): THE MASTER STORY FILE
 ================================================================================================
 This is the main story file for the full game. Edit it, upload it again, and the next session puts every change
-into the game. Built from commit 11cac8c on 2026-11-26. 1893 in-game lines carry an ID.
+into the game. Built from commit 7048a82 on 2026-11-26. 1905 in-game lines carry an ID.
 
 CONTENTS
   A   HOW TO USE THIS FILE (IDs, status marks, how to add and remove things)
@@ -569,7 +569,7 @@ Where the story hides in the mechanics, and where its text lives (section J).
 # J  EVERY LINE IN THE GAME
 ################################################################################################
 Pulled from the code. Edit the text after the "|" (see part A). Sources are grouped by file; the CODE in front of every
-line says which file it goes back into. 1893 lines.
+line says which file it goes back into. 1905 lines.
 
 
 
@@ -2262,7 +2262,6 @@ line says which file it goes back into. 1893 lines.
 
 ### MAIN / shipOffers
   MAIN-0137 | they take the coin and let you pass in peace
-  MAIN-0138 | they may believe you have a fleet behind you (45%)... or open fire
   MAIN-0139 | press Space to fire once they are in range
   MAIN-0140 | Sell your catch aboard
   MAIN-0141 | fish and fruit fetch a third more than ashore
@@ -2640,6 +2639,9 @@ line says which file it goes back into. 1893 lines.
 ### MAIN / ADDED 2026-11-26
   MAIN-0408 | The current has her, Captain. Sails up, or she goes where the water goes.
 
+### MAIN / ADDED 2026-11-26
+  MAIN-0409 | Everything must go. Everything always goes. Come aboard, Captain.
+
 ### MAIN / RETIRED (the text is no longer in the game; these IDs are never used again)
     was MAIN-0001 | A floating market, with bunting on every line. (Friday)
     was MAIN-0002 | A regatta! Five boats, racing.
@@ -2660,6 +2662,7 @@ line says which file it goes back into. 1893 lines.
     was MAIN-0100 | Bring the ship to a stop to patch the sail (S, and wait).
     was MAIN-0108 | Nothing here but sand. Reread the riddle in your log (Journal) and try another shore.
     was MAIN-0121 | Down in the green dark: a ship on her side, KESTREL on the stern. Her strongbox comes up, and her bell, still ringing. (+180 gold)
+    was MAIN-0138 | they may believe you have a fleet behind you (45%)... or open fire
     was MAIN-0148 | a forecast and a rumour of the sea
     was MAIN-0213 | The harbourmaster hands you a folded note from Old Perrin. (Journal)
     was MAIN-0236 | The crew came back empty-handed. Hold still!
@@ -3462,6 +3465,25 @@ line says which file it goes back into. 1893 lines.
 ####################################################################################################
 ## SOURCE HNEWS   (systems/news.js): what the chart says of a harbour, as last seen or heard
 ####################################################################################################
+
+
+####################################################################################################
+## SOURCE MOON   (systems/moon.js): the moon and her eclipses: Mara, the notes, the harbour talk
+####################################################################################################
+
+### MOON / ADDED 2026-11-26
+  MOON-0001 | Captain, look at the moon. Something is eating the edge of her.
+  MOON-0002 | She has gone the colour of an old penny. Nobody is talking. Listen to that.
+  MOON-0003 | She is coming back. The crew will be telling this one for years, and getting it wrong.
+  MOON-0004 | The light is wrong, Captain. Look at the shadows on the deck, they have gone sharp.
+  MOON-0005 | It is noon and I can see the stars.
+  MOON-0006 | There. There it is again. The birds can come down off the yards now.
+  MOON-0007 | A bite out of the moon tonight. My grandmother said that means a lost sheep. We have no sheep.
+  MOON-0008 | Something took a bite out of the sun just now. It is giving it back, slowly.
+  MOON-0009 | The moon went out tonight and came back red. The sea lay flat. A bell rang somewhere with no ship near it.
+  MOON-0010 | The sun went black at noon. The stars came out. Every bird came down and kept still until it was over.
+  MOON-0011 | On the quay they talk of nothing but last night's moon. Somebody's goat stopped giving milk. Somebody else found a ring they had lost.
+  MOON-0012 | The whole harbour is still talking about the dark at noon. The children were let out of school to see it, and three of them say they saw a ship in the sky.
 
 
 

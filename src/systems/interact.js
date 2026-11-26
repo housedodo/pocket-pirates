@@ -45,6 +45,7 @@ import { dockBlocked, refuses, refuseAt, refuseLine, noQuestions } from './harbo
 import { crewBoarded } from './raiders.js';
 import { tradeRumour } from './trade.js';
 import { learn } from './news.js';
+import { eclipseTalk } from './moon.js';
 import { wreckRumour } from './wrecks.js';
 import { spiceInteract, spiceAct } from './spice.js';
 
@@ -216,7 +217,8 @@ function doInteract(tg) {
       rt.oweAsk = d.id; toast(`${refuseLine(d)} (E again: pay what they say is owed, ${owed(d.region)} gold.)`, false, 7000); backHint(); return;
     }
     rt.backDoor = null; learn(d, 'docked');   // the chart's news of it (news.js)
-    { const nq = window.__BUILD !== 'demo' && noQuestions(d, rep); if (nq) setTimeout(() => toast(nq, (d.dread || 0) >= 0.55, 6500), 2200); }   // a dying harbour asks nothing (harbours.js)
+    { const nq = window.__BUILD !== 'demo' && noQuestions(d, rep); if (nq) setTimeout(() => toast(nq, (d.dread || 0) >= 0.55, 6500), 2200); }
+    { const et = eclipseTalk(); if (et) setTimeout(() => toast(et, false, 7000), 3600); }   // the quay talks of the eclipse (systems/moon.js)   // a dying harbour asks nothing (harbours.js)
     const now = state.dayN + state.time;   // game days (task R8); a save from before kept a wall-clock time here, which reads as long ago
     if (!(rep.last < 1e6) || now - rep.last > VISIT_GAP) rep.visits++;
     rep.last = now;

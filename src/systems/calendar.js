@@ -1,6 +1,7 @@
 // The calendar: weekdays (market day, lantern night, a harbour's festival day), the tide, and tonight's moon. Pure reads of state.
 import { state } from '../core/state.js';
 import { hash2 } from '../util.js';
+import { litAt } from './moon.js';
 
 /** weekday names, Monday first */
 export const WEEK = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -12,4 +13,4 @@ export const tideAt = (time = state.time, day = state.dayN) => Math.sin(Math.PI 
 export const tideFalls = () => tideAt(state.time + 0.002) < tideAt(state.time);
 /** tonight's moon: a night runs from 19:00 to 06:00; each one is either a new moon (pitch dark, no moon) or a full moon (moonlit) */
 export const nightKey = () => Math.floor(state.dayN + state.time - 0.79 + 1);
-export const fullMoon = () => (hash2(state.seed, nightKey(), 717) % 100) < 50;
+export const fullMoon = () => litAt() > 0.85;   // the real round now (systems/moon.js)

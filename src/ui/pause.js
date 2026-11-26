@@ -1,5 +1,6 @@
 // The pause menu and the settings it holds: its panels and Back, the volume sliders, sound and music, the display options
 // (ocean style, night view, lamp), fullscreen, the dev and abyss panels, the mixer and the Sound Studio.
+import { litAt } from '../systems/moon.js';
 import { clamp } from '../util.js';
 import { U } from '../psx.js';
 import { OCEAN_STYLES } from '../ocean.js';
@@ -34,7 +35,11 @@ export function fsChanged() {
   try { if (kb && kb.lock) { if (fsEl()) kb.lock(['Escape']).catch(() => {}); else kb.unlock(); } } catch (err) { /* not supported */ }
 }
 /** tonight's moon: a night runs from 19:00 to 06:00; each one is either a new moon (pitch dark, no moon) or a full moon (moonlit) */
-export function nightViewNow() { NIGHT_SET.view = rt.nightMode ? rt.nightMode - 1 : fullMoon() ? 2 : 0; }
+export function nightViewNow() {   // auto: the night is as bright as the moon is full (systems/moon.js); her eclipse takes the light away
+  if (rt.nightMode) { NIGHT_SET.view = rt.nightMode - 1; return; }
+  const k = litAt(), e = rt.eclipse, v = k < 0.12 ? 0 : k < 0.45 ? 1 : k < 0.85 ? 2 : 3;
+  NIGHT_SET.view = e && e.kind === 'lunar' ? Math.round(v * (1 - 0.85 * e.k)) : v;
+}
 // pause menu panels: main > settings > (sound, display), main > controls, main > dev tools > full dread. Back / Esc go up one level.
 export const PAUSE_PANELS = { main: 'pauseMain', settings: 'pauseSettings', sound: 'pauseSound', display: 'pauseDisplay', controls: 'pauseControls', keys: 'pauseKeys', dev: 'pauseDev', abyss: 'pauseAbyss' };
 export const PAUSE_PARENT = { settings: 'main', controls: 'settings', keys: 'settings', dev: 'main', sound: 'settings', display: 'settings', abyss: 'dev' };

@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { smoothstep, lerp } from './util.js';
+import { moonTime, eclipseNow } from './systems/moon.js';
 
 // Day/night layered on top of the dread palette. t: 0 = midnight, 0.25 = sunrise, 0.5 = noon, 0.75 = sunset.
 export const DAY_LENGTH = 690; // real seconds per full day (11.5 minutes)
@@ -62,8 +63,12 @@ export function applyTimeOfDay(stage, t, dread) {
   tod.t = t; tod.sunHeight = sh; tod.day = day; tod.night = night; tod.twilight = twi;
   tod.sunAz = (0.5 - t) * Math.PI * 2;
   tod.sunElev = sh >= 0 ? sh * 1.0 * elevScale : sh * 0.8;
-  tod.moonAz = tod.sunAz + Math.PI;
-  tod.moonElev = -tod.sunElev * 0.9 + 0.05;
+  { const mt = moonTime(t), msh = Math.sin((mt - 0.25) * Math.PI * 2);   // the moon on her own clock (systems/moon.js): she rises later each night
+    tod.moonAz = (0.5 - mt) * Math.PI * 2; tod.moonElev = msh >= 0 ? msh * elevScale : msh * 0.8; }
+  { const e = eclipseNow(); tod.eclipse = e;   // the sun's eclipse: dusk at noon, the stars out
+    if (e && e.kind === 'solar' && e.k > 0) { const ek = e.k * (e.total ? 1 : 0.45) * day;
+      stage.skyTop.lerp(NIGHT_TOP, ek * 0.8); stage.skyHorizon.lerp(DUSK_HOR, ek * 0.5).lerp(NIGHT_HOR, ek * 0.5); stage.fog.lerp(NIGHT_FOG, ek * 0.6);
+      stage.light *= 1 - 0.6 * ek; stage.stars = Math.max(stage.stars || 0, smoothstep(0.7, 1, ek) * 0.9); } }
   tod.clock = clockString(t);
   return tod;
 }
