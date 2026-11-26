@@ -7,6 +7,7 @@ import { rt, G } from '../core/runtime.js';
 import { scene } from '../core/engine.js';
 import { mats } from '../psx.js';
 import { BELT } from '../regions.js';
+import { REEFS_ON } from '../core/config.js';
 import { tideAt } from './calendar.js';
 import { hurtPlayer } from './storybeats.js';
 import { waveHeight } from '../ocean.js';
@@ -37,6 +38,8 @@ function build() {   // white water along the belt near the ship: flat foam patc
 
 export function drownedTick(dt, t, wave) {
   if (window.__BUILD === 'demo') return;
+  if (!REEFS_ON) return;   // the belt is a reef: off with the reefs (owner, 2026-11-26: "the reefs are still following me, remove them completely";
+                           // its foam and teeth were laid round the ship's own bearing, so they moved with her). The Drowned are open at any tide meanwhile
   const p = G.ship.pos, r = Math.hypot(p.x, p.z), near = Math.abs(r - (BELT[0] + BELT[1]) / 2) < 260;
   const open = tideAt() < LOW;
   // the white water, only near the belt and only while it is closed (it fades as the tide drops)

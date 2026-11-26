@@ -2716,3 +2716,8 @@ frame and wide map; moon phases and the Eye's shape (not in the summary list).
   with the lens lantern). The fog's grey (and the lost-in-fog grey) now follows the daylight, so at night it is dark, never a pale
   wall (main.js). The bank is 170 across (was 110) and takes in a new islet north-east of the isle (cell -11,-1, full game only).
   Preview, approaching by day and night (far, near, edge, inside, inside with the lantern, Haven Hesk): `docs/proposals/sky/fog_approach.png`.
+- **The Drowned belt is off with the reefs** (owner: "the reefs are still following me, remove them completely"; `systems/drowned.js`):
+  the "following reefs" were the belt's white water: 48 foam patches and black teeth laid out each frame round the ship's own bearing
+  on the ring (radius 1740-1800), so they moved with her. With REEFS_ON off the whole belt is off: no foam, no teeth, no race (no
+  throw-back, no scraping). The Drowned waters are open at any tide until the reefs come back as a proper fixed design. Verified
+  headless at high water on the ring: before, the field of patches; after, open water. `docs/proposals/world/drowned_belt_off.png`.
