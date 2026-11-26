@@ -1,11 +1,12 @@
 import * as THREE from 'three';
 import { mulberry32, smoothstep, lerp } from './util.js';
 import { U, psxMaterial } from './psx.js';
-import { phaseAt } from './systems/moon.js';
+import { phaseAt, litAt } from './systems/moon.js';
 const C_SUN_NIGHT = new THREE.Color(0.3, 0.38, 0.7), C_SUN_DREAD = new THREE.Color(1, 0.4, 0.85);   // made once (task R6)
 
 const R = 900;
 const GREY_TOP = new THREE.Color('#8a98a6');
+const GREEN_FLASH = new THREE.Color('#5cff8c'), MOON_LOW = new THREE.Color('#ffc890');
 
 // The stars (owner, 2026-11-26: "redesign the stars so they blend in like the rest"): they hide behind the painted clouds (the same
 // noise as the dome's), dim into the haze low down, take a little of the sky's colour, and come out one by one at dusk, brightest first.
@@ -104,7 +105,7 @@ function buildStars(v, pts, dir) {
 function discMat(R, hex) {
   const u = { uC: { value: new THREE.Color(hex) }, uOp: { value: 1 }, uR: { value: R }, uCos: { value: -1 }, uLit: { value: new THREE.Vector2(1, 0) }, uDark: { value: new THREE.Color('#1a2440') },
     uOcc: { value: new THREE.Vector3(9, 0, 1) }, uOccC: { value: new THREE.Color('#000000') }, uOccA: { value: 0 } };
-  const m = new THREE.ShaderMaterial({ uniforms: u, transparent: true, depthWrite: false, depthTest: false, fog: false,
+  const m = new THREE.ShaderMaterial({ uniforms: u, transparent: true, depthWrite: false, depthTest: true, fog: false,   // depth-tested: a sail or an island in front hides it
     vertexShader: 'varying vec2 vP; void main(){ vP = position.xy; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
     fragmentShader: `uniform vec3 uC; uniform float uOp; uniform float uR; uniform float uCos; uniform vec2 uLit; uniform vec3 uDark; uniform vec3 uOcc; uniform vec3 uOccC; uniform float uOccA; varying vec2 vP;
 void main(){ vec2 p = (floor(vP / uR * 9.0) + 0.5) / 9.0;
@@ -114,6 +115,15 @@ void main(){ vec2 p = (floor(vP / uR * 9.0) + 0.5) / 9.0;
   gl_FragColor = vec4(c, a); }` });
   m.color = u.uC.value;   // the old code sets .color and .opacity; update() passes opacity on
   return m;
+}
+// a soft glow round the sun and the moon so they sit in the sky rather than on it (owner, 2026-11-26): stepped in dithered rings
+function glowMat(hex) {
+  const u = { uC: { value: new THREE.Color(hex) }, uOp: { value: 0 } };
+  return new THREE.ShaderMaterial({ uniforms: u, transparent: true, depthWrite: false, depthTest: true, fog: false, blending: THREE.AdditiveBlending,
+    vertexShader: 'varying vec2 vP; void main(){ vP = position.xy; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+    fragmentShader: `uniform vec3 uC; uniform float uOp; varying vec2 vP;
+float b2(vec2 a){ return fract(dot(a, vec2(0.5, a.y * 0.75))); } float b4(vec2 a){ a = floor(a); return b2(floor(0.5 * a)) * 0.25 + b2(a); }
+void main(){ float r = length(vP); float a = uOp * pow(max(0.0, 1.0 - r), 2.4); a = floor(a * 8.0 + b4(gl_FragCoord.xy)) / 8.0; gl_FragColor = vec4(uC * a, 1.0); }` });
 }
 export class Sky {
   constructor(scene) {
@@ -194,6 +204,7 @@ void main(){
     this.corona.renderOrder = -21;
     this.sunHolder = new THREE.Group();
     this.sunHolder.add(this.corona, this.sun);
+    this.sunGlow = new THREE.Mesh(new THREE.CircleGeometry(1, 16), glowMat(0xfff0c0)); this.sunGlow.scale.setScalar(170); this.sunGlow.renderOrder = -22; this.sunHolder.add(this.sunGlow);
     this.group.add(this.sunHolder);
 
     // stars (+ one very wrong constellation: an eye)
@@ -251,6 +262,7 @@ void main(){
     // moon
     this.moonMat = discMat(26, 0xdfe8ff);
     this.moon = new THREE.Mesh(new THREE.CircleGeometry(26, 8), this.moonMat);
+    this.moonGlow = new THREE.Mesh(new THREE.CircleGeometry(1, 16), glowMat(0xc8d8ff)); this.moonGlow.scale.setScalar(95); this.moonGlow.renderOrder = -22; this.moonGlow.position.z = -0.5; this.moon.add(this.moonGlow);
     this.moon.renderOrder = -20;
     this.group.add(this.moon);
 
@@ -336,6 +348,18 @@ void main(){
     this.sunHolder.scale.setScalar(stage.sunSize * (1 + 0.35 * tod.twilight));
     this.sunMat.color.copy(stage.sun);
     { const cv = Math.min(1, fx.cover || 0), veil = 1 - 0.88 * smoothstep(0.35, 0.85, cv); this.sunMat.uniforms.uOp.value = veil; this.moonMat.uniforms.uOp.value = veil * (0.35 + 0.65 * tod.night); }   // the day moon is pale
+    { // sitting in the sky: near the horizon they sink into the haze and take its colour, the sun squashed a little by the air; a glow
+      const sEl = tod.sunElev, mEl = tod.moonElev, cv = Math.min(1, fx.cover || 0), low = (e) => 1 - smoothstep(-0.02, 0.16, e);
+      const su = this.sunMat.uniforms, mu = this.moonMat.uniforms, gk = fx.green || 0;
+      su.uC.value.copy(stage.sun).lerp(stage.skyHorizon, low(sEl) * 0.3); su.uOp.value *= 1 - 0.45 * low(sEl) * (1 - tod.twilight * 0.5);
+      if (gk > 0) su.uC.value.lerp(GREEN_FLASH, gk);   // the green flash: a breath of green as the last of her goes under
+      this.sun.scale.set(1, 1 - 0.18 * low(sEl), 1);
+      mu.uC.value.set('#dfe8ff').lerp(MOON_LOW, low(mEl) * 0.65).lerp(stage.sun, 0.15 * stage.dread);
+      this.moon.scale.set(1 + 0.12 * low(mEl), (1 + 0.12 * low(mEl)) * (1 - 0.12 * low(mEl)), 1);
+      const g = this.sunGlow.material.uniforms; g.uC.value.copy(su.uC.value).lerp(stage.skyHorizon, 0.25); g.uOp.value = (0.22 + 0.35 * tod.twilight + 0.6 * gk) * (1 - 0.85 * smoothstep(0.3, 0.85, cv)) * (this.sunHolder.visible ? 1 : 0);
+      const mg = this.moonGlow.material.uniforms; mg.uC.value.copy(mu.uC.value); mg.uOp.value = 0.18 * litAt() * tod.night * (1 - 0.8 * smoothstep(0.3, 0.85, cv));
+      this.sunGlow.scale.set(170, 170 * (1 - 0.35 * low(sEl)), 1);
+    }
     { // the moon's phase, lit from the sun's side; an eclipse's shadow crossing a disc (systems/moon.js)
       const mu = this.moonMat.uniforms, su = this.sunMat.uniforms, e = tod.eclipse;
       mu.uCos.value = Math.cos(phaseAt() * Math.PI * 2);
@@ -353,7 +377,6 @@ void main(){
     place(this.moon, tod.moonAz, tod.moonElev);
     const moonDir = this.sunDir.clone();
     this.moon.visible = tod.moonElev > -0.08;
-    this.moonMat.color.set('#dfe8ff').lerp(stage.sun, 0.15 * stage.dread);
 
     // the light that makes glints on the water: sun by day, moon by night
     const dayish = smoothstep(-0.05, 0.12, tod.sunElev);

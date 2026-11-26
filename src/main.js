@@ -1340,7 +1340,7 @@ function frame() {
   world.tick(rt.animT, tod);
   places.labelsTick(camera, ship, (state.upgrades.spyglass || 0), state.discovered, window.innerWidth, window.innerHeight, false /* no names on the water when sailing past (owner 2026-11-18) */, { fogFar: scene.fog.far, table: tableOpen(state) });   // far labels: ?, what it looks like, its name; fade with the fog
   ship.place(vdt, waveT, stage.wave, rt.dark, tod.night);
-  moonTick();   // the moon's round and her eclipses (systems/moon.js)
+  moonTick(dt);   // the moon's round and her eclipses (systems/moon.js)
   hailTick();   // a hail: they speak in the speech box, then the choices (ui/shiptrade.js)
   voyageTick(dt); newsTick(dt);   // what you know of each harbour, as you last saw it (systems/news.js)
   gearTick(vdt, waveT, stage.wave);   // the bell and the boat on the Gull, the boat on the water (systems/gearplay.js)
@@ -1414,9 +1414,9 @@ function frame() {
   mats.foam.color.set(0xffffff).lerp(stage.skyHorizon, 0.25);
   mats.foam.opacity = 0.55 + 0.25 * Math.sin(rt.animT * 1.8);
   mats.beam.color.set('#ffe080').lerp(C_BEAM_DREAD, smoothstep(0.5, 0.8, rt.dread));
-  mats.beam.opacity = 0.4 * tod.night;   // only at night: by day the beam was a bar across the sky (audit)
+  mats.beam.uniforms.uOp.value = 0.55 * smoothstep(0.35, 0.8, tod.night) * (1 - 0.6 * Math.min(1, weather.fog || 0)); mats.beam.uniforms.uTime.value = rt.tNow;   // only at night; thick fog swallows it
   mats.wake.color.set(0xffffff).lerp(C_WAKE_NIGHT, tod.night * 0.9).lerp(C_WAKE_DREAD, tod.night * smoothstep(0.55, 0.9, rt.dread) * 0.8);
-  sky.update(window.__waterLock ? 0 : dt, camera, stage, wind.dir, tod, { night: nightKey(), cover: Math.max(weather.cloud || 0, weather.rain || 0, weather.storm || 0), sun2: abyss.sun2, storm: weather.heavy || 0, stormWall: Math.max(weather.frontAhead || 0, (weather.stormAhead || 0) * 0.9, (weather.storm || 0) * 0.7) });
+  sky.update(window.__waterLock ? 0 : dt, camera, stage, wind.dir, tod, { night: nightKey(), cover: Math.max(weather.cloud || 0, weather.rain || 0, weather.storm || 0), sun2: abyss.sun2, green: rt.greenK || 0, storm: weather.heavy || 0, stormWall: Math.max(weather.frontAhead || 0, (weather.stormAhead || 0) * 0.9, (weather.storm || 0) * 0.7) });
   if (litAt() < 0.04 && !(rt.eclipse && rt.eclipse.kind === 'solar')) sky.moon.visible = false;   // a new moon: no moon in the sky (an eclipse's dark night keeps her: she goes copper)
   ocean.material.opacity = 1 - 0.7 * abyss.seeThrough;
   if (abyss.seeThrough > 0) { U.uDeep.value.lerp(GLASS, 0.8 * abyss.seeThrough); U.uShallow.value.lerp(GLASS, 0.7 * abyss.seeThrough); }

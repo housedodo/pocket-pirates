@@ -21,6 +21,9 @@ const SPEC = {
   barracuda: { len: 58, h: 6,  peak: 0.5, nose: 0.35, cols: ['#3a4a5a', '#a8b8c0', '#f0f4f4', '#5a6a78'], tail: 'fork', dorsal: [0.42, 0.55, 5], pattern: 'bars', eye: [0.86, 2.4], teeth: true, iris: '#e8e8d0' },
   bream:     { len: 40, h: 11, peak: 0.6, nose: 0.75, cols: ['#4a6a7a', '#b8ccd4', '#f4f8f8', '#6a8494'], tail: 'fork', dorsal: [0.25, 0.75, 5, 'spiky'], pattern: 'gilt', eye: [0.82, 3], iris: '#f0d060' },
   moonfish:  { len: 38, h: 15, peak: 0.55, nose: 0.85, cols: ['#a83a5a', '#e88a98', '#f8d8dc', '#e8402a'], tail: 'lunate', dorsal: [0.4, 0.85, 9], pattern: 'whitespots', eye: [0.82, 3.2], tailK: 0.7, iris: '#f0b040', scale: 0.4 },
+  // the eclipse fish (systems/moon.js): a jack the colour of the red moon, a ray as black as the noon sun with a pale ring
+  copperjack: { len: 46, h: 12, peak: 0.62, nose: 0.8, cols: ['#6a2410', '#c0502c', '#f0b088', '#8a3418'], tail: 'fork', dorsal: [0.3, 0.7, 7], pattern: 'scales', eye: [0.84, 3], iris: '#ffd8a0' },
+  noonray:    { len: 50, h: 13, peak: 0.5, nose: 0.9, cols: ['#0c0a10', '#24202a', '#e8d8a0', '#3a3440'], tail: 'none', dorsal: [0.4, 0.6, 3], pattern: 'whitespots', eye: [0.8, 2.4], iris: '#fff0c0' },
   // the dark ones (only ever drawn once caught)
   lantern:   { len: 34, h: 9,  peak: 0.62, nose: 0.85, cols: ['#8aa0b0', '#d8e4ea', '#f6fafc', '#b8c8d4'], tail: 'fork', dorsal: [0.45, 0.62, 4], pattern: 'photophores', eye: [0.8, 4.2], pale: true, scale: 0.5 },
   eel:       { len: 64, h: 4.5, peak: 0.5, nose: 0.4, cols: ['#7ac8d0', '#bfeef0', '#e8ffff', '#9adce4'], tail: 'none', dorsal: [0.05, 0.75, 2], pattern: 'glass', eye: [0.94, 1.8], glass: true },

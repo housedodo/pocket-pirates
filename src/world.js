@@ -1901,8 +1901,8 @@ export class Island {
       if (m) { const piv = new THREE.Group(); piv.applyMatrix4(extra.bell.m); this.group.remove(m); piv.add(m); this.group.add(piv); this.bell = m; }
     }
     if (extra.beam) {
-      const g = new THREE.ConeGeometry(2.6, 46, 6, 1, true);
-      g.rotateZ(Math.PI / 2); g.translate(23, 0, 0);
+      const g = new THREE.ConeGeometry(7, 74, 14, 1, true);   // wider and longer: it fades out on its own (psx.js mats.beam)
+      g.rotateZ(Math.PI / 2); g.translate(37, 0, 0);
       const beam = new THREE.Mesh(g, mats.beam);
       beam.position.set(extra.beam.x, extra.beam.y, extra.beam.z);
       beam.renderOrder = 3;

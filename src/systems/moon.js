@@ -11,6 +11,7 @@
 import { state } from '../core/state.js';
 import { rt, G } from '../core/runtime.js';
 import { hash2, smoothstep } from '../util.js';
+import { tod } from '../daynight.js';
 
 export const MONTH = 16;                 // days from new moon to new moon (shorter than the real 29.5, so a voyage sees the round)
 export const LUNAR_P = 0.45, LUNAR_TOTAL = 0.3;   // at a full moon: the chance of an eclipse, and of those the share that are whole
@@ -71,7 +72,8 @@ const SAY = {
   nearSun: 'Something took a bite out of the sun just now. It is giving it back, slowly.',
 };
 const say = (k) => { const m = G.objectives && G.objectives.mate; if (m) m.say(SAY[k], k === 'solarWhole' && (rt.dread || 0) >= 0.4); };
-export function moonTick() {
+export function moonTick(dt = 0) {
+  greenTick(dt);
   const e = eclipseNow(); rt.eclipse = e;
   const E = state.story.eclipse || (state.story.eclipse = {});
   if (!e || e.k < 0.05) { if (E.cur && E.cur.whole && !E.cur.after) { E.cur.after = true; say(E.cur.kind === 'lunar' ? 'lunarAfter' : 'solarAfter'); } if (!e) E.cur = null; return; }
@@ -88,6 +90,26 @@ export function moonTick() {
     if (e.kind === 'solar' && G.fauna) for (const b of G.fauna.birds) { b.want = 1; b.next = 60; }   // every bird comes down
     state.notes.push({ text: e.kind === 'lunar' ? 'The moon went out tonight and came back red. The sea lay flat. A bell rang somewhere with no ship near it.' : 'The sun went black at noon. The stars came out. Every bird came down and kept still until it was over.', dark: e.kind === 'solar' && (rt.dread || 0) >= 0.4 });
   }
+}
+// ---- the green flash (owner, 2026-11-26: "a very, very rare easter egg"): at sunset over open water and a clear sky, about one sunset in
+// FLASH_IN, the last sliver of the sun goes green for a breath. Sailors say it is a soul coming back. Once seen it is in the Ship's book.
+export const FLASH_IN = 90, FLASH_S = 1.6;
+let lastEl = null;
+function greenTick(dt) {
+  const el = tod.sunElev, d = state.dayN || 0;
+  if (rt.greenT > 0) { rt.greenT -= dt; rt.greenK = Math.sin(Math.PI * Math.max(0, rt.greenT) / FLASH_S); if (rt.greenT <= 0) rt.greenK = 0; }
+  if (lastEl != null && lastEl > 0.012 && el <= 0.012 && state.time > 0.6) {   // the sun touching the sea
+    const forced = params.get('greenflash') && !(typeof window !== 'undefined' && window.__BUILD === 'full');
+    const clear = !G.weather || Math.max(G.weather.cloud || 0, G.weather.rain || 0, G.weather.storm || 0, G.weather.fog || 0) < 0.3;
+    const lucky = Math.abs(hash2(state.seed || 1, d, 5150)) % FLASH_IN === 0;
+    if (forced || (lucky && clear && !rt.modal && (G.world && G.world.lastEdge > 30))) {
+      rt.greenT = FLASH_S;
+      state.story.greenFlash = (state.story.greenFlash || 0) + 1;
+      if (state.story.greenFlash === 1) state.notes.push({ text: 'At sunset, for one breath, the last of the sun went green. Mara says it is a soul coming back from the other side.', dark: false });
+      setTimeout(() => { const m = G.objectives && G.objectives.mate; if (m && !m.busy) m.say(state.story.greenFlash === 1 ? 'Did you see that? Green. Just for a breath. My father said that is a soul coming back.' : 'Green again. Somebody is coming back tonight.'); }, 1800);
+    }
+  }
+  lastEl = el;
 }
 /** the next harbour talks of it (systems/interact.js on docking): a line once, the day after at most */
 export function eclipseTalk() {

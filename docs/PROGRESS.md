@@ -2615,3 +2615,16 @@ frame and wide map; moon phases and the Eye's shape (not in the summary list).
   the next harbour talks of it once (`eclipseTalk`). Tests: `?eclipse=lunar|lunarnear|solar|solarnear` (sets tonight's phase to match).
 - Also: lighthouse beams only at night (by day they read as a bar across the sky). Open: a pale segmented bar sometimes seen across the
   daytime sky looking sunward (in "before" shots too; not the beam or the cirrus; not yet found).
+- **Lighthouse beam** (owner: "not a clean triangle, more realistic and fading"; `psx.js mats.beam`, `world.js`): a wider, longer cone
+  drawn as light in the air (additive): strongest at the lamp, fading along its length, its edge melting where seen side-on, motes
+  drifting through, stepped in dithered bands, gone far off; only at night, swallowed by thick fog.
+- **Eclipse fish** (`fishing.js`, `fishart.js`): the Copper moonjack bites only while the moon is being eaten, the Black-noon ray only while
+  the sun is; anywhere, near or whole eclipses (k > 0.25); the fishers at the quay tell of them. Checked: 67 of 300 bites during a lunar
+  eclipse, none after.
+- **Sun and moon sit in the sky** (`sky.js glowMat`): a soft dithered glow round each (the sun's wider and warmer at dusk, dimmed by cover;
+  the moon's by how full she is); low down they sink into the haze, take the horizon's colour and flatten a little (the sun more), the low
+  moon warm orange. Both discs and glows are depth-tested now (a sail or an island hides them).
+- **The green flash** (owner: "a very very rare easter egg"; `moon.js greenTick`): as the sun touches the sea over open water and a clear
+  sky, about one sunset in 90 (`FLASH_IN`), the last of her goes green for a breath; Mara: "...My father said that is a soul coming back."
+  First time: a Ship's book note. Test: `?greenflash=1`.
+- The "pale segmented bar" seen across the sky in some test shots is the Gull's rigging seen from a camera placed near her; not a bug.

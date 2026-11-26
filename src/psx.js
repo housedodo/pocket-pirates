@@ -149,7 +149,23 @@ export function initMaterials() {
   // the hut's island: its shallows are black-green and its foam a dull grey scum (fixed colours, never retinted by the day)
   mats.murkShallow = psxMaterial({ haze: false, color: 0x14201c, vertexColors: true, transparent: true, depthWrite: false, key: 'A' });
   mats.murkFoam = psxMaterial({ haze: false, color: 0x4a5046, transparent: true, opacity: 0.35, depthWrite: false, vertexColors: true, key: 'F' });
-  mats.beam = psxMaterial({ color: 0xffe080, transparent: true, opacity: 0.16, depthWrite: false, side: THREE.DoubleSide, fog: true, key: 'B', fragmentColor: { head: '', body: 'diffuseColor.rgb /= max(uLight, 0.05); diffuseColor.a *= farLight();' } });   // takes the fog and fades far off (audit: flat bars on the noon horizon)
+  // the lighthouse beam (owner, 2026-11-26: "not a clean triangle, more realistic and fading"): light in the air, not a surface:
+  // strongest at the lamp and fading along its length, soft where you see its edge, motes drifting through it, stepped in dithered bands
+  { const u = { uC: { value: new THREE.Color(0xffe080) }, uOp: { value: 0 }, uTime: { value: 0 } };   // its own clock (not the water's)
+    mats.beam = new THREE.ShaderMaterial({ uniforms: u, transparent: true, depthWrite: false, side: THREE.DoubleSide, blending: THREE.AdditiveBlending, fog: false,
+      vertexShader: 'varying vec2 vUv; varying vec3 vW; varying float vFace; void main(){ vUv = uv; vec4 w = modelMatrix * vec4(position, 1.0); vW = w.xyz; vec3 n = normalize(normalMatrix * normal); vec4 mv = viewMatrix * w; vFace = abs(dot(n, normalize(-mv.xyz))); gl_Position = projectionMatrix * mv; }',
+      fragmentShader: `uniform vec3 uC; uniform float uOp; uniform float uTime; varying vec2 vUv; varying vec3 vW; varying float vFace;
+float h(vec3 p){ return fract(sin(dot(p, vec3(12.9898, 78.233, 37.719))) * 43758.5453); }
+float b2(vec2 a){ return fract(dot(a, vec2(0.5, a.y * 0.75))); } float b4(vec2 a){ a = floor(a); return b2(floor(0.5 * a)) * 0.25 + b2(a); }
+void main(){ float t = 1.0 - vUv.y;   // 0 at the lamp .. 1 at the far end
+  float along = pow(1.0 - t, 1.7) * smoothstep(0.0, 0.04, t);
+  float soft = smoothstep(0.05, 0.75, vFace);   // its edge seen side-on melts away
+  vec3 q = floor(vW * 0.6 + vec3(uTime * 0.25, uTime * 0.08, 0.0)); float mote = 0.8 + 0.5 * step(0.93, h(q));   // dust and spray drifting through
+  float far = 1.0 - smoothstep(140.0, 320.0, distance(vW, cameraPosition));
+  float a = uOp * along * soft * mote * far;
+  a = floor(a * 7.0 + b4(gl_FragCoord.xy)) / 7.0;
+  gl_FragColor = vec4(uC * a, 1.0); }` });
+    mats.beam.color = u.uC.value; }
   mats.wake = psxMaterial({ color: 0xffffff, transparent: true, opacity: 0.5, depthWrite: false, vertexColors: true, key: 'Wk', fragmentColor: { head: '', body: 'diffuseColor.rgb /= mix(1.0, max(uLight, 0.05), 0.45);' } });
   mats.glow = psxMaterial({ color: 0xffc060, vertexColors: true, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, fog: false, key: 'G', fragmentColor: { head: '', body: 'diffuseColor.rgb /= max(uLight, 0.05); diffuseColor.rgb *= farLight();' } });
   mats.shipGlow = psxMaterial({ color: 0xffc060, vertexColors: true, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, fog: false, key: 'G', fragmentColor: { head: '', body: 'diffuseColor.rgb /= max(uLight, 0.05); diffuseColor.rgb *= farLight();' } });   // the ship's own lantern pool (ship.js): goes out with the lamp; the world's lights do not

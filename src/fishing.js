@@ -5,6 +5,7 @@ import { mats } from './psx.js';
 import { waveHeight } from './ocean.js';
 import { clamp, smoothstep } from './util.js';
 import { state } from './core/state.js';
+import { rt } from './core/runtime.js';
 import { MARK_FISH } from './regions.js';
 // how the line forgives (SYSTEMS_FEEL G-05, G-06, G-21; numbers to tune by hand)
 export const FISH_START_SPEED = 2.5;   // the power meter starts once she is this slow; C under way drops the anchor first
@@ -35,6 +36,9 @@ export const FISH = [
   { id: 'pike', name: 'Many-eyed pike', w: 3, diff: 0.7, price: 12, kg: [3, 10], min: 0.5, max: 1, dark: true },
   { id: 'key', name: 'A fish shaped like a key', w: 1, diff: 0.75, price: 60, kg: [0.5, 2], min: 0.55, max: 1, dark: true },
   { id: 'angler', name: 'Drowned angler', w: 1.5, diff: 0.9, price: 6, kg: [10, 50], min: 0.7, max: 1, night: true, dark: true },
+  // (owner, 2026-11-26: "fish that only bite then"): two that come up only while an eclipse is on (systems/moon.js), near or whole
+  { id: 'copperjack', name: 'Copper moonjack', w: 9, diff: 0.55, price: 30, kg: [1, 5], min: 0, max: 1, eclipse: 'lunar' },
+  { id: 'noonray', name: 'Black-noon ray', w: 9, diff: 0.7, price: 26, kg: [4, 18], min: 0, max: 1, eclipse: 'solar' },
   { id: 'cuttle', name: 'Cuttlefish', w: 3, diff: 0.45, price: 9, kg: [0.3, 2], min: 0, max: 0.7 },
   { id: 'barracuda', name: 'Barracuda', w: 3, diff: 0.7, price: 6, kg: [3, 15], min: 0, max: 0.7 },
   { id: 'bream', name: 'Sea bream', w: 6, diff: 0.3, price: 6, kg: [0.5, 2.5], min: 0, max: 0.7 },
@@ -42,6 +46,8 @@ export const FISH = [
 ];
 /** where and when each bright species bites. Nothing in the game points at these: the player learns them by fishing and by asking the fishers. */
 export const HABITAT = {
+  copperjack: { zones: ['open', 'deep', 'shallows', 'reef', 'harbour'], text: 'The copper moonjack bites only while the moon is being eaten, and anywhere.', say: 'My grandfather caught a copper moonjack once. You only get them when the moon goes red. He ate it, and he never slept well again.' },
+  noonray: { zones: ['open', 'deep', 'shallows', 'reef', 'harbour'], text: 'The black-noon ray comes up only while the sun is out at noon.', say: 'There is a ray that only rises when the sun goes black at noon. I have not seen one. Nobody I trust has.' },
   sardine: { zones: ['shallows', 'harbour'], text: 'Sardines run in the shallows, near any island and in the harbours, all day.', say: 'Sardines? Anywhere close to land. Right off the beach, the harbours. Any hour.' },
   snapper: { zones: ['reef'], hours: [5, 11], text: 'Red snapper keep to rocky edges and reefs, mornings mostly.', say: 'Snapper hug the rocky shores and the reefs. Early. Before the sun is high.' },
   mahi: { zones: ['open', 'deep'], hours: [5, 12], text: 'Mahi-mahi run in open water, away from land, in the morning.', say: 'Mahi-mahi like the open blue, well off the land, and the morning.' },
@@ -173,7 +179,8 @@ export class Fishing {
   }
   pick(ctx) {
     if (ctx.env && ctx.env.colour && Math.random() < 0.7) { this.env = ctx.env; return BRIGHT_FISH; }   // in the wrong water most bites are the wrong fish
-    const list = FISH.filter((f) => ctx.dread >= f.min && ctx.dread <= f.max && (!f.night || ctx.night > 0.5));
+    const ecl = rt.eclipse && rt.eclipse.k > 0.25 ? rt.eclipse.kind : null;   // while an eclipse is on, its fish bite (systems/moon.js)
+    const list = FISH.filter((f) => ctx.dread >= f.min && ctx.dread <= f.max && (!f.night || ctx.night > 0.5) && (!f.eclipse || f.eclipse === ecl));
     this.env = ctx.env || null;
     const far = (this.power || 0.5) - 0.5;   // a long cast favours the big, hard fish; a short one the small, easy ones
     const ws = list.map((f) => f.w * Math.exp(far * 3.2 * (f.diff - 0.45)) * (f.dark ? 0.4 + ctx.dread : (1.25 - ctx.dread * 0.9) * habitatFit(f.id, ctx.env)));
