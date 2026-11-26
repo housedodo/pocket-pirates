@@ -2650,3 +2650,9 @@ frame and wide map; moon phases and the Eye's shape (not in the summary list).
   stands in a clear pocket; the bank's walls go thin round you; with the lamp out it stays thick.
 - Smoke: the 60-game-second sail gets 12 minutes (the machine after the restart runs both games slower; the last passing commit failed
   the same way at 8).
+- **Shallows toward blue** (owner): the shallow tint near islands is bluer, the sand shows through less and cooler, the open-sea banks
+  less yellow-green (`ocean.js`, `seawater.js`).
+- **How far you see, by weather, after real seas** (owner; `weather.js apply`): clear day full distance; just after rain the air is
+  washed (+25%, fading over about four minutes); overcast haze -15%; drizzle -45%; squall or storm about half (lit lighthouses still
+  carry); fog -75%, and thick fog takes the near shapes too. Reference: island peaks 15-25 nm on a clear Caribbean day, 5-10 nm in haze,
+  2-5 in drizzle, under a mile in a squall, under a kilometre in fog. Preview `docs/proposals/sky/visibility_before_after.png`.

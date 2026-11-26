@@ -51,7 +51,7 @@ if (uSeaOn > 0.5) {
     float deepK = smoothstep(0.56, 0.68, pt) * openS, bankK = (1.0 - smoothstep(0.3 + 0.12 * uSea.y, 0.42 + 0.12 * uSea.y, pt)) * openS;
     outc = mix(outc, outc * vec3(0.58, 0.7, 0.92), floor(deepK * 16.0 + dq) / 16.0 * 0.8);
     float bedR = 0.5 + 0.5 * sin(dot(P, vec2(0.41, 0.27)) + 2.0 * vn(P * 0.07));
-    vec3 bank = mix(mix(uShallow, vec3(0.84, 0.86, 0.6), 0.5), mix(uShallow, vec3(0.95, 0.92, 0.72), 0.6), bedR * 0.5) * uLight;
+    vec3 bank = mix(mix(uShallow, vec3(0.8, 0.88, 0.86), 0.45), mix(uShallow, vec3(0.92, 0.94, 0.9), 0.5), bedR * 0.5) * uLight;   // cooler, less yellow-green
     bank = mix(bank, mix(uShallow, outc, 0.5) * 1.06, 1.0 - uSea.y);   // only the Cays' glassy water shows sand; elsewhere a cooler, lighter blue, so it never reads as a sandbank (audit)
     outc = mix(outc, bank, floor(bankK * 16.0 + dq) / 16.0 * (0.25 + 0.35 * uSea.y) * calmR);
     // current lines: a slow bending field; where it crosses its middle there is a thin broken foam line with glassy water beside it

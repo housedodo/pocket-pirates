@@ -212,7 +212,7 @@ export class Ocean {
           // the sea's own character: smooth by the islands, patches, current lines, the region's water (seawater.js)
           ${GLSL_SEA_BODY}
           // near land: lighter, shallower, more turquoise (the same flat banded look)
-          vec3 shallowTint = mix(uShallow * 1.12, vec3(0.72, 0.95, 0.82), 0.35) * uLight;
+          vec3 shallowTint = mix(uShallow * 1.08, vec3(0.58, 0.86, 0.96), 0.4) * uLight;   // toward blue (owner, 2026-11-26: the shallows read too green)
           float band = uSeaOn > 0.5 ? floor(shore * 16.0 + bay4(gl_FragCoord.xy)) / 16.0 : floor(shore * 4.0 + 0.5) / 4.0;   // the new sea: a fine dithered gradient, no hard rings
           outc = mix(outc, shallowTint, band * (uSeaOn > 0.5 ? 0.7 : 0.6));
           // ---- near land: the seabed shows through the shallows, fish shadows drift over it, and waves roll in and break on the shore
@@ -229,7 +229,7 @@ export class Ocean {
             vec3 bed = mix(vec3(0.86, 0.8, 0.58), vec3(0.95, 0.9, 0.7), rip);
             bed = mix(bed, vec3(0.28, 0.36, 0.26), clamp(rock, 0.0, 1.0) * 0.8);
             float bq = floor(clear * 0.62 * 4.0 + dz) / 4.0;
-            outc = mix(outc, bed * mix(uShallow, vec3(1.0), 0.45) * uLight, bq * (1.0 - uRough * 0.8));
+            outc = mix(outc, bed * mix(uShallow, vec3(0.85, 0.95, 1.0), 0.45) * uLight, bq * 0.7 * (1.0 - uRough * 0.8));   // the sand shows through a little less, and cooler
             // fish shadows: small dark shapes that drift in slow loops over the sand by day
             vec2 cell = floor(vWP.xz / 22.0);
             if (rnd(cell) > 0.55 && clear > 0.25) {

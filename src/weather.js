@@ -80,6 +80,7 @@ export class Weather {
     this.stormAhead = Math.max(smoothstep(0.62, 0.74, ahead) * stormMul, this.frontAhead * 0.9);
     const dusk = tod.twilight || 0;
     this.redSky += ((this.stormAhead > 0.3 && this.storm < 0.2 ? dusk : 0) - this.redSky) * Math.min(1, dt * 0.5);
+    { const wet = Math.max(this.rain, this.storm); if (wet > 0.4) this.wetSeen = 1; if (wet < 0.15 && this.wetSeen) { this.washed = 1; this.wetSeen = 0; } this.washed = Math.max(0, (this.washed || 0) - dt / 240); }   // after rain the air is washed clear for a while (apply)
     // Two-stage easing: the target is chased by a slow follower, and the weather chases that. The start is an
     // S-curve (a hint first: greying sky, a haze), never a jump. Fog is slowest. A forced weather (title, dev) is fast.
     if (this.force || !this.mid) { this.mid = {}; for (const key of Object.keys(target)) this.mid[key] = this[key]; }
@@ -153,10 +154,14 @@ export class Weather {
     stage.light *= (1 - 0.1 * dz) * (1 - 0.18 * st);
     stage.sat *= (1 - 0.3 * dz) * (1 - 0.35 * st);
     stage.vig += 0.15 * st;
-    stage.fogFar *= (1 - 0.4 * dz) * (1 - 0.2 * st); stage.fogNear *= (1 - 0.5 * dz) * (1 - 0.3 * st);   // a storm still lets you see islands and lighthouses   // drizzle: a soft mist that swallows the far islands
+    // how far you can see, after real seas (owner, 2026-11-26): a clear Caribbean day shows island peaks 15-25 nm off (full distance); just
+    // after rain the air is washed and clearest (+25%, fading over a few minutes); overcast haze 5-10 nm (-15%); drizzle 2-5 nm (-45%); a
+    // squall or storm under a mile (about half; the lit lighthouses still carry); fog under a kilometre, thick fog a few hundred metres (-75%)
+    { const vis = (1 - 0.15 * c) * (1 - 0.45 * dz) * (1 - 0.5 * st) * (1 + 0.25 * (this.washed || 0) * (1 - c));
+      stage.fogFar *= vis; stage.fogNear *= (1 - 0.15 * c) * (1 - 0.55 * dz) * (1 - 0.55 * st) * (1 + 0.2 * (this.washed || 0) * (1 - c)); }   // a storm still lets you see islands and lighthouses   // drizzle: a soft mist that swallows the far islands
     stage.cloudSpeed = 1 + 5 * st;
-    stage.fogFar = Math.max(40, stage.fogFar * (1 - 0.6 * this.fog - 0.25 * this.rain));
-    stage.fogNear = Math.max(8, stage.fogNear * (1 - 0.7 * this.fog));
+    stage.fogFar = Math.max(40, stage.fogFar * (1 - 0.75 * this.fog));   // (the rain is counted above)
+    stage.fogNear = Math.max(6, stage.fogNear * (1 - 0.85 * this.fog));   // in thick fog even the near shapes go
     if (this.redSky > 0.02) { stage.skyHorizon.lerp(RED_SKY, this.redSky * 0.6); stage.skyTop.lerp(RED_TOP, this.redSky * 0.35); stage.fog.lerp(RED_SKY, this.redSky * 0.3); }
     stage.wave *= 1 - 0.75 * this.calm;
     if (this.rainU) this.rainU.uC.value.copy(stage.fog).lerp(stage.skyHorizon, 0.5).lerp(WHITE, (0.22 + 0.1 * (1 - this.heavy)) * (1 - 0.8 * night));   // at night the rain is hardly lighter than the dark (audit)   // the rain is the haze's colour, a little lighter (before the lightning)
