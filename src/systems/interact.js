@@ -101,7 +101,7 @@ export function getInteract() {
   if (state.sailsTorn && state.patchKits > 0) return { kind: 'patch', key: 'patch' };   // anywhere at sea: patch the sail with a kit (above fruit and hails, G-13)
   { const ra = raceHere(); if (ra) return ra; }   // at the regatta's start line: E to race (race.js, owner 2026-11-19)
   for (const s of G.traffic.ships) if (s.struck && !s.boarded && !s.sinking && Math.hypot(s.x - G.ship.pos.x, s.z - G.ship.pos.z) < 16) return { kind: 'board', key: 'board' + s.id, s, prompt: '[E] Board her' };   // dismasted by chain shot (combat.js)
-  const sh = G.traffic.nearestHail(G.ship.pos.x, G.ship.pos.z, 24);
+  const sh = !rt.hailPending && G.traffic.nearestHail(G.ship.pos.x, G.ship.pos.z, 24);   // (none while a hail is being answered)
   if (sh) return { kind: 'ship', key: 'ship' + sh.id, s: sh };
   const fi = G.world.nearest(G.ship.pos.x, G.ship.pos.z, 14, ['jungle', 'sandbar']);
   if (fi) return { kind: 'fruit', key: 'fruit' + fi.desc.id, isl: fi };

@@ -4,6 +4,7 @@
 // everything else is the bare sheet with the chartmaker's rhumb lines. The fog wall is just where the paint stops.
 // Everything is set pixel by pixel at half resolution (no anti-aliased strokes); labels go on the full-resolution layer and
 // are cut hard (alpha threshold), like the #crisp filter.
+import * as life from './harbourlife.js';
 import { shoreR, hasLighthouse } from './world.js';
 import { sectorInfo, sectorCoord } from './sectors.js';
 import { hash2 } from './util.js';
@@ -274,6 +275,12 @@ export function drawVariant(lb, key) {
   const foundAt = (x, z) => { const n = world.nearest(x, z, 80); return !!(n && state.discovered[n.desc.id]); };   // T5: an errand's harbour shows once you have found it yourself
   if (state.job && show.errand && foundAt(state.job.x, state.job.z)) flag(X(state.job.x) + 10, Z(state.job.z) - 10);
   if (state.passenger && show.errand && foundAt(state.passenger.x, state.passenger.z)) flag(X(state.passenger.x) + 10, Z(state.passenger.z) - 10);
+  if (show.errand) for (const p of life.promises(state)) {   // a promise waiting at a harbour: a small red bow (harbourlife.js)
+    if (!p.toId || !state.discovered[p.toId]) continue;
+    const [cx, cz] = p.toId.split(',').map(Number), d = world.desc(cx, cz); if (!d) continue;
+    const bx = Math.round(X(d.x)) - 13, by = Math.round(Z(d.z)) - 12;
+    for (const [x, y, k] of [[0, 0, 1], [1, 0, 1], [4, 0, 1], [5, 0, 1], [0, 1, 1], [1, 1, 0], [2, 1, 1], [3, 1, 1], [4, 1, 0], [5, 1, 1], [1, 2, 1], [2, 2, 1], [3, 2, 1], [4, 2, 1], [2, 3, 1], [3, 3, 1], [1, 4, 1], [4, 4, 1], [1, 5, 1], [4, 5, 1]]) { c.fillStyle = k ? RED : INK; c.fillRect(bx + x, by + y, 1, 1); }
+  }
   for (const qq of ((state.story && state.story.pins) || [])) if (show.note) spr('pin', X(qq.x), Z(qq.z), qq.on ? PENCIL : SOFT, groundAt(X(qq.x), Z(qq.z)));
 
   // ---- your ship: a red arrow on her heading inside a ring, with clear ground round it (drawn last, above the lettering)

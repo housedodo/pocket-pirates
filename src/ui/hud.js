@@ -1,5 +1,6 @@
 // The HUD that follows the ship: the wind ring and compass, which errand is tracked and where it points, the slip (what, where, how
 // long), and the tracker panel. Drawn every frame from main.js.
+import * as life from '../harbourlife.js';
 import { angleDiff } from '../util.js';
 import { bearingName, questProgress, questNeed, questTitle, questIcon } from '../jobs.js';
 import { goalCount } from '../objectives.js';
@@ -15,11 +16,18 @@ export let trackerEl;   // set by the init function(s) below, at the point in bo
 
 // ---------------------------------------------------------------- compass & HUD
 export const windView = { dir: 0, strength: 1, gust: 0, floor: 0.27 };
+/** T: follow the next thing in hand (errands, then promises) */
+export function followNext() {
+  const ids = [...(state.job ? ['job'] : []), ...(state.passenger ? ['passenger'] : []), ...state.quests.map((q) => q.id), ...life.promises(state).map((p) => 'p:' + p.key)];
+  if (!ids.length) return; const i = ids.indexOf(state.tracked); state.tracked = ids[(i + 1) % ids.length];
+  G.sea.syncQuests(state.quests.filter((q) => q.id === state.tracked)); rt.trackerHtml = null;
+}
 export function trackedOne() {
   const t = state.tracked;
   if (t === 'job' && state.job) return 'job';
   if (t === 'passenger' && state.passenger) return 'passenger';
   if (t && state.quests.some((q) => q.id === t)) return t;
+  if (t && t.startsWith('p:') && life.promises(state).some((p) => 'p:' + p.key === t)) return t;   // a promise (harbourlife.js)
   state.tracked = state.passenger ? 'passenger' : state.job ? 'job' : state.quests.length ? state.quests[0].id : null;
   G.sea.syncQuests(state.quests.filter((q) => q.id === state.tracked));   // only the followed errand's crates float
   return state.tracked;
@@ -83,13 +91,14 @@ export function updateTracker() {
   const fresh = performance.now() < rt.trackerNewUntil; trackerEl.classList.toggle('flash', fresh);
   if (g) { const s = slipInfo();   // the slip: what, where, which way and how long (always these three, in this order)
     rows.push(`<div class="trow main"><i class="ico flag"></i>${g.title}${goalCount(g, { state, ship: G.ship })}${fresh ? '<span class="tag">NEW</span>' : ''}</div>${s.where ? `<div class="trow where">${s.where}</div>` : ''}${s.way ? `<div class="trow way">${s.way}</div>` : ''}`); }
-  const tr = trackedOne(), others = (state.job ? 1 : 0) + (state.passenger ? 1 : 0) + state.quests.length - (tr ? 1 : 0);
+  const tr = trackedOne(), P = life.promises(state), nErr = (state.job ? 1 : 0) + (state.passenger ? 1 : 0) + state.quests.length;
   if (tr === 'job') rows.push(`<div class="trow">${pxi('letter')} ${state.job.toName}${state.job.due != null ? ` · ${clockAt(state.job.due)}` : ''}</div>`);
   else if (tr === 'passenger') rows.push(`<div class="trow">${pxi('talk')} ${state.passenger.name} to ${state.passenger.toName}</div>`);
+  else if (tr && tr.startsWith('p:')) { const p = P.find((x) => 'p:' + x.key === tr); if (p) { const [cx, cz] = (p.toId || '0,-1').split(',').map(Number), d = G.world.desc(cx, cz); rows.push(`<div class="trow">${pxi('ribbon')} ${p.who} → ${p.to}</div>${d ? `<div class="trow way">${bearingName(d.x - G.ship.pos.x, d.z - G.ship.pos.z)}${p.need ? ' · ' + p.need : ''}</div>` : ''}`); } }
   else { const q = state.quests.find((x) => x.id === tr); if (q) rows.push(`<div class="trow">${questIcon(q)} ${questTitle(q, rt.dread)} <b>${questProgress(q, state)}/${questNeed(q)}</b></div>`); }
   // the regatta and the guitar errand are found by the player, never pointed at (owner, 2026-11-19)
   if (!g) { const t = rt.trackNow; if (t) { const s = slipTo({ what: t.label }, t); rows.push(`<div class="trow">${pxi('flag')} ${t.label}</div><div class="trow way">${s.way}</div>`); } }   // the captain's own mark (T5, item 5)   // (systems/race.js)
-  if (others > 0) rows.push(`<div class="thint">+${others} more in your orders (J)</div>`);
+  if (nErr + P.length > 1) rows.push(`<div class="tcount">${nErr ? `${pxi('letter')}${nErr}` : ''}${P.length ? ` ${pxi('ribbon')}${P.length}` : ''}<span class="thint"> T</span></div>`);   // how many of each; T follows the next (owner, 2026-11-26)
   const html = rows.length ? G.abyss.hud('track', rows.join('')) + '<div class="thint">[Q] hide</div>' : '';
   if (html !== rt.trackerHtml) { rt.trackerHtml = html; trackerEl.innerHTML = html; }
   trackerEl.style.display = html ? 'block' : 'none';

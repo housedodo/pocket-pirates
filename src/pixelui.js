@@ -46,6 +46,7 @@ const GLYPHS = {
   skull: ['.SSSSS.', 'SSSSSSS', 'S##S##S', 'SSSSSSS', '.SS#SS.', '.S.S.S.', '.......'],
   dolphin: ['...k...', '..kk...', '.kkkkk.', 'kkkkkkk', '.....kk', '......k', '.......'],
   letter: ['.......', '#######', '##SSS##', '#S#S#S#', '#SS#SS#', '#######', '.......'],
+  ribbon: ['.......', 'RR...RR', 'RrR.RrR', '.RRRRR.', '..RrR..', '.RR.RR.', '.R...R.'],   // a promise (harbourlife.js)
   talk: ['.SSSSS.', 'SSSSSSS', 'S#S#S#S', 'SSSSSSS', '.SSSSS.', '.SS....', '.S.....'],
   ball: ['..KKK..', '.KkKKK.', 'KkKKKKK', 'KKKKKKK', 'KKKKKKK', '.KKKKK.', '..KKK..'],
   paint: ['.SSSSS.', 'SRSbSgS', 'SSSSSSS', 'SySSS..', 'SSSSS..', '.SSSS..', '.......'],

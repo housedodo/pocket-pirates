@@ -1,3 +1,4 @@
+import * as life from './harbourlife.js';
 import { shoreR, hasLighthouse } from './world.js';
 import { SECTOR, sectorInfo, sectorCoord } from './sectors.js';
 import { UPGRADES, MAX_LEVEL } from './upgrades.js';
@@ -265,7 +266,7 @@ export class Logbook {
     if (notes.length) html += notes.map((n) => `<div class="ent dim"><small>Mara: “${n}”</small></div>`).join('');
     const quests = this.sec('quests') ? ['', () => {}] : this.partQuests();
     if (!this.sec('quests')) {   // deliveries, passengers and commissions: one list
-      html += h3('Also in hand');
+      html += h3('Errands');
       const way = (x, z) => bearingName(x - ship.pos.x, z - ship.pos.z);   // which way only, never how far (owner, 2026-11-20: the direction was said once and then lost)
       const j = state.job, pg = state.passenger, far = (x, z) => { const dx = x - ship.pos.x, dz = z - ship.pos.z; return `${bearingName(dx, dz)} · ${this.d.eta ? this.d.eta(Math.hypot(dx, dz)) : Math.round(Math.hypot(dx, dz))}`; };
       if (j) html += ent(`${pxi('letter')} ${j.item}`, `to ${j.toName} · ${way(j.x, j.z)}${j.due != null ? ` · by ${dueClock(j.due)}` : ''}`, `${j.reward}g`, '', trackBtn(state, 'job') + '<button class="mini" data-drop="job">Give it up</button>');
@@ -277,6 +278,10 @@ export class Logbook {
         html += `<div class="ent ${done ? 'cur' : ''}"><b>${questIcon(q)} ${questTitle(q, dread)}</b><span class="r">${q.reward}g</span><small>${where}${done ? ' · ready to hand in' : ''} · ${have}/${need}</small><div class="acts">${trackBtn(state, q.id)}</div></div>`;
       }
       if (!j && !pg && !state.quests.length) html += ent('Nothing else', 'Harbour boards post deliveries, passages and errands.', '', 'dim');
+    }
+    { // promises: the residents' stories under way (harbourlife.js), one line each
+      const P = life.promises(state), wayTo = (id) => { if (!id) return ''; const [cx, cz] = id.split(',').map(Number), d = this.d.world.desc(cx, cz); return d ? ` · ${bearingName(d.x - ship.pos.x, d.z - ship.pos.z)}` : ''; };
+      if (P.length) html += h3('Promises') + P.map((p) => ent(`${pxi('ribbon')} ${p.who}`, `to ${p.to}${p.need ? ' ' + p.need : ''}${wayTo(p.toId)}${p.soon ? ' · not before tomorrow' : ''}${p.carry ? `<br>${p.carry}` : ''}`, '', '', trackBtn(state, 'p:' + p.key))).join('');
     }
     const riddles = this.sec('riddles') ? ['', () => {}] : this.partRiddles();
     if (riddles[0]) html += riddles[0].replace('<h3>', '<h3 class="brk">');

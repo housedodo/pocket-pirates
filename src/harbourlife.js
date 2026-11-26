@@ -177,6 +177,19 @@ function stepRow(state, d, a, A, s, key, ctx) {
   const name = a.partnerName || '…';
   return { key, who: A.who, text: s.say.replace(/\{P\}/g, name).replace(/\{H\}/g, a.homeName), btn: s.btn, block, dark: !!s.dark };
 }
+/** the promises in hand (owner, 2026-11-26: "nowhere does it say in orders that I need to do that"): each resident story under way,
+ *  as one line: who, where next, what it needs, what you carry. { key, who, to, toId, need, carry } */
+const NEED_WORD = { fish: 'with a fish', fruit: 'with some fruit', oil: 'with lamp oil', night: 'after dark', event: 'on the festival day' };
+export function promises(state) {
+  const L = lifeOf(state), out = [];
+  for (const [key, a] of Object.entries(L.arcs)) {
+    if (a.done || !(a.step > 0)) continue;
+    const A = ARCS[a.arc], s = A && A.steps[a.step]; if (!s) continue;
+    const toId = s.at === 'partner' ? a.partner : key, to = s.at === 'partner' ? a.partnerName : a.homeName, prev = A.steps[a.step - 1];
+    out.push({ key, who: A.who, to, toId, need: NEED_WORD[s.need] || '', carry: prev && prev.done ? prev.done : '', soon: a.day === state.dayN });
+  }
+  return out;
+}
 /** take the step: returns { toast, gold, ended, arc } or null */
 export function takeStep(state, world, d, key) {
   const L = lifeOf(state);

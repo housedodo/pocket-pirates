@@ -9,7 +9,7 @@ import { rt, G } from './core/runtime.js';
 export const KEY_ACTIONS = [
   ['steerL', 'Steer to port', 'KeyA'], ['steerR', 'Steer to starboard', 'KeyD'], ['sailUp', 'Let the sails out', 'KeyW'], ['sailDown', 'Reef the sails', 'KeyS'],
   ['interact', 'Interact', 'KeyE'], ['fish', 'Fish', 'KeyC'], ['strike', 'Strike, fire, go on', 'Space'], ['oars', 'Oars', 'KeyG'], ['lamp', 'Lamp', 'KeyL'],
-  ['log', "Captain's log", 'KeyM'], ['orders', 'Orders', 'KeyJ'], ['tracker', 'Tracker', 'KeyQ'], ['hint', 'Ask Mara', 'KeyY'], ['hud', 'Hide the HUD', 'KeyH'],
+  ['log', "Captain's log", 'KeyM'], ['orders', 'Orders', 'KeyJ'], ['tracker', 'Tracker', 'KeyQ'], ['follow', 'Follow the next order', 'KeyT'], ['hint', 'Ask Mara', 'KeyY'], ['hud', 'Hide the HUD', 'KeyH'],
   ['camL', 'Look left', 'KeyZ'], ['camR', 'Look right', 'KeyX'], ['camReset', 'Look ahead', 'KeyV'], ['tiltDown', 'Camera lower', 'KeyR'], ['tiltUp', 'Camera higher', 'KeyF'],
   ['zoomIn', 'Zoom in', 'Equal'], ['zoomOut', 'Zoom out', 'Minus'],
 ];

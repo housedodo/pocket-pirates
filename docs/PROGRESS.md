@@ -2629,3 +2629,11 @@ frame and wide map; moon phases and the Eye's shape (not in the summary list).
   First time: a Ship's book note. Test: `?greenflash=1`.
 - The "pale segmented bar" seen across the sky in some test shots is the Gull's rigging seen from a camera placed near her; not a bug.
 - Chart: island names under the cartouche (top left) are not drawn there any more; the cartouche wins (owner, 2026-11-26).
+- **Promises in the Orders** (owner: "nowhere does it say in orders that I need to do that... build it like that"): `harbourlife.js promises`
+  lists each resident story under way (who, the harbour next, what it needs, what you carry). Orders: Now, Errands (deliveries,
+  passages, commissions), Promises (a ribbon icon, Follow), riddles. The tracker: the main goal, the one you follow (a promise shows who →
+  where and the bearing), and a row of counts (letters, ribbons) with T to follow the next (`hud.js followNext`; T added to the keys). The
+  chart: a small red bow by the harbour where a promise waits, and "X is waiting" on its card. (The board at that harbour already shows
+  the step.)
+- **Hails**: only what they say goes in the speech box (the narration is dropped); a second E while they speak no longer queues them again
+  (that left the choices never coming); the hail prompt hides meanwhile; the choices come a beat after the last word.

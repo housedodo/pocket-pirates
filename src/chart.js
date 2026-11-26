@@ -102,6 +102,7 @@ function hover(lb, e, [wx, wz]) {
     row('note', life.eventLine(d, state).replace(' here', ''), P.blue);
     { const nl = newsLine(d); if (nl) row('note', nl, nl.includes('tomorrow') ? '#3a1838' : P.gold); }   // as you last knew it (systems/news.js)
     if (L.frags.some((f) => f.at === d.name)) row('note', 'You have heard its old story', P.purple);
+    for (const p of life.promises(state)) if (p.toId === d.id) row('errand', `${p.who} is waiting${p.need ? ' ' + p.need : ''}`, P.red);   // a promise (harbourlife.js)
   }
   if (d.type === 'treasure') row('treasure', state.dug.has(d.id) ? 'Dug up' : 'A chest is buried here', P.red);
   if (state.rumoured[d.id] && !state.rumoured[d.id].found) row('rumour', `Rumour from ${state.rumoured[d.id].source}`, P.red);

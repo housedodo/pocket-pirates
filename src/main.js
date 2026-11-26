@@ -119,7 +119,7 @@ import { lineLate, laneOars, pennantsAt } from './systems/crown.js';
 import { farLightTick, LIGHTS_LINE, LAMP_OUT_FAR } from './systems/farlights.js';
 import { raceTick, holdRegatta, raceNow } from './systems/race.js';
 import { LANDING, landThrow, landedAt } from './systems/landing.js';
-import { trackTarget, goldShown, etaText, slipInfo, drawCompass, updateTracker, initHud, drawTideClock } from './ui/hud.js';
+import { trackTarget, goldShown, etaText, slipInfo, drawCompass, updateTracker, initHud, drawTideClock, followNext } from './ui/hud.js';
 import { initDevStudio } from './ui/devstudio.js';   // F10 (dev builds only)
 import { LOCALS, localGames, pig, maraMood, openCard, caveScene, COLOUR_DEEP, COLOUR_SHALLOW, openCave, tabletopTick, signOn, daysLeft, crewLeave, wishDone, initEncounters } from './ui/encounters.js';
 
@@ -699,6 +699,7 @@ window.addEventListener('keydown', (e) => {
   if (e.code === 'KeyB' && !rt.modal && rt.started && unlocked(state, 'cannons')) { state.story.shot = state.story.shot === 'chain' ? 'round' : 'chain'; toast(state.story.shot === 'chain' ? `Chain shot loaded (${state.story.chain || 0})` : 'Round shot loaded', false, 2000); audio.play('ui', { vol: 0.3 }); }   // two kinds of shot (combat.js)
   if (e.code === 'KeyG' && !rt.modal && rt.started && unlocked(state, 'oars')) { ship.rowing = !ship.rowing; toast(ship.rowing ? 'Oars out' : 'Oars in, sails up', false, 2200); if (ship.rowing) objectives.remark('oars', rt.dread); }
   if (e.code === 'KeyQ' && !rt.modal) { settings.tracker = settings.tracker === false; store.set(SETTINGS_KEY, settings); }
+  if (e.code === 'KeyT' && !rt.modal) followNext();   // the tracker follows the next order (ui/hud.js)
   if (!DEV) return;   // test keys only with ?dev=1
   if (e.code === 'F8') { e.preventDefault(); mixer.toggle(); }
   if (e.code === 'F9') { e.preventDefault(); studio.toggle(); }

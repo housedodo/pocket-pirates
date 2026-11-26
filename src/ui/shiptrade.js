@@ -83,10 +83,14 @@ export function shipOffers(sh) {
 // First they speak, then you choose (owner, 2026-11-26: "just like how Mara or a passenger would talk... first a conversation, then the
 // options appear at the bottom while the game is visible"): their words go through Mara's speech box under their own name, the game
 // running; when they have said it, the choices come up as a strip across the foot of the screen.
+function spoken(t) {   // only what they say (owner, 2026-11-26): the words inside the quotes, without the narration round them
+  const m = t.match(/["\u201c]([^"\u201d]+)["\u201d]/g); return m ? m.map((q) => q.slice(1, -1)).join(' ') : t;
+}
 function lineFor(sh) {
-  return sh.crew ? crewLine(sh) : sh.special === 'market' ? 'Everything must go. Everything always goes. Come aboard, Captain.' : sh.hostile ? 'Nice ship. Shame if something happened to it. A little tribute, perhaps?' : (FACTION_GREET[sh.faction.id] || 'Ahoy!');
+  return sh.crew ? spoken(crewLine(sh)) : sh.special === 'market' ? 'Everything must go. Everything always goes. Come aboard, Captain.' : sh.hostile ? 'Nice ship. Shame if something happened to it. A little tribute, perhaps?' : (FACTION_GREET[sh.faction.id] || 'Ahoy!');
 }
 function startHail(sh) {
+  if (rt.hailPending) return;   // already speaking: a second E does not queue her again (owner: "I could not do anything")
   const m = G.objectives && G.objectives.mate;
   if (!m) { rt.tradeShip = sh; G.openModal('ship'); return; }
   m.queue.unshift({ text: lineFor(sh), dark: sh.crew === 'collectors', who: sh.name, hail: true });
@@ -96,11 +100,13 @@ function startHail(sh) {
 export function hailTick() {
   const sh = rt.hailPending; if (!sh) return;
   const m = G.objectives.mate;
-  if (sh.sinking || Math.hypot(sh.x - G.ship.pos.x, sh.z - G.ship.pos.z) > 90) { rt.hailPending = null; m.queue = m.queue.filter((q) => !q.hail); return; }   // gone, or you sailed off
-  const talking = m.queue.some((q) => q.hail) || (m.cur && m.cur.hail && (m.shown < m.cur.text.length || m.wait > m.holdTime() - 1.2));
+  if (sh.sinking || Math.hypot(sh.x - G.ship.pos.x, sh.z - G.ship.pos.z) > 90) { rt.hailPending = null; rt.hailTyped = null; m.queue = m.queue.filter((q) => !q.hail); return; }   // gone, or you sailed off
+  const typed = m.cur && m.cur.hail && m.shown >= m.cur.text.length;
+  if (typed && rt.hailTyped == null) rt.hailTyped = rt.tNow;
+  const talking = m.queue.some((q) => q.hail) || (m.cur && m.cur.hail && (!typed || rt.tNow - rt.hailTyped < 1.3));   // a beat after her last word, not Mara's long reading pause
   if (talking || rt.modal) return;
   if (m.cur && m.cur.hail) { m.cur = null; if (!m.queue.length) m.el.style.display = 'none'; }   // said: the box gives way to the choices
-  rt.hailPending = null; rt.tradeShip = sh; G.openModal('ship');
+  rt.hailPending = null; rt.hailTyped = null; rt.tradeShip = sh; G.openModal('ship');
 }
 export function renderShipTrade() {
   const sh = rt.tradeShip;
