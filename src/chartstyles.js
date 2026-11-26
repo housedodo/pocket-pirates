@@ -327,6 +327,7 @@ export function drawVariant(lb, key) {
     for (const L of labels) {
       t.font = L.big ? dfont(FONTS.dpx) : bfont; const hw = t.measureText(L.t).width / 2 + 4, hh = (L.big ? FONTS.dpx : FONTS.bpx) / 2 + 2;
       let y = L.y; if (Math.abs(L.x - shx) < hw + RING && Math.abs(y - shy) < hh + RING) y = shy + RING + hh < H - 8 ? shy + RING + hh : shy - RING - hh;
+      if (L.x + hw > CX * 2 && L.x - hw < (CX + CW) * 2 + 8 && y + hh > CY * 2 && y - hh < (CY + CH) * 2 + 8) continue;   // under the cartouche: the cartouche wins (owner, 2026-11-26)
       write(L.t, L.x, y, L.big ? dfont(FONTS.dpx) : bfont, L.big ? T.txtRed : L.soft ? T.txtSoft : T.txt, T.halo || (L.gx !== undefined ? groundAt(L.gx, L.gy) : null));
     }
     // the cartouche: fit the name of the waters between its rules

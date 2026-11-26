@@ -2628,3 +2628,4 @@ frame and wide map; moon phases and the Eye's shape (not in the summary list).
   sky, about one sunset in 90 (`FLASH_IN`), the last of her goes green for a breath; Mara: "...My father said that is a soul coming back."
   First time: a Ship's book note. Test: `?greenflash=1`.
 - The "pale segmented bar" seen across the sky in some test shots is the Gull's rigging seen from a camera placed near her; not a bug.
+- Chart: island names under the cartouche (top left) are not drawn there any more; the cartouche wins (owner, 2026-11-26).
