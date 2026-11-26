@@ -5,7 +5,7 @@ import { makeAtlas, makeGrit } from './textures.js';
 export const U = {
   uSnap: { value: new THREE.Vector2(240, 135) }, // vertex snap grid (half-res, in "pixels")
   uDread: { value: 0 },
-  uTide: { value: 0 },     // -1 low water .. +1 high (calendar.js tideAt): the wet band on shores and pilings (owner 2026-11-18)
+  uTide: { value: 0 },     // -1 drawn back .. 0.5 as always (calendar.js waterAt): the wet band on shores and pilings (owner 2026-11-18)
   uTime: { value: 0 },      // stepped (12 fps) time for water
   uLight: { value: 1 },     // global brightness, emissive texels ignore it
   uSunDir: { value: new THREE.Vector3(0.3, 0.8, -0.5) },

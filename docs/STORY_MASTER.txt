@@ -1,7 +1,7 @@
 HOIST (Pocket Pirates): THE MASTER STORY FILE
 ================================================================================================
 This is the main story file for the full game. Edit it, upload it again, and the next session puts every change
-into the game. Built from commit f977172 on 2026-11-26. 1913 in-game lines carry an ID.
+into the game. Built from commit 49ef531 on 2026-11-26. 1913 in-game lines carry an ID.
 
 CONTENTS
   A   HOW TO USE THIS FILE (IDs, status marks, how to add and remove things)
@@ -591,7 +591,6 @@ line says which file it goes back into. 1913 lines.
   OBJ-0011 | [hints] Sail right up to the end of the pier, then press E.
   OBJ-0014 | Perrin left you a letter with the harbourmaster: take it at the Board sign in Tama.
   OBJ-0016 | [outro] Ha! Treasure! A captain with gold in the hold is a captain with options.
-  OBJ-0018 | [hints] On the right shore, dig squares (click, or arrows and E): darker, wetter sand means the chest is close. The tide comes in with every dig, and two stones break the shovel.
   OBJ-0019 | [text] Buy something from a shipwright.
   OBJ-0020 | [intro] That is a good haul. The shipwright in any harbour would love some of it. Better sails, and we could go further.
   OBJ-0021 | [outro] You can feel the difference already.
@@ -719,10 +718,8 @@ line says which file it goes back into. 1913 lines.
 
 ### OBJ / ADDED 2026-11-13
   OBJ-0153 | A letter from Perrin came in with the post, Captain.
-  OBJ-0168 | The shipwrights say a stronger hull or better sails go further than this, and on a falling tide. Past that, nobody sells charts.
 
 ### OBJ / ADDED 2026-11-13
-  OBJ-0169 | The water is running white over the shoals, Captain. Not now. We wait for the tide to go out.
   OBJ-0170 | Coral! Where the water breaks white there is rock under it. It was not there yesterday.
 
 ### OBJ / ADDED 2026-11-18
@@ -757,11 +754,17 @@ line says which file it goes back into. 1913 lines.
   OBJ-0193 | Some of it is where only a small boat goes. The shipwrights sell boats.
   OBJ-0194 | Whatever it is, it is under the water. The shipwrights sell diving bells.
 
+### OBJ / ADDED 2026-11-26
+  OBJ-0195 | On the right shore, dig squares (click, or arrows and E): darker, wetter sand means the chest is close. The sand slides back with every dig, and two stones break the shovel.
+  OBJ-0196 | The water is running white over the shoals, Captain. Not now. We wait for the sea to draw back.
+  OBJ-0197 | The shipwrights say a stronger hull or better sails go further than this. Past that, nobody sells charts.
+
 ### OBJ / RETIRED (the text is no longer in the game; these IDs are never used again)
     was OBJ-0012 | [text] Perrin's riddle is in your log (Journal). Find the right shore of Hollow Cay Galen and dig.
     was OBJ-0013 | [intro] Now to find the shore that riddle means. Stop the ship there and press E to dig.
     was OBJ-0015 | Then find the shore its riddle means, stop the ship and press E to dig.
     was OBJ-0017 | [hints] Take Perrin's letter at the Tama Board sign first (the little letter icon). The riddle is then in the log (M, Riddles tab). Sunrise is east, sunset is west.
+    was OBJ-0018 | [hints] On the right shore, dig squares (click, or arrows and E): darker, wetter sand means the chest is close. The tide comes in with every dig, and two stones break the shovel.
     was OBJ-0056 | [intro] He wants us to check something on his chart. His note is in the Journal. Far out, Captain.
     was OBJ-0061 | [intro] The Boards also carry little errands: fish, fruit, lost crates.
     was OBJ-0062 | [outro] A tidy bit of work. The harbour will remember it.
@@ -796,6 +799,8 @@ line says which file it goes back into. 1913 lines.
     was OBJ-0165 | The Drowned waters have streets, and streets have doors. Go at low water, and count the doors.
     was OBJ-0166 | Perrin writes: "The Drowned waters have streets, and streets have doors. Go at low water, and count the doors."
     was OBJ-0167 | Perrin wants us in the Drowned waters. The chart shows whose waters we are in.
+    was OBJ-0168 | The shipwrights say a stronger hull or better sails go further than this, and on a falling tide. Past that, nobody sells charts.
+    was OBJ-0169 | The water is running white over the shoals, Captain. Not now. We wait for the tide to go out.
 
 
 ####################################################################################################
@@ -993,7 +998,6 @@ line says which file it goes back into. 1913 lines.
   LORE-0039 | Please return this bottle. It is my favourite bottle.
   LORE-0040 | The parrot has learned a new word. None of us said it.
   LORE-0041 | Day 30. We have eaten all the biscuits. Morale remains excellent, thanks to the parrot.
-  LORE-0043 | If you find this at low tide, look around. The sea is generous when it is out.
   LORE-0044 | To my sister in Velto: I am fine. The captain is a fool. The food is good. Burn this.
   LORE-0045 | Day 20. The gulls have stopped following the boat. Cook says it's the weather. There is no weather.
   LORE-0046 | Same sunset three nights running. Everyone agrees. Nobody minds. That bothers me.
@@ -1053,10 +1057,14 @@ line says which file it goes back into. 1913 lines.
   LORE-0094 | We are the first to sail this far, I am sure of it. The wreck we passed must be newer than it looks.
   LORE-0095 | Fog all day. We heard a bell the whole way. There is no bell out here.
 
+### LORE / ADDED 2026-11-26
+  LORE-0096 | If you find this on a night the sea has gone out, look around. The sea is generous when it is out.
+
 ### LORE / RETIRED (the text is no longer in the game; these IDs are never used again)
     was LORE-0025 | It is not angry. That is the worst part. It is only very, very patient.
     was LORE-0026 | Welcome home, captain. We saved your seat. It was always your seat.
     was LORE-0042 | Two white posts stand out in the water near the Tooth. Nobody knows who put them there. Very tidy of whoever it was.
+    was LORE-0043 | If you find this at low tide, look around. The sea is generous when it is out.
     was LORE-0057 | Every harbour has someone watching the water at dusk. They all watch the same way.
     was LORE-0064 | Turn back. Or do not. It has already decided and it is not unkind about it.
 
@@ -1520,9 +1528,14 @@ line says which file it goes back into. 1913 lines.
 ### TMOD / ADDED 2026-11-11
   TMOD-0047 | A lamp on a rock ${hub.dir(site())} of Tama stays lit past dawn. Nobody likes to say what it burns.
   TMOD-0048 | Among the iron: a bell clapper, green with age. (${tp.clappers} of 3)
-  TMOD-0049 | At low tide, out on the ${hub.dir(site())} reef, you can hear the sea count. Nobody counts along.
   TMOD-0050 | The passenger points to the ${api.bearing(tp.target.x - ship.pos.x, tp.target.z - ship.pos.z)}. (-5 gold)
   TMOD-0051 | There is a harbour out ${d ? hub.dir(d) : 'there'} where they love visitors. People who go there write home happily, and then not.
+
+### TMOD / ADDED 2026-11-26
+  TMOD-0052 | On a new moon night, or a full one, out on the ${hub.dir(site())} reef, you can hear the sea count. Nobody counts along.
+
+### TMOD / RETIRED (the text is no longer in the game; these IDs are never used again)
+    was TMOD-0049 | At low tide, out on the ${hub.dir(site())} reef, you can hear the sea count. Nobody counts along.
 
 
 ####################################################################################################
@@ -1814,8 +1827,6 @@ line says which file it goes back into. 1913 lines.
   FSH-0010 | [tuna] Tuna are out in the deep stretches, far from land. Afternoons.
   FSH-0011 | [sword] Swordfish come up in the deep water around dusk.
   FSH-0012 | [sword] Swordfish, out in the deep, round dusk. Strong back, strong line.
-  FSH-0013 | [grouper] Golden grouper sulk under wrecks, at low tide, mornings.
-  FSH-0014 | [grouper] Golden groupers? Under the wrecks. Low tide. Mornings. Tell nobody.
   FSH-0015 | [cuttle] Cuttlefish drift in the lagoon of a ring island at dusk.
   FSH-0016 | [cuttle] Cuttlefish like the still water inside a ring of sand. Dusk.
   FSH-0017 | [barracuda] Barracuda patrol reef edges at midday.
@@ -1874,7 +1885,13 @@ line says which file it goes back into. 1913 lines.
   FSH-0051 | The black-noon ray comes up only while the sun is out at noon.
   FSH-0052 | There is a ray that only rises when the sun goes black at noon. I have not seen one. Nobody I trust has.
 
+### FSH / ADDED 2026-11-26
+  FSH-0053 | Golden grouper sulk under wrecks, mornings.
+  FSH-0054 | Golden groupers? Under the wrecks. Mornings. Tell nobody.
+
 ### FSH / RETIRED (the text is no longer in the game; these IDs are never used again)
+    was FSH-0013 | [grouper] Golden grouper sulk under wrecks, at low tide, mornings.
+    was FSH-0014 | [grouper] Golden groupers? Under the wrecks. Low tide. Mornings. Tell nobody.
     was FSH-0029 | Too fast to fish: reef the sails (S) and let the ship slow down.
 
 
@@ -2218,7 +2235,6 @@ line says which file it goes back into. 1913 lines.
   MAIN-0111 | The chest: how good a find?
 
 ### MAIN / noon
-  MAIN-0112 | The tide comes in and fills every hole. The crew waits for it to go out again.
   MAIN-0113 | The light goes and the mud is everywhere. The crew scrapes the shovels clean and tries again.
   MAIN-0114 | The shovel breaks on a second stone. The crew fetches the spare.
 
@@ -2428,9 +2444,6 @@ line says which file it goes back into. 1913 lines.
 ### MAIN / newAsk
   MAIN-0232 | Really? Click again to start over
 
-### MAIN / stepT
-  MAIN-0233 | The tide is out, Captain. Keep off the shallows, and the wrecks give up more at low water.
-
 ### MAIN / hd
   MAIN-0234 | Captain? You went quiet.
 
@@ -2438,7 +2451,6 @@ line says which file it goes back into. 1913 lines.
   MAIN-0235 | That red in the west... a front is coming in tomorrow afternoon, Captain. I would be in a harbour by then.
 
 ### MAIN / tgt
-  MAIN-0237 | The tide is in. Wait for it to go out...
   MAIN-0238 | Scraping the shovels clean...
   MAIN-0239 | Fetching the spare shovel...
   MAIN-0242 | [E] Look into the water
@@ -2571,7 +2583,6 @@ line says which file it goes back into. 1913 lines.
 ### MAIN / ADDED 2026-11-19
   MAIN-0350 | A light that does not turn is pointing at something. The old pilots kept one at their backs.
   MAIN-0351 | When the fog stands up like a wall, they say there is a tune that knows the way through. I never learned it.
-  MAIN-0352 | At the bottom of the tide the wall leaves a road of glass water. Miss the hour and it takes your planks.
   MAIN-0353 | Put your lamp out by the wall at night and you see harbours on the other side. Steer for one. Do not look down.
   MAIN-0354 | Into Glass Lagoon with a narrow rudder? High water, oars out, slow.
   MAIN-0355 | Breakers come in sets. Count them. In the quiet between, row in.
@@ -2652,6 +2663,12 @@ line says which file it goes back into. 1913 lines.
 ### MAIN / ADDED 2026-11-26
   MAIN-0410 | Put her bow to the waves, Captain, or run before them. Never side-on.
 
+### MAIN / ADDED 2026-11-26
+  MAIN-0411 | The sea has gone out a long way tonight, Captain. It does that round a new moon, and a full one.
+  MAIN-0412 | The sand is draining. Wait a little...
+  MAIN-0413 | The wet sand slides back into every hole. The crew lets it drain and starts again.
+  MAIN-0414 | The wall leaves a road or two of glass water through it. On the glass the helm answers.
+
 ### MAIN / RETIRED (the text is no longer in the game; these IDs are never used again)
     was MAIN-0001 | A floating market, with bunting on every line. (Friday)
     was MAIN-0002 | A regatta! Five boats, racing.
@@ -2671,11 +2688,14 @@ line says which file it goes back into. 1913 lines.
     was MAIN-0098 | Bring the ship to a full stop first (S to reef the sails).
     was MAIN-0100 | Bring the ship to a stop to patch the sail (S, and wait).
     was MAIN-0108 | Nothing here but sand. Reread the riddle in your log (Journal) and try another shore.
+    was MAIN-0112 | The tide comes in and fills every hole. The crew waits for it to go out again.
     was MAIN-0121 | Down in the green dark: a ship on her side, KESTREL on the stern. Her strongbox comes up, and her bell, still ringing. (+180 gold)
     was MAIN-0138 | they may believe you have a fleet behind you (45%)... or open fire
     was MAIN-0148 | a forecast and a rumour of the sea
     was MAIN-0213 | The harbourmaster hands you a folded note from Old Perrin. (Journal)
+    was MAIN-0233 | The tide is out, Captain. Keep off the shallows, and the wrecks give up more at low water.
     was MAIN-0236 | The crew came back empty-handed. Hold still!
+    was MAIN-0237 | The tide is in. Wait for it to go out...
     was MAIN-0240 | Stop the ship completely (S)
     was MAIN-0241 | Stop the ship completely (S) to look closer
     was MAIN-0243 | Stop the ship completely (S) to look inside
@@ -2686,6 +2706,7 @@ line says which file it goes back into. 1913 lines.
     was MAIN-0279 | Hm? ... Nothing. Flat water plays tricks.
     was MAIN-0280 | The black hut? Out past the ${bearingName(world.hutDesc.x - d.x, world.hutDesc.z - d.z)} water. There is a table, they say.
     was MAIN-0289 | A table at the water's edge. One chair on this side, one on the other. A die, waiting.${memory ? ' Mara, quietly: "I do not think we are here to throw."' : ''}
+    was MAIN-0352 | At the bottom of the tide the wall leaves a road of glass water. Miss the hour and it takes your planks.
     was MAIN-0403 | Nobody comes down to take your line. The harbourmaster watches from a window. (E again: pay what they say is owed, ${owed(d.region)} gold.)
 
 
@@ -3174,7 +3195,6 @@ line says which file it goes back into. 1913 lines.
   CUST-0020 | Past the last cay is where nobody plays. We do not fish there.
   CUST-0021 | Bells in the fog? Not here. Not while somebody plays.
   CUST-0022 | A name goes up the day a ship does not come in. Nobody sees the day it sinks.
-  CUST-0023 | Salvage at low water. A grave at high. Be quick about the difference.
   CUST-0024 | Out there is the quiet water. Nothing to wreck, nothing to take.
   CUST-0025 | In fog the old wreck rings. Nobody has ever found the wreck.
   CUST-0026 | The stool at the sea end is not for sitting. Ask anyone.
@@ -3226,6 +3246,12 @@ line says which file it goes back into. 1913 lines.
   CUST-0070 | In the Cays we do not count. So nothing is wrong with our numbers.
   CUST-0071 | Keep it burning. It has to have something to watch.
   CUST-0072 | Find a die at sea, scratch the seven off. So it cannot come up.
+
+### CUST / ADDED 2026-11-26
+  CUST-0073 | The sea goes out a long way under a new moon, and a full one. Salvage then. Be back before it remembers.
+
+### CUST / RETIRED (the text is no longer in the game; these IDs are never used again)
+    was CUST-0023 | Salvage at low water. A grave at high. Be quick about the difference.
 
 
 ####################################################################################################
@@ -3396,11 +3422,16 @@ line says which file it goes back into. 1913 lines.
 ### SPC / ADDED 2026-11-24
   SPC-0001 | Pepper. On that one. You can smell it from here.
   SPC-0002 | In the roots. Saffron, the wild kind. Take the boat in.
-  SPC-0003 | Cloves on the rocks, when the water goes down. Wait for the bottom of the tide.
   SPC-0004 | Blue salt on that shore. I would not ask where it comes from.
   SPC-0005 | Tansy, at the rail: "${TANSY[s.spice]}"
   SPC-0006 | Tansy goes looking...
   SPC-0007 | Tansy comes back with her arms full, and there is no room in the hold for any of it.
+
+### SPC / ADDED 2026-11-26
+  SPC-0008 | Cloves on the rocks, when the water goes down. It goes right down round a new moon, and a full one.
+
+### SPC / RETIRED (the text is no longer in the game; these IDs are never used again)
+    was SPC-0003 | Cloves on the rocks, when the water goes down. Wait for the bottom of the tide.
 
 
 ####################################################################################################

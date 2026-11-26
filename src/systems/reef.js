@@ -6,7 +6,7 @@ import { state } from '../core/state.js';
 import { rt, G } from '../core/runtime.js';
 import { setDecorDay } from '../regiondecor.js';
 import { regionAt } from '../regions.js';
-import { tideAt } from './calendar.js';
+
 import { hurtPlayer } from './storybeats.js';
 import { dreadAtDistance } from '../palette.js';
 import * as THREE from 'three';
@@ -19,7 +19,7 @@ let hitT = 0, stormT = 0;
 // P-REEF-2 Before the tide takes it (2026-11-17, kept on purpose): once the tide has come in, the next low water takes a storm wreck,
 // but never while the ship lies within STORM_WRECK_WAIT of it. Sit by her as the water falls and salvage at the bottom of the tide
 // (interact.js: x1.3 below -0.45, x1.5 in Reef water).
-export const STORM_WRECK_LOW = -0.5, STORM_WRECK_WAIT = 60;
+export const STORM_WRECK_WAIT = 60;
 export function reefTick(dt) {
   const ship = G.ship;
   // the shoals move at dawn: a new day, the Reef islands are built again from the day's seed
@@ -43,9 +43,9 @@ export function reefTick(dt) {
   // a storm in Reef waters: once a blow, a wreck comes up near you; at the next low water it is gone
   const sw = rt.stormWreck;
   if (sw && sw.stake && !sw.o) { sw.o = G.sea.addWreck(sw.x, sw.z, sw.id, dreadAtDistance(Math.hypot(sw.x, sw.z)), sw.seed); }   // the stake's wreck: its water may load later than the blow
-  if (sw && sw.stake && tideAt() > 0) state.story.reefStake.risen = 1;
-  if (sw && tideAt() > 0) sw.risen = true;   // the tide has come in since it surfaced
-  if (sw && sw.risen && tideAt() < STORM_WRECK_LOW && Math.hypot(ship.pos.x - sw.x, ship.pos.z - sw.z) > STORM_WRECK_WAIT) {
+  if (sw && sw.stake) state.story.reefStake.risen = 1;
+  if (sw && sw.day == null) sw.day = state.dayN;   // no tides: it lies there until the next day, while you are not by it
+  if (sw && state.dayN > sw.day && Math.hypot(ship.pos.x - sw.x, ship.pos.z - sw.z) > STORM_WRECK_WAIT) {
     G.sea.removeWreck(sw.id); rt.stormWreck = null;
     if (sw.stake) { const k = state.story.reefStake; k.w = 0; k.done = 1; }   // the wreck goes; the stake stays
   }   // the next low water takes it

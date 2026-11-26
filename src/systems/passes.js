@@ -10,12 +10,12 @@
 //          is systems/leadlight.js.)
 //   tune   With the Two Players' tune known, on a night without storm, the fog wall has gaps the tune knows (TUNE_GAPS, seeded): lost in
 //          the wall, the night music and the pennant lean to the nearest gap (fogLost, L9); on the gap's line the helm answers.
-//   slick  At the bottom of the tide (tide below SLICK_TIDE) a slick of glass water lies out through the wall at a few places (seeded):
-//          on it the helm answers. In the slick's place at any other hour the wall's shoal takes the planks.
+//   slick  A slick of glass water lies out through the wall at a few places (seeded): on it the helm answers. (No tides since
+//          2026-11-26: it is always there, and its shoal no longer bites.)
 //   lamp   At night with the lamp out long enough for the eyes (LAMP_EYES), the harbours beyond the wall show; steering straight for one
 //          (LAMP_AIM), the helm answers. The water round the ship stays black.
 // Two barriers round the hand-made places get a second way in too (Places.tick asks barrierPass):
-//   Glass Lagoon (reef, a broad rudder): at high water (above LAGOON_TIDE), under oars.
+//   Glass Lagoon (reef, a broad rudder): under oars, at any hour (no tides).
 //   The Ribs (breakers, an iron-banded hull): the breakers come in sets; in the lull between them (a calm you can see), under oars.
 // Full game only. Numbers here; the lines are drafts for the writer (docs/WRITER_TODO.txt 4.10).
 import * as THREE from 'three';
@@ -33,7 +33,7 @@ import { lampDead } from '../regions.js';
 import { isKnown } from '../clues.js';
 import { hash2, angleDiff, smoothstep } from '../util.js';
 import { tod } from '../daynight.js';
-import { nightKey, tideAt } from './calendar.js';
+import { nightKey } from './calendar.js';
 import { leadPass } from './leadlight.js';
 import { hurtPlayer } from './storybeats.js';
 import { chestHas } from '../chest.js';
@@ -43,10 +43,8 @@ export const WALL_R = 1650;           // the wall these ways go through (objecti
 export const LINE_HALF = 0.05;        // rad either side of a still beam's line
 export const LIGHT_IN = [260, 40];    // a Guild light this far inside the wall (at most, at least) can lie still for it
 export const TUNE_GAPS = 5, GAP_HALF = 24;     // the tune's gaps in the wall, and their half width in units
-export const SLICK_GAPS = 4, SLICK_HALF = 16, SLICK_TIDE = -0.82;   // the slicks at the bottom of the tide
-export const SLICK_HURT = 3, SLICK_HURT_EVERY = 2.5;   // the shoal in a slick's place at the wrong hour
+export const SLICK_GAPS = 4, SLICK_HALF = 16;
 export const LAMP_EYES = 6, LAMP_AIM = 0.1, LAMP_SEE = 450;   // s with the lamp out; rad off the harbour's bearing; how far a light is seen
-export const LAGOON_TIDE = 0.5;
 export const RIBS_SET = 34, RIBS_LULL = 9;     // s: one set of breakers and the lull that ends it
 
 const on = () => !DEMO && !!(state.hut && state.hut.rolls && state.hut.rolls.length);
@@ -83,7 +81,7 @@ export function wallPass(R) {
     if (Math.abs(angleDiff(a2, a1)) < LINE_HALF) return 'light';
   }
   if (night() && G.weather.storm < 0.3 && isKnown(state, 'hum') && S.tune.some((g) => across(g, p.x, p.z) < GAP_HALF)) return 'tune';
-  if (tideAt() < SLICK_TIDE && S.slick.some((g) => across(g, p.x, p.z) < SLICK_HALF)) return 'slick';
+  if (S.slick.some((g) => across(g, p.x, p.z) < SLICK_HALF)) return 'slick';   // no tides: the slicks are always there (owner, 2026-11-26)
   if (night() && rt.lampOut && lampT >= LAMP_EYES) {
     for (const h of S.harbours) { const dx = h.x - p.x, dz = h.z - p.z, dist = Math.hypot(dx, dz); if (dist < LAMP_SEE && Math.abs(angleDiff(Math.atan2(dx, -dz), G.ship.heading)) < LAMP_AIM) return 'lamp'; }
   }
@@ -109,7 +107,7 @@ export function barrierPass(lm, ship) {
   const B = BARRIERS[lm], d = Math.hypot(ship.pos.x - LM[lm].x, ship.pos.z - LM[lm].z);
   if (d > B.R + 12) inside[lm] = false;
   let by = false;
-  if (lm === 'lagoon') by = (ship.rowing && tideAt() > LAGOON_TIDE) || onTransit(ship);
+  if (lm === 'lagoon') by = ship.rowing || onTransit(ship);   // rowed in over the reef at any hour (no tides)
   if (lm === 'ribs') by = (ship.rowing && ribsLull() > 0.5) || followingPilot(ship);
   if (by && d < B.R) inside[lm] = true;
   return by || (!!inside[lm] && d < B.R - 6);
@@ -184,7 +182,7 @@ function pilotTick(dt) {
 export function ribsLull() { const t = (rt.tNow + (state.seed % 17)) % RIBS_SET; return t > RIBS_SET - RIBS_LULL ? 1 : 0; }
 
 // ---- each frame: the lamp's dark for the eyes, the still beams, the slicks on the water, the breakers' sets; the shoal's bite
-let lampT = 0, hurtT = 0, slickMesh = null, ribsMesh = null;
+let lampT = 0, slickMesh = null, ribsMesh = null;
 export function passesTick(dt) {
   if (!on()) return;
   lampT = rt.lampOut ? lampT + dt * (chestHas('shutter') ? 2 : 1) : 0;
@@ -193,19 +191,10 @@ export function passesTick(dt) {
   for (const L of S.lights) { const isl = G.world.islands.get(L.id); if (isl && isl.lead) isl.lead.short = Math.hypot(p.x, p.z) > WALL_R - 120 && !(state.story.rhythm && state.story.rhythm[L.id]); }   // inside the white, the beam goes only as far as you know the light
   // the slicks: glass strips out through the wall, there only near the bottom of the tide (their silent twin is the rule itself)
   if (!slickMesh) slickMesh = makeSlicks(S.slick);
-  const lowK = smoothstep(SLICK_TIDE + 0.12, SLICK_TIDE, tideAt());
+  const lowK = 1;   // always showing (no tides)
   slickMesh.visible = lowK > 0.02; slickMesh.material.opacity = 0.3 * lowK;
   // the shoal in a slick's place at the wrong hour: it takes the planks
-  hurtT -= dt;
   const R = Math.hypot(p.x, p.z);
-  if (hurtT <= 0 && tideAt() >= SLICK_TIDE && R > WALL_R - 30 && R < WALL_R + 60 && S.slick.some((g) => across(g, p.x, p.z) < SLICK_HALF) && G.ship.speed > 1) {
-    if (chestHas('leadline')) { G.ship.speed *= 0.2; hurtT = 1; }   // the lead line: the crew sounds ahead and the ship is held off (the sea chest)
-    else {
-      hurtT = SLICK_HURT_EVERY; hurtPlayer(SLICK_HURT);
-      const k = 'g' + Math.round(Math.atan2(p.z, p.x) * 100), hit = state.story.slickHit || (state.story.slickHit = {});   // owner 2026-11-19: the chart keeps a pencil sign where it bit
-      if (!hit[k]) hit[k] = { x: Math.round(p.x), z: Math.round(p.z) };
-    }
-  }
   pilotTick(dt);
   { const T = transitMarks(); if (T.peak && !capsMade && Math.hypot(p.x - LM.lagoon.x, p.z - LM.lagoon.z) < 900) capsMade = makeCaps(T); }
   // the Ribs: a ring of white water that runs high through a set and lies down in the lull
@@ -241,7 +230,7 @@ function makeRibsRing(rb) {
 export const SAYINGS = {
   light: { speaker: 'lamplighter', text: 'A light that does not turn is pointing at something. The old pilots kept one at their backs.' },
   tune: { speaker: 'oldsalt', text: 'When the fog stands up like a wall, they say there is a tune that knows the way through. I never learned it.' },
-  slick: { speaker: 'fisher', text: 'At the bottom of the tide the wall leaves a road of glass water. Miss the hour and it takes your planks.' },
+  slick: { speaker: 'fisher', text: 'The wall leaves a road or two of glass water through it. On the glass the helm answers.' },
   lamp: { speaker: 'watchman', text: 'Put your lamp out by the wall at night and you see harbours on the other side. Steer for one. Do not look down.' },
   lagoon: { speaker: 'fisher', text: 'Into Glass Lagoon with a narrow rudder? High water, oars out, slow.' },
   transit: { speaker: 'oldsalt', text: 'There is a white cap on the reef at Glass Lagoon, and another on a hill out beyond. Put the one behind the other and sail in.' },

@@ -94,7 +94,7 @@ const NOTES = [
     'The parrot has learned a new word. None of us said it.',
     'Day 30. We have eaten all the biscuits. Morale remains excellent, thanks to the parrot.',
     'The Grey Tooth keeps a tin box on its top. Bring a pencil.',
-    'If you find this at low tide, look around. The sea is generous when it is out.',
+    'If you find this on a night the sea has gone out, look around. The sea is generous when it is out.',
     'To my sister in Velto: I am fine. The captain is a fool. The food is good. Burn this.',
     'The gulls followed us all morning. Cook says they carry the news. They were very loud about it.',   // L-30 (the lore bible, a draft)
   ],

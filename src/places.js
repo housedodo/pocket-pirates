@@ -64,7 +64,7 @@ const VISITS = {
     second: 'Ilse rosins her bow. "Who began it? The guitar did. I only answer it."',   // L-38 C
   },
   cup: {
-    clue: 'CL-F3-a', when: 'high', need: (c) => c.tide > 0.25, no: 'A white cloth on a beach, across a reef the water is too low to cross.',
+    clue: 'CL-F3-a', when: 'high', need: () => true,   /* no tides: always across (owner, 2026-11-26) */ no: 'A white cloth on a beach, across a reef the water is too low to cross.',
     once: { text: 'A table laid for two on the sand, a lamp, a cup with MERRY GULL painted on it in a hand you do not know. The tea is still warm. The other cup has a name on it, rubbed out.', note: 'A table for two. One cup says Merry Gull. The other had a name; the first letter was a K.' },
     again: 'The cup is cold. The other cup is gone.',
   },
@@ -105,7 +105,7 @@ const VISITS = {
     again: 'The stair goes down. The window is still there.',
   },
   street: {
-    clue: 'CL-D1-a', when: 'low', need: (c) => c.tide < -0.55 && c.mara, no: 'Roof peaks, and the sea over a street. At the lowest water it shows.',
+    clue: 'CL-D1-a', when: 'low', need: (c) => c.tide < -0.5 && c.mara, no: 'Roof peaks, and the sea over a street. At the lowest water it shows.',
     once: { text: 'At the lowest water the roofs are bare: doors, a well, a cart. One door is blue. Mara goes very quiet, and then very kind.', note: 'The Sunken Street: a blue door. Mara did not say why.' },
     again: 'The street is under the water again. The blue door is the last to go.',
   },

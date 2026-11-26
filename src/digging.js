@@ -68,7 +68,7 @@ export class DigGame {
     this.pre = o.predug ? this.chest[1] * this.cols + this.chest[0] : -1; this.preFound = false;   // a hole somebody left, over the chest
     const B = BEACHES[this.beach], tk = `tip:beach:${this.beach}`, tell = (state.hints[tk] || 0) < BEACH_TIP_TIMES;
     if (tell) state.hints[tk] = (state.hints[tk] || 0) + 1;
-    this.say(!tell ? '' : B.name ? `${B.name}. ${B.say} ${this.beach === 'mud' ? `${o.digs} digs before dark.` : `The tide comes in after ${o.digs} digs.`}` : `Dig a square (click, or arrows and E). The darker the sand, the closer. The tide comes in after ${o.digs} digs.`);
+    this.say(!tell ? '' : B.name ? `${B.name}. ${B.say} ${this.beach === 'mud' ? `${o.digs} digs before dark.` : `The wet sand slides back after ${o.digs} digs.`}` : `Dig a square (click, or arrows and E). The darker the sand, the closer. The tide comes in after ${o.digs} digs.`);
     if (this.pre >= 0) this.say(`${this.msg.textContent} One hole is here already.`.trim());
     this.suspended = false; this.ui.style.display = 'block'; this.draw();
   }

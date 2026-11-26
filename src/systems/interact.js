@@ -28,7 +28,7 @@ import { boatStatus } from '../traffic.js';
 import { $, harbourEl, promptFill, toast } from '../ui/dom.js';
 import { shipwrightLine } from '../upgrades.js';
 import { angleDiff, hash2, mulberry32 } from '../util.js';
-import { isFestival, isLanternNight, isMarketDay, nightKey, tideAt } from './calendar.js';
+import { isFestival, isLanternNight, isMarketDay, nightKey, waterAt } from './calendar.js';
 import { mendSails, oilOn } from './storybeats.js';
 import { letterRumour, placeRumour } from './perrin.js';
 import { supperTarget, startSupper } from './lantern.js';
@@ -325,7 +325,7 @@ function doInteract(tg) {
             onDone: () => { const done = rt.dig && rt.dig.done; rt.dig = null; if (done) done(); if (predug && G.digGame.preFound) markSeen(state, 'CL-H3-hole'); if (predug && G.digGame.preFound) after(3, () => G.objectives.say('Somebody dug here first, and stopped a spade short. Lucky us.')); },
             onFail: (why) => { rt.dig = null; rt.digFix = rt.tNow + 6; rt.digFixWhy = why; state.attempts[d.id] = (state.attempts[d.id] || 0) + 1;
               if (why === 'leave') return;   // the crew packed up (G-10): a failed dig, without a word
-              toast(why === 'tide' ? 'The tide comes in and fills every hole. The crew waits for it to go out again.' : why === 'mud' ? 'The light goes and the mud is everywhere. The crew scrapes the shovels clean and tries again.' : 'The shovel breaks on a second stone. The crew fetches the spare.', false, 5500); } });
+              toast(why === 'tide' ? 'The wet sand slides back into every hole. The crew lets it drain and starts again.' : why === 'mud' ? 'The light goes and the mud is everywhere. The crew scrapes the shovels clean and tries again.' : 'The shovel breaks on a second stone. The crew fetches the spare.', false, 5500); } });
         }
       }
       G.audio.play('dig');
@@ -351,7 +351,7 @@ function doInteract(tg) {
         G.audio.play(g ? 'treasure' : 'discover'); return;
       }
       const loot = G.abyss.wrongLoot(lootFor(mulberry32(o.rngSeed), o.dread), state);
-      loot.value = Math.round(loot.value * 1.3 * G.ship.mods.lootMul * (tideAt() < -0.45 ? 1.3 : 1) * G.threads.salvageMul() * (SALVAGE_MUL[regionAt(o.x, o.z, state.seed)] || 1));   // the tide has uncovered more; the Reef keeps the ships that come (regions.js)
+      loot.value = Math.round(loot.value * 1.3 * G.ship.mods.lootMul * G.threads.salvageMul() * (SALVAGE_MUL[regionAt(o.x, o.z, state.seed)] || 1));   // the tide has uncovered more; the Reef keeps the ships that come (regions.js)
       loot.name = `From the wreck: ${loot.name}`;
       o.salvaged = true; if (!o.extra) state.collected.add(o.id); state.stats.wrecks++;
       state.gold += loot.value; state.loot.push(loot);
@@ -368,7 +368,7 @@ export function goAshore(tg) {
   const d = tg.isl.desc;
   rt.dig = { key: tg.key, t: 0, label: 'Going ashore...', need: 2.6, done: () => {
     if (d.lm === 'table' && tableOpen(state) && !state.story.ending && window.__BUILD !== 'demo') { G.places.visit(d.lm, state, {}); G.openTable(true); return; }
-    const r = G.places.visit(d.lm, state, { night: tod.night > 0.45, calm: G.weather.calm > 0.5, still: G.weather.storm < 0.3, tide: tideAt(), mara: true });   // still: the Two Players play on any night without a storm
+    const r = G.places.visit(d.lm, state, { night: tod.night > 0.45, calm: G.weather.calm > 0.5, still: G.weather.storm < 0.3, tide: waterAt(), mara: true });   // still: the Two Players play on any night without a storm
     if (!r) return;
     if (r.clue) G.seeClue(r.clue);   // the ledger takes it; no popup (docs/WORLD_REDESIGN.md 6.7)
     const demo = window.__BUILD === 'demo';

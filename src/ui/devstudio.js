@@ -13,7 +13,7 @@ import { oilCap } from '../oil.js';
 import { FISH } from '../fishing.js';
 import { FRUIT_ORDER } from '../fruit.js';
 import { lootFor } from '../lore.js';
-import { WEEK, weekday, tideAt, tideFalls, fullMoon } from '../systems/calendar.js';
+import { WEEK, weekday, lowWater, fullMoon } from '../systems/calendar.js';
 import { stageOf, dreadAtDistance } from '../palette.js';
 import { regionAt } from '../regions.js';
 import { LANDMARKS, LM } from '../landmarks.js';
@@ -102,7 +102,7 @@ function arrive(d, label) {
   let r; try { r = shoreR(d, th); } catch (e) { r = 0; }
   if (!(r > 0)) r = d.r || 15;
   const off = r + (d.dockTh !== undefined ? 24 : 28), x = d.x + Math.cos(th) * off, z = d.z + Math.sin(th) * off;
-  if (el.querySelector('#dsFree').checked && Math.hypot(x, z) > gateRadius(state, tideFalls()) - 20) state.story.free = true;
+  if (el.querySelector('#dsFree').checked && Math.hypot(x, z) > gateRadius(state, true) - 20) state.story.free = true;
   go(x, z, Math.atan2(d.x - x, -(d.z - z)));
   toast(`Dev: ${label}`, false, 2000);
 }
@@ -133,19 +133,11 @@ function fillHarbours() {
   box.innerHTML = HARB.filter((r) => H[r]).map((r) => B(`harb:${r}`, r === 'keeper' ? `Lantern keeper rock (${H[r].d.name || H[r].d.id})` : `${r} harbour: ${H[r].d.name}`)).join('');
 }
 
-// ---------------------------------------------------------------- time and tide
-function jumpTide(kind) {   // the next moment of that tide today (two tides a day: each kind comes once in every half day)
-  const t0 = state.time; let best = null, bestV = kind === 'low' ? Infinity : -Infinity;
-  for (let i = 1; i <= 720; i++) {
-    const t = t0 + i / 1440, at = (u) => tideAt(u % 1, state.dayN + (u >= 1 ? 1 : 0)), v = at(t), p = at(t - 1 / 1440);
-    if (kind === 'high' && v > bestV) { bestV = v; best = t; }
-    if (kind === 'low' && v < bestV) { bestV = v; best = t; }
-    if (kind === 'rising' && p < 0 && v >= 0) { best = t + 1 / 288; break; }
-    if (kind === 'falling' && p > 0 && v <= 0) { best = t + 1 / 288; break; }
-  }
-  if (best == null) return;
-  if (best >= 1) state.dayN++;
-  X.devTime((best % 1) * 24);
+// ---------------------------------------------------------------- time and low water (no tides: systems/calendar.js lowWater)
+function jumpLow() {   // the next night the sea draws back (round a new or a full moon), at 22:00
+  const d0 = state.dayN, t0 = state.time;
+  for (let k = 0; k < 20; k++) { state.dayN = d0 + k; state.time = 22 / 24; if (lowWater() && (k > 0 || t0 < 22 / 24)) { X.devTime(22); return; } }
+  state.dayN = d0; state.time = t0;
 }
 
 // ---------------------------------------------------------------- endings and what they leave behind
@@ -211,7 +203,7 @@ function html() {
     <div class="dsrow"><select id="dsFruit">${FRUIT_ORDER.map((f) => `<option>${f}</option>`).join('')}</select>${B('fruit', 'Fruit to hold')}${B('loot', 'A treasure')}</div>`)}
   ${sec('time', 'Time and sky', `<div class="dsrow"><input id="dsHour" type="range" min="0" max="23.75" step="0.25"><b class="dsv" data-v="hour"></b></div>
     <div class="dsrow">${B('day:-1', '&lt; day')}<b class="dsv" data-v="day"></b>${B('day:1', 'day &gt;')}</div>
-    <div class="dsrow">Tide ${B('tide:high', 'High')}${B('tide:low', 'Low')}${B('tide:rising', 'Rising')}${B('tide:falling', 'Falling')}</div>
+    <div class="dsrow">Water ${B('low:1', 'Next low water night')}</div>
     <div class="dsrow">${Object.keys(WEATHER).map((w) => B(`wx:${w}`, w)).join('')}</div>
     <div class="dsrow">${B('calm:1', 'Dead calm')}${B('calm:0', 'Wind back')}</div>
     <div class="dsrow">Dread <input id="dsDread" type="range" min="0" max="1" step="0.01">${B('dread:auto', 'auto')}<b class="dsv" data-v="dread"></b></div>
@@ -288,7 +280,7 @@ function act(a) {
     fruit: () => { const f = el.querySelector('#dsFruit').value; state.fruit[f] = (state.fruit[f] || 0) + 1; },
     loot: () => { const l = lootFor(Math.random, rt.dread); state.loot.push(l); state.gold += l.value; toast(`Dev: ${l.name} (+${l.value}g)`, false, 2500); },
     day: () => { state.dayN = Math.max(0, state.dayN + +p); },
-    tide: () => jumpTide(p),
+    low: () => jumpLow(),
     wx: () => { gm.weather.force = WEATHER[p] ? { ...WEATHER[p] } : null; rt.devWeather = 3; },
     calm: () => X.setCalm(+p ? 120 : 0),
     dread: () => { rt.forced = null; gm.abyss.stopTest(); },
@@ -331,10 +323,9 @@ function act(a) {
 // ---------------------------------------------------------------- the readout and the live values
 function render() {
   if (!el || !el.classList.contains('open')) return;
-  const ship = gm.ship, x = ship.pos.x, z = ship.pos.z, g = MAIN_GOALS[state.goals.i], tide = tideAt();
-  const tw = tide < -0.45 ? 'low' : tide > 0.45 ? 'high' : tideAt(state.time + 0.02) > tide ? 'rising' : 'falling';
+  const ship = gm.ship, x = ship.pos.x, z = ship.pos.z, g = MAIN_GOALS[state.goals.i];
   el.querySelector('.dsread').textContent = `pos ${Math.round(x)}, ${Math.round(z)}  ${regionAt(x, z, state.seed)}  ${Math.round(Math.hypot(x, z))} out\n`
-    + `dread ${rt.dread.toFixed(2)} ${STG[stageOf(rt.dread)]}${rt.forced == null ? '' : ' (forced)'}  tide ${tide.toFixed(2)} ${tw}\n`
+    + `dread ${rt.dread.toFixed(2)} ${STG[stageOf(rt.dread)]}${rt.forced == null ? '' : ' (forced)'}  ${lowWater() ? 'low water' : ''}\n`
     + `${hhmm(state.time)} ${WEEK[weekday()]} (day ${state.dayN})  goal ${state.goals.i + 1}/${MAIN_GOALS.length} ${g ? g.id : 'done'}  gold ${state.gold}`;
   const sc = el.querySelector('.dsscene'); sc.classList.toggle('on', !!before);
   sc.querySelector('.dsst').textContent = before ? 'A scene runs: saving is paused. Leave keeps it, Undo puts it back.' : 'No scene: changes save as usual.';
@@ -344,7 +335,7 @@ function render() {
   v('dread', `${rt.dread.toFixed(2)} ${rt.forced == null ? 'auto' : 'forced'}`);
   v('moon', `${NIGHT_MODES[rt.nightMode || 0]}${rt.nightMode ? '' : fullMoon() ? ' (full tonight)' : ' (new tonight)'}`);
   v('goal', g ? `${state.goals.i + 1}. ${g.title}` : 'all done');
-  const free = !!state.story.free, R = gateRadius(state, tideFalls());
+  const free = !!state.story.free, R = gateRadius(state, true);
   v('wall', free ? 'lifted' : `at ${R === Infinity ? 'none' : Math.round(R)}`);
   v('levels', `questions ${levels(state).map((n, i) => `Q${i + 1}:${n}`).join(' ')}`);
   v('threads', `awake: ${(state.story.threads || []).join(', ') || 'none yet'}`);

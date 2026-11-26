@@ -20,7 +20,6 @@ import { state } from '../core/state.js';
 import { rt, G } from '../core/runtime.js';
 import { scene } from '../core/engine.js';
 import { $, toast } from '../ui/dom.js';
-import { tideFalls } from './calendar.js';
 import { after } from './later.js';
 import { CHAIN_RIG } from '../combat.js';
 import { crewStruck } from './raiders.js';
@@ -70,7 +69,7 @@ export function revealHut() {
 export function showDemoEnd() { $('demoend').classList.add('show'); G.audio.play('ending'); }
 /** where the fog leaves no current: 0 in or near any fog (the chapter wall, the fog bank), 1 in clear water */
 export function fogEdge(x, z) {
-  const R = gateRadius(state, tideFalls()), d = Math.hypot(x, z);
+  const R = gateRadius(state, true), d = Math.hypot(x, z);
   let k = R === Infinity ? 1 : 1 - smoothstep(R - 220, R - 120, d);
   const b = LM.broken; if (!G.places.open('broken', state.upgrades)) k = Math.min(k, smoothstep(BARRIERS.broken.R + 40, BARRIERS.broken.R + 100, Math.hypot(x - b.x, z - b.z)));
   return k;
@@ -124,7 +123,7 @@ function threadClues() {
 }
 export function seaGate(dt) {
   if (rt.seatPan) { rt.gateLost = null; rt.gateFog = 0; return; }   // Your Seat's last look: the world is only watched (systems/endgame.js)
-  const R = gateRadius(state, tideFalls()), d = Math.hypot(G.ship.pos.x, G.ship.pos.z);
+  const R = gateRadius(state, true), d = Math.hypot(G.ship.pos.x, G.ship.pos.z);
   const how = R !== Infinity && d > R - 200 ? wallPass(R) : null;   // a way through the wall the ship is on (systems/passes.js, T4)
   if ((d < R || how) && d > (state.story.reach || 0)) state.story.reach = d;   // how far you have really sailed: a stratum, once entered, stays open
   if (how && d > R + 60) crossWall(how);   // through: the sea beyond is the captain's

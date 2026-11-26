@@ -78,7 +78,7 @@ import { state, trimState } from './core/state.js';
 import { rt, G } from './core/runtime.js';
 import { renderer, post, scene, camera, ocean, sky } from './core/engine.js';
 import { $, goldEl, promptEl, promptTxt, promptBar, promptFill, toastsEl, debugEl, helpEl, chartEl, harbourEl, pauseEl, shipEl, toast , setToastHold, flushToasts, setText, setWidth } from './ui/dom.js';
-import { WEEK, weekday, isMarketDay, isLanternNight, isFestival, tideAt, tideFalls, nightKey } from './systems/calendar.js';
+import { WEEK, weekday, isMarketDay, isLanternNight, isFestival, lowWater, waterAt, nightKey } from './systems/calendar.js';
 import { addMark, clearMark, keep } from './systems/storyflags.js';
 import { tunePan, lullDread, lullabyTick, playersEar } from './systems/lullaby.js';
 import { lostTick, LOST_CARDS, lostSeen } from './systems/lostsailors.js';
@@ -120,7 +120,7 @@ import { lineLate, laneOars, pennantsAt } from './systems/crown.js';
 import { farLightTick, LIGHTS_LINE, LAMP_OUT_FAR } from './systems/farlights.js';
 import { raceTick, holdRegatta, raceNow } from './systems/race.js';
 import { LANDING, landThrow, landedAt } from './systems/landing.js';
-import { trackTarget, goldShown, etaText, slipInfo, drawCompass, updateTracker, initHud, drawTideClock, followNext } from './ui/hud.js';
+import { trackTarget, goldShown, etaText, slipInfo, drawCompass, updateTracker, initHud, followNext } from './ui/hud.js';
 import { initDevStudio } from './ui/devstudio.js';   // F10 (dev builds only)
 import { LOCALS, localGames, pig, maraMood, openCard, caveScene, COLOUR_DEEP, COLOUR_SHALLOW, openCave, tabletopTick, signOn, daysLeft, crewLeave, wishDone, initEncounters } from './ui/encounters.js';
 
@@ -264,7 +264,7 @@ threads.bind({
   after: (s, fn) => after(s, fn),   // story delays on the game's clock (systems/later.js)
   get state() { return state; }, audio, ship, addMark, clearMark, keep,
   toast: (t, dark, ms) => toast(t, dark, ms), say: (t) => { if (!objectives.mate.busy) objectives.mate.say(t); },
-  openScene: (kind, id) => openCave({ id, kind }), tide: () => tideAt(), night: () => tod.night, bearing: (dx, dz) => bearingName(dx, dz),
+  openScene: (kind, id) => openCave({ id, kind }), low: () => lowWater(), night: () => tod.night, bearing: (dx, dz) => bearingName(dx, dz),
   refreshMods: () => refreshMods(),
   cool: () => { for (const r of Object.values(state.rep)) r.visits = Math.max(0, r.visits - 2); },
   setLook: (c) => { state.custom = { ...state.custom, ...c }; ship.setCustom(state.custom); },
@@ -410,7 +410,7 @@ function fishEnv() {
   if (edge < 40) zones.push('shallows');
   if (edge > 230) zones.push('deep'); else if (edge > 110) zones.push('open');
   if (!zones.length) zones.push('mid');
-  return { zones, mark: !!homeMarks.atMark(x, z), label: ZONE_LABEL[zones[0]], hour: state.time * 24, low: tideAt() < -0.3, rough: weather.storm > 0.3 || weather.rain > 0.55, colour: !!threads.patchAt(x, z, 1), region: regionAt(x, z, state.seed) };
+  return { zones, mark: !!homeMarks.atMark(x, z), label: ZONE_LABEL[zones[0]], hour: state.time * 24, rough: weather.storm > 0.3 || weather.rain > 0.55, colour: !!threads.patchAt(x, z, 1), region: regionAt(x, z, state.seed) };
 }
 const fishing = new Fishing(scene, ship, {
   toast: (t) => toast(t),
@@ -448,8 +448,6 @@ const hut = new Hut({ state,
   onClose: () => closeModal() });
 // ---- the week: market day everywhere on Wednesdays, lantern night on Saturdays, and each harbour its own festival day
 const lifeOn = () => isOpen(state, 'tab', 'tavern');   // harbour life opens with the tavern (chapter III)
-// two tides a day, drifting a little later each day; low tide (below -0.45) uncovers more at wrecks and widens the shallows
-const tideWord = () => { const a = tideAt(), b = tideAt(state.time + 0.02); return a < -0.45 ? 'low tide' : a > 0.45 ? 'high tide' : b > a ? 'tide coming in' : 'tide going out'; };
 /** the clock's sign, like a weather symbol: the weather first, then the light (owner 2026-11-18) */
 function skySign() {
   const w = weather, night = tod.sunElev <= 0, hr = parseInt(tod.clock, 10);
@@ -460,7 +458,7 @@ function skySign() {
   if (tod.sunElev > -0.08 && tod.sunElev < 0.16) return hr < 12 ? 'dawn' : 'dusk';
   return night ? 'moon' : 'sun';
 }
-function dayLine(d) { const ev = isFestival(d) ? 'festival day' : isMarketDay() ? 'market day' : isLanternNight() ? 'lantern night' : ''; return WEEK[weekday()] + (ev ? ` · ${ev}` : '') + ` · ${tideWord()}`; }
+function dayLine(d) { const ev = isFestival(d) ? 'festival day' : isMarketDay() ? 'market day' : isLanternNight() ? 'lantern night' : ''; return WEEK[weekday()] + (ev ? ` · ${ev}` : ''); }
 // a harbour grows with your trade there: more boats, then a busier quay, then flags over the pier
 function noonBells() {   // villages that keep the bells ring them at noon; you hear them if you are near
   for (const isl of world.islands.values()) {
@@ -806,7 +804,7 @@ function felt() {
 rt.dread = rt.forced !== null ? rt.forced : dreadAtDistance(Math.hypot(ship.pos.x, ship.pos.z));
 rt.dark = rt.dread > DARK_THRESHOLD;
 rt.dig = null;     // { isl, t }
-rt.digFix = 0, rt.digFixWhy = '';   // after a failed probe: the tide is in, or the crew fetches the spare shovel, until this time
+rt.digFix = 0, rt.digFixWhy = '';   // after a failed probe: the sand is draining, or the crew fetches the spare shovel, until this time
 const digGame = new DigGame({ sound: (k) => { if (k === 'rock') { rt.shake = Math.max(rt.shake, 0.12); audio.chime('stone'); } else if (k === 'found') audio.chime('find'); else audio.play('dig', { vol: 0.35, rate: 1.15 }); } });
 rt.tNow = 0;
 rt.curSector = null;
@@ -996,7 +994,7 @@ function secretFound(sc) {
     const id = sc.key, n = S[id] = (S[id] || 0) + 1;
     if (n === 1) {   // the first time he draws an island on your chart
       let best = null, bd = 900;
-      for (let dz = -7; dz <= 7; dz++) for (let dx = -7; dx <= 7; dx++) { const o = world.desc(Math.round(sc.m.x / 110) + dx, Math.round(sc.m.z / 110) + dz); if (o && o.puzzle && !state.dug.has(o.id) && !state.riddles[o.id]) { const dd = Math.hypot(o.x - sc.m.x, o.z - sc.m.z); if (dd < bd && dd < gateRadius(state, tideFalls()) - 40) { bd = dd; best = o; } } }
+      for (let dz = -7; dz <= 7; dz++) for (let dx = -7; dx <= 7; dx++) { const o = world.desc(Math.round(sc.m.x / 110) + dx, Math.round(sc.m.z / 110) + dz); if (o && o.puzzle && !state.dug.has(o.id) && !state.riddles[o.id]) { const dd = Math.hypot(o.x - sc.m.x, o.z - sc.m.z); if (dd < bd && dd < gateRadius(state, true) - 40) { bd = dd; best = o; } } }
       toast(CAMP_LINES[0] + (best ? ' Before you go he scratches an island into your chart with a fish bone.' : ''), false, 9000);
       if (best) { state.discovered[best.id] = state.discovered[best.id] || { name: best.name, type: best.type, x: Math.round(best.x), z: Math.round(best.z) }; giveMap(best.id, 'The man by the fire', true, true); }
       state.notes.push({ text: `Smoke on an empty island: a man who has been there longer than the lighthouse.${best ? ' He drew an island on my chart.' : ''}`, dark: false });
@@ -1177,7 +1175,7 @@ initStoryBeats();   // (systems/storybeats.js)
 // ---------------------------------------------------------------- captain's log
 const logbook = new Logbook({ slip: () => slipInfo(), eta: (d) => etaText(d), abyss, state, world, ship, seed: state.seed, locked: (tab) => !isOpen(state, 'log', tab), toast: (t) => toast(t), close: () => closeModal(), mate: objectives.mate, dread: () => rt.dread, mood: () => maraMood(), tabOpened: (t) => tabOpened(t),
   retrack: () => sea.syncQuests(state.quests.filter((q) => q.id === state.tracked)),
-  gate: () => gateRadius(state, tideFalls()), track: () => trackTarget(),
+  gate: () => gateRadius(state, true), track: () => trackTarget(),
   skipGoal: () => { const g = objectives.current; if (!g) return; if (g.onDone) g.onDone({ state, world, ship, giveMap, forceCalm: setCalm });
     if (g.id === 'perrin') perrinNote(); if (g.id === 'gossip') { state.story.hutKnown = true; revealHut(); }
     state.goals.i++; const n = objectives.current; if (n && n.onStart) n.onStart({ state }); toast('Goal skipped.'); } });
@@ -1212,7 +1210,7 @@ function frame() {
   // ---- time of day & wind
   if (live) { const pt = state.time; state.time = advanceTime(state.time, dt); if (state.time < pt) { noteSkip(); state.dayN++; crewLeave(); }
     if (pt < 0.5 && state.time >= 0.5) noonBells();
-    if (tideAt() < -0.45 && !state.hints['tide:low'] && laterOK() && !objectives.pending && !objectives.mate.busy && !eventQuiet()) { state.hints['tide:low'] = true; objectives.mate.say('The tide is out, Captain. Keep off the shallows, and the wrecks give up more at low water.'); }
+    if (lowWater() && !state.hints['low:moon'] && laterOK() && !objectives.pending && !objectives.mate.busy && !eventQuiet()) { state.hints['low:moon'] = true; objectives.mate.say('The sea has gone out a long way tonight, Captain. It does that round a new moon, and a full one.'); }   // no tides: the sea draws back on those nights (systems/calendar.js)
     if (pt < 0.27 && state.time >= 0.27) weekMorning(); }
   wind.update(dt);
   if (dt > 0) { state.buffs.speed = Math.max(0, state.buffs.speed - dt); state.buffs.dig = Math.max(0, state.buffs.dig - dt); }
@@ -1320,7 +1318,7 @@ function frame() {
   world.setLit(lp === 'stare' || glimpse.k > 0.5 ? true : lp === 'dead' ? false : tod.sunHeight < 0.12 || weather.darkness > 0.6);
   world.stare = lp === 'stare' || glimpse.k > 0.5 ? ship.pos : null;
   havenTick(dt);   // the fog harbour: neglect, and Hesper's light dimming or burning true (systems/foghaven.js)
-  world.week = { wd: weekday(), market: isMarketDay(), lantern: isLanternNight() }; world.growthOf = (id) => { const [cx, cz] = id.split(',').map(Number), hd = world.desc(cx, cz); return hd ? Math.max(0, plentyLevel(hd)) : growthOf(id); }; world.plentyOf = plentyLevel; world.eventOf = eventOf; world.tradeOf = tradeOn; world.fedOf = fedOf; world.landedOf = (id) => landedAt(state, id); world.lifeDoneOf = (id) => life.arcDone(state, id); world.tide = tideAt();   // the harbour's state (systems/harbours.js)
+  world.week = { wd: weekday(), market: isMarketDay(), lantern: isLanternNight() }; world.growthOf = (id) => { const [cx, cz] = id.split(',').map(Number), hd = world.desc(cx, cz); return hd ? Math.max(0, plentyLevel(hd)) : growthOf(id); }; world.plentyOf = plentyLevel; world.eventOf = eventOf; world.tradeOf = tradeOn; world.fedOf = fedOf; world.landedOf = (id) => landedAt(state, id); world.lifeDoneOf = (id) => life.arcDone(state, id); world.tide = waterAt();   // the harbour's state (systems/harbours.js)
   { // a storm front every sixth afternoon (after chapter III), warned by a red sky the evening before; and the sector's own weather
     const h = state.time * 24, fd = state.dayN % 6 === 5 && unlocked(state, 'passengers'), fa = state.dayN % 6 === 4 && unlocked(state, 'passengers');
     weather.front = fd ? smoothstep(12, 16, h) * (1 - smoothstep(19, 22, h)) * (0.55 + 0.45 * rt.dread) : 0;
@@ -1350,7 +1348,7 @@ function frame() {
   voyageTick(dt); newsTick(dt);   // what you know of each harbour, as you last saw it (systems/news.js)
   gearTick(vdt, waveT, stage.wave);   // the bell and the boat on the Gull, the boat on the water (systems/gearplay.js)
   if (rt.anchorBit) { rt.anchorBit = false; fauna.splash(ship.pos.x + Math.sin(ship.heading) * 3.2, ship.pos.z - Math.cos(ship.heading) * 3.2, stage.wave, waveT, 1.1); }   // the anchor bites: a ring of foam at the bow
-  secrets.update(vdt, waveT, { ship, time: state.time, dayN: state.dayN, tide: tideAt(), wave: stage.wave, light: Math.min(1, 0.25 + stage.light * 0.9), dread: rt.dread, collected: state.collected, windX: Math.sin(wind.dir), windZ: -Math.cos(wind.dir), heading: ship.heading, fogFar: scene.fog.far });
+  secrets.update(vdt, waveT, { ship, time: state.time, dayN: state.dayN, tide: -1, wave: stage.wave, light: Math.min(1, 0.25 + stage.light * 0.9), dread: rt.dread, collected: state.collected, windX: Math.sin(wind.dir), windZ: -Math.cos(wind.dir), heading: ship.heading, fogFar: scene.fog.far });
   { const dr = ship.drift, ds = dr && !rt.anchorAt ? Math.hypot(dr.x, dr.z) : 0, drifting = ds > 0.25 && ship.speed < 0.6;   // drifting on a current, sails in: a faint wake the way she goes
     shipWake.update(vdt, waveT, stage.wave, drifting ? { pos: ship.pos, heading: Math.atan2(dr.x, -dr.z), speed: ds * 1.6, max: 11 } : { pos: ship.pos, heading: ship.heading, speed: ship.rowing ? ship.speed * 0.6 : ship.speed, max: 11 }, Math.min(1, 0.25 + stage.light * 0.9));
     rt.driftT = drifting ? (rt.driftT || 0) + dt : 0;
@@ -1460,7 +1458,7 @@ function frame() {
   if (tgt && live) {
     promptEl.style.display = 'block';
     if (rt.dig) { promptTxt.textContent = rt.dig.label || 'Digging...'; promptBar.style.display = rt.dig.mini && !rt.digLeave ? 'none' : 'block'; }
-    else if (rt.digFix > rt.tNow && tgt.kind === 'treasure') { promptBar.style.display = 'none'; promptTxt.textContent = rt.digFixWhy === 'tide' ? 'The tide is in. Wait for it to go out...' : rt.digFixWhy === 'mud' || rt.digFixWhy === 'leave' ? 'Scraping the shovels clean...' : 'Fetching the spare shovel...'; }
+    else if (rt.digFix > rt.tNow && tgt.kind === 'treasure') { promptBar.style.display = 'none'; promptTxt.textContent = rt.digFixWhy === 'tide' ? 'The sand is draining. Wait a little...' : rt.digFixWhy === 'mud' || rt.digFixWhy === 'leave' ? 'Scraping the shovels clean...' : 'Fetching the spare shovel...'; }
     else {
       promptBar.style.display = 'none';
       promptTxt.textContent = tgt.prompt ? tgt.prompt : tgt.kind === 'thread' ? tgt.th.prompt : tgt.kind === 'spring' ? '[E] Look into the water' : tgt.kind === 'cave' ? '[E] Look into the cave' : tgt.kind === 'sighting' ? `[E] ${tgt.s.label}` : tgt.kind === 'harbourfar' ? 'Sail to the pier to go ashore' : tgt.kind === 'hut' ? '[E] Knock on the dark hut' : tgt.kind === 'harbour' ? `[E] Visit ${tgt.isl.desc.name}`
@@ -1485,8 +1483,7 @@ function frame() {
   mixer.update();
   if (studio) studio.update(rawDt, soundSituation());
   $('clockicon').className = `ico ${skySign()}`;   // a weather sign: sun, moon, dawn, dusk, cloud, rain, storm, fog (owner 2026-11-18)
-  U.uTide.value = tideAt();   // the wet band on shores and pilings (psx.js)
-  drawTideClock($('tidemark'), ((state.time * 2 + state.dayN * 0.07) % 1 + 1) % 1);   // the tide clock beside the time (ui/hud.js)
+  U.uTide.value = waterAt();   // the wet band on shores and pilings (psx.js): as it always is, lower on a low-water night
   setWidth($('sailfill'), ship.trim * 100);
   $('sailbar').classList.toggle('torn', state.sailsTorn); $('sailbar').classList.toggle('strain', rt.sailStrain > SAIL_LIMIT * 0.35);
   drawCompass(wind, ship.heading);
@@ -1548,11 +1545,11 @@ $('oilrow').addEventListener('pointerdown', (e) => { if (rt.started && !rt.modal
 $('oilrow').classList.toggle('off', !!state.story.lampOff);
 installGamepad(() => toast('Controller connected: stick to sail, A to interact, Y for the log, Start to pause.', false, 6000));
 installInput(() => { if (rt.helpMode === 'full' || rt.helpMode === 'legacy') helpEl.innerHTML = helpText(rt.helpMode === 'full'); });
-window.__game = { fogHaven: havenDebug, fauna, leaderDesc, offLine, wallPass, ribsLull, secrets, regionWeights, tideAt: () => tideAt(), lostState: () => ({ lostK: rt.lostK, gateLost: rt.gateLost, placesLost: places.lost, heading: ship.heading, trim: ship.trim }), places, seaplay, glimpse, fishing, sails: () => ({ torn: state.sailsTorn, kits: state.patchKits, strain: rt.sailStrain }), oilState: () => ({ oil: state.oil, lampOut: rt.lampOut }),
+window.__game = { fogHaven: havenDebug, fauna, leaderDesc, offLine, wallPass, ribsLull, secrets, regionWeights, lowWater: () => lowWater(), lostState: () => ({ lostK: rt.lostK, gateLost: rt.gateLost, placesLost: places.lost, heading: ship.heading, trim: ship.trim }), places, seaplay, glimpse, fishing, sails: () => ({ torn: state.sailsTorn, kits: state.patchKits, strain: rt.sailStrain }), oilState: () => ({ oil: state.oil, lampOut: rt.lampOut }),
   readArch, partnerOf, maraMood, windfx, logbook, econ,
   life, localGames, openHarbour(id, tab = 'board') { const isl = [...world.islands.values()].find((i) => i.desc.id === id); if (!isl) return false; closeModal(true); rt.harbourIsl = isl; rt.hbTab = tab; frameVillage(isl.desc); openModal('harbour'); return true; }, renderHarbour: () => renderHarbour(),
   audio,
-  objectives, perrinNote, gateRadius: () => gateRadius(state, tideFalls()), trackTarget: () => trackTarget(), digGame,
+  objectives, perrinNote, gateRadius: () => gateRadius(state, true), trackTarget: () => trackTarget(), digGame,
   openCard, openTable, edge: () => startEdge(ship, $('fade')), sighting, spawnSight: (id) => { if (LOST_CARDS[id]) return sighting.spawn(LOST_CARDS[id], ship, world, 38, 0.35); return EVENTS[id] ? sighting.spawn(eventCard(id), ship, world) : false; },   // the sea's events (seaevents.js)
   weather,
   setDread(v) { rt.forced = v; rt.dread = v; },

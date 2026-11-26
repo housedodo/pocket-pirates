@@ -53,7 +53,7 @@ export const HABITAT = {
   mahi: { zones: ['open', 'deep'], hours: [5, 12], text: 'Mahi-mahi run in open water, away from land, in the morning.', say: 'Mahi-mahi like the open blue, well off the land, and the morning.' },
   tuna: { zones: ['deep'], hours: [13, 19], text: 'Bluefin tuna hold in the deep water, far from any island, in the afternoon.', say: 'Tuna are out in the deep stretches, far from land. Afternoons.' },
   sword: { zones: ['deep'], hours: [17, 22], text: 'Swordfish come up in the deep water around dusk.', say: 'Swordfish, out in the deep, round dusk. Strong back, strong line.' },
-  grouper: { zones: ['wreck'], hours: [5, 12], tide: 'low', text: 'Golden grouper sulk under wrecks, at low tide, mornings.', say: 'Golden groupers? Under the wrecks. Low tide. Mornings. Tell nobody.' },
+  grouper: { zones: ['wreck'], hours: [5, 12], text: 'Golden grouper sulk under wrecks, mornings.', say: 'Golden groupers? Under the wrecks. Mornings. Tell nobody.' },
   cuttle: { zones: ['lagoon'], hours: [17, 22], text: 'Cuttlefish drift in the lagoon of a ring island at dusk.', say: 'Cuttlefish like the still water inside a ring of sand. Dusk.' },
   barracuda: { zones: ['reef'], hours: [10, 16], text: 'Barracuda patrol reef edges at midday.', say: 'Barracuda off the rocky edges, midday, when the light is hard.' },
   bream: { zones: ['harbour'], hours: [16, 21], text: 'Sea bream gather by harbour piers in the evening.', say: 'Bream like the pilings of a pier, evenings, with the cooking smoke on the water.' },
@@ -68,7 +68,6 @@ export function habitatFit(id, env) {
   const cays = env.region === 'free' && CAYS_DUSK.includes(id);   // the Cays' calm water: the dusk and night fish come into open water, and bite better
   let k = hb.zones.some((z) => env.zones.includes(z)) || (cays && env.zones.includes('open')) ? 1 : 0.1;
   if (hb.hours) k *= inHours(env.hour, hb.hours) ? 1.5 * (cays ? 2 : 1) : 0.45;
-  if (hb.tide) k *= env.low ? 1.6 : 0.4;
   return k;
 }
 

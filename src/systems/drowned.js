@@ -8,13 +8,12 @@ import { scene } from '../core/engine.js';
 import { mats } from '../psx.js';
 import { BELT } from '../regions.js';
 import { REEFS_ON } from '../core/config.js';
-import { tideAt } from './calendar.js';
+import { lowWater } from './calendar.js';
 import { hurtPlayer } from './storybeats.js';
 import { waveHeight } from '../ocean.js';
 import { Builder } from '../builder.js';
 import { TILE } from '../textures.js';
 
-const LOW = -0.3;   // the belt opens below this tide
 let foam = null, hitT = 0, lastR = null, push = 0, pushOut = 1;
 const PUSH = 12, LEE = 30;   // LEE: calm water this far off the shore of an island standing in the belt
    // the race throws a ship back at 12 units/s, dying over 1 s (G-23): read as water, never a snap
@@ -41,7 +40,7 @@ export function drownedTick(dt, t, wave) {
   if (!REEFS_ON) return;   // the belt is a reef: off with the reefs (owner, 2026-11-26: "the reefs are still following me, remove them completely";
                            // its foam and teeth were laid round the ship's own bearing, so they moved with her). The Drowned are open at any tide meanwhile
   const p = G.ship.pos, r = Math.hypot(p.x, p.z), near = Math.abs(r - (BELT[0] + BELT[1]) / 2) < 260;
-  const open = tideAt() < LOW;
+  const open = lowWater();   // the belt (off with the reefs) would open on a new or full moon night
   // the white water, only near the belt and only while it is closed (it fades as the tide drops)
   if (near && !foam) foam = build();
   if (foam) {

@@ -50,7 +50,7 @@ export const SAY = [
   { id: 'nobell', r: 'free', who: 'fiddler', g: 'any', text: 'Bells in the fog? Not here. Not while somebody plays.' },
   // the Reef: the naming right (L-16), the tide rule (L-18), "the quiet water" (L-06), the wreck that rings (L-29), the stool (L-26)
   { id: 'paint', r: 'reef', who: 'docker', g: 'full', text: 'A name goes up the day a ship does not come in. Nobody sees the day it sinks.' },
-  { id: 'tide', r: 'reef', who: 'docker', g: 'any', text: 'Salvage at low water. A grave at high. Be quick about the difference.' },
+  { id: 'tide', r: 'reef', who: 'docker', g: 'any', text: 'The sea goes out a long way under a new moon, and a full one. Salvage then. Be back before it remembers.' },
   { id: 'quiet', r: 'reef', who: 'fisher', g: 'any', text: 'Out there is the quiet water. Nothing to wreck, nothing to take.' },
   { id: 'rings', r: 'reef', who: 'fisher', g: 'any', c: (x) => x.fog, text: 'In fog the old wreck rings. Nobody has ever found the wreck.' },
   { id: 'stool', r: 'reef', who: 'innkeeper', g: 'any', c: (x) => x.evening, text: 'The stool at the sea end is not for sitting. Ask anyone.' },

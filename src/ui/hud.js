@@ -128,16 +128,3 @@ export function goldShown(dt) {
   return rt.goldShown;
 }
 
-/** the tide clock (owner 2026-11-18, option A): a small dial like a harbour tide clock. The hand points up at high water and down at
- *  low, and goes round once a tide (twice a day). phase: 0..1 of the tide cycle (calendar.js tideAt = sin(2 pi phase): high at 0.25) */
-let tideStep = -1;
-export function drawTideClock(c, phase) {
-  const step = Math.round(phase * 32) % 32; if (!c || step === tideStep) return; tideStep = step;
-  const g = c.getContext('2d'), C = '#e8e0c8'; g.clearRect(0, 0, 16, 16);
-  g.fillStyle = 'rgba(0,0,0,0.3)'; g.beginPath(); g.arc(8, 8, 7, 0, 7); g.fill();
-  g.fillStyle = C; for (let k = 0; k < 64; k++) { const t = k / 64 * 6.283; g.fillRect(Math.round(8 + Math.cos(t) * 7 - 0.5), Math.round(8 + Math.sin(t) * 7 - 0.5), 1, 1); }
-  g.fillStyle = '#5aa8c8'; g.fillRect(6, 2, 4, 2);    // high water at the top: blue
-  g.fillStyle = '#c8a860'; g.fillRect(6, 12, 4, 2);   // low water at the bottom: sand
-  const a = -Math.PI / 2 + (step / 32 - 0.25) * Math.PI * 2;
-  g.fillStyle = C; for (let r = 0; r < 6; r++) g.fillRect(Math.round(8 + Math.cos(a) * r), Math.round(8 + Math.sin(a) * r), 1, 1);
-}

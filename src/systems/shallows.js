@@ -20,7 +20,7 @@ import { toast } from '../ui/dom.js';
 import { CELL } from '../world.js';
 import { hash2, mulberry32 } from '../util.js';
 import { tod } from '../daynight.js';
-import { tideAt } from './calendar.js';
+import { lowWater, waterAt } from './calendar.js';
 import { handOn } from './hands.js';
 import { SANDBANKS_ON } from '../core/config.js';
 
@@ -182,7 +182,7 @@ export function shelvesNear(x, z, R = 500) {
   for (const b of banks) { const d = Math.hypot(b.x - x, b.z - z); if (d < R) out.push([b.x, b.z, -b.r * 0.75, d]); }   // negative: a sandbank (ocean.js isd)   // one entry a bank: the swell lies down over it (never one per disc: they came and went)
   return out;
 }
-const lowTide = () => tideAt() < -0.35;
+const lowTide = () => lowWater();   // the sea drawn back: a new or full moon night (no tides)
 let lastFloat = null, groundT = -99;
 /** each frame (gearplay.js): the Gull grounds on a shelf; the boat goes over shelves but not through islets (or the spits at low tide) */
 export function shallowsTick(dt, t) {
@@ -215,7 +215,7 @@ export function shallowsTick(dt, t) {
       if (d < R && d > 0.01) { S.pos.x = x + dx / d * R; S.pos.z = z + dz / d * R; S.speed *= 0.5; }
     }
     if (g.spits) {   // the Tide Rocks: the spits rise with the low water
-      const tide = tideAt(); g.spits.position.y = Math.max(-0.9, Math.min(0.1, -0.35 - tide * 0.9));
+      const tide = waterAt(); g.spits.position.y = Math.max(-0.9, Math.min(0.1, -0.35 - tide * 0.9));
       if (boat && lowTide()) for (const [i, j] of [[0, 1], [1, 2]]) {
         const [ax, az] = g.spots[i], [bx, bz] = g.spots[j], ux = bx - ax, uz = bz - az, L2 = ux * ux + uz * uz;
         const k = Math.max(0.15, Math.min(0.85, ((S.pos.x - ax) * ux + (S.pos.z - az) * uz) / L2)), px = ax + ux * k, pz = az + uz * k;

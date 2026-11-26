@@ -2721,3 +2721,14 @@ frame and wide map; moon phases and the Eye's shape (not in the summary list).
   on the ring (radius 1740-1800), so they moved with her. With REEFS_ON off the whole belt is off: no foam, no teeth, no race (no
   throw-back, no scraping). The Drowned waters are open at any tide until the reefs come back as a proper fixed design. Verified
   headless at high water on the ring: before, the field of patches; after, open water. `docs/proposals/world/drowned_belt_off.png`.
+- **No tides** (owner: "remove the tide and tide meter altogether"; "go with your pick, moon and always open"; `systems/calendar.js`):
+  the tide and the tide clock beside the time are gone, and so is the tide in the harbour's day line. What waited on low water now
+  waits on the moon (`lowWater()`): on the nights (20:00 to 05:00) within a day of a new or a full moon the sea draws back, two nights
+  in every eight: the Bell Below rings and can be listened to, the Tide Rocks' stone and spits show (and the cloves there), the
+  Throwers' Wreck and the Sunken Street are bare (their clues), the Drowned harbour's planks are above water. Mara says it the first
+  such night. Everything else is always open: the Lantern wall's slicks (always there, their shoal no longer bites), rowing into Glass
+  Lagoon, the white-cloth clue, the low-tide wrecks on lonely isles, the grouper, the Reef storm wreck (gone the next day once you are
+  away), the Dim (no falling tide needed); the low-tide salvage bonus is gone. Lines that taught the tide are rewritten (bell clue,
+  slick rumour, clove hint, gate rumour, a bottle, a customs line; digging's "tide" is wet sand sliding back). Dev panel: "Next low
+  water night"; tests `?lowwater=1`, `__game.lowWater()`. Verified headless: low water on days 2-3, 10-11, 18-19, 26-27 at night,
+  never by day; the planks follow it; no tide meter; no errors.

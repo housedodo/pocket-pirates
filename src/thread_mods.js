@@ -98,7 +98,7 @@ export function bellMod(hub) {
   let queue = [];
   return {
     update({ ship, t, amp, dt, api }) {
-      const s = site(), low = api.tide() < -0.15;
+      const s = site(), low = api.low();   // the sea drawn back: a new or full moon night (systems/calendar.js)
       const m = stage(hub, 'bell', s, ship, 420, () => {
         const b = new Builder(); b.doubleSided = true;
         b.blob(-3, -1, 0, 4, 2.2, 3.4, '#585c66', TILE.stone, 0.3, 5); b.blob(3, -1.2, 1, 3.4, 2, 3, '#70737c', TILE.stone, 0.3, 8);
@@ -119,7 +119,7 @@ export function bellMod(hub) {
         if (tp.deck <= 0) { tp.deck = 50 + Math.random() * 30; ship.tollT = 1.2; api.audio.play('deepbell', { vol: 0.35, rate: 0.5 }); }   // ship.tollT: the lantern's flame dips with the stroke (its silent twin, RULES 28)
       }
     },
-    interact({ ship, api }) { if (!tp.ended && api.tide() < -0.15 && D(site(), ship.pos) < 30) return { key: 'bell', prompt: 'E: listen over the side', run: () => api.openScene('bellreef', `bell:${tp.ended || 'x'}`) }; return null; },
+    interact({ ship, api }) { if (!tp.ended && api.low() && D(site(), ship.pos) < 30) return { key: 'bell', prompt: 'E: listen over the side', run: () => api.openScene('bellreef', `bell:${tp.ended || 'x'}`) }; return null; },
     onSalvage(api) { if (tp.ended || tp.clappers >= 3 || Math.random() > 0.45) return ''; tp.clappers++; return `Among the iron: a bell clapper, green with age. (${tp.clappers} of 3)`; },
     flag(n) {
       if (n === 'hasclappers') return tp.clappers >= 3;
@@ -147,7 +147,7 @@ export function bellMod(hub) {
       if (n === 'asked') { api.addMark('counted'); return ''; }
     },
     salvageMul: () => (tp.ended === 'ring' ? 1.25 : 1),
-    clue: () => `At low tide, out on the ${hub.dir(site())} reef, you can hear the sea count. Nobody counts along.`,
+    clue: () => `On a new moon night, or a full one, out on the ${hub.dir(site())} reef, you can hear the sea count. Nobody counts along.`,
   };
 }
 

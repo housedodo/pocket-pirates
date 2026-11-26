@@ -117,6 +117,7 @@ Nothing here is ever said to the player in these words.
 | 2026-11-26 | **The Gull's stern lantern** (owner picked a of three): an iron-framed lantern with a peaked cap, held out over the transom on a curled bracket. |
 | 2026-11-26 | **The Halved Isle's fog closes in; it is not a wall** (owner; replaces the ragged wall): nothing to see from afar, the haze thickens slowly as you sail in until you are surrounded, a fine low mist on the water round the ship. The bank is bigger (170) and holds one more islet. |
 | 2026-11-26 | **The Drowned belt is off with the reefs** (owner: "remove them completely"): no white race round the Drowned waters for now; they can be entered and left at any tide until the reefs return. |
+| 2026-11-26 | **No tides** (owner): the tide and its clock are gone. The sea draws back only on the nights round a new or a full moon (the Bell Below, the Tide Rocks, the Throwers' Wreck, the Sunken Street, the Drowned planks); everything else that waited on the tide is always open. |
 | earlier | The title is HOIST. The Lady never speaks. Dread follows where you are, never time. The demo has no dread. |
 
 ## 4. The seven questions (the whole mystery)

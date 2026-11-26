@@ -476,10 +476,8 @@
     #pauseAbyss .abtog { min-width: 46px; opacity: .55; } #pauseAbyss .abtog.on { opacity: 1; color: #ff9ae0; }
     #pauseAbyss .menu, #pause .menu { max-width: min(620px, 94vw); }
     .ico { display: inline-block; width: 17px; height: 17px; vertical-align: -3px; margin-right: 6px; }
-    /* the tide, wordless (2026-11-13): a little glass of water beside the clock; its level is the tide, the notch shows which way it goes */
     #clockday { margin-left: 6px; opacity: 0.75; }   /* the weekday, always beside the time (owner 2026-11-18: not on hover, a pad cannot hover) */
     .dateline { text-align: center; opacity: 0.7; margin: 0 0 6px; }   /* the Ship's book's first line: the day */
-    .tideclock { width: 16px; height: 16px; margin-left: 7px; vertical-align: -3px; image-rendering: pixelated; }   /* the tide clock: up is high water, down is low (owner 2026-11-18) */
     #hbWide { width: min(560px, 94vw); }
     #tP { position: fixed; top: 12px; left: 50%; margin-left: -24px; width: 48px; height: 40px; display: none; z-index: var(--z-hudtop); font: 700 16px monospace; color: var(--ink); background: var(--panel); border: 2px solid var(--edge); }
     @media (pointer: coarse) { #tP { display: block; } }
@@ -788,7 +786,7 @@
   <div id="hud">
     <div id="stats" class="txt">
       <div class="panel" id="gold"><i class="ico coin"></i><b>0</b></div>
-      <div class="panel" id="clock"><i class="ico sun" id="clockicon"></i><b id="clocktxt">08:00</b><b id="clockday"></b><canvas class="tideclock" id="tidemark" width="16" height="16"></canvas></div>
+      <div class="panel" id="clock"><i class="ico sun" id="clockicon"></i><b id="clocktxt">08:00</b><b id="clockday"></b></div>
       <div class="panel" id="placeline"></div>
       <div class="panel" id="tracker"></div>
     </div>

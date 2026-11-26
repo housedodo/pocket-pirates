@@ -12,12 +12,12 @@ import { toast } from '../ui/dom.js';
 import { handOn } from './hands.js';
 import { cargo, carried, room, GOODS } from './trade.js';
 import { shallowsState } from './shallows.js';
-import { tideAt } from './calendar.js';
+import { lowWater } from './calendar.js';
 
 export const SPICE_REGROW = 3, SPICE_NOSE = 70, SPICE_NEAR = 24;
 const at = () => state.story.spiceAt || (state.story.spiceAt = {});
 const ready = (key) => at()[key] == null || state.dayN - at()[key] >= SPICE_REGROW;
-const TANSY = { pepper: 'Pepper. On that one. You can smell it from here.', saffron: 'In the roots. Saffron, the wild kind. Take the boat in.', clove: 'Cloves on the rocks, when the water goes down. Wait for the bottom of the tide.', bluesalt: 'Blue salt on that shore. I would not ask where it comes from.' };
+const TANSY = { pepper: 'Pepper. On that one. You can smell it from here.', saffron: 'In the roots. Saffron, the wild kind. Take the boat in.', clove: 'Cloves on the rocks, when the water goes down. It goes right down round a new moon, and a full one.', bluesalt: 'Blue salt on that shore. I would not ask where it comes from.' };
 /** what spice is to be had near (x, z) and where: { key, spice, x, z } or null */
 function spiceNear(x, z, R) {
   const isl = G.world && G.world.nearest(x, z, R);
@@ -48,7 +48,7 @@ export function spiceInteract() {
   const s = spiceNear(G.ship.pos.x, G.ship.pos.z, s0());
   if (!s || !ready(s.key)) return null;
   if (s.boat && !rt.boat) return null;
-  if (s.low && tideAt() > -0.35) return null;
+  if (s.low && !lowWater()) return null;
   return { kind: 'spice', key: 'spice:' + s.key, sp: s, prompt: `[E] Look for ${GOODS[s.spice].one}` };
 }
 const s0 = () => (rt.boat ? 30 : SPICE_NEAR);
