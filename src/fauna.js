@@ -5,6 +5,7 @@ import { mats, psxMaterial } from './psx.js';
 import { waveHeight } from './ocean.js';
 import { smoothstep, lerp, clamp, mulberry32 } from './util.js';
 import { SeaLife } from './sealife.js';
+import { shoreR, terrainHeight } from './world.js';
 
 // Sea life that goes wrong as dread rises:
 //  gulls -> frozen watchers -> backwards-circling crows -> a ring of crows over your ship
@@ -72,7 +73,7 @@ export class Fauna {
     const inst = (geo) => { const m = new THREE.InstancedMesh(geo, this.birdMat, NB); m.frustumCulled = false; m.instanceMatrix.setUsage(THREE.DynamicDrawUsage); scene.add(m); return m; };
     this.flocks = { gull: birdModel('gull'), crow: birdModel('crow') };
     for (const f of Object.values(this.flocks)) { f.body = inst(f.bodyGeo); f.wR = inst(f.wingGeo); f.wL = inst(f.wingGeo); }
-    this.birds = Array.from({ length: NB }, (_, i) => ({ anchor: null, ang: Math.random() * 6.28, r: 0, h: 0, phase: Math.random() * 10, spd: rnd(0.6, 1), i }));
+    this.birds = Array.from({ length: NB }, (_, i) => ({ anchor: null, ang: Math.random() * 6.28, r: 0, h: 0, phase: Math.random() * 10, spd: rnd(0.6, 1), i, k: 0, sit: null, next: rnd(4, 25), yawS: 0 }));
 
     // ---- dolphins
     this.dolMat = psxMaterial({ vertexColors: true, color: 0xffffff, key: 'Dl' });
@@ -164,11 +165,18 @@ export class Fauna {
     const frozen = ctx.freeze != null ? ctx.freeze : 1 - smoothstep(0.3, 0.45, dread) * (1 - smoothstep(0.5, 0.6, dread));      // 1 normal .. 0 frozen (the glimpse freezes them too)
     const dirSign = dread > 0.5 ? -1 : 1;
     let nearBird = 1e9;
+    // (owner, 2026-11-26: "they should not be flying the whole time, especially in the dread zones; they can sit on the trees, the beach
+    // or similar"): each bird takes turns flying and sitting. A sitting gull is on the ground of an island near by (beach, grass, rock)
+    // and lifts off when the ship comes close; crows sit longer and do not lift off (they watch). At the deepest dread most of them sit
+    // on the Gull's own rail, and only a few circle.
+    const crowish = kind === 'crow', V = this._v || (this._v = new THREE.Vector3());
+    const RAIL = [[0.92, 2.0], [-0.92, 2.0], [1.2, 0.5], [-1.2, 0.5], [1.15, -1.0], [-1.15, -1.0], [0.85, -2.2], [-0.85, -2.2]];   // ship-local x, z
     for (let i = 0; i < NB; i++) {
       const b = this.birds[i], d = this.dummy;
       let visible = i < nActive;
       let x = 0, y = 0, z = 0, yaw = 0;
       if (visible) {
+        // the flying point (as before)
         if (watchers) {
           b.ang += dt * 0.35 * (i % 2 ? 1 : -1);
           const rr = 13 + (i % 3) * 2;
@@ -176,13 +184,12 @@ export class Fauna {
           yaw = Math.atan2(sx - x, sz - z);
         } else {
           if (!b.anchor || Math.hypot(b.anchor.x - sx, b.anchor.z - sz) > 260 || !this.world.islands.has(b.anchor.id)) {
-            b.anchor = this.pickAnchor(ship);
+            b.anchor = this.pickAnchor(ship); b.sit = null; b.k = 0;
             if (b.anchor) { b.r = b.anchor.r * rnd(0.5, 1.1) + 3; b.h = rnd(7, 11); }
           }
           if (!b.anchor) visible = false;
           else {
-            b.ang += dt * (5.5 / b.r) * b.spd * frozen * dirSign * (dread > 0.5 ? 0.6 : 1);
-            // they wander: the circle breathes in and out, and they swoop down and climb again
+            b.ang += dt * (5.5 / b.r) * b.spd * frozen * dirSign * (dread > 0.5 ? 0.6 : 1) * (1 - b.k);
             const live = frozen * (dread > 0.5 ? 0.3 : 1), rr = b.r * (1 + 0.3 * live * Math.sin(t * 0.23 + b.phase * 2));
             x = b.anchor.x + Math.cos(b.ang) * rr; z = b.anchor.z + Math.sin(b.ang) * rr;
             y = b.h + Math.sin(t * 0.7 + b.phase) * 0.6 + live * (2.2 * Math.sin(t * 0.31 + b.phase * 3) + 1.2 * Math.sin(t * 0.83 + b.phase));
@@ -190,12 +197,37 @@ export class Fauna {
             yaw = frozen < 0.5 && dread < 0.5 ? Math.atan2(sx - x, sz - z) : Math.atan2(vx, vz);
           }
         }
+        // sitting: choose a place, go down to it, stay, lift off again
+        if (visible) {
+          b.next -= dt;
+          const onRail = watchers && i % 3 !== 0;   // the deepest dread: two in three sit on the rail
+          if (onRail) { const R = RAIL[i % RAIL.length]; V.set(R[0], 1.1, R[1]); ship.root.localToWorld(V); b.sit = { x: V.x, y: V.y, z: V.z, rail: true }; b.want = 1; }
+          else if (b.sit && b.sit.rail) { b.sit = null; b.want = 0; }
+          else if (b.next <= 0) {
+            if (b.want) { b.want = 0; b.next = crowish ? rnd(5, 12) : rnd(14, 32); }   // up again
+            else if (b.anchor) {   // down: a spot on the island's ground, not too near the water
+              const D = b.anchor, th = Math.random() * 6.28, rho = shoreR(D, th) * rnd(0.45, 0.9), lx = Math.cos(th) * rho, lz = Math.sin(th) * rho;
+              const gy = terrainHeight(D, lx, lz);
+              if (gy > 0.4) { b.sit = { x: D.x + lx, y: gy + 0.55, z: D.z + lz }; b.want = 1; b.yawS = Math.random() * 6.28; }
+              b.next = crowish ? rnd(30, 80) : rnd(14, 40);
+            }
+          }
+          if (b.want && b.sit && !b.sit.rail && !crowish && Math.hypot(b.sit.x - sx, b.sit.z - sz) < 22) { b.want = 0; b.next = rnd(12, 24); }   // a gull lifts off as the ship comes near
+          b.k = clamp(b.k + (b.want ? 1 : -1) * dt / 2.2, 0, 1);
+          if (b.k > 0 && b.sit) {
+            const e = b.k * b.k * (3 - 2 * b.k);
+            x = lerp(x, b.sit.x, e); z = lerp(z, b.sit.z, e); y = lerp(y, b.sit.y, e) + Math.sin(e * Math.PI) * 1.5;
+            if (b.k > 0.95) yaw = b.sit.rail || crowish ? Math.atan2(sx - x, sz - z) + (b.sit.rail ? Math.PI * 0.5 * (i % 2 ? 1 : -1) : 0) : b.yawS;   // crows face you; on the rail they face outboard
+          } else if (!b.sit) b.k = 0;
+        }
       }
       if (visible) {
         nearBird = Math.min(nearBird, Math.hypot(x - sx, z - sz));
         const glide = watchers ? 1 : smoothstep(-0.2, 0.3, Math.sin(t * 0.4 + b.phase * 5));   // now and then they stop flapping and glide
-        const fl = Math.sin(t * flap + b.phase) * (frozen < 0.5 && dread < 0.5 ? 0.08 : 0.55) * (0.15 + 0.85 * glide);
-        const sc = watchers ? 1.7 : 1.25;
+        let fl = Math.sin(t * flap + b.phase) * (frozen < 0.5 && dread < 0.5 ? 0.08 : 0.55) * (0.15 + 0.85 * glide);
+        if (b.k > 0.9) fl = -1.25 + (Math.random() < 0.002 ? 0.6 : 0);   // sitting: wings folded (now and then one is stretched)
+        else if (b.k > 0.05) fl = Math.sin(t * flap * 1.6 + b.phase) * 0.7;   // landing and lifting off: busy wings
+        const sc = watchers && !(b.k > 0.5) ? 1.7 : 1.25;
         d.position.set(x, y, z); d.rotation.set(0, yaw, 0); d.scale.set(sc, sc, sc);
         d.rotation.z = 0; d.updateMatrix(); F.body.setMatrixAt(i, d.matrix);
         d.rotation.z = fl; d.updateMatrix(); F.wR.setMatrixAt(i, d.matrix);

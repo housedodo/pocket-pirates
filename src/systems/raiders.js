@@ -240,12 +240,13 @@ export function crewOffers(s) {
       { id: 'cw_refuse', label: 'Refuse', cost: 0, desc: 'he closes the ledger', used: false },
     ]); }
   if (id === 'beggars') { const S = state.story.stores || { food: 0, water: 0 };
-    return (s.offers = [
-      { id: 'cw_water', label: 'Food and water', cost: 0, desc: S.water >= 1 && S.food >= 1 ? 'a day of each from your own casks' : 'your own casks are nearly dry', used: !(S.water >= 1 && S.food >= 1) },
-      { id: 'cw_kit', label: 'A patch kit', cost: 0, desc: state.patchKits > 0 ? `you have ${state.patchKits}` : 'you have none', used: !(state.patchKits > 0) },
+    // (owner, 2026-11-26: "vary between the 3 options"): they ask for two of the three, a different two from one meeting to the next
+    const ask = [
+      { id: 'cw_water', label: 'Food and water', cost: 0, desc: 'a day of each from your own casks', used: !(S.water >= 1 && S.food >= 1) },
+      { id: 'cw_kit', label: 'A patch kit', cost: 0, desc: `you have ${state.patchKits}`, used: !(state.patchKits > 0) },
       { id: 'cw_coin', label: 'A little coin', cost: 15, desc: 'for the next harbour', used: false },
-      { id: 'cw_no', label: 'Sail on', cost: 0, desc: 'they watch you go', used: false },
-    ]); }
+    ], skip = Math.abs((s.seed || 0) + (c.met || 0) * 7) % 3;
+    return (s.offers = [...ask.filter((o, k) => k !== skip && !o.used).slice(0, 2), { id: 'cw_no', label: 'Sail on', cost: 0, desc: 'they watch you go', used: false }]); }
   // collectors
   const has = (state.story.chest || []).filter((x) => !x.sold && CHEST[x.id] && CHEST[x.id].kind === 'remnant'), want = has[0];
   s.want = want ? want.id : null;

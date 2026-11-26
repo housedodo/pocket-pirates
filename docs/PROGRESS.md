@@ -2555,3 +2555,16 @@ toward it, grey veils of rain under its belly, and its foot dissolving into the 
   Number keys 1 to 3. Four looks on trial (`?choices=a|b|c|d`, default a; preview `docs/proposals/ui/choice_looks_abcd.png`):
   a the ship's log (paper, ink, a red wax price), b signal flags (night-blue keys with a pennant each, a gold price tag), c spoken
   (their words in a bubble, your answers as bubbles), d the strip (a band across the foot of the screen, the sea left in view).
+- **The strip (D) is the look** (owner: "the choices presented as shown in D"); A, B, C and the `?choices` flag are deleted.
+- **They speak first** (owner: "the encounter starts with talk from the party... give me 2 design choices"; `ui/shiptrade.js`):
+  their line types out with the villagers' voice blip; E, Space, Enter or a click finishes it, then again brings the choices (until then
+  the choices, the gold and the close button are hidden). Two ways on trial (`?talk=1|2`, default 1; preview
+  `docs/proposals/ui/talk_1_2.png`): 1 the words in the strip itself, the choices appear under them; 2 the words in a paper bubble over
+  their ship (it rides with her, never off the top of the screen), the strip holds only the choices.
+- **The Patience ask for two of three** (owner: "vary between the 3 options"; `raiders.js`): food and water, a patch kit or a little coin;
+  which one is left out changes with the ship and with each meeting; what you cannot give is not asked.
+- **Birds sit** (owner: "they should not be flying the whole time, especially in the dread zones; they can sit on the trees, the beach";
+  `fauna.js`): each bird takes turns: gulls fly 14 to 32 s and sit 14 to 40 s on the ground of an island near by (beach, grass, rock),
+  and lift off when the ship comes within 22; crows fly 5 to 12 s, sit 30 to 80 s, face you, and do not lift off. At the deepest dread
+  two in three sit on the Gull's rail facing outboard, the rest circle slowly. Landing and lifting off with busy wings, folded wings
+  when sitting. Checked headless (10 of 10 gulls sitting, 19 of 19 crows, 6 on the rail); preview `docs/proposals/sky/birds_sitting.png`.

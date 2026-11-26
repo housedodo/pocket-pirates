@@ -650,6 +650,7 @@ window.addEventListener('keydown', (e) => {
     return;
   }
   if (rt.modal === 'ship') {
+    if ((e.code === 'KeyE' || e.code === 'Space' || e.code === 'Enter') && G.talkNext()) { e.preventDefault(); return; }   // first their words (ui/shiptrade.js)
     if (e.code === 'KeyE') { $('shClose').click(); return; }   // the same as the button (a pay-only hail: refusing it)
     const n = parseInt(e.key, 10);
     if (n >= 1 && n <= 3) { const b = shipEl.querySelectorAll('#shList button')[n - 1]; if (b && !b.disabled) b.click(); }
