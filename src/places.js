@@ -7,7 +7,6 @@ import * as THREE from 'three';
 import { LANDMARKS, LM, BARRIERS, lmHere } from './landmarks.js';
 const C_WHITE = new THREE.Color('#ffffff'), _lv = new THREE.Vector3();   // made once: these run every frame (task R6)
 import { clamp, smoothstep } from './util.js';
-import { psxMaterial } from './psx.js';
 import { tableOpen } from './clues.js';
 
 // what you find ashore. once: the first visit; again: later visits (null = nothing more to take); every: days between repeat gifts
@@ -122,23 +121,9 @@ export class Places {
     this.scene = scene;
     this.fog = 0;            // 0..1 how deep in a fog bank the ship is (main.js thickens the scene fog)
     this.toastT = {};
-    // the fog bank: a lumpy white dome you can see from a long way off
+    // the fog bank: a ragged wall of fog standing round the Halved Isle (fogbank.js; owner, 2026-11-26: look a)
     const b = LM.broken, R = BARRIERS.broken.R;
-    this.fogMat = psxMaterial({ color: '#dfe6e8', transparent: true, opacity: 0.5, depthWrite: false, side: THREE.DoubleSide, fog: false, key: 'Lc', fragmentColor: { head: '', body: 'diffuseColor.rgb /= max(uLight, 0.05);' } });   // snaps (G2); its colour follows the fog's, so the light is not applied twice
-    this.fogGroup = new THREE.Group(); this.fogGroup.position.set(b.x, 0, b.z);
-    const geo = new THREE.IcosahedronGeometry(1, 1);
-    for (let i = 0; i < 9; i++) {
-      const a = (i / 9) * Math.PI * 2, rr = i === 0 ? 0 : R * 0.55;
-      const m = new THREE.Mesh(geo, this.fogMat);
-      m.position.set(Math.cos(a) * rr, -4, Math.sin(a) * rr);
-      const s = i === 0 ? R * 0.95 : R * (0.5 + 0.08 * (i % 3));
-      m.scale.set(s, s * (i === 0 ? 0.38 : 0.3), s); m.rotation.y = i;
-      m.renderOrder = 6;
-      this.fogGroup.add(m);
-    }
-    scene.add(this.fogGroup);
-    { const q = (() => { try { return new URLSearchParams(location.search).get('fogbank'); } catch (e) { return null; } })();   // three new looks on trial (fogbank.js)
-      if (q === 'a' || q === 'b' || q === 'c') { this.bank = new FogBank(scene, b.x, b.z, R, q); this.fogGroup.visible = false; } }
+    this.bank = new FogBank(scene, b.x, b.z, R);
     // labels for far shapes
     this.labels = new Map();
     this.layer = document.createElement('div'); this.layer.id = 'farlabels';
@@ -183,9 +168,7 @@ export class Places {
     }
     for (const k of Object.keys(this.toastT)) if (!k.endsWith('ok')) this.toastT[k] -= dt;
     // the dome takes the scene's fog colour, so it is grey at dusk and dark at night; thinner from inside
-    this.fogMat.color.copy(fogColor).lerp(C_WHITE, 0.35);
-    this.fogMat.opacity = 0.55 * (1 - 0.8 * this.fog) * (this.bankLit ?? 1);   // (the lantern thins it from inside: see above)
-    if (this.bank) { const col = this._bc || (this._bc = new THREE.Color()); col.copy(fogColor).lerp(C_WHITE, 0.3); this.bank.update(dt, ship, col, (this.bankLit ?? 1) * (1 - 0.5 * this.fog), this.bankClear || 0); }
+    { const col = this._bc || (this._bc = new THREE.Color()); col.copy(fogColor).lerp(C_WHITE, 0.12); this.bank.update(dt, ship, col, (this.bankLit ?? 1) * (1 - 0.5 * this.fog), this.bankClear || 0); }
     return msg;
   }
 

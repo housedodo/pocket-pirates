@@ -2664,3 +2664,6 @@ frame and wide map; moon phases and the Eye's shape (not in the summary list).
   drifting, opened round the ship by the lens lantern. a the wall (a ragged ring standing off the sea, fraying at the top),
   b the bank (loose curtains of mist turned to you), c the sea mist (low layers on the water; masts and the isle's crown above).
   Preview `docs/proposals/sky/fogbank_trial.png`.
+- **Fog bank: look a kept, blended in** (owner: "blend the fog in a bit more and go with a"): the wall is the Halved Isle's fog; the
+  old dome, looks b and c and the `?fogbank` flag are gone. Its colour is closer to the haze, it rises out of the sea and fades into the
+  sky over a longer dithered ramp, and it is thinner overall. Before/after `docs/proposals/sky/fogbank_a_blend.png`.
