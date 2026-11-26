@@ -2732,3 +2732,7 @@ frame and wide map; moon phases and the Eye's shape (not in the summary list).
   slick rumour, clove hint, gate rumour, a bottle, a customs line; digging's "tide" is wet sand sliding back). Dev panel: "Next low
   water night"; tests `?lowwater=1`, `__game.lowWater()`. Verified headless: low water on days 2-3, 10-11, 18-19, 26-27 at night,
   never by day; the planks follow it; no tide meter; no errors.
+- **A digital artbook** (owner: "a html file with the game in the form of a digital artbook"): `docs/artbook/hoist_artbook.html`, one
+  self-contained page (about 3 MB, 16 captures from the running game embedded): foreword and pillars, the look in numbers, the palette
+  by stage, the Merry Gull, Tama, the five waters, sky and weather, the fog and Haven Hesk, the slide (one sea at four dread levels),
+  the interface, people, colophon. Horror kept implied (no premise spelled out). Checked at 1280 and 390 wide, no sideways scroll.
