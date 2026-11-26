@@ -39,25 +39,18 @@ function chain(ox, oz, ang, pts, rng) {
   }
   addBank(discs);
 }
-// ---- sandbanks (owner, 2026-11-26): drawn as fixed meshes, never by the sea shader's short list of the nearest (that made the old
-// shelves come and go as you sailed). Each is the shelf's discs: a wet-sand rim and a pale dry crest, just awash (the sea paints the
-// pale shallows round it); the tide lifts and lowers them (more shows at low water). The sea is told about each bank once (one entry, its middle), so the
-// swell lies down over it.
-const SAND_WET = '#e6dcb4', SAND_DRY = '#f6f0da';
-const banks = [];   // { x, z, r, mesh }
+// ---- sandbanks (owner, 2026-11-26: "below the islands, or where the reefs were, so the water is too shallow for the big ship... only at
+// specific positions where it matters for the story or progression... like real islands, where the ship lies further out and the
+// approach is by rowboat"): only in front of the boat landings and round the three island groups. Nothing stands out of the water:
+// the sea paints the pale shallows over each bank, from one fixed entry per bank (its middle and reach), never one per disc (those
+// came and went as you sailed). The Gull grounds on the discs; the boat rows over.
+const banks = [];   // { x, z, r }
 function addBank(discs) {
   for (const d of discs) shelves.push(d);
   if (DEMO() || !discs.length) return;
   let cx = 0, cz = 0; for (const [x, z] of discs) { cx += x; cz += z; } cx /= discs.length; cz /= discs.length;
   let R = 0; for (const [x, z, r] of discs) R = Math.max(R, Math.hypot(x - cx, z - cz) + r);
-  const b = new Builder();
-  discs.forEach(([x, z, r], i) => {
-    const lx = x - cx, lz = z - cz;
-    b.blob(lx, -0.1, lz, r * 0.95, 0.45, r * 0.9, SAND_WET, TILE.sand, 0.25, i + 1);   // wet sand at the edge
-    b.blob(lx + 0.4, 0.05, lz - 0.3, r * 0.62, 0.45, r * 0.58, SAND_DRY, TILE.sand, 0.25, i + 51);   // a pale crest, just awash
-  });
-  const mesh = new THREE.Mesh(b.geometry(), mats.props); mesh.position.set(cx, 0, cz); scene.add(mesh);
-  banks.push({ x: cx, z: cz, r: R, mesh });
+  banks.push({ x: cx, z: cz, r: R });
 }
 
 // ---- the three groups: where (a region's bearing and distance from Tama; the seed finds open water near it)
@@ -156,7 +149,7 @@ function buildGroup(g, at) {
   scene.add(root);
   // the shelf: a broad, broken patch over the whole group (and its middle)
   const before = shelves.length;
-  if (SANDBANKS_ON) { const discs = []; for (let i = 0; i < 11; i++) { const t = i / 11 * Math.PI * 2 + rng() * 0.3, d = 18 + rng() * 16; discs.push([at.x + Math.cos(t) * d, at.z + Math.sin(t) * d, 5 + rng() * 5]); } discs.push([at.x + 3, at.z - 2, 6]); addBank(discs); }   // broken patches with channels between
+  if (SANDBANKS_ON) { const discs = []; for (let i = 0; i < 16; i++) { const t = i / 16 * Math.PI * 2 + rng() * 0.3, d = 14 + rng() * 14; discs.push([at.x + Math.cos(t) * d, at.z + Math.sin(t) * d, 9 + rng() * 7]); } discs.push([at.x, at.z, 14]); addBank(discs); }   // one broad shallow over the whole group: the Gull stays outside
   return { ...g, x: at.x, z: at.z, root, mesh, spits, flies, isl, spots: spots.map(([x, z]) => [at.x + x, at.z + z]), shelf: [before, shelves.length] };
 }
 
@@ -174,7 +167,7 @@ function build() {
 /** main.js: the shelves near (x, z) for the sea's shallow water, as [x, z, r, dist] */
 export function shelvesNear(x, z, R = 500) {
   const out = [];
-  for (const b of banks) { const d = Math.hypot(b.x - x, b.z - z); if (d < R) out.push([b.x, b.z, b.r * 0.55, d]); }   // one entry a bank: the swell lies down over it (never one per disc: they came and went)
+  for (const b of banks) { const d = Math.hypot(b.x - x, b.z - z); if (d < R) out.push([b.x, b.z, -b.r * 0.75, d]); }   // negative: a sandbank (ocean.js isd)   // one entry a bank: the swell lies down over it (never one per disc: they came and went)
   return out;
 }
 const lowTide = () => tideAt() < -0.35;
@@ -183,7 +176,6 @@ let lastFloat = null, groundT = -99;
 export function shallowsTick(dt, t) {
   if (!built) build();
   if (DEMO()) return;
-  { const tide = tideAt(), y = Math.max(-0.15, Math.min(0.4, 0.12 - tide * 0.28)); for (const b of banks) { const near = Math.hypot(G.ship.pos.x - b.x, G.ship.pos.z - b.z) < 700; b.mesh.visible = near; if (near) b.mesh.position.y = y; } }   // the tide over the sandbanks
   const S = G.ship, boat = !!rt.boat;
   if (!boat) {
     let hit = null, best = 0;

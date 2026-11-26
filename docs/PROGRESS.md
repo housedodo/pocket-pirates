@@ -2534,3 +2534,9 @@ toward it, grey veils of rain under its belly, and its foot dissolving into the 
   so nothing comes and goes as you sail. In front of the two boat landings, and broken into patches with channels round the three island
   groups. The Gull grounds on them (checked headless on two banks); the boat rows over. The pilot is back. Coral and the Reef's white
   water stay off. Preview `docs/proposals/sky/sandbanks.png`.
+- **Sandbanks are under the water** (owner: "below the islands... where the reefs were, so the water is too shallow for the big ship...
+  only at specific positions where it matters for the story or progression... like real islands, where the ship lies further out and
+  the approach is by rowboat"): the sand meshes are gone; a bank is only the sea painting pale shallows over it, at the two boat
+  landings and over each of the three island groups. A bank is passed to the sea with a negative radius (`ocean.js isd`): its edge
+  wanders (no drawn circle) and it has no surf (breakers and wash come from real shores only). The CPU wave twin counts banks too, so the
+  ship floats on the water as drawn. Checked headless: the Gull grounds on both banks tried.

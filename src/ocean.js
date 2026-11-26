@@ -15,7 +15,7 @@ const sstep = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a)
 /** 0 in open water .. 1 right at an island's shore */
 export function shoreAt(x, z) {
   let s = 0;
-  for (const [ix, iz, r] of WATER.isl) s = Math.max(s, 1 - sstep(0, 40, Math.hypot(x - ix, z - iz) - r * 1.1));
+  for (const [ix, iz, r] of WATER.isl) s = Math.max(s, 1 - sstep(0, 40, Math.hypot(x - ix, z - iz) - Math.abs(r) * 1.1));   // (negative: a sandbank)
   return s;
 }
 /** wave size by how far land is: low and gentle by islands and harbours (0.35), normal ~120 out, big in the open sea (1.7, 260+ from any land) */
@@ -25,7 +25,7 @@ export const OPEN_SEA = 2.0;
 export const SWELL_CAP = 9;
 export function seaScale(x, z) {
   let near = 0;
-  for (const [ix, iz, r] of WATER.isl) near = Math.max(near, 1 - sstep(15, 260, Math.hypot(x - ix, z - iz) - r * 1.1));
+  for (const [ix, iz, r] of WATER.isl) near = Math.max(near, 1 - sstep(15, 260, Math.hypot(x - ix, z - iz) - Math.abs(r) * 1.1));
   return 0.35 + 1.35 * OPEN_SEA * (1 - near);
 }
 // the looks the water can take (uOcean); 0 is the original toon facets. Chosen in the pause menu (Ocean) or ?ocean=1..4
@@ -63,8 +63,10 @@ export function waveHeight(x, z, t, amp = 1) {
 
 const GLSL_SHORE = /* glsl */`
 uniform vec3 uIsl[${NISL}]; uniform float uRough;
-float shoreF(vec2 p){ float s = 0.0; for (int i = 0; i < ${NISL}; i++) { vec3 I = uIsl[i]; s = max(s, 1.0 - smoothstep(0.0, 40.0, length(p - I.xy) - I.z * 1.1)); } return s; }
-float landNear(vec2 p){ float s = 0.0; for (int i = 0; i < ${NISL}; i++) { vec3 I = uIsl[i]; s = max(s, 1.0 - smoothstep(15.0, 260.0, length(p - I.xy) - I.z * 1.1)); } return s; }`;
+// a negative radius is a sandbank under the water (systems/shallows.js): its edge wanders (no drawn circle), and it has no surf
+float isd(vec2 p, vec3 I){ vec2 q = p - I.xy; float d = length(q) - abs(I.z) * 1.1; if (I.z < 0.0) { float a = atan(q.y, q.x); d += (sin(a * 3.0 + I.x * 0.1) * 0.2 + sin(a * 7.0 + I.y * 0.13) * 0.11) * abs(I.z); } return d; }
+float shoreF(vec2 p){ float s = 0.0; for (int i = 0; i < ${NISL}; i++) { s = max(s, 1.0 - smoothstep(0.0, 40.0, isd(p, uIsl[i]))); } return s; }
+float landNear(vec2 p){ float s = 0.0; for (int i = 0; i < ${NISL}; i++) { s = max(s, 1.0 - smoothstep(15.0, 260.0, isd(p, uIsl[i]))); } return s; }`;
 const GLSL_WAVEFN = /* glsl */`
 uniform float uTime; uniform float uWave;
 ${GLSL_SHORE}
@@ -215,7 +217,8 @@ export class Ocean {
           outc = mix(outc, shallowTint, band * (uSeaOn > 0.5 ? 0.7 : 0.6));
           // ---- near land: the seabed shows through the shallows, fish shadows drift over it, and waves roll in and break on the shore
           float sd = 1e4;
-          for (int i = 0; i < ${NISL}; i++) { vec3 I = uIsl[i]; sd = min(sd, length(vWP.xz - I.xy) - I.z * 1.1); }
+          float sdI = 1e4;   // the islands alone: only a real shore has surf
+          for (int i = 0; i < ${NISL}; i++) { vec3 I = uIsl[i]; float e = isd(vWP.xz, I); sd = min(sd, e); if (I.z >= 0.0) sdI = min(sdI, e); }
           float dz = bay4(gl_FragCoord.xy);
           if (sd < 45.0) {
             float clear = (1.0 - smoothstep(2.0, 38.0, sd)) * (0.35 + 0.65 * uLight);
@@ -243,8 +246,8 @@ export class Ocean {
             // breakers: lines of foam rolling in toward the shore, broken up, bunching and washing up at the edge
             float roll = sd / (5.0 + 3.0 * vn(vWP.xz * 0.03)) + uTime * 0.32 + 0.6 * vn(vWP.xz * 0.05);   // uneven spacing, bent lines
             float brk = step(0.88, fract(roll)) * step(0.5, vn(vWP.xz * 0.045 + vec2(uTime * 0.05, 0.0))) * step(0.4, vn(vWP.xz * 0.4 + vec2(uTime * 0.2, 0.0)));   // only stretches of each line break
-            float near = 1.0 - smoothstep(2.0, 16.0, sd);
-            float wash = (1.0 - smoothstep(0.0, 3.5 + 1.5 * sin(uTime * 0.6), sd)) * step(0.35, vn(vWP.xz * 0.5 + uTime * 0.1));
+            float near = 1.0 - smoothstep(2.0, 16.0, sdI);
+            float wash = (1.0 - smoothstep(0.0, 3.5 + 1.5 * sin(uTime * 0.6), sdI)) * step(0.35, vn(vWP.xz * 0.5 + uTime * 0.1));
             outc = mix(outc, vec3(0.94, 0.97, 0.96) * (0.35 + 0.65 * uLight), clamp(brk * near * 0.8 + wash * 0.7, 0.0, 1.0) * (1.0 - smoothstep(-2.0, 1.0, -sd)));
           }
           // rain rings: little circles spreading on the surface wherever drops land, close to the camera

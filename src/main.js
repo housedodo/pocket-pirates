@@ -1326,7 +1326,7 @@ function frame() {
     const near = []; for (const isl of world.islands.values()) { const d = isl.desc, dd = Math.hypot(d.x - ship.pos.x, d.z - ship.pos.z); if (dd < 500) near.push([d.x, d.z, d.r, dd]); }
     near.sort((a, b) => a[3] - b[3]); near.length = Math.min(near.length, NISL - 10);   // the islands first; up to ten shelves of shallow water after them (systems/shallows.js)
     for (const s of shelvesNear(ship.pos.x, ship.pos.z, 420).sort((a, b) => a[3] - b[3]).slice(0, NISL - near.length)) near.push(s);
-    WATER.isl = near.filter((n) => n[2] > 3);
+    WATER.isl = near.filter((n) => Math.abs(n[2]) > 3);
     for (let i = 0; i < NISL; i++) { const n = near[i]; U.uIsl.value[i].set(n ? n[0] : 1e6, n ? n[1] : 1e6, n ? n[2] : 0); }
   }
   world.hutShown = hutReached();   // no hut on its island before the story gets there
