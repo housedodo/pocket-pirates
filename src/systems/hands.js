@@ -4,7 +4,7 @@
 // They are signed on at the tavern (ui/harbour.js, AT THE TABLES) of the kind of harbour they live in. A sullen crew can lose one at the
 // next harbour (voyage.js voyageDock); they wait there to be signed on again. Full game only. Names and lines are drafts.
 import { state } from '../core/state.js';
-import { REEFS_ON } from '../core/config.js';
+import { SANDBANKS_ON } from '../core/config.js';
 import { G } from '../core/runtime.js';
 import { toast } from '../ui/dom.js';
 import { pxi } from '../pixelui.js';
@@ -24,7 +24,7 @@ export const HANDS = {
     earned: () => (state.story.crews && state.story.crews.beggars && state.story.crews.beggars.helped >= 1) || deliveriesIn('free') >= 3, how: 'Do the Cays a kindness.',
     hello: '"You were kind to people who could not pay you. I can smell pepper from the beach. Take me with you."' },
   pilot: { name: 'Juno Cray', job: 'pilot', where: null, text: 'knows the shallows: the Gull can edge further in before her keel touches',
-    earned: () => (state.story.grounded || 0) >= 2, how: 'Run aground, twice, and come back.', off: () => !REEFS_ON,   // no shallows for now: she waits for the reefs (core/config.js)
+    earned: () => (state.story.grounded || 0) >= 2, how: 'Run aground, twice, and come back.', off: () => !SANDBANKS_ON,   // with no sandbanks there is nothing to run aground on (core/config.js)
     hello: '"Twice aground and you still have a ship. Let me stand at the bow."' },
   diver: { name: 'Teodor Sill', job: 'diver', where: 'reef', text: 'goes down with the bell: half again as much air',
     earned: () => (state.stats.dives || 0) >= 3, how: 'Go down in the bell three times.',

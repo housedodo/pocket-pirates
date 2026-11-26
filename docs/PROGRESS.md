@@ -2523,3 +2523,14 @@ toward it, grey veils of rain under its belly, and its foot dissolving into the 
   dome's own noise, so they drift out of the clouds together), dimmed into the haze low down, tinted a little toward the sky, and they
   come out one by one at dusk, brightest first; three small cross-stars instead of six large ones. Preview
   `docs/proposals/sky/stars_before_after.png` (top before, bottom now).
+- **Drifting, halved and shown** (owner: "do 2 and 3"; `seaplay.js DRIFT_STILL`, main.js): stopped with the sails in, a current (and
+  the Slack) carries her at half its rate; while she drifts she leaves a faint wake the way the water takes her, the hull creaks now
+  and then (`bump`, low and slow), and Mara says once: "The current has her, Captain. Sails up, or she goes where the water goes."
+  Checked headless: a current of 2.6 carries her at 1.0 with the sails in. (Fixed with it: Mara's drift line and the back-stair hint
+  were stored as the day number, so on day 0 they would have repeated.)
+- **Sandbanks instead of reefs** (owner: "just make shallow water/sandbanks where the boat could strand, and that's where you need the
+  rowing boat"; `config.js SANDBANKS_ON`, `shallows.js addBank`): the shelves are back as sandbanks drawn as fixed meshes, a wet rim and
+  a pale crest just awash, raised and lowered by the tide; the sea gets one entry per bank (its middle) for the pale shallows round it,
+  so nothing comes and goes as you sail. In front of the two boat landings, and broken into patches with channels round the three island
+  groups. The Gull grounds on them (checked headless on two banks); the boat rows over. The pilot is back. Coral and the Reef's white
+  water stay off. Preview `docs/proposals/sky/sandbanks.png`.

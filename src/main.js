@@ -1338,7 +1338,14 @@ function frame() {
   gearTick(vdt, waveT, stage.wave);   // the bell and the boat on the Gull, the boat on the water (systems/gearplay.js)
   if (rt.anchorBit) { rt.anchorBit = false; fauna.splash(ship.pos.x + Math.sin(ship.heading) * 3.2, ship.pos.z - Math.cos(ship.heading) * 3.2, stage.wave, waveT, 1.1); }   // the anchor bites: a ring of foam at the bow
   secrets.update(vdt, waveT, { ship, time: state.time, dayN: state.dayN, tide: tideAt(), wave: stage.wave, light: Math.min(1, 0.25 + stage.light * 0.9), dread: rt.dread, collected: state.collected, windX: Math.sin(wind.dir), windZ: -Math.cos(wind.dir), heading: ship.heading, fogFar: scene.fog.far });
-  shipWake.update(vdt, waveT, stage.wave, { pos: ship.pos, heading: ship.heading, speed: ship.rowing ? ship.speed * 0.6 : ship.speed, max: 11 }, Math.min(1, 0.25 + stage.light * 0.9));
+  { const dr = ship.drift, ds = dr && !rt.anchorAt ? Math.hypot(dr.x, dr.z) : 0, drifting = ds > 0.25 && ship.speed < 0.6;   // drifting on a current, sails in: a faint wake the way she goes
+    shipWake.update(vdt, waveT, stage.wave, drifting ? { pos: ship.pos, heading: Math.atan2(dr.x, -dr.z), speed: ds * 1.6, max: 11 } : { pos: ship.pos, heading: ship.heading, speed: ship.rowing ? ship.speed * 0.6 : ship.speed, max: 11 }, Math.min(1, 0.25 + stage.light * 0.9));
+    rt.driftT = drifting ? (rt.driftT || 0) + dt : 0;
+    if (rt.driftT > 4) {
+      rt.creakT = (rt.creakT || 0) - dt;
+      if (rt.creakT <= 0) { rt.creakT = 7 + Math.random() * 6; audio.play('bump', { vol: 0.1, rate: 0.55 }); }   // the hull creaks as the water turns her
+      if (!state.story.driftTold && !objectives.mate.busy) { state.story.driftTold = true; objectives.mate.say('The current has her, Captain. Sails up, or she goes where the water goes.'); }
+    } }
   const lifeCtx = { light: Math.min(1, 0.25 + stage.light * 0.9), freeze: glimpse.k > 0.3 ? 0 : null, ship, dread: rt.dread, wave: stage.wave, audio, wind: windNow, stage, tod, faction: sec.faction.id, quiet: caysQuiet(rt.lullK, state.time * 24, DEMO), sched: { wd: weekday(), hour: state.time * 24, dayN: state.dayN, dread: rt.dread, landed: (id) => landedAt(state, id) } };
   if (live) { state.stats.dist += ship.speed * dt; if (ship.rowing) state.stats.rowed = (state.stats.rowed || 0) + ship.speed * dt; }
   { const cg = objectives.current; if (cg && cg.id === 'calm' && state.goals.started) weather.calmHold = Math.max(weather.calmHold, 8); }   // the calm lasts until you have rowed and fished

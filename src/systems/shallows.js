@@ -22,7 +22,7 @@ import { hash2, mulberry32 } from '../util.js';
 import { tod } from '../daynight.js';
 import { tideAt } from './calendar.js';
 import { handOn } from './hands.js';
-import { REEFS_ON } from '../core/config.js';
+import { SANDBANKS_ON } from '../core/config.js';
 
 const DEMO = () => typeof window !== 'undefined' && window.__BUILD === 'demo';
 export const GROUND_PAD = 1.5;   // the Gull's keel finds the shelf this far inside its edge
@@ -31,12 +31,33 @@ let built = false, groups = [];
 
 /** a loose chain of discs along a line (local to a frame: origin, +z seaward, the x axis along the shore), with jitter from the seed */
 function chain(ox, oz, ang, pts, rng) {
-  if (!REEFS_ON) return;   // no shelves for now (core/config.js)
-  const c = Math.cos(ang), s = Math.sin(ang);
+  if (!SANDBANKS_ON) return;
+  const c = Math.cos(ang), s = Math.sin(ang), discs = [];
   for (const [lx, lz, r] of pts) {
     const jx = lx + (rng() - 0.5) * 2.4, jz = lz + (rng() - 0.5) * 2.4, jr = r * (0.75 + rng() * 0.5);
-    shelves.push([ox + jx * c + jz * s, oz - jx * s + jz * c, jr]);
+    discs.push([ox + jx * c + jz * s, oz - jx * s + jz * c, jr]);
   }
+  addBank(discs);
+}
+// ---- sandbanks (owner, 2026-11-26): drawn as fixed meshes, never by the sea shader's short list of the nearest (that made the old
+// shelves come and go as you sailed). Each is the shelf's discs: a wet-sand rim and a pale dry crest, just awash (the sea paints the
+// pale shallows round it); the tide lifts and lowers them (more shows at low water). The sea is told about each bank once (one entry, its middle), so the
+// swell lies down over it.
+const SAND_WET = '#e6dcb4', SAND_DRY = '#f6f0da';
+const banks = [];   // { x, z, r, mesh }
+function addBank(discs) {
+  for (const d of discs) shelves.push(d);
+  if (DEMO() || !discs.length) return;
+  let cx = 0, cz = 0; for (const [x, z] of discs) { cx += x; cz += z; } cx /= discs.length; cz /= discs.length;
+  let R = 0; for (const [x, z, r] of discs) R = Math.max(R, Math.hypot(x - cx, z - cz) + r);
+  const b = new Builder();
+  discs.forEach(([x, z, r], i) => {
+    const lx = x - cx, lz = z - cz;
+    b.blob(lx, -0.1, lz, r * 0.95, 0.45, r * 0.9, SAND_WET, TILE.sand, 0.25, i + 1);   // wet sand at the edge
+    b.blob(lx + 0.4, 0.05, lz - 0.3, r * 0.62, 0.45, r * 0.58, SAND_DRY, TILE.sand, 0.25, i + 51);   // a pale crest, just awash
+  });
+  const mesh = new THREE.Mesh(b.geometry(), mats.props); mesh.position.set(cx, 0, cz); scene.add(mesh);
+  banks.push({ x: cx, z: cz, r: R, mesh });
 }
 
 // ---- the three groups: where (a region's bearing and distance from Tama; the seed finds open water near it)
@@ -135,8 +156,7 @@ function buildGroup(g, at) {
   scene.add(root);
   // the shelf: a broad, broken patch over the whole group (and its middle)
   const before = shelves.length;
-  for (let i = 0; i < 16; i++) { const t = i / 16 * Math.PI * 2 + rng() * 0.3, d = 14 + rng() * 14; shelves.push([at.x + Math.cos(t) * d, at.z + Math.sin(t) * d, 9 + rng() * 7]); }
-  shelves.push([at.x, at.z, 14]);
+  if (SANDBANKS_ON) { const discs = []; for (let i = 0; i < 11; i++) { const t = i / 11 * Math.PI * 2 + rng() * 0.3, d = 18 + rng() * 16; discs.push([at.x + Math.cos(t) * d, at.z + Math.sin(t) * d, 5 + rng() * 5]); } discs.push([at.x + 3, at.z - 2, 6]); addBank(discs); }   // broken patches with channels between
   return { ...g, x: at.x, z: at.z, root, mesh, spits, flies, isl, spots: spots.map(([x, z]) => [at.x + x, at.z + z]), shelf: [before, shelves.length] };
 }
 
@@ -154,7 +174,7 @@ function build() {
 /** main.js: the shelves near (x, z) for the sea's shallow water, as [x, z, r, dist] */
 export function shelvesNear(x, z, R = 500) {
   const out = [];
-  for (const s of shelves) { const d = Math.hypot(s[0] - x, s[1] - z); if (d < R) out.push([s[0], s[1], s[2] * 0.6, d]); }   // the sea reads r * 1.1 as the shore: the pale water spreads past it
+  for (const b of banks) { const d = Math.hypot(b.x - x, b.z - z); if (d < R) out.push([b.x, b.z, b.r * 0.55, d]); }   // one entry a bank: the swell lies down over it (never one per disc: they came and went)
   return out;
 }
 const lowTide = () => tideAt() < -0.35;
@@ -163,6 +183,7 @@ let lastFloat = null, groundT = -99;
 export function shallowsTick(dt, t) {
   if (!built) build();
   if (DEMO()) return;
+  { const tide = tideAt(), y = Math.max(-0.15, Math.min(0.4, 0.12 - tide * 0.28)); for (const b of banks) { const near = Math.hypot(G.ship.pos.x - b.x, G.ship.pos.z - b.z) < 700; b.mesh.visible = near; if (near) b.mesh.position.y = y; } }   // the tide over the sandbanks
   const S = G.ship, boat = !!rt.boat;
   if (!boat) {
     let hit = null, best = 0;
@@ -232,4 +253,4 @@ export function shallowsFind(g) {
   else toast(F.again, false, 4000);
 }
 /** tests */
-export const shallowsState = () => ({ groups: groups.map((g) => ({ id: g.id, x: g.x, z: g.z })), shelves: shelves.length });
+export const shallowsState = () => ({ groups: groups.map((g) => ({ id: g.id, x: g.x, z: g.z })), shelves: shelves.length, banks: banks.map((b) => ({ x: b.x, z: b.z, r: b.r })) });

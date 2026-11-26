@@ -51,7 +51,7 @@ import { spiceInteract, spiceAct } from './spice.js';
 // ---- the back door (systems/harbours.js, idea 1): up the water stair at night, in the ship's boat
 function backHint() {   // Mara knows the way, once, if the boat is aboard
   if (state.story.backHint || !aboard('boat')) return;
-  state.story.backHint = state.dayN;
+  state.story.backHint = true;
   setTimeout(() => { if (G.objectives && G.objectives.mate && !G.objectives.mate.busy) G.objectives.mate.say('There is a water stair round the far side, Captain. Nobody watches it after dark.'); }, 2600);
 }
 export function openBackDoor(isl) {

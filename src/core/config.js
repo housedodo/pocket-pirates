@@ -8,6 +8,9 @@ export const SETTINGS_KEY = 'pocket-pirates-settings-v1';
 // reefs (owner, 2026-11-26: "remove reefs from the game for now, there will be a more elaborate solution later"): the shallow shelves
 // (systems/shallows.js), the Reef's coral heads (regiondecor.js, reef.js) and the Reef's white water (seawater.js) are off; the code stays
 export const REEFS_ON = false;
+// sandbanks instead (owner, 2026-11-26: "just make shallow water/sandbanks where the boat could strand, and that's where you need the
+// rowing boat"): the shelves come back as sandbanks drawn as fixed meshes (systems/shallows.js), the Gull grounds on them
+export const SANDBANKS_ON = true;
 export const REAL_SAVE_KEY = 'pocket-pirates-save-v1', DEV_LIVE_KEY = 'pocket-pirates-dev-live';
 /** the Dev Studio's sandbox (ui/devstudio.js; dev builds only): a snapshot was loaded in this tab, so the voyage is read from and saved
  *  to DEV_LIVE_KEY, beside the real save and never over it, until "Back to the real save" */

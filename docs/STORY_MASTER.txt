@@ -1,7 +1,7 @@
 HOIST (Pocket Pirates): THE MASTER STORY FILE
 ================================================================================================
 This is the main story file for the full game. Edit it, upload it again, and the next session puts every change
-into the game. Built from commit 2359fcc on 2026-11-25. 1892 in-game lines carry an ID.
+into the game. Built from commit b3d83ea on 2026-11-26. 1893 in-game lines carry an ID.
 
 CONTENTS
   A   HOW TO USE THIS FILE (IDs, status marks, how to add and remove things)
@@ -569,7 +569,7 @@ Where the story hides in the mechanics, and where its text lives (section J).
 # J  EVERY LINE IN THE GAME
 ################################################################################################
 Pulled from the code. Edit the text after the "|" (see part A). Sources are grouped by file; the CODE in front of every
-line says which file it goes back into. 1892 lines.
+line says which file it goes back into. 1893 lines.
 
 
 
@@ -2636,6 +2636,9 @@ line says which file it goes back into. 1892 lines.
 
 ### MAIN / ADDED 2026-11-25
   MAIN-0407 | They count the fruit twice and look at you. ${sh.miss} short. They pay for what is there, and a little less. (+${sh.pay} gold)
+
+### MAIN / ADDED 2026-11-26
+  MAIN-0408 | The current has her, Captain. Sails up, or she goes where the water goes.
 
 ### MAIN / RETIRED (the text is no longer in the game; these IDs are never used again)
     was MAIN-0001 | A floating market, with bunting on every line. (Friday)

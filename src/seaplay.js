@@ -28,6 +28,7 @@ export function slackAt(x, z) {
 }
 
 /** the current at a point: { x, z } velocity in world units/s, plus the lane it belongs to */
+export const DRIFT_STILL = 0.5;   // stopped with the sails in: the share of the current that still carries her
 export function currentAt(x, z) {
   let vx = 0, vz = 0, lane = null, best = 0;
   for (const L of LANES) {
@@ -117,8 +118,13 @@ export class SeaPlay {
 
     // ---- currents: drift the ship, show the foam
     const cur = currentAt(ship.pos.x, ship.pos.z), curK = ctx.curMul ?? 1, cutK = ctx.fogEdge ? ctx.fogEdge(ship.pos.x, ship.pos.z) : 1;   // no current near fog; curMul: the noon slack (systems/home.js)
-    ship.pos.x += cur.x * dt * cutK * curK; ship.pos.z += cur.z * dt * cutK * curK;
-    if (ctx.slack) { const sl = slackAt(ship.pos.x, ship.pos.z); ship.pos.x += sl.x * dt; ship.pos.z += sl.z * dt; }   // the Slack's outward drift
+    // (owner, 2026-11-26: "she drifts sideways without sails"): stopped with the sails in, the water carries her at half the rate, and
+    // the drift is shown (main.js: a faint wake the way she goes, a creak, Mara once)
+    const still = ship.trim < 0.15 && ship.speed < 1.2, dk = still ? DRIFT_STILL : 1;
+    let dx = cur.x * cutK * curK * dk, dz = cur.z * cutK * curK * dk;
+    if (ctx.slack) { const sl = slackAt(ship.pos.x, ship.pos.z); dx += sl.x * dk; dz += sl.z * dk; }   // the Slack's outward drift
+    ship.pos.x += dx * dt; ship.pos.z += dz * dt;
+    ship.drift = still ? { x: dx, z: dz } : null;
     if (cutK < 0.5) cur.k = 0;
     ev.lane = cur.k > 0.5 ? cur.lane : null;
     for (let i = 0; i < NC; i++) {
