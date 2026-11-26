@@ -22,7 +22,7 @@ import { rt, G } from '../core/runtime.js';
 import { toast } from '../ui/dom.js';
 import { hash2 } from '../util.js';
 import { mark, REFUSE_AT } from './standing.js';
-import { friendLevel } from '../jobs.js';
+import { friendLevel, sellable } from '../jobs.js';
 import { WANTS } from './trade.js';
 import { pxi } from '../pixelui.js';
 import { goalReached } from '../objectives.js';
@@ -105,7 +105,7 @@ export function harboursTick() {
   }
 }
 // ---- the board (ui/harbour.js): the harbour's trouble, the customs house, a morning's work
-const fruitCount = () => Object.values(state.fruit || {}).reduce((a, b) => a + b, 0);
+const fruitCount = () => Object.values(sellable(state).fruit).reduce((a, b) => a + b, 0);   // spare fruit only: an errand's stays aboard
 export function harbourRows(d) {
   if (DEMO()) return '';
   let html = '';
@@ -136,7 +136,7 @@ export function bindHarbourRows(pane, d, rerender) {
     const k = b.dataset.hb, E = hev()[d.id];
     if (k === 'owed' && E) { state.gold += E.owed; toast(`The harbourmaster counts out ${E.owed} gold. "For the boom."`, false, 5000); E.owed = 0; G.audio.play('treasure'); }
     if (k === 'fire') { state.time = Math.min(0.999, state.time + 2 / 24); resolve(d, 'fire', 'By noon the fire is out. Somebody brings the crew bread and does not let them pay for it.', PAY.fire); }
-    if (k === 'fever' && fruitCount() >= 3) { let n = 3; for (const f of Object.keys(state.fruit)) while (n > 0 && state.fruit[f] > 0) { state.fruit[f]--; n--; } resolve(d, 'fever', 'You leave the fruit at the end of the pier. Later a lamp in a window is lit, then another.', PAY.fever); }
+    if (k === 'fever' && fruitCount() >= 3) { let n = 3; const sp = sellable(state).fruit; for (const f of Object.keys(sp)) while (n > 0 && sp[f] > 0) { sp[f]--; state.fruit[f]--; n--; } resolve(d, 'fever', 'You leave the fruit at the end of the pier. Later a lamp in a window is lit, then another.', PAY.fever); }
     if (k === 'report') {
       const R = reportDue(); state.gold += R.pay; state.story.reported = R.now; mark('crown', 1); G.audio.play('buy');
       const late = state.hut && state.hut.rolls && state.hut.rolls.length && !state.story.reportSeen;

@@ -1,7 +1,7 @@
 HOIST (Pocket Pirates): THE MASTER STORY FILE
 ================================================================================================
 This is the main story file for the full game. Edit it, upload it again, and the next session puts every change
-into the game. Built from commit c073196 on 2026-11-26. 1913 in-game lines carry an ID.
+into the game. Built from commit 197c615 on 2026-11-26. 1913 in-game lines carry an ID.
 
 CONTENTS
   A   HOW TO USE THIS FILE (IDs, status marks, how to add and remove things)
@@ -862,9 +862,6 @@ line says which file it goes back into. 1913 lines.
 ### PAS / roll
   PAS-0069 | Lean over the downwind side. The OTHER side!
 
-### PAS / ADDED 2026-11-11
-  PAS-0071 | My grandfather swore there was gold buried on ${r.d.name}, ${bearingName(r.d.x - ctx.ship.pos.x, r.d.z - ctx.ship.pos.z)} of here. Mark it, if you like. I never had a boat.
-
 ### PAS / ADDED 2026-11-12
   PAS-0095 | My brother sailed these waters thirty years. Said the fish here bite on Tuesdays and sulk the rest of the week.
   PAS-0097 | Master Perrin drew a whole island once from a sailor's description. It turned out the sailor had been describing a whale.
@@ -897,6 +894,9 @@ line says which file it goes back into. 1913 lines.
   PAS-0120 | The Guild lamps are blue because of the glass, not the oil. They will tell you it is the oil.
   PAS-0121 | The lamps burn blue because of the oil, captain. Anyone in the Guild will tell you so.
 
+### PAS / ADDED 2026-11-26
+  PAS-0122 | My grandfather swore there was gold buried on ${r.d.name}, ${bearingName(r.d.x - ctx.ship.pos.x, r.d.z - ctx.ship.pos.z)} of here. I have put it on your chart. I never had a boat.
+
 ### PAS / RETIRED (the text is no longer in the game; these IDs are never used again)
     was PAS-0044 | Sleep is for people who do not have a captain.
     was PAS-0045 | Why is there a cat on the chart table?
@@ -916,6 +916,7 @@ line says which file it goes back into. 1913 lines.
     was PAS-0059 | I think a gull just stole my hat.
     was PAS-0060 | He does that. We call him the Quartermaster.
     was PAS-0070 | Does Mara ever sleep?
+    was PAS-0071 | My grandfather swore there was gold buried on ${r.d.name}, ${bearingName(r.d.x - ctx.ship.pos.x, r.d.z - ctx.ship.pos.z)} of here. Mark it, if you like. I never had a boat.
     was PAS-0072 | Just the one of you on this whole ship, Captain? Brave.
     was PAS-0073 | Two! There are two of us. Hello?
     was PAS-0074 | Must get lonely out here. I would talk to myself.

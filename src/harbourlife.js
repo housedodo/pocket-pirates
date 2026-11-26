@@ -10,7 +10,7 @@
 // main.js draws the rows (board and tavern) and calls these; state.life holds everything.
 import { hash2 } from './util.js';
 import { G } from './core/runtime.js';
-import { nearby } from './jobs.js';
+import { nearby, sellable } from './jobs.js';
 
 export const lifeOf = (state) => (state.life = state.life || { arcs: {}, ate: {}, played: {}, frags: [], fragAt: {}, news: [], told: {}, keep: [], meal: null });
 
@@ -186,8 +186,8 @@ function otherRows(state, L, d, ctx, rows) {
 function stepRow(state, d, a, A, s, key, ctx) {
   const prev = A.steps[a.step - 1], today = a.day === state.dayN && a.step > 0 && prev && prev.at === s.at;   // one step a day, but only in the same harbour: carrying the ribbon to Anselm is not waiting (owner, 2026-11-26)
   let block = today ? 'Come back another day.' : '';
-  if (!block && s.need === 'fish' && !state.catch.length) block = 'needs a fish from your hold';
-  if (!block && s.need === 'fruit' && !Object.values(state.fruit).some((n) => n > 0)) block = 'needs some fruit';
+  if (!block && s.need === 'fish' && !sellable(state).fish.length) block = state.catch.length ? 'your fish are promised to an errand' : 'needs a fish from your hold';   // what an errand needs stays aboard
+  if (!block && s.need === 'fruit' && !Object.keys(sellable(state).fruit).length) block = Object.values(state.fruit).some((n) => n > 0) ? 'your fruit is promised to an errand' : 'needs some fruit';
   if (!block && s.need === 'oil' && state.oil < 10) block = 'needs 10 lamp oil';
   if (!block && s.need === 'night' && !ctx.night) block = 'come back after dark';
   if (!block && s.need === 'event' && !isEvent(d, state)) block = `on ${WEEKDAYS[d.festival]}, the festival day`;
@@ -214,8 +214,8 @@ export function takeStep(state, world, d, key) {
   if (!a) { if (!arcIdOf(d)) return null; const p = pickPartner(world, d); a = L.arcs[key] = { arc: arcIdOf(d), step: 0, day: -1, homeName: d.name, partner: p ? p.id : null, partnerName: p ? p.name : d.name }; }
   const A = ARCS[a.arc], s = A.steps[a.step];
   if (!s || a.done) return null;
-  if (s.need === 'fish') { if (!state.catch.length) return null; state.catch.shift(); }
-  if (s.need === 'fruit') { const f = Object.keys(state.fruit).find((k) => state.fruit[k] > 0); if (!f) return null; state.fruit[f]--; }
+  if (s.need === 'fish') { const f = sellable(state).fish[0]; if (!f) return null; state.catch.splice(state.catch.indexOf(f), 1); }   // a spare one, never an errand's
+  if (s.need === 'fruit') { const f = Object.keys(sellable(state).fruit)[0]; if (!f) return null; state.fruit[f]--; }
   if (s.need === 'oil') { if (state.oil < 10) return null; state.oil -= 10; }
   if (s.gold) state.gold += s.gold;
   a.step++; a.day = state.dayN;

@@ -2673,3 +2673,7 @@ frame and wide map; moon phases and the Eye's shape (not in the summary list).
   again (the ship stayed un-hailable); a blockade no longer lifts and pays when you just sail away from it; the harbourmaster's
   pay for the boom outlasts the 3-day trouble window; the Widow adrift says nothing when hailed. Verified headless (re-ran the audit's tests).
   Left open for the owner: the resident stories run in the demo build too (singer, counter and other dark lines).
+- **Encounter audit, the small ones** (owner: "fix the small issues"): refusing the Toll again while she is already after you no
+  longer costs Crown standing again; a harbour that refused you asks again on a later visit before E pays (the offer to pay lasts
+  30 s); the resident stories and the fever row take only spare fish and fruit, never what an errand needs ("your fish are promised
+  to an errand"); the passenger's buried gold line says it is already on your chart.

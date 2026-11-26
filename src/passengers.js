@@ -96,7 +96,7 @@ export function passengerTalk(pass, dt, ctx) {   // ctx: { mate, world, ship, st
     const r = findRumour(ctx.world, { x: ctx.ship.pos.x, z: ctx.ship.pos.z }, ctx.state);
     if (r) {
       ctx.state.rumoured[r.d.id] = { name: r.d.name, x: Math.round(r.d.x), z: Math.round(r.d.z), source: pass.name, found: false };
-      say(`My grandfather swore there was gold buried on ${r.d.name}, ${bearingName(r.d.x - ctx.ship.pos.x, r.d.z - ctx.ship.pos.z)} of here. Mark it, if you like. I never had a boat.`);
+      say(`My grandfather swore there was gold buried on ${r.d.name}, ${bearingName(r.d.x - ctx.ship.pos.x, r.d.z - ctx.ship.pos.z)} of here. I have put it on your chart. I never had a boat.`);
       return;
     }
   }

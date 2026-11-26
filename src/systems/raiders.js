@@ -287,10 +287,10 @@ export function crewOffer(s, o) {
     case 'cw_tbluff': {
       let lv = 0; for (const r of Object.values(state.rep || {})) lv = Math.max(lv, Math.min(3, Math.floor((r.visits + 2 * r.deliveries) / 3)));
       if (Math.random() < 0.2 + 0.18 * lv) { c.paid = state.dayN; leave(); toast('He runs his pen down a page and finds something. "So you are." He lets you go.', false, 6000); }
-      else { c.crossed = true; mark('crown', -2); refuse(s, 'He looks at you for a long moment, then closes the ledger. Her gunports open.'); }   // the Crown hears of it (systems/standing.js)
+      else { if (!c.crossed) mark('crown', -2); c.crossed = true; refuse(s, 'He looks at you for a long moment, then closes the ledger. Her gunports open.'); }   // the Crown hears of it (systems/standing.js)
       break;
     }
-    case 'cw_refuse': c.crossed = true; mark('crown', -2); refuse(s, 'He closes the ledger without a word. Her gunports open.'); break;
+    case 'cw_refuse': if (!c.crossed) mark('crown', -2); c.crossed = true; refuse(s, 'He closes the ledger without a word. Her gunports open.'); break;
     case 'cw_water': case 'cw_kit': case 'cw_coin': {
       if (o.id === 'cw_water') { const S = state.story.stores; S.food -= 1; S.water -= 1; }
       if (o.id === 'cw_kit') state.patchKits--;
