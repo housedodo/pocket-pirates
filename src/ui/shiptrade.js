@@ -60,7 +60,7 @@ export function shipOffers(sh) {
   if (sh.offers) return sh.offers;
   if (sh.hostile) return (sh.offers = [
     { id: 'tribute', label: 'Pay tribute', cost: 30 + Math.round(KINDS[sh.kind].scale * 15), desc: 'they take the coin and let you pass in peace', used: false },
-    { id: 'bluff', label: 'Bluff', cost: 0, desc: 'they may believe you have a fleet behind you (45%)... or open fire', used: false },
+    { id: 'bluff', label: 'Bluff', cost: 0, desc: 'they may believe you have a fleet behind you... or open fire', used: false },
     { id: 'defy', label: 'Defy them', cost: 0, desc: 'press Space to fire once they are in range', used: false },
   ]);
   if (sh.special === 'market') return (sh.offers = [
@@ -114,6 +114,7 @@ export function renderShipTrade() {
   $('shList').innerHTML = shown.map(({ o, i }, k) => { const short = o.cost > state.gold;
     return `<button class="ch${o.must ? ' must' : ''}" data-i="${i}" ${short ? 'disabled' : ''}><span class="k">${k + 1}</span><span class="lb">${o.label}<small>${short ? `you have ${state.gold} of ${o.cost}` : o.desc}</small></span>${o.cost ? `<span class="cost">${pxi('coin')}${o.cost}</span>` : ''}</button>`; }).join('');
   $('shList').querySelectorAll('button').forEach((b) => b.addEventListener('click', () => doOffer(parseInt(b.dataset.i, 10))));
+  $('shipmodal').classList.toggle('dark', sh.crew === 'collectors' || rt.dread > 0.5);
   $('shClose').textContent = shown.length === 1 && shown[0].o.must ? 'Refuse anyway' : 'Wave goodbye';
 }
 G.shipOffer = (i) => doOffer(i);

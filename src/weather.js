@@ -159,7 +159,7 @@ export class Weather {
     stage.fogNear = Math.max(8, stage.fogNear * (1 - 0.7 * this.fog));
     if (this.redSky > 0.02) { stage.skyHorizon.lerp(RED_SKY, this.redSky * 0.6); stage.skyTop.lerp(RED_TOP, this.redSky * 0.35); stage.fog.lerp(RED_SKY, this.redSky * 0.3); }
     stage.wave *= 1 - 0.75 * this.calm;
-    if (this.rainU) this.rainU.uC.value.copy(stage.fog).lerp(stage.skyHorizon, 0.5).lerp(WHITE, 0.22 + 0.1 * (1 - this.heavy));   // the rain is the haze's colour, a little lighter (before the lightning)
+    if (this.rainU) this.rainU.uC.value.copy(stage.fog).lerp(stage.skyHorizon, 0.5).lerp(WHITE, (0.22 + 0.1 * (1 - this.heavy)) * (1 - 0.8 * night));   // at night the rain is hardly lighter than the dark (audit)   // the rain is the haze's colour, a little lighter (before the lightning)
     const fl = this.flash * (settings.comfort.flash ? 1 : 0.12);   // comfort: lightning only brightens the sky a little (G4)
     if (fl > 0) {
       stage.skyTop.lerp(WHITE, fl * 0.75);

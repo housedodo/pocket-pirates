@@ -379,7 +379,7 @@ export class Mate {
       this.el.classList.toggle('dark', this.cur.dark);
       this.el.classList.toggle('guest', !!this.cur.who);
       document.getElementById('mateName').textContent = this.cur.who || 'Mara, first mate';
-      this.el.style.display = 'flex'; this.render();
+      this.el.style.display = 'flex'; this.render(); document.body.classList.add('mate-on'); document.documentElement.style.setProperty('--mateH', this.el.offsetHeight + 'px');
     }
     if (!this.cur) return;
     const len = this.cur.text.length;
@@ -401,7 +401,7 @@ export class Mate {
     } else {
       this.face.style.transform = '';
       this.wait -= dt;
-      if (this.wait <= 0) { this.cur = null; this.pause = 1.4; if (!this.queue.length && !this.pin) this.el.style.display = 'none'; }
+      if (this.wait <= 0) { this.cur = null; this.pause = 1.4; if (!this.queue.length && !this.pin) { this.el.style.display = 'none'; document.body.classList.remove('mate-on'); } }
     }
   }
 }

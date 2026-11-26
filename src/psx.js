@@ -10,6 +10,7 @@ export const U = {
   uLight: { value: 1 },     // global brightness, emissive texels ignore it
   uSunDir: { value: new THREE.Vector3(0.3, 0.8, -0.5) },
   uSunColor: { value: new THREE.Color('#fff2a8') },
+  uSkyHor: { value: new THREE.Color('#c8dce8') },   // the sky's horizon colour (sky.js sets it): the far sea takes it
   uDeep: { value: new THREE.Color('#1b86c6') },
   uShallow: { value: new THREE.Color('#4fe0d0') },
   uWave: { value: 1 },
@@ -148,7 +149,7 @@ export function initMaterials() {
   // the hut's island: its shallows are black-green and its foam a dull grey scum (fixed colours, never retinted by the day)
   mats.murkShallow = psxMaterial({ haze: false, color: 0x14201c, vertexColors: true, transparent: true, depthWrite: false, key: 'A' });
   mats.murkFoam = psxMaterial({ haze: false, color: 0x4a5046, transparent: true, opacity: 0.35, depthWrite: false, vertexColors: true, key: 'F' });
-  mats.beam = psxMaterial({ color: 0xffe080, transparent: true, opacity: 0.16, depthWrite: false, side: THREE.DoubleSide, fog: false, key: 'B', fragmentColor: { head: '', body: 'diffuseColor.rgb /= max(uLight, 0.05);' } });
+  mats.beam = psxMaterial({ color: 0xffe080, transparent: true, opacity: 0.16, depthWrite: false, side: THREE.DoubleSide, fog: true, key: 'B', fragmentColor: { head: '', body: 'diffuseColor.rgb /= max(uLight, 0.05); diffuseColor.a *= farLight();' } });   // takes the fog and fades far off (audit: flat bars on the noon horizon)
   mats.wake = psxMaterial({ color: 0xffffff, transparent: true, opacity: 0.5, depthWrite: false, vertexColors: true, key: 'Wk', fragmentColor: { head: '', body: 'diffuseColor.rgb /= mix(1.0, max(uLight, 0.05), 0.45);' } });
   mats.glow = psxMaterial({ color: 0xffc060, vertexColors: true, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, fog: false, key: 'G', fragmentColor: { head: '', body: 'diffuseColor.rgb /= max(uLight, 0.05); diffuseColor.rgb *= farLight();' } });
   mats.shipGlow = psxMaterial({ color: 0xffc060, vertexColors: true, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, fog: false, key: 'G', fragmentColor: { head: '', body: 'diffuseColor.rgb /= max(uLight, 0.05); diffuseColor.rgb *= farLight();' } });   // the ship's own lantern pool (ship.js): goes out with the lamp; the world's lights do not
@@ -193,7 +194,7 @@ export class PostFX {
           c *= 1.0 - uVig * dot(q, q) * 1.6;
           float d = bayer(floor(vUv * uRes));
           c += (d - 0.5) / 28.0 * uDither;
-          c = floor(c * 31.0 + 0.5) / 31.0;       // 15-bit colour
+          c = max(c, 0.0); c = floor(sqrt(c) * 31.0 + 0.5) / 31.0; c *= c;   // 15-bit colour, stepped in gamma space: the dark bands of the night keep their steps (audit)
           gl_FragColor = vec4(c, 1.0);
         }`,
       depthTest: false, depthWrite: false,

@@ -2574,3 +2574,22 @@ toward it, grey veils of rain under its belly, and its foot dissolving into the 
   line is read the choices come up as the strip across the foot of the screen (only their name above them; the line is not repeated).
   Sail off (90) or sink her before that and the hail is dropped. The two talk trials (`?talk`, the bubble) are deleted. Preview
   `docs/proposals/ui/hail_talk.png`.
+
+## 2026-11-26: the visual audit applied (owner: "do all the changes and then show me what changed"; `docs/proposals/audit/SUMMARY.md`)
+Before/after sheets: `docs/proposals/audit/compare/` (world, interface, phone). Done:
+- Sky: the sun and moon go to a pale smudge under cover; night clouds are dark shapes (a little lit by the moon); the moon's ring, the
+  corona, the Eye and meteors are depth-tested (hidden by ships and islands); the storm bank's noise wraps round the horizon (no seam
+  due west); storm clouds drift at `cloudSpeed`; the cirrus are painted in the dome (soft, stepped, gone under cover), their meshes off.
+- Rain hardly lighter than the dark at night; rain rings scale with the light. Lighthouse beams take the fog and fade far off. The far
+  sea takes the sky's horizon colour at a low angle (dusk pink, the dread's green). Open-sea pale patches are a cooler blue except in the
+  Cays, so they never read as a sandbank. The 15-bit step is taken in gamma space (more steps in the dark).
+- Birds sit lower; crows replace gulls one by one with the dread; the folded-wing stretch runs on each bird's own clock.
+- Interface: the hail strip has the panel edge, no backdrop, a dread look (pink edge) and stacks its choices below 640 px; the [E]
+  prompt rises over Mara's box on narrow screens; the enemy nameplate keeps clear of the HUD columns and hides during a hail; toasts and
+  menus come and go in three steps; the land-ho banner uses the harbour names' blackletter and red shadow; chart and cave titles are
+  Pirata One on purpose (RULES 22) at grid sizes; contrast up on the chart keys and locked harbour tabs; touch buttons and the chart
+  badge lose their round corners; dead border rules removed; creams, inks and the stray orange folded into tokens (`--paper-2`,
+  `--ink-brown`, `--gold`); the dig legend, "Voyage saved" and the bluff's "(45%)" removed; the banner says "Orders kept" / "NEW ORDERS".
+- The interface at 2x on 2400x1300 and larger (at 1920 the 2x crowded the tracker, Mara and the help strip; 1920 stays 1x: owner call).
+Not done: one font-size ladder for all ~40 off-grid sizes and the old leather-book CSS (RULES 22 keeps switched-off looks); the chart's
+frame and wide map; moon phases and the Eye's shape (not in the summary list).

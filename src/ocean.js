@@ -62,7 +62,7 @@ export function waveHeight(x, z, t, amp = 1) {
 }
 
 const GLSL_SHORE = /* glsl */`
-uniform vec3 uIsl[${NISL}]; uniform float uRough;
+uniform vec3 uIsl[${NISL}]; uniform float uRough; uniform vec3 uSkyHor;
 // a negative radius is a sandbank under the water (systems/shallows.js): its edge wanders (no drawn circle), and it has no surf
 float isd(vec2 p, vec3 I){ vec2 q = p - I.xy; float d = length(q) - abs(I.z) * 1.1; if (I.z < 0.0) { float a = atan(q.y, q.x); d += (sin(a * 3.0 + I.x * 0.1) * 0.2 + sin(a * 7.0 + I.y * 0.13) * 0.11) * abs(I.z); } return d; }
 float shoreF(vec2 p){ float s = 0.0; for (int i = 0; i < ${NISL}; i++) { s = max(s, 1.0 - smoothstep(0.0, 40.0, isd(p, uIsl[i]))); } return s; }
@@ -250,6 +250,10 @@ export class Ocean {
             float wash = (1.0 - smoothstep(0.0, 3.5 + 1.5 * sin(uTime * 0.6), sdI)) * step(0.35, vn(vWP.xz * 0.5 + uTime * 0.1));
             outc = mix(outc, vec3(0.94, 0.97, 0.96) * (0.35 + 0.65 * uLight), clamp(brk * near * 0.8 + wash * 0.7, 0.0, 1.0) * (1.0 - smoothstep(-2.0, 1.0, -sd)));
           }
+          { // the far sea takes the sky's colour at a low angle (audit: a pink dusk sky over a teal sea), dithered in steps
+            float gl = 1.0 - clamp(normalize(cameraPosition - vWP).y * 3.0, 0.0, 1.0);
+            outc = mix(outc, uSkyHor * (0.4 + 0.6 * uLight), floor(gl * gl * 4.0 + bay4(gl_FragCoord.xy)) / 4.0 * 0.35);
+          }
           // rain rings: little circles spreading on the surface wherever drops land, close to the camera
           if (uRain > 0.05) {
             float camd = length(cameraPosition.xz - vWP.xz);
@@ -258,7 +262,7 @@ export class Ocean {
               float on = step(rnd(rc + 11.0), uRain * 0.75);
               float age = fract(uTime * 0.8 + rnd(rc));
               float ring = 1.0 - smoothstep(0.0, 0.07, abs(length(rf - (vec2(rnd(rc + 2.0), rnd(rc + 4.0)) - 0.5) * 0.4) - age * 0.42));
-              outc = mix(outc, outc * 1.25 + 0.06, ring * on * (1.0 - age) * 0.7 * (1.0 - smoothstep(30.0, 70.0, camd)));
+              outc = mix(outc, outc * 1.25 + 0.06 * uLight, ring * on * (1.0 - age) * 0.7 * (1.0 - smoothstep(30.0, 70.0, camd)));
             }
           }
           // gusts (cat's paws): soft, ragged patches of darker, rippled water drifting down the wind, part of the sea itself

@@ -25,5 +25,5 @@ function show(text, dark = false, ms = 5200) {
   const sp = document.createElement('span'); sp.textContent = text; el.appendChild(sp);
   toastsEl.appendChild(el);
   while (toastsEl.children.length > 3) toastsEl.firstChild.remove();
-  setTimeout(() => el.remove(), ms);
+  setTimeout(() => { el.classList.add('out'); setTimeout(() => el.remove(), 260); }, ms);   // leaves in three steps, not one frame (audit)
 }

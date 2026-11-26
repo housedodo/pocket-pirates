@@ -1503,7 +1503,7 @@ function frame() {
   const eb = $('ebar');
   if (tgtE && live) {
     _v.set(tgtE.x, 5 * KINDS[tgtE.kind].scale + 3, tgtE.z).project(camera);
-    if (_v.z < 1) { eb.style.display = 'block'; eb.style.left = `${(_v.x * 0.5 + 0.5) * window.innerWidth}px`; eb.style.top = `${(-_v.y * 0.5 + 0.5) * window.innerHeight}px`; $('ename').textContent = tgtE.name; $('efill').style.width = `${Math.max(0, (tgtE.hp / tgtE.maxHp) * 100)}%`; } else eb.style.display = 'none';
+    if (_v.z < 1 && !rt.hailPending) { eb.style.display = 'block'; eb.style.left = `${Math.max(230, Math.min(window.innerWidth - 230, (_v.x * 0.5 + 0.5) * window.innerWidth))}px`; eb.style.top = `${Math.max(150, (-_v.y * 0.5 + 0.5) * window.innerHeight)}px`; /* kept clear of the HUD columns (audit) */ $('ename').textContent = tgtE.name; $('efill').style.width = `${Math.max(0, (tgtE.hp / tgtE.maxHp) * 100)}%`; } else eb.style.display = 'none';
   } else eb.style.display = 'none';
   audio.setLoop('coast', coastLevel(ashore, tod.night));
   audio.setLoop('forest', forestLevel(ashore) * 0.3);   // ashore on a forest island: very quietly under everything

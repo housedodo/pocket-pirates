@@ -169,10 +169,11 @@ export class Fauna {
     // or similar"): each bird takes turns flying and sitting. A sitting gull is on the ground of an island near by (beach, grass, rock)
     // and lifts off when the ship comes close; crows sit longer and do not lift off (they watch). At the deepest dread most of them sit
     // on the Gull's own rail, and only a few circle.
-    const crowish = kind === 'crow', V = this._v || (this._v = new THREE.Vector3());
+    const V = this._v || (this._v = new THREE.Vector3());
     const RAIL = [[0.92, 2.0], [-0.92, 2.0], [1.2, 0.5], [-1.2, 0.5], [1.15, -1.0], [-1.15, -1.0], [0.85, -2.2], [-0.85, -2.2]];   // ship-local x, z
     for (let i = 0; i < NB; i++) {
       const b = this.birds[i], d = this.dummy;
+      const isCrow = ((i * 0.6180339) % 1) < crow, F = this.flocks[isCrow ? 'crow' : 'gull'], O = this.flocks[isCrow ? 'gull' : 'crow'], crowish = isCrow;   // the crows come one by one, not the whole flock at once (audit)
       let visible = i < nActive;
       let x = 0, y = 0, z = 0, yaw = 0;
       if (visible) {
@@ -208,7 +209,7 @@ export class Fauna {
             else if (b.anchor) {   // down: a spot on the island's ground, not too near the water
               const D = b.anchor, th = Math.random() * 6.28, rho = shoreR(D, th) * rnd(0.45, 0.9), lx = Math.cos(th) * rho, lz = Math.sin(th) * rho;
               const gy = terrainHeight(D, lx, lz);
-              if (gy > 0.4) { b.sit = { x: D.x + lx, y: gy + 0.55, z: D.z + lz }; b.want = 1; b.yawS = Math.random() * 6.28; }
+              if (gy > 0.4) { b.sit = { x: D.x + lx, y: gy + 0.32, z: D.z + lz }; b.want = 1; b.yawS = Math.random() * 6.28; }
               b.next = crowish ? rnd(30, 80) : rnd(14, 40);
             }
           }
@@ -225,7 +226,7 @@ export class Fauna {
         nearBird = Math.min(nearBird, Math.hypot(x - sx, z - sz));
         const glide = watchers ? 1 : smoothstep(-0.2, 0.3, Math.sin(t * 0.4 + b.phase * 5));   // now and then they stop flapping and glide
         let fl = Math.sin(t * flap + b.phase) * (frozen < 0.5 && dread < 0.5 ? 0.08 : 0.55) * (0.15 + 0.85 * glide);
-        if (b.k > 0.9) fl = -1.25 + (Math.random() < 0.002 ? 0.6 : 0);   // sitting: wings folded (now and then one is stretched)
+        if (b.k > 0.9) fl = -1.25 + (Math.sin(t * 0.37 + b.phase * 7) > 0.995 ? 0.6 : 0);   // sitting: wings folded (now and then one is stretched, on its own clock)
         else if (b.k > 0.05) fl = Math.sin(t * flap * 1.6 + b.phase) * 0.7;   // landing and lifting off: busy wings
         const sc = watchers && !(b.k > 0.5) ? 1.7 : 1.25;
         d.position.set(x, y, z); d.rotation.set(0, yaw, 0); d.scale.set(sc, sc, sc);
