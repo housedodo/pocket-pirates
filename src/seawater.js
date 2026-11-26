@@ -9,7 +9,7 @@
 // The cat's paws (gusts) were already there (seaplay.js). `?sea=0` turns all of this off, to compare.
 import * as THREE from 'three';
 import { U } from './psx.js';
-import { params } from './core/config.js';
+import { params, REEFS_ON } from './core/config.js';
 
 export const SEA_ON = params.get('sea') !== '0';
 U.uSea = { value: new THREE.Vector4(0, 0, 0, 0) };   // the region's water: glass, banks, breakers, oil
@@ -96,7 +96,7 @@ if (uSeaOn > 0.5) {
 export const SEA_CHAR = {
   crown: [0.35, 0, 0, 0, 0],      // long and clean
   free: [0.7, 0.6, 0, 0, 0],      // glassy, sand showing
-  reef: [0, 0.2, 1, 0, 0],        // white water over hidden heads
+  reef: [0, 0.2, REEFS_ON ? 1 : 0, 0, 0],        // white water over hidden heads (off with the reefs: core/config.js)
   lantern: [0.15, 0, 0, 1, 0],    // oil
   drowned: [0.5, 0, 0, 0, 1],     // flat lead
 };

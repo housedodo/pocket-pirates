@@ -14,6 +14,7 @@ import { hash2 } from './util.js';
 import { mats } from './psx.js';
 import { mulberry32 } from './util.js';
 import { customProps } from './customprops.js';
+import { REEFS_ON } from './core/config.js';
 import { REEF_SLICK_TIDE, REEF_RING_TIDE, drownedOpen } from './regions.js';
 
 const NIGHT = (i) => i.tod && i.tod.night > 0.45;
@@ -74,7 +75,7 @@ export function regionDecor(d, A, extra, h) {
     // M-REEF-1 Teeth under the tide (2026-11-17): the heads bite the same at any tide (reef.js), but how they show follows the water:
     // at low and middle tide black teeth in white water; above REEF_SLICK_TIDE only their tips, awash in a pale-green slick; above
     // REEF_RING_TIDE nothing but a faint ripple ring over each head (the floor: there is always a tell)
-    const n = Math.round(14 * lane), F = mk(), S = mk(), R = mk(), T = new A.constructor(), U = new A.constructor(), rd = mulberry32((d.seed || 1) * 31 + DAY * 977 + 5);   // where the heads are today
+    const n = REEFS_ON ? Math.round(14 * lane) : 0, F = mk(), S = mk(), R = mk(), T = new A.constructor(), U = new A.constructor(), rd = mulberry32((d.seed || 1) * 31 + DAY * 977 + 5);   // where the heads are today
     d.coral = [];
     for (let i = 0; i < n; i++) {
       const out = 8 + rd() * 60 * lane, side = (rd() < 0.5 ? 1 : -1) * (8 + rd() * 30);

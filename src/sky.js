@@ -6,16 +6,28 @@ const C_SUN_NIGHT = new THREE.Color(0.3, 0.38, 0.7), C_SUN_DREAD = new THREE.Col
 const R = 900;
 const GREY_TOP = new THREE.Color('#8a98a6');
 
+// The stars (owner, 2026-11-26: "redesign the stars so they blend in like the rest"): they hide behind the painted clouds (the same
+// noise as the dome's), dim into the haze low down, take a little of the sky's colour, and come out one by one at dusk, brightest first.
 const STAR_VS = `attribute float aSize; attribute vec3 aColor; attribute float aPhase; attribute float aCross; attribute float aRank; attribute float aBand;
 uniform float uOpacity; uniform float uTime; uniform float uTwinkle; uniform float uDens; uniform float uBandK;
+uniform float uPaint; uniform float uCov; uniform vec2 uOff; uniform float uWA; uniform vec3 uSkyTop;
 varying vec3 vC; varying float vA; varying float vX;
+float h21(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+float vn(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f); return mix(mix(h21(i), h21(i + vec2(1.0, 0.0)), f.x), mix(h21(i + vec2(0.0, 1.0)), h21(i + vec2(1.0, 1.0)), f.x), f.y); }
+float fbm(vec2 p){ float s = 0.0, a = 0.5; for (int i = 0; i < 4; i++) { s += a * vn(p); p = p * 2.03 + vec2(1.7, 9.2); a *= 0.5; } return s; }
 void main(){
   gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
   gl_PointSize = aSize;
-  if (aRank > (aBand > 0.5 ? uBandK : uDens)) { gl_Position = vec4(2.0, 2.0, 2.0, 1.0); gl_PointSize = 0.0; }   // this night's sky is thinner: the stars with the highest rank are not there
+  vec3 n = normalize(position);
+  float hide = aRank > (aBand > 0.5 ? uBandK : uDens) ? 1.0 : 0.0;   // this night's sky is thinner: the stars with the highest rank are not there
+  float cl = 0.0;
+  if (uPaint > 0.5) { vec2 p = n.xz / (n.y + 0.14) * 1.5; float ca = cos(uWA), sa = sin(uWA); p = vec2(ca * p.x + sa * p.y, -sa * p.x + ca * p.y) + uOff; cl = smoothstep(-0.06, 0.0, fbm(p) - (0.78 - uCov * 0.62)); }   // behind a cloud
   float s = floor(fract(sin(floor(uTime * 1.5 + aPhase * 9.0) * 12.9898 + aPhase * 78.233) * 43758.5453) * 3.0);   // stepped flicker, three levels
-  vA = uOpacity * (1.0 - 0.28 * s * uTwinkle);
-  vC = aColor; vX = aCross;
+  float come = smoothstep(aRank * 0.6, aRank * 0.6 + 0.35, uOpacity);   // at dusk the brightest come out first
+  float low = smoothstep(0.03, 0.3, n.y);   // the haze low down swallows them
+  vA = come * low * (1.0 - cl) * (1.0 - 0.28 * s * uTwinkle) * (aBand > 0.5 ? 0.8 : 1.0);
+  if (hide > 0.5 || vA < 0.04) { gl_Position = vec4(2.0, 2.0, 2.0, 1.0); gl_PointSize = 0.0; }
+  vC = mix(aColor, min(uSkyTop * 2.2 + 0.25, vec3(1.0)), 0.22); vX = aCross;
 }`;
 const STAR_FS = `varying vec3 vC; varying float vA; varying float vX;
 void main(){
@@ -59,7 +71,7 @@ function buildStars(v, pts, dir) {
     for (let i = 0; i < 130; i++) add(dir(r2() * 6.2832, 0.05 + r2() * 1.45), bgc, 2);
     for (let i = 0; i < 24; i++) add(dir(r2() * 6.2832, 0.1 + r2() * 1.4), tc, 3, 0, r2() * 0.6);   // the brighter ones are the last to go
     for (let i = 0; i < 8; i++) add(dir(r2() * 6.2832, 0.15 + r2() * 1.2), gc, 3, 0, r2() * 0.5);
-    for (let i = 0; i < 6; i++) add(dir(r2() * 6.2832, 0.3 + r2() * 1.0), tc, 9, 1, r2() * 0.45);
+    for (let i = 0; i < 3; i++) add(dir(r2() * 6.2832, 0.4 + r2() * 0.9), tc, 5, 1, r2() * 0.3);   // a few cross-shaped stars, small
     const ct = Math.cos(K.tilt), st = Math.sin(K.tilt), cy = Math.cos(K.yaw), sy = Math.sin(K.yaw);
     const gauss = () => (r2() + r2() + r2() + r2() - 2) * 0.9;
     for (let i = 0; i < 2000; i++) {
@@ -179,7 +191,7 @@ void main(){
     // night skies: ?sky=0 the old one, ?sky=1..4 one of the four moods; without it they take turns, one a night (update)
     const flag = (() => { try { const q = new URLSearchParams(location.search).get('sky'); return q == null ? -1 : +q || 0; } catch (e) { return -1; } })();
     this.skyFlag = flag;
-    this.starU = { uOpacity: { value: 0 }, uTime: { value: 0 }, uTwinkle: { value: 1 }, uDens: { value: 1 }, uBandK: { value: 1 } };
+    this.starU = { uOpacity: { value: 0 }, uTime: { value: 0 }, uTwinkle: { value: 1 }, uDens: { value: 1 }, uBandK: { value: 1 }, uPaint: { value: 1 }, uCov: { value: 0.3 }, uOff: { value: new THREE.Vector2() }, uWA: { value: 0 }, uSkyTop: { value: new THREE.Color() } };
     this.starT = 0;
     this.starMat = new THREE.ShaderMaterial({ uniforms: this.starU, vertexShader: STAR_VS, fragmentShader: STAR_FS, transparent: true, fog: false, depthWrite: false, depthTest: true });   // depth-tested: the ship, islands and sea hide them (they were drawn over the ship: owner 2026-11-20); they sit at R 900, inside the far plane
     this.haloMat = new THREE.MeshBasicMaterial({ color: 0xffffff, fog: false, depthWrite: false, depthTest: false, transparent: true, opacity: 0 });
@@ -314,6 +326,7 @@ void main(){
 
     const starOp = Math.max(stage.stars, tod.night * 0.95 * (1 - smoothstep(0.3, 0.48, tod.day)));   // the night's stars go as the day comes (they lingered after sunrise: owner 2026-11-20); the dread's daylight stars stay
     this.starT += dt; this.starU.uTime.value = this.starT; this.starU.uOpacity.value = starOp;
+    { const du = this.domeMat.uniforms, S = this.starU; S.uPaint.value = du.uPaint.value; S.uCov.value = du.uCov.value; S.uOff.value.copy(du.uOff.value); S.uWA.value = du.uWA.value; S.uSkyTop.value.copy(du.uTop.value); }   // the same clouds as the dome
     if (this.skyHalo) { this.halo.position.copy(this.moon.position); this.halo.quaternion.copy(this.moon.quaternion); this.halo.visible = this.moon.visible; this.haloMat.opacity = this.skyHalo.opacity * tod.night * (1 - 0.5 * stage.dread); } else this.halo.visible = false;
     this.eyeMat.opacity = smoothstep(0.8, 1.0, stage.dread);
     // full dread: the eye turns to stay in front of you, and blinks

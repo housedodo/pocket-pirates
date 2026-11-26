@@ -108,6 +108,7 @@ Nothing here is ever said to the player in these words.
 | 2026-11-25 | **Harbours have a law, a back door and wants** (owner: "do 1, 2 and 4"): thriving harbours turn you away sooner, dying ones never and ask nothing (in the deep they are too glad); a harbour that refuses you can be entered at night by the boat up a water stair, to sell to one buyer and hear the pier, nothing more; what a water wants shows as an empty place in its harbour until you bring it, and what it makes lies piled on the pier. |
 | 2026-11-25 | **What you know of a harbour goes stale, and the sea is hard on a crew** (owner: "do 3 and 5"): the chart keeps a harbour as you last saw it or heard it from a passing ship, and in the deep that news comes dated tomorrow; long without fresh food the crew sickens (fruit keeps it off, a sick hand goes home), and rats take the stores unless the cat is aboard. |
 | 2026-11-25 | **Clouds are painted into the sky** (owner: "go with B"): drawn in the sky's own colours, dithered in three tones, thinning into the horizon; a storm rises as a bank from the horizon upwind; rain takes the colour of the haze. |
+| 2026-11-26 | **No reefs for now** (owner: "remove reefs... a more elaborate solution later"): no shallow shelves, no coral heads, no Reef white water; the pilot waits for them. Stars hide behind clouds and fade into the haze. |
 | earlier | The title is HOIST. The Lady never speaks. Dread follows where you are, never time. The demo has no dread. |
 
 ## 4. The seven questions (the whole mystery)

@@ -22,6 +22,7 @@ import { hash2, mulberry32 } from '../util.js';
 import { tod } from '../daynight.js';
 import { tideAt } from './calendar.js';
 import { handOn } from './hands.js';
+import { REEFS_ON } from '../core/config.js';
 
 const DEMO = () => typeof window !== 'undefined' && window.__BUILD === 'demo';
 export const GROUND_PAD = 1.5;   // the Gull's keel finds the shelf this far inside its edge
@@ -30,6 +31,7 @@ let built = false, groups = [];
 
 /** a loose chain of discs along a line (local to a frame: origin, +z seaward, the x axis along the shore), with jitter from the seed */
 function chain(ox, oz, ang, pts, rng) {
+  if (!REEFS_ON) return;   // no shelves for now (core/config.js)
   const c = Math.cos(ang), s = Math.sin(ang);
   for (const [lx, lz, r] of pts) {
     const jx = lx + (rng() - 0.5) * 2.4, jz = lz + (rng() - 0.5) * 2.4, jr = r * (0.75 + rng() * 0.5);

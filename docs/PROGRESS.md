@@ -2510,3 +2510,16 @@ toward it, grey veils of rain under its belly, and its foot dissolving into the 
   a little lighter) instead of a fixed pale blue, fade toward the tail of each streak, fade out within a few units of the eye (the
   bright radiating spokes in a storm) and toward the edge of the rain round you, and are 15% fainter. Preview:
   `docs/proposals/sky/clouds_b_and_rain.png` (top: before; bottom: now).
+
+## 2026-11-26: reefs off for now; stars that belong to the sky
+- **Reefs off** (owner: "the reefs around Little Bell are following me... remove reefs from the game for now, there will be a more
+  elaborate solution later"): one switch, `core/config.js REEFS_ON = false`. Off: the shallow shelves (`shallows.js chain`: none drawn,
+  no grounding; they followed the ship because the sea draws only the ten nearest within 420, so they came and went as you sailed),
+  the Reef's coral heads (`regiondecor.js`: none built, so `reef.js` finds none to hit), the Reef's white water over hidden heads
+  (`seawater.js`). Kept: the three island groups (now reachable by the Gull too), the boat landings with their own obstructions (the
+  wreck at the fort, the rockfall at the cave), the Glass Lagoon's barrier. The pilot (earned by running aground) is hidden until the
+  reefs return (`hands.js off`).
+- **Stars** (owner: "redesign the stars so they also blend in like the rest"; `sky.js STAR_VS`): hidden behind the painted clouds (the
+  dome's own noise, so they drift out of the clouds together), dimmed into the haze low down, tinted a little toward the sky, and they
+  come out one by one at dusk, brightest first; three small cross-stars instead of six large ones. Preview
+  `docs/proposals/sky/stars_before_after.png` (top before, bottom now).
