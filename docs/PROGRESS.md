@@ -2540,3 +2540,18 @@ toward it, grey veils of rain under its belly, and its foot dissolving into the 
   landings and over each of the three island groups. A bank is passed to the sea with a negative radius (`ocean.js isd`): its edge
   wanders (no drawn circle) and it has no surf (breakers and wash come from real shores only). The CPU wave twin counts banks too, so the
   ship floats on the water as drawn. Checked headless: the Gull grounds on both banks tried.
+
+## 2026-11-26: no cave mouth; the Tide Rocks; choices at sea
+- **The cave mouth is gone** (owner: "remove the cave entrance"; `gearplay.js boatScene`): the Guild boat landing keeps only its
+  rockfall; the look line now says the water runs in between the slabs under the cliff (the find inside is unchanged).
+- **The Tide Rocks** (owner: "redesign the rocks so there are more varieties"; `shallows.js`): three different rocks: a weathered sea
+  stack (blocks each a little off the one below, white where the birds sit), a wide tilted table rock with a pool of still water on top,
+  and a split boulder, its halves leaning apart; each with a dark band of weed at the waterline and loose stones round its foot.
+- **Choices at sea** (owner: "give 2 or 3 options and only where something needs to be paid, it shows up... sometimes you have to pay
+  up, there is no other way"; `ui/shiptrade.js`, `raiders.js`): at most three choices (when there are more, the first two and the last);
+  what cannot be done is not shown; no "Free" anywhere: a price (coin and number) only on a choice that costs; one you cannot afford says
+  how much you have. The Toll, once you have refused him or failed to bluff him, offers only the toll ("your name is in his ledger now.
+  There is no other way past him"); the close button reads "Refuse anyway" and counts as refusing (as does E); paying clears it.
+  Number keys 1 to 3. Four looks on trial (`?choices=a|b|c|d`, default a; preview `docs/proposals/ui/choice_looks_abcd.png`):
+  a the ship's log (paper, ink, a red wax price), b signal flags (night-blue keys with a pennant each, a gold price tag), c spoken
+  (their words in a bubble, your answers as bubbles), d the strip (a band across the foot of the screen, the sea left in view).

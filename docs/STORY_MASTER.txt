@@ -1,7 +1,7 @@
 HOIST (Pocket Pirates): THE MASTER STORY FILE
 ================================================================================================
 This is the main story file for the full game. Edit it, upload it again, and the next session puts every change
-into the game. Built from commit b3d83ea on 2026-11-26. 1893 in-game lines carry an ID.
+into the game. Built from commit 6386e45 on 2026-11-26. 1893 in-game lines carry an ID.
 
 CONTENTS
   A   HOW TO USE THIS FILE (IDs, status marks, how to add and remove things)
@@ -3232,8 +3232,6 @@ line says which file it goes back into. 1893 lines.
   GEAR-0010 | A stair cut into the inner shore of the lagoon, going down into the water. The steps are worn in the middle. None of the wear goes up.
   GEAR-0011 | A water gate under the fort, too low for the Gull. A small boat would go in under it.
   GEAR-0012 | Under the fort, a boat-shed. The oldest ledgers are kept dry in it, wrapped in oilcloth. The newest bundle is tied with a string, and on the label is tomorrow.
-  GEAR-0013 | A cave mouth under the press, low and black. A small boat could go in, with a light.
-  GEAR-0014 | Too dark in there to row. The boat needs a lantern.
   GEAR-0015 | In the cave under the press the water is warm, and the oil comes up in rings. Something below turns over, slowly, the way you turn over in bed.
   GEAR-0016 | I will mind her, Captain. Do not row out of sight.
   GEAR-0017 | Lowering the bell...
@@ -3257,6 +3255,14 @@ line says which file it goes back into. 1893 lines.
 ### GEAR / ADDED 2026-11-25
   GEAR-0028 | Not in daylight. Half the quay would see you come up.
   GEAR-0029 | Up the stair, quietly...
+
+### GEAR / ADDED 2026-11-26
+  GEAR-0030 | Rock has come down from the cliff under the press. Between the slabs the water runs in somewhere. A small boat could follow it, with a light.
+  GEAR-0031 | It goes in under the cliff, and it is black in there. The boat needs a lantern.
+
+### GEAR / RETIRED (the text is no longer in the game; these IDs are never used again)
+    was GEAR-0013 | A cave mouth under the press, low and black. A small boat could go in, with a light.
+    was GEAR-0014 | Too dark in there to row. The boat needs a lantern.
 
 
 ####################################################################################################

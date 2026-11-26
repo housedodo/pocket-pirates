@@ -85,7 +85,7 @@ export const SITES = [
     look: 'A water gate under the fort, too low for the Gull. A small boat would go in under it.',
     find: 'Under the fort, a boat-shed. The oldest ledgers are kept dry in it, wrapped in oilcloth. The newest bundle is tied with a string, and on the label is tomorrow.' },
   { id: 'lantern', region: 'lantern', gear: 'boat', lv: 2, lm: 'press', dx: -21, dz: -6, clue: 'CL-G-lantern',
-    look: 'A cave mouth under the press, low and black. A small boat could go in, with a light.', short: 'Too dark in there to row. The boat needs a lantern.',
+    look: 'Rock has come down from the cliff under the press. Between the slabs the water runs in somewhere. A small boat could follow it, with a light.', short: 'It goes in under the cliff, and it is black in there. The boat needs a lantern.',
     find: 'In the cave under the press the water is warm, and the oil comes up in rings. Something below turns over, slowly, the way you turn over in bed.' },
 ];
 export const siteAt = (s) => ({ x: LM[s.lm].x + s.dx, z: LM[s.lm].z + s.dz });
@@ -135,10 +135,7 @@ function boatScene(b, s) {
     for (let i = -2; i <= 2; i++) b.box(i * 0.5, 1.2, -6.05, 0.08, 0.8, 0.08, '#2a2622');   // the grille, raised part way
     b.box(0, 1.15, -6.05, 2.4, 0.08, 0.08, '#2a2622');
   } else {
-    const CL = '#8a8478', CL2 = '#9a9488';   // the island's own grey (landmarks.js)
-    rock(0, 0.8, -11, 6, 4.6, CL); rock(-4.2, 0.2, -8.6, 3.2, 3.0, CL2); rock(4.2, 0.2, -8.6, 3.4, 3.2, CL); rock(-6, 0, -10, 3, 2.2, CL2); rock(6, 0, -10, 3, 2.4, CL2);   // the cliff foot over the mouth
-    b.box(0, -0.5, -7.2, 2.4, 1.8, 0.1, DARK, TILE.white);                      // the mouth: low and black
-    rock(0, 2.0, -7.6, 2.4, 1.0, CL2);                                           // the brow over it
+    // (owner, 2026-11-26: "remove the cave entrance"): no mouth drawn; only the rockfall below, and the way in is found from the boat
   }
   if (s.id === 'crown') {   // two old hulks sunk across the way in, ribs and a broken mast showing; a gap between them for a small boat
     for (const sx of [-1, 1]) {

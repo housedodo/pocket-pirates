@@ -8,6 +8,7 @@ import { tod } from '../daynight.js';
 import { state } from '../core/state.js';
 import { rt, G } from '../core/runtime.js';
 import { $, toast } from './dom.js';
+import { pxi } from '../pixelui.js';
 import { crewOffers, crewOffer, crewLine } from '../systems/raiders.js';
 import { hailNews } from '../systems/news.js';
 
@@ -79,15 +80,24 @@ export function shipOffers(sh) {
   sh.offers = pool.slice(0, 3).map((o) => ({ ...o, used: false }));
   return sh.offers;
 }
+// four looks for the choice box, on trial (?choices=a|b|c|d; RULES 35): a the ship's log, b signal flags, c spoken, d the strip
+const CHOICE_LOOK = (() => { try { const q = new URLSearchParams(location.search).get('choices'); return 'abcd'.includes(q) && q ? q : 'a'; } catch (e) { return 'a'; } })();
 export function renderShipTrade() {
   const sh = rt.tradeShip;
   $('shName').textContent = sh.name;
   $('shLine').textContent = sh.crew ? crewLine(sh) : sh.special === 'market' ? 'A trader leans on the rail among the lanterns: "Everything must go. Everything always goes. Come aboard, captain."' : sh.hostile ? 'The raider captain grins: "Nice ship. Shame if something happened to it. A little tribute, perhaps?"' : (FACTION_GREET[sh.faction.id] || 'Ahoy!');
   $('shGold').textContent = state.gold;
-  $('shList').innerHTML = shipOffers(sh).map((o, i) => `<div class="up"><div><span class="nm">${i + 1}. ${o.label}</span></div>
-    <button data-i="${i}" ${o.used || state.gold < o.cost ? 'disabled' : ''}>${o.used ? 'Done' : o.cost ? `${o.cost}g` : 'Free'}</button><div class="ds">${o.desc}</div></div>`).join('');
+  // the choices (owner, 2026-11-26): two or three, never more; what cannot be done is not shown; a price only where something is paid
+  const all = shipOffers(sh).map((o, i) => ({ o, i })).filter(({ o }) => !o.used && !o.hidden);
+  { const h = shipOffers(sh).findIndex((o) => o.hidden && !o.used); rt.shRefuse = h >= 0 ? h : null; }   // closing a pay-only hail is refusing it
+  const shown = all.length > 3 ? [...all.slice(0, 2), all[all.length - 1]] : all;
+  $('shipmodal').dataset.look = CHOICE_LOOK;
+  $('shList').innerHTML = shown.map(({ o, i }, k) => { const short = o.cost > state.gold;
+    return `<button class="ch${o.must ? ' must' : ''}" data-i="${i}" ${short ? 'disabled' : ''}><span class="k">${k + 1}</span><span class="lb">${o.label}<small>${short ? `you have ${state.gold} of ${o.cost}` : o.desc}</small></span>${o.cost ? `<span class="cost">${pxi('coin')}${o.cost}</span>` : ''}</button>`; }).join('');
   $('shList').querySelectorAll('button').forEach((b) => b.addEventListener('click', () => doOffer(parseInt(b.dataset.i, 10))));
+  $('shClose').textContent = shown.length === 1 && shown[0].o.must ? 'Refuse anyway' : 'Wave goodbye';
 }
+G.shipOffer = (i) => doOffer(i);
 export function doOffer(i) {
   const sh = rt.tradeShip, o = shipOffers(sh)[i];
   if (!o || o.used || state.gold < o.cost) return;

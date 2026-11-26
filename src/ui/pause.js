@@ -161,6 +161,6 @@ export function initPause2() {
   pauseEl.addEventListener('pointerdown', (e) => { if (e.target === pauseEl) G.closeModal(); });
   // (a click beside the book no longer closes the log: Close, M or Esc do)
   shipEl.addEventListener('pointerdown', (e) => { if (e.target === shipEl) G.closeModal(); });
-  $('shClose').addEventListener('click', () => G.closeModal());
+  $('shClose').addEventListener('click', () => { if (rt.shRefuse != null) { const i = rt.shRefuse; rt.shRefuse = null; G.shipOffer(i); if (rt.modal === 'ship') G.closeModal(); return; } G.closeModal(); });
   $('hbClose').addEventListener('click', () => G.closeModal());
 }

@@ -232,6 +232,7 @@ export function crewOffers(s) {
     { id: 'defy', label: 'Defy her', cost: 0, desc: 'press Space to fire once she is in range', used: false },
   ]);
   if (id === 'tollmen') { const toll = 20 + 6 * (c.paidN || 0), crate = Object.values(state.story.cargo || {}).some((n) => n > 0);
+    if (c.crossed) return (s.offers = [{ id: 'cw_toll', label: 'Pay the toll', cost: toll, desc: 'your name is in his ledger now. There is no other way past him', used: false, must: true }, { id: 'cw_refuse', label: 'Refuse', cost: 0, desc: '', used: false, hidden: true }]);   // (owner, 2026-11-26: "sometimes you have to pay up")
     return (s.offers = [
       { id: 'cw_toll', label: 'Pay the toll', cost: toll, desc: 'he writes it in the ledger', used: false },
       { id: 'cw_crate', label: 'Give him a crate', cost: 0, desc: crate ? 'one crate from the hold, instead of coin' : 'there is nothing in the hold', used: !crate },
@@ -273,7 +274,7 @@ export function crewOffer(s, o) {
       else { s.fireCd = 0.3; toast('"They all say that." She draws.', false, 4000); }
       break;
     case 'cw_toll': {
-      c.paidN = (c.paidN || 0) + 1; c.paid = state.dayN; leave();
+      c.paidN = (c.paidN || 0) + 1; c.paid = state.dayN; c.crossed = false; leave();
       const L = c.paidN === 1 ? 'He writes THE MERRY GULL in the ledger and blots it. "Paid. Good sailing."'
         : c.paidN === 3 ? 'He turns the ledger round to show you. Your ship is on every page, far ahead, every toll already paid. The hand is yours.'
         : c.paidN >= 5 ? '"You are paid up, Captain. All the way." He closes the ledger. He does not open it for you again.' : 'He writes it down. He does not look up.';
@@ -285,10 +286,10 @@ export function crewOffer(s, o) {
     case 'cw_tbluff': {
       let lv = 0; for (const r of Object.values(state.rep || {})) lv = Math.max(lv, Math.min(3, Math.floor((r.visits + 2 * r.deliveries) / 3)));
       if (Math.random() < 0.2 + 0.18 * lv) { c.paid = state.dayN; leave(); toast('He runs his pen down a page and finds something. "So you are." He lets you go.', false, 6000); }
-      else { mark('crown', -2); refuse(s, 'He looks at you for a long moment, then closes the ledger. Her gunports open.'); }   // the Crown hears of it (systems/standing.js)
+      else { c.crossed = true; mark('crown', -2); refuse(s, 'He looks at you for a long moment, then closes the ledger. Her gunports open.'); }   // the Crown hears of it (systems/standing.js)
       break;
     }
-    case 'cw_refuse': mark('crown', -2); refuse(s, 'He closes the ledger without a word. Her gunports open.'); break;
+    case 'cw_refuse': c.crossed = true; mark('crown', -2); refuse(s, 'He closes the ledger without a word. Her gunports open.'); break;
     case 'cw_water': case 'cw_kit': case 'cw_coin': {
       if (o.id === 'cw_water') { const S = state.story.stores; S.food -= 1; S.water -= 1; }
       if (o.id === 'cw_kit') state.patchKits--;

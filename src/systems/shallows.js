@@ -118,12 +118,24 @@ function buildGroup(g, at) {
     b.box(-0.8, 0.25, 1, 0.5, 0.06, 0.5, '#1a1410');
     isl.push([at.x, at.z, 2.2]);
   } else {
-    for (const [x, z] of spots) {
-      const r = 4 + rng() * 2;
-      b.blob(x, 0.6, z, r, 3.2 + rng() * 2, r * 0.85, ROCK, TILE.stone, 0.3, Math.floor(rng() * 1e6));
-      b.blob(x + 1.5, 0.2, z + 1, r * 0.6, 1.6, r * 0.5, ROCK2, TILE.stone, 0.35, Math.floor(rng() * 1e6));
+    // three different rocks (owner, 2026-11-26: "more varieties"): a sea stack, a flat table rock with a tide pool, a split boulder;
+    // each with a dark band of weed and barnacles at the waterline, and loose stones round its foot
+    const RK = ['#7e766a', '#948c7e', '#6e675c', '#8a8274', '#a29a8a'], WEED = '#3e4a32', GUANO = '#e8e4d8', sd = () => Math.floor(rng() * 1e6);
+    spots.forEach(([x, z], k) => {
+      let r;
+      if (k === 0) {   // the stack: blocks stepping in as it rises, each turned a little, white on top where the birds sit
+        r = 3.6; let y = -1, w = 5.2;
+        for (let i = 0; i < 5; i++) { const h = 1.5 + rng() * 1.1; b.blob(x + (rng() - 0.5) * 0.9, y + h * 0.5, z + (rng() - 0.5) * 0.9, w * 0.55, h * 0.75, w * (0.42 + rng() * 0.12), RK[i % 5], TILE.stone, 0.3, sd()); y += h * 0.85; w *= 0.8; }   // weathered blocks, each a little off the one below
+        b.blob(x, y + 0.1, z, w * 0.5, 0.3, w * 0.42, GUANO, TILE.white, 0.3, sd()); b.box(x, -0.4, z, 5.8, 0.6, 4.8, WEED, TILE.leaf);
+      } else if (k === 1) {   // the table: a wide low slab, a little tilted, a pool of still water on it
+        r = 5.2; b.push(x, -0.9, z, rng() * 3, 1, 1, 1, 0.06, -0.05); b.box(0, 0, 0, 10, 2.0, 7.5, RK[3], TILE.stone); b.box(0.8, 0.4, -0.6, 7.4, 1.8, 5.2, RK[1], TILE.stone); b.box(-1.2, 2.21, 0.4, 2.6, 0.02, 1.8, '#3a6a7a', TILE.white); b.box(0, -0.2, 0, 10.4, 0.5, 7.9, WEED, TILE.leaf); b.pop();
+      } else {   // the split boulder: two halves leaning apart, a wedge of sky between them
+        r = 4.6; for (const sd2 of [-1, 1]) { b.push(x + sd2 * 1.9, 0.2, z, 0, 1, 1, 1, 0, sd2 * 0.2); b.blob(0, 0, 0, 2.6, 3.4, 3.2, sd2 < 0 ? RK[0] : RK[4], TILE.stone, 0.25, sd()); b.pop(); }
+        b.blob(x, -0.5, z, 5.2, 0.7, 4.0, WEED, TILE.leaf, 0.2, sd());
+      }
+      for (let i = 0; i < 4 + Math.floor(rng() * 3); i++) { const t = rng() * 6.28, d = r + 1 + rng() * 3; b.blob(x + Math.cos(t) * d, -0.4, z + Math.sin(t) * d, 0.6 + rng() * 0.9, 0.4 + rng() * 0.6, 0.6 + rng() * 0.8, RK[Math.floor(rng() * 5)], TILE.stone, 0.35, sd()); }   // loose stones
       isl.push([at.x + x, at.z + z, r * 0.9]);
-    }
+    });
     // the stone in the middle: an old mooring stone with an iron ring, under the water but at the bottom of the tide
     b.box(0, -1.6, 0, 1.1, 1.5, 1.1, '#5a5448', TILE.stone); b.box(0, -0.18, 0.58, 0.6, 0.6, 0.08, '#3a2a22');
   }
