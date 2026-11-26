@@ -105,6 +105,7 @@ import { shelvesNear } from './systems/shallows.js';
 import { crewTick } from './systems/raiders.js';
 import { handMods } from './systems/hands.js';
 import { plentyLevel, eventOf, harboursTick, feelOf, fedOf } from './systems/harbours.js';
+import { havenTick, havenDebug } from './systems/foghaven.js';
 import { tradeOn } from './systems/trade.js';
 import { moonTick, litAt } from './systems/moon.js';
 import { spiceTick } from './systems/spice.js';
@@ -1317,6 +1318,7 @@ function frame() {
   const lp = abyss.lightPhase;
   world.setLit(lp === 'stare' || glimpse.k > 0.5 ? true : lp === 'dead' ? false : tod.sunHeight < 0.12 || weather.darkness > 0.6);
   world.stare = lp === 'stare' || glimpse.k > 0.5 ? ship.pos : null;
+  havenTick(dt);   // the fog harbour: neglect, and Hesper's light dimming or burning true (systems/foghaven.js)
   world.week = { wd: weekday(), market: isMarketDay(), lantern: isLanternNight() }; world.growthOf = (id) => { const [cx, cz] = id.split(',').map(Number), hd = world.desc(cx, cz); return hd ? Math.max(0, plentyLevel(hd)) : growthOf(id); }; world.plentyOf = plentyLevel; world.eventOf = eventOf; world.tradeOf = tradeOn; world.fedOf = fedOf; world.landedOf = (id) => landedAt(state, id); world.lifeDoneOf = (id) => life.arcDone(state, id); world.tide = tideAt();   // the harbour's state (systems/harbours.js)
   { // a storm front every sixth afternoon (after chapter III), warned by a red sky the evening before; and the sector's own weather
     const h = state.time * 24, fd = state.dayN % 6 === 5 && unlocked(state, 'passengers'), fa = state.dayN % 6 === 4 && unlocked(state, 'passengers');
@@ -1545,7 +1547,7 @@ $('oilrow').addEventListener('pointerdown', (e) => { if (rt.started && !rt.modal
 $('oilrow').classList.toggle('off', !!state.story.lampOff);
 installGamepad(() => toast('Controller connected: stick to sail, A to interact, Y for the log, Start to pause.', false, 6000));
 installInput(() => { if (rt.helpMode === 'full' || rt.helpMode === 'legacy') helpEl.innerHTML = helpText(rt.helpMode === 'full'); });
-window.__game = { fauna, leaderDesc, offLine, wallPass, ribsLull, secrets, regionWeights, tideAt: () => tideAt(), lostState: () => ({ lostK: rt.lostK, gateLost: rt.gateLost, placesLost: places.lost, heading: ship.heading, trim: ship.trim }), places, seaplay, glimpse, fishing, sails: () => ({ torn: state.sailsTorn, kits: state.patchKits, strain: rt.sailStrain }), oilState: () => ({ oil: state.oil, lampOut: rt.lampOut }),
+window.__game = { fogHaven: havenDebug, fauna, leaderDesc, offLine, wallPass, ribsLull, secrets, regionWeights, tideAt: () => tideAt(), lostState: () => ({ lostK: rt.lostK, gateLost: rt.gateLost, placesLost: places.lost, heading: ship.heading, trim: ship.trim }), places, seaplay, glimpse, fishing, sails: () => ({ torn: state.sailsTorn, kits: state.patchKits, strain: rt.sailStrain }), oilState: () => ({ oil: state.oil, lampOut: rt.lampOut }),
   readArch, partnerOf, maraMood, windfx, logbook, econ,
   life, localGames, openHarbour(id, tab = 'board') { const isl = [...world.islands.values()].find((i) => i.desc.id === id); if (!isl) return false; closeModal(true); rt.harbourIsl = isl; rt.hbTab = tab; frameVillage(isl.desc); openModal('harbour'); return true; }, renderHarbour: () => renderHarbour(),
   audio,

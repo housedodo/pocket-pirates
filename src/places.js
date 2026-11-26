@@ -131,7 +131,7 @@ export class Places {
   }
 
   /** is this upgrade enough to get past the barrier round landmark lm */
-  open(lm, upgrades) { const B = BARRIERS[lm]; return !B || (upgrades[B.up] || 0) >= B.lv; }
+  open(lm, upgrades) { const B = BARRIERS[lm]; return !B || (upgrades[B.up] || 0) >= B.lv || (lm === 'broken' && !!(rt.haven && rt.haven.lifted)); }   // the fog harbour come back: the bank is gone (systems/foghaven.js)
 
   /** each frame: keep the ship out of places it is not fitted for, thicken the fog in the bank. Returns a message to show, or null. */
   tick(dt, ship, upgrades, fogColor, freeze, pass) {   // pass(lm, ship): another way through a fog bank (systems/leadlight.js, trial)
@@ -144,7 +144,8 @@ export class Places {
       // lens lantern lit it is a wall at the edge and thins as you go in, until the isle stands in a clear pocket; the bank's own walls
       // go thin round you. With the lamp out it stays thick.
       const lit = this.open(lm, upgrades) && !rt.lampOut, clear = lit ? smoothstep(B.R * 0.3, B.R * 0.85, d) : 1;
-      if (B.kind === 'fog') this.fog = Math.max(this.fog, smoothstep(B.R + 70, B.R - 30, d) * (lit ? 0.45 * clear : this.open(lm, upgrades) ? 0.7 : by ? 0.7 : 1));
+      const hk = lm === 'broken' && rt.haven ? rt.haven.fogDensity : 1;   // the fog harbour's people back: the bank thins with them (systems/foghaven.js)
+      if (B.kind === 'fog') this.fog = Math.max(this.fog, hk * smoothstep(B.R + 70, B.R - 30, d) * (lit ? 0.45 * clear : this.open(lm, upgrades) ? 0.7 : by ? 0.7 : 1));
       if (B.kind === 'fog' && lm === 'broken') { this.bankLit = lit ? 0.25 + 0.75 * smoothstep(B.R * 0.4, B.R * 1.3, d) : 1; this.bankClear = lit && d < B.R * 1.4 ? 55 : 0; }
       if (d > B.R + 4 || freeze || by) continue;
       const k = `${lm}`;
@@ -168,7 +169,7 @@ export class Places {
     }
     for (const k of Object.keys(this.toastT)) if (!k.endsWith('ok')) this.toastT[k] -= dt;
     // the dome takes the scene's fog colour, so it is grey at dusk and dark at night; thinner from inside
-    { const col = this._bc || (this._bc = new THREE.Color()); col.copy(fogColor).lerp(C_WHITE, 0.12); this.bank.update(dt, ship, col, (this.bankLit ?? 1) * (1 - 0.5 * this.fog), this.bankClear || 0); }
+    { const col = this._bc || (this._bc = new THREE.Color()); col.copy(fogColor).lerp(C_WHITE, 0.12); this.bank.update(dt, ship, col, (this.bankLit ?? 1) * (1 - 0.5 * this.fog) * (rt.haven ? rt.haven.fogDensity : 1), this.bankClear || 0); }
     return msg;
   }
 

@@ -2677,3 +2677,16 @@ frame and wide map; moon phases and the Eye's shape (not in the summary list).
   longer costs Crown standing again; a harbour that refused you asks again on a later visit before E pays (the offer to pay lasts
   30 s); the resident stories and the fever row take only spare fish and fruit, never what an errand needs ("your fish are promised
   to an errand"); the passenger's buried gold line says it is already on your chart.
+- **The fog harbour, Haven Hesk** (owner: "Eternal Fog & Harbour Restoration"; decisions 2026-11-26: a new harbour where the Halved Isle
+  is, the isle part of it; a new keeper who knew Sabe; if she goes, the harbour is lost; full game only; `systems/foghaven.js`):
+  a harbour inside the Halved Isle's fog bank (cell -12,-2, Lantern water), its people gone, only Hesper keeping a light that catches
+  and drops. What you bring her (her list in turn: oil, salt, cloth, food, lamp glass, coir rope; and any delivery or sale there)
+  brings people back: the houses fill and light (the harbour's plenty is its stage), the bank thins and at last lifts (no lantern
+  needed then), and her beam steadies and lengthens. Stages: abandoned, flicker, stirring, bustling, forsaken. Once you have met her,
+  16 days away (8 grace + 8) before the harbour is 80% back and she is gone: the fog for good, her light dark (on some nights it
+  burns by itself), nobody takes your line, and on docking her note under the lamp goes in the Ship's book. Errands and passengers
+  for it are let go. Nothing is shown as a number. Tunables at the top of the file (FULL 24, GRACE 8, SPAN 8, SAFE_AT 0.8,
+  LIFT_AT 0.12, POP_MAX 40). Tests: `?foghaven=abandoned|flicker|stirring|bustling|forsaken`, `window.__game.fogHaven.set(stage)`,
+  `.away(days)`, `.state()`. Verified headless: every stage's fog, light and plenty; the list row gives and re-renders; neglect
+  takes her at 16 days; docking then is refused and files the note once. Preview `docs/proposals/sky/foghaven_stages.png`.
+  The Halved Isle itself (its clue, the lantern gate, the other ways in) is unchanged while the fog stands. Draft text: WRITER_TODO 4.9.

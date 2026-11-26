@@ -12,7 +12,7 @@ import { hash2, mulberry32, fbm, clamp, angleDiff, smoothstep } from './util.js'
 import { dreadAtDistance } from './palette.js';
 import { makeName, makePuzzle } from './lore.js';
 import { FRUITS, fruitOf } from './fruit.js';
-import { arcIdOf, ARCS } from './harbourlife.js';
+import { arcIdOf, ARCS, havenKeeper } from './harbourlife.js';
 
 import { forcedCells, shapeLandmark, cutShore, lmHeight, lmColor, lmDecor, LM_DARK } from './landmarks.js';
 export const CELL = 110;
@@ -46,6 +46,8 @@ const FORCED = {
   '1,0': null,
   '-2,-1': { type: 'harbour', x: -232, z: -128, r: 30 },   // a second harbour inside the first fog radius, so early errands have somewhere to go
   '-1,0': { type: 'sandbar', x: -112, z: 30 },
+  // the fog harbour beside the Halved Isle (systems/foghaven.js; owner, 2026-11-26), inside its fog bank; full game only, the demo keeps open water
+  '-12,-2': typeof window !== 'undefined' && window.__BUILD === 'demo' ? null : { type: 'harbour', x: -1296, z: -190, r: 27, name: 'Haven Hesk', dockTh: 2.75, fogHaven: true },
 };
 // the hand-made places (landmarks.js) and the open water round them; the starter cells above win
 // BEFORE: the same cells as they were before the clue places moved (D3, 2026-11-18; landmarks.js LM_BEFORE). The rolls that decide
@@ -168,6 +170,7 @@ export function describeCell(cx, cz, seed, F = FORCED) {
     if (!forced) { const sd = STYLE_DEF[desc.style]; desc.r *= sd.rMul; desc.lobes = desc.lobes.map((v, i) => (i < 3 ? v * sd.lobeMul : v)); }
   }
   if (forced && forced.lm) shapeLandmark(desc, forced.lm);
+  if (forced && forced.fogHaven) { desc.fogHaven = true; desc.name = forced.name; desc.dockTh = forced.dockTh; desc.custom = 'silent'; desc.sleepy = true; }   // its own name, its pier facing out of the bank
   { // character, rolled on its own so the rest of the world stays put: a colour shift per island, a cliff on some jungle isles,
     // sea stacks off most rocky ones
     const vr = mulberry32(hash2(cx, cz, seed + 5151));
@@ -801,7 +804,7 @@ function chest(b, x, y, z, ry, open) {
 
 // Only some islands get a lighthouse: the home harbour, ~1 in 3 other harbours, the odd lonely rock.
 export function hasLighthouse(d) {
-  if (d.id === '0,-1') return true;
+  if (d.id === '0,-1' || d.fogHaven) return true;   // Hesper's light (systems/foghaven.js)
   const r = (hash2(d.seed, 17, 5) % 1000) / 1000;
   if (d.region === 'lantern') return d.type === 'harbour' ? r < 0.85 : d.type === 'rocky' || d.type === 'sandbar' ? r < 0.6 : false;   // the Guild keeps its lights everywhere (regions.js)
   return d.type === 'harbour' ? r < 0.33 : d.type === 'rocky' ? r < 0.22 : false;
@@ -1415,6 +1418,11 @@ function weekAndCustoms(d, rng, cr, g) {
     }
   }
   // a resident's story has ended: the harbour keeps a mark of it by the pier for good (harbourlife.js)
+  if (d.fogHaven) { const k = L('resident'), [x, z] = dockAt(R * 0.12, 4.2); k.push(x, yy, z, -dockTh);   // Hesper's chair on the steps; once she is gone, empty, a note under a lamp
+    k.box(0, 0, 0, 0.8, 0.5, 0.8, '#6b4a2e', TILE.planks); k.box(-0.36, 0.5, 0, 0.1, 0.9, 0.8, '#6b4a2e', TILE.planks);
+    if (havenKeeper()) villager(k, 0, 0.25, 0, Math.PI / 2, mulberry32(d.seed + 5), 'oldsalt');
+    else { k.box(0.1, 0.5, 0.1, 0.32, 0.02, 0.24, '#f0ead8', TILE.white); k.box(0.1, 0.52, 0.1, 0.16, 0.28, 0.16, '#2a2a30', TILE.stone); }
+    k.pop(); }
   if (arcIdOf(d)) { const prop = ARCS[arcIdOf(d)].prop, k = L('resident'), [x, z] = dockAt(R * 0.12, 4.2), [x2, z2] = dockAt(R * 0.12, -4.2), ry0 = -dockTh;
     k.push(x, yy, z, ry0);
     if (prop === 'bunting') { k.box(0, 0, -2.5, 0.2, 4, 0.2, '#6b4a2e', TILE.bark); k.box(0, 0, 2.5, 0.2, 4, 0.2, '#6b4a2e', TILE.bark); flagLine(k, [0, 3.9, -2.5], [0, 3.9, 2.5], 1); k.box(0, 2.2, 0, 0.12, 0.9, 2.2, '#f4f0e6', TILE.planks); }

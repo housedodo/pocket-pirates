@@ -42,6 +42,7 @@ import { voyageDock } from './voyage.js';
 import { REFUSE_AT, owed, payOwed, mark } from './standing.js';
 import { handOn } from './hands.js';
 import { dockBlocked, refuses, refuseAt, refuseLine, noQuestions } from './harbours.js';
+import { havenDock } from './foghaven.js';
 import { crewBoarded } from './raiders.js';
 import { tradeRumour } from './trade.js';
 import { learn } from './news.js';
@@ -211,7 +212,8 @@ function doInteract(tg) {
   if (tg.kind === 'harbour') {
     const d = tg.isl.desc, rep = repOf(state, d.id);
     rep.region = d.region;   // its water's name counts toward it (systems/standing.js)
-    { const bl = window.__BUILD !== 'demo' && dockBlocked(d); if (bl) { toast(bl, false, 7000); backHint(); return; } }   // a blockade: nobody comes out (systems/harbours.js)
+    { const bl = window.__BUILD !== 'demo' && dockBlocked(d); if (bl) { toast(bl, false, 7000); backHint(); return; } }
+    if (havenDock(d)) { backHint(); return; }   // the fog harbour: her note, and nobody to take your line once she is gone (systems/foghaven.js)   // a blockade: nobody comes out (systems/harbours.js)
     if (window.__BUILD !== 'demo' && refuses(d, rep)) {   // the empty quay: nobody takes your line until what is owed is paid (a thriving harbour sooner, a dying one never: harbours.js refuseAt)
       if (rt.oweAsk === d.id && rt.tNow - (rt.oweAskT || 0) < 30) {   /* E again soon after being told: pay (a later visit is told again first) */ const g = payOwed(d.region); if (g) { rt.oweAsk = null; G.audio.play('buy'); toast(`You pay the harbourmaster ${g} gold. A boy comes down and takes your line.`, false, 6000); } else toast(`They want ${owed(d.region)} gold before anyone will take your line.`, false, 4000); return; }
       rt.oweAsk = d.id; rt.oweAskT = rt.tNow; toast(`${refuseLine(d)} (E again: pay what they say is owed, ${owed(d.region)} gold.)`, false, 7000); backHint(); return;

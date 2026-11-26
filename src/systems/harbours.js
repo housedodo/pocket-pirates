@@ -26,6 +26,7 @@ import { friendLevel, sellable } from '../jobs.js';
 import { WANTS } from './trade.js';
 import { pxi } from '../pixelui.js';
 import { goalReached } from '../objectives.js';
+import { isHaven, havenPlenty, havenRows, havenAct } from './foghaven.js';
 
 const DEMO = () => typeof window !== 'undefined' && window.__BUILD === 'demo';
 export const EVENT_DAYS = 3, EVENT_P = 18, NEGLECT_FROM = 21, NEGLECT_PER_DAY = 0.25, STEP_DAYS = 3;   // slow on purpose (owner, 2026-11-25: "make sure it does not change that fast, otherwise it would be a chore"): three weeks away before it starts, and the level moves one step every three days at most
@@ -38,6 +39,7 @@ let OVR = null;
 export const harbourOverride = (o) => { OVR = o; };
 export function plentyLevel(d) {
   if (OVR) return OVR.plenty;
+  if (isHaven(d) && !DEMO()) return havenPlenty();   // the fog harbour: how far it has come back (systems/foghaven.js)
   const r = state.rep[d.id];
   let lv = 0;
   if (r) {
@@ -57,7 +59,7 @@ const hev = () => state.story.hev || (state.story.hev = {});
 /** the event at harbour d now ('fire' | 'fever' | 'blockade' | 'feast') or null */
 export function eventOf(d) {
   if (OVR) return OVR.event;
-  if (DEMO() || !d || !goalReached(state, 'harbour')) return null;
+  if (DEMO() || !d || isHaven(d) || !goalReached(state, 'harbour')) return null;   // the fog harbour has trouble enough
   const w = Math.floor((state.dayN || 0) / EVENT_DAYS), E = hev()[d.id];
   if (E && E.w === w) return E.done ? null : E.kind;
   if (E && !E.done && E.seen && state.rep[d.id]) state.rep[d.id].scar = (state.rep[d.id].scar || 0) + 1;   // trouble you saw and left: it marks the place
@@ -110,6 +112,7 @@ export function harbourRows(d) {
   if (DEMO()) return '';
   let html = '';
   if (rt.backDoor === d.id) return html;   // nobody at the board at night
+  html += havenRows(d);   // Hesper and what she needs (systems/foghaven.js)
   const ev = eventOf(d), E = hev()[d.id];
   if (ev && E) E.seen = true;
   if (E && E.owed) html += `<div class="sec">THE HARBOUR</div><div class="qrow"><div><b>${pxi('coin')} They remember who lifted the boom</b><br><small>the harbourmaster pays what was promised</small></div><button data-hb="owed">+${E.owed}g</button></div>`;
@@ -134,6 +137,7 @@ function reportDue() {
 export function bindHarbourRows(pane, d, rerender) {
   pane.querySelectorAll('[data-hb]').forEach((b) => b.addEventListener('click', () => {
     const k = b.dataset.hb, E = hev()[d.id];
+    if (havenAct(d, k)) { rerender(); return; }
     if (k === 'owed' && E) { state.gold += E.owed; toast(`The harbourmaster counts out ${E.owed} gold. "For the boom."`, false, 5000); E.owed = 0; G.audio.play('treasure'); }
     if (k === 'fire') { state.time = Math.min(0.999, state.time + 2 / 24); resolve(d, 'fire', 'By noon the fire is out. Somebody brings the crew bread and does not let them pay for it.', PAY.fire); }
     if (k === 'fever' && fruitCount() >= 3) { let n = 3; const sp = sellable(state).fruit; for (const f of Object.keys(sp)) while (n > 0 && sp[f] > 0) { sp[f]--; state.fruit[f]--; n--; } resolve(d, 'fever', 'You leave the fruit at the end of the pier. Later a lamp in a window is lit, then another.', PAY.fever); }

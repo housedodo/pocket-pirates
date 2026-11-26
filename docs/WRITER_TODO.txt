@@ -667,3 +667,17 @@ E5: "A natural twenty. Somewhere far below, something is disappointed." is cut (
 4.10 DRAFTS: R.'S LETTERS, THE PILOTS' SAYINGS, ASKING AROUND (2026-11-19; T4, T6, T7)
   All of them, with context and what is needed, are in docs/LORE_TO_WRITE.txt (B3, B5, B6). That file also gathers every other open
   piece of lore in one place.
+
+
+================================================================================================================
+4.9  THE FOG HARBOUR, HAVEN HESK (systems/foghaven.js), added 2026-11-26: every line is a DRAFT
+----------------------------------------------------------------------------------------------------------------
+The harbour's name: Haven Hesk                                       yours:
+The keeper's name: Hesper (she knew Sabe of Harbour Galra)           yours:
+Her lines on the board, by how far the harbour has come back (abandoned / flicker / stirring / bustling),
+her six requests (oil, salt, cloth, food, lamp glass, coir rope), the three "people coming back" lines on docking,
+the neglect warning, the two docking lines once she is gone.                                     yours:
+HER NOTE (the Ship's book, once she is gone):
+  "Captain. The oil ran out and I lit the lamp anyway, and it burned. They are all down at the water now, the
+   ones who left, in their good clothes, calling me by my name. I am going down to ask them where they have
+   been. Do not light the lamp. H."                                                              yours:

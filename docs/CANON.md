@@ -113,6 +113,7 @@ Nothing here is ever said to the player in these words.
 | 2026-11-26 | **The moon has phases and there are eclipses** (owner): the moon goes round in 16 days in the real order and rises later each night; now and then a full moon goes copper (whole lunar eclipse) or the sun goes black at noon (whole solar), near ones more often. The sea lies down, a bell rings, the birds come down; far out, a black sun brings the Eye's stars. Harbours talk of it. |
 | 2026-11-26 | **One harbour per resident story** (owner): each of the eight harbour stories (the ribbon among them) happens in one harbour only, given out once per voyage; outer harbours have none. |
 | 2026-11-26 | **The Halved Isle's fog is a ragged wall** (owner picked look a of three): a ring of fog standing round the isle in the haze's colour, fraying at the top; the lens lantern opens it round the ship. |
+| 2026-11-26 | **The fog harbour** (owner): a new harbour beside the Halved Isle, inside its fog bank, the isle part of it. Its people left in the fog; only the keeper, Hesper, stayed (she knew Sabe of Galra). Bringing supplies brings people back and lifts the fog; staying away too long before it is well, she is gone, a note in her place, and the harbour is lost for good. Full game only. Names and lines are drafts. |
 | earlier | The title is HOIST. The Lady never speaks. Dread follows where you are, never time. The demo has no dread. |
 
 ## 4. The seven questions (the whole mystery)

@@ -45,7 +45,7 @@ export function lanternTick(dt) {
   const p = G.ship.pos, rh = state.story.rhythm || (state.story.rhythm = {});
   for (const isl of G.world.islands.values()) {
     const d = isl.desc;
-    if (!guildLight(d) || !isl.lampOn) continue;
+    if (!guildLight(d) || !isl.lampOn || d.fogHaven) continue;   // Hesper's light keeps its own time (systems/foghaven.js)
     if (!isl.lit || isl.stare) continue;   // dark (day, or a dead light), or every beam turned on the ship: World.setLit has it
     const on = rhythmOn(lightRhythm(d), rt.tNow + (d.seed % 97) / 9.7);
     isl.lampOn.visible = on; if (isl.lampOff) isl.lampOff.visible = !on; if (isl.beam) isl.beam.visible = on;

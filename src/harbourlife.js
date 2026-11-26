@@ -9,7 +9,9 @@
 //    Never explained; you only see the whole by visiting them all.
 // main.js draws the rows (board and tavern) and calls these; state.life holds everything.
 import { hash2 } from './util.js';
-import { G } from './core/runtime.js';
+import { G, rt } from './core/runtime.js';
+/** is Hesper on her steps (systems/foghaven.js sets rt.haven each frame; world.js builds her chair from it) */
+export const havenKeeper = () => !(rt.haven && !rt.haven.keeperPresent);
 import { nearby, sellable } from './jobs.js';
 
 export const lifeOf = (state) => (state.life = state.life || { arcs: {}, ate: {}, played: {}, frags: [], fragAt: {}, news: [], told: {}, keep: [], meal: null });
@@ -137,7 +139,7 @@ function homes() {
   if (HOMES) return HOMES;
   const W = G.world; if (!W) return {};
   const list = [];
-  for (let cx = -14; cx <= 14; cx++) for (let cz = -14; cz <= 14; cz++) { const d = W.desc(cx, cz); if (d && d.type === 'harbour' && d.id !== '0,-1' && d.id !== '-2,-1') list.push(d); }
+  for (let cx = -14; cx <= 14; cx++) for (let cz = -14; cz <= 14; cz++) { const d = W.desc(cx, cz); if (d && d.type === 'harbour' && d.id !== '0,-1' && d.id !== '-2,-1' && !d.fogHaven) list.push(d);   /* the fog harbour has its own story (systems/foghaven.js) */ }
   list.sort((a, b) => Math.hypot(a.x, a.z + 118) - Math.hypot(b.x, b.z + 118));
   const rest = ARC_IDS.filter((k) => k !== 'bakers' && k !== 'dog'), seed = (list[0] && list[0].seed) | 0;
   for (let i = rest.length - 1; i > 0; i--) { const j = Math.abs(hash2(seed, i, 41)) % (i + 1); [rest[i], rest[j]] = [rest[j], rest[i]]; }
