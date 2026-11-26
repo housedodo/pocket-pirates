@@ -2637,3 +2637,16 @@ frame and wide map; moon phases and the Eye's shape (not in the summary list).
   the step.)
 - **Hails**: only what they say goes in the speech box (the narration is dropped); a second E while they speak no longer queues them again
   (that left the choices never coming); the hail prompt hides meanwhile; the choices come a beat after the last word.
+- **Fixes from play** (owner, 2026-11-26): the ring could not be taken after the ribbon (the one-step-a-day rule now holds only when the
+  next step is in the same harbour); the moon's earthshine (the dark second disc by day) only at night; the sun's glow gone under real
+  cover (the big pale disc in a storm) and the moon's ring too; glows and the beam not drawn while invisible.
+- **Storms** (owner: "always damage, even at half mast or oars"): side-on to the waves with the sails in or the oars out takes about a
+  quarter of what it did; Mara says once to put the bow to the waves; the gale tears at the rigging only above about 60% sail.
+- **Sinking in big seas** (`float.js rideWaves`): the hull's float has a floor just under the water drawn there, and pitch and roll are
+  capped, so a bouncing sea cannot carry her under.
+- **The storm bank** reads as cloud, not mountains: rounder billows, a lit top edge, billows inside, lighter and nearer the sky's colour.
+  (It rises from the horizon upwind when a storm or a front is coming.)
+- **The Halved Isle's fog** (`places.js`): with the lens lantern lit it is a wall at the edge and thins as you go in, until the isle
+  stands in a clear pocket; the bank's walls go thin round you; with the lamp out it stays thick.
+- Smoke: the 60-game-second sail gets 12 minutes (the machine after the restart runs both games slower; the last passing commit failed
+  the same way at 8).

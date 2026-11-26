@@ -167,7 +167,7 @@ export function residentRows(state, world, d, ctx) {
   return rows;
 }
 function stepRow(state, d, a, A, s, key, ctx) {
-  const today = a.day === state.dayN && a.step > 0;   // one step a day
+  const prev = A.steps[a.step - 1], today = a.day === state.dayN && a.step > 0 && prev && prev.at === s.at;   // one step a day, but only in the same harbour: carrying the ribbon to Anselm is not waiting (owner, 2026-11-26)
   let block = today ? 'Come back another day.' : '';
   if (!block && s.need === 'fish' && !state.catch.length) block = 'needs a fish from your hold';
   if (!block && s.need === 'fruit' && !Object.values(state.fruit).some((n) => n > 0)) block = 'needs some fruit';
@@ -186,7 +186,7 @@ export function promises(state) {
     if (a.done || !(a.step > 0)) continue;
     const A = ARCS[a.arc], s = A && A.steps[a.step]; if (!s) continue;
     const toId = s.at === 'partner' ? a.partner : key, to = s.at === 'partner' ? a.partnerName : a.homeName, prev = A.steps[a.step - 1];
-    out.push({ key, who: A.who, to, toId, need: NEED_WORD[s.need] || '', carry: prev && prev.done ? prev.done : '', soon: a.day === state.dayN });
+    out.push({ key, who: A.who, to, toId, need: NEED_WORD[s.need] || '', carry: prev && prev.done ? prev.done : '', soon: a.day === state.dayN && prev && prev.at === s.at });
   }
   return out;
 }

@@ -48,6 +48,8 @@ export function rideWaves(F, w, dt, extra = {}) {
   }
   const spring = (k, vk, tg, vt, wn, z) => { F[vk] += (wn * wn * (tg - F[k]) + 2 * z * wn * (vt - F[vk])) * dtc; F[k] += F[vk] * dtc; };
   if (dtc > 0) { spring('y', 'vy', tY, F.wy, 8, 0.9); spring('p', 'vp', tP, F.wp, 2.8, 0.85); spring('r', 'vr', tR, F.wr, 2.3, 0.85); }
+  { const floor = Math.max(w.centre, w.mean) + (extra.lift ?? 0.12) - 0.35; if (F.y < floor) { F.y = floor; if (F.vy < F.wy) F.vy = F.wy; } }   // never driven under: in a big bouncing sea the spring could carry her below the water (owner, 2026-11-26)
+  F.p = clamp(F.p, -0.6, 0.6); F.r = clamp(F.r, -0.65, 0.65);
   // a hull tips with the face of a wave but never flips: a hard limit on the angles
   if (F.p > 0.62) { F.p = 0.62; if (F.vp > 0) F.vp = 0; } else if (F.p < -0.62) { F.p = -0.62; if (F.vp < 0) F.vp = 0; }
   if (F.r > 0.68) { F.r = 0.68; if (F.vr > 0) F.vr = 0; } else if (F.r < -0.68) { F.r = -0.68; if (F.vr < 0) F.vr = 0; }

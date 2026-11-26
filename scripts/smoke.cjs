@@ -43,7 +43,7 @@ async function sailAndLog(who, p) {
     window.__smoke = { from: [g.ship.pos.x, g.ship.pos.z], until: advanceTime(g.state.time, 60) };
     return g.state.time;
   });
-  await p.waitForFunction(() => { const g = window.__game; g.ship.trim = 1; return g.state.time >= window.__smoke.until; }, null, { timeout: WAIT * 2, polling: 500 });
+  await p.waitForFunction(() => { const g = window.__game; g.ship.trim = 1; return g.state.time >= window.__smoke.until; }, null, { timeout: WAIT * 3, polling: 500 });   // two games side by side on a slow machine need longer than 8 minutes for 60 game seconds
   const moved = await p.evaluate(() => { const g = window.__game, f = window.__smoke.from; return Math.hypot(g.ship.pos.x - f[0], g.ship.pos.z - f[1]); });
   check(who, moved > 20, `sailed 60 game seconds from time ${t0.toFixed(3)}, moved ${moved.toFixed(0)} units`);
   await p.keyboard.press('m');

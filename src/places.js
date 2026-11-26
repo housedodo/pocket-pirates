@@ -1,6 +1,7 @@
 // The hand-made places at play time (the look is in landmarks.js): what keeps you out until the ship is fitted for it,
 // the fog bank you can see from far off, what you find when you go ashore, and the labels on far shapes that a spyglass
 // can read. main.js calls tick() each frame, visit() on E, and reads fog for the scene fog.
+import { rt } from './core/runtime.js';
 import * as THREE from 'three';
 import { LANDMARKS, LM, BARRIERS, lmHere } from './landmarks.js';
 const C_WHITE = new THREE.Color('#ffffff'), _lv = new THREE.Vector3();   // made once: these run every frame (task R6)
@@ -151,7 +152,12 @@ export class Places {
     for (const [lm, B] of Object.entries(BARRIERS)) {
       const l = LM[lm], dx = ship.pos.x - l.x, dz = ship.pos.z - l.z, d = Math.hypot(dx, dz);
       const by = !this.open(lm, upgrades) && d < B.R + 70 && !!pass && pass(lm, ship);   // another way in (systems/passes.js): the leading light, high water, the lull
-      if (B.kind === 'fog') this.fog = Math.max(this.fog, smoothstep(B.R + 70, B.R - 30, d) * (this.open(lm, upgrades) ? 0.45 : by ? 0.7 : 1));
+      // (owner, 2026-11-26: "the fog slowly dissipates when entering with a lantern, so the Halved Isle is actually visible"): with the
+      // lens lantern lit it is a wall at the edge and thins as you go in, until the isle stands in a clear pocket; the bank's own walls
+      // go thin round you. With the lamp out it stays thick.
+      const lit = this.open(lm, upgrades) && !rt.lampOut, clear = lit ? smoothstep(B.R * 0.3, B.R * 0.85, d) : 1;
+      if (B.kind === 'fog') this.fog = Math.max(this.fog, smoothstep(B.R + 70, B.R - 30, d) * (lit ? 0.45 * clear : this.open(lm, upgrades) ? 0.7 : by ? 0.7 : 1));
+      if (B.kind === 'fog' && lm === 'broken') this.fogMat.opacity = 0.5 * (lit ? 0.25 + 0.75 * smoothstep(B.R * 0.4, B.R * 1.3, d) : 1);
       if (d > B.R + 4 || freeze || by) continue;
       const k = `${lm}`;
       if (this.open(lm, upgrades)) {

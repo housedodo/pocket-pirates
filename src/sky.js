@@ -104,13 +104,13 @@ function buildStars(v, pts, dir) {
 // rest a faint earthshine; a shadow crossing it for an eclipse (black for the sun, old copper for the moon). Stepped like the rest.
 function discMat(R, hex) {
   const u = { uC: { value: new THREE.Color(hex) }, uOp: { value: 1 }, uR: { value: R }, uCos: { value: -1 }, uLit: { value: new THREE.Vector2(1, 0) }, uDark: { value: new THREE.Color('#1a2440') },
-    uOcc: { value: new THREE.Vector3(9, 0, 1) }, uOccC: { value: new THREE.Color('#000000') }, uOccA: { value: 0 } };
+    uOcc: { value: new THREE.Vector3(9, 0, 1) }, uDarkA: { value: 0.55 }, uOccC: { value: new THREE.Color('#000000') }, uOccA: { value: 0 } };
   const m = new THREE.ShaderMaterial({ uniforms: u, transparent: true, depthWrite: false, depthTest: true, fog: false,   // depth-tested: a sail or an island in front hides it
     vertexShader: 'varying vec2 vP; void main(){ vP = position.xy; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
-    fragmentShader: `uniform vec3 uC; uniform float uOp; uniform float uR; uniform float uCos; uniform vec2 uLit; uniform vec3 uDark; uniform vec3 uOcc; uniform vec3 uOccC; uniform float uOccA; varying vec2 vP;
+    fragmentShader: `uniform vec3 uC; uniform float uOp; uniform float uR; uniform float uCos; uniform vec2 uLit; uniform vec3 uDark; uniform vec3 uOcc; uniform vec3 uOccC; uniform float uOccA; uniform float uDarkA; varying vec2 vP;
 void main(){ vec2 p = (floor(vP / uR * 9.0) + 0.5) / 9.0;
   float u = dot(p, uLit), w = dot(p, vec2(-uLit.y, uLit.x)), lim = uCos * sqrt(max(0.0, 1.0 - w * w));
-  vec3 c = u > lim ? uC : uDark; float a = u > lim ? uOp : uOp * 0.55;
+  vec3 c = u > lim ? uC : uDark; float a = u > lim ? uOp : uOp * uDarkA;
   if (length(p - uOcc.xy) < uOcc.z) { c = mix(c, uOccC, uOccA); a = max(a, uOp * uOccA); }
   gl_FragColor = vec4(c, a); }` });
   m.color = u.uC.value;   // the old code sets .color and .opacity; update() passes opacity on
@@ -176,11 +176,11 @@ void main(){
   if (uBank > 0.0) {   // the storm bank: it rises over the horizon upwind, ragged on top, rain hanging from it to the sea
     float bw = smoothstep(0.15, 0.9, dot(normalize(vXZ + 1e-4), uBankDir));
     vec2 rn = normalize(vXZ + 1e-4);   // round the horizon on a circle: the noise wraps, no seam due west (audit 2026-11-26)
-    float top = sqrt(uBank) * bw * (0.12 + 0.2 * vn(rn * 5.0 + vec2(uT * 0.015, 0.0)) + 0.03 * vn(rn * 11.0 + 3.0));
+    float top = sqrt(uBank) * bw * (0.1 + 0.15 * vn(rn * 3.0 + vec2(uT * 0.012, 0.0)) + 0.07 * vn(rn * 7.0 + vec2(uT * 0.02, 3.0)));   // rounded billows, not peaks (owner: it read as mountains)
     c = mix(c, mix(uBankC, uHorizon, 0.45), 0.3 * uBank * bw * (1.0 - smoothstep(0.0, 0.45, vY - top)));   // the sky above it darkens toward it
     if (vY < top + dth * 0.014) {
-      float lip = smoothstep(top - 0.035, top, vY);
-      vec3 bc = mix(uBankC, mix(uBankC, uHorizon, 0.5), floor(lip * 2.0 + dth * 0.6 + 0.5) / 2.0);
+      float lip = smoothstep(top - 0.06, top, vY) + 0.35 * step(0.62, vn(rn * 24.0 + vec2(vY * 30.0, uT * 0.03)));   // a lit top edge and billows inside it
+      vec3 bc = mix(uBankC, mix(uBankC, uHorizon, 0.6), floor(clamp(lip, 0.0, 1.0) * 2.0 + dth * 0.6 + 0.5) / 2.0);
       float shaft = smoothstep(0.45, 0.8, vn(rn * 9.0 + vec2(uT * 0.02, 1.0))) * (1.0 - smoothstep(0.0, top * 0.7, vY));   // soft grey veils of rain under the belly
       c = mix(bc, mix(uBankC, uHorizon, 0.3), floor(shaft * 2.0 + dth * 0.7 + 0.5) / 2.0 * 0.7);
       float low = 1.0 - smoothstep(0.0, top * 0.4, vY);   // its foot dissolves into the haze where the sea ends: no hard line above the water
@@ -356,8 +356,9 @@ void main(){
       this.sun.scale.set(1, 1 - 0.18 * low(sEl), 1);
       mu.uC.value.set('#dfe8ff').lerp(MOON_LOW, low(mEl) * 0.65).lerp(stage.sun, 0.15 * stage.dread);
       this.moon.scale.set(1 + 0.12 * low(mEl), (1 + 0.12 * low(mEl)) * (1 - 0.12 * low(mEl)), 1);
-      const g = this.sunGlow.material.uniforms; g.uC.value.copy(su.uC.value).lerp(stage.skyHorizon, 0.25); g.uOp.value = (0.22 + 0.35 * tod.twilight + 0.6 * gk) * (1 - 0.85 * smoothstep(0.3, 0.85, cv)) * (this.sunHolder.visible ? 1 : 0);
-      const mg = this.moonGlow.material.uniforms; mg.uC.value.copy(mu.uC.value); mg.uOp.value = 0.18 * litAt() * tod.night * (1 - 0.8 * smoothstep(0.3, 0.85, cv));
+      const g = this.sunGlow.material.uniforms; g.uC.value.copy(su.uC.value).lerp(stage.skyHorizon, 0.25); g.uOp.value = (0.22 + 0.35 * tod.twilight + 0.6 * gk) * (1 - smoothstep(0.25, 0.6, cv)) * (this.sunHolder.visible ? 1 : 0); this.sunGlow.material.visible = g.uOp.value > 0.01;   // under real cover there is no glow (owner: the big pale disc in the storm)
+      const mg = this.moonGlow.material.uniforms; mg.uC.value.copy(mu.uC.value); mg.uOp.value = 0.18 * litAt() * tod.night * (1 - smoothstep(0.25, 0.6, cv)); this.moonGlow.material.visible = mg.uOp.value > 0.01;
+      mu.uDarkA.value = 0.55 * tod.night * (1 - smoothstep(0.25, 0.6, cv));   // the earthshine only at night (owner: a dark second moon by day)
       this.sunGlow.scale.set(170, 170 * (1 - 0.35 * low(sEl)), 1);
     }
     { // the moon's phase, lit from the sun's side; an eclipse's shadow crossing a disc (systems/moon.js)
@@ -387,7 +388,7 @@ void main(){
     const starOp = Math.max(stage.stars, tod.night * 0.95 * (1 - smoothstep(0.3, 0.48, tod.day)));   // the night's stars go as the day comes (they lingered after sunrise: owner 2026-11-20); the dread's daylight stars stay
     this.starT += dt; this.starU.uTime.value = this.starT; this.starU.uOpacity.value = starOp;
     { const du = this.domeMat.uniforms, S = this.starU; S.uPaint.value = du.uPaint.value; S.uCov.value = du.uCov.value; S.uOff.value.copy(du.uOff.value); S.uWA.value = du.uWA.value; S.uSkyTop.value.copy(du.uTop.value); }   // the same clouds as the dome
-    if (this.skyHalo) { this.halo.position.copy(this.moon.position); this.halo.quaternion.copy(this.moon.quaternion); this.halo.visible = this.moon.visible; this.haloMat.opacity = this.skyHalo.opacity * tod.night * (1 - 0.5 * stage.dread); } else this.halo.visible = false;
+    if (this.skyHalo) { this.halo.position.copy(this.moon.position); this.halo.quaternion.copy(this.moon.quaternion); this.halo.visible = this.moon.visible; this.haloMat.opacity = this.skyHalo.opacity * tod.night * (1 - 0.5 * stage.dread) * (1 - smoothstep(0.25, 0.6, Math.min(1, fx.cover || 0))); /* no ring through cloud */ } else this.halo.visible = false;
     this.eyeMat.opacity = Math.max(smoothstep(0.8, 1.0, stage.dread), tod.eclipse && tod.eclipse.kind === 'solar' && tod.eclipse.whole && stage.dread >= 0.4 ? 0.9 : 0);   // the black sun, far out: a shape of stars that is there no other time
     // full dread: the eye turns to stay in front of you, and blinks
     if (fx.eyeYaw != null) {
@@ -446,7 +447,7 @@ void main(){
     { // the storm bank stands on the horizon where the wind comes from (drawn in the dome)
       const k = Math.max(0, Math.min(1, fx.stormWall || 0)), du = this.domeMat.uniforms, up = windDir + Math.PI;
       du.uBank.value = k; du.uBankDir.value.set(Math.sin(up), -Math.cos(up));
-      du.uBankC.value.set('#363c46').lerp(stage.skyHorizon, 0.3).multiplyScalar(0.6 + 0.4 * (1 - tod.night));
+      du.uBankC.value.set('#4a505a').lerp(stage.skyHorizon, 0.42).multiplyScalar(0.6 + 0.4 * (1 - tod.night));
     }
   }
 }

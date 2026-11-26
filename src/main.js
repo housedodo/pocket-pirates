@@ -1147,12 +1147,13 @@ function stormAndCalm(dt) {
     const side = Math.abs(Math.sin(angleDiff(ship.heading, wind.dir)));   // waves run with the wind
     const salt = (hasTrait(state, 'salt') ? 0.5 : 1) * ((state.upgrades.hull || 0) >= 2 ? 0.5 : 1);   // an iron-banded hull rides storms better
     if (st > 0.4 && side > 0.6) {   // waves hitting the side
-      rt.stormWear += dt * st * (side - 0.5) * (0.6 + 1.6 * sail) * 1.4 * salt;
+      rt.stormWear += dt * st * (side - 0.5) * (0.15 + 1.9 * Math.max(0, sail - 0.2)) * (ship.rowing ? 0.5 : 1) * 1.4 * salt;   // (owner, 2026-11-26: "always damage, even at half mast or with oars"): sails in or oars out, a quarter of it
+      if (rt.stormWear > 1 && !state.hints.headSea) { state.hints.headSea = true; if (!objectives.mate.busy) objectives.mate.say('Put her bow to the waves, Captain, or run before them. Never side-on.'); }
       if (rt.stormWear >= 4) { rt.stormWear = 0; hurtPlayer(7); objectives.remark('broadside', rt.dread); }
     }
     // a gale with the sails out tears at the rigging, whatever the heading: reef them (S) or take the oars
-    if (st > 0.45 && sail > 0.35 && !ship.rowing) {
-      rt.galeWear += dt * (st - 0.4) * (sail - 0.25) * 0.6 * salt;   // full storm, full sail: a hit every 4-5 s
+    if (st > 0.45 && sail > 0.6 && !ship.rowing) {   // half sail is safe in a gale; only the full press of canvas tears
+      rt.galeWear += dt * (st - 0.4) * (sail - 0.55) * 1.0 * salt;   // full storm, full sail: a hit every 4-5 s
       if (rt.galeWear >= 1) { rt.galeWear = 0; hurtPlayer(6); if (!state.hints.gale) { state.hints.gale = true; toast('The gale tears at the sails! Reef them (S) or put the oars out (G).', true, 6000); } }
     } else rt.galeWear = Math.max(0, rt.galeWear - dt * 0.2);
   }
@@ -1415,7 +1416,7 @@ function frame() {
   mats.foam.color.set(0xffffff).lerp(stage.skyHorizon, 0.25);
   mats.foam.opacity = 0.55 + 0.25 * Math.sin(rt.animT * 1.8);
   mats.beam.color.set('#ffe080').lerp(C_BEAM_DREAD, smoothstep(0.5, 0.8, rt.dread));
-  mats.beam.uniforms.uOp.value = 0.55 * smoothstep(0.35, 0.8, tod.night) * (1 - 0.6 * Math.min(1, weather.fog || 0)); mats.beam.uniforms.uTime.value = rt.tNow;   // only at night; thick fog swallows it
+  mats.beam.uniforms.uOp.value = 0.55 * smoothstep(0.35, 0.8, tod.night) * (1 - 0.6 * Math.min(1, weather.fog || 0)); mats.beam.visible = mats.beam.uniforms.uOp.value > 0.01;   // not drawn by day mats.beam.uniforms.uTime.value = rt.tNow;   // only at night; thick fog swallows it
   mats.wake.color.set(0xffffff).lerp(C_WAKE_NIGHT, tod.night * 0.9).lerp(C_WAKE_DREAD, tod.night * smoothstep(0.55, 0.9, rt.dread) * 0.8);
   sky.update(window.__waterLock ? 0 : dt, camera, stage, wind.dir, tod, { night: nightKey(), cover: Math.max(weather.cloud || 0, weather.rain || 0, weather.storm || 0), sun2: abyss.sun2, green: rt.greenK || 0, storm: weather.heavy || 0, stormWall: Math.max(weather.frontAhead || 0, (weather.stormAhead || 0) * 0.9, (weather.storm || 0) * 0.7) });
   if (litAt() < 0.04 && !(rt.eclipse && rt.eclipse.kind === 'solar')) sky.moon.visible = false;   // a new moon: no moon in the sky (an eclipse's dark night keeps her: she goes copper)
