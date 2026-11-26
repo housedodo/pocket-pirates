@@ -115,6 +115,7 @@ Nothing here is ever said to the player in these words.
 | 2026-11-26 | **The Halved Isle's fog is a ragged wall** (owner picked look a of three): a ring of fog standing round the isle in the haze's colour, fraying at the top; the lens lantern opens it round the ship. |
 | 2026-11-26 | **The fog harbour** (owner): a new harbour beside the Halved Isle, inside its fog bank, the isle part of it. Its people left in the fog; only the keeper, Hesper, stayed (she knew Sabe of Galra). Bringing supplies brings people back and lifts the fog; staying away too long before it is well, she is gone, a note in her place, and the harbour is lost for good. Full game only. Names and lines are drafts. |
 | 2026-11-26 | **The Gull's stern lantern** (owner picked a of three): an iron-framed lantern with a peaked cap, held out over the transom on a curled bracket. |
+| 2026-11-26 | **The Halved Isle's fog closes in; it is not a wall** (owner; replaces the ragged wall): nothing to see from afar, the haze thickens slowly as you sail in until you are surrounded, a fine low mist on the water round the ship. The bank is bigger (170) and holds one more islet. |
 | earlier | The title is HOIST. The Lady never speaks. Dread follows where you are, never time. The demo has no dread. |
 
 ## 4. The seven questions (the whole mystery)

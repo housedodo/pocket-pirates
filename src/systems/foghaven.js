@@ -12,7 +12,7 @@ import { clamp, smoothstep } from '../util.js';
 
 const DEMO = () => typeof window !== 'undefined' && window.__BUILD === 'demo';
 export const HAVEN_ID = '-12,-2';                 // its cell (world.js FORCED); the Halved Isle is next door at -11,-2
-export const HAVEN = { x: -1296, z: -190, r: 27, name: 'Haven Hesk' };   // inside the bank (BARRIERS.broken R 110, centre -1231,-217)
+export const HAVEN = { x: -1296, z: -190, r: 27, name: 'Haven Hesk' };   // inside the bank (BARRIERS.broken R 170, centre -1231,-217)
 
 // ---- tunables
 export const FULL = 24;           // restoration points for a harbour fully back (her list gives 2 a time; a delivery there 1.5, a sale 0.5)

@@ -12,7 +12,7 @@ import { nightKey } from './calendar.js';
 import { maraRemembers } from '../table.js';
 import { gateRadius, goalReached } from '../objectives.js';
 import { tod } from '../daynight.js';
-import { LM } from '../landmarks.js';
+import { LM, BARRIERS } from '../landmarks.js';
 import { OIL_FROM, oilCap, oilRate, lanternLit, OIL_PRICE, flameShape } from '../oil.js';
 import * as life from '../harbourlife.js';
 import { params, session, SAVE_KEY } from '../core/config.js';
@@ -72,7 +72,7 @@ export function showDemoEnd() { $('demoend').classList.add('show'); G.audio.play
 export function fogEdge(x, z) {
   const R = gateRadius(state, tideFalls()), d = Math.hypot(x, z);
   let k = R === Infinity ? 1 : 1 - smoothstep(R - 220, R - 120, d);
-  const b = LM.broken; if (!G.places.open('broken', state.upgrades)) k = Math.min(k, smoothstep(110 + 40, 110 + 100, Math.hypot(x - b.x, z - b.z)));
+  const b = LM.broken; if (!G.places.open('broken', state.upgrades)) k = Math.min(k, smoothstep(BARRIERS.broken.R + 40, BARRIERS.broken.R + 100, Math.hypot(x - b.x, z - b.z)));
   return k;
 }
 /** lost in fog: you see nothing, the helm does not answer, and the ship wanders but is always drawn back out */

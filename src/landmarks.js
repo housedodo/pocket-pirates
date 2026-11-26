@@ -48,7 +48,7 @@ export const lmHere = (lm) => typeof window === 'undefined' || window.__BUILD !=
 export const BARRIERS = {
   lagoon: { R: 44, up: 'rudder', lv: 2, kind: 'reef', no: 'The reef is too tight to thread. A broader rudder could do it.', yes: 'The broad rudder threads the reef.' },
   ribs:   { R: 50, up: 'hull', lv: 2, kind: 'breakers', no: 'The breakers would smash the planks. An iron-banded hull could take them.', yes: 'The iron bands take the breakers.' },
-  broken: { R: 110, up: 'lantern', lv: 2, kind: 'fog', no: 'The fog swallows everything. The ship wanders, and drifts back out the way it came. A lens lantern might cut it.', yes: 'The lens lantern cuts a road through the fog.' },
+  broken: { R: 170, up: 'lantern',   /* 170 (was 110; owner, 2026-11-26: "bigger, one more island"): the isle, Haven Hesk and the islet north-east */ lv: 2, kind: 'fog', no: 'The fog swallows everything. The ship wanders, and drifts back out the way it came. A lens lantern might cut it.', yes: 'The lens lantern cuts a road through the fog.' },
 };
 
 /** the clue places as they stood before D3 (2026-11-18): only for rolling the world as it was (world.js) and old saves (core/state.js) */

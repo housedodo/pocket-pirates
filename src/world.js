@@ -47,6 +47,8 @@ const FORCED = {
   '-2,-1': { type: 'harbour', x: -232, z: -128, r: 30 },   // a second harbour inside the first fog radius, so early errands have somewhere to go
   '-1,0': { type: 'sandbar', x: -112, z: 30 },
   // the fog harbour beside the Halved Isle (systems/foghaven.js; owner, 2026-11-26), inside its fog bank; full game only, the demo keeps open water
+  // and one more island in the fog (owner, 2026-11-26: "the area should be bigger and cover one more island"), the bank's far side
+  '-11,-1': typeof window !== 'undefined' && window.__BUILD === 'demo' ? null : { type: 'jungle', x: -1180, z: -95 },
   '-12,-2': typeof window !== 'undefined' && window.__BUILD === 'demo' ? null : { type: 'harbour', x: -1296, z: -190, r: 27, name: 'Haven Hesk', dockTh: 2.75, fogHaven: true },
 };
 // the hand-made places (landmarks.js) and the open water round them; the starter cells above win

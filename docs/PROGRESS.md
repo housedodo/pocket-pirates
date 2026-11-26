@@ -2708,3 +2708,11 @@ frame and wide map; moon phases and the Eye's shape (not in the summary list).
   evenly round a near-perfect circle, each second one with a flat white plate (pale slabs at night). Now a lobed outline round the
   barrier's 44, coral in clumps of one to three heads of different sizes, crowding and thinning to irregular gaps, and the surf only as
   thin low streaks along the seaward side in a muted colour. Before/after `docs/proposals/world/lagoon_reef_before_after.png`.
+- **The Halved Isle's fog closes in instead of standing there** (owner: "change the fog to something finer, this looks very artificial";
+  "the dome shape is too obvious from afar, the fog should slowly come... slowly getting surrounded"; "bigger, cover one more island"):
+  the wall, its rings and the town's mist discs are gone (`fogbank.js` rewritten). The fog is the scene's own haze, thickening over a long
+  ramp from 220 outside the bank (places.js), so from afar there is nothing to see; deep in it the sky goes too. Round the ship a low
+  mist of thin drifting wisps lies on the water, soft-edged in a few bands (no dots), moving with the ship, the deck kept clear (more
+  with the lens lantern). The fog's grey (and the lost-in-fog grey) now follows the daylight, so at night it is dark, never a pale
+  wall (main.js). The bank is 170 across (was 110) and takes in a new islet north-east of the isle (cell -11,-1, full game only).
+  Preview, approaching by day and night (far, near, edge, inside, inside with the lantern, Haven Hesk): `docs/proposals/sky/fog_approach.png`.

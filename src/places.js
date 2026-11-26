@@ -4,7 +4,7 @@
 import { rt } from './core/runtime.js';
 import { FogBank } from './fogbank.js';
 import * as THREE from 'three';
-import { LANDMARKS, LM, BARRIERS, lmHere, HAVEN_AT } from './landmarks.js';
+import { LANDMARKS, LM, BARRIERS, lmHere } from './landmarks.js';
 const _lv = new THREE.Vector3();   // made once: these run every frame (task R6)
 import { clamp, smoothstep } from './util.js';
 import { tableOpen } from './clues.js';
@@ -122,8 +122,7 @@ export class Places {
     this.fog = 0;            // 0..1 how deep in a fog bank the ship is (main.js thickens the scene fog)
     this.toastT = {};
     // the fog bank: a ragged wall of fog standing round the Halved Isle (fogbank.js; owner, 2026-11-26: look a)
-    const b = LM.broken, R = BARRIERS.broken.R;
-    this.bank = new FogBank(scene, b.x, b.z, R, typeof window !== 'undefined' && window.__BUILD === 'demo' ? null : HAVEN_AT);   // the fog harbour's streets get their own mist (systems/foghaven.js)
+    this.bank = new FogBank(scene);   // the low mist round the ship inside it (fogbank.js); the rest is the scene's haze closing in
     // labels for far shapes
     this.labels = new Map();
     this.layer = document.createElement('div'); this.layer.id = 'farlabels';
@@ -145,8 +144,8 @@ export class Places {
       // go thin round you. With the lamp out it stays thick.
       const lit = this.open(lm, upgrades) && !rt.lampOut, clear = lit ? smoothstep(B.R * 0.3, B.R * 0.85, d) : 1;
       const hk = lm === 'broken' && rt.haven ? rt.haven.fogDensity : 1;   // the fog harbour's people back: the bank thins with them (systems/foghaven.js)
-      if (B.kind === 'fog') this.fog = Math.max(this.fog, hk * smoothstep(B.R + 70, B.R - 30, d) * (lit ? 0.45 * clear : this.open(lm, upgrades) ? 0.7 : by ? 0.7 : 1));
-      if (B.kind === 'fog' && lm === 'broken') { this.bankLit = lit ? 0.25 + 0.75 * smoothstep(B.R * 0.4, B.R * 1.3, d) : 1; this.bankClear = lit && d < B.R * 1.4 ? 55 : 0; }
+      // it comes on slowly over a long way (owner: "the player feels like he is slowly getting surrounded"), nothing to see from afar
+      if (B.kind === 'fog') { const f = hk * smoothstep(B.R + 220, B.R * 0.6, d) * (lit ? 0.45 * clear : this.open(lm, upgrades) ? 0.7 : by ? 0.7 : 1); this.fog = Math.max(this.fog, f); if (lm === 'broken') { this.bankFog = f; this.bankClear = lit ? 14 : 6; } }
       if (d > B.R + 4 || freeze || by) continue;
       const k = `${lm}`;
       if (this.open(lm, upgrades)) {
@@ -168,8 +167,8 @@ export class Places {
       }
     }
     for (const k of Object.keys(this.toastT)) if (!k.endsWith('ok')) this.toastT[k] -= dt;
-    // the dome takes the scene's fog colour, so it is grey at dusk and dark at night; thinner from inside
-    { const col = this._bc || (this._bc = new THREE.Color()); col.copy(fogColor);   /* the haze's own colour: no lighter, so at night it is not a pale block */ this.bank.update(dt, ship, col, (this.bankLit ?? 1) * (1 - 0.5 * this.fog) * (rt.haven ? rt.haven.fogDensity : 1), this.bankClear || 0, rt.haven ? rt.haven.fogDensity : 1); }   // the street mist: the lantern does not thin it, only people coming back
+    // the mist round the ship takes the scene's fog colour, so it is grey at dusk and dark at night
+    { const col = this._bc || (this._bc = new THREE.Color()); col.copy(fogColor); this.bank.update(dt, ship, col, Math.min(1, (this.bankFog || 0) * 1.8), this.bankClear || 6); }
     return msg;
   }
 

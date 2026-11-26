@@ -1305,8 +1305,9 @@ function frame() {
     if ((L || tea) && !rt.lampOut && dk > 0.05) { const k = 1 + (0.15 * L + tea) * dk; stage.fogFar *= k; stage.fogNear *= k; } }
   if (farLightTick(dt, !!rt.lampOut, tod.night) && freeCaysNow() && tod.night > 0.5 && !state.story.lampLights && laterOK() && !eventQuiet() && !objectives.mate.busy) { state.story.lampLights = 1; objectives.mate.say(LIGHTS_LINE); }   // far lights come up with the lamp out (systems/farlights.js, P-FREE-3)
   if (rt.lampOut) { stage.fogFar *= LAMP_OUT_FAR; stage.fogNear *= 0.25; stage.fog.multiplyScalar(1 - 0.6 * tod.night); stage.light *= 1 - 0.35 * tod.night; }   // no lamp: the dark comes in close
-  if (fogK > 0) { stage.fogFar = Math.max(30, stage.fogFar * (1 - 0.85 * fogK)); stage.fogNear = Math.max(4, stage.fogNear * (1 - 0.9 * fogK)); stage.fog.lerp(C_FOGWALL, fogK * 0.7); }
-  if (rt.lostK > 0) { stage.fogFar = Math.max(10, stage.fogFar * (1 - 0.7 * rt.lostK)); stage.fogNear = Math.max(1, stage.fogNear * (1 - 0.9 * rt.lostK)); stage.fog.lerp(C_LOSTFOG, rt.lostK * 0.5); }   // lost: you can barely see the bow
+  if (fogK > 0) { stage.fogFar = Math.max(30, stage.fogFar * (1 - 0.85 * fogK)); stage.fogNear = Math.max(4, stage.fogNear * (1 - 0.9 * fogK)); stage.fog.lerp(_tc.copy(C_FOGWALL).multiplyScalar(Math.min(1, 0.2 + stage.light * 0.9)), fogK * 0.7); }   // the fog's grey follows the daylight: dark at night, never a pale wall
+  if (rt.lostK > 0) { stage.fogFar = Math.max(10, stage.fogFar * (1 - 0.7 * rt.lostK)); stage.fogNear = Math.max(1, stage.fogNear * (1 - 0.9 * rt.lostK)); stage.fog.lerp(_tc.copy(C_LOSTFOG).multiplyScalar(Math.min(1, 0.2 + stage.light * 0.9)), rt.lostK * 0.5); }   // lost: you can barely see the bow
+  if (fogK > 0.2) { const k = smoothstep(0.2, 1, fogK) * 0.85; stage.skyHorizon.lerp(stage.fog, k); stage.skyTop.lerp(stage.fog, k * 0.7); }   // deep in it, the sky goes too: nothing above the fog to see
   abyss.update(dt, { dread: DEMO ? 0 : rt.dread, live, camera, camYaw: rt.camYaw, ch: rt.camHeading + rt.camYaw });
   stage.wave *= abyss.waveMul;
   const waveT = abyss.waveTime(stepT);
