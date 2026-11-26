@@ -2736,3 +2736,10 @@ frame and wide map; moon phases and the Eye's shape (not in the summary list).
   self-contained page (about 3 MB, 16 captures from the running game embedded): foreword and pillars, the look in numbers, the palette
   by stage, the Merry Gull, Tama, the five waters, sky and weather, the fog and Haven Hesk, the slide (one sea at four dread levels),
   the interface, people, colophon. Horror kept implied (no premise spelled out). Checked at 1280 and 390 wide, no sideways scroll.
+- **The bow lantern matches the stern** (owner: "fix the front lantern as well"; `ship.js bowLamp`): the plain glowing cube is now a
+  smaller iron lantern with a peaked cap on a short post and arm at the stem. Preview `docs/proposals/ship/bowlamp.png`.
+- **A second artbook, for reading** (owner: "an in-depth look, not technical, a good read that sells the idea"):
+  `docs/artbook/hoist_beyond_the_fair_winds.html`, "Beyond the Fair Winds": nine chapters on paper (Cast Off, A Harbour Full of
+  People, What the Sea Gives Up, Weather You Can Read, The Five Waters, The Harbour in the Fog, Something Is Off, The Hut and the Die,
+  Why You Will Keep Sailing) with captures from the game and real lines from it; the dark chapters turn to night. Horror implied, no
+  premise or ending spelled out. The technical artbook's ship picture is retaken with both new lanterns.

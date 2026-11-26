@@ -40,6 +40,13 @@ function sternLamp(b) {
   b.box(0, 2.38, 3.12, 0.08, 0.2, 0.08, IRON, TILE.stone);                        // its curl
   const top = cage(b, 0, 2.2, 3.14, 0.36, 0.46); Object.assign(LAMP_AT, { x: 0, y: top - 0.12, z: 3.14 });
 }
+// the bow lantern (owner, 2026-11-26: "fix the front lantern as well"): the stern's iron lantern, smaller, on a short iron post at the
+// stem, leaning a little forward over the bowsprit's heel (it was a plain glowing cube)
+function bowLamp(b) {
+  b.box(0, 1.2, -3.05, 0.1, 0.38, 0.1, IRON, TILE.stone);                         // the post
+  b.box(0, 1.5, -3.12, 0.07, 0.07, 0.22, IRON, TILE.stone);                       // a short arm forward
+  cage(b, 0, 1.5, -3.22, 0.28, 0.34);
+}
 function buildHull(colors = {}) {
   const b = new Builder();
   b.doubleSided = true;
@@ -76,7 +83,7 @@ function buildHull(colors = {}) {
   b.box(0, 1.75, 1.9, 2.0, 0.16, 2.0, '#6b3a1e', TILE.planks);
   // lanterns
   sternLamp(b);
-  b.box(0.0, 1.55, -3.2, 0.4, 0.4, 0.4, '#ffffff', TILE.glow);
+  bowLamp(b);
   // mast, crow's nest, bowsprit, barrels
   b.cyl(0, 0.5, -0.3, 0.16, 0.1, 6.9, 5, '#ffffff', TILE.bark, false);
   b.cyl(0, 5.5, -0.3, 0.6, 0.5, 0.35, 6, '#ffffff', TILE.planks);
