@@ -2702,3 +2702,5 @@ frame and wide map; moon phases and the Eye's shape (not in the summary list).
 - **The stern lantern, three looks on trial** (owner; `ship.js sternLamp`, `?sternlamp=a|b|c`, without it the old post and cube):
   a an iron-framed lantern with a peaked cap on a curled bracket out over the transom; b a gallows post with an arm reaching aft and a
   small cage lantern on a chain; c two smaller quarter lanterns, one on each corner of the stern. Preview `docs/proposals/ship/sternlamp_trial.png`.
+- **Stern lantern: look a kept** (owner: "go with a"): the iron-framed lantern on its curled bracket over the transom; looks b and c,
+  the old post and cube and the `?sternlamp` flag are gone.
