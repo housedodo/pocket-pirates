@@ -248,11 +248,23 @@ export function lmDecor(d, rng, A, B, D, extra, h) {
       }
       h.chest(A, 1.5, -0.55, -1.2, 0.6, true);
       for (let i = 0; i < 8; i++) { const p = h.spot(d, rng, 0.62, 0.95, 0.4); if (p) h.palm(A, B, D, p[0], p[1], p[2], rng, 0.9 + rng() * 0.4); }
-      for (let i = 0; i < 90; i++) {   // the reef: knuckles of black coral just breaking the surface, in a broken ring
-        const th = (i / 90) * 6.28, R = 40 + Math.sin(i * 0.9) * 2.5 + rng() * 2.5, x = Math.cos(th) * R, z = Math.sin(th) * R;
-        if (i % 18 < 2) continue;   // the gaps a good rudder can thread
-        A.blob(x, -0.1, z, 0.9 + rng() * 0.8, 0.45 + rng() * 0.3, 0.9 + rng() * 0.7, i % 3 ? '#3a3236' : '#6a4a4a', TILE.stone, 0.35, i);
-        if (i % 2) A.blob(x + 0.8, 0.16, z, 1.2, 0.12, 0.7, '#e8f6f8', TILE.white, 0.2, i + 7);
+      // the reef (owner, 2026-11-26: "why are those forms not shaped natural"; it was 90 knuckles evenly round a circle, each with a flat
+      // white plate): a lobed outline, never a circle; coral in clumps of different sizes with irregular gaps between; the surf only as
+      // thin broken streaks along the outer side, low and not bright, so at night it does not stand out as pale slabs
+      const ph = [rng() * 6.28, rng() * 6.28, rng() * 6.28], ringR = (th) => 41 * (1 + 0.07 * Math.sin(2 * th + ph[0]) + 0.05 * Math.sin(3 * th + ph[1]) + 0.03 * Math.sin(5 * th + ph[2]));   // round the barrier's 44 (BARRIERS.lagoon)
+      const dense = (th) => 0.5 + 0.3 * Math.sin(3 * th + ph[1] * 2) + 0.2 * Math.sin(7 * th + ph[2]);   // where the coral crowds, and where it thins to a gap
+      for (let th = 0; th < 6.28;) {
+        const k = dense(th); th += 0.05 + (1 - k) * 0.16 + rng() * 0.05;
+        if (k < 0.22) continue;   // a gap a good rudder can thread
+        const R0 = ringR(th), n = 1 + Math.floor(rng() * 3 * k);   // a clump of one to three heads
+        for (let j = 0; j < n; j++) {
+          const R = R0 + (rng() - 0.5) * 5, t2 = th + (rng() - 0.5) * 0.05, x = Math.cos(t2) * R, z = Math.sin(t2) * R, sz = 0.5 + rng() * 1.1 * (0.5 + k);
+          A.blob(x, -0.15 - rng() * 0.25, z, sz, 0.3 + rng() * 0.35, sz * (0.7 + rng() * 0.5), rng() < 0.7 ? '#3a3236' : '#5a4446', TILE.stone, 0.4, Math.floor(rng() * 1e6));
+        }
+        if (k > 0.45 && rng() < 0.45) {   // a streak of broken water on the seaward side, drawn out along the reef
+          const R = R0 + 2.2 + rng() * 1.5, x = Math.cos(th) * R, z = Math.sin(th) * R;
+          A.push(x, 0.06, z, -th, 1, 1, 1, 0); A.blob(0, 0, 0, 0.35 + rng() * 0.3, 0.06, 1.6 + rng() * 2.2, '#b8d4d0', TILE.white, 0.35, Math.floor(rng() * 1e6)); A.pop();
+        }
       }
       break;
     }

@@ -2704,3 +2704,7 @@ frame and wide map; moon phases and the Eye's shape (not in the summary list).
   small cage lantern on a chain; c two smaller quarter lanterns, one on each corner of the stern. Preview `docs/proposals/ship/sternlamp_trial.png`.
 - **Stern lantern: look a kept** (owner: "go with a"): the iron-framed lantern on its curled bracket over the transom; looks b and c,
   the old post and cube and the `?sternlamp` flag are gone.
+- **Glass Lagoon's reef shaped like a reef** (owner: "why are those forms not shaped natural"; `landmarks.js`): it was 90 knuckles spaced
+  evenly round a near-perfect circle, each second one with a flat white plate (pale slabs at night). Now a lobed outline round the
+  barrier's 44, coral in clumps of one to three heads of different sizes, crowding and thinning to irregular gaps, and the surf only as
+  thin low streaks along the seaward side in a muted colour. Before/after `docs/proposals/world/lagoon_reef_before_after.png`.
