@@ -29,10 +29,11 @@ unexpectedly, into cosmic horror. Everything is procedural: no image or model fi
 - **Reefs are off** (`core/config.js REEFS_ON = false`): no coral heads, no Reef white water, and no Drowned belt or race. Sandbanks are
   on (`SANDBANKS_ON`).
 - **The Halved Isle's fog closes in** (`fogbank.js`, `places.js`): no shape in the world; the scene haze thickens over a long ramp from 220
-  outside the bank (R 170) and a fine mist lies round the ship. Its colour follows the daylight. Deep in it you see about 50
+  outside the bank (R 210) and a fine mist lies round the ship. Its colour follows the daylight. Deep in it you see about 50
   (`main.js BANK_FAR`) even with the lens lantern; the sky goes overcast and fogged, and islands and ships beyond the fog are not drawn.
 - **Haven Hesk** (`systems/foghaven.js`): the fog harbour, full game only; `?foghaven=abandoned|flicker|stirring|bustling|forsaken`.
-  It is rebuilt with food and hands (crew who stay); until it is back only Hesper is there (`havenOpen`: market and errands at
+  It lies across the bank from the Halved Isle (about 150 apart); Hesper's light is on its own rock, Hesk Light (`world.js
+  heskLight`, a tower like the one in the film The Lighthouse, her rowing boat). It is rebuilt with food and hands (crew who stay); until it is back only Hesper is there (`havenOpen`: market and errands at
   stirring, tavern, shipwright, passengers and local life at bustling).
 - **The Gull's lanterns** (`ship.js sternLamp`, `bowLamp`): iron-framed lanterns at both ends.
 - **Artbooks** (`docs/artbook/`): `hoist_artbook.html` (the look, technical) and `hoist_beyond_the_fair_winds.html` (a read that sells

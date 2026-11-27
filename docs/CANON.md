@@ -120,6 +120,7 @@ Nothing here is ever said to the player in these words.
 | 2026-11-26 | **No tides** (owner): the tide and its clock are gone. The sea draws back only on the nights round a new or a full moon (the Bell Below, the Tide Rocks, the Throwers' Wreck, the Sunken Street, the Drowned planks); everything else that waited on the tide is always open. |
 | 2026-11-27 | **The bright music carries the whole bright sea** (owner): the stage-1 band, day and night, plays through Home Sound, the Shoals and the Trade Belt, fading out at the Belt's edge (1150). |
 | 2026-11-27 | **Haven Hesk is rebuilt, not traded with** (owner): at first only Hesper is there: no goods, no passengers; you bring food, and crew who stay to rebuild. The market and errands come back with the people, then everything. Inside its bank there is no way out to see: no far lights, no outlines, no sky. |
+| 2026-11-27 | **Hesk Light** (owner): Hesper's lighthouse stands on a small rock of its own, like the one in the film The Lighthouse (a tall tapered stone tower, the keeper's house, a long low range, a shed), with the rowing boat she used to get there; once she is gone the boat is gone too. Haven Hesk lies across the bank from the Halved Isle (about 150 apart; the bank is 210 now). The bank is the one exception to lights carrying through the night fog (RULES 24d). |
 | earlier | The title is HOIST. The Lady never speaks. Dread follows where you are, never time. The demo has no dread. |
 
 ## 4. The seven questions (the whole mystery)

@@ -2771,3 +2771,16 @@ frame and wide map; moon phases and the Eye's shape (not in the summary list).
   Verified headless: the board at abandoned (Hesper, food, hands; signs only Board and Set sail), giving food and a hand (Gus stays),
   bustling with all signs; inside the bank no island past the fog drawn, day and night. Previews `docs/proposals/sky/fog_inside.png`,
   `docs/proposals/world/hesk_board_abandoned.png`.
+- **Hesk Light, and the places in the bank spread out** (owner, 2026-11-27: "distance the Halved Isle and Haven Hesk more"; "make the
+  lighthouse Hesper upkeeps look like the one in the film The Lighthouse, on a small island, with a rowing boat she used to get
+  there"; "this fog is an exception to the light in the dark rule"):
+  - Haven Hesk moved to cell -12,-3 (-1355, -300): about 150 from the Halved Isle (was 70), facing away from it. The bank is 210 now
+    (was 170): the isle, the islet north-east (-1180, -95), the harbour and the light south-west.
+  - Hesk Light (cell -13,-2, -1412, -232, about 90 from the harbour; `world.js heskLight`, lighthouse kind `film`): a low rock of grey
+    stone and dark grass; a tall tapered stone tower with slit windows, a black gallery and railing, the lantern room, a dark cupola
+    with a vent ball; a long low whitewashed range from its foot; the keeper's house with two dormers and a chimney; a shed by the
+    landing; her rowing boat pulled up on the stones; her chair by the tower door with her on it. When she is gone, the boat is gone
+    and the chair has a note under a lamp. The harbour no longer has a lighthouse of its own; the stuttering beam is on the rock.
+  - RULES 24d: lights carry through the night fog, except in the Halved Isle's bank.
+  Verified headless: the distances (isle to harbour 149, light to harbour 89), the rock by day, dusk and night with the bank lifted and
+  in the fog, and gone (no boat). Preview `docs/proposals/world/hesk_light.png`.

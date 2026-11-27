@@ -41,6 +41,10 @@ need to break one, stop and ask the owner. `docs/CANON.md` says what is true in 
 24a. **Each region keeps its own light and things on the water** (STYLE 4): crossings are slow and smooth, never a line or a
     sudden change; the deep's dread palette still wins in the deep; regional waves are a multiplier on the sea, never a fixed height.
 
+24d. **Lights carry through the night fog, except in the Halved Isle's bank** (owner, 2026-11-18 lights at night; exception 2026-11-27): any
+    lamp, window or lantern stays faintly visible through night fog and in the dark, but inside the bank round the Halved Isle nothing past
+    the fog is drawn, lit or not (`main.js BANK_FAR`): there is no way out to see.
+
 ## Sound
 24b. **Regions differ by their rules, never by words** (`src/regions.js` holds every number): a region's rule must be readable from
     what the player sees there (STYLE 4) and must not explain the story. The demo never gets the Drowned.

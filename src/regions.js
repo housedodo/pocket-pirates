@@ -161,7 +161,7 @@ export function inLane(d, x, z, shoreR) {
 export const RELIGHT_OIL = 30, RELIGHT_PAY = 30;
 /** is this lighthouse one of the Guild's dead lights tonight? (state.story.relit[id] = the night it was lit again) */
 export function lampDead(state, d, night) {
-  if (d.region !== 'lantern' || !d.lampAt || d.lm || d.fogHaven) return false;   // Hesper's light has its own way of going out (systems/foghaven.js)
+  if (d.region !== 'lantern' || !d.lampAt || d.lm || d.fogHaven || d.heskLight) return false;   // Hesper's light has its own way of going out (systems/foghaven.js)
   if (((d.seed * 2654435761) >>> 0) % 100 >= 50) return false;
   return !(state.story.relit && state.story.relit[d.id] === night);
 }

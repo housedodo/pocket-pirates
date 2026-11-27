@@ -48,7 +48,7 @@ export const lmHere = (lm) => typeof window === 'undefined' || window.__BUILD !=
 export const BARRIERS = {
   lagoon: { R: 44, up: 'rudder', lv: 2, kind: 'reef', no: 'The reef is too tight to thread. A broader rudder could do it.', yes: 'The broad rudder threads the reef.' },
   ribs:   { R: 50, up: 'hull', lv: 2, kind: 'breakers', no: 'The breakers would smash the planks. An iron-banded hull could take them.', yes: 'The iron bands take the breakers.' },
-  broken: { R: 170, up: 'lantern',   /* 170 (was 110; owner, 2026-11-26: "bigger, one more island"): the isle, Haven Hesk and the islet north-east */ lv: 2, kind: 'fog', no: 'The fog swallows everything. The ship wanders, and drifts back out the way it came. A lens lantern might cut it.', yes: 'The lens lantern cuts a road through the fog.' },
+  broken: { R: 210, up: 'lantern',   /* 210 (was 110; owner 2026-11-26 "bigger, one more island", 2026-11-27 "distance the isle and Haven Hesk more"): the isle, the islet north-east, Haven Hesk and Hesk Light south-west */ lv: 2, kind: 'fog', no: 'The fog swallows everything. The ship wanders, and drifts back out the way it came. A lens lantern might cut it.', yes: 'The lens lantern cuts a road through the fog.' },
 };
 
 /** the clue places as they stood before D3 (2026-11-18): only for rolling the world as it was (world.js) and old saves (core/state.js) */
@@ -61,7 +61,7 @@ export const LM_BEFORE = {
 // before = true: the cells as they were before D3 (the rolls that place the hut and the villages read these). Otherwise the moved
 // places stand where they are now, and where they were is open water too.
 /** the fog harbour beside the Halved Isle (systems/foghaven.js, world.js FORCED, places.js / fogbank.js its street mist) */
-export const HAVEN_AT = { id: '-12,-2', x: -1296, z: -190, r: 27 };
+export const HAVEN_AT = { id: '-12,-3', x: -1355, z: -300, r: 27 }, HESK_LIGHT = { id: '-13,-2', x: -1412, z: -232 };
 export function forcedCells(before = false) {
   const out = {};
   const was = LANDMARKS.map((l) => (LM_BEFORE[l.lm] ? { ...l, ...LM_BEFORE[l.lm] } : l));

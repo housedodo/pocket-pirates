@@ -12,7 +12,7 @@ import { hash2, mulberry32, fbm, clamp, angleDiff, smoothstep } from './util.js'
 import { dreadAtDistance } from './palette.js';
 import { makeName, makePuzzle } from './lore.js';
 import { FRUITS, fruitOf } from './fruit.js';
-import { arcIdOf, ARCS, havenKeeper } from './harbourlife.js';
+import { arcIdOf, ARCS } from './harbourlife.js';
 
 import { forcedCells, shapeLandmark, cutShore, lmHeight, lmColor, lmDecor, LM_DARK } from './landmarks.js';
 export const CELL = 110;
@@ -49,7 +49,10 @@ const FORCED = {
   // the fog harbour beside the Halved Isle (systems/foghaven.js; owner, 2026-11-26), inside its fog bank; full game only, the demo keeps open water
   // and one more island in the fog (owner, 2026-11-26: "the area should be bigger and cover one more island"), the bank's far side
   '-11,-1': typeof window !== 'undefined' && window.__BUILD === 'demo' ? null : { type: 'jungle', x: -1180, z: -95 },
-  '-12,-2': typeof window !== 'undefined' && window.__BUILD === 'demo' ? null : { type: 'harbour', x: -1296, z: -190, r: 27, name: 'Haven Hesk', dockTh: 2.75, fogHaven: true },
+  // (owner, 2026-11-27: "distance the Halved Isle and Haven Hesk more"): the harbour across the bank from the isle, about 150 apart, and
+  // Hesper's light on a rock of its own beyond it ("like the one in the film The Lighthouse, on a small island, with the rowing boat she used")
+  '-12,-3': typeof window !== 'undefined' && window.__BUILD === 'demo' ? null : { type: 'harbour', x: -1355, z: -300, r: 27, name: 'Haven Hesk', dockTh: 3.73, fogHaven: true },
+  '-13,-2': typeof window !== 'undefined' && window.__BUILD === 'demo' ? null : { type: 'rocky', x: -1412, z: -232, r: 10, name: 'Hesk Light', heskLight: true },
 };
 // the hand-made places (landmarks.js) and the open water round them; the starter cells above win
 // BEFORE: the same cells as they were before the clue places moved (D3, 2026-11-18; landmarks.js LM_BEFORE). The rolls that decide
@@ -172,6 +175,7 @@ export function describeCell(cx, cz, seed, F = FORCED) {
     if (!forced) { const sd = STYLE_DEF[desc.style]; desc.r *= sd.rMul; desc.lobes = desc.lobes.map((v, i) => (i < 3 ? v * sd.lobeMul : v)); }
   }
   if (forced && forced.lm) shapeLandmark(desc, forced.lm);
+  if (forced && forced.heskLight) { desc.heskLight = true; desc.name = forced.name; desc.H = 2.6; }   // Hesper's rock (systems/foghaven.js)
   if (forced && forced.fogHaven) { desc.fogHaven = true; desc.name = forced.name; desc.dockTh = forced.dockTh; desc.custom = 'silent'; desc.sleepy = true; }   // its own name, its pier facing out of the bank
   { // character, rolled on its own so the rest of the world stays put: a colour shift per island, a cliff on some jungle isles,
     // sea stacks off most rocky ones
@@ -181,7 +185,7 @@ export function describeCell(cx, cz, seed, F = FORCED) {
     if (!forced && desc.type === 'rocky' && vr() < 0.7) desc.stacks = 2 + Math.floor(vr() * 3);
     if (!forced) bandTint(desc);
   }
-  form(desc, cx, cz, seed);   // its outline: dune, spit, twin peaks, low canopy, mesa, sea arch (isleforms.js)
+  form(desc, cx, cz, seed); if (desc.heskLight) desc.form = null;   // its outline: dune, spit, twin peaks, low canopy, mesa, sea arch (isleforms.js)
   if (type === 'treasure') {
     desc.puzzle = makePuzzle(mulberry32(hash2(cx, cz, seed + 31)), name, dread);
     // some beaches face so that the arch's noon shadow falls across them: there the chest lies under its tip (digging.js)
@@ -254,6 +258,7 @@ function faceColor(d, hc, slope, noise) {
   if (d.lm) { const lc = lmColor(d, hc, slope, noise); if (lc) return lc; }
   if (d.type === 'volcano') return hc < 0.55 ? COL.ash1 : hc > d.H * 0.62 ? (noise > 0.5 ? COL.ember : COL.ash1) : (noise > 0.55 ? COL.ash2 : COL.ash1);
   if (d.type === 'mangrove') return hc < 0.4 ? COL.mud : noise > 0.55 ? COL.mire : COL.mud;
+  if (d.heskLight) return hc < 0.25 ? COL.rock1 : noise > 0.62 ? COL.rock2 : noise > 0.4 ? HESK_GRASS : COL.rock1;   // Hesper's rock: grey stone and a little dark, wind-flattened grass
   if (hc < 0.12) c = COL.wet;
   else if (hc < 0.55) c = COL.sand;
   else switch (d.type) {
@@ -806,7 +811,8 @@ function chest(b, x, y, z, ry, open) {
 
 // Only some islands get a lighthouse: the home harbour, ~1 in 3 other harbours, the odd lonely rock.
 export function hasLighthouse(d) {
-  if (d.id === '0,-1' || d.fogHaven) return true;   // Hesper's light (systems/foghaven.js)
+  if (d.id === '0,-1' || d.heskLight) return true;   // Hesper's light is on its own rock (systems/foghaven.js), not in the harbour
+  if (d.fogHaven) return false;
   const r = (hash2(d.seed, 17, 5) % 1000) / 1000;
   if (d.region === 'lantern') return d.type === 'harbour' ? r < 0.85 : d.type === 'rocky' || d.type === 'sandbar' ? r < 0.6 : false;   // the Guild keeps its lights everywhere (regions.js)
   return d.type === 'harbour' ? r < 0.33 : d.type === 'rocky' ? r < 0.22 : false;
@@ -821,6 +827,7 @@ export const lighthouseKind = (d) => d.id === '0,-1' ? 'classic' : LH_KINDS[hash
 // chimney; in the Lid they all lean towards Tama (the centre), arches stand in rows, and sockets glow magenta. Dark-mood props only (D), so
 // the bright game never sees them; their own rng, so no island moves. Budget: <= 200 triangles in S4, <= 420 in S5; <= 4 glow quads.
 // ---------------------------------------------------------------------------
+const HESK_GRASS = new THREE.Color('#5a6248');
 const BONE = '#8a7e78', SCAR = '#6a3a40', WETB = '#241014', DUCT = '#4a2f66';
 function abyssForms(d, D, extra) {
   if (d.blight || d.type === 'harbour' || d.lm || d.dread < 0.62) return;
@@ -860,10 +867,48 @@ function abyssForms(d, D, extra) {
   }
 }
 
+/** Hesper's rock (systems/foghaven.js; owner, 2026-11-27): a bare low island with the tower, the keeper's house with dormers and a
+ *  chimney, a long low whitewashed range joined to the tower's foot, a shed, and her rowing boat pulled up on the stones. Once she is gone
+ *  the boat is gone too, and her chair by the door is empty but for a note under a lamp. Greys and off-whites, as the film's. */
+function heskLight(A, D, extra, d, rng) {
+  const g = (x, z) => Math.max(0.2, terrainHeight(d, x, z)), tx = -1.2, tz = 0.4, ty = g(tx, tz) - 0.2;
+  lighthouse(A, extra, tx, ty, tz, 1, d, 'film'); d.lhPos = { x: tx, z: tz };
+  const WH = '#d9d5cb', ROOF = '#3a3a40', STONE = '#8a857c';
+  // the long low range from the tower's foot, and the keeper's house at its end
+  A.box(tx + 4.3, ty, tz, 5.6, 1.7, 2.2, WH, TILE.wall, TILE.planks, '#5a5650'); A.gable(tx + 4.3, ty + 1.7, tz, 5.8, 0.9, 2.4, ROOF, TILE.roof, WH);
+  const hx = tx + 8.4, hz = tz + 0.6, hy = g(hx, hz) - 0.15;
+  A.box(hx, hy, hz, 3.0, 2.5, 3.2, WH, TILE.wall, TILE.planks, '#5a5650'); A.gable(hx, hy + 2.5, hz, 3.2, 1.7, 3.4, ROOF, TILE.roof, WH);
+  for (const dz of [-0.8, 0.8]) { A.box(hx - 1.55, hy + 2.7, hz + dz, 0.6, 0.6, 0.6, WH, TILE.wall); A.box(hx - 1.55, hy + 3.3, hz + dz, 0.7, 0.18, 0.7, ROOF, TILE.roof); }   // the dormers
+  A.box(hx + 0.9, hy + 3.4, hz - 0.9, 0.4, 1.2, 0.4, STONE, TILE.stone);   // the chimney
+  // the shed down by the landing
+  const sx = tx + 2.5, sz = tz - 5.2, sy = g(sx, sz) - 0.1; A.box(sx, sy, sz, 2.0, 1.4, 1.6, '#6e655a', TILE.planks); A.gable(sx, sy + 1.4, sz, 2.2, 0.7, 1.8, ROOF, TILE.roof, '#6e655a');
+  // stones along the shore
+  for (let i = 0; i < 9; i++) { const th = rng() * 6.283, rr = d.r * (0.7 + rng() * 0.25), x = Math.cos(th) * rr, z = Math.sin(th) * rr; A.blob(x, g(x, z) - 0.3, z, 0.6 + rng() * 0.7, 0.35 + rng() * 0.4, 0.6 + rng() * 0.6, rng() < 0.5 ? '#5e5a54' : '#4a4744', TILE.stone, 0.35, i); }
+  // her boat, pulled up on the stones below the shed, and her chair by the tower door (state props: foghaven.js sets isl.havenGone)
+  const bx = sx + 0.5, bz = sz - 2.6, by = g(bx, bz) - 0.05, Bt = new Builder(); Bt.push(bx, by, bz, 0.4, 1, 1, 1, 0.08); boatAt(Bt, 0, 0, 0, false); Bt.pop();
+  const Ch = new Builder(), cx = tx + 2.2, cz = tz - 1.0, cy = g(cx, cz);
+  Ch.box(cx, cy, cz, 0.8, 0.5, 0.8, '#6b4a2e', TILE.planks); Ch.box(cx - 0.36, cy + 0.5, cz, 0.1, 0.9, 0.8, '#6b4a2e', TILE.planks);
+  const Kp = new Builder(); villager(Kp, cx, cy + 0.25, cz, Math.PI / 2 + 0.6, mulberry32(d.seed + 5), 'oldsalt');   // Hesper, on her chair, facing the water
+  const Nt = new Builder(); Nt.box(cx + 0.1, cy + 0.5, cz + 0.1, 0.32, 0.02, 0.24, '#f0ead8', TILE.white); Nt.box(cx + 0.1, cy + 0.52, cz + 0.1, 0.16, 0.28, 0.16, '#2a2a30', TILE.stone);
+  (extra.states = extra.states || []).push({ b: Bt, mat: mats.props, when: (i) => !i.havenGone }, { b: Ch, mat: mats.props, when: () => true }, { b: Kp, mat: mats.props, when: (i) => !i.havenGone }, { b: Nt, mat: mats.props, when: (i) => !!i.havenGone });
+}
 export function lighthouse(A, extra, lx, ly, lz, tall = 1, d = null, forceKind = null) {
   const kind = forceKind || (d ? lighthouseKind(d) : 'classic');
   const lamp = (h) => { extra.lamp = { x: lx, y: ly + h, z: lz }; extra.beam = { x: lx, y: ly + h + 0.65, z: lz }; };
   switch (kind) {
+    case 'film': {   // Hesper's light (owner, 2026-11-27: like the one in the film The Lighthouse): a tall tapered tower of grey stone, slit
+      // windows, a black gallery and railing, the lantern room, a dark cupola with a vent ball; a door at the foot
+      A.cyl(lx, ly, lz, 1.7, 1.05, 11 * tall, 10, '#b4aea4', TILE.stone, false);
+      A.cyl(lx, ly + 11 * tall, lz, 1.55, 1.55, 0.22, 10, '#26262a', TILE.planks);                 // the gallery
+      A.cyl(lx, ly + 11.22 * tall, lz, 1.5, 1.5, 0.5, 12, '#26262a', TILE.rope, false);             // its railing
+      A.cyl(lx, ly + 12.7 * tall, lz, 1.12, 0.22, 0.85, 8, '#2a2a2e', TILE.stone, true);           // the cupola
+      A.box(lx, ly + 13.5 * tall, lz, 0.32, 0.32, 0.32, '#2a2a2e', TILE.stone);                    // the vent ball
+      A.box(lx, ly + 13.82 * tall, lz, 0.06, 0.45, 0.06, '#2a2a2e', TILE.stone);                   // the finial
+      for (const [h, a] of [[2.6, 0.4], [5.6, 2.2], [8.4, 4.1]]) { const r = 1.7 - (h / 11) * 0.65 + 0.02; A.box(lx + Math.cos(a) * r, ly + h * tall, lz + Math.sin(a) * r, 0.22, 0.6, 0.22, '#1e1e22', TILE.stone); }
+      A.box(lx + 1.66, ly, lz, 0.2, 1.7, 0.75, '#2a2420', TILE.planks);                            // the door
+      lamp(11.32 * tall);
+      break;
+    }
     case 'slim': {   // tall, slim and white, one black band under the gallery, a small green door
       A.cyl(lx, ly, lz, 1.5, 1.0, 9 * tall, 8, '#f6f2ea', TILE.white, false);
       A.cyl(lx, ly + 6.2 * tall, lz, 1.17, 1.07, 1.5 * tall, 8, '#2a2a30', TILE.white, false);
@@ -1420,11 +1465,6 @@ function weekAndCustoms(d, rng, cr, g) {
     }
   }
   // a resident's story has ended: the harbour keeps a mark of it by the pier for good (harbourlife.js)
-  if (d.fogHaven) { const k = L('resident'), [x, z] = dockAt(R * 0.12, 4.2); k.push(x, yy, z, -dockTh);   // Hesper's chair on the steps; once she is gone, empty, a note under a lamp
-    k.box(0, 0, 0, 0.8, 0.5, 0.8, '#6b4a2e', TILE.planks); k.box(-0.36, 0.5, 0, 0.1, 0.9, 0.8, '#6b4a2e', TILE.planks);
-    if (havenKeeper()) villager(k, 0, 0.25, 0, Math.PI / 2, mulberry32(d.seed + 5), 'oldsalt');
-    else { k.box(0.1, 0.5, 0.1, 0.32, 0.02, 0.24, '#f0ead8', TILE.white); k.box(0.1, 0.52, 0.1, 0.16, 0.28, 0.16, '#2a2a30', TILE.stone); }
-    k.pop(); }
   if (arcIdOf(d)) { const prop = ARCS[arcIdOf(d)].prop, k = L('resident'), [x, z] = dockAt(R * 0.12, 4.2), [x2, z2] = dockAt(R * 0.12, -4.2), ry0 = -dockTh;
     k.push(x, yy, z, ry0);
     if (prop === 'bunting') { k.box(0, 0, -2.5, 0.2, 4, 0.2, '#6b4a2e', TILE.bark); k.box(0, 0, 2.5, 0.2, 4, 0.2, '#6b4a2e', TILE.bark); flagLine(k, [0, 3.9, -2.5], [0, 3.9, 2.5], 1); k.box(0, 2.2, 0, 0.12, 0.9, 2.2, '#f4f0e6', TILE.planks); }
@@ -1549,6 +1589,7 @@ function decorate(d, rng, A, B, D, extra) {
       cult(5, 0.3);
       break;
     case 'rocky': {
+      if (d.heskLight) { heskLight(A, D, extra, d, rng); break; }   // Hesper's rock: the tower, the keeper's house, her boat
       const n = d.form === 'mesa' ? 0 : d.form === 'arch' ? 1 + Math.floor(rng() * 2) : 3 + Math.floor(rng() * 3);   // a mesa is its own feature; the arch takes the place of most spires
       for (let i = 0; i < n; i++) {
         const p = spot(d, rng, 0.0, 0.7, 1.5);

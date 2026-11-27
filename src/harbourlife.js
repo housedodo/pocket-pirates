@@ -9,9 +9,7 @@
 //    Never explained; you only see the whole by visiting them all.
 // main.js draws the rows (board and tavern) and calls these; state.life holds everything.
 import { hash2 } from './util.js';
-import { G, rt } from './core/runtime.js';
-/** is Hesper on her steps (systems/foghaven.js sets rt.haven each frame; world.js builds her chair from it) */
-export const havenKeeper = () => !(rt.haven && !rt.haven.keeperPresent);
+import { G } from './core/runtime.js';
 import { nearby, sellable } from './jobs.js';
 
 export const lifeOf = (state) => (state.life = state.life || { arcs: {}, ate: {}, played: {}, frags: [], fragAt: {}, news: [], told: {}, keep: [], meal: null });

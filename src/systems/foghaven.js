@@ -11,8 +11,8 @@ import { pxi } from '../pixelui.js';
 import { clamp, smoothstep } from '../util.js';
 
 const DEMO = () => typeof window !== 'undefined' && window.__BUILD === 'demo';
-export const HAVEN_ID = '-12,-2';                 // its cell (world.js FORCED); the Halved Isle is next door at -11,-2
-export const HAVEN = { x: -1296, z: -190, r: 27, name: 'Haven Hesk' };   // inside the bank (BARRIERS.broken R 170, centre -1231,-217)
+export const HAVEN_ID = '-12,-3', LIGHT_ID = '-13,-2';   // the harbour, and Hesper's rock with the light (world.js FORCED)                 // its cell (world.js FORCED); the Halved Isle is next door at -11,-2
+export const HAVEN = { x: -1355, z: -300, r: 27, name: 'Haven Hesk' };   // inside the bank (BARRIERS.broken R 210, centre -1231,-217)
 
 // ---- tunables
 export const FULL = 24;           // restoration points for a harbour fully back (her list gives 2 a time; a delivery there 1.5, a sale 0.5)
@@ -88,8 +88,10 @@ export function havenTick(dt) {
   if (!urlDone) { urlDone = true; urlFlag(); }
   rt.haven = { ...haven(), lifted: fogLifted() };   // places.js (the bank), world.js (her chair) read this
   acc += dt; if (acc >= 1) { acc = 0; const f = S(), h = haven(); if (f.met && !f.gone && h.neglect >= 1) { f.gone = true; f.goneAt = now(); } }
-  const isl = G.world.islands && [...G.world.islands.values()].find((i) => i.desc.id === HAVEN_ID); if (!isl || !isl.beam) return;
+  const isl = G.world.islands && [...G.world.islands.values()].find((i) => i.desc.id === LIGHT_ID); if (!isl) return;
   const h = haven(), t = rt.tNow || 0;
+  isl.havenGone = !h.keeperPresent;   // world.js heskLight: her boat and her on the chair, or the note
+  if (!isl.beam) return;
   if (!isl.lit) return;
   if (h.keeperPresent) {   // weak: it catches and drops; strong: a steady, long beam
     const k = h.lighthouseIntensity, flick = Math.sin(t * 7.1) * 0.5 + Math.sin(t * 2.3 + 1) * 0.5 > 1.1 - 1.6 * k;
