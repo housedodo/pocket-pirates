@@ -3,6 +3,7 @@ HOIST: A GUIDE TO THE WHOLE GAME
 For the owner. Written 2026-11-18, after the lore, systems, Edge and puzzle work.
 This guide speaks plainly about what the game never says. Nothing in it is player text.
 Where a number is given it is the value in the code today; numbers marked (tune) still need your hands on the game.
+Updated 2026-11-27: no tides (low water only on the nights round a new or full moon), reefs and the Drowned belt off.
 
 CONTENTS
   1. The game in a minute
@@ -131,13 +132,13 @@ Crown Traders (north)  Deadlines and a shared record of arrivals (ticks and blac
                    New: pennants on the destination's mast count down your hours.
 Free Cays (east)   Raiders only by day; the night market pays 1.4x; dusk fish. The Two Players keep the Cays'
                    nights quiet. New: the harbours sleep by day (07:00 to 17:00).
-Reef Brotherhood (south-west)  Wrecks pay 1.5x; bounties for sunk raiders; coral heads are rock;
-                   shoals move at dawn; storms bring wrecks up. New: the coral shows differently with the tide.
+Reef Brotherhood (south-west)  Wrecks pay 1.5x; bounties for sunk raiders; storms bring wrecks up.
+                   The coral heads are off for now (reefs will come back as a fixed design).
 Lantern Guild (west)  Fish dear; the Guild buys lamp oil; half the lighthouses are dark; relight one with 30 oil
                    for pay and the local chart. New: every light flashes its own rhythm; a keeper trades oil for fish.
-The Drowned (far out, full game only)  A shoal belt open only at low water (at high water it pushes you back;
-                   it no longer snaps the ship). Harbours take no coin; they fill the lamp, sailcloth and hull once
-                   a day and keep one thing from the hold. New: they only come down at low water.
+The Drowned (far out, full game only)  The shoal belt is off for now (it was a reef): sail in and out at any hour.
+                   Harbours take no coin; they fill the lamp, sailcloth and hull once a day and keep one thing from
+                   the hold, and only come down on a low-water night (round a new or a full moon).
 
 
 6. THE PUZZLES, REGION BY REGION
@@ -188,16 +189,13 @@ FREE CAYS
     for them, light up at the pier. Mara says so the first time.
 
 REEF
-  Teeth under the tide
-    A Reef isle with black coral in white water across its way in. At high water the white is gone: only a
-    pale-green slick, then just a faint ring marks each head. They still bite the hull. Ghost in slowly (under speed
-    1.2) and they do no harm.
-  Before the tide takes it
-    A storm in Reef water brings a wreck up near you. If you leave, the next low water takes it. Stay within about 60
-    while the tide drops, then salvage at the bottom of the tide: the Reef's x1.5 and low water's x1.3 together.
+  Teeth under the tide (OFF with the reefs, 2026-11-26)
+  Before it goes
+    A storm in Reef water brings a wreck up near you. It stays until the next day, and goes once you are away
+    (never while you lie within about 60). Salvage it for the Reef's x1.5.
   The stake with no wreck (full game, after the first throw, once)
     In open Reef water you pass a lone stake with a white rag. There is nothing there; E does nothing. When the next
-    blow comes in Reef water, sail back: a wreck has come up right beside it. Salvage it before low water takes it.
+    blow comes in Reef water, sail back: a wreck has come up right beside it. Salvage it before the next day takes it.
     The stake stays. Nobody says who planted it.
 
 LANTERN
@@ -215,9 +213,10 @@ LANTERN
     with a jar: 20 oil. With no fish it comes down empty (Mara: once). Once a day per light.
 
 DROWNED (full game only)
-  Low-water hours
-    Dock at a Drowned harbour at high water: the pier is awash under a grey film, and nobody comes down. Watch the
-    tide mark; when it falls below half, they fill the lamp, the sailcloth and the hull, and keep one thing.
+  Low-water nights
+    Dock at a Drowned harbour on any ordinary day: the pier is awash under a grey film, and nobody comes down. Come
+    back on a night round a new or a full moon, when the sea draws back: they fill the lamp, the sailcloth and the hull,
+    and keep one thing.
   A fish for the pier
     The Drowned keep the first thing to hand: a fish, then fruit, then your newest treasure (the market row says
     which before you take it). Carry a cheap fish when you dock and your treasure stays aboard.
@@ -333,7 +332,7 @@ Built (all of SYSTEMS_FEEL, G-01 to G-33):
   - Harbours: selling keeps errand goods; docking stops the ship; a way off the dig beach.
   - Controller: every screen by pad; analogue steering; prompts follow your device; optional rumble.
   - Remappable keys; zoom without a mouse; the camera looks ahead at speed and lifts when a hill hides the ship.
-  - Raiders telegraph their shots and show damage; the Drowned belt pushes instead of snapping.
+  - Raiders telegraph their shots and show damage.
   - Crown deadlines forgive 15 s; Lantern 3 does what its card says.
   - The fog wall holds until the first throw; the Table's label shows once you can land there.
   - The wind-shift and region banners are gone.

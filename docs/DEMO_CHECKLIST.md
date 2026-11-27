@@ -8,7 +8,7 @@ Build it with `python3 scripts/single.py`, ship `pocket-pirates-demo.html` (with
 - [ ] Sail goal: Mara explains steering and wind ring, nothing arrives too fast
 - [ ] Make landfall: "Nicely done" line comes with the NEW QUEST card
 - [ ] Perrin's letter at Tama: "Take it" and the Board sign are marked on the first visit, compass dot points to Tama, Mara asks, log tab marked, riddle shown
-- [ ] Dig: probing the shore on the right shore (damp = close, stones, the tide), a wrong shore is a short dig, a failed probe can be retried
+- [ ] Dig: probing the shore on the right shore (damp = close, stones, the wet sand sliding back), a wrong shore is a short dig, a failed probe can be retried
 - [ ] Spend your loot: Shipwright sign opens and glows, buy an upgrade (sails, rudder, hull, cannons all show prices); the Shipyard (paint, figureheads) opens later, with passengers
 - [ ] Dead calm: oars dip into the water, wind returns afterwards
 - [ ] Beat to windward (tacking), delivery job, passenger (one is always available), charting counter (x/y)
@@ -38,7 +38,7 @@ Build it with `python3 scripts/single.py`, ship `pocket-pirates-demo.html` (with
 - [ ] The Friday paper (Market, Friday): always the cosy one in the demo (no stains, no "for those still awake"), even near the fog wall
 - [ ] Torn sails: full sail in a gale warns, then tears (66% speed, visible holes); patch kit at sea (stop, E), or dock for the sailmaker; kits at the Market
 - [ ] Counter melody fades in now and then over the stage-1 band (rare), never at night or in a fight
-- [ ] Beaches: shingle (stone dots, three cracks), dunes (holes refill), mud (no tide, squares sink) on different treasure isles
+- [ ] Beaches: shingle (stone dots, three cracks), dunes (holes refill), mud (squares sink) on different treasure isles
 
 ## 2. Softlocks and edge cases
 - [ ] Accept a delivery before the passenger goal: never stuck
@@ -116,7 +116,7 @@ Build it with `python3 scripts/single.py`, ship `pocket-pirates-demo.html` (with
 - [ ] Storms: readable sea and horizon, storm wall rising upwind before and during a storm, sail strain only in real storms
 - [ ] Shores: breaking foam lines, seabed and fish shadows in the shallows, rain rings; sun/moon glints twinkle in place (no racing)
 - [ ] Fog wall and fog bank: lost in fog (white-out, no helm), the ship drifts back out; no current leads into fog
-- [ ] World hints: the Kestrel (posts line up on the Tooth and the Bell; cairn drawing, tales), a low-tide wreck, smoke on some days, the dusk watcher at Tama, birds at dusk/dawn
+- [ ] World hints: the Kestrel (posts line up on the Tooth and the Bell; cairn drawing, tales), a wreck on a lonely isle, smoke on some days, the dusk watcher at Tama, birds at dusk/dawn
 - [ ] Dig beach: the arch's shadow follows the sun; on a noon-riddle isle the chest is under the noon tip
 - [ ] Shops: shipwright cards (now/next, opens tags, short-by, buy flash), market gauge and kit pips, scroll
 - [ ] Passengers and bottles: new lines appear; nothing explains the horror

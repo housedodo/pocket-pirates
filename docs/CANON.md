@@ -180,4 +180,5 @@ halves a bad weight; a natural 1 or 20 stands. A captain who saw nothing still h
 | The sound | `docs/AUDIO.md`, `docs/SOUNDTRACK_BRIEF.md` |
 | What was built, in order | `docs/PROGRESS.md` |
 | What comes next | `docs/ROADMAP.md` |
+| The game for readers (artbooks) | `docs/artbook/hoist_artbook.html` (the look), `docs/artbook/hoist_beyond_the_fair_winds.html` (the read) |
 | What is left to write (drafts and empty slots) | `docs/WRITER_TODO.txt` |

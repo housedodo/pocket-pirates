@@ -5,7 +5,7 @@ The demo (Tama, Velto, the first hut throw, no dread) is done and in playtest. T
 ## Where we are (2026-11-14)
 | Area | State |
 |---|---|
-| Sailing, wind, tides, weather, day/night, the anchor | Built, polished |
+| Sailing, wind, weather, day/night, moon and low-water nights, the anchor (no tides since 2026-11-26) | Built, polished |
 | Tutorial, quiet start, intro cinematic, Mara | Built; interface fixes after a UI critique are in; needs a fresh playtest |
 | Harbours, jobs, passengers, crew, shipyard, fishing, dice, encounters | Built |
 | The captain's log (Chart, Orders, Ship's book), the slip, the portolan chart | Built 2026-11-11 |
@@ -16,7 +16,7 @@ The demo (Tama, Velto, the first hut throw, no dread) is done and in playtest. T
 | Mara's memory of her village | Built 2026-11-11 (four pieces) |
 | After the hut: Perrin's five letters, one per region; the Table open to every captain who has thrown; endings with an epilogue, credits and return to title | Built 2026-11-13; letters, epilogues and credits are drafts (`docs/WRITER_TODO.txt`) |
 | Regions you can tell apart: each region's light and things on the water, slow crossings | Built 2026-11-13 (`systems/regionlook.js`, `regiondecor.js`) |
-| Regions that play differently: Crown deadlines and record, Free Cays nights, Reef salvage and coral, Lantern oil and dead lights, Drowned tide belt and coinless harbours; a harbour in every region's Shoals | Built 2026-11-13 (`regions.js`, DESIGN.md); numbers untested in real play |
+| Regions that play differently: Crown deadlines and record, Free Cays nights, Reef salvage (coral off with the reefs), Lantern oil and dead lights, Drowned coinless harbours on low-water nights (belt off); a harbour in every region's Shoals | Built 2026-11-13 (`regions.js`, DESIGN.md); numbers untested in real play |
 | The Catch book: a pixel portrait of every fish and a card per species | Built 2026-11-13 (`fishart.js`) |
 | Harbour boats on a side jetty (no pinning at the main pier) | Built 2026-11-14 |
 | Audio | Stage-1 band, tavern, hut and night stems in; later stages and many effects are stand-ins or silent on purpose |

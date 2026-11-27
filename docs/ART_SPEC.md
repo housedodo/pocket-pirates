@@ -1,6 +1,6 @@
 # Environmental art and visual specification: the islands
 
-Status: specification, **partly built** (section 11). Area: design. Builds on `docs/STYLE.md` (the look), `docs/WORLD_REDESIGN.md` (strata, gates, clue ledger, tide/night rules: **nothing here may change them**). Authors: an aesthetics pass and an independent readability/rules audit, reconciled in section 8.
+Status: specification, **partly built** (section 11). Area: design. Builds on `docs/STYLE.md` (the look), `docs/WORLD_REDESIGN.md` (strata, gates, clue ledger, low-water/night rules: **nothing here may change them**; no tides since 2026-11-26: "low tide" below means a low-water night, round a new or full moon, and "high tide" means any other time). Authors: an aesthetics pass and an independent readability/rules audit, reconciled in section 8.
 
 Medium (fixed): everything procedural, the same chunky kit (Builder primitives, 4x4 atlas, vertex colours with a dark set `colorB`, glow texels, Bayer dither, vertex snap). "Biomechanical, Beksinski, Giger" is translated into that kit: silhouette, repetition, bone/rib/pipe forms, erosion, wet black lower thirds. It is never a different art style.
 
@@ -45,7 +45,7 @@ Hard facts that shape all of it: islands swap to the dark builder **D** only abo
 
 | # | Criterion | Pass |
 |---|---|---|
-| A1 | Gate before block: lagoon reef, Ribs breakers, Halved fog dome visible from 1.5x their barrier radius, day and night | blocker >=0.15 L and >=4 px wide in all shots |
+| A1 | Gate before block: lagoon reef and Ribs breakers visible from 1.5x their barrier radius, day and night (the Halved Isle's fog is the exception since 2026-11-26: it is not seen from afar, it closes in) | blocker >=0.15 L and >=4 px wide in all shots |
 | A2 | Open vs shut gate differs without text | pixel diff of the ring region >=8% |
 | A3 | Tide/night-only place: condition off vs on | >=3 px blob difference or >=0.15 mean L, also in greyscale |
 | A4 | Contrast at 60% of the stratum's fog distance | place vs fog >=0.08 L (day S0-S2), >=0.04 (S3-S4), >=0.02 (S5/night) |
@@ -115,7 +115,7 @@ Columns: far silhouette (the top-line a player sees first) / near detail / varia
 | **keeper** Wick's Rock (S0) | **red/white** lighthouse | cottage, boat, washing | beam; beam magenta at dread (exists) | the beam | one more cloth on the line than houses have people | none (home anchor) |
 | **ribs** (S1, reef) | masts in a ring of white surf; mast extended for distance | rib rows, figurehead | sand/ribs; surf streaks; ribs to bone `#d8d0c0` | none (surf is the light) | surf streaks all the same length (even) | surf thins when Hull>=2 (open gate) |
 | **lagoon** Glass Lagoon (S1, free) | flat reef ring, palms 5 | coral, chest, black knuckles | pink/teal; dark ring + faint cyan; coral bleached `#a89aa8` | chest gold texel | coral in a fixed 4-colour cycle | gaps widen when Rudder>=2 |
-| **broken** Halved Isle (S3, lantern) | white fog dome round a cut cliff (cut faces Tama) | banded cliff, half house, table | ochre bands; dome takes fog colour plus a faint pale edge 2 px above the horizon; bands to `#8a7e78`/`#6a3a40` | table lamp (gold) | slabs of the missing half tilt towards the house table (3 spines, D builder) | dome opacity lower at Lantern 2 (exists) |
+| **broken** Halved Isle (S3, lantern) | a cut cliff (cut faces Tama) inside a fog bank that closes in as you sail in (no dome since 2026-11-26) | banded cliff, half house, table | ochre bands; dome takes fog colour plus a faint pale edge 2 px above the horizon; bands to `#8a7e78`/`#6a3a40` | table lamp (gold) | slabs of the missing half tilt towards the house table (3 spines, D builder) | dome opacity lower at Lantern 2 (exists) |
 | **customs** Customs Pier (S1, crown) | long grey pier, hut roof white-grey, flag pole 5 | flag, ledger desk, two cups | grey boards; hut window plus one steady lamp at the pier end; flag `#4a6ac0` to `#3a3a48` | hut window / pier-end lamp | flag points into the wind from the wrong side | second cup on the desk becomes sand-coloured |
 | **teo** Teo's Sandbar (S1, free) | thin line of firelight; fire built 1.6 high from 3 stacked blobs | person, fire | sandbar; **fire only on calm night**; person to grey | the fire (flicker, orange) | no smoke; sand round the fire dry while the beach is wet | the 12-15 unit gap to Ilse's matching light becomes visible from the lane |
 | **ilse** Ilse's Rock (S2, free) | rock with a lamp pole 3.5 tall | stool, person, fire | as teo, **mirrored** distance from her rock | the matching fire/lamp | same distance to her rock as Teo's to his bar | as teo |
@@ -156,8 +156,8 @@ Budgets (the **stricter** of the two source figures wins):
 ## 8. Design rule guard: the rules and how conflicts were resolved
 
 ### 8.1 Hard rules (testable)
-- **R1 Gate before block:** a gated place shows its blocker from >=1.5x its barrier radius, in the kit the gate uses (reef knuckles, white surf, fog dome). Art adds no blocker that does not block and hides none.
-- **R2 Open reads differently from shut,** not by colour alone (wider gaps, thinner surf, lower dome opacity).
+- **R1 Gate before block:** a gated place shows its blocker from >=1.5x its barrier radius, in the kit the gate uses (reef knuckles, white surf); the Halved Isle's fog is the owner's exception (2026-11-26): it is felt, not seen from afar. Art adds no blocker that does not block and hides none.
+- **R2 Open reads differently from shut,** not by colour alone (wider gaps, thinner surf; the fog thins as Haven Hesk comes back).
 - **R3 Strata walls are fog, never geometry.** No wall, buoy line, sign or popup; fog visible >=160 units before the lost state.
 - **R4 Tide/night-only places change when the condition is off** (geometry or light, >=3 px or >=0.15 L), and the `no:` lines in `places.js` stay true to what is seen.
 - **R5 D1 reads as shallow roofs** (gables, not slabs; darker than the sea, never magenta, never obviously wrong from far).

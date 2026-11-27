@@ -86,7 +86,7 @@ line** (it caused three bugs, fixed 2026-11-14 in task R1).
 |---|---|---|
 | Orchestrator | `src/main.js` (118 KB) | Boot, the `G` registry, `frame()`, hut and Table glue, `window.__game` |
 | Screens | `src/ui/*.js` (hud, harbour, encounters, pause, title, camera, shiptrade, shipyard, dom) | DOM, input, camera |
-| Systems | `src/systems/*.js` (interact, storybeats, lullaby, lostsailors, edge, regionlook, reef, drowned, calendar, storyflags) | Rules and timers with a tick |
+| Systems | `src/systems/*.js` (interact, storybeats, lullaby, lostsailors, edge, regionlook, reef, drowned, calendar, foghaven, storyflags, ...) | Rules and timers with a tick |
 | Core | `src/core/config.js`, `state.js`, `runtime.js`, `engine.js` | URL flags and storage; the saved state; `rt` and `G`; renderer, post pass, scene, camera, ocean, sky |
 | Features | everything else in `src/` | Given what they need by constructor or callback |
 
@@ -176,7 +176,7 @@ need the numbers.
 
 ### Materials and shaders
 - Everything in the world uses `psxMaterial` (`src/psx.js`) through the shared `mats.*` (terrain, props, sail, shallow, foam, beam, wake, glow...). It gives vertex snap, the dread blend from `color` to `colorB`, grime, and glow texels that ignore the light.
-- Shared uniforms `U`: `uSnap, uDread, uTime, uLight, uSunDir, uSunColor, uDeep, uShallow, uWave, uRough, uIsl[12], uMurk, uOcean, uWindDir, uRain, uGust[4]`. They are written in one place in `frame()` (step 8). **A new uniform is added to `U`, written there, and listed here.**
+- Shared uniforms `U`: `uSnap, uDread, uTide, uTime, uLight, uSunDir, uSunColor, uSkyHor, uDeep, uShallow, uWave, uRough, uIsl[NISL=20], uMurk, uOcean, uWindDir, uHaze, uRain, uFarLight, uGust[4]` (psx.js), plus `uSea, uSeaLead, uSeaOn` (seawater.js). `uTide` is the water level from `calendar.js waterAt()` (no tides: -1 on a low-water night, 0.5 otherwise). They are written in one place in `frame()` (step 8). **A new uniform is added to `U`, written there, and listed here.**
 - Water time is stepped to 12 fps on purpose. `waveH()` in the ocean vertex shader and `waveHeight()` on the CPU (`src/ocean.js`) are the same function: change both or hulls leave the water.
 - A new mesh that uses a plain `MeshBasicMaterial` will not snap, will not darken at night and will glow through fog. Use `psxMaterial`. If its colour already follows the hour (a fog colour, `stage.cloud`), cancel the light with `fragmentColor: { head: '', body: 'diffuseColor.rgb /= max(uLight, 0.05);' }` (key `'Lc'`). An additive mesh fades with the fog on the CPU (`windfx.js`). (G2, 2026-11-14; the sky's stars, sun and moon keep plain materials on purpose: they are lights.)
 - Lamps and anything meant to shine use `mats.glow`. Light classes stay distinct: steady yellow (friendly), flickering orange, steady blue, magenta (horror). At most 3 glowing sources on screen in S0 to S2, 2 in S3 and beyond.
@@ -242,7 +242,7 @@ The right-hand column names the roadmap task; every L task is **a proposal until
 | Someone writes you down before you arrive | Customs Pier, the Fort, the Keepers' Ledger (clues); once the Customs ledger is seen (`arrivals`), the Crown's record shows the next line already written, faint (G3, 2026-11-15) | Medium | Keep; see how it reads before more |
 | The Drowned keep what they take | Coinless harbours take one thing from the hold, and that very thing comes back once, out of the deep, as a catch or loot (L8, 2026-11-15) | Strong | Keep |
 | The tune is the way home | `hum` halves the helm loss in fog; lost in fog, the night stems pan toward the way out and the pennant points there (L9, 2026-11-14) | Strong | Keep |
-| The world is a dream, not the first | Deep sectors renamed ", again"; the loop seam; reef shoals re-laid at dawn | Weak to medium | Leave. An idea on file: deep decor re-seeds after each trip home while the chart keeps the old drawing. Owner first. |
+| The world is a dream, not the first | Deep sectors renamed ", again"; the loop seam; reef decor re-laid at dawn (coral off with the reefs) | Weak to medium | Leave. An idea on file: deep decor re-seeds after each trip home while the chart keeps the old drawing. Owner first. |
 | The Edge | `src/systems/edge.js`, once | Strong | Leave alone. `state.story.edge` is never read again; that is correct. |
 | The Raven sails empty | The Other Captain thread | Strong | Leave alone. |
 

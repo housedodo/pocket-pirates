@@ -133,7 +133,7 @@ you are stuck. (Mara's first intro line is the same for all five: "A letter from
      yours:
 
   Mara at the edge of the sea, after the hut (where the ship needs better parts):
-     OBJ-0168  The shipwrights say a stronger hull or better sails go further than this, and on a falling tide. Past that, nobody sells charts.
+     OBJ-0168  The shipwrights say a stronger hull or better sails go further than this. Past that, nobody sells charts.
      yours:
 
 
@@ -503,7 +503,7 @@ per region, only while the water is light; 0064 to 0067: the keeper's log, the c
      yours:
      CUST-0022  A name goes up the day a ship does not come in. Nobody sees the day it sinks.
      yours:
-     CUST-0023  Salvage at low water. A grave at high. Be quick about the difference.
+     CUST-0023  The sea goes out a long way under a new moon, and a full one. Salvage then. Be back before it remembers.
      yours:
      CUST-0024  Out there is the quiet water. Nothing to wreck, nothing to take.
      yours:

@@ -1,6 +1,6 @@
 # World redesign: structure-gated sea, knowledge as progression
 
-Status: **partly built** (see section 9). Proposal text below is unchanged. Inputs: the Hoist Story Atlas (15 planned places, seven questions Q1 to Q7), `docs/STORY_EXPLORATION.txt`, and a code audit by two specialist passes (topology, lore). Rules kept from CLAUDE.md: horror implied, never explained; HUD text minimal; no popups for clues.
+Status: **partly built** (see section 9). Proposal text below is unchanged. **Since 2026-11-26 there are no tides:** read every "low tide" or "lowest tide" gate below as a low-water night (`calendar.js lowWater`, round a new or full moon: D1 Sunken Street, R2 Throwers' Wreck, the Bell), "high tide" gates (F3 Cup) as always open, and S4's "falling tide" as no condition. Reefs and the Drowned belt are off (`REEFS_ON`). Inputs: the Hoist Story Atlas (15 planned places, seven questions Q1 to Q7), `docs/STORY_EXPLORATION.txt`, and a code audit by two specialist passes (topology, lore). Rules kept from CLAUDE.md: horror implied, never explained; HUD text minimal; no popups for clues.
 
 ## 0. The core finding
 

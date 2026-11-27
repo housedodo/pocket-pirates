@@ -28,7 +28,7 @@ ui/pause.js             pause menu, settings (sound, display, fullscreen), dev a
 ui/title.js             title scene and menu, New voyage, dev thread chooser, the opening cinematic (begin)
 ui/camera.js            camera input (wheel, drag) and updateCamera() (follow, swell, shake, title/ashore/intro/yard/override)
 ui/dom.js               $ helper, the HUD elements written every frame, toast()
-systems/calendar.js     weekdays, market/lantern/festival days, the tide, tonight's moon
+systems/calendar.js     weekdays, market/lantern/festival days, low-water nights (no tides), tonight's moon
 systems/storyflags.js   marks and keepsakes in state.story
 core/engine.js          canvas, renderer, PS1 post pass, scene, camera, ocean, sky, resize()
 core/state.js           the voyage's saved state, built once from the save (+ save migrations)

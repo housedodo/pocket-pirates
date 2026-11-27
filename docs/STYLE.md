@@ -60,10 +60,11 @@ purple and magenta cosmic horror as dread rises.
   chunky low-poly kit (6-sided basalt columns, blob canopies, boxes, gables), never a different art style:
   the Grey Tooth (grey basalt, no plants, white guano on ledges, a sea arch), Hollowgreen (dark greens in layered blob
   canopies, a white fall, a blue pool), the Halved Isle (a sheer cut face in pale ochre / sand / rust bands; the sunken
-  half dark and only just under the water; a white fog dome round it that takes the scene's fog colour), the Drowned Bell
+  half dark and only just under the water; no fog shape round it: the scene's haze closes in as you sail into its bank, and a
+  fine mist lies round the ship; 2026-11-26), the Drowned Bell
   (a leaning grey tower on a stack, roofs at the waterline), Wick's Rock (brick lighthouse, one cottage), the Ribs (dark
   rib pairs on pale sand, a ring of white surf streaks and black rocks), Glass Lagoon (pink / orange / teal coral blobs,
-  a broken ring of black reef knuckles with white wash).
+  a lobed ring of black reef knuckles in clumps with irregular gaps, thin low surf streaks on the seaward side; 2026-11-26).
 - **Gusts and currents** (`seaplay.js`, `ocean.js` uGust): a gust is a soft ragged patch of darker, finely rippled water
   drawn by the water shader, never a UI marker; current foam is thin white streaks drifting along the lane. Both fade at night.
 - **Ocean designs** (ocean.js `OCEAN_STYLES`, uOcean): the original toon facets stay the default until one is chosen; every
@@ -204,17 +205,16 @@ purple and magenta cosmic horror as dread rises.
 - **Each region's things on the water** (`src/regiondecor.js`), along the way in to its islands (a harbour's pier direction):
   Crown: a lane of red cans and green cones into every harbour, lit red and green at night, and a tall white signal mast with a
   pennant string; carrying a timed delivery to that harbour, the mast flies one pennant per game hour left and strikes one an hour
-  (M-CROWN-1, 2026-11-17). Free Cays: thatched houses on stilts beside the approach, canoes, coloured lantern strings at night. Reef: black
-  coral heads in flat white breakers (a channel kept open at harbours), a mast leaning out of the water. Lantern: two rows of lamps
+  (M-CROWN-1, 2026-11-17). Free Cays: thatched houses on stilts beside the approach, canoes, coloured lantern strings at night. Reef: a mast
+  leaning out of the water (the coral heads and their breakers are off with the reefs, `REEFS_ON`, 2026-11-26). Lantern: two rows of lamps
   on floats lining the way in, amber day and night, a tall dark tower with a light on top. Drowned: slate roofs to the ridge with
   chimneys, a leaning belfry (full game only). Lamps use the glow material (additive, never fogged). Home Sound and the hand-made
   places have none. **Scale (owner 2026-11-18, "too big, does not fit the realism"):** a lamp on a buoy, a float or a lantern
   string is a 0.55 to 0.8 cube, never bigger than the thing it sits on; buoys about 0.6 across and 2.5 high; a coral head's white
   water is a tight collar (head + 0.9) fading through a pale-aqua ring (`#9ed8c2`, head + 2.2) into the sea, never a wide flat disc.
-- **What the tide and the dusk change** (2026-11-17, regional puzzles; numbers in `src/regions.js`): Reef coral shows by the tide:
-  black teeth in white water up to tide 0.4, then only their tips awash in a pale-green slick (`#a6dcc4`, head + 1.4), above 0.7 nothing but a
-  faint pale ripple ring (`#cfeadf`, head + 1.2) over each head, always some tell. A Drowned harbour's pier lies under a film of grey water
-  (`#6a8088`, broken white at the edges) while the tide is above 0. Guild lighthouses at night flash their own rhythm (lamp room and
+- **What low water and the dusk change** (2026-11-17, regional puzzles; numbers in `src/regions.js`; no tides since 2026-11-26): the Reef's
+  coral is off with the reefs. A Drowned harbour's pier lies under a film of grey water (`#6a8088`, broken white at the edges) except on a
+  low-water night (round a new or full moon, `calendar.js lowWater`). Guild lighthouses at night flash their own rhythm (lamp room and
   beam on only during a flash); the chart inks it beside the light in dots and dashes. At dusk a lone Guild rock's keeper stands on
   the gallery (dark coat, cap, an amber lantern) and lowers a plank basket on a pale line. Once a voyage after the first throw, a lone
   stake with a white rag stands in open Reef water (full game only).
@@ -278,10 +278,8 @@ purple and magenta cosmic horror as dread rises.
 - **The Friday paper** (`src/newspaper.js`, `.paper` in index.html): newsprint cream with a faint 4 px grain, ink rules, a Pirata One masthead and headlines (24 / 34 / 48 px, headline case), the pixel text font for the body, a lead story with a drop cap, boxed weather and a dashed box for notices. It yellows, stains and the ink runs with dread (stages 2 to 4); it never shows anything but the paper.
 
 - **The clock panel** opens with a weather sign (7x7 pixel sprites, owner 2026-11-18): storm, rain, fog, cloud by day or night, dawn and
-  dusk as the sun on the horizon (gold, red), else sun or moon. It holds the time, the weekday (three letters at 0.75, always shown: owner
-  2026-11-18) and the tide clock (owner 2026-11-18, replacing the upright gauge that read as a battery): a 16-pixel dial like a
-  harbour tide clock, blue mark at the top for high water, sand mark at the bottom for low, one hand going round clockwise once a
-  tide (twice a day), drawn in `ui/hud.js drawTideClock`.
+  dusk as the sun on the horizon (gold, red), else sun or moon. It holds the time and the weekday (three letters at 0.75, always shown: owner
+  2026-11-18). There is no tide clock: the tides are gone (owner, 2026-11-26).
 
 ## 6. The captain's log (book)
 - The Ship's book opens with a faint centred dateline, "Sunday · day 14" (owner 2026-11-18).
@@ -311,5 +309,5 @@ purple and magenta cosmic horror as dread rises.
 - **Zones:** Surface S0-S2 (bright lie: colour fatigue only, no magenta), Sub-Stratum S3-S4 (bone-pale limestone, wet-black lower thirds, sallow to bruised teal, sea mist round the foot of places, fixed pale shafts), Abyssal Core S5 (bone on violet-black, everything leans at Tama, magenta only in sockets and one pool, steady light only).
 - **Wrongness is repetition and absence**, never a new monster: evenly spaced forms, one more cloth than people, no birds, one chair wet-black. No text, numerals, eyes, lids or figures on models; no clue by colour alone.
 - **Kit:** Builder primitives and the existing 16 atlas tiles only (zero new tiles); the dark set (`colorB`, `KIND_DARK`, `LM_DARK`) tires S0-S2 islands, the D builder holds S3+ forms (ribs, vertebra spines, throats, arches, sockets: `abyssForms` in `world.js`).
-- **State props:** things that depend on tide, night, calm, an upgrade or a clue seen are separate meshes shown by `extra.states` (`world.js`), never rebuilt.
+- **State props:** things that depend on low water (a new or full moon night), night, calm, an upgrade or a clue seen are separate meshes shown by `extra.states` (`world.js`), never rebuilt.
 - **Readability:** every place needs a vertical feature >= 3.5 units or a lit source; light classes (steady yellow, flicker orange, steady blue, magenta) are distinct; at most 3 glowing sources on screen in S0-S2 and 2 in S3+. Check with `scripts/art_checks.cjs`.

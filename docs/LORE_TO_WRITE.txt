@@ -94,7 +94,7 @@ B5  The pilots' sayings  (src/systems/passes.js SAYINGS; NEW 2026-11-19, T4)
     one old saying, once. Drafts:
       light   (lamplighter) A light that does not turn is pointing at something. The old pilots kept one at their backs.
       tune    (old salt)    When the fog stands up like a wall, they say there is a tune that knows the way through. I never learned it.
-      slick   (fisher)      At the bottom of the tide the wall leaves a road of glass water. Miss the hour and it takes your planks.
+      slick   (fisher)      The wall leaves a road or two of glass water through it. On the glass the helm answers.
       lamp    (watchman)    Put your lamp out by the wall at night and you see harbours on the other side. Steer for one. Do not look down.
       lagoon  (fisher)      Into Glass Lagoon with a narrow rudder? High water, oars out, slow.
       ribs    (old salt)    Breakers come in sets. Count them. In the quiet between, row in.

@@ -2743,3 +2743,10 @@ frame and wide map; moon phases and the Eye's shape (not in the summary list).
   People, What the Sea Gives Up, Weather You Can Read, The Five Waters, The Harbour in the Fog, Something Is Off, The Hut and the Die,
   Why You Will Keep Sailing) with captures from the game and real lines from it; the dark chapters turn to night. Horror implied, no
   premise or ending spelled out. The technical artbook's ship picture is retaken with both new lanterns.
+- **Docs brought up to date with the game** (owner, 2026-11-27: "the game itself is correct"): CLAUDE.md has a short "How the game is
+  now" list (one world per seed 1337, no tides and low-water nights, reefs and the Drowned belt off, the closing fog, Haven Hesk, the
+  lanterns, the artbooks). Updated to match: the architecture guide (uniforms, systems), DESIGN (digging, dev panel, Reef, Drowned),
+  STYLE (Halved Isle fog, Glass Lagoon reef, Reef decor, no tide clock), ART_SPEC (the fog as the gate-visibility exception, low water
+  for "tide"), HOIST_GUIDE, ROADMAP, ARCHITECTURE, AREAS, WORLD_REDESIGN (a status note), DEMO_CHECKLIST, QUOTES, WRITER_TODO,
+  LORE_TO_WRITE; CANON points to the artbooks; "Beyond the Fair Winds" no longer says every island is fresh per voyage.
+  History (PROGRESS, audits, dated CANON rows) is left as written.

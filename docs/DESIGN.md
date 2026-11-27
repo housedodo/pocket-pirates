@@ -191,18 +191,18 @@ Chosen from six playable studies (after Dredge and Undertale): the bite ring for
   line comes in. A water's tip is shown the first two times (`state.hints['tip:ring:<kind>']`), then only its name (G-21).
 - **The water changes the fight** (`RING_KINDS`): wreck water (red snags), night water (fading marks), heavy swell
   (surging needle), deep water (hold, do not tap; line strain), reef water (darting marks), calm. See PROGRESS.md.
-- **Beaches** (`BEACHES` in digging.js, `o.beach`): sand, shingle (stone counts), dunes (holes fill in), mud (no tide,
-  squares sink). Chosen per treasure isle from `hash2(d.seed, 41, 3)`.
+- **Beaches** (`BEACHES` in digging.js, `o.beach`): sand, shingle (stone counts), dunes (holes fill in), mud (no wet
+  sand sliding back, squares sink). Chosen per treasure isle from `hash2(d.seed, 41, 3)`.
 - **Digging: probing the shore** (`digging.js`, treasure only, right shore only; a wrong shore is still a short dig that finds sand):
   the beach is an 8x5 grid; dig a square (click, or arrows / WASD and E / Space; the ship stays put meanwhile) and the sand shows how
-  close the chest is, darker and wetter = closer. Hidden stones crack the shovel (two break it) and the tide creeps up with every dig
-  (10 digs, 13 for Perrin's first chest, more with shipwright upgrades and the dig buff). Fails: the tide floods the beach, or the
+  close the chest is, darker and wetter = closer. Hidden stones crack the shovel (two break it) and the wet sand slides back with every dig
+  (10 digs, 13 for Perrin's first chest, more with shipwright upgrades and the dig buff). Fails: the sand slides back into every hole, or the
   shovel breaks; the crew needs about 6 s, then a fresh try with the chest somewhere else. Dread: some squares lie about the damp.
   Holding E 0.8 s on the beach packs the crew up (`DIG_LEAVE_HOLD`, G-10): the prompt bar fills, and it counts as a failed dig
   (6 s, the chest moves, `attempts` +1). A beach's rules are told the first two times that kind is met (`tip:beach:<kind>`), then nothing (G-21).
 
 ## Quiet start
-Mara's chatter (weather, tide, market days, musings, sightings), dolphins, pets (the cat at Tama) and the optional goals wait until
+Mara's chatter (weather, the first low-water night, market days, musings, sightings), dolphins, pets (the cat at Tama) and the optional goals wait until
 the tavern chapter (main goal 9, `laterOK`); before that she only speaks about the quest in hand. A goal that is already done when
 its turn comes is skipped without its intro (no "good haul" line after you have bought the sails). The hut only stands on its island
 once the story reaches it ("Ask around", `hutReached`); Perrin's isle sits a little further out from Tama.
@@ -215,10 +215,10 @@ F7 finish the quest, F8 sound mixer, F9 sound studio, `` ` `` debug line. None o
 
 ### Dev Studio (F10, `src/ui/devstudio.js`, 2026-11-18)
 F10 or the small DEV tab on the left edge opens a panel (dev builds only; never the demo or the playtest build, RULES 29). It pauses
-nothing. A readout on top: position, region, distance out, dread and stage, tide, hour, weekday, goal id, gold. Sections:
+nothing. A readout on top: position, region, distance out, dread and stage, low water (if tonight), hour, weekday, goal id, gold. Sections:
 - **Money and goods:** gold +10 / +100 / +1000 / set; fill the oil, +10 cannonballs, repair the hull, mend the sails; each upgrade 0 to 3;
   a chosen fish or fruit into the hold, a treasure (paid as found).
-- **Time and sky:** hour slider, weekday back and forth, the next high, low, rising or falling tide, weather (clear, cloud, rain, storm,
+- **Time and sky:** hour slider, weekday back and forth, the next low-water night, weather (clear, cloud, rain, storm,
   fog, auto), dead calm or wind back, dread (forced 0 to 1, or auto), the night (moon phases or a fixed night).
 - **Missions:** the 21 main goals, jump to any and back (the dev bar's `devQuest`), finish the current one; the side goals ticked or not;
   the chapter fog wall on or off (`story.free`); the first throw marked done or undone.
@@ -325,7 +325,7 @@ Ten effects (the star-eye and ghost ship were cut) that only run at dread >= ~0.
   'over' | 'out' (`edgeWay()` reads old saves as 'over'); the Table's drawing reads it. The waking clock (`abyss.fullTime`)
   holds while it runs. `state.story.edgeRun` (lip, heading, time, changes) lets a save made mid-way pick it up again (a save
   made in the white goes straight to the waking). Dev: `__game.edge()`.
-- **Quiet window** (`main.js` `eventQuiet`, `Mate.hush`): no random remark, musing, passenger chatter, thread line, market/regatta/whale comment, lamp or tide warning, or village memory from Mara or anyone else while within ~400 of the hut (about 30 s of sailing), from the first throw until the diver has gone, and for 30 s after the hut or the diver (live time). Quest intros/outros and the throw's own lines are not touched.
+- **Quiet window** (`main.js` `eventQuiet`, `Mate.hush`): no random remark, musing, passenger chatter, thread line, market/regatta/whale comment, lamp or low-water line, or village memory from Mara or anyone else while within ~400 of the hut (about 30 s of sailing), from the first throw until the diver has gone, and for 30 s after the hut or the diver (live time). Quest intros/outros and the throw's own lines are not touched.
 - **Pins**: `state.story.pins` ([{x, z, on}]); `trackTarget` follows the one that is `on`.
 
 ## Lamp oil (`oil.js`)
@@ -363,8 +363,8 @@ blends into long dark rollers. The same function runs on the GPU (the water) and
 The ship samples four points (bow, stern, both sides) and follows them through springs (`Ship.place`, `this.float`).
 
 ## World hints (secrets.js)
-`Secrets.roll(d)` decides per island (cached on the desc, rolled with its own hashes so nothing else moves): `tide` (wreck
-angle), `camp` (camp angle), `watch` (harbours). `update()` builds meshes for loaded islands and removes them as they unload,
+`Secrets.roll(d)` decides per island (cached on the desc, rolled with its own hashes so nothing else moves): `tide` (a wreck on a lonely isle,
+always uncovered since there are no tides; the angle), `camp` (camp angle), `watch` (harbours). `update()` builds meshes for loaded islands and removes them as they unload,
 moves the smoke column to the nearest smoking camp (`smoking(d, dayN)`), shows watchers 17:36-19:36, runs one bird flock.
 `near()` gives main.js an interaction (kind `secret`): `secretFound()` applies it (state.collected 'kestrel' / 'tide:<id>',
 state.story.secrets camp visit counts). `taleAt(d)` (main.js) tells the pier tales (state.story.tales). The Kestrel spot is
@@ -437,9 +437,9 @@ blends slowly in space and time. For now this is the look only: the shapes have 
 |---|---|---|
 | Crown Traders | Deliveries from Crown harbours have a deadline ("by 14:30"; the destination's mast strikes a pennant an hour, M-CROWN-1 below); a shared record of arrivals at every Crown harbour (ticks and black lines on the board); customs cutters come alongside once and look in the hold; sailing in between the buoys is a clean arrival | on time 1.45x (up to 15 s past the deadline still counts: `onTime`, G-33), late 0.55x; deadline distance / 6 + 60 s; +5% pay per clean line up to +25%, -15% per black line; three clean in a row wipe a black one; clean hold +5g, dark cargo taken and a black line; customs 15% of Crown ships |
 | Free Cays | Raiders only by day; the stalls open after dark and pay more; the harbours sleep by day (M-FREE-1, below); swordfish, cuttlefish and moonfish come into open water at their hours | raiders 10% of spawns by day, 0 at night; night market 1.4x fish and fruit; dusk fish 2x |
-| Reef Brotherhood | Wrecks pay more; a bounty for raiders sunk there, paid at any Reef harbour; coral heads are rock; the shoals are laid out again each dawn; a storm brings a wreck up, gone at the next low water; powder and sailcloth cheap | salvage 1.5x; bounty 40g; coral 6+ hull and the ship stops; ammo and patch kits 0.6x |
+| Reef Brotherhood | Wrecks pay more; a bounty for raiders sunk there, paid at any Reef harbour; coral heads are off with the reefs (`REEFS_ON`); a storm brings a wreck up, gone the next day once you are away; powder and sailcloth cheap | salvage 1.5x; bounty 40g; ammo and patch kits 0.6x |
 | Lantern Guild | Fish dear; the Guild buys lamp oil; half its lighthouses are dark at night, relight one with 30 oil for pay and the local chart; the lamp burns half near a lit light and double in the open dark | fish 1.5x; oil 0.9g a unit (Tama sells at 0.42); relight 30 oil for 30g; lighthouses on 85% of its harbours, 60% of its rocky isles |
-| The Drowned | A shoal belt (1740-1800 from Tama) only open at low water: at high water it throws you back (an outward push of 12 units/s dying over 1 s, the ship's way cut to x0.2; G-23: water, never a snap) and scrapes the hull; its harbours take no coin, fill the lamp, the kits and the hull once a day and keep one thing from the hold | belt opens below tide -0.3; 5 hull a scrape (full game only) |
+| The Drowned | The shoal belt (1740-1800 from Tama) is off with the reefs (`REEFS_ON`, 2026-11-26: its foam was laid round the ship and followed her); the waters are open at any hour. Its harbours take no coin, fill the lamp, the kits and the hull once a day and keep one thing from the hold | (belt off) full game only |
 Every region has a harbour in its Shoals (about 620 out) and the Lantern Guild a second one (about 950), planned per seed (`world.js plannedHarbours`). Crown towns pay 1.5x for fruit.
 
 ## Regional mechanics and puzzles, first set (2026-11-17, owner: "build the suggested puzzles"; `docs/proposals/REGIONAL_CATALOGUE.md`)
@@ -460,13 +460,12 @@ Each is read from the world, never said; every number is a named constant in `sr
 
 ### Reef, Lantern and Drowned: mechanics and puzzles (2026-11-17, owner: build the suggested puzzles; `docs/proposals/REGIONAL_CATALOGUE.md` 9)
 Nothing here has a marker, a tutorial line or a HUD element; numbers are named constants in `src/regions.js` or at the top of the file.
-- **M-REEF-1 Teeth under the tide** (`regiondecor.js`, `REEF_SLICK_TIDE` 0.4, `REEF_RING_TIDE` 0.7): the coral bites the same at any
+- **M-REEF-1 Teeth under the tide** (OFF since 2026-11-26 with the reefs, `REEFS_ON`; and there are no tides) (`regiondecor.js`, `REEF_SLICK_TIDE` 0.4, `REEF_RING_TIDE` 0.7): the coral bites the same at any
   tide (speed above 1.2, `reef.js`); what shows follows the water. Up to 0.4 black teeth in white water; to 0.7 only the tips, awash
   in a pale-green slick; above 0.7 a faint ripple ring over each head (the floor: there is always a tell). Ghosting in under 1.2 is
   the safe way in at high water. Three tide states per head (`extra.states`), so the change is a step at the threshold.
-- **P-REEF-2 Before the tide takes it** (`reef.js`, `STORM_WRECK_LOW` -0.5, `STORM_WRECK_WAIT` 60): built as it was; the two numbers
-  are named. Once the tide has come in, the next low water takes a storm wreck, never while the ship lies within 60 of it; salvaged
-  below tide -0.45 it pays x1.3, and x1.5 in Reef water.
+- **P-REEF-2 Before it goes** (`reef.js`, `STORM_WRECK_WAIT` 60; no tides since 2026-11-26): a storm wreck lies there until the next day
+  and goes then, never while the ship lies within 60 of it; salvaged in Reef water it pays x1.5.
 - **P-REEF-4 The stake with no wreck** (`reef.js`, full game only, after the first throw; `state.story.reefStake`
   `{ x, z, w, risen, done }`): the first time the ship is in Reef water after the throw, a stake with a white rag is put in the most
   open water of a ring 180 to 480 ahead of her (`STAKE_NEAR`, `STAKE_FAR`), wanted 300 clear of every island (`STAKE_CLEAR`), never
@@ -489,8 +488,8 @@ Nothing here has a marker, a tutorial line or a HUD element; numbers are named c
   Prompt "[E] Call up to the keeper" (owner, 2026-11-18). **On a dead light** (C4, 2026-11-18) the keeper is on the gallery at dusk too,
   with no lantern, not waving, not turning to follow the ship; E within 45 (before the world is lit; once lit, relighting wins as before)
   calls up and he looks at the dark lamp: "The keeper looks at his dark lamp. Nothing comes down." Nothing else happens.
-- **M-DROWN-4 Low-water hours** (`drownedOpen`, `DROWNED_OPEN_TIDE` 0; `ui/harbour.js`, `regiondecor.js`): a Drowned harbour gives
-  and keeps only while the tide is below 0 (about 172 s of each 345 s cycle). Above it a film of grey water lies over its pier and
+- **M-DROWN-4 Low-water nights** (`drownedOpen(waterAt())`, `DROWNED_OPEN_TIDE` 0; `ui/harbour.js`, `regiondecor.js`): a Drowned harbour gives
+  and keeps only on a low-water night (`calendar.js lowWater`: 20:00 to 05:00 within a day of a new or full moon; no tides since 2026-11-26). Above it a film of grey water lies over its pier and
   its market says only "The planks are under water. Nobody comes down." Docking is as anywhere. Full game only.
 - **P-DROWN-2 A fish for the pier**: built as it was (`drownedTake` keeps a fish first, then fruit, then the newest treasure; the
   market row names what they will keep before you take it); with M-DROWN-4 the trade waits for low water.
