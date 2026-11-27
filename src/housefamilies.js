@@ -13,6 +13,7 @@
 // draws from that. Variety inside: one or two units, an extension (lean-to, hood, deck), shutters open or shut, a little lean.
 import { TILE } from './textures.js';
 
+const shade = (hex, k = 0.82) => '#' + [1, 3, 5].map((i) => Math.round(parseInt(hex.slice(i, i + 2), 16) * k).toString(16).padStart(2, '0')).join('');
 const pick = (a, k) => a[Math.floor(k * a.length) % a.length];
 const h01 = (x, z, s) => { const v = Math.sin(x * 12.9898 + z * 78.233 + s * 37.719) * 43758.5453; return v - Math.floor(v); };
 export const FAMILY_PALETTES = {
@@ -36,7 +37,8 @@ export function familyHouse(A, kit, x, z, big = false) {
 function chattel(A, K, wall, v, s) {
   const w = 2.3 * s, d = 2.5 * s, h = 1.55 * s, base = 0.32, T = K.trim, two = v(2) < 0.5;
   const unit = (z0, ww, dd) => {
-    A.box(0, base, z0, ww, h, dd, wall, TILE.planks, TILE.planks);
+    A.box(0, base, z0, ww, h, dd, wall, TILE.white, TILE.white);
+    for (let i = 1; i < 5; i++) A.box(0, base + i * h / 5, z0 + dd / 2 + 0.01, ww, 0.03, 0.02, shade(wall), TILE.white);   // board lines, a little darker than the paint
     A.gable(0, base + h, z0, ww + 0.3, 1.05 * s, dd + 0.25, K.roof, TILE.roof, wall);
     A.box(0, base + h - 0.1, z0 + dd / 2 + 0.06, ww + 0.2, 0.12, 0.06, T, TILE.planks);   // fretwork band under the eaves
   };
@@ -72,9 +74,9 @@ function gable(A, K, wall, v, s) {
 function bermuda(A, K, wall, v, s) {
   const w = 2.9 * s, d = 2.5 * s, h = 1.45 * s, T = K.trim, R = K.roof;
   A.box(0, 0, 0, w, h, d, wall, TILE.white, TILE.white);
-  for (let i = 0; i < 4; i++) { const k = 1 - i * 0.24; A.box(0, h + i * 0.24 * s, 0, (w + 0.3) * k, 0.24 * s, (d + 0.3) * k, R, TILE.stone); }   // the stepped white roof
+  for (let i = 0; i < 4; i++) { const k = 1 - i * 0.24; A.box(0, h + i * 0.24 * s, 0, (w + 0.3) * k, 0.24 * s, (d + 0.3) * k, R, TILE.white); }   // the stepped white roof
   const sx = v(2) < 0.5 ? -1 : 1;   // the buttress chimney on one gable end, wide at the foot
-  A.box(sx * (w / 2 + 0.25), 0, 0, 0.5, h * 0.7, 1.1, wall, TILE.white); A.box(sx * (w / 2 + 0.2), h * 0.7, 0, 0.4, h * 0.9, 0.7, wall, TILE.white); A.box(sx * (w / 2 + 0.2), h * 1.6 + 0.05, 0, 0.5, 0.12, 0.8, R, TILE.stone);
+  A.box(sx * (w / 2 + 0.25), 0, 0, 0.5, h * 0.7, 1.1, wall, TILE.white); A.box(sx * (w / 2 + 0.2), h * 0.7, 0, 0.4, h * 0.9, 0.7, wall, TILE.white); A.box(sx * (w / 2 + 0.2), h * 1.6 + 0.05, 0, 0.5, 0.12, 0.8, R, TILE.white);
   A.box(-w * 0.18, 0, d / 2 + 0.02, 0.56, 1.35, 0.06, T, TILE.planks);   // a coloured door
   for (const wx of [w * 0.22, -w * 0.4]) {   // small windows with shutters in the trim colour
     A.box(wx, 0.6, d / 2 + 0.03, 0.36, 0.42, 0.04, '#2a2e3a', TILE.white);

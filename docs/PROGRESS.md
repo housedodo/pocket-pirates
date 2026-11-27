@@ -2798,3 +2798,17 @@ frame and wide map; moon phases and the Eye's shape (not in the summary list).
   their size; the flat-roofed cubes of one village style (`villagestyles.js cube`) are not in the trial yet. The choice per house is
   hashed from its place, so no village moves. Previews `docs/proposals/world/houses_trial_tama.png` (Tama close, before above, after
   below), `docs/proposals/world/houses_trial_harbours.png` (three harbours). Not decided: the owner picks; the loser is deleted.
+- **Four house families on trial, one per harbour** (owner, 2026-11-27: "more designs for houses, variations, how to make it look
+  uniform per harbour; 4 distinct designs and what you used as inspiration"; `src/housefamilies.js`, `?houses=chattel|gable|bermuda|stilt`
+  for every harbour, `?houses=region` for Free Cays chattel, Crown gable, Lantern Bermuda, Reef stilt):
+  - chattel (Barbados chattel houses): small wooden boxes on stone blocks, a steep gable, a framed door between jalousie shutters (open
+    or shut), board lines, a fretwork band under the eaves, a hood over the door; half get a second unit behind.
+  - gable (Willemstad's Handelskade, Curacao): narrow and bright, a white-edged stepped or curved street gable, red tiles behind, white
+    cornice and window frames; one or two storeys.
+  - bermuda (Bermuda cottages): pale walls, the stepped white limestone roof, a buttress chimney on one end, small windows with shutters
+    in the trim colour; some with a low walled step-yard.
+  - stilt (Garifuna and Belize coast fishing houses): plank huts on four posts, a front deck and ladder, a steep hipped thatch roof, a net.
+  - Uniform per harbour: `harbourKit` rolls one palette from the harbour's seed (three wall colours, one roof, one trim) and every
+    ordinary house in it draws from that; the variety is per house (hashed from its place): units, extensions, shutters, size.
+  Churches, belfries, warehouses, round huts, the tavern and one style's flat-roofed cubes stay as they are. Preview (a street of four
+  from one harbour kit each) `docs/proposals/world/house_families.png`. Not decided.

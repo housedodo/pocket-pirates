@@ -13,6 +13,7 @@ import { dreadAtDistance } from './palette.js';
 import { makeName, makePuzzle } from './lore.js';
 import { FRUITS, fruitOf } from './fruit.js';
 import { arcIdOf, ARCS } from './harbourlife.js';
+import { harbourKit, familyHouse } from './housefamilies.js';
 
 import { forcedCells, shapeLandmark, cutShore, lmHeight, lmColor, lmDecor, LM_DARK } from './landmarks.js';
 export const CELL = 110;
@@ -32,6 +33,7 @@ const COL = {
 const WALLS = ['#f4dfb0', '#f0b3a0', '#a9d6ee', '#f2e48a', '#c9e6a8', '#e8c0e0'];
 const ROOFS = ['#d2483c', '#3c78c8', '#2f9a8a', '#c86a2a', '#7a4ab0'];
 // a village's custom can repaint every house (whitewash) or keep children indoors; set while a harbour is built
+let CUR_KIT = null;   // the harbour being built: its house family and palette (housefamilies.js), on trial
 let PAINT = null, NO_CHILD = false, CUR_FLAG = null, FIN = null, CUR_EXTRA = null;   // FIN: Tama's house finish (the garden harbour), see TAMA_FIN; CUR_EXTRA: the harbour being built's extra (Tama's bell)
 
 // ---------------------------------------------------------------------------
@@ -385,6 +387,10 @@ export function palm(A, B, D, x, y, z, rng, s = 1) {
 // ?houses=small. 1 people-sized: footprint x0.8, height x0.78 (a door about 1.45 for a 1.4 villager; the tavern x0.88);
 // 2 broken up: a lean-to on one side or a little porch over the door, so a house reads as several small shapes;
 // 3 finer: thin corner boards and eave boards. Churches, belfries, warehouses, round huts and stilt houses keep their size.
+const HOUSE_FAMILY = (() => { try { const q = typeof window !== 'undefined' && window.__BUILD !== 'full' && new URLSearchParams(location.search).get('houses'); return ['chattel', 'gable', 'bermuda', 'stilt', 'region'].includes(q) ? q : null; } catch (e) { return null; } })();
+const FAMILY_KINDS = new Set(['cottage', 'colonial', 'planter', 'thatch', 'townhouse']);
+const REGION_FAMILY = { free: 'chattel', crown: 'gable', lantern: 'bermuda', reef: 'stilt' };
+const kitFor = (d) => { const f = HOUSE_FAMILY === 'region' ? REGION_FAMILY[d.region] : HOUSE_FAMILY; return f ? harbourKit(f, d.seed) : null; };
 const SMALL_HOUSES = (() => { try { return typeof window !== 'undefined' && window.__BUILD !== 'full' && new URLSearchParams(location.search).get('houses') === 'small'; } catch (e) { return false; } })();
 const HOUSE_KEEP = new Set(['church', 'warehouse', 'round', 'stilt', 'belltower']);
 const houseScale = (kind) => (!SMALL_HOUSES || HOUSE_KEEP.has(kind) ? [1, 1] : kind === 'tavern' ? [0.88, 0.88] : [0.8, 0.78]);
@@ -548,6 +554,7 @@ function yard(A, rng, w, dep, sx = 1) {
 export function houseKind(A, B, x, y, z, ry, rng, kind) {
   let wall = pickCol(rng, WALLS), roof = pickCol(rng, ROOFS);
   if (PAINT) { if (PAINT.walls) wall = pickCol(rng, PAINT.walls); if (PAINT.roofs) roof = pickCol(rng, PAINT.roofs); if (PAINT.wall) wall = PAINT.wall; if (PAINT.roof) roof = PAINT.roof; }
+  if (CUR_KIT && FAMILY_KINDS.has(kind)) { A.push(x, y, z, ry); familyHouse(A, CUR_KIT, x, z); A.pop(); return; }   // the harbour's family (housefamilies.js, trial)
   if (kind === 'cottage') return house(A, B, x, y, z, ry, rng);
   if (FIN) { wall = finCol(FIN.walls, wall); roof = finCol(FIN.roofs, roof); }
   { const [hs, hy] = houseScale(kind); A.push(x, y, z, ry, hs, hy, hs); }
@@ -1673,6 +1680,7 @@ function decorate(d, rng, A, B, D, extra) {
       const dockRoll = rng(), dockTh = d.dockTh;   // Tama's pier faces the start
       const SD = STYLE_DEF[d.style || 'classic'] || STYLE_DEF.classic;
       PAINT = SD.paint ? { walls: SD.paint.walls, roofs: SD.paint.roofs } : null;
+      CUR_KIT = kitFor(d);   // ?houses=chattel|gable|bermuda|stilt|region: one family and one palette for the whole harbour
       if (d.custom === 'whitewash') PAINT = SD.paint ? { ...PAINT, wall: '#f4f0e8' } : { wall: '#f4f0e8', roof: '#3c78c8' };   // whitewash keeps each style's own roofs
       NO_CHILD = d.custom === 'nochildren';
       const n = Math.round((6 + Math.floor(rng() * 3)) * Math.max(1, d.r / 25));
@@ -1799,7 +1807,7 @@ function decorate(d, rng, A, B, D, extra) {
         weekAndCustoms(d, rng, cr, { yy, R: Rp, dockTh, z1, n, at, dockAt });
         harbourState(d, cr, { yy, R: Rp, dockTh, z1, n, at, dockAt });   // plenty and events (systems/harbours.js)
       }
-      PAINT = null; NO_CHILD = false; CUR_FLAG = null; FIN = null; CUR_EXTRA = null;
+      PAINT = null; NO_CHILD = false; CUR_FLAG = null; FIN = null; CUR_EXTRA = null; CUR_KIT = null;
       if (tamaLook) tamaPolish({ ...VS, R, z0, z1 }, tamaLook, tamaHouses);   // its own rng: nothing after it moves
       const nW = 11;
       for (let i = 0; i < nW; i++) {
