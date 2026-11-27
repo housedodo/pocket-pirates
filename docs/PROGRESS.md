@@ -2791,3 +2791,10 @@ frame and wide map; moon phases and the Eye's shape (not in the summary list).
   keeper's house is a small cottage now (2.1 x 1.75 x 2.3, was 3.0 x 2.5 x 3.2), the range lower and narrower, the shed smaller.
   Verified headless: a boat rowing in with two people, three moored at the pier, the smaller house. Preview
   `docs/proposals/world/hesk_rowers.png`.
+- **House trial: smaller, broken up, finer** (owner, 2026-11-27: "houses should not look too big and chunky"; "build the house trial with
+  1, 2 and 3"; `world.js` `?houses=small`, `houseScale`, `houseExtras`): 1 people-sized: footprint x0.8, height x0.78 (a door about 1.45
+  for a 1.4 villager; the tavern x0.88); 2 broken up: a plank lean-to with a sloped roof on one side (6 in 10) or a little porch over the
+  door on two thin posts; 3 finer: thin corner boards and eave boards. Churches, belfries, warehouses, round huts and stilt houses keep
+  their size; the flat-roofed cubes of one village style (`villagestyles.js cube`) are not in the trial yet. The choice per house is
+  hashed from its place, so no village moves. Previews `docs/proposals/world/houses_trial_tama.png` (Tama close, before above, after
+  below), `docs/proposals/world/houses_trial_harbours.png` (three harbours). Not decided: the owner picks; the loser is deleted.

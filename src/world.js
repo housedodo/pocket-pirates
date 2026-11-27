@@ -381,12 +381,35 @@ export function palm(A, B, D, x, y, z, rng, s = 1) {
   D.blob(px, py - 0.1, pz, 0.28 * s, 0.28 * s, 0.28 * s, '#ffffff', TILE.spore, 0.1, x + z);
 }
 
+// ---- house trial (owner, 2026-11-27: "houses should not look too big and chunky"; "build the house trial with 1, 2 and 3"):
+// ?houses=small. 1 people-sized: footprint x0.8, height x0.78 (a door about 1.45 for a 1.4 villager; the tavern x0.88);
+// 2 broken up: a lean-to on one side or a little porch over the door, so a house reads as several small shapes;
+// 3 finer: thin corner boards and eave boards. Churches, belfries, warehouses, round huts and stilt houses keep their size.
+const SMALL_HOUSES = (() => { try { return typeof window !== 'undefined' && window.__BUILD !== 'full' && new URLSearchParams(location.search).get('houses') === 'small'; } catch (e) { return false; } })();
+const HOUSE_KEEP = new Set(['church', 'warehouse', 'round', 'stilt', 'belltower']);
+const houseScale = (kind) => (!SMALL_HOUSES || HOUSE_KEEP.has(kind) ? [1, 1] : kind === 'tavern' ? [0.88, 0.88] : [0.8, 0.78]);
+function houseExtras(A, w, dep, h, x, z) {   // in the house's own (scaled) frame: front is +z
+  if (!SMALL_HOUSES) return;
+  const k = hashXZ(x, z, 5), sx = k < 0.5 ? -1 : 1, TRIM = '#5e4a36';
+  for (const [cx, cz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) A.box(cx * (w / 2 + 0.01), 0, cz * (dep / 2 + 0.01), 0.12, h, 0.12, TRIM, TILE.planks);   // corner boards
+  for (const cz of [-1, 1]) A.box(0, h - 0.12, cz * (dep / 2 + 0.05), w + 0.14, 0.12, 0.08, TRIM, TILE.planks);   // eave boards
+  if (hashXZ(x, z, 6) < 0.6) {   // a lean-to: plank walls, a sloped roof, against one side
+    const lw = 1.3, lh = Math.min(h * 0.62, 1.5), ld = dep * 0.55, lx = sx * (w / 2 + lw / 2 - 0.02), lz = -dep * 0.12;
+    A.box(lx, 0, lz, lw, lh, ld, '#8a6a48', TILE.planks, TILE.planks);
+    A.push(lx, lh + 0.18, lz, 0, 1, 1, 1, 0, -sx * 0.32); A.box(0, 0, 0, lw + 0.35, 0.09, ld + 0.3, '#5a4a3e', TILE.roof); A.pop();
+    A.box(lx + sx * 0.05, 0, lz + ld / 2 + 0.02, 0.55, Math.min(1.2, lh - 0.1), 0.06, '#4a3624', TILE.planks);   // its door
+  } else {   // a little porch over the door: two thin posts and a sloped roof
+    A.box(0, 0, dep / 2 + 0.5, 1.6, 0.1, 1.0, '#8a6238', TILE.planks);
+    for (const px of [-0.7, 0.7]) A.box(px, 0.1, dep / 2 + 0.95, 0.08, 1.55, 0.08, '#5e4a36', TILE.bark);
+    A.push(0, 1.72, dep / 2 + 0.5, 0, 1, 1, 1, 0.28, 0); A.box(0, 0, 0, 1.9, 0.08, 1.25, '#5a4a3e', TILE.roof); A.pop();
+  }
+}
 function house(A, B, x, y, z, ry, rng) {
   const w = 3.2 + rng() * 1.4, dep = 3 + rng() * 1.2, h = 2.1 + rng() * 0.9;
   let wall = pickCol(rng, WALLS), roof = pickCol(rng, ROOFS);
   if (PAINT) { if (PAINT.walls) wall = pickCol(rng, PAINT.walls); if (PAINT.roofs) roof = pickCol(rng, PAINT.roofs); if (PAINT.wall) wall = PAINT.wall; if (PAINT.roof) roof = PAINT.roof; }
   if (FIN) { wall = finCol(FIN.walls, wall); roof = finCol(FIN.roofs, roof); }
-  A.push(x, y, z, ry);
+  { const [hs, hy] = houseScale('cottage'); A.push(x, y, z, ry, hs, hy, hs); }
   A.box(0, 0, 0, w, h, dep, wall, TILE.wall, TILE.white);
   const rh = 1.4 + rng() * 0.5;
   A.gable(0, h, 0, w + 0.6, rh, dep + 0.6, roof, TILE.roof, wall);
@@ -402,6 +425,7 @@ function house(A, B, x, y, z, ry, rng) {
   A.blob(w * 0.12, h + 1.15, dep * 0.1, 0.45, 0.05, 0.4, '#8a5a3a', TILE.roof, 0.25, 6);       // patched tiles
   A.blob(-w * 0.3, h + 0.7, -dep * 0.12, 0.5, 0.06, 0.4, '#6a8a4a', TILE.white, 0.3, 8);       // moss
   if (FIN) finishHouse(A, { w, dep, h, rh, roof, door: [-w * 0.2, 0.95, 1.8], wins: [w / 2 - 0.6], winY: 0.75, chim: [w * 0.28, h + 2.0, -dep * 0.2, 0.55], x, z });
+  houseExtras(A, w, dep, h, x, z);
   A.pop();
   if (rng() < 0.6) { // flag pole + pennant (only while it is still a happy town)
     B.push(x, y + h + 1.4, z, ry);
@@ -526,7 +550,7 @@ export function houseKind(A, B, x, y, z, ry, rng, kind) {
   if (PAINT) { if (PAINT.walls) wall = pickCol(rng, PAINT.walls); if (PAINT.roofs) roof = pickCol(rng, PAINT.roofs); if (PAINT.wall) wall = PAINT.wall; if (PAINT.roof) roof = PAINT.roof; }
   if (kind === 'cottage') return house(A, B, x, y, z, ry, rng);
   if (FIN) { wall = finCol(FIN.walls, wall); roof = finCol(FIN.roofs, roof); }
-  A.push(x, y, z, ry);
+  { const [hs, hy] = houseScale(kind); A.push(x, y, z, ry, hs, hy, hs); }
   switch (kind) {
     case 'townhouse': { // two storeys, a trim band, a balcony with railings
       const w = 3.2, dep = 3, h = 4.3;
@@ -539,6 +563,7 @@ export function houseKind(A, B, x, y, z, ry, rng, kind) {
       A.box(0.6, 0, dep / 2 + 0.01, 0.9, 1.85, 0.1, '#5a3a20', TILE.planks);
       A.box(-w * 0.25, h + 0.8, 0, 0.5, 1.2, 0.5, '#a89a88', TILE.stone);
       if (FIN) finishHouse(A, { w, dep, h, rh: 1.5, roof, door: [0.6, 0.9, 1.85], wins: [-0.8], winY: 0.75, chim: [-w * 0.25, h + 2.0, 0, 0.5], x, z });
+      houseExtras(A, w, dep, h, x, z);
       break;
     }
     case 'stilt': { // a fisher's house up on posts, with a ladder and a net
@@ -562,6 +587,7 @@ export function houseKind(A, B, x, y, z, ry, rng, kind) {
       for (const sx of [-1, 1]) { A.box(sx * w * 0.3, 1.0, dep / 2 + 0.03, 0.6, 0.8, 0.08, '#2a2a3a', TILE.white); A.box(sx * w * 0.3 - 0.45, 1.0, dep / 2 + 0.06, 0.2, 0.8, 0.08, sh, TILE.planks); A.box(sx * w * 0.3 + 0.45, 1.0, dep / 2 + 0.06, 0.2, 0.8, 0.08, sh, TILE.planks); }
       A.box(w * 0.28, h + 0.7, -dep * 0.2, 0.5, 1.1, 0.5, '#a89a88', TILE.stone);
       if (FIN) finishHouse(A, { w, dep, h, roof: rf, door: [0, 0.95, 1.8, 0.22], wins: [-w * 0.3, w * 0.3], winY: 0.72, chim: [w * 0.28, h + 1.8, -dep * 0.2, 0.5], porch: dep / 2 + 1.75, x, z });
+      houseExtras(A, w, dep, h, x, z);
       yard(A, rng, w, dep, rng() < 0.5 ? 1 : -1);
       break;
     }
@@ -577,6 +603,7 @@ export function houseKind(A, B, x, y, z, ry, rng, kind) {
       for (const sx of [-1, 1]) { A.box(sx * w * 0.32, 0.9, dep / 2 + 0.03, 0.7, 0.9, 0.08, '#2a2a3a', TILE.white); for (const o of [-0.5, 0.5]) A.box(sx * w * 0.32 + o, 3.1, dep / 2 - 0.1, 0.2, 1.0, 0.08, sh, TILE.planks); }
       A.box(-w * 0.28, 5.2, -dep * 0.15, 0.55, 1.3, 0.55, '#a89a88', TILE.stone);
       if (FIN) finishHouse(A, { w: w - 0.3, dep: dep - 0.3, h: 4.4, h0: 2.3, roof: rf, door: [0, 1.2, 1.9], wins: [-w * 0.32, w * 0.32], winY: 0.66, winZ: dep / 2, chim: [-w * 0.28, 6.5, -dep * 0.15, 0.55], noPlinth: true, x, z });
+      houseExtras(A, w, dep, 4.4, x, z);
       yard(A, rng, w, dep, rng() < 0.5 ? 1 : -1);
       break;
     }
@@ -590,6 +617,7 @@ export function houseKind(A, B, x, y, z, ry, rng, kind) {
       for (const sx of [-1, 1]) A.box(sx * w * 0.38, 0, dep / 2 + 1.1, 0.2, 1.7, 0.2, '#5a3e24', TILE.bark);
       if (rng() < 0.6) A.cyl(w / 2 + 0.5, 0, 0.2, 0.35, 0.3, 0.6, 6, '#c8a860', TILE.rope, true);   // a crab pot
       if (FIN) finishHouse(A, { w, dep, h: 1.7, rh: 2.2, roof: th, thatch: true, door: [-w * 0.2, 0.9, 1.5], wins: [w * 0.28], winY: 0.66, porch: dep / 2 + 1.25, x, z });
+      houseExtras(A, w, dep, 1.7, x, z);
       yard(A, rng, w, dep, rng() < 0.5 ? 1 : -1);
       break;
     }
@@ -625,6 +653,7 @@ export function houseKind(A, B, x, y, z, ry, rng, kind) {
       A.box(w * 0.2, 0, dep / 2 + 0.8, 1.6, 0.45, 0.4, '#6b4a2e', TILE.planks);
       A.box(-w * 0.3, h + 1.0, -dep * 0.2, 0.6, 1.3, 0.6, '#a89a88', TILE.stone);
       if (FIN) finishHouse(A, { w, dep, h, rh: 1.7, roof: '#8a3a2a', door: [0, 1.2, 1.8], wins: [1.75], winY: 0.75, chim: [-w * 0.3, h + 2.3, -dep * 0.2, 0.6], tavern: true, x, z });
+      houseExtras(A, w, dep, h, x, z);
       break;
     }
     case 'warehouse': { // long and low, a wide door, crates stacked outside
