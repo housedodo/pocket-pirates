@@ -5,6 +5,9 @@ import { canSynth, synth } from './synth.js';
 import { SeaLayers, LAYERS, Tavern, TAVERN, HutMusic, HUT } from './layers.js';
 import { smoothstep } from './util.js';
 import { stageOf } from './palette.js';
+/** where each music stage fades (dread): stage 1 full to [0], gone at [1]; stage 2 gone between [2] and [3]; stage 3 between [4] and [5].
+ *  Dread 0.36 is about 975 units from Tama, 0.45 the Trade Belt's edge (1150), 0.52 about 1315, 0.64 about 1570 (palette.js STRATA). */
+export const MUSIC_BANDS = [0.36, 0.45, 0.52, 0.64, 0.78, 0.9];
 
 // Master switch for all sound (files in public/audio/, else the synthesised fallback).
 export const AUDIO_ENABLED = !(typeof window !== 'undefined' && window.__SILENT);   // the demo ships with sound too (without the dread-stage cues, see DEMO_SKIP); the silent build sets __SILENT
@@ -301,8 +304,11 @@ export class AudioBus {
     const dread = s.dread;
     const layered = this.layers.ready;   // the stage-1 stems are the music of the bright sea
     if (layered) {
-      // the stage-1 band carries the bright half of the sea (dread up to about 0.3), stage 2 to 0.58, stage 3 (s3_*) on to the deep (0.9), then nothing
-      const lv = this.layers.update(dt, { quests: s.quests || 0, open: s.open, wind: s.wind, stage: 1 - smoothstep(0.2, 0.32, dread), stage2: smoothstep(0.2, 0.32, dread) * (1 - smoothstep(0.45, 0.58, dread)), stage3: smoothstep(0.45, 0.58, dread) * (1 - smoothstep(0.75, 0.9, dread)), battle: !!s.battle, night: s.night, freecays: s.freecays, players: s.players, lull: s.lull, steer: s.steer ?? null });   // stage 1 band, then stage 2, then stage 3
+      // the stage-1 band (day and night, every variation) carries the bright sea out through the Trade Belt (owner, 2026-11-27: "reach
+      // further out, it is essential for the bright feeling and exploring"): full to S1_FULL (about 975 from Tama), gone at S1_GONE (the
+      // Belt's edge, 1150); stage 2 to S2_GONE, stage 3 (s3_*) on to the deep (0.9), then nothing (numbers: MUSIC_BANDS at the top)
+      const [S1_FULL, S1_GONE, S2_FULL, S2_GONE, S3_FULL, S3_GONE] = MUSIC_BANDS;
+      const lv = this.layers.update(dt, { quests: s.quests || 0, open: s.open, wind: s.wind, stage: 1 - smoothstep(S1_FULL, S1_GONE, dread), stage2: smoothstep(S1_FULL, S1_GONE, dread) * (1 - smoothstep(S2_FULL, S2_GONE, dread)), stage3: smoothstep(S2_FULL, S2_GONE, dread) * (1 - smoothstep(S3_FULL, S3_GONE, dread)), battle: !!s.battle, night: s.night, freecays: s.freecays, players: s.players, lull: s.lull, steer: s.steer ?? null });   // stage 1 band, then stage 2, then stage 3
       for (const k of LAYERS) if (k in lv) this.setLoop(k, lv[k] * 1.5);   // the stems are mastered quiet (about -25 LUFS each); measured in game the full band is about -28 LUFS (review 2026-11-15)
     }
     this.setLoop('sea', 0.3 + s.speed * 0.45);

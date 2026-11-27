@@ -2750,3 +2750,8 @@ frame and wide map; moon phases and the Eye's shape (not in the summary list).
   for "tide"), HOIST_GUIDE, ROADMAP, ARCHITECTURE, AREAS, WORLD_REDESIGN (a status note), DEMO_CHECKLIST, QUOTES, WRITER_TODO,
   LORE_TO_WRITE; CANON points to the artbooks; "Beyond the Fair Winds" no longer says every island is fresh per voyage.
   History (PROGRESS, audits, dated CANON rows) is left as written.
+- **The stage-1 music reaches further out** (owner: "the stage 1 music, day and night with its variations, should reach further
+  out; it is essential for the bright feeling and exploring"; `audio.js MUSIC_BANDS`): the band and all its night and Free Cays
+  variations now play full to dread 0.36 (about 975 from Tama, deep in the Trade Belt) and fade out by 0.45 (the Belt's edge, 1150);
+  before, full to 0.2 (about 625) and gone by 0.32 (about 890). Stage 2 now runs 0.36-0.45 in to 0.52-0.64 out, stage 3 0.52-0.64 in to
+  0.78-0.9 out. AUDIO.md updated. Not judged by ear (headless runs cannot).

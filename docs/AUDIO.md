@@ -119,7 +119,8 @@ They are stage 1's music (the old placeholder `music_1` is gone).
 - **Heard over the waves:** all six share one soft low-pass (about 1.5-3 kHz) that moves with a slow swell, together with a small level
   lift on the crest, and closes further in strong wind.
 - **Open sea:** right by a shore (within about 60 units) they ease down to 40%, slowly. They carry the whole bright half of the
-  sea: full up to dread 0.3 (about 660 units from Tama), then they fade out by 0.32 while stage 2 comes in.
+  sea, day and night: full up to dread 0.36 (about 975 units from Tama, deep in the Trade Belt), then they fade out by 0.45 (the Belt's
+  edge, 1150) while stage 2 comes in (owner, 2026-11-27; `audio.js MUSIC_BANDS`).
 - All stems start on the same sample (they wait silently until all six have loaded), so they stay locked together; the Music of the Fog
   playback rate applies to them too. The F8 mixer has its own group for them.
 - Test: `?dev=1&musicpace=5` makes the fades and swells five times faster.
@@ -129,7 +130,7 @@ Dread stage 2 (GREY SKIES): `s2_bass`, `s2_drums`, `s2_guitar`, `s2_pluck` (16 b
 HOIST with more swell and a little tape wow: `HoistLayers game_audio/stage2 <outdir> stage2`). Like the band it plays on open sea
 only (falls back by the shore, steps aside in harbours and the tavern). All four together, each swelling gently; now and then one of
 drums / guitar / pluck rests for 15-35 s (never two, never the bass). The order through the dread: stage-1 band (and its night
-version) up to dread ~0.2, stage 2 from 0.2-0.32 to 0.45-0.58, then stage 3 (`s3_*`) from 0.45-0.58 until 0.75-0.9. F8 mixer: groups "Stage 2" and "Stage 3".
+version) up to dread 0.36, stage 2 from 0.36-0.45 to 0.52-0.64, then stage 3 (`s3_*`) from 0.52-0.64 until 0.78-0.9 (`MUSIC_BANDS`). F8 mixer: groups "Stage 2" and "Stage 3".
 
 ## The hut, first visit (`s4_*`, `HutMusic` in `src/layers.js`)
 Dread stage 4 (THE DEEP): `s4_pluck`, `s4_drone` (sub drone), `s4_drums`, through HOIST with sub octave, ghost tails and whispers
@@ -153,7 +154,7 @@ night is 4 minutes now (the day 11.5), about six times through the song. F8 mixe
 ## Stage 3 (`s3_*`, in `src/layers.js`; 2026-11-15, in place of `music_3`)
 The owner's `stage_3_Bass`, `stage_3_Bell_bent` and `stage_3_Pluck` (16 bars, 99 BPM, F minor, the band's length), through HOIST between
 GREY SKIES and THE DEEP (`tools/hoist`: `HoistLayers <stemdir> <outdir> stage3`: bass tide 0.25, dread 0.45, mix 0.40; bell and pluck tide 0.45,
-dread 0.50, mix 0.60-0.65). In from dread 0.45-0.58, out by 0.75-0.9 (then nothing). The bass holds; the bell or the pluck rests for
+dread 0.50, mix 0.60-0.65). In from dread 0.52-0.64, out by 0.78-0.9 (then nothing). The bass holds; the bell or the pluck rests for
 20-45 s now and then, so it thins rather than adds. Levels in `volumes.json` (bass 140%, bell 60%, pluck 180%) bring each to about -26 LUFS
 like the stage-2 stems. It is locked to the band, so the battle layer stays on the beat over it. Full game only (`DEMO_SKIP`).
 
