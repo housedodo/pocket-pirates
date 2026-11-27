@@ -1,0 +1,52 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dread by Distance</title>
+<style>
+:root{--bg:#f7f3ea;--card:#fffdf8;--ink:#231a10;--ink2:#6b5d4c;--grid:#e4dccb;--band:#efe8da;--band2:#f7f2e7;--line:#c2410c;--dot:#c2410c;--gate:#7c6a55;--hut:#7a1f5c}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#17141f;--card:#1f1b2a;--ink:#efe7d8;--ink2:#a99c88;--grid:#2e2a3a;--band:#262133;--band2:#1f1b2a;--line:#fb923c;--dot:#fb923c;--gate:#b6a58c;--hut:#f472b6}}
+:root[data-theme="dark"]{--bg:#17141f;--card:#1f1b2a;--ink:#efe7d8;--ink2:#a99c88;--grid:#2e2a3a;--band:#262133;--band2:#1f1b2a;--line:#fb923c;--dot:#fb923c;--gate:#b6a58c;--hut:#f472b6}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,Segoe UI,sans-serif}
+.wrap{max-width:1100px;margin:0 auto;padding:24px 16px 48px}
+h1{font-size:24px;margin:0 0 4px}.sub{color:var(--ink2);margin:0 0 18px}
+.card{background:var(--card);border-radius:10px;padding:16px;margin-bottom:18px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+h2{font-size:16px;margin:0 0 10px}
+svg{display:block;width:100%;height:auto;overflow:visible}
+.tip{position:fixed;pointer-events:none;background:var(--card);color:var(--ink);border:1px solid var(--grid);border-radius:6px;padding:6px 9px;font-size:13px;box-shadow:0 2px 8px rgba(0,0,0,.18);display:none;max-width:260px;z-index:9}
+table{width:100%;border-collapse:collapse;font-size:14px}td,th{text-align:left;padding:6px 8px;border-bottom:1px solid var(--grid);vertical-align:top}th{color:var(--ink2);font-weight:600}
+.num{font-variant-numeric:tabular-nums;white-space:nowrap}
+.note{color:var(--ink2);font-size:13px}
+.strip{display:flex;height:38px;border-radius:6px;overflow:hidden}.strip div{display:flex;align-items:flex-end;padding:3px 6px;font-size:12px;color:#fff}
+</style></head><body><div class="wrap">
+<h1>Where the dread rises</h1>
+<p class="sub">Dread in HOIST is distance from Tama's pier. It climbs ring by ring, each ring steeper or flatter, and the palette follows it. Hover the dots.</p>
+<div class="card"><h2>Dread (0 to 1) by distance from Tama</h2><svg id="c" viewBox="0 0 1060 470" role="img" aria-label="Dread rises from 0 at Tama to 1 at 2400 units"></svg>
+<p class="note">Solid dots: hand-made places at their true distance. Hollow dots: places that lie about their distance and carry a deeper dread than where they stand. Dashed lines: the chapter fog walls before the first throw at the hut. Solid ticks: the ring edges after it, and what opens each.</p></div>
+<div class="card"><h2>The palette along the way</h2><div class="strip" id="strip"></div><p class="note">The sky and sea slide through five looks. Islands swap to their dark decor at dread 0.5 (about 1268 out). From the Trade Belt out the night adds 0.05, and at sea dread never falls below 85% of the worst you have reached.</p></div>
+<div class="card"><h2>How the progression opens the sea</h2><table id="t"><thead><tr><th>Distance</th><th>Dread</th><th>Ring</th><th>Before the first throw</th><th>After it, the wall opens with</th></tr></thead><tbody></tbody></table></div>
+</div><div class="tip" id="tip"></div>
+<script>
+const D={"strata": [["S0", "Home Sound", 0, 450, 0, 0.12], ["S1", "The Shoals", 450, 800, 0.12, 0.28], ["S2", "Trade Belt", 800, 1150, 0.28, 0.45], ["S3", "The Slack", 1150, 1550, 0.45, 0.62], ["S4", "The Dim", 1550, 1950, 0.62, 0.82], ["S5", "The Lid", 1950, 2400, 0.82, 1.0]], "pts": [{"n": "Harbour Tama", "r": 118, "d": 0.031, "k": "home"}, {"n": "The Drowned Bell", "r": 253, "d": 0.067, "k": ""}, {"n": "The Grey Tooth", "r": 297, "d": 0.079, "k": ""}, {"n": "Hollowgreen", "r": 350, "d": 0.093, "k": ""}, {"n": "Teo's Sandbar", "r": 500, "d": 0.143, "k": ""}, {"n": "Wick's Rock", "r": 536, "d": 0.159, "k": ""}, {"n": "The Ribs", "r": 537, "d": 0.16, "k": ""}, {"n": "Customs Pier", "r": 600, "d": 0.189, "k": ""}, {"n": "Glass Lagoon", "r": 649, "d": 0.211, "k": ""}, {"n": "The Cup", "r": 650, "d": 0.211, "k": ""}, {"n": "The hut (first throw; the demo ends here)", "r": 765, "d": 0.264, "k": "hut"}, {"n": "The Hammock Isle", "r": 850, "d": 0.304, "k": ""}, {"n": "Ilse's Rock", "r": 900, "d": 0.329, "k": ""}, {"n": "The Governor's Fort", "r": 1000, "d": 0.377, "k": ""}, {"n": "The Name Wall", "r": 1044, "d": 0.399, "k": ""}, {"n": "The Oil Press", "r": 1050, "d": 0.401, "k": ""}, {"n": "The Throwers' Wreck", "r": 1234, "d": 0.486, "k": ""}, {"n": "The Halved Isle", "r": 1250, "d": 0.492, "k": ""}, {"n": "Haven Hesk", "r": 1310, "d": 0.518, "k": ""}, {"n": "The Keepers' Ledger", "r": 1350, "d": 0.535, "k": ""}, {"n": "The Dark Tower", "r": 1559, "d": 0.624, "k": ""}, {"n": "The Sunken Street (true 1779, lies at 0.74)", "r": 1779, "d": 0.74, "k": "lie"}, {"n": "The Table by the Water", "r": 2400, "d": 1.0, "k": "lie"}], "gates": [[430, "Chapters I and II: the fog wall", "before the first throw"], [820, "Chapter III", "before the first throw"], [1250, "Chapter IV", "before the first throw"], [1650, "Chapters V and VI", "before the first throw"]], "sg": [[450, "Into the Shoals", "a broad rudder (level 2) or a bought local chart"], [800, "Into the Trade Belt", "lamp level 1 and an iron-banded hull (level 2)"], [1150, "Into the Slack", "the lens lantern (level 2), or a way through found"], [1550, "Into the Dim", "hull or sails at level 3, or a way through found"], [1950, "Into the Lid", "three regions read"]], "stages": [["Sunny", 0, 625, "#3a86e0", "#1b86c6"], ["Off", 625, 1047, "#5490d0", "#1d7a9e"], ["Wrong", 1047, 1503, "#5a5f9c", "#1c5a6c"], ["Eerie", 1503, 1910, "#24243e", "#0e2c3c"], ["Cosmic", 1910, 2400, "#06030e", "#12123a"]]};
+const W=1060,H=470,L=56,R=20,T=40,B=70,pw=W-L-R,ph=H-T-B,X=r=>L+r/2400*pw,Y=d=>T+(1-d)*ph,s=document.getElementById('c'),NS='http://www.w3.org/2000/svg';
+const el=(t,a,p=s)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);p.appendChild(e);return e};
+const tx=(x,y,str,a={})=>{const e=el('text',Object.assign({x,y,'font-size':12,fill:'var(--ink2)'},a));e.textContent=str;return e};
+D.strata.forEach((z,i)=>{el('rect',{x:X(z[2]),y:T,width:X(z[3])-X(z[2]),height:ph,fill:i%2?'var(--band2)':'var(--band)'});tx((X(z[2])+X(z[3]))/2,T-10,z[1],{'text-anchor':'middle','font-size':13,fill:'var(--ink)'});});
+[0,.2,.4,.6,.8,1].forEach(d=>{el('line',{x1:L,x2:W-R,y1:Y(d),y2:Y(d),stroke:'var(--grid)'});tx(L-8,Y(d)+4,d.toFixed(1),{'text-anchor':'end'})});
+[0,400,800,1200,1600,2000,2400].forEach(r=>tx(X(r),H-B+18,r,{'text-anchor':'middle'}));tx(L+pw/2,H-B+40,'distance from Tama (units)',{'text-anchor':'middle'});
+D.gates.forEach(g=>{el('line',{x1:X(g[0]),x2:X(g[0]),y1:T,y2:T+ph,stroke:'var(--gate)','stroke-dasharray':'4 4','stroke-width':1.5})});
+D.sg.forEach(g=>{el('line',{x1:X(g[0]),x2:X(g[0]),y1:T+ph,y2:T+ph+8,stroke:'var(--ink)','stroke-width':2})});
+let p='';for(let r=0;r<=2400;r+=10){let d=0;for(const z of D.strata){if(r<=z[3]){d=z[4]+(r-z[2])/(z[3]-z[2])*(z[5]-z[4]);break}}p+=(r?'L':'M')+X(r).toFixed(1)+' '+Y(d).toFixed(1)}
+el('path',{d:p,fill:'none',stroke:'var(--line)','stroke-width':2.5,'stroke-linejoin':'round'});
+const tip=document.getElementById('tip');
+D.pts.forEach(q=>{const g=el('g',{});const hollow=q.k==='lie';const r=q.k==='hut'?6:4.5;
+ el('circle',{cx:X(q.r),cy:Y(q.d),r:14,fill:'transparent'},g);
+ el('circle',{cx:X(q.r),cy:Y(q.d),r,fill:hollow?'var(--card)':(q.k==='hut'?'var(--hut)':'var(--dot)'),stroke:q.k==='hut'?'var(--hut)':'var(--dot)','stroke-width':2},g);
+ g.addEventListener('mousemove',e=>{tip.style.display='block';tip.style.left=(e.clientX+12)+'px';tip.style.top=(e.clientY+12)+'px';tip.innerHTML='<b>'+q.n+'</b><br>'+q.r+' units · dread '+q.d.toFixed(2)});
+ g.addEventListener('mouseleave',()=>tip.style.display='none');});
+tx(X(765)+9,Y(.183)-8,'the hut',{fill:'var(--hut)','font-size':13});tx(X(2400)-10,Y(1)+18,'the Table',{'text-anchor':'end','font-size':13,fill:'var(--ink)'});
+tx(X(118)+8,Y(.03)-8,'Tama',{'font-size':13,fill:'var(--ink)'});
+const st=document.getElementById('strip');D.stages.forEach(z=>{const d=document.createElement('div');d.style.flex=(z[2]-z[1]);d.style.background='linear-gradient('+z[3]+' 50%,'+z[4]+' 50%)';d.textContent=z[0]+' · '+z[1]+'–'+z[2];st.appendChild(d)});
+const tb=document.querySelector('#t tbody');const rows=[[0,'0.00','Home Sound','open','open']];
+D.gates.forEach(g=>rows.push([g[0],null,null,g[1]+' (wall)','']));D.sg.forEach(g=>rows.push([g[0],null,null,'',g[1]+': '+g[2]]));
+rows.sort((a,b)=>a[0]-b[0]);const ring=r=>{for(const z of D.strata)if(r<z[3])return z[1];return 'The Lid'},dr=r=>{for(const z of D.strata)if(r<=z[3])return (z[4]+(r-z[2])/(z[3]-z[2])*(z[5]-z[4])).toFixed(2)};
+rows.forEach(r=>{const tr=document.createElement('tr');tr.innerHTML='<td class="num">'+r[0]+'</td><td class="num">'+(r[1]||dr(r[0]))+'</td><td>'+(r[2]||ring(r[0]+1))+'</td><td>'+r[3]+'</td><td>'+r[4]+'</td>';tb.appendChild(tr)});
+const tr=document.createElement('tr');tr.innerHTML='<td class="num">2400</td><td class="num">1.00</td><td>The Lid</td><td></td><td>The Table by the Water: the end</td>';tb.appendChild(tr);
+</script></body></html>
