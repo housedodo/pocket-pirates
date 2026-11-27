@@ -35,6 +35,8 @@ unexpectedly, into cosmic horror. Everything is procedural: no image or model fi
   It lies across the bank from the Halved Isle (about 150 apart); Hesper's light is on its own rock, Hesk Light (`world.js
   heskLight`, a tower like the one in the film The Lighthouse, her rowing boat). It is rebuilt with food and hands (crew who stay); until it is back only Hesper is there (`havenOpen`: market and errands at
   stirring, tavern, shipwright, passengers and local life at bustling).
+- **Houses by region** (`housefamilies.js`, `world.js REGION_FAMILY`): every harbour is built in one family (home and Free Cays chattel,
+  Crown Willemstad gables, Lantern Bermuda, Reef and Drowned stilt), tavern, church, tower and warehouse included.
 - **The Gull's lanterns** (`ship.js sternLamp`, `bowLamp`): iron-framed lanterns at both ends.
 - **Artbooks** (`docs/artbook/`): `hoist_artbook.html` (the look, technical) and `hoist_beyond_the_fair_winds.html` (a read that sells
   the game). Rebuilt by hand from captures; refresh them when the look changes a lot.

@@ -1588,6 +1588,15 @@ window.__game = { fogHaven: havenDebug, fauna, leaderDesc, offLine, wallPass, ri
     this._show = new THREE.Mesh(b.geometry(), mats.props); this._show.position.set(x, 0.4, z); scene.add(this._show);
     return list;
   },
+  /** the four house families, one row each: two houses, the tavern, the church, the bell tower, the warehouse (for screenshots) */
+  async families(x = 0, z = 60, fams = ['chattel', 'gable', 'bermuda', 'stilt']) {
+    const { harbourKit, familyHouse, familyBuilding } = await import('./housefamilies.js');
+    if (this._show) scene.remove(this._show);
+    const b = new Builder(), kinds = ['house', 'house', 'tavern', 'church', 'belltower', 'warehouse'];
+    b.box(0, -0.6, 0, 9 * kinds.length + 4, 0.8, 14 * fams.length, '#9a7a50', TILE.planks);
+    fams.forEach((f, r) => { const kit = harbourKit(f, 1337 + r * 71); kinds.forEach((k, i) => { const px = (i - (kinds.length - 1) / 2) * 9, pz = (r - (fams.length - 1) / 2) * 14; b.push(px, 0.2, pz); if (k === 'house') familyHouse(b, kit, px + r, pz); else familyBuilding(b, kit, k, px, pz, { bell: (A, y, s = 1) => { A.cyl(0, y - 0.75 * s, 0, 0.42 * s, 0.22 * s, 0.75 * s, 7, '#c8a040', TILE.glow, true); } }); b.pop(); }); });
+    this._show = new THREE.Mesh(b.geometry(), mats.props); this._show.position.set(x, 0.4, z); scene.add(this._show); return fams;
+  },
   /** the six lighthouse designs side by side on a raft (for screenshots) */
   async lighthouses(x = 0, z = 60) {
     const { lighthouse, LH_KINDS } = await import('./world.js');

@@ -59,6 +59,7 @@ const bush = (S, x, y, z, col, s = 1) => S.B.blob(x, y + 0.35 * s, z, 0.8 * s, 0
 
 // ---- buildings (local +z is the front; they stand on y)
 function cube(S, x, y, z, ry, rng, wall, deck, floors = 1) {
+  if (S.kit) return S.houseKind(S.A, S.B, x, y, z, ry, rng, 'cottage');   // in a harbour, its house family's (housefamilies.js)
   const A = S.A; A.push(x, y, z, ry);
   const w = rnd(rng, 3.0, 3.8), dep = rnd(rng, 3.0, 3.6), h = 2.4 * floors;
   A.box(0, 0, 0, w, h, dep, wall, TILE.wall, TILE.white);
@@ -70,6 +71,7 @@ function cube(S, x, y, z, ry, rng, wall, deck, floors = 1) {
   A.pop();
 }
 function dome(S, x, y, z, ry) {
+  if (S.kit) return S.houseKind(S.A, S.B, x, y, z, ry, S.rng, 'belltower');
   const A = S.A; A.push(x, y, z, ry);
   A.box(0, 0, 0, 3.8, 3.0, 3.8, '#f6f2ea', TILE.wall, TILE.white);
   A.cyl(0, 3.0, 0, 1.8, 1.7, 0.4, 8, '#f6f2ea', TILE.wall, false);
@@ -79,6 +81,7 @@ function dome(S, x, y, z, ry) {
   A.pop();
 }
 function longhouse(S, x, y, z, ry, rng) {
+  if (S.kit) return S.houseKind(S.A, S.B, x, y, z, ry, rng, 'warehouse');   // the hall, in the family's long building
   const A = S.A; A.push(x, y, z, ry);
   A.box(0, 0, 0, 3.0, 1.7, 6.4, '#c89868', TILE.wall, TILE.white);
   A.gable(0, 1.7, 0, 3.8, 1.9, 7.0, '#c8a860', TILE.rope, '#c89868');

@@ -2822,3 +2822,18 @@ frame and wide map; moon phases and the Eye's shape (not in the summary list).
   turn the phone. Web-app meta tags and the notch safe area in `index.html`. Mara's lines lose the "(M)"-style key letters on phones.
 - Checked headless as an emulated iPhone 13 (844×390): buttons laid out and visible, the chart opens from its button, portrait card.
   Not checked: a real phone (speed, feel, sound unlock), pinch on a real screen.
+
+## House families everywhere (2026-11-27)
+- Owner: "Build the building variations you have shown me, but also apply it to the other buildings of each harbour". The four families
+  (`housefamilies.js`) are no longer a trial: every harbour builds in its region's family (`world.js REGION_FAMILY`: home and Free Cays
+  chattel, Crown gable, Lantern Bermuda, Reef and Drowned stilt), one palette rolled per harbour.
+- New in each family: the tavern (chattel rum shop with a gallery; two gable houses knocked together; long low Bermuda house with
+  welcoming-arms steps; stilt hut with a long deck, awning and hammock), the church (board chapel with a belfry; yellow Dutch church with
+  a white tower and spire; white chapel with buttresses and a bell-cote; open thatched hall), the bell tower (timber belfry; slim tower
+  with an ogee cap; white tower with a stepped cap; pole lookout) and the warehouse (board shed; tall pakhuis with a hoist beam; white
+  store; open boat shed). Round huts, stilt huts, flat-roofed cubes and the other old kinds become family houses; the White town's dome
+  becomes the bell tower, the hut village's longhouse the warehouse. Tama's noon bell hangs in its family belfry; the faction flag
+  tops the church. Taverns keep a chimney where the evening smoke rises.
+- Not changed: the windmill, pagoda, torii, hull hall, wells, fountains, the lighthouses, and houses outside harbours (showroom,
+  concepts, the wild islands' stilt huts, landmarks). The `?houses=small` trial is removed; `?houses=chattel|gable|bermuda|stilt` still
+  shows one family everywhere (not in the full game). Dev: `__game.families(x, z, [fams])` lays out each family's buildings on a raft.
