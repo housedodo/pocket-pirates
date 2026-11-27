@@ -105,7 +105,7 @@ import { shelvesNear } from './systems/shallows.js';
 import { crewTick } from './systems/raiders.js';
 import { handMods } from './systems/hands.js';
 import { plentyLevel, eventOf, harboursTick, feelOf, fedOf } from './systems/harbours.js';
-import { havenTick, havenDebug } from './systems/foghaven.js';
+import { havenTick, havenDebug, havenOpen } from './systems/foghaven.js';
 import { tradeOn } from './systems/trade.js';
 import { moonTick, litAt } from './systems/moon.js';
 import { spiceTick } from './systems/spice.js';
@@ -671,7 +671,7 @@ window.addEventListener('keydown', (e) => {
     if (e.code === 'KeyE') { closeModal(); return; }
     if (e.code === 'KeyM') { closeModal(); openModal('chart'); return; }   // Mara says "open your log with M" right after you take a letter here
     const n = parseInt(e.key, 10);
-    const open = order.filter((t) => isOpen(state, 'tab', t)), go = (t) => { rt.hbTab = t; (state.story.uiSeen || (state.story.uiSeen = {}))[t] = true; renderHarbour(); };
+    const open = order.filter((t) => isOpen(state, 'tab', t) && (!rt.harbourIsl || havenOpen(rt.harbourIsl.desc, t))), go = (t) => { rt.hbTab = t; (state.story.uiSeen || (state.story.uiSeen = {}))[t] = true; renderHarbour(); };
     if (n >= 1 && n <= 4 && open.includes(order[n - 1])) go(order[n - 1]);
     if (e.code === 'ArrowRight' || e.code === 'ArrowLeft') go(open[(open.indexOf(rt.hbTab) + (e.code === 'ArrowRight' ? 1 : open.length - 1)) % open.length]);
     return;
@@ -1184,6 +1184,7 @@ const logbook = new Logbook({ slip: () => slipInfo(), eta: (d) => etaText(d), ab
 const GLASS = new THREE.Color('#07030d');
 const _v = new THREE.Vector3();
 // the frame's fixed colours, made once (task R6: nothing is allocated per frame); _tc is scratch for a colour read from data
+const BANK_FAR = 48, BANK_NEAR = 4;   // how far you see deep in the Halved Isle's bank
 const C_WHITE = new THREE.Color(1, 1, 1), C_FOGWALL = new THREE.Color('#b8c0c4'), C_LOSTFOG = new THREE.Color('#c8ced0'), C_BEAM_DREAD = new THREE.Color('#ff50d0'),
   C_WAKE_NIGHT = new THREE.Color(0.35, 1, 0.9), C_WAKE_DREAD = new THREE.Color(1, 0.4, 0.95), _tc = new THREE.Color();
 initCamera2();   // (ui/camera.js)
@@ -1305,7 +1306,10 @@ function frame() {
   if (rt.lampOut) { stage.fogFar *= LAMP_OUT_FAR; stage.fogNear *= 0.25; stage.fog.multiplyScalar(1 - 0.6 * tod.night); stage.light *= 1 - 0.35 * tod.night; }   // no lamp: the dark comes in close
   if (fogK > 0) { stage.fogFar = Math.max(30, stage.fogFar * (1 - 0.85 * fogK)); stage.fogNear = Math.max(4, stage.fogNear * (1 - 0.9 * fogK)); stage.fog.lerp(_tc.copy(C_FOGWALL).multiplyScalar(Math.min(1, 0.2 + stage.light * 0.9)), fogK * 0.7); }   // the fog's grey follows the daylight: dark at night, never a pale wall
   if (rt.lostK > 0) { stage.fogFar = Math.max(10, stage.fogFar * (1 - 0.7 * rt.lostK)); stage.fogNear = Math.max(1, stage.fogNear * (1 - 0.9 * rt.lostK)); stage.fog.lerp(_tc.copy(C_LOSTFOG).multiplyScalar(Math.min(1, 0.2 + stage.light * 0.9)), rt.lostK * 0.5); }   // lost: you can barely see the bow
-  if (fogK > 0.2) { const k = smoothstep(0.2, 1, fogK) * 0.85; stage.skyHorizon.lerp(stage.fog, k); stage.skyTop.lerp(stage.fog, k * 0.7); }   // deep in it, the sky goes too: nothing above the fog to see
+  if (places.bankFog > 0) {   // inside the Halved Isle's bank you see about 50 units and nothing beyond (owner, 2026-11-27): no far light, no outline
+    const k = smoothstep(0, 0.85, places.bankFog); stage.fogFar += (BANK_FAR - stage.fogFar) * k; stage.fogNear += (BANK_NEAR - stage.fogNear) * k;
+  }
+  if (fogK > 0.2) { const k = smoothstep(0.2, 0.9, fogK); stage.skyHorizon.lerp(stage.fog, k * 0.95); stage.skyTop.lerp(stage.fog, k * 0.85); }   // deep in it, the sky goes too: nothing above the fog to see
   abyss.update(dt, { dread: DEMO ? 0 : rt.dread, live, camera, camYaw: rt.camYaw, ch: rt.camHeading + rt.camYaw });
   stage.wave *= abyss.waveMul;
   const waveT = abyss.waveTime(stepT);
@@ -1340,6 +1344,11 @@ function frame() {
   }
   world.hutShown = hutReached();   // no hut on its island before the story gets there
   world.gctx = { calm: weather.calm > 0.5, still: weather.storm < 0.3, up: state.upgrades, seen: state.story.seen || {}, lvl: clueLevels(state), d3: tableOpen(state), end: tableGctx(), ship: { x: ship.pos.x, z: ship.pos.z } };   // what the places' state props read (ART_SPEC 8)
+  { // in the bank, what lies past the fog is not drawn at all: lamps and beams ignore fog, and a lit window would show the way out
+    const hide = (places.bankFog || 0) > 0.45, reach = stage.fogFar + 25;
+    for (const isl of world.islands.values()) { const d = isl.desc; isl.group.visible = !hide || Math.hypot(d.x - ship.pos.x, d.z - ship.pos.z) - (d.r || 0) < reach; }
+    for (const s of traffic.ships) if (s.root) s.root.visible = !hide || Math.hypot(s.x - ship.pos.x, s.z - ship.pos.z) < reach;
+  }
   world.tick(rt.animT, tod);
   places.labelsTick(camera, ship, (state.upgrades.spyglass || 0), state.discovered, window.innerWidth, window.innerHeight, false /* no names on the water when sailing past (owner 2026-11-18) */, { fogFar: scene.fog.far, table: tableOpen(state) });   // far labels: ?, what it looks like, its name; fade with the fog
   ship.place(vdt, waveT, stage.wave, rt.dark, tod.night);
@@ -1419,7 +1428,7 @@ function frame() {
   mats.beam.color.set('#ffe080').lerp(C_BEAM_DREAD, smoothstep(0.5, 0.8, rt.dread));
   mats.beam.uniforms.uOp.value = 0.55 * smoothstep(0.35, 0.8, tod.night) * (1 - 0.6 * Math.min(1, weather.fog || 0)); mats.beam.visible = mats.beam.uniforms.uOp.value > 0.01;   // not drawn by day mats.beam.uniforms.uTime.value = rt.tNow;   // only at night; thick fog swallows it
   mats.wake.color.set(0xffffff).lerp(C_WAKE_NIGHT, tod.night * 0.9).lerp(C_WAKE_DREAD, tod.night * smoothstep(0.55, 0.9, rt.dread) * 0.8);
-  sky.update(window.__waterLock ? 0 : dt, camera, stage, wind.dir, tod, { night: nightKey(), cover: Math.max(weather.cloud || 0, weather.rain || 0, weather.storm || 0), sun2: abyss.sun2, green: rt.greenK || 0, storm: weather.heavy || 0, stormWall: Math.max(weather.frontAhead || 0, (weather.stormAhead || 0) * 0.9, (weather.storm || 0) * 0.7) });
+  sky.update(window.__waterLock ? 0 : dt, camera, stage, wind.dir, tod, { night: nightKey(), cover: Math.max(weather.cloud || 0, weather.rain || 0, weather.storm || 0, (places.bankFog || 0) * 1.1), sun2: abyss.sun2, green: rt.greenK || 0, storm: weather.heavy || 0, stormWall: Math.max(weather.frontAhead || 0, (weather.stormAhead || 0) * 0.9, (weather.storm || 0) * 0.7) });
   if (litAt() < 0.04 && !(rt.eclipse && rt.eclipse.kind === 'solar')) sky.moon.visible = false;   // a new moon: no moon in the sky (an eclipse's dark night keeps her: she goes copper)
   ocean.material.opacity = 1 - 0.7 * abyss.seeThrough;
   if (abyss.seeThrough > 0) { U.uDeep.value.lerp(GLASS, 0.8 * abyss.seeThrough); U.uShallow.value.lerp(GLASS, 0.7 * abyss.seeThrough); }

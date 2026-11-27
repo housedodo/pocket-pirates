@@ -3,7 +3,7 @@
 // the fog bank for years. Its people left one by one; only Hesper, who keeps the light, stayed. What you bring her (her list, any
 // delivery or sale there) brings people back, and as they come back the fog lifts and the light burns true again. Stay away too long
 // before it is well, and one day she is not there: a note under the lamp, the fog for good, a quay nobody comes down to.
-// Nothing here is shown as a number: the fog, the light, the houses and Mara say how it is going (RULES: the HUD stays wordless).
+// Before it is back, only Hesper is there: nothing is bought, no passengers, no errands (havenOpen). Nothing here is shown as a number: the fog, the light, the houses and Mara say how it is going (RULES: the HUD stays wordless).
 import { state } from '../core/state.js';
 import { rt, G } from '../core/runtime.js';
 import { toast } from '../ui/dom.js';
@@ -29,15 +29,18 @@ export const STAGES = [           // r (restoration with neglect taken off) from
   { at: 0.8, id: 'bustling', plenty: 2 },
   { at: 0.95, id: 'bustling', plenty: 3 },
 ];
-// what she asks for, in turn (then round again): kind, what, how many, the row's words
-const LIST = [
-  { kind: 'oil', n: 10, label: 'Oil for the lamp', say: '"The lamp drinks more in the fog. Ten measures, if you can spare them."' },
-  { kind: 'cargo', good: 'salt', n: 1, label: 'A crate of salt', say: '"Salt. If there is salt, the boats can put up fish, and if there is fish, people stay."' },
-  { kind: 'cargo', good: 'cloth', n: 1, label: 'Bolts of cloth', say: '"Sailcloth for the boats on the hard. Three of them only want a sail."' },
-  { kind: 'food', n: 2, label: 'Food from your stores', say: '"Bread, or anything. For the ones who come back. They always come back hungry."' },
-  { kind: 'cargo', good: 'glass', n: 1, label: 'Lamp glass', say: '"The lens is cracked right through. Glass, and I can make it whole."' },
-  { kind: 'cargo', good: 'coir', n: 1, label: 'Coir rope', say: '"Rope for the moorings. Nothing has been tied up properly here in years."' },
-];
+// What the harbour needs (owner, 2026-11-27: "the only possible thing: deliver food and some workforce, maybe people from the crew stay
+// to help out; build Haven Hesk around the idea that it needs to be rebuilt"): food for the ones who come back, and hands. A hand is one
+// of your crew who stays behind to rebuild (hired in another harbour's tavern, brought here). Nothing is bought or sold here at first.
+export const FOOD_PTS = 2, HAND_PTS = 4;   // restoration points a gift of food, a hand who stays
+const FOOD = [['food', 2, 'two days of food from your stores'], ['fish', 2, 'two fish from your hold'], ['fruit', 3, 'three of your fruit']];
+// what opens as the harbour comes back (owner: "no option to take passengers or buy goods, since only the lighthouse keeper is there at first")
+const OPENS = { abandoned: [], flicker: [], stirring: ['market', 'jobs'], bustling: ['market', 'jobs', 'tavern', 'wright', 'passage', 'life'], forsaken: [] };
+/** ui/harbour.js, main.js: is this part of a harbour open (always true for any other harbour) */
+export function havenOpen(d, what) {
+  if (!havenOn() || !isHaven(d)) return true;
+  return OPENS[haven().stage].includes(what);
+}
 const BEAT = {   // a line once, the first time the harbour is this well (on docking)
   flicker: 'A second lamp is lit on the quay tonight. Somebody came back.',
   stirring: 'There are boats on the hard again, and someone has whitewashed a door.',
@@ -45,7 +48,7 @@ const BEAT = {   // a line once, the first time the harbour is this well (on doc
 };
 export const NOTE = 'Captain. The oil ran out and I lit the lamp anyway, and it burned. They are all down at the water now, the ones who left, in their good clothes, calling me by my name. I am going down to ask them where they have been. Do not light the lamp. H.';
 
-const S = () => { const f = state.story.fogh || (state.story.fogh = { given: 0, ask: 0, met: false, gone: false, goneAt: null, note: false, beats: {}, warned: false }); return f; };
+const S = () => { const f = state.story.fogh || (state.story.fogh = { given: 0, food: 0, hands: [], met: false, gone: false, goneAt: null, note: false, beats: {}, warned: false }); if (!f.hands) f.hands = []; return f; };
 const now = () => (state.dayN || 0) + (state.time || 0);
 export const isHaven = (d) => !!(d && d.id === HAVEN_ID && d.type === 'harbour');
 export const havenOn = () => !DEMO();
@@ -53,7 +56,7 @@ export const havenOn = () => !DEMO();
 /** the whole state, derived (cheap; called every frame) */
 export function haven() {
   const f = S(), rep = state.rep && state.rep[HAVEN_ID];
-  const score = f.given * 2 + (rep ? (rep.deliveries || 0) * 1.5 + (rep.sold || 0) * 0.5 : 0);
+  const score = ((f.food || 0) + (f.given || 0)) * FOOD_PTS + f.hands.length * HAND_PTS + (rep ? (rep.deliveries || 0) * 1.5 + (rep.sold || 0) * 0.5 : 0);   // (given: an older save's gifts)
   const restoration = clamp(score / FULL, 0, 1);
   const away = f.met && rep && rep.last < 1e6 ? Math.max(0, now() - rep.last) : 0;
   const neglect = f.gone ? 1 : restoration >= SAFE_AT ? 0 : clamp((away - GRACE) / SPAN, 0, 1);
@@ -122,34 +125,48 @@ export function havenDock(d) {
   return false;
 }
 
-// ---- the harbourmaster's board (systems/harbours.js harbourRows / bindHarbourRows)
-const want = () => LIST[S().ask % LIST.length];
-function have(w) {
-  if (w.kind === 'oil') return (state.oil || 0) >= w.n;
-  if (w.kind === 'food') { const st = state.story.stores; return !!st && st.food >= w.n; }
-  const cg = state.story.cargo || {}; return (cg[w.good] || 0) >= w.n;
+// ---- the harbourmaster's board (systems/harbours.js harbourRows / bindHarbourRows): Hesper, and the two kinds of help
+function foodToGive() {
+  const st = state.story.stores, fr = Object.values(state.fruit || {}).reduce((a, b) => a + b, 0);
+  for (const [k, n, words] of FOOD) {
+    if (k === 'food' && st && st.food >= n) return { k, n, words };
+    if (k === 'fish' && (state.catch || []).length >= n) return { k, n, words };
+    if (k === 'fruit' && fr >= n) return { k, n, words };
+  }
+  return null;
 }
+const handToStay = () => (state.crew || [])[0] || null;
 function spoken(h) {
-  if (h.stage === 'abandoned') return S().given ? '"Two more chimneys smoked last night. I counted them twice."' : 'Hesper keeps the light, what is left of it. "They went one at a time. They said the fog had their names in it. I trim the wick, and I do not listen."';
-  if (h.stage === 'flicker') return '"Sabe in Galra taught me the wick, when we were young and he could still see. Tell him the light is going, if you pass."';
-  if (h.stage === 'stirring') return '"Children on the quay again. They throw stones at the fog. I let them."';
+  const f = S(), hand = f.hands[0];
+  if (h.stage === 'abandoned') return (f.food || f.given || f.hands.length) ? '"Two more chimneys smoked last night. I counted them twice."' : 'Hesper keeps the light, what is left of it. "They went one at a time. They said the fog had their names in it. I trim the wick, and I do not listen."';
+  if (h.stage === 'flicker') return hand ? `"${hand} has three roofs back on. Sabe in Galra taught me the wick, when he could still see. Tell him the light is going."` : '"Sabe in Galra taught me the wick, when we were young and he could still see. Tell him the light is going, if you pass."';
+  if (h.stage === 'stirring') return '"Children on the quay again. They throw stones at the fog. I let them. There is a stall open, if you need anything."';
   return '"You can see the whole bay from the gallery now. I had forgotten how small it is."';
 }
 export function havenRows(d) {
   if (!havenOn() || !isHaven(d) || S().gone) return '';
-  const h = haven(), w = want(), ok = have(w);
+  const h = haven(), food = foodToGive(), hand = handToStay();
   let html = `<div class="sec">HESPER, WHO KEEPS THE LIGHT</div><small>${spoken(h)}</small>`;
-  if (h.r < 0.999) html += `<div class="qrow letter"><div><b>${pxi('talk')} ${w.label}</b><br><small>${ok ? w.say : (w.kind === 'cargo' ? 'a crate in your hold' : w.kind === 'oil' ? `${w.n} lamp oil` : `${w.n} food from your stores`)}</small></div><button data-hb="fh_give" ${ok ? '' : 'disabled'}>Give</button></div>`;
+  if (h.r >= 0.999) return html;
+  html += `<div class="qrow letter"><div><b>${pxi('talk')} Food for the ones who come back</b><br><small>${food ? `"They always come back hungry." · ${food.words}` : 'nothing aboard to spare: stores, fish or fruit'}</small></div><button data-hb="fh_food" ${food ? '' : 'disabled'}>Give</button></div>`;
+  html += `<div class="qrow letter"><div><b>${pxi('crew')} Hands to rebuild</b><br><small>${hand ? `${hand.name} could stay and help. "The roofs will not mend themselves."` : 'a hand of your own first: they sign on in other harbours\' taverns'}</small></div><button data-hb="fh_hand" ${hand ? '' : 'disabled'}>${hand ? `${hand.name} stays` : 'Stay'}</button></div>`;
   return html;
 }
 export function havenAct(d, k) {
-  if (k !== 'fh_give' || !isHaven(d)) return false;
-  const f = S(), w = want(); if (!have(w)) return true;
-  if (w.kind === 'oil') state.oil -= w.n;
-  else if (w.kind === 'food') state.story.stores.food -= w.n;
-  else { const cg = state.story.cargo; cg[w.good] -= w.n; if (!cg[w.good]) delete cg[w.good]; }
-  f.given++; f.ask++;
-  toast(f.given === 1 ? 'She takes it without a word, and goes up the steps with it. That night the light turns a little longer before it catches.' : 'She takes it up the steps. Down on the quay somebody opens a shutter.', false, 6500);
+  if ((k !== 'fh_food' && k !== 'fh_hand') || !isHaven(d)) return false;
+  const f = S(), first = !(f.food || f.given || f.hands.length);
+  if (k === 'fh_food') {
+    const fd = foodToGive(); if (!fd) return true;
+    if (fd.k === 'food') state.story.stores.food -= fd.n;
+    else if (fd.k === 'fish') state.catch.splice(0, fd.n);
+    else { let n = fd.n; for (const fk of Object.keys(state.fruit)) while (n > 0 && state.fruit[fk] > 0) { state.fruit[fk]--; n--; } }
+    f.food = (f.food || 0) + 1;
+    toast(first ? 'She takes it without a word, and goes up the steps with it. That night the light turns a little longer before it catches.' : 'She carries it down to the quay. A door that was shut is open in the morning.', false, 6500);
+  } else {
+    const c = handToStay(); if (!c) return true;
+    state.crew = state.crew.filter((x) => x !== c); f.hands.push(c.name);
+    toast(`${c.name} takes a hammer off the wall of the boatshed and does not look back. By evening one roof has its tiles again.`, false, 7000);
+  }
   if (G.audio) G.audio.play('buy');
   return true;
 }
@@ -160,7 +177,7 @@ export const havenDebug = {
   set(stage) {   // 'abandoned' | 'flicker' | 'stirring' | 'bustling' | 'forsaken'
     const f = S(), r = { abandoned: 0, flicker: 0.3, stirring: 0.6, bustling: 1 }[stage];
     if (stage === 'forsaken') { f.met = true; f.gone = true; f.goneAt = now(); return this.state(); }
-    f.gone = false; f.note = false; f.met = true; f.given = Math.ceil((r * FULL) / 2);
+    f.gone = false; f.note = false; f.met = true; f.given = 0; f.hands = []; f.food = Math.ceil((r * FULL) / FOOD_PTS);
     const rep = state.rep[HAVEN_ID]; if (rep) rep.last = now();
     return this.state();
   },

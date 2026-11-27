@@ -26,7 +26,7 @@ import { friendLevel, sellable } from '../jobs.js';
 import { WANTS } from './trade.js';
 import { pxi } from '../pixelui.js';
 import { goalReached } from '../objectives.js';
-import { isHaven, havenPlenty, havenRows, havenAct } from './foghaven.js';
+import { isHaven, havenPlenty, havenRows, havenAct, havenOpen } from './foghaven.js';
 
 const DEMO = () => typeof window !== 'undefined' && window.__BUILD === 'demo';
 export const EVENT_DAYS = 3, EVENT_P = 18, NEGLECT_FROM = 21, NEGLECT_PER_DAY = 0.25, STEP_DAYS = 3;   // slow on purpose (owner, 2026-11-25: "make sure it does not change that fast, otherwise it would be a chore"): three weeks away before it starts, and the level moves one step every three days at most
@@ -113,6 +113,7 @@ export function harbourRows(d) {
   let html = '';
   if (rt.backDoor === d.id) return html;   // nobody at the board at night
   html += havenRows(d);   // Hesper and what she needs (systems/foghaven.js)
+  if (!havenOpen(d, 'jobs')) return html;   // and nobody else yet: no harbourmaster, no customs, no morning's work
   const ev = eventOf(d), E = hev()[d.id];
   if (ev && E) E.seen = true;
   if (E && E.owed) html += `<div class="sec">THE HARBOUR</div><div class="qrow"><div><b>${pxi('coin')} They remember who lifted the boom</b><br><small>the harbourmaster pays what was promised</small></div><button data-hb="owed">+${E.owed}g</button></div>`;

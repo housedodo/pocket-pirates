@@ -42,7 +42,7 @@ import { voyageDock } from './voyage.js';
 import { REFUSE_AT, owed, payOwed, mark } from './standing.js';
 import { handOn } from './hands.js';
 import { dockBlocked, refuses, refuseAt, refuseLine, noQuestions } from './harbours.js';
-import { havenDock } from './foghaven.js';
+import { havenDock, havenOpen } from './foghaven.js';
 import { crewBoarded } from './raiders.js';
 import { tradeRumour } from './trade.js';
 import { learn } from './news.js';
@@ -225,7 +225,7 @@ function doInteract(tg) {
     if (!(rep.last < 1e6) || now - rep.last > VISIT_GAP) rep.visits++;
     rep.last = now;
     state.stats.harbours++;
-    if (state.hp < G.ship.mods.maxHp) { state.hp = G.ship.mods.maxHp; toast('The harbour crew patches up your hull for free.', false, 3000); }
+    if (state.hp < G.ship.mods.maxHp && havenOpen(d, 'jobs')) { state.hp = G.ship.mods.maxHp; toast('The harbour crew patches up your hull for free.', false, 3000); }   // (Haven Hesk has no harbour crew until it is back)
     if (state.sailsTorn) setTimeout(() => mendSails('The sailmaker stitches your mainsail whole again.'), 600);
     const rng = mulberry32(hash2(d.seed, Math.floor(rt.tNow / 8), 3));
     const idx = stageOf(rt.dread), lvl = friendLevel(rep);

@@ -119,6 +119,7 @@ Nothing here is ever said to the player in these words.
 | 2026-11-26 | **The Drowned belt is off with the reefs** (owner: "remove them completely"): no white race round the Drowned waters for now; they can be entered and left at any tide until the reefs return. |
 | 2026-11-26 | **No tides** (owner): the tide and its clock are gone. The sea draws back only on the nights round a new or a full moon (the Bell Below, the Tide Rocks, the Throwers' Wreck, the Sunken Street, the Drowned planks); everything else that waited on the tide is always open. |
 | 2026-11-27 | **The bright music carries the whole bright sea** (owner): the stage-1 band, day and night, plays through Home Sound, the Shoals and the Trade Belt, fading out at the Belt's edge (1150). |
+| 2026-11-27 | **Haven Hesk is rebuilt, not traded with** (owner): at first only Hesper is there: no goods, no passengers; you bring food, and crew who stay to rebuild. The market and errands come back with the people, then everything. Inside its bank there is no way out to see: no far lights, no outlines, no sky. |
 | earlier | The title is HOIST. The Lady never speaks. Dread follows where you are, never time. The demo has no dread. |
 
 ## 4. The seven questions (the whole mystery)

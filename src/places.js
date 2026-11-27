@@ -145,7 +145,7 @@ export class Places {
       const lit = this.open(lm, upgrades) && !rt.lampOut, clear = lit ? smoothstep(B.R * 0.3, B.R * 0.85, d) : 1;
       const hk = lm === 'broken' && rt.haven ? rt.haven.fogDensity : 1;   // the fog harbour's people back: the bank thins with them (systems/foghaven.js)
       // it comes on slowly over a long way (owner: "the player feels like he is slowly getting surrounded"), nothing to see from afar
-      if (B.kind === 'fog') { const f = hk * smoothstep(B.R + 220, B.R * 0.6, d) * (lit ? 0.45 * clear : this.open(lm, upgrades) ? 0.7 : by ? 0.7 : 1); this.fog = Math.max(this.fog, f); if (lm === 'broken') { this.bankFog = f; this.bankClear = lit ? 14 : 6; } }
+      if (B.kind === 'fog') { const f = hk * smoothstep(B.R + 220, B.R * 0.6, d) * (lm === 'broken' ? (lit ? 0.9 : 1) : lit ? 0.45 * clear : this.open(lm, upgrades) ? 0.7 : by ? 0.7 : 1);   /* the Halved Isle's bank stays thick with the lantern too (owner, 2026-11-27: "it should seem there is no way out"); the lamp keeps only your deck clear */ this.fog = Math.max(this.fog, f); if (lm === 'broken') { this.bankFog = f; this.bankClear = lit ? 14 : 6; } }
       if (d > B.R + 4 || freeze || by) continue;
       const k = `${lm}`;
       if (this.open(lm, upgrades)) {

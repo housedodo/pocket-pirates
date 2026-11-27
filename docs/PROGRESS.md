@@ -2755,3 +2755,19 @@ frame and wide map; moon phases and the Eye's shape (not in the summary list).
   variations now play full to dread 0.36 (about 975 from Tama, deep in the Trade Belt) and fade out by 0.45 (the Belt's edge, 1150);
   before, full to 0.2 (about 625) and gone by 0.32 (about 890). Stage 2 now runs 0.36-0.45 in to 0.52-0.64 out, stage 3 0.52-0.64 in to
   0.78-0.9 out. AUDIO.md updated. Not judged by ear (headless runs cannot).
+- **Haven Hesk is rebuilt with food and hands; the fog has no way out** (owner, 2026-11-27: "no option to take passengers or buy goods,
+  since only the lighthouse keeper is there at first; the only possible thing to deliver is food and some workforce, maybe people from
+  the crew stay to help out; built Haven Hesk around that idea; make the fog denser, right now lighthouses and shapes from the outside
+  are still visible"):
+  - Hesper asks for two things only: food for the ones who come back (2 days of stores, or 2 fish, or 3 fruit; 2 points) and hands to
+    rebuild (one of your crew stays for good, hired in another harbour's tavern; 4 points; she names them later). Her old list (oil,
+    salt, cloth, glass, rope) is gone. `foghaven.js FOOD_PTS, HAND_PTS`.
+  - What opens as it comes back (`havenOpen`): abandoned and flicker, the board with Hesper only (no market, tavern or shipwright sign,
+    no errands, commissions, passage, rumours, chart, local stories, morning's work, free hull patch); stirring, the market and errands;
+    bustling, everything.
+  - The fog: the lens lantern no longer clears the bank (0.9 of full, it keeps only your deck clear); deep in it you see about 48 units
+    (`main.js BANK_FAR`); islands and ships past the fog are not drawn (lamps and beams ignore fog); the sky goes overcast (sun, moon and
+    stars hidden) and takes the fog's colour. People coming back still thin it, and it lifts when the harbour is back.
+  Verified headless: the board at abandoned (Hesper, food, hands; signs only Board and Set sail), giving food and a hand (Gus stays),
+  bustling with all signs; inside the bank no island past the fog drawn, day and night. Previews `docs/proposals/sky/fog_inside.png`,
+  `docs/proposals/world/hesk_board_abandoned.png`.

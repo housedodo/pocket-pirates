@@ -13,6 +13,7 @@ import { UPGRADES, MAX_LEVEL, UP_CARD } from '../upgrades.js';
 import { storesNeed, fillStores, STORE_PRICE } from '../systems/voyage.js';
 import { handRows, bindHandRows, handOn } from '../systems/hands.js';
 import { harbourRows, bindHarbourRows, feastAt, feelOf, noteSold } from '../systems/harbours.js';
+import { havenOpen } from '../systems/foghaven.js';
 import { GOODS, tradeOn, price as tradePrice, sellPrice, cargo, carried, room, buy as tradeBuy, sellAll } from '../systems/trade.js';
 import { CHAIN_COST } from '../combat.js';
 import { GEAR, gearOn, aboard, leftAt, leave, takeBack, inBoat, washedUp, soldHere, priceHere, SOLD_IN, SOLD_ELSEWHERE } from '../systems/gearplay.js';
@@ -97,14 +98,14 @@ export function restAtTavern(cost) {
   }, 1100);
 }
 export function renderHarbour() {
-  if (!isOpen(state, 'tab', rt.hbTab)) rt.hbTab = 'board';   // a sign that has not opened yet: back to the board
+  if (!isOpen(state, 'tab', rt.hbTab) || !havenOpen(rt.harbourIsl.desc, rt.hbTab)) rt.hbTab = 'board';   // a sign that has not opened yet (or Haven Hesk before it is back): the board
   const d = rt.harbourIsl.desc, rep = repOf(state, d.id), lvl = friendLevel(rep);
   const asleep = caysAsleep(d.region, state.time * 24, G.objectives.current && G.objectives.current.id);   // the Cays sleep by day (regions.js, M-FREE-1)
   $('hbName').textContent = d.name;
   if ($('hbLine').style.display === 'none') $('hbLine').textContent = rt.harbourLine;
   $('hbBannerName').textContent = d.name;
   $('hbGold').textContent = state.gold;
-  $('hbTabs').querySelectorAll('button').forEach((b) => b.classList.toggle('on', b.dataset.t === rt.hbTab));
+  $('hbTabs').querySelectorAll('button').forEach((b) => { b.classList.toggle('on', b.dataset.t === rt.hbTab); b.style.display = b.dataset.t === 'board' || b.dataset.t === 'sail' || havenOpen(d, b.dataset.t) ? '' : 'none'; });   // Haven Hesk: only Hesper at first (systems/foghaven.js)
   $('hbPlace').textContent = { board: "Harbourmaster's board", market: 'Market', tavern: 'Tavern', wright: 'Shipwright' }[rt.hbTab];
   postBadges(d, rep);
   const pane = $('hbPane');
@@ -128,7 +129,7 @@ export function renderHarbour() {
     for (const lt of lettersAt(d)) html += `<div class="sec">A LETTER</div><div class="qrow letter"><div><b>${pxi('letter')} ${lt.title}</b><br><small>${lt.sub}</small></div><button id="takeLetter" data-letter="${lt.key}">Take it</button></div>`;
     if (due.length) html += `<div class="sec">FINISH HERE</div>${due.join('')}`;
     html += harbourRows(d);   // the harbour's trouble, the customs house, a morning's work (systems/harbours.js)
-    if (G.lifeOn()) {   // the harbour's own person and their story (harbourlife.js), and this harbour's day in the week
+    if (G.lifeOn() && havenOpen(d, 'life')) {   // the harbour's own person and their story (harbourlife.js), and this harbour's day in the week
       for (const r of asleep ? [] : life.residentRows(state, G.world, d, { night: state.time * 24 >= 19 || state.time * 24 < 5 })) {
         if (r.after) html += `<div class="sec">${r.who.toUpperCase()}</div><small class="${r.dark ? 'darkline' : ''}">${r.after}</small>`;
         else if (r.wait) html += `<div class="sec">${r.who.toUpperCase()}</div><small>${r.text}</small>`;
@@ -137,36 +138,38 @@ export function renderHarbour() {
       html += `<div class="sec">THIS WEEK</div><small>${life.eventLine(d, state)}: ${life.gameOf(d).name} in the tavern pays double.</small>`;
       { const sg = sightsAt(state, d, { region: regionAt(d.x, d.z, state.seed), market: isMarketDay() }); if (sg.length) html += `<div class="sec">ON THE QUAY</div>${sg.map((x) => `<small class="${x.dark ? 'darkline' : ''}">${x.text}</small>`).join('<br>')}`; }   // what the region keeps (customs.js)
     }
-    html += feelLine(FL.board) + '<div class="sec">DELIVERY</div>';
-    const jo = state.job || !FL.jobs ? null : makeJob(G.world, d, state.serial[d.id] || 0, !goalReached(state, 'tavern') ? 420 : 750);   // the first jobs stay close
+    const HJ = havenOpen(d, 'jobs');   // Haven Hesk before it is back: no errands, no passage, no rumours (systems/foghaven.js)
+    html += feelLine(FL.board) + (HJ ? '<div class="sec">DELIVERY</div>' : '');
+    const jo = state.job || !FL.jobs || !HJ ? null : makeJob(G.world, d, state.serial[d.id] || 0, !goalReached(state, 'tavern') ? 420 : 750);   // the first jobs stay close
     const j = state.job || (asleep && jo && regionAt(jo.x, jo.z, state.seed) === 'free' ? null : jo);   // by day a Cays board posts only deliveries out of the Cays
-    if (state.job && state.job.toId === d.id) html += '<small>Deliver the one above first.</small>';
+    if (!HJ) { /* nothing posted */ }
+    else if (state.job && state.job.toId === d.id) html += '<small>Deliver the one above first.</small>';
     else if (state.job) html += `<div class="qrow"><div><b>${pxi('letter')} ${state.job.item}</b><br><small>to ${state.job.toName} · ${bearingName(state.job.x - d.x, state.job.z - d.z)}</small></div><small>${state.job.reward}g</small></div>`;
     else if (j && j.timed) {   // the Crown keeps time: a deadline, two prices, and the shared book of arrivals (regions.js)
       const due = clockAt(nowD(state) + j.timed / DAY_SECONDS), on = jobPay(state, { ...j, due: Infinity }, 'crown'), late = jobPay(state, { ...j, due: -1 }, 'crown');
       html += `<div class="qrow"><div><b>${pxi('letter')} ${j.item}</b><br><small>to ${j.toName} · ${bearingName(j.x - pierOf(d).x, j.z - pierOf(d).z)}, ${j.dist} · by ${due}: ${on}g, late ${late}g</small></div><button id="jobAccept">Accept</button></div><div class="ledgerrow">${recordMarks(state, pxi, isOpen(state, 'know', 'arrivals'), lineAhead(d, j, isOpen(state, 'know', 'arrivals')))}</div>`;
     } else if (j) html += `<div class="qrow"><div><b>${pxi('letter')} ${j.item}</b><br><small>to ${j.toName} · ${bearingName(j.x - pierOf(d).x, j.z - pierOf(d).z)}, ${j.dist} · ${j.reward}g</small></div><button id="jobAccept">Accept</button></div>`;
     else html += '<small>Nothing today.</small>';
-    html += `<div class="sec">COMMISSIONS (${state.quests.length}/3)</div>`;
+    if (HJ) html += `<div class="sec">COMMISSIONS (${state.quests.length}/3)</div>`;
     const mine = state.quests.filter((q) => q.giverId === d.id);
     for (const q of mine) {
       const need = questNeed(q), have = questProgress(q, state);
       if (have < need) html += `<div class="qrow"><div><b>${questIcon(q)} ${questTitle(q, rt.dread)}</b><br><small>${have}/${need} · ${q.reward}g</small></div></div>`;
     }
-    const offers = asleep ? [] : commissionsFor(G.world, d, state.serial[d.id + '#c'] || 0).filter((o) => !state.quests.some((x) => x.id === o.id)).slice(0, FL.jobs);   // a dying harbour sends little, a thriving one a lot
+    const offers = asleep || !HJ ? [] : commissionsFor(G.world, d, state.serial[d.id + '#c'] || 0).filter((o) => !state.quests.some((x) => x.id === o.id)).slice(0, FL.jobs);   // a dying harbour sends little, a thriving one a lot
     for (const o of offers) {
       const q = { ...o, base: 0 };
       html += `<div class="qrow"><div><b>${questIcon(o)} ${questTitle(q, rt.dread)}</b><br><small>${o.type === 'crates' ? `lost ${bearingName(o.center.x - d.x, o.center.z - d.z)} of here · ` : ''}${o.reward}g</small></div><button data-accept="${o.id}" ${state.quests.length >= 3 ? 'disabled' : ''}>Accept</button></div>`;
     }
-    if (!mine.length && !offers.length) html += asleep ? '<small>The quay is asleep. Come back after dark.</small>' : '<small>The board is empty. Come back after you have been out to sea.</small>';
-    const pass = asleep ? null : passengerAt(d);
+    if (HJ && !mine.length && !offers.length) html += asleep ? '<small>The quay is asleep. Come back after dark.</small>' : '<small>The board is empty. Come back after you have been out to sea.</small>';
+    const pass = asleep || !havenOpen(d, 'passage') ? null : passengerAt(d);
     if (pass) html += `<div class="sec">PASSAGE</div><div class="qrow"><div><b>${pxi('talk')} ${pass.name}, ${pass.who}</b><br><small>wants passage to ${pass.toName} · pays ${pass.reward}g</small></div><button id="takePass">Take aboard</button></div>`;
-    const r = asleep ? null : findRumour(G.world, d, state);
+    const r = asleep || !HJ ? null : findRumour(G.world, d, state);
     if (r) html += `<div class="sec">RUMOURS</div><div class="qrow"><div><b>${pxi('talk')} A sailor talks of buried treasure</b></div><button id="rumourBuy" ${state.gold >= RUMOUR_COST ? '' : 'disabled'}>${RUMOUR_COST}g</button></div>`;
     const chartCost = Math.ceil(30 * G.costMul());
-    if (!state.charts[d.id]) html += `<div class="sec">LOCAL CHART</div><div class="qrow"><div><b>${pxi('flag')} A hand-drawn chart of these waters</b><br><small>the islands around ${d.name}, as the locals know them, and the way through the first fog</small></div><button id="buyChart" ${state.gold >= chartCost ? '' : 'disabled'}>${chartCost}g</button></div>`;
-    for (const r of G.threads.harbourRows(d)) html += `<div class="sec">ON THE PIER</div><div class="qrow letter"><div><b>${pxi('talk')} ${r.html}</b></div><button class="thrAct" data-act="${r.id}">${r.btn}</button></div>`;
-    const po = petOffer(d); if (po) html += `<div class="sec">ON THE PIER</div><div class="qrow letter"><div><b>${pxi('talk')} ${PETS[po].title}</b><br><small>${PETS[po].sub}</small></div><button id="takePet" data-pet="${po}">${PETS[po].btn}</button></div>`;
+    if (HJ && !state.charts[d.id]) html += `<div class="sec">LOCAL CHART</div><div class="qrow"><div><b>${pxi('flag')} A hand-drawn chart of these waters</b><br><small>the islands around ${d.name}, as the locals know them, and the way through the first fog</small></div><button id="buyChart" ${state.gold >= chartCost ? '' : 'disabled'}>${chartCost}g</button></div>`;
+    for (const r of havenOpen(d, 'life') ? G.threads.harbourRows(d) : []) html += `<div class="sec">ON THE PIER</div><div class="qrow letter"><div><b>${pxi('talk')} ${r.html}</b></div><button class="thrAct" data-act="${r.id}">${r.btn}</button></div>`;
+    const po = havenOpen(d, 'life') && petOffer(d); if (po) html += `<div class="sec">ON THE PIER</div><div class="qrow letter"><div><b>${pxi('talk')} ${PETS[po].title}</b><br><small>${PETS[po].sub}</small></div><button id="takePet" data-pet="${po}">${PETS[po].btn}</button></div>`;
     pane.innerHTML = html;
     const bc = $('buyChart'); if (bc) bc.addEventListener('click', () => {
       if (state.gold < chartCost) return; state.gold -= chartCost; state.charts[d.id] = true;
