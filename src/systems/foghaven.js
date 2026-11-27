@@ -8,7 +8,14 @@ import { state } from '../core/state.js';
 import { rt, G } from '../core/runtime.js';
 import { toast } from '../ui/dom.js';
 import { pxi } from '../pixelui.js';
-import { clamp, smoothstep } from '../util.js';
+import { clamp, smoothstep, mulberry32, hash2 } from '../util.js';
+import * as THREE from 'three';
+import { scene } from '../core/engine.js';
+import { Builder } from '../builder.js';
+import { TILE } from '../textures.js';
+import { mats } from '../psx.js';
+import { villager, pierOf } from '../world.js';
+import { waveHeight } from '../ocean.js';
 
 const DEMO = () => typeof window !== 'undefined' && window.__BUILD === 'demo';
 export const HAVEN_ID = '-12,-3', LIGHT_ID = '-13,-2';   // the harbour, and Hesper's rock with the light (world.js FORCED)                 // its cell (world.js FORCED); the Halved Isle is next door at -11,-2
@@ -91,6 +98,7 @@ export function havenTick(dt) {
   const isl = G.world.islands && [...G.world.islands.values()].find((i) => i.desc.id === LIGHT_ID); if (!isl) return;
   const h = haven(), t = rt.tNow || 0;
   isl.havenGone = !h.keeperPresent;   // world.js heskLight: her boat and her on the chair, or the note
+  rowersTick(dt, h);
   if (!isl.beam) return;
   if (!isl.lit) return;
   if (h.keeperPresent) {   // weak: it catches and drops; strong: a steady, long beam
@@ -100,6 +108,44 @@ export function havenTick(dt) {
   } else {   // gone: dark; on some nights the lamp burns by itself, low and still, and nobody is up there
     const burns = (state.dayN || 0) % 4 === 1 && Math.sin(t * 0.21) > 0.6;
     isl.beam.visible = false; if (isl.lampOn) isl.lampOn.visible = burns; if (isl.lampOff) isl.lampOff.visible = !burns;
+  }
+}
+
+// ---- the ones who come back (owner, 2026-11-27, suggestion 5): as the harbour fills, its people row in out of the fog one boat at a
+// time, two to a boat, and tie up along the pier; the boats stay there. One boat for every ROW_PER people. Only while the ship is near
+// enough to see it (otherwise they are simply moored when you come). Full game only.
+export const ROW_PER = 5, ROW_SPEED = 2.2, ROW_FROM = 115, ROW_SEE = 190;
+let rowing = null; const moored = [];
+function boatMesh(withRowers, seed) {
+  const b = new Builder(), r = mulberry32(seed);
+  b.box(0, -0.15, 0, 1.2, 0.45, 2.8, '#8a5a34', TILE.planks); b.box(0, 0.3, 0, 0.9, 0.06, 2.3, '#5e4028', TILE.planks);   // hull, thwarts
+  b.box(0, 0.3, 1.2, 0.5, 0.2, 0.3, '#8a5a34', TILE.planks);
+  if (withRowers) { villager(b, 0, 0.1, -0.5, 0, r, 'fisher'); villager(b, 0, 0.1, 0.6, Math.PI, r); }
+  const m = new THREE.Mesh(b.geometry(), mats.props); const g = new THREE.Group(); g.add(m);
+  if (withRowers) for (const sx of [-1, 1]) { const o = new Builder(); o.box(0, 0, 0, 2.2, 0.08, 0.12, '#6b4a2e', TILE.bark); const om = new THREE.Mesh(o.geometry(), mats.props); om.position.set(sx * 0.9, 0.5, -0.4); g.add(om); g.userData.oars = (g.userData.oars || []).concat(om); }
+  scene.add(g); return g;
+}
+function berth(d, k) {   // the k-th boat's place along the pier, alternating sides
+  const p = pierOf(d), th = d.dockTh, side = k % 2 ? 1 : -1, along = 3 + Math.floor(k / 2) * 3.4;
+  return { x: p.x - Math.cos(th) * along + Math.cos(th + Math.PI / 2) * side * 2.6, z: p.z - Math.sin(th) * along + Math.sin(th + Math.PI / 2) * side * 2.6, ry: -th + Math.PI / 2 };
+}
+function rowersTick(dt, h) {
+  const d = G.world.desc(...HAVEN_ID.split(',').map(Number)); if (!d) return;
+  const f = S(), want = Math.min(8, Math.floor(h.population / ROW_PER)); f.arrived = Math.min(f.arrived || 0, want);
+  const t = rt.tNow || 0, S0 = G.ship.pos, near = Math.hypot(S0.x - d.x, S0.z - d.z) < ROW_SEE;
+  while (moored.length < f.arrived) { const k = moored.length, b = berth(d, k), m = boatMesh(false, 900 + k); m.position.set(b.x, 0, b.z); m.rotation.y = b.ry; moored.push(m); }   // those already in
+  for (const m of moored) m.position.y = waveHeight(m.position.x, m.position.z, t, 0.3) - 0.05;
+  if (!rowing && want > f.arrived) {
+    if (!near) { f.arrived++; return; }   // nobody saw them come: they are simply there next time
+    const a = hash2(f.arrived, 7, 31) % 628 / 100, from = { x: d.x + Math.cos(a) * ROW_FROM, z: d.z + Math.sin(a) * ROW_FROM }, to = berth(d, f.arrived);
+    rowing = { m: boatMesh(true, 500 + f.arrived), from, to, k: 0, len: Math.hypot(to.x - from.x, to.z - from.z) };
+  }
+  if (rowing) {
+    const R = rowing; R.k = Math.min(1, R.k + dt * ROW_SPEED / R.len);
+    const x = R.from.x + (R.to.x - R.from.x) * R.k, z = R.from.z + (R.to.z - R.from.z) * R.k;
+    R.m.position.set(x, waveHeight(x, z, t, 0.3) - 0.05, z); R.m.rotation.y = Math.atan2(R.to.x - R.from.x, R.to.z - R.from.z);
+    for (const o of R.m.userData.oars || []) o.rotation.x = Math.sin(t * 2.4) * 0.5;   // the stroke
+    if (R.k >= 1) { scene.remove(R.m); rowing = null; f.arrived = (f.arrived || 0) + 1; }
   }
 }
 
@@ -176,10 +222,11 @@ export function havenAct(d, k) {
 // ---- tests and dev (never in the playtest build): set the harbour's state without the deliveries
 export const havenDebug = {
   state: () => ({ ...S(), ...haven() }),
+  rower: () => (rowing ? rowing.m.position.toArray() : null), moored: () => moored.map((m) => m.position.toArray()),
   set(stage) {   // 'abandoned' | 'flicker' | 'stirring' | 'bustling' | 'forsaken'
     const f = S(), r = { abandoned: 0, flicker: 0.3, stirring: 0.6, bustling: 1 }[stage];
     if (stage === 'forsaken') { f.met = true; f.gone = true; f.goneAt = now(); return this.state(); }
-    f.gone = false; f.note = false; f.met = true; f.given = 0; f.hands = []; f.food = Math.ceil((r * FULL) / FOOD_PTS);
+    f.gone = false; f.note = false; f.met = true; f.given = 0; f.hands = []; f.food = Math.ceil((r * FULL) / FOOD_PTS); f.arrived = Math.max(0, Math.floor(POP_MAX * r / ROW_PER) - 1);   // one still to row in
     const rep = state.rep[HAVEN_ID]; if (rep) rep.last = now();
     return this.state();
   },

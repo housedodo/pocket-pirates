@@ -875,13 +875,14 @@ function heskLight(A, D, extra, d, rng) {
   lighthouse(A, extra, tx, ty, tz, 1, d, 'film'); d.lhPos = { x: tx, z: tz };
   const WH = '#d9d5cb', ROOF = '#3a3a40', STONE = '#8a857c';
   // the long low range from the tower's foot, and the keeper's house at its end
-  A.box(tx + 4.3, ty, tz, 5.6, 1.7, 2.2, WH, TILE.wall, TILE.planks, '#5a5650'); A.gable(tx + 4.3, ty + 1.7, tz, 5.8, 0.9, 2.4, ROOF, TILE.roof, WH);
-  const hx = tx + 8.4, hz = tz + 0.6, hy = g(hx, hz) - 0.15;
-  A.box(hx, hy, hz, 3.0, 2.5, 3.2, WH, TILE.wall, TILE.planks, '#5a5650'); A.gable(hx, hy + 2.5, hz, 3.2, 1.7, 3.4, ROOF, TILE.roof, WH);
-  for (const dz of [-0.8, 0.8]) { A.box(hx - 1.55, hy + 2.7, hz + dz, 0.6, 0.6, 0.6, WH, TILE.wall); A.box(hx - 1.55, hy + 3.3, hz + dz, 0.7, 0.18, 0.7, ROOF, TILE.roof); }   // the dormers
-  A.box(hx + 0.9, hy + 3.4, hz - 0.9, 0.4, 1.2, 0.4, STONE, TILE.stone);   // the chimney
+  // (owner, 2026-11-27: "make the house smaller"): the range is low and narrow, the house a small cottage under the tower
+  A.box(tx + 3.6, ty, tz, 4.4, 1.25, 1.6, WH, TILE.planks, TILE.planks, '#5a5650'); A.gable(tx + 3.6, ty + 1.25, tz, 4.6, 0.65, 1.8, ROOF, TILE.roof, WH);
+  const hx = tx + 6.6, hz = tz + 0.4, hy = g(hx, hz) - 0.15;
+  A.box(hx, hy, hz, 2.1, 1.75, 2.3, WH, TILE.wall, TILE.planks, '#5a5650'); A.gable(hx, hy + 1.75, hz, 2.3, 1.15, 2.5, ROOF, TILE.roof, WH);
+  for (const dz of [-0.55, 0.55]) { A.box(hx - 1.08, hy + 1.9, hz + dz, 0.4, 0.42, 0.42, WH, TILE.wall); A.box(hx - 1.08, hy + 2.32, hz + dz, 0.5, 0.12, 0.5, ROOF, TILE.roof); }   // the dormers
+  A.box(hx + 0.6, hy + 2.3, hz - 0.6, 0.3, 0.9, 0.3, STONE, TILE.stone);   // the chimney
   // the shed down by the landing
-  const sx = tx + 2.5, sz = tz - 5.2, sy = g(sx, sz) - 0.1; A.box(sx, sy, sz, 2.0, 1.4, 1.6, '#6e655a', TILE.planks); A.gable(sx, sy + 1.4, sz, 2.2, 0.7, 1.8, ROOF, TILE.roof, '#6e655a');
+  const sx = tx + 2.5, sz = tz - 5.2, sy = g(sx, sz) - 0.1; A.box(sx, sy, sz, 1.5, 1.05, 1.2, '#6e655a', TILE.planks); A.gable(sx, sy + 1.05, sz, 1.7, 0.55, 1.4, ROOF, TILE.roof, '#6e655a');
   // stones along the shore
   for (let i = 0; i < 9; i++) { const th = rng() * 6.283, rr = d.r * (0.7 + rng() * 0.25), x = Math.cos(th) * rr, z = Math.sin(th) * rr; A.blob(x, g(x, z) - 0.3, z, 0.6 + rng() * 0.7, 0.35 + rng() * 0.4, 0.6 + rng() * 0.6, rng() < 0.5 ? '#5e5a54' : '#4a4744', TILE.stone, 0.35, i); }
   // her boat, pulled up on the stones below the shed, and her chair by the tower door (state props: foghaven.js sets isl.havenGone)

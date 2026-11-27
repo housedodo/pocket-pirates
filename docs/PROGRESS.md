@@ -2784,3 +2784,10 @@ frame and wide map; moon phases and the Eye's shape (not in the summary list).
   - RULES 24d: lights carry through the night fog, except in the Halved Isle's bank.
   Verified headless: the distances (isle to harbour 149, light to harbour 89), the rock by day, dusk and night with the bank lifted and
   in the fog, and gone (no boat). Preview `docs/proposals/world/hesk_light.png`.
+- **The ones who come back, and a smaller keeper's house** (owner, 2026-11-27: "do 5 and make the house smaller"; `foghaven.js
+  rowersTick`, `world.js heskLight`): as Haven Hesk fills, its people row in out of the fog one boat at a time (two to a boat, the oars
+  pulling), from about 115 out to a berth along the pier, and the boat stays tied up there: one boat for every 5 people, up to 8. If you
+  are not within 190 to see it, the boat is simply there when you come. When Hesper is gone the boats stay, empty. Hesk Light's
+  keeper's house is a small cottage now (2.1 x 1.75 x 2.3, was 3.0 x 2.5 x 3.2), the range lower and narrower, the shed smaller.
+  Verified headless: a boat rowing in with two people, three moored at the pier, the smaller house. Preview
+  `docs/proposals/world/hesk_rowers.png`.
