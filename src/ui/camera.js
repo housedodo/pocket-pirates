@@ -110,8 +110,16 @@ export function initCamera1() {
   canvas.addEventListener('wheel', (e) => { rt.zoomT = clamp(rt.zoomT * (1 + Math.sign(e.deltaY) * 0.1), ZOOM_MIN, G.ship.mods.zoomMax); e.preventDefault(); }, { passive: false });
   rt.drag = null;
   rt.yawT = 0, rt.camYaw = 0, rt.lastCamInput = -99;   // orbit around the boat (drag sideways, Z / X, V resets)
-  canvas.addEventListener('pointerdown', (e) => { rt.drag = { x: e.clientX, y: e.clientY, p: rt.pitchT, yaw: rt.yawT }; rt.lastCamInput = rt.tNow; canvas.setPointerCapture(e.pointerId); });
-  canvas.addEventListener('pointermove', (e) => { if (rt.drag && !rt.modal) { rt.pitchT = clamp(rt.drag.p + (e.clientY - rt.drag.y) * 0.006, PITCH_MIN, 1.35); rt.yawT = rt.drag.yaw + (e.clientX - rt.drag.x) * 0.008; /* drag right, the view swings right (it felt inverted) */ rt.lastCamInput = rt.tNow; } });
+  // two fingers pinch to zoom (owner, 2026-11-27: "a full version for mobile phone"); one finger drags the view as the mouse does
+  const fingers = new Map(); let pinch = null;
+  const spread = () => { const [a, b] = [...fingers.values()]; return Math.hypot(a.x - b.x, a.y - b.y) || 1; };
+  canvas.addEventListener('pointerdown', (e) => { fingers.set(e.pointerId, { x: e.clientX, y: e.clientY }); if (fingers.size === 2) { rt.drag = null; pinch = { d: spread(), z: rt.zoomT }; return; }
+    rt.drag = { x: e.clientX, y: e.clientY, p: rt.pitchT, yaw: rt.yawT }; rt.lastCamInput = rt.tNow; canvas.setPointerCapture(e.pointerId); });
+  const lift = (e) => { fingers.delete(e.pointerId); if (fingers.size < 2) pinch = null; };
+  canvas.addEventListener('pointerup', lift); canvas.addEventListener('pointercancel', lift);
+  canvas.addEventListener('pointermove', (e) => { if (fingers.has(e.pointerId)) fingers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pinch && fingers.size === 2 && !rt.modal) { rt.zoomT = clamp(pinch.z * pinch.d / spread(), ZOOM_MIN, G.ship.mods.zoomMax); rt.lastCamInput = rt.tNow; return; }
+    if (rt.drag && !rt.modal) { rt.pitchT = clamp(rt.drag.p + (e.clientY - rt.drag.y) * 0.006, PITCH_MIN, 1.35); rt.yawT = rt.drag.yaw + (e.clientX - rt.drag.x) * 0.008; /* drag right, the view swings right (it felt inverted) */ rt.lastCamInput = rt.tNow; } });
   canvas.addEventListener('pointerup', () => { rt.drag = null; });
 }
 

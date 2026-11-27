@@ -358,7 +358,7 @@ export class Mate {
     this.onBlip = null;   // (dark, guest) a soft voice blip every few letters (main.js plugs in audio.blip)
     this.el.addEventListener('pointerdown', () => this.skip());
   }
-  say(text, dark = false, who = null) { if (this.only && text !== this.only) return; this.queue.push({ text, dark, who }); }   // only: one line may still be said (Your Seat's pan)
+  say(text, dark = false, who = null) { if (this.only && text !== this.only) return; if (document.body.classList.contains('mobile')) text = text.replace(/ \([A-Z]\)/g, ''); this.queue.push({ text, dark, who }); }   // only: one line may still be said (Your Seat's pan); on a phone, no keyboard letters
   get busy() { return !!this.cur || this.queue.length > 0; }
   /** click / Enter: finish typing, or move on to the next line */
   skip() {

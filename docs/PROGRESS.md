@@ -2812,3 +2812,13 @@ frame and wide map; moon phases and the Eye's shape (not in the summary list).
     ordinary house in it draws from that; the variety is per house (hashed from its place): units, extensions, shutters, size.
   Churches, belfries, warehouses, round huts, the tavern and one style's flat-roofed cubes stay as they are. Preview (a street of four
   from one harbour kit each) `docs/proposals/world/house_families.png`. Not decided.
+
+## Full game for phones (2026-11-27)
+- Owner: "Make a full version for mobile phone". `python3 scripts/single.py mobile` builds `pocket-pirates-mobile.html`: the full game
+  (`__BUILD = 'full'`, URL flags ignored) with `__MOBILE` set, which turns on `body.mobile` (also on any coarse-pointer screen).
+- Touch: the existing pad is always shown; new buttons for the log and chart (M), the oars (G) and the shot (B) send the same keys;
+  two fingers pinch the zoom (`ui/camera.js`), one finger still drags the view.
+- Fit: on short screens (under 520 high) the HUD is scaled to 0.72 and the modals to 0.78, touch buttons 56 px; in portrait a card asks to
+  turn the phone. Web-app meta tags and the notch safe area in `index.html`. Mara's lines lose the "(M)"-style key letters on phones.
+- Checked headless as an emulated iPhone 13 (844×390): buttons laid out and visible, the chart opens from its button, portrait card.
+  Not checked: a real phone (speed, feel, sound unlock), pinch on a real screen.

@@ -49,3 +49,5 @@ unexpectedly, into cosmic horror. Everything is procedural: no image or model fi
 - Single-file games (`npx vite build && python3 scripts/single.py`: `pocket-pirates-demo.html` for sharing,
   `pocket-pirates-demo-silent.html`, `pocket-pirates-dev.html` with mixer F8, Sound Studio F9, test tools; `pocket-pirates-full.html` the whole game for playtesting,
   no test tools, URL flags ignored; `python3 scripts/single.py full` builds just that one) only when asked.
+  `pocket-pirates-mobile.html` (`single.py mobile`) is the full game for phones: landscape only (a turn-the-phone card in portrait),
+  the touch pad always on, extra buttons for the log (M), oars (G) and shot (B), pinch to zoom, a smaller HUD; Mara drops the key letters.

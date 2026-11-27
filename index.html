@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="mobile-web-app-capable" content="yes" /><meta name="apple-mobile-web-app-capable" content="yes" /><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" /><meta name="theme-color" content="#0b0820" />
   <title>Hoist</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 16 16%27%3E%3Crect width=%2716%27 height=%2716%27 fill=%27%231b86c6%27/%3E%3Cpath d=%27M7 2h1v9H7zM8 3l5 6H8z%27 fill=%27%23fff4d8%27/%3E%3Cpath d=%27M3 11h10l-2 3H5z%27 fill=%27%23a0542c%27/%3E%3C/svg%3E" />
   <style>
@@ -500,6 +501,13 @@
     #touch { position: fixed; inset: auto 0 0 0; height: 40%; pointer-events: none; display: none; }
     #touch button { pointer-events: auto; position: absolute; width: 64px; height: 64px; border-radius: 0; font: 700 26px monospace; color: var(--ink); background: var(--pxbtn) 0 0 / 32px 32px; border: none; image-rendering: pixelated; box-shadow: 0 -3px 0 var(--pxedge), 0 3px 0 var(--pxedge), -3px 0 0 var(--pxedge), 3px 0 0 var(--pxedge); }   /* pixel-edged like every panel (audit) */
     @media (pointer: coarse) { #touch { display: block; } #help { display: none; } }
+    /* the phone build (pocket-pirates-mobile.html) and any touch screen: the touch controls always, the interface scaled for a small screen,
+       and a word to turn the phone sideways (owner, 2026-11-27: "make a full version for mobile phone") */
+    body.mobile #touch, body.mobile #tP { display: block; } body.mobile #help { display: none; }
+    @media (max-height: 520px) { body.mobile #hud { zoom: 0.72; } body.mobile .modal { zoom: 0.78; } body.mobile #touch button { width: 56px; height: 56px; } }
+    #turnPhone { position: fixed; inset: 0; z-index: var(--z-awaken); display: none; background: #0b0820; color: var(--ink); align-items: center; justify-content: center; flex-direction: column; gap: 18px; font: 18px 'DotGothic16', monospace; text-align: center; }
+    #turnPhone i { font-style: normal; font-size: 64px; display: inline-block; transform: rotate(90deg); }
+    @media (orientation: portrait) { body.mobile #turnPhone { display: flex; } }
     /* ===== pixel style for the whole interface (textures + icons come from src/pixelui.js) ===== */
     :root { --pxfont: "DotGothic16", "Courier New", monospace; --pxedge: var(--edge-navy); }
     html, body, .txt, .menu, .menu button, .btn, #title, #harbour, #shipmodal, #yardmodal { font-family: var(--pxfont); }
@@ -891,8 +899,10 @@
       <button class="pback">Back</button>
     </div>
   </div></div>
+  <div id="turnPhone"><i>&#9647;</i><div>Turn your phone sideways</div></div>
   <button id="tP"><i class="pxi pause"></i></button>
   <div id="touch">
+    <button id="tM" style="left:12px;bottom:164px"><i class="pxi letter"></i></button><button id="tG" style="right:12px;bottom:164px"><i class="pxi boat"></i></button><button id="tB" style="right:50%;margin-right:112px;bottom:14px"><i class="pxi chain"></i></button>
     <button id="tL" style="left:12px;bottom:84px"><i class="pxi left"></i></button><button id="tR" style="left:92px;bottom:84px"><i class="pxi right"></i></button>
     <button id="tU" style="right:92px;bottom:84px"><i class="pxi up"></i></button><button id="tD" style="right:12px;bottom:84px"><i class="pxi down"></i></button>
     <button id="tE" style="right:50%;margin-right:-32px;bottom:14px">E</button><button id="tC" style="right:50%;margin-right:-104px;bottom:14px"><i class="pxi rod"></i></button><button id="tX" style="right:50%;margin-right:40px;bottom:14px"><i class="pxi ball"></i></button>

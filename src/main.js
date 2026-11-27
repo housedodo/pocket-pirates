@@ -782,6 +782,9 @@ $('tE').addEventListener('pointerdown', (e) => { begin(); if (rt.modal === 'harb
 $('tC').addEventListener('pointerdown', (e) => { begin(); if (fishing.active) { fishing.hold = true; fishing.press(true); } else fishing.press(); e.preventDefault(); });
 $('tC').addEventListener('pointerup', () => { fishing.hold = false; });
 $('tX').addEventListener('pointerdown', (e) => { begin(); fireCannons(); e.preventDefault(); });
+// the phone's extra buttons: the log and chart (M), the oars (G), the shot (B): the same as the keys
+for (const [id, code] of [['tM', 'KeyM'], ['tG', 'KeyG'], ['tB', 'KeyB']]) $(id).addEventListener('pointerdown', (e) => { begin(); window.dispatchEvent(new KeyboardEvent('keydown', { code, key: code.slice(3).toLowerCase() })); window.dispatchEvent(new KeyboardEvent('keyup', { code })); e.preventDefault(); });
+if (window.__MOBILE || (window.matchMedia && window.matchMedia('(pointer: coarse)').matches)) document.body.classList.add('mobile');   // the phone build, or any touch screen
 $('tP').addEventListener('pointerdown', (e) => { begin(); if (rt.modal) closeModal(); else openModal('pause'); e.preventDefault(); });
 
 initPause2();   // (ui/pause.js)

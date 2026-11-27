@@ -3,6 +3,7 @@
   pocket-pirates-demo-silent.html  the demo with no sound at all (no files, no synth), small
   pocket-pirates-dev.html   for working: every sound in public/audio + volumes.json, the mixer (F8) and test tools on
   pocket-pirates-full.html  for playtesting the whole game: every sound, no mixer, no test tools, URL flags ignored
+  pocket-pirates-mobile.html  the full game for phones (touch controls always on, a smaller interface, pinch to zoom)
 With names (demo, silent, dev, full) only those are built, e.g. `python3 scripts/single.py full`."""
 import base64, json, os, re, sys
 
@@ -34,6 +35,7 @@ for name, boot in [
     ('pocket-pirates-demo-silent.html', "<script>window.__BUILD='demo';window.__SILENT=true;window.__AUDIO={};window.__VOLUMES={};</script>"),
     ('pocket-pirates-dev.html', f"<script>window.__BUILD='dev';window.__AUDIO={json.dumps(sounds)};window.__VOLUMES={json.dumps(volumes)};</script>"),
     ('pocket-pirates-full.html', f"<script>window.__BUILD='full';window.__AUDIO={json.dumps(sounds)};window.__VOLUMES={json.dumps(volumes)};</script>"),
+    ('pocket-pirates-mobile.html', f"<script>window.__BUILD='full';window.__MOBILE=true;window.__AUDIO={json.dumps(sounds)};window.__VOLUMES={json.dumps(volumes)};</script>"),   # the full game for phones: touch controls, a smaller interface, pinch to zoom
 ]:
   want = sys.argv[1:]
   if want and not any(name == f'pocket-pirates-{w}.html' or (w == 'silent' and name.endswith('demo-silent.html')) for w in want): continue
