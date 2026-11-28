@@ -14,6 +14,7 @@ import { makeName, makePuzzle } from './lore.js';
 import { FRUITS, fruitOf } from './fruit.js';
 import { arcIdOf, ARCS } from './harbourlife.js';
 import { harbourKit, familyHouse, familyBuilding, tamaKit } from './housefamilies.js';
+import { FLORA, plantIsland, palmStands } from './flora.js';
 
 import { forcedCells, shapeLandmark, cutShore, lmHeight, lmColor, lmDecor, LM_DARK } from './landmarks.js';
 export const CELL = 110;
@@ -1317,6 +1318,7 @@ function tamaPolish(S, look, houses) {
       const rho = Math.hypot(h.x, h.z), fz = Math.min(4.6, rho - rP - 1.6); if (fz < 3.2) continue;
       A.push(h.x, H - 0.08, h.z, h.ry); A.push(0, 0, fz); const ox = DX[h.kind] || 0; picketFence(A, -3.0, 3.0, ox - 0.8, ox + 0.8); A.pop(); A.pop();
     }
+    { const k = pickSpots(1, 0.35, 0.75, 3.5)[0]; if (k) { FLORA.kapok(A, B, D, k[0], g(k[0], k[1]) - 0.05, k[1], 0.85); d.kapokAt = k; } }   // Tama's meeting tree (flora.js; FLORA.md), first to claim its ground
     pickSpots(12, 0.3, 0.84, 2.6).forEach(([x, z], i) => { const k = i % 3; bloomTree(S, x, g(x, z) - 0.1, z, 0.95 + r() * 0.35, k === 0 ? '#4a9a40' : '#3f8a38', k === 0 ? '#f4f0e8' : k === 1 ? '#e8402e' : '#f0a0c0'); });
     pickSpots(3, 0.5, 0.7, 4.2).forEach(([x, z, th]) => { A.push(x, g(x, z) - 0.08, z, Math.PI / 2 - th); for (const [hx, hz, hw, hl] of [[0, -2.4, 6.4, 0.8], [-3.2, 0, 0.8, 5.6], [3.2, 0, 0.8, 5.6]]) A.blob(hx, 0.45, hz, hw / 2, 0.55, hl / 2, '#3f8a38', TILE.leaf, 0.15, Math.floor(hx + hz)); for (let j = 0; j < 4; j++) { A.box(0, 0, -1.4 + j * 0.95, 5.2, 0.18, 0.5, '#7a5a3a', TILE.white); A.box(0, 0.18, -1.4 + j * 0.95, 5.0, 0.26, 0.32, j % 2 ? '#5aa844' : '#d8b848', TILE.leaf); } A.pop(); });   // hedged kitchen gardens
     { // the open ground either side of the street, between the pier and the square: used, not empty (STYLE 8.4). Its own rng (r): the houses do not move
@@ -1536,7 +1538,7 @@ function decorate(d, rng, A, B, D, extra) {
   if (d.blight) { blightDecor(d, rng, A); extra.hutB = new Builder(); darkHut(d, rng, extra.hutB); return; }   // the hut in its own mesh: hidden until the story reaches it
   DSTYLE = darkStyle(d);
   const palms = (n, t0, t1, hMin = 0.8, s0 = 0.9) => {
-    for (let i = 0; i < n; i++) { const p = spot(d, rng, t0, t1, hMin); if (p) palm(A, B, D, p[0], p[1], p[2], rng, s0 + rng() * 0.5); }
+    for (let i = 0; i < n; i++) { const p = spot(d, rng, t0, t1, hMin); if (!p) continue; const sc = s0 + rng() * 0.5; if (palmStands(d, p[0], p[2])) palm(A, B, D, p[0], p[1], p[2], rng, sc); else rng(); }   // the region thins its coconut palms (flora.js palmK); the rng is spent the same, so nothing else moves
   };
   const rocks = (n, t0, t1, r = 1.1) => {
     for (let i = 0; i < n; i++) {
@@ -1844,6 +1846,7 @@ function decorate(d, rng, A, B, D, extra) {
       break;
     }
   }
+  plantIsland(d, { A, B, D, spot, terrainHeight, shoreR, angleDiff, rng: mulberry32((d.seed * 7 + 911) >>> 0) });   // the region's plants (flora.js), on their own rng
   darkRuins(d, D);   // the run-down things of its dark mood (DSTYLE)
 }
 

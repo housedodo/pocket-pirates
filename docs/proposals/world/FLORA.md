@@ -1,4 +1,4 @@
-# Flora: what grows where (proposal, 2026-11-28)
+# Flora: what grows where (kept by the owner 2026-11-28: "keep the suggestions you made"; built in `flora.js plantIsland`)
 
 Owner: "Are there variations in the flora in the game? If not, create multiple different vegetations and suggest how they should be
 distributed and which parts should stay bare."
@@ -66,7 +66,14 @@ dead fans, hanging banana leaf and the kapok's pale web of bare branches are wha
 - One kapok per island at most, and only on a few islands, so it stays special.
 - Plants get fewer as dread rises: the green thins out before the island turns dark.
 
-## To decide
-1. Is the plant set right (remove or add any)?
-2. Distribution by region as above, or keep the palms everywhere and only add the beach line and undergrowth?
-3. Should Tama get a kapok on its square?
+## Built (2026-11-28)
+- `flora.js plantIsland(d, ...)`, called at the end of `world.js decorate` on its own rng (nothing else on an island moves): the beach
+  line, the region's one or two low kinds per island, heliconia under the jungle, a kapok on about a third of the big jungle islands
+  outside the dry regions, agave and cactus on dry rocky islands, the volcano's low band, sea grape on atolls, dune grass on sandbars.
+  Harbours get only the beach line (away from the pier, jetty and back stair) and, in the Crown and Lantern, a few royal or fan palms.
+- Skipped: slopes over 0.45, ground above 70 % of the island's height, landmarks, mangrove islands, Hesk, the hut; inside the fog bank
+  only a dead fan palm or two. Counts thin with dread (to 40 % at full dread); the green and flowers go with the bright mood.
+- Coconut palms thin by region (`palmK`: Crown 45 %, Reef 70 %, Lantern 80 %, Drowned 25 %), spending the same rng so nothing moves.
+- Tama: one kapok, placed first among its trees (it stands by the lighthouse with seed 1337).
+- The kapok's roots (owner: "the wall-like roots look too flat and uncanny"): a flared foot and seven buttresses of different lengths,
+  thick and high at the trunk, thinning and dropping in a curve, snaking sideways, with a surface root running on past each.

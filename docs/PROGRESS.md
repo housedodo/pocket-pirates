@@ -2853,3 +2853,8 @@ frame and wide map; moon phases and the Eye's shape (not in the summary list).
   heliconia, kapok, dune grass with morning glory), each split A (stays dark) / B (green, flowers) / D (dark extras). Built only in the
   showroom `__game.flora(x, z)` until the owner picks the distribution. Proposal: `docs/proposals/world/FLORA.md`, picture
   `flora_trial.png`.
+
+## Flora grown in the world (2026-11-28)
+- Owner: "Change the wall-like roots to something more realistic looking"; "keep the suggestions you made". The kapok's roots are
+  curving, tapering buttresses with surface roots; the distribution in `docs/proposals/world/FLORA.md` is built (`flora.js plantIsland`,
+  `palmStands`; `world.js decorate`, `palms()`, `tamaPolish`). Details and what stays bare: FLORA.md, "Built".

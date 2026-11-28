@@ -37,6 +37,8 @@ unexpectedly, into cosmic horror. Everything is procedural: no image or model fi
   stirring, tavern, shipwright, passengers and local life at bustling).
 - **Houses by region** (`housefamilies.js`, `world.js REGION_FAMILY`): every harbour is built in one family (home and Free Cays chattel,
   Crown Willemstad gables, Lantern Bermuda, Reef and Drowned stilt), tavern, church, tower and warehouse included.
+- **Flora by region** (`flora.js plantIsland`, `docs/proposals/world/FLORA.md`): eleven plants beside the palms, grown by region, island
+  kind and zone; slopes, summits, harbour streets, landmarks and the fog bank stay bare.
 - **The Gull's lanterns** (`ship.js sternLamp`, `bowLamp`): iron-framed lanterns at both ends.
 - **Artbooks** (`docs/artbook/`): `hoist_artbook.html` (the look, technical) and `hoist_beyond_the_fair_winds.html` (a read that sells
   the game). Rebuilt by hand from captures; refresh them when the look changes a lot.
