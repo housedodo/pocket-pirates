@@ -1597,6 +1597,22 @@ window.__game = { fogHaven: havenDebug, fauna, leaderDesc, offLine, wallPass, ri
     fams.forEach((f, r) => { const kit = harbourKit(f, 1337 + r * 71); kinds.forEach((k, i) => { const px = (i - (kinds.length - 1) / 2) * 9, pz = (r - (fams.length - 1) / 2) * 14; b.push(px, 0.2, pz); if (k === 'house') familyHouse(b, kit, px + r, pz); else familyBuilding(b, kit, k, px, pz, { bell: (A, y, s = 1) => { A.cyl(0, y - 0.75 * s, 0, 0.42 * s, 0.22 * s, 0.75 * s, 7, '#c8a040', TILE.glow, true); } }); b.pop(); }); });
     this._show = new THREE.Mesh(b.geometry(), mats.props); this._show.position.set(x, 0.4, z); scene.add(this._show); return fams;
   },
+  /** the flora trial (flora.js): every new plant on a raft, the bright row in front and what is left of each in the dark mood behind;
+   *  the old coconut palm and broadleaf at the left end to compare (for screenshots) */
+  async flora(x = 0, z = 60) {
+    const { FLORA, FLORA_KINDS } = await import('./flora.js'), { palm } = await import('./world.js'), { broadleaf } = await import('./isleforms.js');
+    if (this._show) scene.remove(this._show);
+    const b = new Builder(), junk = new Builder(), rng = mulberry32(3), gap = 6.5, list = ['palm', 'broadleaf', ...FLORA_KINDS], n = list.length;
+    b.box(0, -0.6, 4, gap * n + 2, 0.8, 22, '#c8b07a', TILE.sand);
+    list.forEach((k, i) => {
+      const px = (i - (n - 1) / 2) * gap;
+      for (const [A, B, D, pz] of [[b, b, junk, 10], [b, junk, b, -2]]) {   // bright in front, dark behind
+        if (k === 'palm') palm(A, B, D, px, 0.2, pz, rng, 1.0); else if (k === 'broadleaf') { if (B === b) broadleaf(A, B, px, 0.2, pz, 1.0, 1); else broadleaf(A, junk, px, 0.2, pz, 1.0, 1); }
+        else FLORA[k](A, B, D, px, 0.2, pz, 1);
+      }
+    });
+    this._show = new THREE.Mesh(b.geometry(), mats.props); this._show.position.set(x, 1.6, z); scene.add(this._show); return list;
+  },
   /** the six lighthouse designs side by side on a raft (for screenshots) */
   async lighthouses(x = 0, z = 60) {
     const { lighthouse, LH_KINDS } = await import('./world.js');

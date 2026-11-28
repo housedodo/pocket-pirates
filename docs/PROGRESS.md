@@ -2845,3 +2845,11 @@ frame and wide map; moon phases and the Eye's shape (not in the summary list).
 - `world.js tamaPolish`: bunting strung across the street every few steps and a canopy of strings from a tall pole on the square, a
   white flower arch with bougainvillea where the street meets the landing, two more lamp posts along the street. The flags and blooms
   are the bright mood's (B), so they go when the town goes dark.
+
+## Flora trial (2026-11-28)
+- Owner: "Are there variations in the flora? If not, create multiple different vegetations and suggest how they should be distributed and
+  which parts should stay bare". The answer: little (one palm model everywhere; broadleaf, mangroves, bushes, ferns only on some kinds).
+- `src/flora.js`: eleven new plants (fan palm, royal palm, young palm clump, sea grape, agave, kadushi cactus, divi-divi, banana,
+  heliconia, kapok, dune grass with morning glory), each split A (stays dark) / B (green, flowers) / D (dark extras). Built only in the
+  showroom `__game.flora(x, z)` until the owner picks the distribution. Proposal: `docs/proposals/world/FLORA.md`, picture
+  `flora_trial.png`.
