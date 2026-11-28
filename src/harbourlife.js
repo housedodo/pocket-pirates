@@ -265,10 +265,10 @@ const FRAG_BY_STYLE = {
   classic: { src: 'The bell\'s inscription', text: 'Cut round the rim of the old bell, worn almost smooth: RING SOFTLY. TWO STROKES, NEVER THREE.' },
   fishing: { src: 'An old fisher\'s story', text: 'An old fisher says his grandfather rowed out one calm night to a little black house on the water, and played a game at a table with a woman who never said a word. He won. The fish came back that year.' },
   terraced: { src: 'A painting on the terrace wall', text: 'Painted along the terrace wall, older than the houses: the sea drawn as one long smooth line, a tiny house sitting on it, a light in the house, and nothing else.' },
-  thatch: { src: 'A children\'s counting rhyme', text: 'Children skipping on the beach: "One for the gull and two for the bell, three for the one who keeps the sea well... nineteen, twenty, and all of us sleep." They start again at one.' },
+  thatch: { src: 'A children\'s counting rhyme', text: 'Children skipping on the beach: "One for the gull and two for the bell, three for the one at the table... nineteen, twenty, and all of us sleep." They start again at one.' },
   market: { src: 'A dice seller', text: 'An old woman at the market sells dice, all of them twenty-sided, every one missing a different number. "She would like them back," she says, and does not say who.' },
   farm: { src: 'A page wrapping eggs', text: 'The eggs come wrapped in an old ledger page: two columns, a date and a number from one to twenty, going back two hundred years. The last line is dated next month.' },
-  shrine: { src: 'A carving over the shrine door', text: 'Carved over the shrine door: a woman at a table, a die with too many faces. Scratched underneath, later and by another hand: SHE COUNTS SO WE DO NOT HAVE TO.' },
+  shrine: { src: 'A carving over the shrine door', text: 'Carved over the shrine door: a woman at a table, a die with too many faces. Scratched underneath, later and by another hand: SHE IS COUNTING.' },
   wreckers: { src: 'A figurehead on the beach', text: 'An old figurehead stands in the sand: a woman holding a die. The wreckers touch it for luck before they go out. They touch the die. Never her face.' },
 };
 const FRAG_SPARE = [

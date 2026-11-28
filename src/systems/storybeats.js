@@ -236,8 +236,14 @@ export function onHitEnemy(s, dmg, kind) {
 export function sinkPlayer() {
   if (foundersHere()) { founder(); return; }   // in the deepest water she founders, and the captain wakes at Tama (systems/deepseas.js)
   state.hp = G.ship.mods.maxHp;
-  const lost = Math.round(state.gold * 0.25);
+  // what going under costs (owner, 2026-11-28: "a real cost for dying"): a third of the gold, everything in the hold, most of the stores,
+  // and the crew's spirits
+  const lost = Math.round(state.gold * 0.33);
   state.gold -= lost;
+  const hold = Object.values(state.story.cargo || {}).reduce((a, b) => a + b, 0); state.story.cargo = {};
+  if (state.story.stores) { state.story.stores.food = Math.min(state.story.stores.food, 1); state.story.stores.water = Math.min(state.story.stores.water, 1); }
+  state.story.mood = Math.max(0, (state.story.mood == null ? 0.7 : state.story.mood) - 0.3);
+  rt.fire = 0; rt.boardT = 0;
   G.traffic.ships.filter((x) => x.hostile).forEach((x) => { x.hostile = false; x.engaged = false; });
   const hs = nearby(G.world, G.ship.pos.x, G.ship.pos.z, 0, 1500, 'harbour').sort((a, b) => a.dist - b.dist)[0];
   const tgt = hs ? { x: hs.d.x, z: hs.d.z + hs.d.r * 1.7, name: hs.d.name } : { x: 0, z: 0, name: 'Tama' };
@@ -245,7 +251,7 @@ export function sinkPlayer() {
   setTimeout(() => {
     G.ship.pos.set(tgt.x, 0, tgt.z); G.ship.heading = 0; G.ship.speed = 0; rt.camHeading = 0;
     $('fade').classList.remove('on');
-    toast(`The Gull went under. A fisherman dragged you to ${tgt.name}. You lost ${lost} gold; the hull is repaired.`, false, 8000);
+    toast(`The Gull went under. A fisherman dragged you to ${tgt.name}. You lost ${lost} gold${hold ? ', and the hold is empty' : ''}; the stores are gone, the hull is patched.`, false, 8000); G.refreshMods();
   }, 1100);
 }
 

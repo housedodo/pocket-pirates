@@ -1,4 +1,4 @@
-// Smoke test (task R9): `npm run smoke`. Boots the full game and the demo build headless, fails on any console error, sails
+// Smoke test (task R9): `npm run smoke`. Boots the full game headless (the demo only with SMOKE_DEMO=1, owner 2026-11-28), fails on any console error, sails
 // 60 game seconds, opens and closes the log, runs the clue lint, goes ashore on a landmark with no VISITS row (the R1 guard),
 // checks the demo is closed (R2: test flags, the later places, the clue ledger) and that story delays wait out the pause menu (R7). Starts its own Vite dev server.
 // Headless runs at about a tenth of real speed: every wait is on game state, never on the clock. Takes a few minutes.
@@ -117,7 +117,7 @@ async function run(browser, base, demo) {
   await server.listen();
   const addr = server.httpServer.address(), base = `http://127.0.0.1:${addr.port}`;
   const browser = await chromium.launch({ args: ARGS, ...(process.env.CHROMIUM ? { executablePath: process.env.CHROMIUM } : {}) });
-  try { await Promise.all([run(browser, base, false), run(browser, base, true)]); }
+  try { await run(browser, base, false); if (process.env.SMOKE_DEMO) await run(browser, base, true); }   // the full game only (owner, 2026-11-28: "only check the full game and not the demo anymore"); SMOKE_DEMO=1 adds the demo
   finally { await browser.close(); await server.close(); }
   console.log(`\n${fails.length ? `SMOKE FAILED (${fails.length})` : 'SMOKE PASSED'} in ${Math.round((Date.now() - started) / 1000)} s`);
   process.exit(fails.length ? 1 : 0);

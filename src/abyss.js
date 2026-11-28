@@ -37,7 +37,7 @@ const MARA_LINES = [
   'Who is steering? Who is steering? Who is st',
   'Eleven answered at roll call this morning. I did not call it.',
   'Are you looking at me, Captain? Somebody is.',
-  'Mara is not here right now. Please leave a message after the tide.',
+  'Mara is not at her post. Her coat is. Her boots are. Mara is not.',
   'The water is clear here. I can see a long way down. A long way.',
   'What was your name? I wrote it in the log and the ink moved.',
   '. . . . . . . . . . . .',
@@ -451,7 +451,7 @@ export class Abyss {
     const say = (text, cls = '') => { const p = document.createElement('p'); p.className = cls; p.textContent = text; this.overlay.appendChild(p); };
     if (e.step === 0 && e.t > 5) { e.step = 1; say('THE EYE OPENS.', 'big'); }
     if (e.step === 1 && e.t > 8.5) { e.step = 2; say('It has watched you since the first harbour.'); }
-    if (e.step === 2 && e.t > 11.5) { e.step = 3; say('It knows your name now.'); }
+    if (e.step === 2 && e.t > 11.5) { e.step = 3; say('Your name is in the log twice now. Once in your hand.'); }
     if (e.step === 3 && e.t > 14) { e.step = 4; this.overlay.classList.add('white'); }
     if (e.step === 4 && e.t > 16 && e.final) { e.step = 6; this.overlay.className = ''; this.overlay.innerHTML = ''; document.body.classList.remove('awakening'); this.ending = null; this.solo = null; this.fullTime = 0; if (this.d.onFinal) this.d.onFinal(); return; }
     if (e.step === 4 && e.t > 16) { e.step = 5; this.overlay.innerHTML = ''; this.d.onEnding(e.from); say('You wake on the deck. Harbour Tama is in sight and the sea is blue.'); say('Nobody remembers the way back. Nobody asks.'); }

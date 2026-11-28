@@ -168,6 +168,7 @@ function buildSailLook(level) {
   if (level === 0) {                                     // stock: mended, stained, a patch or three
     sailPatch(b, 0.18, 0.22, 0.22, 0.13, '#9a8458'); sailPatch(b, 0.55, 0.52, 0.18, 0.11, '#a8946a'); sailPatch(b, 0.3, 0.72, 0.16, 0.09, '#8a7650');
   }
+  if (level >= 1) sailStrip(b, 0.08, 0.13, '#b8483a', TILE.rope);   // a red reef band: new canvas from the first level
   if (level >= 2) for (const v of [0.24, 0.48, 0.72]) sailStrip(b, v, v + 0.025, level >= 3 ? '#c9a85c' : '#a89060', TILE.rope);   // stitched seams
   if (level >= 3) { sailStrip(b, 0.0, 0.03, '#c9a85c', TILE.rope); sailStrip(b, 0.97, 1.0, '#c9a85c', TILE.rope); }                // bound edges
   return b.geometry();
@@ -186,6 +187,39 @@ function buildHullLook(level) {
   if (level >= 1) for (let z = 2.6; z > -3.0; z -= 0.4) { const s = W(z); for (const sd of [1, -1]) b.box(sd * (s.w + 0.02), s.deck - 0.18, z - 0.2, 0.1, 0.14, 0.42, level >= 3 ? '#3a2416' : '#5a3418', TILE.planks); }   // oak rubbing strake
   if (level >= 2) for (const z of [1.6, 0.2, -1.4]) { const s = W(z); for (const sd of [1, -1]) b.box(sd * (s.w * 0.95 + 0.05), (s.deck + s.keel) / 2 + 0.05, z, 0.1, s.deck - s.keel, 0.24, '#6a6a74', TILE.stone); }   // iron bands
   if (level >= 3) { b.box(0, 1.3, -3.55, 0.36, 0.5, 0.36, '#5a5a62', TILE.stone); for (const sd of [1, -1]) b.box(sd * 0.55, 0.85, -2.9, 0.08, 0.55, 0.5, '#4a4a52', TILE.stone); }   // iron bow cap and cheek plates
+  return b.geometry();
+}
+
+// the rest of the shipwright's work, on the ship (owner, 2026-11-28: "show upgrades on the ship"; the looks review found only the sails
+// and hull showed): cannons run out through ports, a heavier rudder, a brass lamp at the masthead, a crow's nest for the spyglass, and
+// the hands on deck. lv = state.upgrades.
+function buildGearLook(lv) {
+  const b = new Builder();
+  const W = (z) => { for (let i = 0; i < SECTIONS.length - 1; i++) { const a = SECTIONS[i], c = SECTIONS[i + 1]; if (z <= a.z && z >= c.z) { const t = (a.z - z) / (a.z - c.z); return { w: lerp(a.w, c.w, t), deck: lerp(a.deck, c.deck, t), keel: lerp(a.keel, c.keel, t) }; } } return SECTIONS[0]; };
+  const cn = lv.cannons || 0;
+  if (cn >= 1) {   // guns: one a side more for each level, run out through square ports; red port lids at the top level
+    const zs = [0.6, -0.5, 1.5, -1.4].slice(0, Math.min(4, cn + 1));
+    for (const z of zs) { const s = W(z); for (const sd of [1, -1]) {
+      b.box(sd * (s.w + 0.01), s.deck - 0.42, z, 0.06, 0.3, 0.34, '#1e1a16', TILE.planks);   // the port
+      b.push(sd * (s.w + 0.05), s.deck - 0.3, z, Math.PI / 2, 1, 1, 1, 0, 0); b.cyl(0, 0, 0, 0.09, 0.08, 0.38 * sd, 6, '#2a2622', TILE.stone, true); b.pop();
+      b.box(sd * (s.w - 0.25), s.deck, z, 0.4, 0.14, 0.3, '#4a3018', TILE.planks);   // the carriage on deck
+      if (cn >= 3) b.box(sd * (s.w + 0.04), s.deck - 0.1, z, 0.05, 0.08, 0.36, '#a8302a', TILE.planks); } }
+  }
+  const rd = lv.rudder || 0;
+  if (rd >= 1) { b.box(0, -0.05, 3.08, 0.12, 0.9 + 0.18 * rd, 0.3 + 0.12 * rd, '#4a2e18', TILE.planks); if (rd >= 2) for (const y of [0.2, 0.6]) b.box(0, y, 3.08, 0.16, 0.06, 0.34 + 0.12 * rd, '#5a5a62', TILE.stone); }   // a broader blade, iron pintles
+  const ln = lv.lantern || 0;
+  if (ln >= 1) { b.box(0, 7.25, -0.3, 0.26 + 0.06 * ln, 0.32 + 0.06 * ln, 0.26 + 0.06 * ln, '#b08a3a', TILE.stone); b.box(0, 7.3, -0.3, 0.2 + 0.05 * ln, 0.22 + 0.05 * ln, 0.3 + 0.06 * ln, '#e8e0b0', TILE.white); b.box(0, 7.6 + 0.06 * ln, -0.3, 0.32, 0.06, 0.32, '#2a2622', TILE.stone); }   // a brass lamp at the masthead (glass, not lit)
+  const sp = lv.spyglass || 0;
+  if (sp >= 1) {   // a crow's nest: a platform and a rail round the mast, higher with each level
+    const y = 4.9 + 0.3 * sp; b.cyl(0, y, -0.3, 0.55, 0.55, 0.1, 8, '#6b4a2e', TILE.planks, true);
+    b.cyl(0, y + 0.1, -0.3, 0.58, 0.58, 0.38, 8, '#5a3e24', TILE.planks, false);
+    if (sp >= 2) { b.push(0.45, y + 0.55, -0.3, 0, 1, 1, 1, 0, 1.2); b.cyl(0, 0, 0, 0.05, 0.04, 0.5, 5, '#b08a3a', TILE.stone, true); b.pop(); }   // the glass itself, out over the rail
+  }
+  const cr = lv.crew || 0;
+  for (let i = 0; i < Math.min(4, cr * 2); i++) {   // hands at work: two more for each level
+    const [x, z] = [[0.55, 1.2], [-0.6, -1.1], [-0.5, 1.9], [0.6, -0.4]][i], s = W(z), shirt = ['#3a4a6a', '#a8402e', '#d8d0b8', '#4a6a3a'][i];
+    b.box(x, s.deck, z, 0.22, 0.42, 0.16, '#3a2e24', TILE.white); b.box(x, s.deck + 0.42, z, 0.28, 0.4, 0.2, shirt, TILE.white); b.box(x, s.deck + 0.82, z, 0.18, 0.18, 0.18, '#c89870', TILE.white);
+  }
   return b.geometry();
 }
 
@@ -297,6 +331,7 @@ export class Ship {
     scene.add(this.root);
     this.hullMesh = new THREE.Mesh(shipGeos().hull, mats.hull);
     this.hullLook = new THREE.Mesh(new THREE.BufferGeometry(), mats.hull); this.hullMesh.add(this.hullLook);
+    this.gearLook = new THREE.Mesh(new THREE.BufferGeometry(), mats.hull); this.hullMesh.add(this.gearLook);   // cannons, rudder, lamp, crow's nest, hands
     this.root.add(this.hullMesh);
     this.figureGroup = new THREE.Group(); this.figureGroup.position.set(0, 1.7, -3.9); this.figureGroup.scale.setScalar(1.05); this.root.add(this.figureGroup);
     this.custom = { ...DEFAULT_CUSTOM };
@@ -405,11 +440,12 @@ export class Ship {
 
   /** show the shipwright upgrades on the ship itself: lv = state.upgrades */
   setUpgradeLook(lv = {}) {
-    const sl = lv.sails || 0, hl = lv.hull || 0;
-    if (this.lookKey === `${sl}/${hl}`) return; this.lookKey = `${sl}/${hl}`;
+    const sl = lv.sails || 0, hl = lv.hull || 0, key = ['sails', 'hull', 'cannons', 'rudder', 'lantern', 'spyglass', 'crew'].map((k) => lv[k] || 0).join('/');
+    if (this.lookKey === key) return; this.lookKey = key;
     this.sailLook.geometry.dispose(); this.sailLook.geometry = buildSailLook(sl);
     this.hullLook.geometry.dispose(); this.hullLook.geometry = buildHullLook(hl);
-    this.topsail.visible = sl >= 3;
+    this.gearLook.geometry.dispose(); this.gearLook.geometry = buildGearLook(lv);
+    this.topsail.visible = sl >= 2;   // the flying jib from the second level (was the third), so the sails show a step sooner
   }
 
   /** the mainsail is torn (holes, rips, flapping rags) and the ship sails at two thirds speed until it is patched */

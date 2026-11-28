@@ -24,7 +24,7 @@ CAVES.house = {
     offer: { text: 'The keeper turns the guest book toward you. Three entries, each with a price, each in your handwriting.', choices: [
       { label: 'A borrowed wind (a page of your log)', if: 'house:can:wind', go: { text: 'He opens a window. A fair wind comes in, and sits down, and does not leave for a while.', fx: { event: 'house:take', arg: 'wind' }, next: 'hall' } },
       { label: 'A longer day (a morning of yours)', if: 'house:can:hour', go: { text: 'The sun, outside, thinks better of it and waits. You have the afternoon again.', fx: { event: 'house:take', arg: 'hour' }, next: 'hall' } },
-      { label: 'A second throw (a harbour\'s kindness)', if: 'house:can:throw', go: { text: 'He weighs something you cannot see. "She will let you throw again. She always does." Somewhere, a harbour goes a little cooler.', fx: { event: 'house:take', arg: 'throw' }, next: 'hall' } },
+      { label: 'A second throw (a harbour\'s kindness)', if: 'house:can:throw', go: { text: 'He weighs something you cannot see. "Once more, then." Somewhere, a harbour goes a little cooler.', fx: { event: 'house:take', arg: 'throw' }, next: 'hall' } },
       { label: 'That is enough', go: { text: '', next: 'hall' } }] },
   },
 };

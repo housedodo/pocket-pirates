@@ -111,7 +111,7 @@ export class Ocean {
                 vWP = wp0.xyz + vec3(0.0, wh, 0.0);`,
       },
       fragmentColor: {
-        head: `varying vec3 vWP; uniform vec3 uDeep; uniform vec3 uShallow; uniform vec3 uSunDir; uniform vec3 uSunColor; uniform vec3 uMurk; uniform float uOcean; uniform vec2 uWindDir; uniform vec4 uGust[4]; uniform float uRain;
+        head: `varying vec3 vWP; uniform float uMoonPath; uniform vec3 uDeep; uniform vec3 uShallow; uniform vec3 uSunDir; uniform vec3 uSunColor; uniform vec3 uMurk; uniform float uOcean; uniform vec2 uWindDir; uniform vec4 uGust[4]; uniform float uRain;
           ${GLSL_WAVEFN}
           float bay2(vec2 a) { a = floor(a); return fract(dot(a, vec2(0.5, a.y * 0.75))); }
           float bay4(vec2 a) { return bay2(0.5 * a) * 0.25 + bay2(a); }   // ordered dither, so smooth light still reads as pixels
@@ -138,7 +138,11 @@ export class Ocean {
           // so the sparkle does not race across the sea when the ship (and camera) moves
           float path = smoothstep(0.93, 0.99, dot(reflect(-uSunDir, vec3(0.0, 1.0, 0.0)), normalize(cameraPosition - vWP)));
           float glint = path * step(0.94, rnd(blk + floor(uTime * 0.8 + rnd(blk) * 4.0)));
-          vec3 outA = mix(calm, vec3(0.95, 0.98, 0.95), cap * 0.85) * uLight + glint * uSunColor;
+          // the moon's road (owner, 2026-11-28: the night sea read as black): at night a soft dithered band of silver toward the moon,
+          // wider than the sun's, so the ship and the swell keep a shape against it
+          float road = smoothstep(0.82, 0.97, dot(reflect(-uSunDir, vec3(0.0, 1.0, 0.0)), normalize(cameraPosition - vWP))) * uMoonPath;
+          road *= step(0.45, rnd(blk + floor(uTime * 0.5 + rnd(blk) * 3.0)) + road * 0.4);
+          vec3 outA = mix(calm, vec3(0.95, 0.98, 0.95), cap * 0.85) * uLight + glint * uSunColor + road * vec3(0.34, 0.4, 0.55);
           // unruly: dark rollers, steep faces, foam streaks blown along the crests
           float dfR = floor((0.45 + 0.35 * max(lit, 0.0)) * 5.0 + 0.5) / 5.0;
           vec3 rb = mix(uDeep * vec3(0.42, 0.55, 0.68), uShallow * vec3(0.55, 0.68, 0.7), crest * 0.7) * dfR;

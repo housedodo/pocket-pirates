@@ -383,6 +383,7 @@ void main(){
     const dayish = smoothstep(-0.05, 0.12, tod.sunElev);
     U.uSunDir.value.copy(moonDir).lerp(this.sunDirV, dayish).normalize();
     U.uSkyHor.value.copy(stage.skyHorizon).lerp(stage.fog, 0.5);
+    U.uMoonPath.value = (1 - dayish) * smoothstep(-0.02, 0.15, tod.moonElev) * (0.35 + 0.65 * litAt()) * (1 - 0.8 * Math.min(1, fx.cover || 0)) * (1 - smoothstep(0.6, 0.9, stage.dread));   // the moon's road: up, full, clear sky, not the deep dread
     U.uSunColor.value.copy(stage.sun).lerp(C_SUN_NIGHT, 1 - dayish).lerp(C_SUN_DREAD, smoothstep(0.8, 1, stage.dread) * dayish);
 
     const starOp = Math.max(stage.stars, tod.night * 0.95 * (1 - smoothstep(0.3, 0.48, tod.day)));   // the night's stars go as the day comes (they lingered after sunrise: owner 2026-11-20); the dread's daylight stars stay

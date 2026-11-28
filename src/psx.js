@@ -10,6 +10,7 @@ export const U = {
   uLight: { value: 1 },     // global brightness, emissive texels ignore it
   uSunDir: { value: new THREE.Vector3(0.3, 0.8, -0.5) },
   uSunColor: { value: new THREE.Color('#fff2a8') },
+  uMoonPath: { value: 0 },   // 0..1: how strongly the moon lays a path on the water tonight (sky.js; ocean.js)
   uSkyHor: { value: new THREE.Color('#c8dce8') },   // the sky's horizon colour (sky.js sets it): the far sea takes it
   uDeep: { value: new THREE.Color('#1b86c6') },
   uShallow: { value: new THREE.Color('#4fe0d0') },

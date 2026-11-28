@@ -1,6 +1,6 @@
 // Small things on the open sea between the islands (2026-11-15, owner: "more character and variety", and "yes it should change"
 // with the dread): floating weed, a drifting log with a seabird resting on it, a bloom of jellyfish just under the surface (faintly
-// lit at night; the bells just break the surface). Sparse on purpose: about one in eight stretches of open water (a cell of 110 units) holds one, never within 35 units
+// lit at night; the bells just break the surface). Sparse on purpose: about one in four stretches of open water (one in eight until 2026-11-28) (a cell of 110 units) holds one, never within 35 units
 // of a shore, laid out again each day; nothing is solid and nothing can be picked up. Run by fauna.js, the sea's other life.
 // As the dread rises they go quietly wrong, never explained:
 //   weed:      drifts down the wind; from dread 0.5 it drifts up into it.
@@ -18,7 +18,7 @@ import { hash2, mulberry32, smoothstep } from './util.js';
 import { SEA_ON } from './seawater.js';
 import { rt } from './core/runtime.js';
 
-const CELL = 110, RANGE = 280, CHANCE = 0.12;
+const CELL = 110, RANGE = 280, CHANCE = 0.25;
 const MIX = {   // what floats where (the region round the ship); the rest of the sea: home
   home: [0.4, 0.35, 0.25], crown: [0.3, 0.5, 0.2], free: [0.55, 0.15, 0.3], reef: [0.5, 0.3, 0.2], lantern: [0.2, 0.3, 0.5], drowned: [0.2, 0.6, 0.2],
 };

@@ -2,7 +2,7 @@
 // the fog bank you can see from far off, what you find when you go ashore, and the labels on far shapes that a spyglass
 // can read. main.js calls tick() each frame, visit() on E, and reads fog for the scene fog.
 import { rt } from './core/runtime.js';
-import { FogBank } from './fogbank.js';
+import { FogBank, FogWall } from './fogbank.js';
 import * as THREE from 'three';
 import { LANDMARKS, LM, BARRIERS, lmHere } from './landmarks.js';
 const _lv = new THREE.Vector3();   // made once: these run every frame (task R6)
@@ -123,6 +123,7 @@ export class Places {
     this.toastT = {};
     // the fog bank: a ragged wall of fog standing round the Halved Isle (fogbank.js; owner, 2026-11-26: look a)
     this.bank = new FogBank(scene);   // the low mist round the ship inside it (fogbank.js); the rest is the scene's haze closing in
+    this.wall = LM.broken && lmHere('broken') ? new FogWall(scene, LM.broken.x, LM.broken.z, BARRIERS.broken.R) : null;   // the bank on the horizon, seen from outside (fogbank.js FogWall)
     // labels for far shapes
     this.labels = new Map();
     this.layer = document.createElement('div'); this.layer.id = 'farlabels';
@@ -168,7 +169,7 @@ export class Places {
     }
     for (const k of Object.keys(this.toastT)) if (!k.endsWith('ok')) this.toastT[k] -= dt;
     // the mist round the ship takes the scene's fog colour, so it is grey at dusk and dark at night
-    { const col = this._bc || (this._bc = new THREE.Color()); col.copy(fogColor); this.bank.update(dt, ship, col, Math.min(1, (this.bankFog || 0) * 1.8), this.bankClear || 6); }
+    { const col = this._bc || (this._bc = new THREE.Color()); col.copy(fogColor); this.bank.update(dt, ship, col, Math.min(1, (this.bankFog || 0) * 1.8), this.bankClear || 6); if (this.wall) this.wall.update(dt, ship, col, rt.haven ? Math.max(0.15, rt.haven.fogDensity) : 1); }
     return msg;
   }
 

@@ -255,8 +255,8 @@ export class Fauna {
     if (dolMood === 'jump' || dolMood === 'ghost') {
       this.dolTimer -= dt;
       if (this.dolTimer <= 0 && this.dolphins.every((d) => d.u >= 1) && !this.quiet) {
-        this.dolTimer = rnd(55, 120);
-        if (Math.random() < 0.45) this.dolTimer = rnd(40, 80);        // often they just don't show up
+        this.dolTimer = rnd(35, 80);   // (owner, 2026-11-28: the open sea should not look empty) more often than before (55-120)
+        if (Math.random() < 0.3) this.dolTimer = rnd(30, 60);        // often they just don't show up
         else {
           const side = Math.random() < 0.5 ? -1 : 1, off = rnd(10, 20), ahead = rnd(2, 14);
           const bx = sx + rx * side * off + fwdx * ahead, bz = sz + rz * side * off + fwdz * ahead;
@@ -309,7 +309,7 @@ export class Fauna {
     if (dread < 0.45) {
       this.fishTimer -= dt;
       if (this.fishTimer <= 0 && this.fish.every((f) => f.u >= 1)) {
-        this.fishTimer = rnd(40, 90) * ({ crown: 1.6, free: 0.5, reef: 0.4, lantern: 1.1, drowned: 2 }[ctx.faction] || 1);
+        this.fishTimer = rnd(25, 60) * ({ crown: 1.6, free: 0.5, reef: 0.4, lantern: 1.1, drowned: 2 }[ctx.faction] || 1);
         if (this.onSpot) this.onSpot('flyfish');   // the Ship's book sketches it (systems/sealog.js)
         const side = Math.random() < 0.5 ? -1 : 1, off = rnd(6, 14), ahead = rnd(4, 16);
         const ang = ship.heading + side * rnd(0.3, 0.9);
@@ -387,7 +387,7 @@ export class Fauna {
     this.whaleTimer -= dt;
     if (mig && this.whaleTimer > 70 && this.whaleT < 0) this.whaleTimer = rnd(8, 40);
     if (showWhale && this.whaleT < 0 && this.whaleTimer <= 0) {
-      this.whaleTimer = mig ? rnd(35, 70) : rnd(120, 230);
+      this.whaleTimer = mig ? rnd(30, 60) : rnd(80, 160);
       const a = mig ? Math.PI / 2 + rnd(-0.5, 0.5) + (Math.random() < 0.5 ? Math.PI * 0.5 : -Math.PI * 0.5) : ship.heading + rnd(-1.2, 1.2), dist = rnd(70, 120);
       this.whaleData = { x: sx + Math.sin(a) * dist, z: sz - Math.cos(a) * dist, h: mig ? Math.PI / 2 + rnd(-0.12, 0.12) : a + rnd(1, 2) * (Math.random() < 0.5 ? 1 : -1), mig };
       this.whaleT = 0; this.spoutT = 2; this.whaleData.spotted = false;

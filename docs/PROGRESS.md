@@ -2858,3 +2858,30 @@ frame and wide map; moon phases and the Eye's shape (not in the summary list).
 - Owner: "Change the wall-like roots to something more realistic looking"; "keep the suggestions you made". The kapok's roots are
   curving, tapering buttresses with surface roots; the distribution in `docs/proposals/world/FLORA.md` is built (`flora.js plantIsland`,
   `palmStands`; `world.js decorate`, `palms()`, `tamaPolish`). Details and what stays bare: FLORA.md, "Built".
+
+## After the three reviews (2026-11-28)
+- Owner: do the review's danger, economy, ship-look, story and open-sea changes; suggest water hazards (no reefs, no whirlpools) and
+  late-game goals; check only the full game from now on.
+- **Danger** (`systems/danger.js`, `combat.js`, `traffic.js`, `main.js`): raider threat by water (home 0.6, Cays 0.85, Crown and Guild
+  1, Reef 1.25) rising by half over the first 30 days: more hull, 9-13 a shot times the threat (was 7-10 always), truer and faster.
+  A hit can set the deck alight (28 %, less per hull level): smoke from the deck, 1.4 hull a second until it is out (rain, hands, hull
+  shorten it). A hostile raider within 7.5 of a ship under 3.5 speed for 3.2 s boards: 15 % of the gold and a crate (a raider that sees
+  a ship lying still stops circling and comes alongside: `traffic.js`). Checked headless: Reef schooner hull 65 at threat 1.25, the anchored
+  Gull boarded (400 to 340 gold), the deck set alight; coir in the Crown 36, four sold, 26. Storm wear
+  7 + 8 x dread. Mara calls the fire and the grapnels once.
+- **Economy** (`systems/trade.js`): each crate sold lowers that good's price in that water by 7 % (to -45 %), each bought raises it 5 %
+  (to +40 %); the push fades 6 % a day. **Mood**: a quiet crew sails at 93 %, a sullen one at 82 % with a slower turn (`voyage.js`).
+  **Sinking** costs a third of the gold, the whole hold, the stores down to a day, and the crew's spirits.
+- **Upgrades on the ship** (`ship.js buildGearLook`): guns run out through ports (one a side more per level, red lids at 3), a broader
+  rudder with iron pintles, a brass lamp at the masthead, a crow's nest (and the glass) for the spyglass, two hands on deck per crew
+  level; a red reef band on the sail from level 1, the flying jib from level 2.
+- **Story**: threads chosen per save (`threads.js pickForSave`, leaning to ones not yet had in this browser); `story_export.py` now
+  reads foghaven, endgame, shallows and danger; the 11 gossip lines that copied greetings word for word are gone; 6 more dark passenger
+  lines and 2 per region; explicit lines trimmed (the shrine carving, the counting rhyme, SHE RISES, the second throw, the bottle notes,
+  the Eye's "knows your name", Mara's answering-machine line); the Dreams epilogue no longer echoes the Tune; the Perrin errand
+  hints each have their own line; PAS "Do you hear the bell" reworded; the hands Bram Coyle (was Hask) and Nell Wick (was Ines) renamed,
+  and each hand says one more thing after 8 days aboard.
+- **Open sea**: sea life about twice as often (sealife CHANCE 0.25; dolphins, flying fish, whales sooner); the moon lays a dithered
+  silver road on the water (`ocean.js`, `uMoonPath`); the fog bank shows as a low ragged band on the horizon from about 480 out and melts
+  into the haze by 140 (`fogbank.js FogWall`).
+- **Checks**: `npm run smoke` runs the full game only (`SMOKE_DEMO=1` for the demo); RULES 39a.

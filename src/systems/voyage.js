@@ -21,7 +21,7 @@ import { scene } from '../core/engine.js';
 import { DAY_LENGTH, tod } from '../daynight.js';
 import { toast } from '../ui/dom.js';
 import { angleDiff, clamp } from '../util.js';
-import { handLeaves } from './hands.js';
+import { handLeaves, handLater } from './hands.js';
 import { sellable } from '../jobs.js';
 
 const DEMO = () => typeof window !== 'undefined' && window.__BUILD === 'demo';
@@ -34,6 +34,7 @@ export const MOOD_START = 0.7;
 export const MOOD = { sea: -0.12, storm: -0.6, hungry: -0.5, thirsty: -0.8, dock: 0.1, rest: 0.35, music: 1.2, sunk: 0.1, chest: 0.1, nerves: -0.25, sick: -0.3 };   // per game day; dock/rest/sunk/chest once each
 export const BANDS = [[0.65, 'glad'], [0.4, 'steady'], [0.2, 'quiet'], [0, 'sullen']];
 export const WORK = { glad: [0.88, 0.92], steady: [1, 1], quiet: [1.15, 1.1], sullen: [1.35, 1.25] };   // [dig time, reload] multipliers
+export const SAIL_WORK = { glad: 1.03, steady: 1, quiet: 0.93, sullen: 0.82 };   // (owner, 2026-11-28: the mood must bite) a sullen crew will not go aloft: less sail, a slower turn
 export const LEAVE_AT = 0.12;                                  // below this a hired hand goes ashore at the next harbour
 export const FRESH_EAT = 3, SICK_AT = 6, LOSE_AT = 9;          // days without fresh food: fruit aboard is eaten; gums bleed; a hand goes home
 export const SICK_WORK = [1.15, 1.1], RAT_P = 0.22, RAT_FOOD = 1;
@@ -42,7 +43,7 @@ export const NERVE_FAR = 140, NERVE_RISE = 1 / 90, NERVE_FALL = 1 / 40;   // uni
 
 const SAY = {   // Mara (drafts)
   quiet: 'The crew have gone quiet, Captain. A harbour would do them good.',
-  sullen: 'Nobody is singing. They do the work, and not a stroke more.',
+  sullen: 'Nobody is singing. Nobody will go aloft, either. We are under half the sail she can carry.',
   glad: 'Hear that? Somebody has started a song below.',
   food: 'We are down to the last of the biscuit, Captain.',
   water: 'The water casks are nearly dry, Captain.',
@@ -65,7 +66,7 @@ export const sick = () => !DEMO() && freshDays() >= SICK_AT;
 const fruitAboard = () => Object.keys(state.fruit || {}).find((k) => state.fruit[k] > 0);
 const spareFruit = () => { const f = sellable(state).fruit; return Object.keys(f).find((k) => f[k] > 0); };   // fruit no commission is waiting for
 /** main.js refreshMods: the crew's spirits in the work */
-export function moodMods(m) { if (DEMO()) return m; const w = WORK[band()]; m.digTime *= w[0]; m.reload *= w[1]; if (sick()) { m.digTime *= SICK_WORK[0]; m.reload *= SICK_WORK[1]; } return m; }
+export function moodMods(m) { if (DEMO()) return m; const w = WORK[band()]; m.digTime *= w[0]; m.reload *= w[1]; m.speed *= SAIL_WORK[band()]; m.turn *= SAIL_WORK[band()] > 0.9 ? 1 : 0.88; if (sick()) { m.digTime *= SICK_WORK[0]; m.reload *= SICK_WORK[1]; } return m; }
 const bump = (d) => { state.story.mood = clamp(mood() + d, 0, 1); };
 
 // ---- docking (systems/interact.js): spirits up; a hand at the end of his rope goes ashore
@@ -78,7 +79,7 @@ export function voyageDock(d) {
     return `${c.name} picks up a bag and goes down the gangplank without a word. Nobody tries to stop them.`;
   }
   if (mood() < LEAVE_AT) return handLeaves(d);   // then a specialist (systems/hands.js)
-  return null;
+  return handLater();   // or a hand's one later word (systems/hands.js)
 }
 /** the market's row (ui/harbour.js): how many days are missing, and what filling them costs here */
 export const storesNeed = (cap = STORE_MAX) => { const S = stores(); return { food: Math.max(0, cap - S.food), water: Math.max(0, cap - S.water) }; };   // cap: what this harbour can spare (systems/harbours.js FEEL)

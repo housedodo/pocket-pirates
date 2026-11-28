@@ -29,6 +29,18 @@ function ditherTexture() {   // a radial dither: solid in the middle, thinning o
   return t;
 }
 
+// which three wake (owner, 2026-11-28, from the story review: "with the fixed seed every new game woke the same 3 of 7, and four never showed"):
+// chosen once per save, not by the world's seed, and leaning to the threads this player's earlier voyages did not have (kept in the
+// browser, hoist.threadsSeen). The map stays the same; the stories in it change.
+function pickForSave(seed) {
+  let seen = {};
+  try { seen = JSON.parse(localStorage.getItem('hoist.threadsSeen') || '{}') || {}; } catch (e) { seen = {}; }
+  const salt = Math.floor(Math.random() * 1e9);
+  const order = pickAwake((seed ^ salt) >>> 0, THREAD_IDS.length);   // a fresh shuffle for this save
+  const pick = order.map((id, i) => ({ id, k: (seen[id] || 0) * 10 + i })).sort((a, b) => a.k - b.k).slice(0, 3).map((o) => o.id);
+  try { for (const id of pick) seen[id] = (seen[id] || 0) + 1; localStorage.setItem('hoist.threadsSeen', JSON.stringify(seen)); } catch (e) { /* no storage: still a fresh three */ }
+  return pick;
+}
 export class Threads {
   constructor(scene, world, state) {
     this.scene = scene; this.world = world; this.state = state; this.meshes = new Map(); this.tex = null;
@@ -96,7 +108,7 @@ export class Threads {
   setup(choice) {
     const st = this.state.story;
     if (Array.isArray(choice)) st.threads = choice.filter((id) => THREAD_IDS.includes(id));
-    else if (!Array.isArray(st.threads)) st.threads = st.colour ? ['colour'] : pickAwake(this.state.seed);   // a voyage from before the Tide had only the Colour
+    else if (!Array.isArray(st.threads)) st.threads = st.colour ? ['colour'] : pickForSave(this.state.seed);   // a voyage from before the Tide had only the Colour
     return st.threads;
   }
   awake(id) { return (this.state.story.threads || []).includes(id); }

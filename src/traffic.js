@@ -1,3 +1,4 @@
+import { armRaider } from './systems/danger.js';
 import { raiderChance } from './regions.js';
 import * as THREE from 'three';
 import { shipGeos } from './ship.js';
@@ -147,6 +148,7 @@ export class Traffic {
       name: `${faction.name} ${hostile ? 'raider' : K.label}`,
     }, hostile));
     const s = this.ships[this.ships.length - 1];
+    if (hostile) armRaider(s);   // her hull for her water and the day (systems/danger.js)
     if (!hostile && mode === 'live' && faction.id === 'crown' && Math.random() < 0.15) { s.special = 'customs'; s.name = 'Customs cutter'; }   // the Crown checks what you carry (regions.js)
   }
 
@@ -158,6 +160,7 @@ export class Traffic {
       ...parts, id: this.nextId++, kind, mode, faction, sector: sectorAt(x, z, this.seed), x, z, heading,
       speed: speed === null ? (mode === 'live' ? K.speed[0] : 1.2) : speed, age: 0, sgn: 1, roll: Math.random(), state: 'none', seed: Math.floor(Math.random() * 1e9), name: `${faction.name} ${hostile ? 'raider' : K.label}`,
     }, hostile);
+    if (hostile) armRaider(s);
     this.ships.push(s);
     return s;
   }
@@ -283,7 +286,7 @@ export class Traffic {
           s.engaged = false; s.heading += clamp(angleDiff(s.heading, Math.atan2(-dx, dz)), -0.7 * dt, 0.7 * dt); s.speed = K.speed[0];
         } else if (dd < 170) {
           let want = Math.atan2(dx, -dz);
-          if (dd < 50) want += s.circle * 1.45;
+          if (dd < 50 && !(ship.speed < 3.5 && (s.threat || 0) >= 0.85)) want += s.circle * 1.45;   // she circles a ship under way; one lying still she comes alongside to board (systems/danger.js)
           if (!(s.engaged && s.warned)) s.heading += clamp(angleDiff(s.heading, want), -0.7 * dt, 0.7 * dt);   // she holds her turn between the tell and the shot (combat.js)
           s.speed = K.speed[1] * 0.95;
         } else s.speed = Math.max(s.speed, K.speed[0]);   // never idle in the water

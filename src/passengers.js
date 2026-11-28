@@ -1,3 +1,4 @@
+import { regionAt } from './regions.js';
 import { mulberry32, hash2 } from './util.js';
 import { nearby, findRumour, bearingName } from './jobs.js';
 import { pierOf } from './world.js';
@@ -10,7 +11,7 @@ const PEOPLE = [
   { name: 'Old Wendel', who: 'a retired net-mender', lines: [
     'I mended nets in Tama for forty years. Never once caught a fish myself. Did not like the look in their eyes.',
     'My wife said the sea gives back what it takes. She has been gone eleven years. I am still waiting.',
-    'You hold the tiller like my brother did. He was terrible at it too.', 'They say a man in a beard lives on one of the empty islands. I knew a man with a beard. Different man, probably.', 'Do you hear the bell, captain? No? Good. Me neither.'] },
+    'You hold the tiller like my brother did. He was terrible at it too.', 'They say a man in a beard lives on one of the empty islands. I knew a man with a beard. Different man, probably.', 'There is a bell somewhere ahead. A church, I suppose. Out here. Funny.'] },
   { name: 'Pippa Fairweather', who: 'a travelling cartographer\'s apprentice', lines: [
     'Master Perrin sends his maps by bottle now. Nobody has seen him hand one over in years.',
     'I drew this coast three times. It came out different every time. The coast, I mean. Not my drawing.',
@@ -67,7 +68,18 @@ const DARK_LINES = [
   'The water is so quiet here. Is it always this quiet?',
   'I keep hearing my name from under the hull. Probably just the planks. Probably.',
   'Please do not stop the ship out here.',
+  'I counted the stars to fall asleep. I got the same number three nights running. That is not how stars work.',
+  'Your crew keeps nodding at somebody behind me. I do not turn round. I have decided not to.',
+  'I packed for one week. I have been aboard for one week every morning.',
 ];
+// and by the water you are in (owner, 2026-11-28, the story review: "only 3 dark lines for the whole deep game")
+const DARK_BY = {
+  crown: ['The flags on the forts are all at half mast. Every one. Nobody I asked knew who for.', 'The customs men in Perra stamped my papers without reading them. Then they kept stamping. I left them at it.'],
+  free: ['The music on the beaches has stopped. The dancers have not. You can hear their feet.', 'My cousin in the Cays sets a place for me every night. I wrote to say I was coming. I have not written yet.'],
+  reef: ['The wrecks out here all face the same way. Have you noticed? Like they are listening.', 'They say nobody drowns in the Reef any more. They say it like it is good news.'],
+  lantern: ['Every lamp on that shore came on at once. Nobody was near them.', 'The Guild keepers have stopped trimming the wicks. The flames stay the same height anyway.'],
+  drowned: ['There are roofs under us. I saw a chimney. It was smoking.', 'Please stop saying the name of the next harbour. I do not like how it sounds when you say it twice.'],
+};
 
 export function makePassenger(world, from, serial, force = false) {
   const rng = mulberry32(hash2(from.seed, serial, 4747));
@@ -90,7 +102,7 @@ export function passengerTalk(pass, dt, ctx) {   // ctx: { mate, world, ship, st
   const dk = ctx.dread > 0.55;
   const roll = Math.random();
   if (ctx.storm > 0.4 && roll < 0.6) { say(SEASICK[Math.floor(Math.random() * SEASICK.length)]); if (Math.random() < 0.4) ctx.mate.say('Lean over the downwind side. The OTHER side!'); return; }
-  if (dk && roll < 0.5) { say(DARK_LINES[pass.said++ % DARK_LINES.length], true); return; }
+  if (dk && roll < 0.5) { const own = DARK_BY[regionAt(ctx.ship.pos.x, ctx.ship.pos.z, ctx.state.seed)] || [], pool = pass.said % 2 && own.length ? own : DARK_LINES; say(pool[Math.floor(pass.said++ / 2) % pool.length], true); return; }
   if (ctx.hutWord) { const t = ctx.hutWord(ctx.ship.pos.x, ctx.ship.pos.z); if (t) { say(t, true); return; } }   // the hut's way, now and then (systems/hutword.js, T2)
   if (roll < 0.3) {                                                // a treasure hint: it goes on your chart
     const r = findRumour(ctx.world, { x: ctx.ship.pos.x, z: ctx.ship.pos.z }, ctx.state);

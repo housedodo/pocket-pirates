@@ -30,28 +30,20 @@ export function makeName(rng, type, dread) {
 const GOSSIP = [
   [ // sunny
     'Welcome to {name}, captain! Fair winds today!',
-    'Fresh fish, fresh rum, fresh rumours! Take your pick.',
     'Folk say there is treasure on the little isles to the north-east. Folk say a lot of things.',
-    'Lovely weather. Been lovely for a while now. Nobody can say how long.',
     'Try the fish stew. Nobody knows who makes it, but it\'s always hot.',
     'Our lighthouse keeper retired. The light still comes on. We think he forgot to tell it.',
     'The tide brought in a rowboat this morning. Dry inside. Oars neatly stowed.',
   ],
   [ // off
-    'Funny. The gulls went quiet this morning. All of them, at once.',
     'Old Perrin\'s cat will not look at the sea any more. Won\'t even blink.',
-    'Same tide as yesterday. Exactly the same. Down to the ripple.',
     'My neighbour\'s dog barks at the sea every evening at the same minute. Then stops. Then wags.',
     'Somebody keeps leaving the harbour bell rope tied in a sailor\'s knot. Nobody here ties that knot.',
     'The children have a new song. Nobody taught it to them. It\'s quite catchy.',
-    'Strange. I could have sworn there were four piers yesterday.',
   ],
   [ // wrong
     'The lighthouse lit itself last night. Perrin was very calm about it. Too calm.',
-    'We ran out of fish. The nets come up full, but we ran out of fish.',
     'Have you been here before? I could swear I\'ve served you. Tomorrow.',
-    'We stopped counting the boats that come back. It was always one more than went out.',
-    'The gulls bring us things now. Rings, mostly. Never the same finger size.',
     'Don\'t sleep facing the window. No reason. Just don\'t.',
   ],
   [ // eerie
@@ -60,9 +52,6 @@ const GOSSIP = [
     'The stars are wrong. I counted them. There are more every night.',
   ],
   [ // cosmic
-    '...you can hear it too, can you not? Under the keel. Humming.',
-    'Nobody here is angry. Nobody here is in any hurry.',
-    'Welcome back, captain. Your chair is where you left it.',
   ],
 ];
 export const gossip = (rng, idx, name) => pick(rng, GOSSIP[Math.min(4, idx)]).replace('{name}', name);
@@ -124,10 +113,10 @@ const NOTES = [
     'The note in this bottle was written by me tomorrow. I recognise the handwriting. It shakes more.',
   ],
   [ // cosmic
-    'y o u  a r e  n e a r l y  h e r e',
+    'The page after this one is already written. I have not turned to it.',
     'We are not lost. We have always been exactly here. It was the sea that moved.',
     'Turn back. Or do not. The water does not mind either way.',
-    "d o n ' t  s t o p  r o w i n g",
+    'Whoever finds this: count your crew before you read on. Then count them again.',
   ],
 ];
 export const bottleNote = (rng, idx) => pick(rng, NOTES[Math.min(4, idx)]);

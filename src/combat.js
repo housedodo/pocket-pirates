@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { mats, psxMaterial } from './psx.js';
 import { waveHeight } from './ocean.js';
 import { KINDS } from './traffic.js';
+import { raiderShot } from './systems/danger.js';
 
 // Simple, strictly optional ship combat. Only raiders (some Reef Brotherhood ships) attack,
 // and you can outrun them, pay tribute, or fight. Space auto-aims a broadside at the nearest raider.
@@ -105,10 +106,11 @@ export class Combat {
         this.puff(s.x + rx * side * 1.5 * sc, 2, s.z + rz * side * 1.5 * sc, 0.5);
       }
       if (s.fireCd <= 0) {
-        s.fireCd = rnd(4.6, 7); s.warned = false;
-        this.launch(1, s.x + rx * side * 1.5, s.z + rz * side * 1.5, ship.pos.x, ship.pos.z, Math.sin(ship.heading) * ship.speed, -Math.cos(ship.heading) * ship.speed, 7 + Math.random() * 3,
-          // they miss a lot: more the faster you sail (a ship running well before the wind is hard to hit), and now and then wildly
-          0.3 + 0.5 * Math.min(1, ship.speed / 8) + (Math.random() < 0.4 ? 0.9 : 0));
+        const R = raiderShot(s);   // her strength by water and day (systems/danger.js)
+        s.fireCd = rnd(4.6, 7) * R.cdK; s.warned = false;
+        this.launch(1, s.x + rx * side * 1.5, s.z + rz * side * 1.5, ship.pos.x, ship.pos.z, Math.sin(ship.heading) * ship.speed, -Math.cos(ship.heading) * ship.speed, R.dmg,
+          // they miss a lot: more the faster you sail (a ship running well before the wind is hard to hit), and now and then wildly; a harder crew less
+          (0.3 + 0.5 * Math.min(1, ship.speed / 8) + (Math.random() < 0.4 ? 0.9 : 0)) * R.spreadK);
       }
     }
 
@@ -124,7 +126,7 @@ export class Combat {
           if (!s.hostile || s.hp <= 0 || s.sinking) continue;
           if (Math.hypot(s.x - p.x, s.z - p.z) < 3.4 * KINDS[s.kind].scale && p.y < 4.5) { onHitEnemy(s, b.dmg, b.kind); this.puff(p.x, p.y, p.z, 1.4); done = true; break; }
         }
-      } else if (Math.hypot(ship.pos.x - p.x, ship.pos.z - p.z) < 3.3 && p.y < 4.5) { onHitPlayer(b.dmg); this.puff(p.x, p.y, p.z, 1.4); done = true; }
+      } else if (Math.hypot(ship.pos.x - p.x, ship.pos.z - p.z) < 3.3 && p.y < 4.5) { onHitPlayer(b.dmg, b.owner); this.puff(p.x, p.y, p.z, 1.4); done = true; }
       if (!done && p.y < waveHeight(p.x, p.z, t, wave) + 0.1) { this.fauna.splash(p.x, p.z, wave, t, 1.2); done = true; }
       if (done) { b.on = false; b.m.visible = false; }
     }

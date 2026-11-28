@@ -1,7 +1,7 @@
 HOIST (Pocket Pirates): THE MASTER STORY FILE
 ================================================================================================
 This is the main story file for the full game. Edit it, upload it again, and the next session puts every change
-into the game. Built from commit 5cb0f1a on 2026-11-27. 1913 in-game lines carry an ID.
+into the game. Built from commit 6907499 on 2026-11-28. 1952 in-game lines carry an ID.
 
 CONTENTS
   A   HOW TO USE THIS FILE (IDs, status marks, how to add and remove things)
@@ -569,7 +569,7 @@ Where the story hides in the mechanics, and where its text lives (section J).
 # J  EVERY LINE IN THE GAME
 ################################################################################################
 Pulled from the code. Edit the text after the "|" (see part A). Sources are grouped by file; the CODE in front of every
-line says which file it goes back into. 1913 lines.
+line says which file it goes back into. 1952 lines.
 
 
 
@@ -728,24 +728,19 @@ line says which file it goes back into. 1913 lines.
 ### OBJ / ADDED 2026-11-18
   OBJ-0172 | The Crown keeps a book of every ship that comes in. Ask to see it. Tell me whose name is at the top. I have a small wager on it.
   OBJ-0173 | Perrin writes: "The Crown keeps a book of every ship that comes in. Ask to see it. Tell me whose name is at the top. I have a small wager on it."
-  OBJ-0174 | Perrin wants us in the Crown Traders' waters. Let us tie up at a harbour there and ask around.
   OBJ-0175 | The chart shows whose waters we are in.
   OBJ-0176 | In the Free Cays they sleep by day and play by night. Go after dark. Take nothing but your ears. I wrote the tune down once. The page is blank, and I can still hum it.
   OBJ-0177 | Perrin again. He has underlined things.
   OBJ-0178 | Perrin writes: "In the Free Cays they sleep by day and play by night. Go after dark. Take nothing but your ears. I wrote the tune down once. The page is blank, and I can still hum it."
-  OBJ-0179 | Perrin wants us in the Free Cays. Let us tie up at a harbour there and ask around.
   OBJ-0180 | The Guild's lamps burn a colour I have no name for. I had one last week. Go and look. I would rather you did not write it down.
   OBJ-0181 | From Perrin. He has dated it tomorrow.
   OBJ-0182 | Perrin writes: "The Guild's lamps burn a colour I have no name for. I had one last week. Go and look. I would rather you did not write it down."
-  OBJ-0183 | Perrin wants us in the Lantern Guild's waters. Let us tie up at a harbour there and ask around.
   OBJ-0184 | The Reef counts its wrecks. Count them for me. I counted them from my chair and got one more than there are. I have not left the chair. Note: stay in the chair.
   OBJ-0185 | Another from Perrin. The ink has run.
   OBJ-0186 | Perrin writes: "The Reef counts its wrecks. Count them for me. I counted them from my chair and got one more than there are. I have not left the chair. Note: stay in the chair."
-  OBJ-0187 | Perrin wants us in the Reef Brotherhood's waters. Let us tie up at a harbour there and ask around.
   OBJ-0188 | Drowned waters. Streets. Doors. Go at low water and count them. I keep drawing that street, and I have never been. If a door is open, leave it.
   OBJ-0189 | Perrin. No greeting this time, and no name.
   OBJ-0190 | Perrin writes: "Drowned waters. Streets. Doors. Go at low water and count them. I keep drawing that street, and I have never been. If a door is open, leave it."
-  OBJ-0191 | Perrin wants us in the Drowned waters. Let us tie up at a harbour there and ask around.
 
 ### OBJ / ADDED 2026-11-19
   OBJ-0192 | That is everything we set out to do, Captain. The harbours still talk, if we ask. Deliveries, errands and treasure are all still there.
@@ -758,6 +753,13 @@ line says which file it goes back into. 1913 lines.
   OBJ-0195 | On the right shore, dig squares (click, or arrows and E): darker, wetter sand means the chest is close. The sand slides back with every dig, and two stones break the shovel.
   OBJ-0196 | The water is running white over the shoals, Captain. Not now. We wait for the sea to draw back.
   OBJ-0197 | The shipwrights say a stronger hull or better sails go further than this. Past that, nobody sells charts.
+
+### OBJ / ADDED 2026-11-28
+  OBJ-0198 | Crown waters, then. Their clerks write everything down. Somebody will have written this.
+  OBJ-0199 | The Cays. If he wants ears, we go at night, and we keep quiet.
+  OBJ-0200 | The Guild harbours. We will know them by the lamps, he says. I would rather know them by the chart.
+  OBJ-0201 | The Reef. They count wrecks there the way other people count sheep. Somebody will know the number.
+  OBJ-0202 | The Drowned waters. I do not want to go. I am telling you so that it is written down somewhere.
 
 ### OBJ / RETIRED (the text is no longer in the game; these IDs are never used again)
     was OBJ-0012 | [text] Perrin's riddle is in your log (Journal). Find the right shore of Hollow Cay Galen and dig.
@@ -801,6 +803,11 @@ line says which file it goes back into. 1913 lines.
     was OBJ-0167 | Perrin wants us in the Drowned waters. The chart shows whose waters we are in.
     was OBJ-0168 | The shipwrights say a stronger hull or better sails go further than this, and on a falling tide. Past that, nobody sells charts.
     was OBJ-0169 | The water is running white over the shoals, Captain. Not now. We wait for the tide to go out.
+    was OBJ-0174 | Perrin wants us in the Crown Traders' waters. Let us tie up at a harbour there and ask around.
+    was OBJ-0179 | Perrin wants us in the Free Cays. Let us tie up at a harbour there and ask around.
+    was OBJ-0183 | Perrin wants us in the Lantern Guild's waters. Let us tie up at a harbour there and ask around.
+    was OBJ-0187 | Perrin wants us in the Reef Brotherhood's waters. Let us tie up at a harbour there and ask around.
+    was OBJ-0191 | Perrin wants us in the Drowned waters. Let us tie up at a harbour there and ask around.
 
 
 ####################################################################################################
@@ -812,7 +819,6 @@ line says which file it goes back into. 1913 lines.
   PAS-0002 | My wife said the sea gives back what it takes. She has been gone eleven years. I am still waiting.
   PAS-0003 | You hold the tiller like my brother did. He was terrible at it too.
   PAS-0004 | They say a man in a beard lives on one of the empty islands. I knew a man with a beard. Different man, probably.
-  PAS-0005 | Do you hear the bell, captain? No? Good. Me neither.
   PAS-0006 | a travelling cartographer's apprentice
   PAS-0007 | Master Perrin sends his maps by bottle now. Nobody has seen him hand one over in years.
   PAS-0008 | I drew this coast three times. It came out different every time. The coast, I mean. Not my drawing.
@@ -902,7 +908,24 @@ line says which file it goes back into. 1913 lines.
 ### PAS / ADDED 2026-11-26
   PAS-0122 | My grandfather swore there was gold buried on ${r.d.name}, ${bearingName(r.d.x - ctx.ship.pos.x, r.d.z - ctx.ship.pos.z)} of here. I have put it on your chart. I never had a boat.
 
+### PAS / ADDED 2026-11-28
+  PAS-0123 | There is a bell somewhere ahead. A church, I suppose. Out here. Funny.
+  PAS-0124 | I counted the stars to fall asleep. I got the same number three nights running. That is not how stars work.
+  PAS-0125 | Your crew keeps nodding at somebody behind me. I do not turn round. I have decided not to.
+  PAS-0126 | I packed for one week. I have been aboard for one week every morning.
+  PAS-0127 | The flags on the forts are all at half mast. Every one. Nobody I asked knew who for.
+  PAS-0128 | The customs men in Perra stamped my papers without reading them. Then they kept stamping. I left them at it.
+  PAS-0129 | The music on the beaches has stopped. The dancers have not. You can hear their feet.
+  PAS-0130 | My cousin in the Cays sets a place for me every night. I wrote to say I was coming. I have not written yet.
+  PAS-0131 | The wrecks out here all face the same way. Have you noticed? Like they are listening.
+  PAS-0132 | They say nobody drowns in the Reef any more. They say it like it is good news.
+  PAS-0133 | Every lamp on that shore came on at once. Nobody was near them.
+  PAS-0134 | The Guild keepers have stopped trimming the wicks. The flames stay the same height anyway.
+  PAS-0135 | There are roofs under us. I saw a chimney. It was smoking.
+  PAS-0136 | Please stop saying the name of the next harbour. I do not like how it sounds when you say it twice.
+
 ### PAS / RETIRED (the text is no longer in the game; these IDs are never used again)
+    was PAS-0005 | Do you hear the bell, captain? No? Good. Me neither.
     was PAS-0044 | Sleep is for people who do not have a captain.
     was PAS-0045 | Why is there a cat on the chart table?
     was PAS-0046 | She is navigating. Do not interrupt her.
@@ -956,29 +979,20 @@ line says which file it goes back into. 1913 lines.
   LORE-0001 | ${pre} ${w === 'Mara' ? 'Maren' : w}
 
 ### LORE / GOSSIP
-  LORE-0002 | Fresh fish, fresh rum, fresh rumours! Take your pick.
   LORE-0003 | Folk say there is treasure on the little isles to the north-east. Folk say a lot of things.
-  LORE-0004 | Lovely weather. Been lovely for a while now. Nobody can say how long.
   LORE-0005 | Try the fish stew. Nobody knows who makes it, but it's always hot.
   LORE-0006 | Our lighthouse keeper retired. The light still comes on. We think he forgot to tell it.
   LORE-0007 | The tide brought in a rowboat this morning. Dry inside. Oars neatly stowed.
-  LORE-0008 | Funny. The gulls went quiet this morning. All of them, at once.
   LORE-0009 | Old Perrin's cat will not look at the sea any more. Won't even blink.
-  LORE-0010 | Same tide as yesterday. Exactly the same. Down to the ripple.
   LORE-0011 | My neighbour's dog barks at the sea every evening at the same minute. Then stops. Then wags.
   LORE-0012 | Somebody keeps leaving the harbour bell rope tied in a sailor's knot. Nobody here ties that knot.
   LORE-0013 | The children have a new song. Nobody taught it to them. It's quite catchy.
-  LORE-0014 | Strange. I could have sworn there were four piers yesterday.
   LORE-0015 | The lighthouse lit itself last night. Perrin was very calm about it. Too calm.
-  LORE-0016 | We ran out of fish. The nets come up full, but we ran out of fish.
   LORE-0017 | Have you been here before? I could swear I've served you. Tomorrow.
-  LORE-0018 | We stopped counting the boats that come back. It was always one more than went out.
-  LORE-0019 | The gulls bring us things now. Rings, mostly. Never the same finger size.
   LORE-0020 | Don't sleep facing the window. No reason. Just don't.
   LORE-0021 | Don't look at the water after dusk. Not for long. Not at all.
   LORE-0022 | Everyone left. I stayed to keep the lamps lit. Someone has to. Someone is always watching.
   LORE-0023 | The stars are wrong. I counted them. There are more every night.
-  LORE-0024 | ...you can hear it too, can you not? Under the keel. Humming.
 
 ### LORE / LOOT_DARK
   LORE-0027 | A map of somewhere that is not here
@@ -1015,9 +1029,7 @@ line says which file it goes back into. 1913 lines.
   LORE-0059 | Dont follow the singing. It is not coming from the water. It is coming from underneath the water.
   LORE-0060 | The stars are doing something. Please tell me you can see it too.
   LORE-0061 | The note in this bottle was written by me tomorrow. I recognise the handwriting. It shakes more.
-  LORE-0062 | y o u  a r e  n e a r l y  h e r e
   LORE-0063 | We are not lost. We have always been exactly here. It was the sea that moved.
-  LORE-0065 | d o n ' t  s t o p  r o w i n g
 
 ### LORE / BARRELS_BRIGHT
   LORE-0066 | chest of silver spoons
@@ -1044,8 +1056,6 @@ line says which file it goes back into. 1913 lines.
 
 ### LORE / ADDED 2026-11-11
   LORE-0085 | Welcome to {name}, captain! Fair winds today!
-  LORE-0086 | Nobody here is angry. Nobody here is in any hurry.
-  LORE-0087 | Welcome back, captain. Your chair is where you left it.
   LORE-0088 | The Grey Tooth keeps a tin box on its top. Bring a pencil.
   LORE-0089 | Someone was standing at the end of the pier at dusk again. I did not see them leave.
   LORE-0090 | Turn back. Or do not. The water does not mind either way.
@@ -1060,13 +1070,30 @@ line says which file it goes back into. 1913 lines.
 ### LORE / ADDED 2026-11-26
   LORE-0096 | If you find this on a night the sea has gone out, look around. The sea is generous when it is out.
 
+### LORE / ADDED 2026-11-28
+  LORE-0097 | The page after this one is already written. I have not turned to it.
+  LORE-0098 | Whoever finds this: count your crew before you read on. Then count them again.
+
 ### LORE / RETIRED (the text is no longer in the game; these IDs are never used again)
+    was LORE-0002 | Fresh fish, fresh rum, fresh rumours! Take your pick.
+    was LORE-0004 | Lovely weather. Been lovely for a while now. Nobody can say how long.
+    was LORE-0008 | Funny. The gulls went quiet this morning. All of them, at once.
+    was LORE-0010 | Same tide as yesterday. Exactly the same. Down to the ripple.
+    was LORE-0014 | Strange. I could have sworn there were four piers yesterday.
+    was LORE-0016 | We ran out of fish. The nets come up full, but we ran out of fish.
+    was LORE-0018 | We stopped counting the boats that come back. It was always one more than went out.
+    was LORE-0019 | The gulls bring us things now. Rings, mostly. Never the same finger size.
+    was LORE-0024 | ...you can hear it too, can you not? Under the keel. Humming.
     was LORE-0025 | It is not angry. That is the worst part. It is only very, very patient.
     was LORE-0026 | Welcome home, captain. We saved your seat. It was always your seat.
     was LORE-0042 | Two white posts stand out in the water near the Tooth. Nobody knows who put them there. Very tidy of whoever it was.
     was LORE-0043 | If you find this at low tide, look around. The sea is generous when it is out.
     was LORE-0057 | Every harbour has someone watching the water at dusk. They all watch the same way.
+    was LORE-0062 | y o u  a r e  n e a r l y  h e r e
     was LORE-0064 | Turn back. Or do not. It has already decided and it is not unkind about it.
+    was LORE-0065 | d o n ' t  s t o p  r o w i n g
+    was LORE-0086 | Nobody here is angry. Nobody here is in any hurry.
+    was LORE-0087 | Welcome back, captain. Your chair is where you left it.
 
 
 ####################################################################################################
@@ -1384,7 +1411,6 @@ line says which file it goes back into. 1913 lines.
   TSC-0011 | A longer day (a morning of yours)
   TSC-0012 | The sun, outside, thinks better of it and waits. You have the afternoon again.
   TSC-0013 | A second throw (a harbour's kindness)
-  TSC-0014 | He weighs something you cannot see. "She will let you throw again. She always does." Somewhere, a harbour goes a little cooler.
   TSC-0015 | [door] Through green water, a belfry roof stands up out of the reef. The tide is low. You hear it as much through the planks as through the air.
   TSC-0016 | [listen] Slow strokes, one after another, with long gaps. You count them. How many?
   TSC-0017 | Hang the clappers and ring it
@@ -1439,6 +1465,12 @@ line says which file it goes back into. 1913 lines.
 
 ### TSC / ADDED 2026-11-11
   TSC-0066 | And the third.
+
+### TSC / ADDED 2026-11-28
+  TSC-0067 | He weighs something you cannot see. "Once more, then." Somewhere, a harbour goes a little cooler.
+
+### TSC / RETIRED (the text is no longer in the game; these IDs are never used again)
+    was TSC-0014 | He weighs something you cannot see. "She will let you throw again. She always does." Somewhere, a harbour goes a little cooler.
 
 
 ####################################################################################################
@@ -1737,7 +1769,6 @@ line says which file it goes back into. 1913 lines.
   ABY-0011 | Captain, I c-c-can't remember which way is home. Can you?
   ABY-0012 | We have always been sailing here. Haven't we? Haven't we.
   ABY-0013 | Who is steering? Who is steering? Who is st
-  ABY-0016 | Mara is not here right now. Please leave a message after the tide.
   ABY-0018 | What was your name? I wrote it in the log and the ink moved.
   ABY-0019 | . . . . . . . . . . . .
   ABY-0021 | The stars are not where I left them.
@@ -1768,7 +1799,6 @@ line says which file it goes back into. 1913 lines.
 
 ### ABY / say
   ABY-0037 | It has watched you since the first harbour.
-  ABY-0038 | It knows your name now.
   ABY-0039 | You wake on the deck. Harbour Tama is in sight and the sea is blue.
   ABY-0040 | Nobody remembers the way back. Nobody asks.
 
@@ -1782,12 +1812,18 @@ line says which file it goes back into. 1913 lines.
   ABY-0045 | The water is clear here. I can see a long way down. A long way.
   ABY-0046 | first time here?
 
+### ABY / ADDED 2026-11-28
+  ABY-0047 | Mara is not at her post. Her coat is. Her boots are. Mara is not.
+  ABY-0048 | Your name is in the log twice now. Once in your hand.
+
 ### ABY / RETIRED (the text is no longer in the game; these IDs are never used again)
     was ABY-0014 | The crew keeps counting to eleven. We only have nine.
     was ABY-0015 | I see you, Captain. I see you seeing me.
+    was ABY-0016 | Mara is not here right now. Please leave a message after the tide.
     was ABY-0017 | Don't look at the water. It looks back. It looks back. It
     was ABY-0020 | turn back turn back turn back turn back turn back
     was ABY-0033 | Distant shapes (subtle)
+    was ABY-0038 | It knows your name now.
 
 
 ####################################################################################################
@@ -2438,9 +2474,6 @@ line says which file it goes back into. 1913 lines.
   MAIN-0229 | Raider sunk! +${gold} gold
   MAIN-0230 | Unlocked: skull figurehead (see the shipyard).
 
-### MAIN / tgt
-  MAIN-0231 | The Gull went under. A fisherman dragged you to ${tgt.name}. You lost ${lost} gold; the hull is repaired.
-
 ### MAIN / newAsk
   MAIN-0232 | Really? Click again to start over
 
@@ -2669,6 +2702,40 @@ line says which file it goes back into. 1913 lines.
   MAIN-0413 | The wet sand slides back into every hole. The crew lets it drain and starts again.
   MAIN-0414 | The wall leaves a road or two of glass water through it. On the glass the helm answers.
 
+### MAIN / ADDED 2026-11-28
+  MAIN-0415 | The Gull went under. A fisherman dragged you to ${tgt.name}. You lost ${lost} gold${hold ? ', and the hold is empty' : ''}; the stores are gone, the hull is patched.
+  MAIN-0416 | A second lamp is lit on the quay tonight. Somebody came back.
+  MAIN-0417 | There are boats on the hard again, and someone has whitewashed a door.
+  MAIN-0418 | From the quay you can see the Halved Isle, clear across the water. Hesper says nobody has, in years.
+  MAIN-0419 | Captain. The oil ran out and I lit the lamp anyway, and it burned. They are all down at the water now, the ones who left, in their good clothes, calling me by my name. I am going down to ask them where they have been. Do not light the lamp. H.
+  MAIN-0420 | Nobody comes down to take your line. On the lighthouse steps her chair stands empty, a note under the lamp.
+  MAIN-0421 | Nobody comes down to take your line. The fog stands in the doorways.
+  MAIN-0422 | Nobody here to take ${state.job.item}. You keep it.
+  MAIN-0423 | Hesper does not get up when you tie up. "You were a long time. It was louder, while you were gone."
+  MAIN-0424 | "Two more chimneys smoked last night. I counted them twice."
+  MAIN-0425 | Hesper keeps the light, what is left of it. "They went one at a time. They said the fog had their names in it. I trim the wick, and I do not listen."
+  MAIN-0426 | "${hand} has three roofs back on. Sabe in Galra taught me the wick, when he could still see. Tell him the light is going."
+  MAIN-0427 | "Sabe in Galra taught me the wick, when we were young and he could still see. Tell him the light is going, if you pass."
+  MAIN-0428 | "Children on the quay again. They throw stones at the fog. I let them. There is a stall open, if you need anything."
+  MAIN-0429 | "You can see the whole bay from the gallery now. I had forgotten how small it is."
+  MAIN-0430 | She takes it without a word, and goes up the steps with it. That night the light turns a little longer before it catches.
+  MAIN-0431 | She carries it down to the quay. A door that was shut is open in the morning.
+  MAIN-0432 | Captain, I think it is time to leave.
+  MAIN-0433 | She grounds with a long creak. The water here is too shallow for the Gull.
+  MAIN-0434 | Nobody. A kettle on the stove, still warm. Two cups on the table, one turned down. The bunk is made, tight, the way you make a bunk for someone else.
+  MAIN-0435 | The kettle is still warm.
+  MAIN-0436 | A cold fire, a hammock, a tin of biscuit with the lid on. Somebody counted the days on the stake: a long row, then the marks stop in the middle of a mark.
+  MAIN-0437 | The fire is cold. The marks on the stake have not gone on.
+  MAIN-0438 | An old mooring stone with an iron ring, worn bright on one side. Somebody has tied up here at the bottom of the tide, often, for a long time. The knot is still on the ring.
+  MAIN-0439 | The knot is still on the ring.
+  MAIN-0440 | The Patience is moored under the hut, her patched sail furled. The kettle is on. The woman pours you a cup and says nothing about who was here before.
+  MAIN-0441 | The children are fishing off the ladder. The goat is on the roof.
+  MAIN-0442 | The Patience's family live in the stilt hut on the Sandbar Cays now.
+  MAIN-0443 | Fire on deck! Buckets, all of you!
+  MAIN-0444 | The fire is out.
+  MAIN-0445 | Grapnels! They mean to board us! Get way on her, Captain!
+  MAIN-0446 | They came over the rail and went back with ${took} gold${crate}.
+
 ### MAIN / RETIRED (the text is no longer in the game; these IDs are never used again)
     was MAIN-0001 | A floating market, with bunting on every line. (Friday)
     was MAIN-0002 | A regatta! Five boats, racing.
@@ -2693,6 +2760,7 @@ line says which file it goes back into. 1913 lines.
     was MAIN-0138 | they may believe you have a fleet behind you (45%)... or open fire
     was MAIN-0148 | a forecast and a rumour of the sea
     was MAIN-0213 | The harbourmaster hands you a folded note from Old Perrin. (Journal)
+    was MAIN-0231 | The Gull went under. A fisherman dragged you to ${tgt.name}. You lost ${lost} gold; the hull is repaired.
     was MAIN-0233 | The tide is out, Captain. Keep off the shallows, and the wrecks give up more at low water.
     was MAIN-0236 | The crew came back empty-handed. Hold still!
     was MAIN-0237 | The tide is in. Wait for it to go out...
@@ -2829,11 +2897,9 @@ line says which file it goes back into. 1913 lines.
   HLF-0095 | [fishing] An old fisher says his grandfather rowed out one calm night to a little black house on the water, and played a game at a table with a woman who never said a word. He won. The fish came back that year.
   HLF-0096 | [terraced] A painting on the terrace wall
   HLF-0098 | [thatch] A children's counting rhyme
-  HLF-0099 | [thatch] Children skipping on the beach: "One for the gull and two for the bell, three for the one who keeps the sea well... nineteen, twenty, and all of us sleep." They start again at one.
   HLF-0100 | [market] An old woman at the market sells dice, all of them twenty-sided, every one missing a different number. "She would like them back," she says, and does not say who.
   HLF-0101 | [farm] The eggs come wrapped in an old ledger page: two columns, a date and a number from one to twenty, going back two hundred years. The last line is dated next month.
   HLF-0102 | [shrine] A carving over the shrine door
-  HLF-0103 | [shrine] Carved over the shrine door: a woman at a table, a die with too many faces. Scratched underneath, later and by another hand: SHE COUNTS SO WE DO NOT HAVE TO.
   HLF-0104 | [wreckers] A figurehead on the beach
   HLF-0105 | [wreckers] An old figurehead stands in the sand: a woman holding a die. The wreckers touch it for luck before they go out. They touch the die. Never her face.
 
@@ -2883,11 +2949,17 @@ line says which file it goes back into. 1913 lines.
 ### HLF / ADDED 2026-11-18
   HLF-0141 | A man on the pier writes every ship on the wall in chalk. The wall is washed on market day.
 
+### HLF / ADDED 2026-11-28
+  HLF-0142 | Children skipping on the beach: "One for the gull and two for the bell, three for the one at the table... nineteen, twenty, and all of us sleep." They start again at one.
+  HLF-0143 | Carved over the shrine door: a woman at a table, a die with too many faces. Scratched underneath, later and by another hand: SHE IS COUNTING.
+
 ### HLF / RETIRED (the text is no longer in the game; these IDs are never used again)
     was HLF-0066 | You give Lune the words. She sings the whole song for the first time: a table by the water, someone who keeps the count, and everyone asleep. She stops. "That is not how I remember it ending."
     was HLF-0087 | A man on the pier writes every ship on the wall in chalk. The wall is washed every week.
     was HLF-0093 | [classic] Cut round the rim of the old bell, worn almost smooth: RUNG FOR THE ONE WHO SLEEPS. RING SOFTLY.
     was HLF-0097 | [terraced] Painted along the terrace wall, older than the houses: the sea drawn as a closed eye, the horizon its lid, and a tiny house sitting on the lid.
+    was HLF-0099 | [thatch] Children skipping on the beach: "One for the gull and two for the bell, three for the one who keeps the sea well... nineteen, twenty, and all of us sleep." They start again at one.
+    was HLF-0103 | [shrine] Carved over the shrine door: a woman at a table, a die with too many faces. Scratched underneath, later and by another hand: SHE COUNTS SO WE DO NOT HAVE TO.
 
 
 ####################################################################################################
@@ -2965,7 +3037,6 @@ line says which file it goes back into. 1913 lines.
 
 ### TBL / ADDED 2026-11-13
   TBL-0024 | Logged: a twenty, at the table by the water. The sea has been quiet since.
-  TBL-0025 | Logged: a middling throw. That night the two of them were heard playing together, for one bar.
   TBL-0026 | Logged: a low throw. The next page is wet through.
   TBL-0027 | Logged: no throw. Somebody hummed. A violin answered.
   TBL-0028 | Logged: a blank line, left blank.
@@ -2993,9 +3064,12 @@ line says which file it goes back into. 1913 lines.
 
 ### TBL / ADDED 2026-11-18
   TBL-0047 | Twenty. She closes the book, and the sea breathes out. It will be a hundred years.
-  TBL-0048 | She puts the pen down. Under the sea, something that was lying still is not.
   TBL-0049 | You push the chair in. There is a blank in the book where your number would be.
   TBL-0050 | You sit in the other chair. It is warm. The pen is in your hand.
+
+### TBL / ADDED 2026-11-28
+  TBL-0051 | Logged: a middling throw. The lamps along the quay were lit early that night. Nobody remembers lighting them.
+  TBL-0052 | She puts the pen down. The sea goes very flat, all the way out.
 
 ### TBL / RETIRED (the text is no longer in the game; these IDs are never used again)
     was TBL-0001 | She closes the book. For the first time she looks up, and it is only an old woman, very tired.
@@ -3014,7 +3088,9 @@ line says which file it goes back into. 1913 lines.
     was TBL-0017 | The book is in front of you. The pen is in your hand. You know every name in it.
     was TBL-0018 | Across the table Mara sits down, slowly. She does not ask.
     was TBL-0019 | A die waits on the wood.
+    was TBL-0025 | Logged: a middling throw. That night the two of them were heard playing together, for one bar.
     was TBL-0030 | Down at the boat, Mara has lit the lamp. She does not call up.
+    was TBL-0048 | She puts the pen down. Under the sea, something that was lying still is not.
 
 
 ####################################################################################################
@@ -3310,7 +3386,6 @@ line says which file it goes back into. 1913 lines.
 
 ### VOY / ADDED 2026-11-23
   VOY-0001 | The crew have gone quiet, Captain. A harbour would do them good.
-  VOY-0002 | Nobody is singing. They do the work, and not a stroke more.
   VOY-0003 | Hear that? Somebody has started a song below.
   VOY-0004 | We are down to the last of the biscuit, Captain.
   VOY-0005 | The water casks are nearly dry, Captain.
@@ -3335,6 +3410,12 @@ line says which file it goes back into. 1913 lines.
 ### VOY / ADDED 2026-11-25
   VOY-0021 | Somebody has been at the fruit we are carrying for the commission. Two are gone. Nobody saw anything, of course.
   VOY-0022 | One of the fruit for the commission is gone. There is a peel behind the water casks.
+
+### VOY / ADDED 2026-11-28
+  VOY-0023 | Nobody is singing. Nobody will go aloft, either. We are under half the sail she can carry.
+
+### VOY / RETIRED (the text is no longer in the game; these IDs are never used again)
+    was VOY-0002 | Nobody is singing. They do the work, and not a stroke more.
 
 
 ####################################################################################################
@@ -3364,7 +3445,6 @@ line says which file it goes back into. 1913 lines.
   RAID-0006 | A thin man in a grey coat holds up a ledger and a pen. "The toll for the passage, Captain. It has always been paid. It is your turn."
   RAID-0007 | A woman at the tiller, three children along the rail, a goat. "We have not had water in two days. Anything, Captain. We will remember it."
   RAID-0008 | Someone at the rail in a white collar, very polite, writing as they speak. "We collect, Captain. You have something of ours."
-  RAID-0009 | Hask, at the guns: "${GUNNER[id]}"
   RAID-0010 | A grey brig comes alongside, gunports shut. A man at her rail holds up a ledger.
   RAID-0011 | You did not stop for the toll. Her gunports open.
   RAID-0012 | In the dark the Patience comes in fast. They are going to try to take it.
@@ -3395,6 +3475,12 @@ line says which file it goes back into. 1913 lines.
   RAID-0037 | In the booth, the ledger. Your ship is on every page, far ahead. You do not take it.
   RAID-0038 | They had almost nothing. The children watch you take it.
 
+### RAID / ADDED 2026-11-28
+  RAID-0039 | Coyle, at the guns: "${GUNNER[id]}"
+
+### RAID / RETIRED (the text is no longer in the game; these IDs are never used again)
+    was RAID-0009 | Hask, at the guns: "${GUNNER[id]}"
+
 
 ####################################################################################################
 ## SOURCE HAND   (systems/hands.js): the specialist hands
@@ -3413,6 +3499,14 @@ line says which file it goes back into. 1913 lines.
   HAND-0010 | "Three times down and you came up each time. I like the odds."
   HAND-0011 | Make six deliveries.
   HAND-0012 | "My uncle keeps the light at the Rock. People talk to me. They have stopped talking to you, have you noticed?"
+
+### HAND / ADDED 2026-11-28
+  HAND-0013 | "The guns are cold in the mornings now. Cold right through. In this heat."
+  HAND-0014 | "Prices are good everywhere. Too good. Nobody haggles any more. They just hand it over."
+  HAND-0015 | "The pepper on these hills all grows facing the sea now. I pick from the other side."
+  HAND-0016 | "The soundings agree with the chart now. They never used to. I liked it better when they argued."
+  HAND-0017 | "Last time down something knocked on the bell. From outside. Polite, like a neighbour."
+  HAND-0018 | "They talk to me less now as well. They look at you, then at me, and stop."
 
 
 ####################################################################################################

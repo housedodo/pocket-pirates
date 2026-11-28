@@ -31,7 +31,7 @@ export function tableOptions(state) {
 /** what goes into the Ship's book when the voyage ends, in another hand (drafts, 2026-11-13: the owner's to rewrite) */
 export const EPILOGUE = {
   sleep: 'Logged: a twenty, at the table by the water. The sea has been quiet since.',
-  dreams: 'Logged: a middling throw. That night the two of them were heard playing together, for one bar.',
+  dreams: 'Logged: a middling throw. The lamps along the quay were lit early that night. Nobody remembers lighting them.',
   rises: 'Logged: a low throw. The next page is wet through.',
   tune: 'Logged: no throw. Somebody hummed. A violin answered.',
   leave: 'Logged: a blank line, left blank.',
@@ -42,7 +42,7 @@ export const EPILOGUE = {
 export const ENDINGS = {
   sleep: { title: 'THE LONG SLEEP', lines: ['Twenty. She closes the book, and the sea breathes out. It will be a hundred years.'] },
   dreams: { title: 'GOOD DREAMS', lines: ['She writes the number and blots it. The sea stays blue.'] },
-  rises: { title: 'SHE RISES', dark: true, lines: ['She puts the pen down. Under the sea, something that was lying still is not.'] },
+  rises: { title: 'SHE RISES', dark: true, lines: ['She puts the pen down. The sea goes very flat, all the way out.'] },
   tune: { title: 'THE TUNE IS KEPT', lines: ['You hum the eight bars. Far off, a violin answers. Nobody throws tonight.'], mara: 'I suppose one of us ought to learn the guitar.' },
   leave: { title: 'THE UNSEEN THROW', lines: ['You push the chair in. There is a blank in the book where your number would be.'] },
   sit: { title: 'YOUR SEAT', dark: true, lines: ['You sit in the other chair. It is warm. The pen is in your hand.'] },

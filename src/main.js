@@ -90,6 +90,7 @@ import { fsEl, fsOk, toggleFullscreen, nightViewNow, showPauseMain, pauseBack, m
 import { renderYard, initShipyard } from './ui/shipyard.js';
 import { hailShip, renderShipTrade, initShipTrade, hailTick } from './ui/shiptrade.js';
 import { renderHarbour, lettersAt, PETS, companions, petOffer, takePet, tabOpened, showGreeting, greetAdvance, buyUpgrade, initHarbour } from './ui/harbour.js';
+import { playerHit, dangerTick } from './systems/danger.js';
 import { HUT_NOTES, perrinNote, hutNod, revealHut, showDemoEnd, fogLost, WHITE_MIST, seamTick, clueTick, seaGate, seaTick, oilOn, freeCaysNow, oilTick, SAIL_LIMIT, sailTick, toggleLamp, buyOil, tackTick, hurtPlayer, onHitEnemy, initStoryBeats } from './systems/storybeats.js';
 import { getInteract, tryInteract, anchorTick, digLeaveTick } from './systems/interact.js';
 import { bottleWord, passengerWord } from './systems/hutword.js';
@@ -139,6 +140,7 @@ Object.defineProperties(G, {
   caveEl: { get: () => caveEl },
   caves: { get: () => caves },
   closeModal: { get: () => closeModal },
+  combat: { get: () => combat },
   completeJobIfHere: { get: () => completeJobIfHere },
   costMul: { get: () => costMul },
   crewLeave: { get: () => crewLeave },
@@ -1151,7 +1153,7 @@ function stormAndCalm(dt) {
     if (st > 0.4 && side > 0.6) {   // waves hitting the side
       rt.stormWear += dt * st * (side - 0.5) * (0.15 + 1.9 * Math.max(0, sail - 0.2)) * (ship.rowing ? 0.5 : 1) * 1.4 * salt;   // (owner, 2026-11-26: "always damage, even at half mast or with oars"): sails in or oars out, a quarter of it
       if (rt.stormWear > 1 && !state.hints.headSea) { state.hints.headSea = true; if (!objectives.mate.busy) objectives.mate.say('Put her bow to the waves, Captain, or run before them. Never side-on.'); }
-      if (rt.stormWear >= 4) { rt.stormWear = 0; hurtPlayer(7); objectives.remark('broadside', rt.dread); }
+      if (rt.stormWear >= 4) { rt.stormWear = 0; hurtPlayer(7 + 8 * rt.dread); objectives.remark('broadside', rt.dread); }   // deep water hurts more (systems/danger.js)
     }
     // a gale with the sails out tears at the rigging, whatever the heading: reef them (S) or take the oars
     if (st > 0.45 && sail > 0.6 && !ship.rowing) {   // half sail is safe in a gale; only the full press of canvas tears
@@ -1375,7 +1377,8 @@ function frame() {
   windfx.update(vdt, rt.animT, windNow.dir, windNow.strength, ship.pos, tod.night, Math.min(1, weather.rain * 1.5), stage.fogNear, stage.fogFar);
   fishing.update(dt, waveT, { wave: stage.wave, dread: rt.dread, night: tod.night, env: fishing.active ? fishEnv() : null });   // the water is read only while a line is out
   setDieWear(clamp(state.dayN / 12 + rt.dread * 0.6, 0, 1));
-  combat.update(dt, waveT, { ship, traffic, wave: stage.wave, onHitEnemy, onHitPlayer: hurtPlayer, fire: fireCannons });
+  combat.update(dt, waveT, { ship, traffic, wave: stage.wave, onHitEnemy, onHitPlayer: playerHit, fire: fireCannons });
+  dangerTick(dt);   // fire on deck, boarders (systems/danger.js)
   econTick(state, dt);
   { const pork = life.meal(state) === 'pork'; if (live && rt.tNow - rt.lastHit > 12 && (weather.storm < 0.3 || pork) && state.hp < ship.mods.maxHp) state.hp = Math.min(ship.mods.maxHp, state.hp + dt * (pork ? 2 : 1)); }   // no mending in a storm
   { // while Perrin's letter is being read about, Mara stays on screen even ashore or in the log: she is the tutorial

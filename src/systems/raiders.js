@@ -158,7 +158,7 @@ export function spawnCrew(id, x, z, st) {   // st: a livery key (only 'a' since 
   dress(s, id, st || SHIP_STYLE);
   const c = C(id); c.met++; c.day = state.dayN + state.time;
   if (derelict) s.crewDerelict = true;
-  if (handOn('gunner') && !derelict) setTimeout(() => toast(`Hask, at the guns: "${GUNNER[id]}"`, false, 5000), 1500);   // the gunner reads her (systems/hands.js)
+  if (handOn('gunner') && !derelict) setTimeout(() => toast(`Coyle, at the guns: "${GUNNER[id]}"`, false, 5000), 1500);   // the gunner reads her (systems/hands.js)
   return s;
 }
 /** each frame (main.js): bring one in now and then; each kind keeps its own way of coming at you */
