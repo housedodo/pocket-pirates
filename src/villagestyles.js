@@ -346,7 +346,7 @@ export function stairs(S) {
     A.push(x, 0, z, Math.PI / 2 - dockTh);
     A.box(0, top - 1.4, 0, 3.4, 1.4, dstep + 0.1, col, tile, tile);
     for (const sx of [-1.9, 1.9]) A.box(sx, top - 1.4, 0, 0.4, 1.9, dstep + 0.1, stone ? '#8a867c' : '#5a3e24', stone ? TILE.stone : TILE.bark);   // low cheek walls
-    if (n % 4 === 2) for (const sx of [-1.9, 1.9]) { A.box(sx, top + 0.4, 0, 0.18, 1.5, 0.18, '#3a3036', TILE.bark); A.box(sx, top + 1.9, 0, 0.34, 0.38, 0.34, '#ffffff', TILE.glow); }   // lanterns on the way up
+    if (n % 4 === 2 || (n % 4 === 0 && (Math.sin(n * 12.9898 + d.seed) * 43758.5453 % 1 + 1) % 1 < 0.35)) for (const sx of (n % 3 ? [-1.9, 1.9] : [n % 2 ? 1.9 : -1.9])) { /* not a perfect row (the looks review: "evenly spaced, mechanical") */ A.box(sx, top + 0.4, 0, 0.18, 1.5, 0.18, '#3a3036', TILE.bark); A.box(sx, top + 1.9, 0, 0.34, 0.38, 0.34, '#ffffff', TILE.glow); }   // lanterns on the way up
     A.pop(); n++;
   }
 }

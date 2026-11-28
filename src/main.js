@@ -1,3 +1,4 @@
+import { phaseAt } from './systems/moon.js';
 import * as THREE from 'three';
 import { clamp, smoothstep, angleDiff, mulberry32, hash2 } from './util.js';
 import { regionLook, regionWeights } from './systems/regionlook.js';
@@ -90,7 +91,7 @@ import { fsEl, fsOk, toggleFullscreen, nightViewNow, showPauseMain, pauseBack, m
 import { renderYard, initShipyard } from './ui/shipyard.js';
 import { hailShip, renderShipTrade, initShipTrade, hailTick } from './ui/shiptrade.js';
 import { renderHarbour, lettersAt, PETS, companions, petOffer, takePet, tabOpened, showGreeting, greetAdvance, buyUpgrade, initHarbour } from './ui/harbour.js';
-import { playerHit, dangerTick } from './systems/danger.js';
+import { playerHit, dangerTick, followerTick } from './systems/danger.js';
 import { charterTick, onRoad, charterDebug } from './systems/charter.js';
 import { HUT_NOTES, perrinNote, hutNod, revealHut, showDemoEnd, fogLost, WHITE_MIST, seamTick, clueTick, seaGate, seaTick, oilOn, freeCaysNow, oilTick, SAIL_LIMIT, sailTick, toggleLamp, buyOil, tackTick, hurtPlayer, onHitEnemy, initStoryBeats } from './systems/storybeats.js';
 import { getInteract, tryInteract, anchorTick, digLeaveTick } from './systems/interact.js';
@@ -461,7 +462,14 @@ function skySign() {
   if (tod.sunElev > -0.08 && tod.sunElev < 0.16) return hr < 12 ? 'dawn' : 'dusk';
   return night ? 'moon' : 'sun';
 }
-function dayLine(d) { const ev = isFestival(d) ? 'festival day' : isMarketDay() ? 'market day' : isLanternNight() ? 'lantern night' : ''; return WEEK[weekday()] + (ev ? ` · ${ev}` : ''); }
+function dayLine(d) { const ev = isFestival(d) ? 'festival day' : isMarketDay() ? 'market day' : isLanternNight() ? 'lantern night' : ''; return WEEK[weekday()] + (ev ? ` · ${ev}` : '') + forecastLine(); }
+// the Crown's almanac (clue CL-C2-a, "Small numbers beside the black days"; built 2026-11-28, the story review found it granted nothing):
+// once it is known, every harbour's day line says how many nights until the sea next draws back (systems/calendar.js lowWater)
+function forecastLine() {
+  if (!isKnown(state, 'forecast')) return '';
+  for (let k = 0; k < 20; k++) { const p = phaseAt((state.dayN || 0) + k + 0.95), dd = Math.min(p, Math.abs(p - 0.5), 1 - p) * 29.53; if (dd <= 1.1) return k === 0 ? ' · the sea draws back tonight' : ` · the sea draws back in ${k} ${k === 1 ? 'night' : 'nights'}`; }
+  return '';
+}
 // a harbour grows with your trade there: more boats, then a busier quay, then flags over the pier
 function noonBells() {   // villages that keep the bells ring them at noon; you hear them if you are near
   for (const isl of world.islands.values()) {
@@ -1154,7 +1162,7 @@ function stormAndCalm(dt) {
     if (st > 0.4 && side > 0.6) {   // waves hitting the side
       rt.stormWear += dt * st * (side - 0.5) * (0.15 + 1.9 * Math.max(0, sail - 0.2)) * (ship.rowing ? 0.5 : 1) * 1.4 * salt;   // (owner, 2026-11-26: "always damage, even at half mast or with oars"): sails in or oars out, a quarter of it
       if (rt.stormWear > 1 && !state.hints.headSea) { state.hints.headSea = true; if (!objectives.mate.busy) objectives.mate.say('Put her bow to the waves, Captain, or run before them. Never side-on.'); }
-      if (rt.stormWear >= 4) { rt.stormWear = 0; hurtPlayer((7 + 8 * rt.dread) * (1 - 0.5 * onRoad(ship.pos.x, ship.pos.z))); objectives.remark('broadside', rt.dread); }   // deep water hurts more (systems/danger.js)
+      if (rt.stormWear >= 4) { rt.stormWear = 0; hurtPlayer((7 + 8 * rt.dread) * (1 - 0.5 * onRoad(ship.pos.x, ship.pos.z)) * (1 - 0.12 * (state.upgrades.hull || 0)));   /* a stronger hull takes a storm better */ objectives.remark('broadside', rt.dread); }   // deep water hurts more (systems/danger.js)
     }
     // a gale with the sails out tears at the rigging, whatever the heading: reef them (S) or take the oars
     if (st > 0.45 && sail > 0.6 && !ship.rowing) {   // half sail is safe in a gale; only the full press of canvas tears
@@ -1223,7 +1231,7 @@ function frame() {
   if (dt > 0) { state.buffs.speed = Math.max(0, state.buffs.speed - dt); state.buffs.dig = Math.max(0, state.buffs.dig - dt); }
   ship.buff = (state.buffs.speed > 0 ? 1.15 : 1) * (life.meal(state) === 'pie' ? 1.06 : 1);
   { const m = life.meal(state); ship.trimMul = m === 'bread' ? 1.7 : 1; ship.lampBoost = m === 'tea' ? 1.6 : 1; }   // the house dish you ate (harbourlife.js)
-  ship.lampOut = rt.lampOut; ship.tuneWay = rt.tuneWay ?? null; ship.oneShadow = !!rt.shadowNight; ship.flame = rt.lampFlame || null; ship.stormLight = weather.heavy || 0;   // the lantern also shows in a storm
+  ship.lampOut = rt.lampOut; ship.tuneWay = rt.tuneWay ?? null; ship.oneShadow = !!rt.shadowNight; ship.flame = rt.lampFlame || null; ship.lampBlue = rt.lampBlue || 0; ship.stormLight = weather.heavy || 0;   // the lantern also shows in a storm
   const sec = sectorAt(ship.pos.x, ship.pos.z, state.seed);
   if (sec.id !== rt.curSector) {
     rt.curSector = sec.id;
@@ -1379,7 +1387,7 @@ function frame() {
   fishing.update(dt, waveT, { wave: stage.wave, dread: rt.dread, night: tod.night, env: fishing.active ? fishEnv() : null });   // the water is read only while a line is out
   setDieWear(clamp(state.dayN / 12 + rt.dread * 0.6, 0, 1));
   combat.update(dt, waveT, { ship, traffic, wave: stage.wave, onHitEnemy, onHitPlayer: playerHit, fire: fireCannons });
-  dangerTick(dt);   // fire on deck, boarders (systems/danger.js)
+  dangerTick(dt); followerTick(dt);   // fire on deck, boarders; the follower in the deep (systems/danger.js)
   charterTick();   // the Charter Road's buoys, once all four charters are held (systems/charter.js)
   econTick(state, dt);
   { const pork = life.meal(state) === 'pork'; if (live && rt.tNow - rt.lastHit > 12 && (weather.storm < 0.3 || pork) && state.hp < ship.mods.maxHp) state.hp = Math.min(ship.mods.maxHp, state.hp + dt * (pork ? 2 : 1)); }   // no mending in a storm

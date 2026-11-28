@@ -183,7 +183,7 @@ export function describeCell(cx, cz, seed, F = FORCED) {
   { // character, rolled on its own so the rest of the world stays put: a colour shift per island, a cliff on some jungle isles,
     // sea stacks off most rocky ones
     const vr = mulberry32(hash2(cx, cz, seed + 5151));
-    desc.hue = (vr() - 0.5) * 0.06; desc.satK = (vr() - 0.5) * 0.2; desc.lumK = (vr() - 0.5) * 0.08;
+    desc.hue = (vr() - 0.5) * 0.1; desc.satK = (vr() - 0.5) * 0.26; desc.lumK = (vr() - 0.5) * 0.12;   // (2026-11-28: wider, the looks review found one ground colour per region)
     if (!forced && desc.type === 'jungle' && vr() < 0.4) { desc.cliffTh = vr() * 6.283; desc.cliffH = 0.7 + vr() * 0.7; }
     if (!forced && desc.type === 'rocky' && vr() < 0.7) desc.stacks = 2 + Math.floor(vr() * 3);
     if (!forced) bandTint(desc);
@@ -1134,6 +1134,41 @@ function flagLine(b, a, c, k0 = 0) {   // a hanging line of little triangle flag
   }
 }
 
+// ---- each water's own things by the landing (owner, 2026-11-28: "improve the looks how you see fit"; the review: no props of a region's
+// own). Crown: sentry boxes in the Crown's stripes and a pyramid of shot. Lantern Guild: strings of paper lanterns between posts.
+// Free Cays: painted canoes drawn up and a hammock. Reef: salvage piled high, an old anchor. The Drowned: broken columns and a statue
+// half in the water. Its own rng (nothing else in the harbour moves); never on the pier line or against a house.
+function regionProps(d, A, B, dockTh, houses) {
+  const r = mulberry32((d.seed * 13 + 4441) >>> 0);
+  const spot = (side, t0) => { for (let k = 0; k < 10; k++) { const th = dockTh + side * (0.32 + r() * 0.35), rr = shoreR(d, th) * (t0 + r() * 0.08), x = Math.cos(th) * rr, z = Math.sin(th) * rr, h = terrainHeight(d, x, z);
+    if (h < 0.5 || houses.some(([hx, hz]) => Math.hypot(hx - x, hz - z) < 4.5)) continue; return [x, Math.min(d.H - 0.1, h - 0.05), z, th]; } return null; };
+  const reg = d.region;
+  if (reg === 'crown') {
+    for (const side of [-1, 1]) { const p = spot(side, 0.8); if (!p) continue; const [x, y, z, th] = p;
+      A.push(x, y, z, Math.PI / 2 - th); A.box(0, 0, 0, 1.2, 2.2, 1.1, '#f2ece0', TILE.planks); for (let i = 0; i < 3; i++) A.box(0, 0.3 + i * 0.6, 0.57, 1.22, 0.24, 0.02, '#c0392b', TILE.white);
+      A.cyl(0, 2.2, 0, 0.95, 0, 0.7, 4, '#3a3a44', TILE.roof, false); A.box(0, 0.2, 0.56, 0.7, 1.5, 0.04, '#2a2a30', TILE.stone); A.pop(); }   // a sentry box
+    { const p = spot(r() < 0.5 ? -1 : 1, 0.74); if (p) { const [x, y, z] = p; for (let l = 0; l < 3; l++) for (let i = 0; i < 3 - l; i++) for (let j = 0; j < 3 - l; j++) A.blob(x + (i - (2 - l) / 2) * 0.42, y + 0.2 + l * 0.34, z + (j - (2 - l) / 2) * 0.42, 0.2, 0.2, 0.2, '#2a2622', TILE.stone, 0.05, i + j * 3 + l * 9); } }   // round shot, stacked
+  } else if (reg === 'lantern') {
+    for (const side of [-1, 1]) { const p1 = spot(side, 0.72), p2 = spot(side, 0.84); if (!p1 || !p2) continue;
+      for (const p of [p1, p2]) A.box(p[0], p[1], p[2], 0.16, 3.2, 0.16, '#3a3036', TILE.bark);
+      const n = 6; for (let i = 1; i < n; i++) { const t = i / n, x = p1[0] + (p2[0] - p1[0]) * t, z = p1[2] + (p2[2] - p1[2]) * t, y = p1[1] + 3.0 - Math.sin(t * Math.PI) * 0.6;
+        B.box(x, y - 0.35, z, 0.28, 0.34, 0.28, i % 2 ? '#e8a040' : '#d86a3a', TILE.flag); B.box(x, y - 0.02, z, 0.04, 0.05, 0.04, '#2a2622', TILE.bark); } }   // a string of paper lanterns
+  } else if (reg === 'free') {
+    for (let i = 0; i < 3; i++) { const th = dockTh + (i - 1) * 0.5 + 1.2 + r() * 0.2, R = shoreR(d, th) * 0.93, x = Math.cos(th) * R, z = Math.sin(th) * R, h = terrainHeight(d, x, z); if (h < 0.15) continue;
+      A.push(x, h - 0.05, z, -th + Math.PI / 2, 1, 1, 1, 0, 0.12); A.box(0, 0, 0, 0.8, 0.4, 3.4, ['#e84a6a', '#3ab0c8', '#f0c030'][i], TILE.planks); A.box(0, 0.38, 0, 0.6, 0.04, 3.0, '#5a3e24', TILE.planks); A.box(0.9, 0.1, 0.2, 0.1, 0.1, 2.0, '#6b4a2e', TILE.bark); A.pop(); }   // painted canoes drawn up
+    { const p = spot(1, 0.76); if (p) { const [x, y, z, th] = p; A.push(x, y, z, Math.PI / 2 - th); for (const o of [-1.6, 1.6]) A.box(o, 0, 0, 0.16, 1.9, 0.16, '#5a3e24', TILE.bark); A.quad([-1.5, 1.4, 0], [1.5, 1.4, 0], [1.2, 0.8, 0.35], [-1.2, 0.8, 0.35], '#c8584a', TILE.flag); A.pop(); } }   // a hammock
+  } else if (reg === 'reef') {
+    for (const side of [-1, 1]) { const p = spot(side, 0.8); if (!p) continue; const [x, y, z] = p;
+      for (let i = 0; i < 5; i++) { A.push(x + (r() - 0.5) * 1.2, y + i * 0.18, z + (r() - 0.5) * 1.2, r() * 3); A.box(0, 0, 0, 0.3, 0.16, 2.4 + r(), i % 2 ? '#6a5040' : '#5a4232', TILE.planks); A.pop(); }   // salvaged timbers, piled
+      if (side > 0) { A.push(x + 1.8, y, z, r() * 3, 1, 1, 1, 0, 1.1); A.box(0, 0, 0, 0.18, 2.0, 0.18, '#3a3430', TILE.stone); A.box(0, 0.1, 0, 1.4, 0.18, 0.18, '#3a3430', TILE.stone); A.pop(); } }   // an old anchor on its side
+  } else if (reg === 'drowned') {
+    for (let i = 0; i < 4; i++) { const p = spot(i % 2 ? 1 : -1, 0.74 + (i > 1 ? 0.12 : 0)); if (!p) continue; const [x, y, z] = p, hh = 0.8 + r() * 2.2;
+      A.box(x, y, z, 0.7, 0.18, 0.7, '#d6cfbd', TILE.white); A.cyl(x, y + 0.18, z, 0.24, 0.22, hh, 8, '#e4ddcc', TILE.white, true); A.box(x, y + 0.18, z, 0.5, 0.3, 0.5, '#3e5a46', TILE.white); }   // broken columns
+    { const th = dockTh + 0.9, R = shoreR(d, th) * 1.02, x = Math.cos(th) * R, z = Math.sin(th) * R;   // a statue standing in the shallows, to the waist
+      A.box(x, -1.2, z, 0.8, 2.2, 0.5, '#d6cfbd', TILE.white); A.box(x, 1.0, z, 0.95, 0.7, 0.55, '#d6cfbd', TILE.white); A.box(x - 0.55, 0.6, z, 0.2, 0.9, 0.2, '#d6cfbd', TILE.white); A.box(x, -0.2, z, 0.9, 0.3, 0.6, '#3e5a46', TILE.white); }
+  }
+}
+
 // ---- Tama's look: the garden harbour (chosen 2026-11-12 from three polish options). The houses stand where the plain build puts
 // them (same rng, same kinds); only their finish, the ground, paths, the landing, the pier, plants and props are added: lush grass,
 // sandy paths, white picket fences, bougainvillea, flowering trees and beds, a plank boardwalk and a roped pier.
@@ -1438,9 +1473,9 @@ function harbourState(d, cr, g) {
     for (const [sx, sz] of [[-1.6, -1.4], [1.6, -1.4], [-1.6, 1.4], [1.6, 1.4]]) b.box(sx, 0, sz, 0.14, 3.6, 0.14, '#8a6a42', TILE.bark);
     b.box(0, 1.8, 1.5, 3.4, 0.1, 0.5, '#8a6a42', TILE.planks); b.box(0, 3.0, 1.5, 3.4, 0.1, 0.5, '#8a6a42', TILE.planks);   // scaffold boards
     b.push(2.1, 0, 0.6, 0, 1, 1, 1, 0, -0.3); b.box(0, 0, 0, 0.1, 3.2, 0.5, '#6a5236', TILE.bark); b.pop(); b.pop();   // a ladder
-    const n = L('pl_newhouse'); n.push(x, yy, z, face); n.box(0, 0, 0, 3, 2.4, 2.6, '#e8dcc0', TILE.wall); n.gable(0, 2.4, 0, 3.3, 1.2, 2.9, pickCol(rng, TERRACOTTA), TILE.roof, '#e8dcc0'); n.box(0, 0, 1.31, 0.8, 1.5, 0.06, pickCol(rng, SHUTTERS)); n.pop(); }
+    const n = L('pl_newhouse'); n.push(x, yy, z, face); if (CUR_KIT) familyHouse(n, CUR_KIT, x, z); else { n.box(0, 0, 0, 3, 2.4, 2.6, '#e8dcc0', TILE.wall); n.gable(0, 2.4, 0, 3.3, 1.2, 2.9, pickCol(rng, TERRACOTTA), TILE.roof, '#e8dcc0'); n.box(0, 0, 1.31, 0.8, 1.5, 0.06, pickCol(rng, SHUTTERS)); } n.pop(); }   // in the harbour's house family
   { for (let i = 0; i < 2; i++) { const [x, z] = dockAt(R * 0.42 - i * 3.2, -9 - i * 2), face = -dockTh - Math.PI / 2, b = L('pl_shut');   // a house shut up: boards nailed across the door and window
-      b.push(x, yy, z, face); b.box(0, 0, 0, 2.6, 2.2, 2.4, '#a89a86', TILE.wall); b.gable(0, 2.2, 0, 2.9, 1.0, 2.7, '#7a5a44', TILE.roof, '#a89a86');
+      b.push(x, yy, z, face); if (CUR_KIT) familyHouse(b, CUR_KIT, x, z); else { b.box(0, 0, 0, 2.6, 2.2, 2.4, '#a89a86', TILE.wall); b.gable(0, 2.2, 0, 2.9, 1.0, 2.7, '#7a5a44', TILE.roof, '#a89a86'); }
       for (const [ox, oy] of [[-0.6, 0.6], [0.7, 1.3]]) { b.push(ox, oy, 1.22, 0, 1, 1, 1, 0, 0.6); b.box(0, 0, 0, 1.1, 0.14, 0.05, '#5a4632', TILE.planks); b.pop(); b.push(ox, oy, 1.23, 0, 1, 1, 1, 0, -0.6); b.box(0, 0, 0, 1.1, 0.14, 0.05, '#5a4632', TILE.planks); b.pop(); }
       b.pop(); }
     const [x, z] = dockAt(R * 0.45, 9.5), face = -dockTh - Math.PI / 2, b = L('pl_ruin');   // a roof fallen in, weeds in the doorway
@@ -1716,6 +1751,7 @@ function decorate(d, rng, A, B, D, extra) {
       }
       // the flag at the landing, a few broken walls on the shore (Tama and about half the ports), and washing lines between the houses
       landingFlag(VS);
+      if (d.id !== '0,-1' && !d.fogHaven) regionProps(d, A, B, dockTh, housesLog);   // each water's own things on the quay (2026-11-28)
       if (d.id === '0,-1' || rng() < 0.5) ruins(VS, dockTh + (rng() < 0.5 ? -1 : 1) * (1.2 + rng() * 0.45));
       for (let i = 0, nl = 2 + Math.floor(rng() * 3); i < nl && housesLog.length; i++) {
         const [hx, hz] = housesLog[Math.floor(rng() * housesLog.length)], a = rng() * 6.28, lx = hx + Math.cos(a) * 4.4, lz = hz + Math.sin(a) * 4.4;

@@ -397,8 +397,13 @@ export function lmDecor(d, rng, A, B, D, extra, h) {
       break;
     }
     case 'press': {   // a fat, short brick chimney (not a lighthouse), one steady plume, a steady blue lamp 1.6 high, two seaward doors once the clue is seen
-      A.cyl(0, 0, 0, 2.6, 1.9, 7, 8, '#a0583c', TILE.wall, false); A.cyl(0, 7, 0, 2.2, 2.2, 0.5, 8, '#3a2a26', TILE.stone);
-      for (let k = 0; k < 3; k++) A.blob(0.3 * k, 8.4 + k * 1.3, 0, 1.0 + k * 0.3, 0.7, 1.0 + k * 0.3, '#b8b4b0', TILE.white, 0.2, k);
+      // (2026-11-28, the looks review: "barely any visible chimney or glow at dusk") taller and fatter, banded in dark brick, a second
+      // squat stack, and a column of smoke that leans with the wind high over it; a warm window in the press house
+      A.cyl(0, 0, 0, 2.9, 2.0, 11, 8, '#a0583c', TILE.wall, false); A.cyl(0, 11, 0, 2.3, 2.3, 0.6, 8, '#3a2a26', TILE.stone);
+      for (const y of [2.5, 5.5, 8.5]) A.cyl(0, y, 0, 2.95 - y * 0.08, 2.9 - y * 0.08, 0.35, 8, '#6a3428', TILE.wall, false);
+      A.cyl(-2.6, 0, -1.8, 1.0, 0.8, 5, 6, '#8a4a34', TILE.wall, true);
+      for (let k = 0; k < 7; k++) A.blob(0.5 * k + 0.2 * k * k * 0.1, 12.2 + k * 1.6, -0.15 * k, 1.1 + k * 0.35, 0.8, 1.1 + k * 0.35, k < 2 ? '#8a8682' : '#b8b4b0', TILE.white, 0.25, k);
+      { const Wn = mk(); Wn.box(4.6, 0.8, 2.72, 0.9, 0.7, 0.08, '#ffc870', TILE.glow); st(Wn, () => true, mats.glow); }
       A.box(3.6, 0, 1, 3.4, 2.2, 3.0, '#d8c8a8', TILE.wall); A.gable(3.6, 2.2, 1, 3.8, 1.2, 3.4, '#a8382c', TILE.roof, '#d8c8a8');
       A.box(0, 0.2, 2.3, 0.9, 1.4, 0.15, '#241c20', TILE.stone);
       const Lm = mk(); Lm.box(-3.4, 0.3, 0.5, 0.9, 1.6, 0.9, '#2a5a9a', TILE.white); st(Lm, () => true, mats.glow);   // additive, so the night does not dim it

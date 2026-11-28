@@ -46,6 +46,8 @@ unexpectedly, into cosmic horror. Everything is procedural: no image or model fi
   A sullen crew sails slower (`voyage.js SAIL_WORK`). Upgrades show on the ship (`ship.js buildGearLook`).
 - **Late game**: Haven Hesk's works (`foghaven.js WORKS`, home port) and the Captain's Charter (`systems/charter.js`, the Charter Road).
   Cosmetics are found in chests, wrecks and raiders' holds (`chest.js findLook`), never bought.
+- **Patrons** (`systems/patrons.js`): each harbour's named person with a three-step story on the board (carry steps included).
+  **The follower** (`danger.js followerTick`): deep dread, away from land, strikes a ship lying still or dark.
 - **Threads per save** (`threads.js pickForSave`): each new game wakes 3 of the 7, leaning to ones this browser has not had.
 - **The Gull's lanterns** (`ship.js sternLamp`, `bowLamp`): iron-framed lanterns at both ends.
 - **Artbooks** (`docs/artbook/`): `hoist_artbook.html` (the look, technical) and `hoist_beyond_the_fair_winds.html` (a read that sells

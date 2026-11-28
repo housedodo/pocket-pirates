@@ -2912,3 +2912,31 @@ frame and wide map; moon phases and the Eye's shape (not in the summary list).
 - **The Ribs' breakers**: the flat black boards are jagged wet rocks with a dry top and weed at the waterline, and the surf breaks
   round them in broken foam.
 - Fixed while testing: a work or charter done on day 0 read as not done.
+
+## Patrons, the follower, region props, the two clue powers, passenger arcs (2026-11-28)
+- Owner: "do commissions and explain how they work; do the gameplay changes how you see fit, improve the looks how you see fit; improve
+  on the story part on your own as much as works".
+- **Patrons** (`systems/patrons.js`, `jobs.js` carry type and `makeCrates`, `ui/harbour.js`): every harbour of the four waters and Tama
+  has one named person (seeded, the same every game on a map) with a three-step story, shown on the board above the commissions under
+  their name and trade. Six stories (the cook's wedding, the net-mender's widowerhood, the mason's wall, the naturalist's whale, the
+  choir, the chandler's boxes). A step is a catch, fruit, lost crates, a raider, a sighting, or a parcel carried to another harbour (done
+  when you tie up there). Steps pay 40, 60, 95 (more with the harbour's dread) and take one of the three commission places. The end:
+  two deliveries' worth of standing and a find for the ship (else 60 gold); a line of what became of them stays on the board. Where the
+  dread is high the last parcel's line goes wrong. Checked headless: Silas Vane at the second harbour, step one taken, done, step two.
+- **The follower** (`systems/danger.js followerTick`): at dread 0.68 and over, more than 70 from land and not at dawn, a long dark
+  shape comes up under the water behind the ship. A ship under way with the lamp lit it only follows (a better lantern keeps it
+  further back); one lying still, anchored, or dark at night it strikes from below every 22 s of exposure: 9 to 16 hull (less per
+  hull level), a shake, the crew's spirits. Mara once, then now and then. Checked: an anchored Gull at dread 0.85 lost 12.
+  Storm wear is also 12 % less per hull level.
+- **The two clue powers that did nothing**: CL-C2-a "Small numbers beside the black days" adds to every harbour's day line how many
+  nights until the sea draws back (checked: "the sea draws back in 2 nights"); CL-L1-a "The lamps burn a little blue" turns the ship's
+  lamp cold blue while the follower is near.
+- **Passengers who come back**: Old Wendel, Pippa Fairweather, the quiet woman in grey and Pim remember you; on their second, third and
+  fourth voyage their first line carries a small story on, and the last step goes a little wrong.
+- **Story trims**: the Guild lamplighter's "It has to have something to watch" and the Drowned innkeeper's "It was kept" no longer
+  explain. `story_export.py` reads charter.js and patrons.js.
+- **Looks**: each water's props by the landing (`world.js regionProps`: Crown sentry boxes and shot, Guild paper-lantern strings, Cays
+  painted canoes and a hammock, Reef salvage and an anchor, Drowned broken columns and a statue in the shallows); per-island ground
+  colour varies more; the stair lanterns are no longer a perfect row; the Oil Press is taller and banded with a second stack, a
+  column of smoke and a warm window; the errand tracker text has a shadow on the bright sea; the plenty and trouble houses (a house going
+  up, houses shut up) are built in the harbour's family. `docs/STYLE.md` has a section on the harbours, plants and sea as of today.

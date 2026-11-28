@@ -377,7 +377,9 @@ export class Ship {
       this.deckLight = new THREE.Mesh(pb.geometry(), psxMaterial({ color: 0x8a6020, vertexColors: true, transparent: true, opacity: 0.55, depthWrite: false, blending: THREE.AdditiveBlending, key: 'Dl', fragmentColor: { head: '', body: 'diffuseColor.rgb /= max(uLight, 0.05);' } }));
       this.deckLight.visible = false; this.root.add(this.deckLight); this.shadowMesh.renderOrder = 2; this.deckLight.renderOrder = 1; }
     { const fl = new Builder(); fl.cyl(0, 0, 0, 0.15, 0, 0.6, 4, '#ffffff', TILE.glow, false);   // the stern lantern's flame (task L6): upright at home, shorter and leaning far out
-      this.flameMesh = meshOf(fl, mats.hull); this.flameMesh.position.set(LAMP_AT.x, LAMP_AT.y, LAMP_AT.z); this.flameMesh.visible = false; this.root.add(this.flameMesh); }
+      this.flameMesh = meshOf(fl, mats.hull); this.flameMesh.position.set(LAMP_AT.x, LAMP_AT.y, LAMP_AT.z); this.flameMesh.visible = false; this.root.add(this.flameMesh);
+      const bl = new Builder(); bl.box(0, 0.05, 0, 0.42, 0.5, 0.42, '#3a5cff', TILE.glow);   // the lamp going blue (systems/danger.js, the clue CL-L1-a): a cold light over the flame
+      this.blueLamp = meshOf(bl, mats.glow); this.blueLamp.position.set(LAMP_AT.x, LAMP_AT.y, LAMP_AT.z); this.blueLamp.visible = false; this.root.add(this.blueLamp); }
     this.flagBright = meshOf(fb, mats.flagP);
     this.flagDark = meshOf(db, mats.hull);
     this.flagDark.visible = false;
@@ -596,6 +598,7 @@ export class Ship {
     }
 
     this.shadowMesh.visible = this.deckLight.visible = !!this.oneShadow && !!this.flame;   // only while the lamp burns (L7)
+    if (this.blueLamp) { this.blueLamp.visible = !!this.flame && (this.lampBlue || 0) > 0.15; this.blueLamp.scale.setScalar(0.6 + 0.6 * (this.lampBlue || 0)); }
     { const f = this.flame, m = this.flameMesh; m.visible = !!f;   // the flame: its height and lean come from oil.js flameShape; it only wavers once it leans
       if (this.tollT > 0) this.tollT = Math.max(0, this.tollT - dt);
       if (f) { m.scale.y = f.h * (1 - 0.6 * Math.sin(Math.PI * Math.min(1, (1.2 - (this.tollT || 0)) / 1.2)) * ((this.tollT || 0) > 0 ? 1 : 0)); m.rotation.z = f.lean * (1 + 0.12 * Math.sin(t * 5)); } }   // a stroke of the stolen bell: the flame ducks and comes back

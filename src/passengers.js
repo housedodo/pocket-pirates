@@ -81,6 +81,14 @@ const DARK_BY = {
   drowned: ['There are roofs under us. I saw a chimney. It was smoking.', 'Please stop saying the name of the next harbour. I do not like how it sounds when you say it twice.'],
 };
 
+// coming back (owner, 2026-11-28: "improve the story"; the review: "passengers have no arc"): four of them remember you. The first thing
+// they say on a second, third and fourth voyage carries their own small story on, a step a time; the last step goes a little wrong.
+const ARC = {
+  'Old Wendel': ['You again. Good. I told my sister about you. She said nobody sails that well, so I must be lying.', 'My sister passed in the spring. I am going to sort her nets. Somebody should.', 'I found a net of hers I never saw before, knotted for fish that do not live here. I brought it. Nobody wants it.'],
+  'Pippa Fairweather': ['I drew your ship after last time. I got the sails wrong. Wrong in the right way, my master says.', 'I may sign my own charts now. This is the first one. Your harbour is on it.', 'My chart has one island too many. I have checked it four times. It is still there.'],
+  'A quiet woman in grey': ['Home again. It is always a little further than it was.', 'Do you remember where you took me last time? I do not. I only remember the boat.', 'This is the last time, I think. You need not wait at the pier.'],
+  'Pim': ['I have a new wick! Mum says I can keep it lit all the way.', 'Mum lives at the other harbour now. I go between them. I am good at it.', 'My lantern went out at sea last time and I was not scared. Something held it up for me until it caught.'],
+};
 export function makePassenger(world, from, serial, force = false) {
   const rng = mulberry32(hash2(from.seed, serial, 4747));
   if (rng() > 0.55 && !force) return null;                                   // not every day somebody wants to travel
@@ -99,6 +107,10 @@ export function passengerTalk(pass, dt, ctx) {   // ctx: { mate, world, ship, st
   pass.timer = 28 + Math.random() * 22;
   const p = PEOPLE.find((x) => x.name === pass.name) || PEOPLE[0];
   const say = (t, dk) => ctx.mate.say(t, dk, pass.name);
+  if (!pass.arcSaid && ctx.state && ctx.state.story) {   // the first line of a voyage: someone who has sailed with you before carries on
+    pass.arcSaid = true; const seen = ctx.state.story.pax || (ctx.state.story.pax = {}), n = seen[pass.name] || 0; seen[pass.name] = n + 1;
+    const arc = ARC[pass.name]; if (arc && n >= 1 && arc[n - 1]) { say(arc[n - 1], n >= 3); return; }
+  }
   const dk = ctx.dread > 0.55;
   const roll = Math.random();
   if (ctx.storm > 0.4 && roll < 0.6) { say(SEASICK[Math.floor(Math.random() * SEASICK.length)]); if (Math.random() < 0.4) ctx.mate.say('Lean over the downwind side. The OTHER side!'); return; }

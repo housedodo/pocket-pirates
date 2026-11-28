@@ -6,12 +6,20 @@
 //             (sooner in rain, with a bigger crew, sooner still with a better hull). Mara calls it once.
 //   boarding  a raider that gets alongside a ship with no way on her (slow, anchored) puts men over the rail: get way on and pull off,
 //             or they take a share of the gold and a crate from the hold and are gone. The sails and the oars are the answer.
-// Deep water hurts more as well: storm wear grows with the dread (main.js). Full game only (the demo has its own, gentler sea).
+// Deep water hurts more as well: storm wear grows with the dread (main.js), less with a stronger hull.
+//   the follower  (owner, 2026-11-28: "do the gameplay changes how you see fit"; the review: no threat in the late game) far out, in the
+//             deep dread and well away from land, a long dark shape comes up under the water and keeps pace behind the ship. It never
+//             shows itself. A ship under way with her lamp lit it only follows; one that lies still, or sails dark at night, it strikes from
+//             below: the hull, the crew's nerve. Shallow water near an island, or the dawn, sends it down. A better lantern keeps it further off.
+// Full game only (the demo has its own, gentler sea).
+import { isKnown } from '../clues.js';
 import { state } from '../core/state.js';
 import { rt, G } from '../core/runtime.js';
 import { toast } from '../ui/dom.js';
 import { hurtPlayer } from './storybeats.js';
 import { cargo } from './trade.js';
+import * as THREE from 'three';
+import { scene } from '../core/engine.js';
 
 const DEMO = () => typeof window !== 'undefined' && window.__BUILD === 'demo';
 // ---- the numbers (tune by hand)
@@ -83,3 +91,40 @@ function boarded(s) {
   s.hostile = false; s.engaged = false; s.heading += Math.PI * 0.8; s.speed = 8;   // they are gone with it
   toast(`They came over the rail and went back with ${took} gold${crate}.`, false, 7000);
 }
+
+// ---- the follower (see the header). Numbers by hand.
+export const FOLLOW_DREAD = 0.68, FOLLOW_LAND = 70, FOLLOW_SLOW = 3.2, STRIKE_EVERY = 22, STRIKE = [9, 16];
+let shadow = null;
+function shadowMesh() {
+  if (shadow) return shadow;
+  const g = new THREE.SphereGeometry(1, 8, 4); g.scale(2.4, 0.25, 11);
+  shadow = new THREE.Mesh(g, new THREE.MeshBasicMaterial({ color: 0x05070a, transparent: true, opacity: 0, depthWrite: false }));
+  shadow.renderOrder = 3; scene.add(shadow); return shadow;
+}
+export function followerTick(dt) {
+  if (DEMO() || !G.ship || !G.world) return;
+  const ship = G.ship, dread = rt.dread || 0, night = G.daynight ? G.daynight.night : ((state.time || 0) > 0.8 || (state.time || 0) < 0.2);
+  const land = G.world.nearest && G.world.nearest(ship.pos.x, ship.pos.z, FOLLOW_LAND);
+  const dawn = (state.time || 0) > 0.22 && (state.time || 0) < 0.3;
+  const want = dread >= FOLLOW_DREAD && !land && !dawn;
+  rt.follow = Math.max(0, Math.min(1, (rt.follow || 0) + (want ? dt / 40 : -dt / 8)));
+  rt.lampBlue = isKnown(state, 'bluelamp') ? rt.follow : 0;   // the Guild's clue (CL-L1-a, "The lamps burn a little blue"): the ship's lamp goes blue while it is near
+  const m = shadowMesh(); m.visible = rt.follow > 0.02;
+  if (!m.visible) { rt.followT = 0; return; }
+  const lamp = !rt.lampOut, back = 14 + 10 * ((state.upgrades && state.upgrades.lantern) || 0) * (lamp ? 1 : 0) + (lamp ? 6 : -4);   // a better lamp keeps it further back
+  const h = ship.heading, t = rt.tNow || 0;
+  m.position.set(ship.pos.x - Math.sin(h) * back + Math.cos(h) * Math.sin(t * 0.13) * 6, -1.6, ship.pos.z + Math.cos(h) * back + Math.sin(h) * Math.sin(t * 0.13) * 6);
+  m.rotation.y = -h + Math.sin(t * 0.21) * 0.15;
+  m.material.opacity = 0.42 * rt.follow;
+  const exposed = (ship.speed || 0) < FOLLOW_SLOW || ship.anchored || (night && rt.lampOut);
+  rt.followT = exposed ? (rt.followT || 0) + dt * rt.follow : Math.max(0, (rt.followT || 0) - dt * 0.5);
+  if (rt.followT >= STRIKE_EVERY) {
+    rt.followT = 0;
+    hurtPlayer((STRIKE[0] + Math.random() * (STRIKE[1] - STRIKE[0])) * (1 - 0.1 * ((state.upgrades && state.upgrades.hull) || 0)));
+    rt.shake = Math.max(rt.shake || 0, 0.8);
+    if (state.story.mood != null) state.story.mood = Math.max(0, state.story.mood - 0.08);
+    if (!rt.followSaid) { rt.followSaid = true; if (G.objectives && G.objectives.mate) G.objectives.mate.say('Something struck the keel. From underneath. Keep her moving, Captain, and keep the lamp lit.'); }
+    else if (G.objectives && G.objectives.mate && Math.random() < 0.4) G.objectives.mate.say('Again. It is still there.', true);
+  }
+}
+

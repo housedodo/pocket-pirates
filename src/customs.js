@@ -33,7 +33,7 @@ export const SAY = [
   { id: 'archgov', r: 'crown', who: 'oldsalt', g: 'full', text: 'A governor started the archive. Nobody can find his portrait. Nobody can find his name.' },
   { id: 'nocount', r: 'free', who: 'harbourmaster', g: 'full', text: 'In the Cays we do not count. So nothing is wrong with our numbers.' },
   // B, the lights give something to look at
-  { id: 'watch', r: 'lantern', who: 'lamplighter', g: 'full', text: 'Keep it burning. It has to have something to watch.' },
+  { id: 'watch', r: 'lantern', who: 'lamplighter', g: 'full', text: 'Keep it burning. Never mind why. Keep it burning.' },
   // micro 1, the Reef's dice
   { id: 'seven', r: 'reef', who: 'fisher', g: 'full', text: 'Find a die at sea, scratch the seven off. So it cannot come up.' },
   { id: 'loud', r: 'crown', who: 'docker', g: 'any', text: 'Tama? Your bell is too soft to count by. Ours you can count from the next island.' },
@@ -61,7 +61,7 @@ export const SAY = [
   { id: 'under', r: 'lantern', who: 'lamplighter', g: 'full', c: (x) => x.fog, text: 'In fog you hear a bell under the water. The Guild says it is the Point\'s. The Point has no bell.' },
   // the Drowned (full game only): names called home (L-22), kept, not taken (L-24), the far water (L-06), they stop to listen (L-29)
   { id: 'names', r: 'drowned', who: 'fisher', g: 'full', text: 'We call our names on the way in. So the harbour knows who it is getting.' },
-  { id: 'kept', r: 'drowned', who: 'innkeeper', g: 'full', text: 'Thank us? No. Nothing was taken. It was kept.' },
+  { id: 'kept', r: 'drowned', who: 'innkeeper', g: 'full', text: 'Thank us? No. We did not do anything. We never do anything.' },
   { id: 'down', r: 'drowned', who: 'harbourmaster', g: 'full', text: 'The harbourmaster follows your look out to sea, then points down at the pier. Politely.' },
   { id: 'listen', r: 'drowned', who: 'fisher', g: 'full', c: (x) => x.fog, text: 'On fog nights we stop rowing and listen. Then we row on.' },
 ];

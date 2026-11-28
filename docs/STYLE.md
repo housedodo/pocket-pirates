@@ -124,6 +124,28 @@ purple and magenta cosmic horror as dread rises.
   anywhere. The pull is pale thin dashes on the water racing to the lip (thicker and faster close in, the current foam's material).
   The ends of the stretch close in white sea mist (`#e8eef0`), the same white as the mist that takes the ship over.
 
+### Harbours, plants and the sea, as of 2026-11-28
+- **One house family per region** (`housefamilies.js`, `world.js REGION_FAMILY`), its tavern, church, bell tower and warehouse included;
+  one palette per harbour (three walls, one roof, one trim), variety per house:
+  - home and Free Cays: Barbados chattel houses (board boxes on stone blocks, steep gable, jalousie shutters, fretwork). Tama has its own
+    brighter kit (`tamaKit`: seven paints, a roof colour per house, painted doors, flower boxes, pots) and bunting and a flower arch (bright mood only);
+  - Crown: Willemstad gables (narrow, bright, white stepped or curved street gables, red tile); the church yellow with a white tower;
+  - Lantern Guild: Bermuda cottages (white stepped roofs, buttress chimneys, coloured shutters);
+  - Reef: stilt houses (plank huts on posts, hipped palm thatch, decks, ladders);
+  - the Drowned: classical marble of a lost civilisation (columns with base and capital, pediments, a temple on a stepped podium, a
+    stoa, a tholos with a green bronze dome, an arched horreum), weathered: tide lines, cracks, roofless houses, fallen drums, a
+    headless statue. Light parts on `TILE.white` (stone multiplies them brown).
+- **Each region's own props by the landing** (`world.js regionProps`): Crown sentry boxes and stacked shot, Guild paper-lantern strings,
+  Cays painted canoes and a hammock, Reef salvage piles and an anchor, Drowned broken columns and a statue in the shallows.
+- **Plants** (`flora.js`, `docs/proposals/world/FLORA.md`): eleven kinds beside the palms, grown by region and zone; slopes, summits,
+  streets, landmarks and the fog bank stay bare. Green and flowers are the bright mood's (B); trunks and dry leaves stay (A).
+- **Islands of one region differ a little in their ground** (per-island hue, saturation and light: `desc.hue/satK/lumK`).
+- **The ship shows its upgrades** (`ship.js buildGearLook`): guns through ports, rudder, masthead lamp, crow's nest, hands on deck, sail bands.
+- **The sea**: more life (sealife one stretch in four; dolphins, flying fish, whales sooner); at night the moon lays a dithered silver
+  road toward itself (`ocean.js uMoonPath`); the fog bank shows as a low ragged band on the horizon from about 480 out (`fogbank.js FogWall`).
+- **Danger shows without numbers**: smoke from the deck in a fire, grapnels (Mara), a long dark shape under the water behind the ship in
+  the deep dread (`danger.js` follower), the Charter Road's red and white buoys.
+
 ## 4. Colour and mood
 - The sea is low-poly and faceted: a fine wave mesh with small chop, light banded in ~6 steps by facing to the sun,
   deeper troughs and chunky foam flecks on the crests. It should never read as a flat plane.

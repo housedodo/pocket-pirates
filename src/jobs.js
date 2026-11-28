@@ -69,6 +69,22 @@ function freeWater(world, x, z, margin = 14) {
   return true;
 }
 
+/** lost crates in free water some way off `from` (a commission's, or a patron's step) */
+export function makeCrates(world, from, rng) {
+  let center = null;
+  for (let t = 0; t < 14 && !center; t++) {
+    const a = rng() * Math.PI * 2, dd = 170 + rng() * 260, x = from.x + Math.cos(a) * dd, z = from.z + Math.sin(a) * dd;
+    if (freeWater(world, x, z, 60)) center = { x, z, dist: dd };
+  }
+  if (!center) return null;
+  const crates = [];
+  for (let i = 0; i < 3; i++) for (let t = 0; t < 12; t++) {
+    const a = rng() * Math.PI * 2, dd = 10 + rng() * 48, x = center.x + Math.cos(a) * dd, z = center.z + Math.sin(a) * dd;
+    if (freeWater(world, x, z, 8)) { crates.push({ x, z, got: false }); break; }
+  }
+  if (crates.length < 2) return null;
+  return { crates, center: { x: center.x, z: center.z }, reward: Math.round(30 + center.dist * 0.06 + crates.length * 6) };
+}
 export function commissionsFor(world, from, serial) {
   const rng = mulberry32(hash2(from.seed, serial, 515));
   const dread = from.dread;
@@ -85,19 +101,8 @@ export function commissionsFor(world, from, serial) {
       const fr = FRUIT_ORDER[Math.floor(rng() * FRUIT_ORDER.length)], n = 4 + Math.floor(rng() * 5);
       out.push({ ...base, fruit: fr, n, reward: 10 + n * 4 });
     } else if (k === 'crates') {
-      let center = null;
-      for (let t = 0; t < 14 && !center; t++) {
-        const a = rng() * Math.PI * 2, dd = 170 + rng() * 260, x = from.x + Math.cos(a) * dd, z = from.z + Math.sin(a) * dd;
-        if (freeWater(world, x, z, 60)) center = { x, z, dist: dd };
-      }
-      if (!center) continue;
-      const crates = [];
-      for (let i = 0; i < 3; i++) for (let t = 0; t < 12; t++) {
-        const a = rng() * Math.PI * 2, dd = 10 + rng() * 48, x = center.x + Math.cos(a) * dd, z = center.z + Math.sin(a) * dd;
-        if (freeWater(world, x, z, 8)) { crates.push({ x, z, got: false }); break; }
-      }
-      if (crates.length < 2) continue;
-      out.push({ ...base, crates, center: { x: center.x, z: center.z }, reward: Math.round(30 + center.dist * 0.06 + crates.length * 6) });
+      const c = makeCrates(world, from, rng); if (!c) continue;
+      out.push({ ...base, ...c });
     } else if (k === 'bounty') {
       const n = dread > 0.5 ? 1 : 1 + Math.floor(rng() * 2);
       out.push({ ...base, n, reward: 35 * n + 10 });
@@ -122,7 +127,7 @@ export function sellable(state) {
   for (const [k, n] of Object.entries(state.fruit)) { const kept = Math.min(n, fruitKeep[k] || 0); if (n - kept > 0) fruit[k] = n - kept; if (kept > 0) fruitLeft[k] = kept; }
   return { fish: sell, fishLeft: state.catch.filter((f) => keep.includes(f)), fruit, fruitLeft };
 }
-export const questNeed = (q) => (q.type === 'crates' ? q.crates.length : q.n);
+export const questNeed = (q) => (q.type === 'crates' ? q.crates.length : q.type === 'carry' ? 1 : q.n);
 export function questProgress(q, state) {
   switch (q.type) {
     case 'fish': return Math.min(q.n, state.catch.filter((f) => f.id === q.species).length);
@@ -130,6 +135,7 @@ export function questProgress(q, state) {
     case 'crates': return q.crates.filter((c) => c.got).length;
     case 'bounty': return Math.min(q.n, state.stats.sunk - q.base);
     case 'spot': return Math.min(q.n, state.stats[q.what] - q.base);
+    case 'carry': return q.arrived ? 1 : 0;   // a patron's parcel: done when you tie up where it is going (ui/harbour.js)
     default: return 0;
   }
 }
@@ -140,9 +146,10 @@ export function questTitle(q, dread) {
     case 'crates': return `Recover ${q.crates.length} lost crates`;
     case 'bounty': return `Sink ${q.n} ${plural('raider', q.n)}`;
     case 'spot': return `Spot ${q.n} ${q.n === 1 ? q.what.slice(0, -1) : q.what}`;
+    case 'carry': return `Take ${q.item} to ${q.toName}`;
     default: return 'Errand';
   }
 }
-export const QUEST_ICON = { fish: pxi('fish'), fruit: pxi('banana'), crates: pxi('crate'), bounty: pxi('skull'), spot: pxi('dolphin') };
+export const QUEST_ICON = { fish: pxi('fish'), fruit: pxi('banana'), crates: pxi('crate'), bounty: pxi('skull'), spot: pxi('dolphin'), carry: pxi('letter') };
 const FRUIT_ICON = { coconut: pxi('coconut'), banana: pxi('banana'), mango: pxi('mango'), pineapple: pxi('pineapple'), papaya: pxi('papaya') };
 export const questIcon = (q) => (q.type === 'fruit' ? FRUIT_ICON[q.fruit] : QUEST_ICON[q.type]);

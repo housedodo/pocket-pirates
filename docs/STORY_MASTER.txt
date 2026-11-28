@@ -1,7 +1,7 @@
 HOIST (Pocket Pirates): THE MASTER STORY FILE
 ================================================================================================
 This is the main story file for the full game. Edit it, upload it again, and the next session puts every change
-into the game. Built from commit ee1ffc6 on 2026-11-28. 1972 in-game lines carry an ID.
+into the game. Built from commit 1df542a on 2026-11-28. 2034 in-game lines carry an ID.
 
 CONTENTS
   A   HOW TO USE THIS FILE (IDs, status marks, how to add and remove things)
@@ -569,7 +569,7 @@ Where the story hides in the mechanics, and where its text lives (section J).
 # J  EVERY LINE IN THE GAME
 ################################################################################################
 Pulled from the code. Edit the text after the "|" (see part A). Sources are grouped by file; the CODE in front of every
-line says which file it goes back into. 1972 lines.
+line says which file it goes back into. 2034 lines.
 
 
 
@@ -926,6 +926,20 @@ line says which file it goes back into. 1972 lines.
   PAS-0134 | The Guild keepers have stopped trimming the wicks. The flames stay the same height anyway.
   PAS-0135 | There are roofs under us. I saw a chimney. It was smoking.
   PAS-0136 | Please stop saying the name of the next harbour. I do not like how it sounds when you say it twice.
+
+### PAS / ADDED 2026-11-28
+  PAS-0137 | You again. Good. I told my sister about you. She said nobody sails that well, so I must be lying.
+  PAS-0138 | My sister passed in the spring. I am going to sort her nets. Somebody should.
+  PAS-0139 | I found a net of hers I never saw before, knotted for fish that do not live here. I brought it. Nobody wants it.
+  PAS-0140 | I drew your ship after last time. I got the sails wrong. Wrong in the right way, my master says.
+  PAS-0141 | I may sign my own charts now. This is the first one. Your harbour is on it.
+  PAS-0142 | My chart has one island too many. I have checked it four times. It is still there.
+  PAS-0143 | Home again. It is always a little further than it was.
+  PAS-0144 | Do you remember where you took me last time? I do not. I only remember the boat.
+  PAS-0145 | This is the last time, I think. You need not wait at the pier.
+  PAS-0146 | I have a new wick! Mum says I can keep it lit all the way.
+  PAS-0147 | Mum lives at the other harbour now. I go between them. I am good at it.
+  PAS-0148 | My lantern went out at sea last time and I was not scared. Something held it up for me until it caught.
 
 ### PAS / RETIRED (the text is no longer in the game; these IDs are never used again)
     was PAS-0005 | Do you hear the bell, captain? No? Good. Me neither.
@@ -2763,6 +2777,60 @@ line says which file it goes back into. 1972 lines.
   MAIN-0465 | A man in a good coat is waiting at the foot of the gangplank with a box of papers. "Ambrose Teague. The guilds send me to keep your charters straight. I need very little room." He takes less than that, and the hold seems bigger for it.
   MAIN-0466 | He says the guilds keep lights on the old road to the Sunken Street. For chartered ships. I did not know there was a road.
 
+### MAIN / ADDED 2026-11-28
+  MAIN-0467 | Something struck the keel. From underneath. Keep her moving, Captain, and keep the lamp lit.
+  MAIN-0468 | Again. It is still there.
+
+### MAIN / ADDED 2026-11-28
+  MAIN-0469 | My daughter marries on Sunday, and the fish this week are small and sad. Two good ones, Captain.
+  MAIN-0470 | She holds them up by the tail to show the whole kitchen.
+  MAIN-0471 | Fruit for the cake now. Five, whatever is ripest.
+  MAIN-0472 | The cake leans a little. Nobody minds.
+  MAIN-0473 | Her godmother could not come. Take her a slice? She is in {to}.
+  MAIN-0474 | The old woman eats it on the pier, slowly, and asks you to tell them it was good.
+  MAIN-0475 | Nobody in {to} knows a godmother by that name. A neighbour takes the tin and says she will keep it for when someone comes for it.
+  MAIN-0476 | There is a drawing of the wedding pinned up in the tavern. You are in it, at the back, very small.
+  MAIN-0477 | My boat went over in the squall. Her gear is still out there, floating. Bring it in for me.
+  MAIN-0478 | He lays it all out on the quay and touches each thing once.
+  MAIN-0479 | She used to say the dolphins came for her boat. Look for them out there. Tell me if they still come.
+  MAIN-0480 | He nods, and does not ask you anything else.
+  MAIN-0481 | Her sister is in {to}. I wrote this a year ago. I could not send it.
+  MAIN-0482 | The sister reads it twice and folds it into her apron.
+  MAIN-0483 | The house in {to} is shut up. Somebody has written his name on the door in chalk, carefully, as if he lived there.
+  MAIN-0484 | He has a new boat. He has not named her yet.
+  MAIN-0485 | Our barge lost its load of tools in the swell. They float, the fools who made them. Fetch them back.
+  MAIN-0486 | "Every chisel. You must have counted."
+  MAIN-0487 | A raider has been taking our timber barges. Sink her, and the new church wall goes up this year.
+  MAIN-0488 | The wall goes up a course a day. You can hear the hammers from the water.
+  MAIN-0489 | My old master is in {to}. Give him this back. Tell him the wall is true.
+  MAIN-0490 | "True," he says, and holds the bubble up to the light for a long time.
+  MAIN-0491 | In {to} they say his old master died before this harbour had a wall. They keep the level anyway.
+  MAIN-0492 | The new wall has a stone with a ship cut in it. It looks a little like yours.
+  MAIN-0493 | I have drawn every fish in the harbour. I want a whale. Find one and tell me how it moved.
+  MAIN-0494 | She draws while you talk and does not look up once.
+  MAIN-0495 | Now something rare. Out deep, where the water goes dark blue.
+  MAIN-0496 | She weighs it, measures it, draws it, and lets you keep the drawing.
+  MAIN-0497 | The society in {to} will want to see this. Carry it upright.
+  MAIN-0498 | They put it on a shelf between two others exactly like it. Nobody can say who sent those.
+  MAIN-0499 | The society in {to} has the same jar on its shelf already, the same label, in her hand. It has been there for years.
+  MAIN-0500 | Her drawings are on the walls of the harbourmaster's office now. The whale is the biggest.
+  MAIN-0501 | Fruit, for the singers' throats. Four will do. The sweet kind.
+  MAIN-0502 | They practise with their mouths full and nobody can tell.
+  MAIN-0503 | They say the dolphins sing back. Find them, and listen for me.
+  MAIN-0504 | "Higher than us," he says, pleased. "Of course."
+  MAIN-0505 | The church in {to} lost its music in a fire. Take them ours.
+  MAIN-0506 | That Sunday both harbours sing the same hymn at the same hour. You can hear it from the middle of the sea.
+  MAIN-0507 | The church in {to} has its music. It always had. They sing from it every night now, and the doors stay shut.
+  MAIN-0508 | They sing on the quay when your ship comes in. Only the once, but they do.
+  MAIN-0509 | A box for a friend in {to}. Do not open it. Do not shake it either.
+  MAIN-0510 | The friend opens it on the spot. Tea. Only tea. She laughs at your face.
+  MAIN-0511 | The friend in {to} will not take it. "Not that one," she says. "Take it back out and drop it where it is deep."
+  MAIN-0512 | The raider who has been following my boats. Sink her and I will stop asking you to carry boxes.
+  MAIN-0513 | "Good. That was my cousin's ship. He will be furious. Good."
+  MAIN-0514 | Last one. Some crates went over the side in a hurry. Get them back before the customs men do.
+  MAIN-0515 | She stacks them in the back of the shop and puts a cloth over them.
+  MAIN-0516 | There is a crate of good tea with your name chalked on it every time you come in.
+
 ### MAIN / RETIRED (the text is no longer in the game; these IDs are never used again)
     was MAIN-0001 | A floating market, with bunting on every line. (Friday)
     was MAIN-0002 | A regatta! Five boats, racing.
@@ -3306,7 +3374,6 @@ line says which file it goes back into. 1972 lines.
   CUST-0029 | Past the last light the water is anyone's. The Guild does not chart it.
   CUST-0030 | In fog you hear a bell under the water. The Guild says it is the Point's. The Point has no bell.
   CUST-0031 | We call our names on the way in. So the harbour knows who it is getting.
-  CUST-0032 | Thank us? No. Nothing was taken. It was kept.
   CUST-0033 | The harbourmaster follows your look out to sea, then points down at the pier. Politely.
   CUST-0034 | On fog nights we stop rowing and listen. Then we row on.
   CUST-0035 | Nets drying, gulls, a pie cart. Nothing else, and nobody minds.
@@ -3347,14 +3414,19 @@ line says which file it goes back into. 1972 lines.
   CUST-0068 | The archive was here before the Fort. We built the Fort round it.
   CUST-0069 | A governor started the archive. Nobody can find his portrait. Nobody can find his name.
   CUST-0070 | In the Cays we do not count. So nothing is wrong with our numbers.
-  CUST-0071 | Keep it burning. It has to have something to watch.
   CUST-0072 | Find a die at sea, scratch the seven off. So it cannot come up.
 
 ### CUST / ADDED 2026-11-26
   CUST-0073 | The sea goes out a long way under a new moon, and a full one. Salvage then. Be back before it remembers.
 
+### CUST / ADDED 2026-11-28
+  CUST-0074 | Keep it burning. Never mind why. Keep it burning.
+  CUST-0075 | Thank us? No. We did not do anything. We never do anything.
+
 ### CUST / RETIRED (the text is no longer in the game; these IDs are never used again)
     was CUST-0023 | Salvage at low water. A grave at high. Be quick about the difference.
+    was CUST-0032 | Thank us? No. Nothing was taken. It was kept.
+    was CUST-0071 | Keep it burning. It has to have something to watch.
 
 
 ####################################################################################################

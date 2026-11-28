@@ -1,5 +1,6 @@
 // The harbour screens: the board (errands, commissions, letters, passengers), the market, the tavern (rest, harbour life, games),
 // the shipwright, greetings at the pier, the ship's companions, and the marks that tell the tutorial where to click.
+import { patronRows, patronStepDone } from '../systems/patrons.js';
 import { chartered, charterSell } from '../systems/charter.js';
 import { hash2 } from '../util.js';
 import { portrait, speakerName } from '../greetings.js';
@@ -67,6 +68,7 @@ export function handIn(q, d, short = false) {
   state.stats.commissions = (state.stats.commissions || 0) + 1;
   toast(`Commission done: ${questTitle(q, rt.dread)} (+${q.reward} gold)`, rt.dread > 0.5, 6000);
   G.audio.play('treasure');
+  patronStepDone(q);   // a patron's step: their next line, and at the end their gift (systems/patrons.js)
 }
 export function acceptCommission(o) {
   if (state.quests.length >= 3 || state.quests.some((x) => x.id === o.id)) return;
@@ -116,6 +118,7 @@ export function renderHarbour() {
   if (rt.hbTab === 'board' && FL.back) { pane.innerHTML = html + feelLine(FL.board); lockPane(state, $('hbPane')); tutorialMarks(); return; }   // the back door: nobody at the board at night (systems/harbours.js)
   if (rt.hbTab === 'board') {
     // finish what you came for first: deliveries, passengers and finished commissions for this harbour
+    for (const q of state.quests) if (q.type === 'carry' && q.toId === d.id) q.arrived = true;   // a patron's parcel has come where it was going (systems/patrons.js)
     const due = [];
     if (state.job && state.job.toId === d.id) due.push(`<div class="qrow"><div><b>${pxi('letter')} Deliver ${state.job.item}</b><br><small>+${state.job.reward}g</small></div><button id="doDeliver">Deliver</button></div>`);
     if (state.passenger && state.passenger.toId === d.id) due.push(`<div class="qrow"><div><b>${pxi('talk')} ${state.passenger.name} goes ashore</b><br><small>+${state.passenger.reward}g fare</small></div><button id="doDropoff">Drop off</button></div>`);
@@ -125,7 +128,7 @@ export function renderHarbour() {
       due.push(sh.ok ? `<div class="qrow"><div><b>${questIcon(q)} ${questTitle(q, rt.dread)}</b><br><small>${sh.miss} short: the crew got into it · they would pay +${sh.pay}g</small></div><button data-short="${q.id}">Hand over</button></div>`
         : `<div class="qrow"><div><b>${questIcon(q)} ${questTitle(q, rt.dread)}</b><br><small>${sh.miss} short: the crew got into it. Not enough to take; bring the rest.</small></div></div>`);
     }
-    for (const q of state.quests.filter((x) => x.giverId === d.id && questProgress(x, state) >= questNeed(x))) due.push(`<div class="qrow"><div><b>${questIcon(q)} ${questTitle(q, rt.dread)}</b><br><small>done · +${q.reward}g</small></div><button data-hand="${q.id}">Finish</button></div>`);
+    for (const q of state.quests.filter((x) => (x.type === 'carry' ? x.toId : x.giverId) === d.id && questProgress(x, state) >= questNeed(x))) due.push(`<div class="qrow"><div><b>${questIcon(q)} ${questTitle(q, rt.dread)}</b><br><small>done · +${q.reward}g</small></div><button data-hand="${q.id}">Finish</button></div>`);
     if (rt.openLetter) html += `<div class="sec">A LETTER</div><div class="letterOpen"><p>${rt.openLetter.text}</p><small>${rt.openLetter.from} · kept in your log</small></div>`;
     for (const lt of lettersAt(d)) html += `<div class="sec">A LETTER</div><div class="qrow letter"><div><b>${pxi('letter')} ${lt.title}</b><br><small>${lt.sub}</small></div><button id="takeLetter" data-letter="${lt.key}">Take it</button></div>`;
     if (due.length) html += `<div class="sec">FINISH HERE</div>${due.join('')}`;
@@ -151,8 +154,9 @@ export function renderHarbour() {
       html += `<div class="qrow"><div><b>${pxi('letter')} ${j.item}</b><br><small>to ${j.toName} · ${bearingName(j.x - pierOf(d).x, j.z - pierOf(d).z)}, ${j.dist} · by ${due}: ${on}g, late ${late}g</small></div><button id="jobAccept">Accept</button></div><div class="ledgerrow">${recordMarks(state, pxi, isOpen(state, 'know', 'arrivals'), lineAhead(d, j, isOpen(state, 'know', 'arrivals')))}</div>`;
     } else if (j) html += `<div class="qrow"><div><b>${pxi('letter')} ${j.item}</b><br><small>to ${j.toName} · ${bearingName(j.x - pierOf(d).x, j.z - pierOf(d).z)}, ${j.dist} · ${j.reward}g</small></div><button id="jobAccept">Accept</button></div>`;
     else html += '<small>Nothing today.</small>';
+    const PR = HJ && !asleep ? patronRows(d) : { html: '', offer: null }; html += PR.html;   // the harbour's patron and their story (systems/patrons.js)
     if (HJ) html += `<div class="sec">COMMISSIONS (${state.quests.length}/3)</div>`;
-    const mine = state.quests.filter((q) => q.giverId === d.id);
+    const mine = state.quests.filter((q) => q.giverId === d.id && !q.patron);
     for (const q of mine) {
       const need = questNeed(q), have = questProgress(q, state);
       if (have < need) html += `<div class="qrow"><div><b>${questIcon(q)} ${questTitle(q, rt.dread)}</b><br><small>${have}/${need} · ${q.reward}g</small></div></div>`;
@@ -208,6 +212,7 @@ export function renderHarbour() {
     pane.querySelectorAll('[data-hand]').forEach((b) => b.addEventListener('click', () => { handIn(state.quests.find((q) => q.id === b.dataset.hand), d); renderHarbour(); }));
     pane.querySelectorAll('[data-short]').forEach((b) => b.addEventListener('click', () => { handIn(state.quests.find((q) => q.id === b.dataset.short), d, true); renderHarbour(); }));
     pane.querySelectorAll('[data-accept]').forEach((b) => b.addEventListener('click', () => { acceptCommission(offers.find((o) => o.id === b.dataset.accept)); renderHarbour(); }));
+    pane.querySelectorAll('[data-paccept]').forEach((b) => b.addEventListener('click', () => { if (PR.offer) acceptCommission(PR.offer); renderHarbour(); }));
     const rb = $('rumourBuy');
     if (rb) rb.addEventListener('click', () => {
       if (state.gold < RUMOUR_COST) return;
