@@ -1,3 +1,6 @@
+import { harbourKit, familyHouse, familyBuilding } from './housefamilies.js';   // static: a dynamic import splits the single-file build (scripts/single.py)
+import { FLORA, FLORA_KINDS } from './flora.js';
+import { broadleaf } from './isleforms.js';
 import { phaseAt } from './systems/moon.js';
 import * as THREE from 'three';
 import { clamp, smoothstep, angleDiff, mulberry32, hash2 } from './util.js';
@@ -11,7 +14,7 @@ import { sampleStage, stageOf, DARK_THRESHOLD, dreadAtDistance, dreadWithPeak, s
 import { U, mats } from './psx.js';
 import { WATER, NISL, waveHeight } from './ocean.js';
 import { setLampRule } from './world.js';
-import { World, mistMat, villager, VILLAGERS, houseKind, HOUSES, shoreR, lighthouseKind } from './world.js';
+import { World, mistMat, villager, VILLAGERS, houseKind, HOUSES, shoreR, lighthouseKind, palm } from './world.js';
 import { Builder } from './builder.js';
 import { TILE } from './textures.js';
 import { Ship } from './ship.js';
@@ -1603,7 +1606,6 @@ window.__game = { fogHaven: havenDebug, charter: charterDebug, fauna, leaderDesc
   },
   /** the four house families, one row each: two houses, the tavern, the church, the bell tower, the warehouse (for screenshots) */
   async families(x = 0, z = 60, fams = ['chattel', 'gable', 'bermuda', 'stilt']) {
-    const { harbourKit, familyHouse, familyBuilding } = await import('./housefamilies.js');
     if (this._show) scene.remove(this._show);
     const b = new Builder(), kinds = ['house', 'house', 'tavern', 'church', 'belltower', 'warehouse'];
     b.box(0, -0.6, 0, 9 * kinds.length + 4, 0.8, 14 * fams.length, '#9a7a50', TILE.planks);
@@ -1613,7 +1615,6 @@ window.__game = { fogHaven: havenDebug, charter: charterDebug, fauna, leaderDesc
   /** the flora trial (flora.js): every new plant on a raft, the bright row in front and what is left of each in the dark mood behind;
    *  the old coconut palm and broadleaf at the left end to compare (for screenshots) */
   async flora(x = 0, z = 60) {
-    const { FLORA, FLORA_KINDS } = await import('./flora.js'), { palm } = await import('./world.js'), { broadleaf } = await import('./isleforms.js');
     if (this._show) scene.remove(this._show);
     const b = new Builder(), junk = new Builder(), rng = mulberry32(3), gap = 6.5, list = ['palm', 'broadleaf', ...FLORA_KINDS], n = list.length;
     b.box(0, -0.6, 4, gap * n + 2, 0.8, 22, '#c8b07a', TILE.sand);

@@ -2940,3 +2940,8 @@ frame and wide map; moon phases and the Eye's shape (not in the summary list).
   colour varies more; the stair lanterns are no longer a perfect row; the Oil Press is taller and banded with a second stack, a
   column of smoke and a warm window; the errand tracker text has a shadow on the bright sea; the plenty and trouble houses (a house going
   up, houses shut up) are built in the harbour's family. `docs/STYLE.md` has a section on the harbours, plants and sea as of today.
+
+## The full game rebuilt for playtesting (2026-11-28)
+- `pocket-pirates-full.html` rebuilt (`python3 scripts/single.py full`, 23.9 MB). Found while checking it: the dev showrooms in main.js
+  (`families`, `flora`) imported their modules dynamically, which split the bundle into a second chunk the single file cannot load from
+  disk; they import statically now (one bundle again). Checked: the file boots from disk with no console errors into Tama's intro.
