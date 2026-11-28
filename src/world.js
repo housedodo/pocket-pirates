@@ -13,7 +13,7 @@ import { dreadAtDistance } from './palette.js';
 import { makeName, makePuzzle } from './lore.js';
 import { FRUITS, fruitOf } from './fruit.js';
 import { arcIdOf, ARCS } from './harbourlife.js';
-import { harbourKit, familyHouse, familyBuilding } from './housefamilies.js';
+import { harbourKit, familyHouse, familyBuilding, tamaKit } from './housefamilies.js';
 
 import { forcedCells, shapeLandmark, cutShore, lmHeight, lmColor, lmDecor, LM_DARK } from './landmarks.js';
 export const CELL = 110;
@@ -390,7 +390,7 @@ export function palm(A, B, D, x, y, z, rng, s = 1) {
 const HOUSE_FAMILY = (() => { try { const q = typeof window !== 'undefined' && window.__BUILD !== 'full' && new URLSearchParams(location.search).get('houses'); return ['chattel', 'gable', 'bermuda', 'stilt'].includes(q) ? q : 'region'; } catch (e) { return 'region'; } })();
 const FAMILY_BUILDINGS = new Set(['tavern', 'church', 'belltower', 'warehouse']);
 const REGION_FAMILY = { home: 'chattel', free: 'chattel', crown: 'gable', lantern: 'bermuda', reef: 'stilt', drowned: 'stilt' };
-const kitFor = (d) => harbourKit(HOUSE_FAMILY === 'region' ? REGION_FAMILY[d.region] || 'chattel' : HOUSE_FAMILY, d.seed);
+const kitFor = (d) => (d.id === '0,-1' && HOUSE_FAMILY === 'region' ? tamaKit() : null) || harbourKit(HOUSE_FAMILY === 'region' ? REGION_FAMILY[d.region] || 'chattel' : HOUSE_FAMILY, d.seed);
 function familyHooks(kind) {
   return {
     bell(A, y, s = 1) {
@@ -1267,8 +1267,31 @@ function tamaPolish(S, look, houses) {
   for (const sx of [-1.38, 1.38]) for (let z = R * 1.02; z < z1 - 1; z += 2.6) { A.box(sx, 0.84, z, 0.14, 1.0, 0.14, '#6b4a2e', TILE.bark); if (z + 2.6 < z1 - 1) A.box(sx, 1.66, z + 1.3, 0.11, 0.11, 2.6, '#c8b080', TILE.rope); }
   A.pop();
   // lamps
-  const lamps = [[rP + 1.5, 1]];
-  for (const [s, side] of lamps) { const o = 1.8, x = ax * s - az * o * side, z = az * s + ax * o * side; lampPost(A, x, g(x, z) - 0.05, z, Math.atan2(-az * side, ax * side) - Math.PI / 2); }
+  const lamps = [[rP + 1.5, 1], [rP + 7, -1], [rP + 12.5, 1]].filter(([s]) => s < R * tq - 1.5);
+  for (const [s, side] of lamps) { const o = 1.8, x = ax * s - az * o * side, z = az * s + ax * o * side; if (s > rP + 2 && nearHouse(x, z, 2.2)) continue; lampPost(A, x, g(x, z) - 0.05, z, Math.atan2(-az * side, ax * side) - Math.PI / 2); }
+  { // a welcome (owner, 2026-11-28: "more colourful and welcoming... a feel-good starter town"): bunting over the street and round the square,
+    // a flower arch where the street meets the landing. The flags and blooms are the bright mood's (B): they are gone when the town goes dark.
+    const at = (s, o) => [ax * s - az * o, az * s + ax * o];
+    for (let s = rP + 3.5, k = 0; s < R * tq - 2.5; s += 5, k++) {   // strings across the street
+      const [x0, z0] = at(s, -2.5), [x1, z1] = at(s, 2.5); if (nearHouse(x0, z0, 2.0) || nearHouse(x1, z1, 2.0)) continue;
+      const y0 = g(x0, z0) - 0.05, y1 = g(x1, z1) - 0.05;
+      B.box(x0, y0, z0, 0.14, 3.6, 0.14, '#6b4a2e', TILE.bark); B.box(x1, y1, z1, 0.14, 3.6, 0.14, '#6b4a2e', TILE.bark);
+      flagLine(B, [x0, y0 + 3.5, z0], [x1, y1 + 3.5, z1], k * 2);
+    }
+    B.box(0, H - 0.2, 0, 0.2, 5.0, 0.2, '#f4f0e6', TILE.bark); B.box(0, H + 4.8, 0, 0.36, 0.36, 0.36, '#f0c030', TILE.flag);   // the square's tall pole, and a canopy of strings from it
+    for (let i = 0; i < 6; i++) {
+      const a = dockTh + Math.PI / 6 + i * Math.PI / 3, x = Math.cos(a) * (rP + 0.6), z = Math.sin(a) * (rP + 0.6);
+      if (nearHouse(x, z, 1.8)) continue;
+      B.box(x, g(x, z) - 0.05, z, 0.12, 2.9, 0.12, '#6b4a2e', TILE.bark); flagLine(B, [0, H + 4.7, 0], [x, g(x, z) + 2.8, z], i * 3);
+    }
+    { const s = R * tq - 0.8, ry = Math.PI / 2 - dockTh, [x, z] = at(s, 0), y = g(x, z) - 0.05;   // the arch: two posts, a curved top, bougainvillea
+      A.push(x, y, z, ry); for (const o of [-1.5, 1.5]) A.box(o, 0, 0, 0.22, 2.9, 0.22, '#f4f0e6', TILE.planks);
+      for (let i = 0; i < 7; i++) { const t = i / 6, ox = -1.5 + t * 3, oy = 2.9 + Math.sin(t * Math.PI) * 0.6; A.box(ox, oy, 0, 0.55, 0.16, 0.22, '#f4f0e6', TILE.planks); } A.pop();
+      B.push(x, y, z, ry);
+      for (let i = 0; i < 9; i++) { const t = i / 8, ox = -1.5 + t * 3, oy = 3.0 + Math.sin(t * Math.PI) * 0.6; B.blob(ox, oy + 0.15, 0, 0.36, 0.26, 0.3, i % 3 === 1 ? '#3f8a38' : i % 2 ? '#e8407a' : '#c83a8a', TILE.leaf, 0.25, i); }
+      for (const o of [-1.5, 1.5]) for (let j = 0; j < 3; j++) B.blob(o + (j % 2 ? 0.12 : -0.12), 0.6 + j * 0.8, 0.05, 0.26, 0.3, 0.24, j % 2 ? '#e8407a' : '#3f8a38', TILE.leaf, 0.25, j + 4);
+      B.pop(); }
+  }
   // free ground: grass tufts and flowers where nothing stands
   const free = (x, z) => Math.hypot(x, z) > rP + 1.2 && !nearHouse(x, z, 3.6) && Math.abs(angleDiff(Math.atan2(z, x), dockTh)) * Math.hypot(x, z) > 2.8;
   const tuftCols = ['#3f8a38', '#5aa844', '#4a9a40'];

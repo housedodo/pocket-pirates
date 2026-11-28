@@ -34,6 +34,17 @@ export function harbourKit(fam, seed) {
   const k = (Math.abs(seed) % 1000) / 1000;
   return { fam, walls: pick(P.walls, k), roof: pick(P.roofs, (k * 7.3) % 1), trim: pick(P.trims, (k * 3.1) % 1) };
 }
+/** Tama's own kit (owner, 2026-11-28: "make Tama look more colourful and welcoming... a feel-good starter town"): the brightest chattel
+ *  paints, each house its own wall and roof, white fretwork, doors in a colour of their own, flower boxes and pots (cheer) */
+export function tamaKit() {
+  return { fam: 'chattel', walls: ['#f4a0b8', '#6ad0d8', '#f8d860', '#9ae0a0', '#f8a878', '#c8a8f0', '#80b8f0'], roof: '#d8483a',
+    roofs: ['#d8483a', '#2f9aa8', '#e87a3a', '#3c78c8', '#4aa86a'], trim: '#fbf8f0', doors: ['#2f7ad0', '#d83a5a', '#f0b030', '#2a9a7a', '#8a4ac8'], cheer: true };
+}
+const BLOOMS = ['#e8407a', '#f0c030', '#f4f0e8', '#e85a3a', '#c078e0'];
+function cheer(A, K, v, x, y, z, w) {   // a flower box under a window: a painted trough and blooms
+  A.box(x, y, z, w, 0.16, 0.24, pick(K.doors || [K.trim], v(8)), TILE.planks);
+  for (let i = 0; i < 3; i++) A.blob(x + (i - 1) * w * 0.32, y + 0.2, z, 0.14, 0.11, 0.1, i === 1 ? '#4a8a38' : pick(BLOOMS, v(9 + i)), TILE.white, 0.1, i);
+}
 /** build one house of the harbour's family in the house's own frame (front +z, ground y 0); x, z its place (for its own variety) */
 export function familyHouse(A, kit, x, z, big = false) {
   const v = (s) => h01(x, z, s), wall = pick(kit.walls, v(1)), s = big ? 1.25 : 1;
@@ -41,24 +52,28 @@ export function familyHouse(A, kit, x, z, big = false) {
 }
 
 function chattel(A, K, wall, v, s) {
-  const w = 2.3 * s, d = 2.5 * s, h = 1.55 * s, base = 0.32, T = K.trim, two = v(2) < 0.5;
+  const w = 2.3 * s, d = 2.5 * s, h = 1.55 * s, base = 0.32, T = K.trim, two = v(2) < 0.5, roof = K.roofs ? pick(K.roofs, v(5)) : K.roof;
   const unit = (z0, ww, dd) => {
     A.box(0, base, z0, ww, h, dd, wall, TILE.white, TILE.white);
     for (let i = 1; i < 5; i++) A.box(0, base + i * h / 5, z0 + dd / 2 + 0.01, ww, 0.03, 0.02, shade(wall), TILE.white);   // board lines, a little darker than the paint
-    A.gable(0, base + h, z0, ww + 0.3, 1.05 * s, dd + 0.25, K.roof, TILE.roof, wall);
+    A.gable(0, base + h, z0, ww + 0.3, 1.05 * s, dd + 0.25, roof, TILE.roof, wall);
     A.box(0, base + h - 0.1, z0 + dd / 2 + 0.06, ww + 0.2, 0.12, 0.06, T, TILE.planks);   // fretwork band under the eaves
   };
   for (const [cx, cz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) A.box(cx * (w / 2 - 0.15), 0, cz * (d / 2 - 0.15), 0.32, base, 0.32, '#8a857c', TILE.stone);   // the stone blocks
   unit(0, w, d);
   if (two) unit(-d * 0.95, w * 0.92, d * 0.9);   // a second unit behind, as the family grew
-  A.box(0, base, d / 2 + 0.02, 0.62, 1.4, 0.06, T, TILE.planks); A.box(0, base, d / 2 + 0.05, 0.5, 1.32, 0.05, '#5a3e2c', TILE.planks);   // the door, framed
+  A.box(0, base, d / 2 + 0.02, 0.62, 1.4, 0.06, T, TILE.planks); A.box(0, base, d / 2 + 0.05, 0.5, 1.32, 0.05, K.doors ? pick(K.doors, v(6)) : '#5a3e2c', TILE.planks);   // the door, framed
   const open = v(3) < 0.5;
   for (const sx of [-1, 1]) {   // jalousie shutters either side
     A.box(sx * w * 0.3, base + 0.55, d / 2 + 0.04, 0.46, 0.62, 0.05, open ? '#2a2a34' : T, TILE.planks);
     if (open) for (const o of [-1, 1]) A.box(sx * w * 0.3 + o * 0.36, base + 0.55, d / 2 + 0.08, 0.22, 0.62, 0.04, T, TILE.planks);
   }
   A.box(0, 0, d / 2 + 0.3, 0.8, base, 0.5, '#9a958a', TILE.stone);   // the steps
-  if (v(4) < 0.4) { A.push(0, base + 1.55, d / 2 + 0.3, 0, 1, 1, 1, 0.35, 0); A.box(0, 0, 0, 1.0, 0.07, 0.6, K.roof, TILE.roof); A.pop(); }   // a hood over the door
+  if (v(4) < (K.cheer ? 0.7 : 0.4)) { A.push(0, base + 1.55, d / 2 + 0.3, 0, 1, 1, 1, 0.35, 0); A.box(0, 0, 0, 1.0, 0.07, 0.6, roof, TILE.roof); A.pop(); }   // a hood over the door
+  if (K.cheer) {   // flower boxes under both windows, a pot either side of the steps
+    for (const sx of [-1, 1]) cheer(A, K, (k) => v(k + sx * 3), sx * w * 0.3, base + 0.38, d / 2 + 0.14, 0.56);
+    for (const sx of [-1, 1]) { A.cyl(sx * 0.62, 0, d / 2 + 0.45, 0.17, 0.13, 0.3, 6, '#c8643a', TILE.stone, true); A.blob(sx * 0.62, 0.42, d / 2 + 0.45, 0.22, 0.18, 0.22, '#3f8a38', TILE.leaf, 0.2, 3 + sx); A.blob(sx * 0.62 + 0.08, 0.55, d / 2 + 0.5, 0.09, 0.09, 0.09, pick(BLOOMS, v(12 + sx)), TILE.white, 0.1, 1); }
+  }
 }
 
 function gable(A, K, wall, v, s) {

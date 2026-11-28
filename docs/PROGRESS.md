@@ -2837,3 +2837,11 @@ frame and wide map; moon phases and the Eye's shape (not in the summary list).
 - Not changed: the windmill, pagoda, torii, hull hall, wells, fountains, the lighthouses, and houses outside harbours (showroom,
   concepts, the wild islands' stilt huts, landmarks). The `?houses=small` trial is removed; `?houses=chattel|gable|bermuda|stilt` still
   shows one family everywhere (not in the full game). Dev: `__game.families(x, z, [fams])` lays out each family's buildings on a raft.
+
+## Tama, a feel-good starter town (2026-11-28)
+- Owner: "Make Tama look more colourful and welcoming, since it is the safe zone and first harbour". Tama keeps the chattel family but
+  with its own kit (`housefamilies.js tamaKit`): seven bright wall paints, a roof colour per house (red, teal, orange, blue, green), white
+  fretwork, doors in a colour of their own, flower boxes under the windows, a potted plant either side of the steps, more door hoods.
+- `world.js tamaPolish`: bunting strung across the street every few steps and a canopy of strings from a tall pole on the square, a
+  white flower arch with bougainvillea where the street meets the landing, two more lamp posts along the street. The flags and blooms
+  are the bright mood's (B), so they go when the town goes dark.
