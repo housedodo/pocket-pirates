@@ -138,6 +138,59 @@ function hullHall(S, x, y, z, ry) {   // an upturned ship, lived in
 }
 const ragPole = (S, x, y, z, col) => { S.B.box(x, y, z, 0.2, 4.2, 0.2, '#4a3a2a', TILE.bark); S.B.tri([x, y + 4.2, z], [x, y + 3.2, z], [x + 1.3, y + 3.7, z + 0.4], col, TILE.flag); };
 
+// ---- the market street, filled (owner, 2026-11-28: the looks review found "a huge empty flat grey cobble plateau"): a row of stalls down
+// each side of the street under striped awnings, stacks of goods between them, iron lamps, orange trees in tubs, a statue of some governor
+// on the square, benches, a handcart, and two guns on the sea wall facing the pier. Placed only where the ground is free.
+function awningStall(S, x, z, ry, k) {
+  const A = S.A, y = y0(S, x, z), cols = [['#c8402e', '#f4efe2'], ['#3c78c8', '#f4efe2'], ['#2f8a5a', '#f2e6c8'], ['#e8a830', '#f4efe2']][k % 4];
+  A.push(x, y, z, ry);
+  for (const [sx, sz] of [[-1.1, -0.6], [1.1, -0.6], [-1.1, 0.6], [1.1, 0.6]]) A.box(sx, 0, sz, 0.1, 2.0, 0.1, '#5a3e24', TILE.bark);
+  A.box(0, 0, 0.5, 2.3, 0.8, 0.55, '#8a6238', TILE.planks);   // the counter
+  for (let i = 0; i < 6; i++) { A.push(-1.05 + i * 0.42, 2.0, 0, 0, 1, 1, 1, 0.22, 0); A.box(0, 0, 0, 0.42, 0.07, 1.6, cols[i % 2], TILE.flag); A.pop(); }   // striped awning
+  const goods = [['#f0c030', '#e85a3a', '#5ec45a'], ['#8a5a30', '#c8a060', '#a07040'], ['#e8e0d0', '#c8d0e0', '#d0b0a0'], ['#f4a040', '#e8d040', '#9ac050']][(k + 1) % 4];
+  for (let i = 0; i < 6; i++) A.blob(-0.85 + i * 0.34, 0.92, 0.45 + (i % 2) * 0.12, 0.15, 0.12, 0.15, goods[i % 3], TILE.white, 0.05, i);
+  A.box(0.7, 0, -0.9, 0.6, 0.55, 0.6, '#a07040', TILE.planks); A.box(-0.6, 0, -0.95, 0.5, 0.5, 0.5, '#8a6238', TILE.planks);   // crates behind
+  A.pop();
+}
+function fillMarket(S, ax, az, lx, lz, R) {
+  const { d, rng, A } = S, at = (s, lat) => [ax * s + lx * lat, az * s + lz * lat];
+  const ok = (x, z, r = 0.82) => Math.hypot(x, z) < S.shoreR(d, Math.atan2(z, x)) * r && S.terrainHeight(d, x, z) > d.H - 0.6;
+  let k = 0;
+  for (let s = -R * 0.5; s <= R * 0.42; s += 5.4) {   // stalls on the street's edge, between the house fronts
+    if (Math.abs(s - R * 0.05) < 4.5) continue;
+    for (const side of [-1, 1]) { const [x, z] = at(s + 2.7, side * 2.5); if (!ok(x, z)) continue; awningStall(S, x, z, Math.atan2(-lx * side, -lz * side), k++); }
+  }
+  const kinds = ['townhouse', 'cottage', 'planter', 'warehouse', 'colonial'];
+  for (const lat of [11.5, 17.5]) for (let s = -R * 0.55; s <= R * 0.5; s += 5.6) for (const side of [-1, 1]) {   // back streets: more of the town behind the market houses, so the plateau is not bare
+    const [x, z] = at(s, side * lat); if (!ok(x, z, 0.8)) continue;
+    if (Math.hypot(x - ax * R * 0.05, z - az * R * 0.05) < 7) continue;
+    if (rng() < 0.18) { awningStall(S, x, z, Math.atan2(-lx * side, -lz * side), k++); continue; }   // now and then a stall instead of a house
+    S.houseKind(S.A, S.B, x, y0(S, x, z), z, Math.atan2(-lx * side, -lz * side), rng, kinds[Math.floor(rng() * kinds.length)]);
+  }
+  for (let s = -R * 0.5; s <= R * 0.42; s += 10.8) for (const side of [-1, 1]) {   // iron lamps along the street
+    const [x, z] = at(s, side * 3.6); if (!ok(x, z)) continue; const y = y0(S, x, z);
+    A.box(x, y, z, 0.16, 2.9, 0.16, '#2a2a30', TILE.bark); A.box(x, y + 2.8, z, 0.34, 0.36, 0.34, '#ffd890', TILE.glow); A.box(x, y + 3.16, z, 0.44, 0.08, 0.44, '#2a2a30', TILE.bark);
+  }
+  { const [cx, cz] = at(R * 0.05, 0);   // the square: a statue on a plinth, orange trees in tubs, benches
+    const [px, pz] = at(R * 0.05 + 3.2, -3.0), py = y0(S, px, pz);
+    A.box(px, py, pz, 1.3, 1.2, 1.3, '#d8d0c0', TILE.stone); A.box(px, py + 1.2, pz, 1.5, 0.15, 1.5, '#c8c0b0', TILE.stone);
+    A.box(px, py + 1.35, pz, 0.45, 0.9, 0.3, '#6a8a7a', TILE.stone); A.box(px, py + 2.25, pz, 0.6, 0.55, 0.36, '#6a8a7a', TILE.stone); A.box(px, py + 2.8, pz, 0.24, 0.26, 0.24, '#6a8a7a', TILE.stone); A.box(px + 0.38, py + 2.4, pz, 0.12, 0.6, 0.12, '#6a8a7a', TILE.stone);   // a bronze governor, green with age
+    for (let i = 0; i < 4; i++) { const a = i * Math.PI / 2 + 0.785, x = cx + Math.cos(a) * 4.6, z = cz + Math.sin(a) * 4.6; if (!ok(x, z)) continue; const y = y0(S, x, z);
+      A.box(x, y, z, 0.8, 0.6, 0.8, '#8a5a34', TILE.planks); A.cyl(x, y + 0.6, z, 0.1, 0.08, 0.7, 4, '#5a3e24', TILE.bark, false);
+      A.blob(x, y + 1.6, z, 0.7, 0.6, 0.7, '#3f8a38', TILE.leaf, 0.2, i); for (let j = 0; j < 3; j++) A.blob(x + Math.cos(j * 2) * 0.45, y + 1.5 + (j % 2) * 0.3, z + Math.sin(j * 2) * 0.45, 0.11, 0.11, 0.11, '#f09020', TILE.white, 0.05, j); }
+    for (const side of [-1, 1]) { const [x, z] = at(R * 0.05 - 3.4, side * 3.3); if (!ok(x, z)) continue; const y = y0(S, x, z); A.push(x, y, z, Math.atan2(ax, az)); A.box(0, 0.4, 0, 1.6, 0.1, 0.45, '#8a6238', TILE.planks); for (const o of [-0.65, 0.65]) A.box(o, 0, 0, 0.12, 0.4, 0.4, '#3a3030', TILE.bark); A.pop(); }
+  }
+  for (let i = 0; i < 7; i++) {   // stacks of goods and a handcart in the open ground off the street
+    const s = -R * 0.45 + rng() * R * 0.85, lat = (rng() < 0.5 ? -1 : 1) * (6.6 + rng() * 2.5), [x, z] = at(s, lat); if (!ok(x, z, 0.78)) continue; const y = y0(S, x, z);
+    if (i === 3) { A.push(x, y, z, rng() * 6); A.box(0, 0.45, 0, 1.0, 0.4, 1.6, '#8a6238', TILE.planks); for (const sx of [-0.6, 0.6]) A.cyl(sx, 0.4, 0.2, 0.4, 0.4, 0.08, 8, '#4a3424', TILE.bark, true); A.box(0, 0.5, -1.1, 0.08, 0.08, 0.9, '#5a3e24', TILE.bark); A.pop(); continue; }
+    S.crateBox(A, x, y, z, rng() * 3, 0.9); if (rng() < 0.6) S.crateBox(A, x + 0.1, y + 0.75, z, rng() * 3, 0.75); if (rng() < 0.6) S.barrel(A, x + 1.0, y, z + 0.3, 0.9);
+  }
+  if (d.region === 'crown') {   // two guns on the sea wall either side of the pier, facing out
+    for (const side of [-1, 1]) { const th = S.dockTh + side * 0.35, r = S.shoreR(d, th) * 0.86, x = Math.cos(th) * r, z = Math.sin(th) * r; if (S.terrainHeight(d, x, z) < 0.5) continue; const y = y0(S, x, z);
+      A.push(x, y, z, Math.PI / 2 - th); A.box(0, 0, 0, 1.4, 0.5, 1.8, '#9a9488', TILE.stone); A.box(0, 0.5, -0.1, 0.8, 0.35, 1.0, '#5a3e24', TILE.planks); A.push(0, 0.95, 0.2, 0, 1, 1, 1, Math.PI / 2 - 0.1, 0); A.cyl(0, 0, 0, 0.2, 0.15, 1.6, 8, '#2a2622', TILE.stone, true); A.pop(); A.pop(); }
+  }
+}
+
 // ---- layout helpers
 function Pn(S, th, rho) { const R = S.shoreR(S.d, th) * rho; return [Math.cos(th) * R, Math.sin(th) * R]; }
 const faceIn = (x, z) => Math.atan2(-x, -z);
@@ -228,6 +281,7 @@ export const STYLE_DEF = {
       }
       { const bx = ax * -R * 0.62, bz = az * -R * 0.62; S.houseKind(S.A, S.B, bx, y0(S, bx, bz), bz, Math.atan2(-ax, -az), rng, 'belltower'); }
       fountain(S, ax * R * 0.05, h, az * R * 0.05);
+      fillMarket(S, ax, az, lx, lz, R);   // (owner, 2026-11-28: "fill the Crown marketplace") stalls, goods, lamps, trees in tubs, a statue, guns
       for (let i = -2; i <= 2; i++) if (i) { const x = ax * (R * 0.05 + i * 2.8) + lx * 0, z = az * (R * 0.05 + i * 2.8); S.B.box(x + lx * 3.2, h, z + lz * 3.2, 0.2, 4.6, 0.2, '#6b4a2e', TILE.bark); S.B.tri([x + lx * 3.2, h + 4.6, z + lz * 3.2], [x + lx * 3.2, h + 3.7, z + lz * 3.2], [x + lx * 3.2 + ax * 1.3, h + 4.1, z + lz * 3.2 + az * 1.3], pick(rng, ['#d24a3e', '#e8c060', '#3c78c8']), TILE.flag); }
       palms(S, 2, 0.8, 0.9);
     },

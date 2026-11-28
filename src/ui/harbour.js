@@ -1,5 +1,6 @@
 // The harbour screens: the board (errands, commissions, letters, passengers), the market, the tavern (rest, harbour life, games),
 // the shipwright, greetings at the pier, the ship's companions, and the marks that tell the tutorial where to click.
+import { chartered, charterSell } from '../systems/charter.js';
 import { hash2 } from '../util.js';
 import { portrait, speakerName } from '../greetings.js';
 import { isOpen, lockPane } from '../gates.js';
@@ -262,7 +263,7 @@ export function renderHarbour() {
       html += `<div class="sec">CARGO</div><small>The hold: ${carried()} of ${room()} crates.</small>`;
       for (const [k, gd] of Object.entries(GOODS)) {
         if (gd.found && !(cargo()[k] > 0)) continue;   // a spice shows only once you carry it (systems/spice.js)
-        const sells = !gd.found && !FL.noBuy && (gd.luxury ? FL.luxury && gd.from === d.region : FL.made || gd.from !== d.region);   // a dying harbour has nothing of its own to sell; a thriving one has its fine goods
+        const sells = !gd.found && !FL.noBuy && (gd.luxury ? (FL.luxury || chartered(d.region)) && gd.from === d.region : FL.made || gd.from !== d.region);   // a dying harbour has nothing of its own to sell; a thriving one has its fine goods
         if (!sells && !(cargo()[k] > 0)) continue;
         const tk = handOn('trader') ? [0.9, 1.1] : [1, 1];   // the trader aboard (systems/hands.js)
         const pb = Math.ceil(tradePrice(d.region, k) * discount(rep) * tk[0] * FL.buy), ps = Math.round(sellPrice(d.region, k) * hm * tk[1]), have = cargo()[k] || 0;
@@ -278,12 +279,12 @@ export function renderHarbour() {
       else if (paper.onSale(state)) html += `<div class="qrow"><div><b>${pxi('letter')} The Harbour Tidings</b><br><small>the weather, a face from the harbour, the news</small></div><button id="buyPaper" ${state.gold >= paper.PAPER_COST ? '' : 'disabled'}>${paper.PAPER_COST}g</button></div>`;
       else html += `<small>The paper comes in on ${paper.nextLine(state)}.</small>`;
     }
-    if (!FL.back) html += `<div class="sec">SHIPYARD</div><div class="qrow"><div><b>${pxi('paint')} Paint, sails, pennants, figureheads</b></div><button id="openYard">Open</button></div>`;
+    if (!FL.back) html += `<div class="sec">SHIPYARD</div><div class="qrow"><div><b>${pxi('paint')} Fit what you have found: paint, sails, pennants, figureheads</b></div><button id="openYard">Open</button></div>`;
     pane.innerHTML = html;
     { const bc = $('buyChain'); if (bc) bc.addEventListener('click', () => { if (state.gold < chainCost) return; state.gold -= chainCost; state.story.chain = (state.story.chain || 0) + 10; G.audio.play('buy'); renderHarbour(); }); }
     { const bs = $('buyStores'); if (bs) bs.addEventListener('click', () => { if (fillStores(storeMul, FL.stores)) { G.audio.play('buy'); toast('The casks are filled and the bread locker stocked.', false, 3000); } renderHarbour(); }); }
     pane.querySelectorAll('[data-tbuy]').forEach((b) => b.addEventListener('click', () => { if (tradeBuy(d.region, b.dataset.tbuy, discount(rep) * (handOn('trader') ? 0.9 : 1) * FL.buy)) G.audio.play('buy'); renderHarbour(); }));
-    pane.querySelectorAll('[data-tsell]').forEach((b) => b.addEventListener('click', () => { const nSold = (cargo()[b.dataset.tsell] || 0), g = sellAll(d.region, b.dataset.tsell, hm * (handOn('trader') ? 1.1 : 1)); if (g && !FL.back) { const rr = repOf(state, d.id); rr.sold = (rr.sold || 0) + nSold; noteSold(d, b.dataset.tsell); } if (g) { G.audio.play('buy'); toast(`Sold for ${g} gold.`, false, 2500); } renderHarbour(); }));
+    pane.querySelectorAll('[data-tsell]').forEach((b) => b.addEventListener('click', () => { const nSold = (cargo()[b.dataset.tsell] || 0), g = sellAll(d.region, b.dataset.tsell, hm * (handOn('trader') ? 1.1 : 1) * charterSell(d.region)); if (g && !FL.back) { const rr = repOf(state, d.id); rr.sold = (rr.sold || 0) + nSold; noteSold(d, b.dataset.tsell); } if (g) { G.audio.play('buy'); toast(`Sold for ${g} gold.`, false, 2500); } renderHarbour(); }));
     { const bk = $('buyKit'); if (bk) bk.addEventListener('click', () => { const kc = Math.ceil(35 * discount(rep) * G.costMul() * buyMul(d, 'kit')); if (state.gold < kc || state.patchKits >= 3) return; state.gold -= kc; state.patchKits++; G.audio.play('buy'); renderHarbour(); }); }
     { const bo = $('buyOil'); if (bo) bo.addEventListener('click', () => { const { cost } = G.buyOil(discount(rep) * G.costMul()); if (state.gold < cost) return; state.gold -= cost; state.oil = oilCap(state.upgrades); G.audio.play('buy'); toast('The lantern is full.', false, 2500); renderHarbour(); }); }
     const sf = $('sellFish'); if (sf) sf.addEventListener('click', () => { state.gold += fishVal; toast(`Sold ${sale.fish.length} fish for ${fishVal} gold.`);

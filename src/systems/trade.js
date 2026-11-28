@@ -57,7 +57,7 @@ function basePrice(region, good) {
 export const sellPrice = (region, good) => Math.max(1, Math.round(price(region, good) * SELL_CUT));
 export const cargo = () => { const c = state.story.cargo || (state.story.cargo = {}); if (c.spice) { c.pepper = (c.pepper || 0) + c.spice; delete c.spice; } return c; };   // (saves from before the spices carried 'spice')
 export const carried = () => Object.values(cargo()).reduce((a, b) => a + b, 0);
-export const room = () => HOLD + HOLD_HULL * ((state.upgrades && state.upgrades.hull) || 0);
+export const room = () => HOLD + HOLD_HULL * ((state.upgrades && state.upgrades.hull) || 0) + (state.story.charter && state.story.charter.master ? 2 : 0);   // + the charter master's packing (systems/charter.js)
 export function buy(region, good, mul = 1) {
   if (GOODS[good].found) return 0;
   const p = Math.ceil(price(region, good) * mul);

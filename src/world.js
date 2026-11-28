@@ -388,9 +388,9 @@ export function palm(A, B, D, x, y, z, rng, s = 1) {
 // other buildings of each harbour"): every harbour is built in its region's family, its tavern, church, bell tower and warehouse too.
 // ?houses=chattel|gable|bermuda|stilt shows one family everywhere (not in the full game). Outside harbours (showroom, concepts, the stilt
 // huts of the wild islands, landmarks) the old kinds below still stand.
-const HOUSE_FAMILY = (() => { try { const q = typeof window !== 'undefined' && window.__BUILD !== 'full' && new URLSearchParams(location.search).get('houses'); return ['chattel', 'gable', 'bermuda', 'stilt'].includes(q) ? q : 'region'; } catch (e) { return 'region'; } })();
+const HOUSE_FAMILY = (() => { try { const q = typeof window !== 'undefined' && window.__BUILD !== 'full' && new URLSearchParams(location.search).get('houses'); return ['chattel', 'gable', 'bermuda', 'stilt', 'classical'].includes(q) ? q : 'region'; } catch (e) { return 'region'; } })();
 const FAMILY_BUILDINGS = new Set(['tavern', 'church', 'belltower', 'warehouse']);
-const REGION_FAMILY = { home: 'chattel', free: 'chattel', crown: 'gable', lantern: 'bermuda', reef: 'stilt', drowned: 'stilt' };
+const REGION_FAMILY = { home: 'chattel', free: 'chattel', crown: 'gable', lantern: 'bermuda', reef: 'stilt', drowned: 'classical' };   // the Drowned: a lost civilisation's marble (2026-11-28)
 const kitFor = (d) => (d.id === '0,-1' && HOUSE_FAMILY === 'region' ? tamaKit() : null) || harbourKit(HOUSE_FAMILY === 'region' ? REGION_FAMILY[d.region] || 'chattel' : HOUSE_FAMILY, d.seed);
 function familyHooks(kind) {
   return {

@@ -91,11 +91,12 @@ import { renderYard, initShipyard } from './ui/shipyard.js';
 import { hailShip, renderShipTrade, initShipTrade, hailTick } from './ui/shiptrade.js';
 import { renderHarbour, lettersAt, PETS, companions, petOffer, takePet, tabOpened, showGreeting, greetAdvance, buyUpgrade, initHarbour } from './ui/harbour.js';
 import { playerHit, dangerTick } from './systems/danger.js';
+import { charterTick, onRoad, charterDebug } from './systems/charter.js';
 import { HUT_NOTES, perrinNote, hutNod, revealHut, showDemoEnd, fogLost, WHITE_MIST, seamTick, clueTick, seaGate, seaTick, oilOn, freeCaysNow, oilTick, SAIL_LIMIT, sailTick, toggleLamp, buyOil, tackTick, hurtPlayer, onHitEnemy, initStoryBeats } from './systems/storybeats.js';
 import { getInteract, tryInteract, anchorTick, digLeaveTick } from './systems/interact.js';
 import { bottleWord, passengerWord } from './systems/hutword.js';
 import { rLetter } from './systems/rletters.js';
-import { chestAdd } from './chest.js';
+import { chestAdd, findLook } from './chest.js';
 import { eventTick, EVENTS, eventCard } from './systems/seaevents.js';   // hearing of the hut (T2)
 import { leadTick, leaderDesc, offLine } from './systems/leadlight.js';   // the Halved Isle by light
 import { passesTick, wallPass, ribsLull } from './systems/passes.js';
@@ -991,7 +992,7 @@ function secretFound(sc) {
   } else if (sc.kind === 'tidewreck') {
     state.collected.add(sc.key);
     const loot = abyss.wrongLoot(lootFor(mulberry32(hash2(Math.round(sc.m.x), Math.round(sc.m.z), 41)), rt.dread), state); loot.value = Math.round(loot.value * 1.4 * ship.mods.lootMul * threads.salvageMul()); loot.name = `From the low water: ${loot.name}`;
-    state.gold += loot.value; state.loot.push(loot); state.stats.wrecks++; audio.play('treasure');
+    state.gold += loot.value; state.loot.push(loot); state.stats.wrecks++; audio.play('treasure'); after(2.4, () => findLook(0.3));
     { const x = threads.onSalvage(); if (x) after(1.5, () => toast(x, true, 6000)); }
     toast(`The tide is out and the wreck is bare. ${loot.name} (+${loot.value} gold). The water is already coming back.`, loot.dark, 7000);
     if (!S.tideNote) { S.tideNote = 1; state.notes.push({ text: 'Some wrecks only show at low water. The tide hides more than it shows.', dark: false }); }
@@ -1153,7 +1154,7 @@ function stormAndCalm(dt) {
     if (st > 0.4 && side > 0.6) {   // waves hitting the side
       rt.stormWear += dt * st * (side - 0.5) * (0.15 + 1.9 * Math.max(0, sail - 0.2)) * (ship.rowing ? 0.5 : 1) * 1.4 * salt;   // (owner, 2026-11-26: "always damage, even at half mast or with oars"): sails in or oars out, a quarter of it
       if (rt.stormWear > 1 && !state.hints.headSea) { state.hints.headSea = true; if (!objectives.mate.busy) objectives.mate.say('Put her bow to the waves, Captain, or run before them. Never side-on.'); }
-      if (rt.stormWear >= 4) { rt.stormWear = 0; hurtPlayer(7 + 8 * rt.dread); objectives.remark('broadside', rt.dread); }   // deep water hurts more (systems/danger.js)
+      if (rt.stormWear >= 4) { rt.stormWear = 0; hurtPlayer((7 + 8 * rt.dread) * (1 - 0.5 * onRoad(ship.pos.x, ship.pos.z))); objectives.remark('broadside', rt.dread); }   // deep water hurts more (systems/danger.js)
     }
     // a gale with the sails out tears at the rigging, whatever the heading: reef them (S) or take the oars
     if (st > 0.45 && sail > 0.6 && !ship.rowing) {   // half sail is safe in a gale; only the full press of canvas tears
@@ -1379,6 +1380,7 @@ function frame() {
   setDieWear(clamp(state.dayN / 12 + rt.dread * 0.6, 0, 1));
   combat.update(dt, waveT, { ship, traffic, wave: stage.wave, onHitEnemy, onHitPlayer: playerHit, fire: fireCannons });
   dangerTick(dt);   // fire on deck, boarders (systems/danger.js)
+  charterTick();   // the Charter Road's buoys, once all four charters are held (systems/charter.js)
   econTick(state, dt);
   { const pork = life.meal(state) === 'pork'; if (live && rt.tNow - rt.lastHit > 12 && (weather.storm < 0.3 || pork) && state.hp < ship.mods.maxHp) state.hp = Math.min(ship.mods.maxHp, state.hp + dt * (pork ? 2 : 1)); }   // no mending in a storm
   { // while Perrin's letter is being read about, Mara stays on screen even ashore or in the log: she is the tutorial
@@ -1560,7 +1562,7 @@ $('oilrow').addEventListener('pointerdown', (e) => { if (rt.started && !rt.modal
 $('oilrow').classList.toggle('off', !!state.story.lampOff);
 installGamepad(() => toast('Controller connected: stick to sail, A to interact, Y for the log, Start to pause.', false, 6000));
 installInput(() => { if (rt.helpMode === 'full' || rt.helpMode === 'legacy') helpEl.innerHTML = helpText(rt.helpMode === 'full'); });
-window.__game = { fogHaven: havenDebug, fauna, leaderDesc, offLine, wallPass, ribsLull, secrets, regionWeights, lowWater: () => lowWater(), lostState: () => ({ lostK: rt.lostK, gateLost: rt.gateLost, placesLost: places.lost, heading: ship.heading, trim: ship.trim }), places, seaplay, glimpse, fishing, sails: () => ({ torn: state.sailsTorn, kits: state.patchKits, strain: rt.sailStrain }), oilState: () => ({ oil: state.oil, lampOut: rt.lampOut }),
+window.__game = { fogHaven: havenDebug, charter: charterDebug, fauna, leaderDesc, offLine, wallPass, ribsLull, secrets, regionWeights, lowWater: () => lowWater(), lostState: () => ({ lostK: rt.lostK, gateLost: rt.gateLost, placesLost: places.lost, heading: ship.heading, trim: ship.trim }), places, seaplay, glimpse, fishing, sails: () => ({ torn: state.sailsTorn, kits: state.patchKits, strain: rt.sailStrain }), oilState: () => ({ oil: state.oil, lampOut: rt.lampOut }),
   readArch, partnerOf, maraMood, windfx, logbook, econ,
   life, localGames, openHarbour(id, tab = 'board') { const isl = [...world.islands.values()].find((i) => i.desc.id === id); if (!isl) return false; closeModal(true); rt.harbourIsl = isl; rt.hbTab = tab; frameVillage(isl.desc); openModal('harbour'); return true; }, renderHarbour: () => renderHarbour(),
   audio,

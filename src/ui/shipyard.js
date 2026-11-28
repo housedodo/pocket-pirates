@@ -1,6 +1,6 @@
 // The shipyard: a turntable where any hull, sail, flag or figurehead can be tried on before it is bought. State in rt (yard*).
 import { clamp } from '../util.js';
-import { GROUPS, byId } from '../customize.js';
+import { GROUPS, byId, DEFAULT_CUSTOM } from '../customize.js';
 import { chestHas } from '../chest.js';
 import { state } from '../core/state.js';
 import { rt, G } from '../core/runtime.js';
@@ -38,7 +38,7 @@ export function initShipyard() {
   $('yardBody').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; rt.yardTry[rt.yardTab] = b.dataset.id; G.audio.play('ui', { vol: 0.3 }); renderYard(); });
   $('yardBuy').addEventListener('click', () => {
     const { g, o } = yardSel(), key = `${g}:${o.id}`;
-    if (o.cost && !state.owned.has(key)) { if (state.gold < o.cost) return; state.gold -= o.cost; state.owned.add(key); state.stats.cosmetics++; G.audio.play('buy'); }
+    if (!state.owned.has(key) && o.id !== DEFAULT_CUSTOM[g]) { state.owned.add(key); state.stats.cosmetics++; G.audio.play('buy'); }   // everything here was found or earned (customize.js): fitting is free
     state.custom[g] = o.id; renderYard();
   });
   $('yardBack').addEventListener('click', () => { const { g } = yardSel(); rt.yardTry[g] = state.custom[g]; renderYard(); });

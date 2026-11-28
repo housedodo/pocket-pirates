@@ -169,7 +169,7 @@ export class Places {
     }
     for (const k of Object.keys(this.toastT)) if (!k.endsWith('ok')) this.toastT[k] -= dt;
     // the mist round the ship takes the scene's fog colour, so it is grey at dusk and dark at night
-    { const col = this._bc || (this._bc = new THREE.Color()); col.copy(fogColor); this.bank.update(dt, ship, col, Math.min(1, (this.bankFog || 0) * 1.8), this.bankClear || 6); if (this.wall) this.wall.update(dt, ship, col, rt.haven ? Math.max(0.15, rt.haven.fogDensity) : 1); }
+    { const col = this._bc || (this._bc = new THREE.Color()); col.copy(fogColor); this.bank.update(dt, ship, col, Math.min(1, (this.bankFog || 0) * 1.8), this.bankClear || 6); if (this.wall) this.wall.update(dt, ship, col, rt.haven ? (rt.haven.glass ? 0 : Math.max(0.15, rt.haven.fogDensity)) : 1); }
     return msg;
   }
 

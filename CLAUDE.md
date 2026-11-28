@@ -36,13 +36,16 @@ unexpectedly, into cosmic horror. Everything is procedural: no image or model fi
   heskLight`, a tower like the one in the film The Lighthouse, her rowing boat). It is rebuilt with food and hands (crew who stay); until it is back only Hesper is there (`havenOpen`: market and errands at
   stirring, tavern, shipwright, passengers and local life at bustling).
 - **Houses by region** (`housefamilies.js`, `world.js REGION_FAMILY`): every harbour is built in one family (home and Free Cays chattel,
-  Crown Willemstad gables, Lantern Bermuda, Reef and Drowned stilt), tavern, church, tower and warehouse included.
+  Crown Willemstad gables, Lantern Bermuda, Reef stilt, Drowned classical marble of a lost civilisation), tavern, church, tower and
+  warehouse included.
 - **Flora by region** (`flora.js plantIsland`, `docs/proposals/world/FLORA.md`): eleven plants beside the palms, grown by region, island
   kind and zone; slopes, summits, harbour streets, landmarks and the fog bank stay bare.
 - **Danger** (`systems/danger.js`): raiders grow with their water and the days (`REGION_THREAT`), a hit can set the deck alight, a raider
   alongside a slow ship boards and takes gold and a crate; storm wear grows with dread. Sinking costs a third of the gold, the hold, the stores.
 - **Markets remember** (`systems/trade.js pressure`): selling lowers a good's price in that water, buying raises it; it fades over days.
   A sullen crew sails slower (`voyage.js SAIL_WORK`). Upgrades show on the ship (`ship.js buildGearLook`).
+- **Late game**: Haven Hesk's works (`foghaven.js WORKS`, home port) and the Captain's Charter (`systems/charter.js`, the Charter Road).
+  Cosmetics are found in chests, wrecks and raiders' holds (`chest.js findLook`), never bought.
 - **Threads per save** (`threads.js pickForSave`): each new game wakes 3 of the 7, leaning to ones this browser has not had.
 - **The Gull's lanterns** (`ship.js sternLamp`, `bowLamp`): iron-framed lanterns at both ends.
 - **Artbooks** (`docs/artbook/`): `hoist_artbook.html` (the look, technical) and `hoist_beyond_the_fair_winds.html` (a read that sells

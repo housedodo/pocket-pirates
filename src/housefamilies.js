@@ -27,6 +27,7 @@ export const FAMILY_PALETTES = {
   gable: { walls: [['#f2c840', '#4a8ad0', '#e8708a'], ['#5ab878', '#f08a40', '#58b8d0'], ['#e8d050', '#d05a50', '#7a9ae0']], roofs: ['#b8503a', '#a84a32'], trims: ['#f8f6f0'] },
   bermuda: { walls: [['#f4d4d8', '#d8e8f4', '#f6f0e4'], ['#f8e0c8', '#e0f0e4', '#f4f0f0'], ['#e8d8f0', '#f6ead0', '#dcecf4']], roofs: ['#f4f4f0'], trims: ['#3a6a9a', '#3a8a6a', '#b8483a'] },
   stilt: { walls: [['#a07850', '#8a6440', '#b48a5a'], ['#9a8060', '#7a5a3a', '#b89a70']], roofs: ['#c8a860', '#b89850', '#a88a48'], trims: ['#5a3e24'] },
+  classical: { walls: [['#e4ddcc', '#d6cfbd', '#cbc3b0'], ['#ddd6c6', '#cfc8b6', '#e8e2d2']], roofs: ['#a8735a', '#9a7a68'], trims: ['#5a8a78', '#4e7a6a'] },   // weathered marble, old tile, green bronze (the Drowned)
 };
 /** a harbour's kit: its family and palette (world.js sets it while the harbour is built) */
 export function harbourKit(fam, seed) {
@@ -48,7 +49,7 @@ function cheer(A, K, v, x, y, z, w) {   // a flower box under a window: a painte
 /** build one house of the harbour's family in the house's own frame (front +z, ground y 0); x, z its place (for its own variety) */
 export function familyHouse(A, kit, x, z, big = false) {
   const v = (s) => h01(x, z, s), wall = pick(kit.walls, v(1)), s = big ? 1.25 : 1;
-  ({ chattel, gable, bermuda, stilt })[kit.fam](A, kit, wall, v, s);
+  ({ chattel, gable, bermuda, stilt, classical })[kit.fam](A, kit, wall, v, s);
 }
 
 function chattel(A, K, wall, v, s) {
@@ -156,7 +157,7 @@ function shutters(A, cx, y, z, T, open) {
   A.box(cx, y, z, 0.46, 0.62, 0.05, open ? '#2a2a34' : T, TILE.planks);
   if (open) for (const o of [-1, 1]) A.box(cx + o * 0.36, y, z + 0.04, 0.22, 0.62, 0.04, T, TILE.planks);
 }
-const BUILDINGS = { chattel: {}, gable: {}, bermuda: {}, stilt: {} };
+const BUILDINGS = { chattel: {}, gable: {}, bermuda: {}, stilt: {}, classical: {} };
 
 BUILDINGS.chattel.tavern = (A, K, wall, v) => {   // a rum shop: two units side by side, a gallery along the front
   const d = 3.0, h = 1.8, T = K.trim, wall2 = pick(K.walls, (v(1) + 0.4) % 1);
@@ -365,3 +366,92 @@ BUILDINGS.stilt.warehouse = (A, K) => {   // an open boat shed: a thatch roof on
   A.box(0, 0.05, 0, 0.8, 0.45, 4.2, '#6a4a30', TILE.planks); A.box(0, 0.45, 0, 0.6, 0.04, 3.8, '#3a2a1c', TILE.planks);   // the dugout
   A.quad([w / 2 + 0.02, 1.7, 1.6], [w / 2 + 0.02, 1.7, -1.4], [w / 2 + 0.02, 0.3, -1.2], [w / 2 + 0.02, 0.4, 1.4], '#c8c0a0', TILE.rope);
 };
+
+// ---- classical (owner, 2026-11-28: "change the drowned architecture into ancient Roman/Greek architecture and make it look like a lost
+// civilisation"): the Drowned harbours are built in weathered marble. Columns with a base and a capital, low tiled roofs, pediments,
+// porticos, a temple on a stepped podium, a long stoa for the tavern, a round tholos for the bell, an arched horreum for the stores.
+// Older than anyone there: columns broken off and their drums lying where they fell, a roof gone from one house in three, a green-black
+// tide line along every wall, cracks, a headless statue. Nobody living built these; the people of the Drowned live in them.
+const ALGAE = '#3e5a46', CRACK = '#7a7466';
+function column(A, x, y, z, h, r, col, broken = 0) {   // base, a tapering fluted shaft (8 sides), an echinus and abacus capital
+  A.box(x, y, z, r * 2.6, 0.18, r * 2.6, col, TILE.white);
+  const hh = broken ? h * broken : h;
+  A.cyl(x, y + 0.18, z, r, r * 0.86, hh - 0.18, 8, col, TILE.white, !!broken);
+  if (!broken) { A.cyl(x, y + h, z, r * 0.9, r * 1.35, 0.16, 8, col, TILE.white, true); A.box(x, y + h + 0.16, z, r * 2.8, 0.14, r * 2.8, col, TILE.white); }
+  A.box(x, y + 0.18, z, r * 2.05, 0.35, r * 2.05, ALGAE, TILE.white);   // the tide line at its foot
+}
+function drum(A, x, y, z, r, a) { A.push(x, y + r, z, a, 1, 1, 1, 0, Math.PI / 2); A.cyl(0, -0.45, 0, r, r, 0.9, 8, '#d6cfbd', TILE.white, true); A.pop(); }   // a fallen column drum
+function tideLine(A, w, d) { for (const [x, z, ww, dd] of [[0, d / 2 + 0.01, w, 0.02], [0, -d / 2 - 0.01, w, 0.02], [w / 2 + 0.01, 0, 0.02, d], [-w / 2 - 0.01, 0, 0.02, d]]) A.box(x, 0, z, ww, 0.42, dd, ALGAE, TILE.white); }
+function crack(A, x, y, z, h) { A.box(x, y, z, 0.05, h, 0.03, CRACK, TILE.white); A.box(x + 0.08, y + h * 0.6, z, 0.05, h * 0.4, 0.03, CRACK, TILE.white); }
+function classical(A, K, wall, v, s) {
+  const w = 2.6 * s, d = 2.6 * s, h = 1.7 * s, T = K.trim, ruin = v(2) < 0.32;
+  A.box(0, 0, 0, w + 0.3, 0.22, d + 0.3, '#bdb5a2', TILE.white);   // a stone footing
+  A.box(0, 0.22, 0, w, h, d, wall, TILE.white, TILE.white); tideLine(A, w, d);
+  if (!ruin) {
+    A.push(0, 0.22 + h, 0, Math.PI / 2); A.gable(0, 0, 0, d + 0.25, 0.7 * s, w + 0.35, K.roof, TILE.roof, wall); A.pop();   // a low tiled roof, ridge across
+    A.box(0, 0.22 + h - 0.08, 0, w + 0.32, 0.16, d + 0.32, '#e8e2d4', TILE.white);   // the cornice
+  } else {   // roofless: the walls stand, ragged at the top, a beam across
+    for (let i = 0; i < 3; i++) A.box(-w * 0.3 + i * w * 0.3, 0.22 + h, d / 2 - 0.15, w * 0.24, 0.2 + v(5 + i) * 0.5, 0.3, wall, TILE.white);
+    A.box(0, 0.22 + h - 0.2, 0, 0.2, 0.2, d, '#4a3a2a', TILE.bark);
+  }
+  A.box(0, 0.22, d / 2 + 0.02, 0.62, 1.3, 0.06, '#2a2a30', TILE.white);   // a dark doorway
+  if (v(3) < 0.6) {   // a small portico: two columns and a pediment over the door
+    for (const sx of [-0.55, 0.55]) column(A, sx, 0.22, d / 2 + 0.75, 1.55 * s, 0.11, '#e4ddcc', v(9 + sx) < 0.15 ? 0.55 : 0);
+    A.gable(0, 0.22 + 1.55 * s + 0.3, d / 2 + 0.6, 1.6, 0.45, 1.0, K.roof, TILE.roof, '#e4ddcc');
+  }
+  for (const sx of [-1, 1]) A.box(sx * w * 0.3, 0.95, d / 2 + 0.02, 0.3, 0.42, 0.05, '#2a2a30', TILE.white);   // small square windows
+  crack(A, w * 0.42 * (v(4) < 0.5 ? 1 : -1), 0.5, d / 2 + 0.03, 1.0);
+  if (v(6) < 0.45) drum(A, w * 0.7, 0, d / 2 + 1.3, 0.22, v(7) * 6);   // something fallen at the door
+}
+BUILDINGS.classical.tavern = (A, K, wall, v) => {   // a stoa: a long colonnade with a back wall and a tiled lean roof; lamps among the columns
+  const w = 6.0, d = 2.6, h = 2.4, T = K.trim;
+  chimney(A, '#bdb5a2', 4.8);
+  A.box(0, 0, 0, w + 0.4, 0.3, d + 0.6, '#c8c0ae', TILE.white);   // the stylobate
+  A.box(0, 0.3, -d / 2 + 0.2, w, h, 0.4, wall, TILE.white); tideLine(A, w, 0.4);
+  for (let i = 0; i < 6; i++) column(A, -w / 2 + 0.4 + i * (w - 0.8) / 5, 0.3, d / 2, h, 0.14, '#e4ddcc', i === 4 && v(3) < 0.5 ? 0.6 : 0);
+  A.push(0, 0.3 + h + 0.3, 0, 0, 1, 1, 1, -0.14, 0); A.box(0, 0, 0, w + 0.5, 0.14, d + 0.6, K.roof, TILE.roof); A.pop();
+  A.box(0, 0.3 + h, d / 2, w + 0.3, 0.3, 0.34, '#e8e2d4', TILE.white);   // the entablature
+  A.box(-1.2, 0.3, -d / 2 + 0.42, 0.9, 1.6, 0.05, '#2a2a30', TILE.white);
+  tavernDress(A, K, { w, d: d / 2 + 0.3, y: 0.3, sign: T });
+};
+BUILDINGS.classical.church = (A, K, wall, v, H) => {   // a temple: a stepped podium, six columns across the front and four down each side, a pediment
+  const w = 4.4, d = 6.6, h = 3.2, T = K.trim, steps = 3;
+  for (let i = 0; i < steps; i++) A.box(0, i * 0.25, 0, w + 1.2 - i * 0.4, 0.25, d + 1.2 - i * 0.4, i % 2 ? '#c8c0ae' : '#d2cab8', TILE.white);
+  const y0 = steps * 0.25;
+  A.box(0, y0, -0.4, w - 1.4, h, d - 2.0, wall, TILE.white);   // the cella
+  A.box(0, y0, d / 2 - 1.38, 0.9, 1.9, 0.06, '#24242c', TILE.white);
+  const fallen = Math.floor(v(3) * 6);
+  for (let i = 0; i < 6; i++) column(A, -w / 2 + 0.2 + i * (w - 0.4) / 5, y0, d / 2 - 0.3, h, 0.17, '#e8e2d4', i === fallen ? 0.35 : 0);
+  for (const sx of [-1, 1]) for (let i = 1; i < 4; i++) column(A, sx * (w / 2 - 0.2), y0, d / 2 - 0.3 - i * (d - 0.6) / 4, h, 0.17, '#e4ddcc', sx > 0 && i === 2 && v(4) < 0.6 ? 0.5 : 0);
+  A.box(0, y0 + h + 0.3, 0, w + 0.2, 0.42, d, '#e8e2d4', TILE.white);   // the entablature
+  A.gable(0, y0 + h + 0.72, 0, w + 0.4, 1.1, d + 0.2, K.roof, TILE.roof, '#e8e2d4');   // the pediment front and back
+  A.box(0, y0 + h + 1.82, d / 2 + 0.05, 0.3, 0.3, 0.3, T, TILE.white);   // a bronze acroterion
+  drum(A, w / 2 + 1.2, 0, d / 2 - 1, 0.18, 0.4); drum(A, w / 2 + 1.0, 0, d / 2 + 0.2, 0.18, 1.2);   // the fallen column's drums
+  A.box(-w / 2 - 1.1, 0, d / 2 + 0.4, 0.7, 0.9, 0.7, '#c8c0ae', TILE.white); A.box(-w / 2 - 1.1, 0.9, d / 2 + 0.4, 0.38, 1.2, 0.3, '#d6cfbd', TILE.white);   // a statue with no head
+  if (H.bell) { A.push(0, 0, d / 2 - 0.4); H.bell(A, y0 + h + 0.2, 0.45); A.pop(); }
+  if (H.flag) H.flag(A, 0, y0 + h + 1.95, d / 2 + 0.05);
+};
+BUILDINGS.classical.belltower = (A, K, wall, v, H) => {   // a tholos: a round temple, a ring of eight columns round a drum wall, a shallow dome
+  const R = 1.6, h = 2.8, T = K.trim;
+  for (let i = 0; i < 2; i++) A.cyl(0, i * 0.25, 0, R + 0.6 - i * 0.25, R + 0.6 - i * 0.25, 0.25, 10, i ? '#d2cab8' : '#c8c0ae', TILE.white, true);
+  A.cyl(0, 0.5, 0, R - 0.5, R - 0.5, h, 10, wall, TILE.white, false);
+  for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4; column(A, Math.cos(a) * R, 0.5, Math.sin(a) * R, h, 0.13, '#e8e2d4', i === 5 && v(3) < 0.5 ? 0.45 : 0); }
+  A.cyl(0, 0.5 + h + 0.2, 0, R + 0.25, R + 0.25, 0.3, 10, '#e8e2d4', TILE.white, false);
+  A.blob(0, 0.5 + h + 0.5, 0, R + 0.1, 1.0, R + 0.1, T, TILE.white, 0.05, 3);   // the dome, green with age
+  if (H.bell) H.bell(A, 0.5 + h, 0.8);
+  A.box(0, 0.5, R - 0.45, 0.6, 1.4, 0.06, '#24242c', TILE.white);
+};
+BUILDINGS.classical.warehouse = (A, K, wall) => {   // a horreum: a long stone store, a row of round-arched openings, a low roof
+  const w = 3.0, d = 6.0, h = 2.4;
+  A.box(0, 0, 0, w, h, d, wall, TILE.white, TILE.white); tideLine(A, w, d);
+  A.push(0, h, 0); A.gable(0, 0, 0, w + 0.3, 0.6, d + 0.3, K.roof, TILE.roof, wall); A.pop();
+  for (const sx of [-1, 1]) for (let i = 0; i < 3; i++) {   // arches down each side
+    const z = -d / 2 + 1.1 + i * 1.9; A.box(sx * (w / 2 + 0.01), 0.3, z, 0.05, 1.2, 0.8, '#24242c', TILE.white);
+    A.push(sx * (w / 2 + 0.01), 1.5, z, Math.PI / 2, 1, 1, 1, Math.PI / 2, 0); A.cyl(0, -0.025, 0, 0.4, 0.4, 0.05, 8, '#24242c', TILE.white, true); A.pop();
+  }
+  A.box(0, 0, d / 2 + 0.02, 1.4, 1.8, 0.06, '#2a2a30', TILE.white);
+  A.push(0, 1.8, d / 2 + 0.02, 0, 1, 1, 1, Math.PI / 2, 0); A.cyl(0, -0.03, 0, 0.7, 0.7, 0.06, 8, '#2a2a30', TILE.white, true); A.pop();
+  crack(A, -w * 0.3, 0.8, d / 2 + 0.03, 1.2); drum(A, w / 2 + 0.8, 0, 1.0, 0.2, 2.2);
+  for (let i = 0; i < 3; i++) A.cyl(w / 2 + 0.6, 0, -1 - i * 0.7, 0.28, 0.2, 0.75, 6, '#b06a48', TILE.white, true);   // amphorae
+};
+

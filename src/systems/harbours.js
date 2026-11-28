@@ -27,6 +27,7 @@ import { WANTS } from './trade.js';
 import { pxi } from '../pixelui.js';
 import { goalReached } from '../objectives.js';
 import { isHaven, havenPlenty, havenRows, havenAct, havenOpen } from './foghaven.js';
+import { charterRows, charterAct } from './charter.js';
 
 const DEMO = () => typeof window !== 'undefined' && window.__BUILD === 'demo';
 export const EVENT_DAYS = 3, EVENT_P = 18, NEGLECT_FROM = 21, NEGLECT_PER_DAY = 0.25, STEP_DAYS = 3;   // slow on purpose (owner, 2026-11-25: "make sure it does not change that fast, otherwise it would be a chore"): three weeks away before it starts, and the level moves one step every three days at most
@@ -113,6 +114,7 @@ export function harbourRows(d) {
   let html = '';
   if (rt.backDoor === d.id) return html;   // nobody at the board at night
   html += havenRows(d);   // Hesper and what she needs (systems/foghaven.js)
+  html += charterRows(d);   // this water's charter (systems/charter.js)
   if (!havenOpen(d, 'jobs')) return html;   // and nobody else yet: no harbourmaster, no customs, no morning's work
   const ev = eventOf(d), E = hev()[d.id];
   if (ev && E) E.seen = true;
@@ -139,6 +141,7 @@ export function bindHarbourRows(pane, d, rerender) {
   pane.querySelectorAll('[data-hb]').forEach((b) => b.addEventListener('click', () => {
     const k = b.dataset.hb, E = hev()[d.id];
     if (havenAct(d, k)) { rerender(); return; }
+    if (charterAct(d, k)) { rerender(); return; }
     if (k === 'owed' && E) { state.gold += E.owed; toast(`The harbourmaster counts out ${E.owed} gold. "For the boom."`, false, 5000); E.owed = 0; G.audio.play('treasure'); }
     if (k === 'fire') { state.time = Math.min(0.999, state.time + 2 / 24); resolve(d, 'fire', 'By noon the fire is out. Somebody brings the crew bread and does not let them pay for it.', PAY.fire); }
     if (k === 'fever' && fruitCount() >= 3) { let n = 3; const sp = sellable(state).fruit; for (const f of Object.keys(sp)) while (n > 0 && sp[f] > 0) { sp[f]--; state.fruit[f]--; n--; } resolve(d, 'fever', 'You leave the fruit at the end of the pier. Later a lamp in a window is lit, then another.', PAY.fever); }

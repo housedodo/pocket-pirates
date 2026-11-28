@@ -14,7 +14,9 @@ import { scene } from '../core/engine.js';
 import { Builder } from '../builder.js';
 import { TILE } from '../textures.js';
 import { mats } from '../psx.js';
-import { villager, pierOf } from '../world.js';
+import { villager, pierOf, shoreR } from '../world.js';
+import { cargo, GOODS } from './trade.js';
+import { chestAdd } from '../chest.js';
 import { waveHeight } from '../ocean.js';
 
 const DEMO = () => typeof window !== 'undefined' && window.__BUILD === 'demo';
@@ -93,7 +95,8 @@ function urlFlag() {   // tests: ?foghaven=abandoned|flicker|stirring|bustling|f
 export function havenTick(dt) {
   if (!havenOn() || !G.world) return;
   if (!urlDone) { urlDone = true; urlFlag(); }
-  rt.haven = { ...haven(), lifted: fogLifted() };   // places.js (the bank), world.js (her chair) read this
+  rt.haven = { ...haven(), lifted: fogLifted(), glass: workDone('glass'), home: havenHome() };
+  worksTick();   // places.js (the bank), world.js (her chair) read this
   acc += dt; if (acc >= 1) { acc = 0; const f = S(), h = haven(); if (f.met && !f.gone && h.neglect >= 1) { f.gone = true; f.goneAt = now(); } }
   const isl = G.world.islands && [...G.world.islands.values()].find((i) => i.desc.id === LIGHT_ID); if (!isl) return;
   const h = haven(), t = rt.tNow || 0;
@@ -102,7 +105,7 @@ export function havenTick(dt) {
   if (!isl.beam) return;
   if (!isl.lit) return;
   if (h.keeperPresent) {   // weak: it catches and drops; strong: a steady, long beam
-    const k = h.lighthouseIntensity, flick = Math.sin(t * 7.1) * 0.5 + Math.sin(t * 2.3 + 1) * 0.5 > 1.1 - 1.6 * k;
+    const k = workDone('glass') ? 1.15 : h.lighthouseIntensity, flick = Math.sin(t * 7.1) * 0.5 + Math.sin(t * 2.3 + 1) * 0.5 > 1.1 - 1.6 * k;
     isl.beam.visible = k > 0.85 || flick; if (isl.lampOn) isl.lampOn.visible = isl.beam.visible || k > 0.5; if (isl.lampOff) isl.lampOff.visible = !isl.lampOn.visible;
     isl.beam.scale.x = isl.beam.scale.y = isl.beam.scale.z = 0.45 + 0.55 * k;
   } else {   // gone: dark; on some nights the lamp burns by itself, low and still, and nobody is up there
@@ -195,12 +198,13 @@ export function havenRows(d) {
   if (!havenOn() || !isHaven(d) || S().gone) return '';
   const h = haven(), food = foodToGive(), hand = handToStay();
   let html = `<div class="sec">HESPER, WHO KEEPS THE LIGHT</div><small>${spoken(h)}</small>`;
-  if (h.r >= 0.999) return html;
+  if (h.r >= 0.999) return html + worksRows();   // back: the great works (below)
   html += `<div class="qrow letter"><div><b>${pxi('talk')} Food for the ones who come back</b><br><small>${food ? `"They always come back hungry." · ${food.words}` : 'nothing aboard to spare: stores, fish or fruit'}</small></div><button data-hb="fh_food" ${food ? '' : 'disabled'}>Give</button></div>`;
   html += `<div class="qrow letter"><div><b>${pxi('crew')} Hands to rebuild</b><br><small>${hand ? `${hand.name} could stay and help. "The roofs will not mend themselves."` : 'a hand of your own first: they sign on in other harbours\' taverns'}</small></div><button data-hb="fh_hand" ${hand ? '' : 'disabled'}>${hand ? `${hand.name} stays` : 'Stay'}</button></div>`;
   return html;
 }
 export function havenAct(d, k) {
+  if (k.startsWith('fh_w_') && isHaven(d)) return worksAct(k.slice(5));
   if ((k !== 'fh_food' && k !== 'fh_hand') || !isHaven(d)) return false;
   const f = S(), first = !(f.food || f.given || f.hands.length);
   if (k === 'fh_food') {
@@ -219,6 +223,67 @@ export function havenAct(d, k) {
   return true;
 }
 
+// ---- the great works (owner, 2026-11-28: the late-game goal "rebuild Haven Hesk fully: a big, long project that changes the fog region and
+// gives a home port inside the bank"). Once the people are back, three works remain, each paid in gold and in goods brought from other
+// waters (systems/trade.js cargo): a stone quay, new glass for the light, a bell for the chapel. Each shows in the harbour and does
+// something; with all three Haven Hesk is the Gull's home port in the fog. Nothing here is a number on the HUD.
+//   quay    stone along the shore by the pier. A ship that ties up here is made sound again, free.
+//   glass   the light burns steady and long; the bank on the horizon is gone (fogbank.js FogWall), the fog inside thin for good.
+//   bell    it rings the evening in. A night ashore here does the crew more good than anywhere.
+//   all     home port: the Gull is brought here when she goes under nearby, and Hesper gives the captain something of the light's
+//           (a sail of the lamp-room's old canvas, into the sea chest).
+export const WORKS = {
+  quay:  { name: 'A stone quay', cost: 600, good: 'coir', n: 3, ask: '"Stone we have, from the old fort on the isle. Rope we have not, and gold for the masons."', done: 'Masons from the isle lay the last stone at dusk. The quay rings under your boots.' },
+  glass: { name: 'New glass for the light', cost: 350, good: 'glass', n: 4, ask: '"The lens is cracked through. The Guild makes glass. I never could afford it."', done: 'That night the light turns once, slowly, and does not stutter. From the gallery Hesper waves the lamp at you, like a girl.' },
+  bell:  { name: 'A bell for the chapel', cost: 800, good: 'silver', n: 2, ask: '"Melt down Crown plate and we will cast it here. Sabe always said a harbour without a bell is only a beach."', done: 'They hang it at noon. At dusk it rings the evening in, and the fog goes back a little to listen.' },
+};
+const W = () => { const f = S(); return f.works || (f.works = {}); };
+export const workDone = (id) => W()[id] != null;   // (the day it was done; day 0 counts)
+export const havenHome = () => havenOn() && !S().gone && workDone('quay') && workDone('glass') && workDone('bell');
+function worksRows() {
+  const c = cargo(); let html = '<div class="sec">THE WORKS</div>';
+  for (const [id, w] of Object.entries(WORKS)) {
+    if (workDone(id)) { html += `<div class="qrow"><div><b>${pxi('anchor')} ${w.name}</b><br><small>done</small></div></div>`; continue; }
+    const have = c[w.good] || 0, ok = state.gold >= w.cost && have >= w.n;
+    html += `<div class="qrow letter"><div><b>${pxi('anchor')} ${w.name}</b><br><small>${w.ask} · ${w.cost} gold and ${w.n} crates of ${GOODS[w.good].one} (${have} aboard)</small></div><button data-hb="fh_w_${id}" ${ok ? '' : 'disabled'}>Pay</button></div>`;
+  }
+  if (havenHome()) html += '<div class="qrow"><div><small>Haven Hesk is the Gull\'s home port now. The fog keeps its distance from the quay.</small></div></div>';
+  return html;
+}
+function worksAct(id) {
+  const w = WORKS[id], c = cargo(); if (!w || workDone(id) || state.gold < w.cost || (c[w.good] || 0) < w.n) return true;
+  state.gold -= w.cost; c[w.good] -= w.n; if (c[w.good] <= 0) delete c[w.good];
+  W()[id] = state.dayN || 0; worksBuilt = false;
+  toast(w.done, false, 8000); if (G.audio) G.audio.play('treasure');
+  if (havenHome()) setTimeout(() => { toast('Hesper comes down the steps with a roll of canvas under her arm. "The old lamp-room hangings. Sails, if you want them. The light does not need them now."', false, 9000); chestAdd('heskcanvas', 'lantern'); }, 8500);
+  return true;
+}
+/** systems/interact.js on docking here: the quay makes her sound; the bell's night does the crew good */
+export function worksDock(d) {
+  if (!havenOn() || !isHaven(d) || S().gone) return;
+  if (workDone('quay') && G.ship && state.hp < G.ship.mods.maxHp) { state.hp = G.ship.mods.maxHp; toast('The masons look her over and caulk what the sea opened. Hesper will not take money for it.', false, 6000); }
+  if (workDone('bell') && state.story.mood != null) state.story.mood = Math.min(1, state.story.mood + 0.15);
+}
+// what the works look like: the stone quay along the shore either side of the pier, and the bell in a frame of new timber on it
+let worksBuilt = false, worksMesh = null;
+function worksTick() {
+  if (worksBuilt) return; const d = G.world && G.world.desc(...HAVEN_ID.split(',').map(Number)); if (!d) return;
+  worksBuilt = true; if (worksMesh) { scene.remove(worksMesh); worksMesh.geometry.dispose(); worksMesh = null; }
+  const b = new Builder(), th0 = d.dockTh;
+  if (workDone('quay')) for (let i = -7; i <= 7; i++) {   // dressed stone, pale and new, a lip of darker coping
+    if (Math.abs(i) < 1) continue;
+    const th = th0 + i * 0.07, r = shoreR(d, th) * 1.0, x = d.x + Math.cos(th) * r, z = d.z + Math.sin(th) * r;   // at the waterline, in front of the cliff
+    b.push(x, 0, z, Math.PI / 2 - th); b.box(0, -1.6, 0, shoreR(d, th) * 0.07 + 0.3, 2.9, 2.4, i % 2 ? '#e0d8c6' : '#d2cab8', TILE.white); b.box(0, 1.3, 0.2, shoreR(d, th) * 0.07 + 0.35, 0.2, 2.6, '#9a9488', TILE.stone); b.pop();
+  }
+  if (workDone('bell')) {   // a timber frame on the quay with the bell in it
+    const th = th0 + 0.32, r = shoreR(d, th) * 0.99, x = d.x + Math.cos(th) * r, z = d.z + Math.sin(th) * r, y = 1.5;   // on the new quay itself
+    b.push(x, y, z, Math.PI / 2 - th); for (const sx of [-0.9, 0.9]) b.box(sx, 0, 0, 0.24, 3.2, 0.24, '#6b4a2e', TILE.bark);
+    b.box(0, 3.1, 0, 2.2, 0.26, 0.3, '#5a3e24', TILE.bark); b.cyl(0, 2.2, 0, 0.55, 0.3, 0.9, 8, '#c8a040', TILE.glow, true); b.pop();
+  }
+  if (b.empty) return;
+  worksMesh = new THREE.Mesh(b.geometry(), mats.props); scene.add(worksMesh);
+}
+
 // ---- tests and dev (never in the playtest build): set the harbour's state without the deliveries
 export const havenDebug = {
   state: () => ({ ...S(), ...haven() }),
@@ -230,5 +295,7 @@ export const havenDebug = {
     const rep = state.rep[HAVEN_ID]; if (rep) rep.last = now();
     return this.state();
   },
+  worksMesh: () => (worksMesh ? worksMesh.geometry.attributes.position.count : 0),
+  works(ids = ['quay', 'glass', 'bell']) { this.set('bustling'); for (const id of ids) W()[id] = state.dayN || 0; worksBuilt = false; return { ...W() }; },
   away(days) { const f = S(); f.met = true; const rep = state.rep[HAVEN_ID] || (state.rep[HAVEN_ID] = { visits: 1, deliveries: 0, sold: 0, last: now() }); rep.last = now() - days; return this.state(); },
 };

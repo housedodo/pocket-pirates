@@ -1,7 +1,7 @@
 HOIST (Pocket Pirates): THE MASTER STORY FILE
 ================================================================================================
 This is the main story file for the full game. Edit it, upload it again, and the next session puts every change
-into the game. Built from commit 6907499 on 2026-11-28. 1952 in-game lines carry an ID.
+into the game. Built from commit ee1ffc6 on 2026-11-28. 1972 in-game lines carry an ID.
 
 CONTENTS
   A   HOW TO USE THIS FILE (IDs, status marks, how to add and remove things)
@@ -569,7 +569,7 @@ Where the story hides in the mechanics, and where its text lives (section J).
 # J  EVERY LINE IN THE GAME
 ################################################################################################
 Pulled from the code. Edit the text after the "|" (see part A). Sources are grouped by file; the CODE in front of every
-line says which file it goes back into. 1952 lines.
+line says which file it goes back into. 1972 lines.
 
 
 
@@ -651,7 +651,6 @@ line says which file it goes back into. 1952 lines.
 ### OBJ / SIDE_GOALS
   OBJ-0090 | Hail a passing ship with E. Not every ship will want to talk.
   OBJ-0091 | Pick up a message in a bottle by sailing into it.
-  OBJ-0092 | Buy something at a shipyard: paint, sails, a pennant, a figurehead.
   OBJ-0093 | Press E near a jungle or sandbar isle to pick its fruit.
   OBJ-0094 | Spot a pod of dolphins.
 
@@ -761,6 +760,9 @@ line says which file it goes back into. 1952 lines.
   OBJ-0201 | The Reef. They count wrecks there the way other people count sheep. Somebody will know the number.
   OBJ-0202 | The Drowned waters. I do not want to go. I am telling you so that it is written down somewhere.
 
+### OBJ / ADDED 2026-11-28
+  OBJ-0203 | Fit something you found at a shipyard: paint, sails, a pennant, a figurehead. Finds turn up in chests and wrecks.
+
 ### OBJ / RETIRED (the text is no longer in the game; these IDs are never used again)
     was OBJ-0012 | [text] Perrin's riddle is in your log (Journal). Find the right shore of Hollow Cay Galen and dig.
     was OBJ-0013 | [intro] Now to find the shore that riddle means. Stop the ship there and press E to dig.
@@ -782,6 +784,7 @@ line says which file it goes back into. 1952 lines.
     was OBJ-0078 | [hints] Raiders only fire when they are close. Turn so they are beside you and press Space.
     was OBJ-0079 | [hints] Harbours repair the hull for free, and sell cannonballs.
     was OBJ-0089 | Reef the sails (S) until you slow down, then press C to cast a line.
+    was OBJ-0092 | Buy something at a shipyard: paint, sails, a pennant, a figurehead.
     was OBJ-0114 | [raider] Raiders, off the bow! They are Reef Brotherhood. You can outrun them, pay tribute, or fight with Space.
     was OBJ-0117 | [notarget] No raider in range. Space only fires at raiders that are attacking us.
     was OBJ-0129 | That is everything we set out to do, Captain. Sail where you like inside the fog: deliveries, errands, treasure and the side goals in your log (Goals tab) are all still there.
@@ -2735,6 +2738,30 @@ line says which file it goes back into. 1952 lines.
   MAIN-0444 | The fire is out.
   MAIN-0445 | Grapnels! They mean to board us! Get way on her, Captain!
   MAIN-0446 | They came over the rail and went back with ${took} gold${crate}.
+
+### MAIN / ADDED 2026-11-28
+  MAIN-0447 | The old hangings from Hesk Light, given by Hesper when the works were done. Pale, and faintly warm. Any shipyard can cut sails from it.
+  MAIN-0448 | Sealed under wax, still good. Any shipyard will put it on the hull.
+  MAIN-0449 | Dry inside an oilskin. Any shipyard can cut sails from it.
+  MAIN-0450 | Folded small, as if somebody meant to keep it.
+  MAIN-0451 | Somebody cut it with care. It still holds its shape.
+  MAIN-0452 | Wrapped in sacking. A figurehead, with the fixing bolts still in it.
+  MAIN-0453 | "Stone we have, from the old fort on the isle. Rope we have not, and gold for the masons."
+  MAIN-0454 | Masons from the isle lay the last stone at dusk. The quay rings under your boots.
+  MAIN-0455 | "The lens is cracked through. The Guild makes glass. I never could afford it."
+  MAIN-0456 | That night the light turns once, slowly, and does not stutter. From the gallery Hesper waves the lamp at you, like a girl.
+  MAIN-0457 | "Melt down Crown plate and we will cast it here. Sabe always said a harbour without a bell is only a beach."
+  MAIN-0458 | They hang it at noon. At dusk it rings the evening in, and the fog goes back a little to listen.
+  MAIN-0459 | Hesper comes down the steps with a roll of canvas under her arm. "The old lamp-room hangings. Sails, if you want them. The light does not need them now."
+  MAIN-0460 | The masons look her over and caulk what the sea opened. Hesper will not take money for it.
+
+### MAIN / ADDED 2026-11-28
+  MAIN-0461 | A clerk unrolls it without looking up. "Sign, and the Crown sells you its plate at any of its harbours. Fourteen hundred."
+  MAIN-0462 | "No paper in the Cays. We shake on it, and you pay the musicians. A thousand, and the tobacco is yours anywhere."
+  MAIN-0463 | A brand, a small one, burnt into your rail. "Eleven hundred. After that the powder is sold to you, and nobody asks why."
+  MAIN-0464 | "The Guild warrants your lamps and your name. Twelve hundred, and our candles go where you go."
+  MAIN-0465 | A man in a good coat is waiting at the foot of the gangplank with a box of papers. "Ambrose Teague. The guilds send me to keep your charters straight. I need very little room." He takes less than that, and the hold seems bigger for it.
+  MAIN-0466 | He says the guilds keep lights on the old road to the Sunken Street. For chartered ships. I did not know there was a road.
 
 ### MAIN / RETIRED (the text is no longer in the game; these IDs are never used again)
     was MAIN-0001 | A floating market, with bunting on every line. (Friday)

@@ -67,7 +67,7 @@ HTML_CARDS = ('id="ending"', 'id="credits"', 'id="demoend"')
 MAIN_PARTS = ['main.js', 'systems/interact.js', 'ui/title.js', 'ui/pause.js', 'ui/harbour.js', 'ui/shipyard.js', 'ui/shiptrade.js', 'ui/camera.js', 'ui/dom.js',
               'ui/hud.js', 'ui/encounters.js', 'systems/storybeats.js', 'regions.js', 'systems/reef.js', 'systems/drowned.js',
               'systems/crown.js', 'systems/farlights.js', 'systems/race.js', 'systems/lantern.js', 'systems/perrin.js', 'systems/edge.js', 'systems/hutword.js', 'systems/leadlight.js', 'systems/passes.js', 'systems/rletters.js', 'chest.js', 'systems/seaevents.js',
-              'systems/foghaven.js', 'systems/endgame.js', 'systems/shallows.js', 'systems/danger.js']   # (2026-11-28: the story review found the first three missing)
+              'systems/foghaven.js', 'systems/endgame.js', 'systems/shallows.js', 'systems/danger.js', 'systems/charter.js']   # (2026-11-28: the story review found the first three missing)
 
 
 def read(name):

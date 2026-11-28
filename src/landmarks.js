@@ -101,6 +101,7 @@ export function lmHeight(d, t, th, n) {
     case 'crag': { const ridge = 1 - Math.abs(n * 2 - 1); return d.H * Math.pow(p, 0.75) * (0.45 + ridge * 0.9) * (t < 0.3 ? 1.1 : 1); }
     case 'bell': return t < 0.7 ? d.H * (0.9 + n * 0.2) : d.H * (1 - smoothstep(0.7, 1, t)) * (0.9 + n * 0.2);   // a stack: flat top, steep sides
     case 'grove': return d.H * Math.pow(p, 1.1) * (0.6 + n * 0.7);
+    case 'namewall': return 1.8 * Math.pow(p, 0.6) * (0.8 + n * 0.4);   // a low shelf of pale rock: the cliff is built on it (2026-11-28)
     case 'keeper': return d.H * Math.pow(p, 0.9) * (0.7 + n * 0.5);
     case 'broken': {
       if (t >= 0.995) return -0.6;
@@ -120,6 +121,7 @@ export function lmColor(d, hc, slope, noise) {
   switch (d.lm) {
     case 'crag': return hc < 0.15 ? col('#4a4a4e') : slope > 0.35 || noise > 0.4 ? (noise > 0.6 ? col('#7a7a7e') : col('#6a6a70')) : col('#8a8884');   // bare basalt, nothing grows
     case 'bell': return hc < 0.15 ? col('#4a4a4e') : hc > d.H * 0.8 ? (noise > 0.55 ? col('#6e8a52') : col('#8a8678')) : col('#77746c');
+    case 'namewall': return hc < 0.15 ? col('#5a5a5e') : noise > 0.5 ? col('#cfcac0') : col('#bdb8ae');   // bare chalk, nothing grows
     case 'grove': return hc < 0.12 ? col('#6e5a3a') : hc < 0.45 ? col('#8a7a4a') : noise > 0.6 ? col('#2f6a2c') : noise > 0.35 ? col('#3c7a32') : col('#285a28');
     case 'keeper': return hc < 0.15 ? col('#4a4a4e') : noise > 0.5 ? col('#8a8a86') : col('#9a8a70');
     case 'broken': {
@@ -235,9 +237,18 @@ export function lmDecor(d, rng, A, B, D, extra, h) {
       for (let i = 0; i < 9; i++) { const p = h.spot(d, rng, 0.1, 0.95, 0.1); if (p) (i % 3 ? h.barrel(A, p[0], p[1], p[2], 0.8) : h.driftwood(A, p[0], p[1], p[2], rng() * 3)); }
       for (let i = 0; i < 70; i++) {   // the breakers: white water and black rocks in a ring well off the sand
         const th = (i / 70) * 6.28 + rng() * 0.05, R = 46 + Math.sin(i * 1.7) * 3 + rng() * 3, x = Math.cos(th) * R, z = Math.sin(th) * R;
-        if (i % 4 === 0) A.blob(x, -0.3, z, 1.4 + rng(), 0.9, 1.2 + rng(), '#2e2e34', TILE.stone, 0.3, i);
-        A.push(x, 0.12, z, -th); A.box(0, 0, 0, 0.5 + rng() * 0.4, 0.14, 2.4 + rng() * 2.2, '#f4f8fa', TILE.white); A.pop();
-        if (i % 2) { A.push(x * 0.96, 0.1, z * 0.96, -th + 0.2); A.box(0, 0, 0, 0.35, 0.1, 1.4 + rng() * 1.2, '#e4f0f4', TILE.white); A.pop(); }
+        // (owner, 2026-11-28: "texture the black slabs and make it more realistic": they read as flat black boards) the rocks are jagged
+        // and wet, dark grey-brown stone with a paler dry top and a band of weed at the waterline; the surf breaks round them in broken foam
+        if (i % 4 === 0) {
+          const s = 1.0 + rng() * 0.8, col = ['#5a5650', '#625c52', '#4e4a46'][i % 3];
+          A.blob(x, -0.9, z, 1.3 * s, 1.3 * s, 1.1 * s, col, TILE.stone, 0.45, i);
+          A.blob(x + 0.3 * s, -0.2 + 0.5 * s, z - 0.2 * s, 0.7 * s, 0.75 * s, 0.6 * s, '#7a746a', TILE.stone, 0.5, i + 1);   // a drier jag on top
+          A.blob(x, -0.25, z, 1.45 * s, 0.22, 1.25 * s, '#3e5a46', TILE.leaf, 0.3, i + 2);   // weed at the waterline
+          for (let j = 0; j < 4; j++) { const a = j * 1.57 + rng(); A.blob(x + Math.cos(a) * 1.6 * s, 0.04, z + Math.sin(a) * 1.4 * s, 0.7, 0.06, 0.4, '#eef4f4', TILE.white, 0.35, i * 7 + j); }   // foam round its foot
+        }
+        { const tx = -Math.sin(th), tz = Math.cos(th);   // the breaking line: short broken runs of foam along the ring, not boards
+          for (let j = 0; j < 3; j++) { const o = (j - 1) * (0.9 + rng() * 0.5); A.blob(x + tx * o + (rng() - 0.5) * 0.4, 0.05, z + tz * o + (rng() - 0.5) * 0.4, 0.55 + rng() * 0.35, 0.05, 0.3 + rng() * 0.15, j === 1 ? '#f4f8fa' : '#e2eef2', TILE.white, 0.4, i * 5 + j); }
+        }
       }
       break;
     }
@@ -358,11 +369,23 @@ export function lmDecor(d, rng, A, B, D, extra, h) {
         A.push(q[0] + 1.6, q[1] + 1.4, q[2], 0, 1, 1, 1, 0, 0.12); A.box(0, 0, 0, 3, 0.1, 0.7, ['#c85a4a', '#d8b050', '#5a8ac0'][i % 3], TILE.sail); A.pop(); }
       break;
     }
-    case 'namewall': {   // a white cliff, its top edge stepped in three ledges, the marks too small to read; the top row is a glossier black
-      A.box(0, 0, 0, 14, d.H - 2, 3, '#e8e4dc', TILE.white);
-      A.box(0, d.H - 2, 0, 12, 0.7, 2.6, '#e8e4dc', TILE.white); A.box(0.5, d.H - 1.3, 0, 9, 0.7, 2.2, '#e8e4dc', TILE.white); A.box(1, d.H - 0.6, 0, 6, 0.6, 1.8, '#e8e4dc', TILE.white);
-      for (let i = 0; i < 60; i++) { const row = Math.floor(i / 15); A.box(-6.5 + (i % 15) * 0.9, 1 + row * 2.6, 1.55, 0.45, 0.18, 0.04, row === 3 ? '#050508' : '#26262c', TILE.stone); }
-      for (let n = 1; n <= 3; n++) { const W = mk(); for (let k = 0; k < 15; k += 2) W.box(-6.5 + k * 0.9, 1 + (3 - n) * 2.6 - 1.3, 1.56, 0.5, 0.2, 0.04, '#0a0a0e', TILE.stone); st(W, (i) => i.gctx.lvl && i.gctx.lvl[2] >= n); }   // the wet rows creep as the question rises
+    case 'namewall': {   // (owner, 2026-11-28: "change the Name Wall as suggested": it read as a green hill with a grey cap) a sheer white cliff
+      // standing straight out of the sea, much taller than it is deep, the face streaked and buttressed like chalk, its top edge stepped in
+      // ledges and broken against the sky; rows and rows of marks too small to read cover it to the top, the top row a glossier black
+      const H = d.H + 8, W = 16;
+      A.box(0, -1, 0, W, H, 4, '#f0ece2', TILE.white);
+      for (const [x, w, hh] of [[-6.5, 2.4, H + 1.6], [-3.2, 3, H + 3.2], [0.6, 3.6, H + 2.2], [4.4, 2.8, H + 4.0], [7.0, 2, H + 0.8]]) A.box(x, -1, -0.3, w, hh, 3.4, '#ece6da', TILE.white);   // the broken skyline: buttresses of chalk, uneven
+      for (const [x, sx] of [[-7.6, 1], [7.8, -1]]) { A.push(x, -1, 0.4, 0, 1, 1, 1, 0, sx * 0.08); A.box(0, 0, 0, 1.4, H * 0.8, 3.8, '#e4ddd0', TILE.white); A.pop(); }   // spurs at the ends, leaning in
+      for (let k = 0; k < 9; k++) A.box(-7 + k * 1.75, 2, 2.02, 0.12, H - 4 - (k % 3) * 2, 0.04, '#d8d2c4', TILE.white);   // rain streaks down the face
+      A.blob(0, -0.6, 2.2, W * 0.55, 0.5, 1.3, '#3e5a46', TILE.leaf, 0.3, 3);   // weed and wet at its foot
+      for (let i = 0; i < 8; i++) A.blob(-7 + i * 2, -0.4, 3.0 + (i % 2) * 0.6, 0.9, 0.5, 0.7, '#8a8478', TILE.stone, 0.4, i);   // fallen blocks in the surf
+      const rows = Math.floor((H - 3) / 1.25);
+      for (let r = 0; r < rows; r++) for (let c = 0; c < 22; c++) {   // the marks: tiny, in rows, to the top
+        const x = -7.2 + c * 0.68 + ((r % 2) * 0.3), y = 1 + r * 1.25, top = r === rows - 1;
+        if ((r * 7 + c * 3) % 11 === 0) continue;   // gaps, where marks were scraped away
+        A.box(x, y, 2.02, 0.34, 0.12, 0.04, top ? '#050508' : r % 3 ? '#2e2e36' : '#3a3a44', TILE.stone);
+      }
+      for (let n = 1; n <= 3; n++) { const Wm = mk(); for (let k = 0; k < 22; k += 2) Wm.box(-7.2 + k * 0.68, 1 + (rows - 1 - n) * 1.25 - 0.6, 2.03, 0.38, 0.14, 0.04, '#0a0a0e', TILE.stone); st(Wm, (i) => i.gctx.lvl && i.gctx.lvl[2] >= n); }   // the wet rows creep as the question rises
       break;
     }
     case 'archive': {   // a pale fort with a flag pole, one lit window (1.6 x 1.8) among dark slits; a second window lights as the question rises
@@ -448,6 +471,6 @@ export function lmDecor(d, rng, A, B, D, extra, h) {
     }
     // ---- the gates read as blockers before they block, and differently once open (R1, R2)
   }
-  if (d.lm === 'ribs') { const S = mk(); for (let k = 0; k < 16; k++) { const th = (k / 16) * 6.28, R = 19 + (k % 3); S.box(Math.cos(th) * R, 0.15, Math.sin(th) * R, 2.4, 0.12, 0.5, '#f4f8fa', TILE.white); } st(S, (i) => ((i.gctx.up && i.gctx.up.hull) || 0) < 2); }   // more surf while the hull cannot take it
+  if (d.lm === 'ribs') { const S = mk(); for (let k = 0; k < 16; k++) { const th = (k / 16) * 6.28, R = 19 + (k % 3); for (let j = 0; j < 3; j++) S.blob(Math.cos(th) * R - Math.sin(th) * (j - 1) * 0.9, 0.08, Math.sin(th) * R + Math.cos(th) * (j - 1) * 0.9, 0.6, 0.06, 0.35, '#f0f6f8', TILE.white, 0.4, k * 3 + j); } st(S, (i) => ((i.gctx.up && i.gctx.up.hull) || 0) < 2); }   // more surf while the hull cannot take it
   if (d.lm === 'lagoon') { const S = mk(); for (const k of [0, 1, 18, 19, 36, 37, 54, 55, 72, 73]) { const th = (k / 90) * 6.28, R = 40 + Math.sin(k * 0.9) * 2.5; S.blob(Math.cos(th) * R, -0.1, Math.sin(th) * R, 1.3, 0.55, 1.1, '#3a3236', TILE.stone, 0.3, k); } st(S, (i) => ((i.gctx.up && i.gctx.up.rudder) || 0) < 2); }   // the gaps close while the rudder cannot thread them
 }

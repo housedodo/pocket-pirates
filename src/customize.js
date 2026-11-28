@@ -1,4 +1,5 @@
-// Cosmetic ship customisation, sold at harbour shipyards. Some figureheads are earned, not bought.
+import { registerLooks } from './chest.js';
+// Cosmetic ship customisation, fitted at harbour shipyards. Found (see below) or earned, never bought.
 export const HULLS = [
   { id: 'oak', name: 'Oak', cost: 0, upper: '#c4733a', lower: '#8a5028' },
   { id: 'ocean', name: 'Ocean blue', cost: 30, upper: '#3c78c8', lower: '#25497a' },
@@ -14,7 +15,8 @@ export const SAILS = [
   { id: 'sun', name: 'Sunlit gold', cost: 25, tint: [1.1, 0.95, 0.55] },
   { id: 'jade', name: 'Jade', cost: 25, tint: [0.7, 1.05, 0.8] },
   { id: 'night', name: 'Night', cost: 35, tint: [0.45, 0.45, 0.62] },
-  { id: 'patched', name: 'Patched', cost: 0, tint: [1.08, 0.96, 0.82], found: 'cayssails' },   // found, not bought (the sea chest)
+  { id: 'patched', name: 'Patched', cost: 0, tint: [1.08, 0.96, 0.82], found: 'cayssails' },
+  { id: 'lamproom', name: 'Lamp-room canvas', cost: 0, tint: [1.12, 1.08, 0.92], found: 'heskcanvas' },   // Hesper's gift when Haven Hesk is home (systems/foghaven.js)   // found, not bought (the sea chest)
 ];
 export const FLAGS = [
   { id: 'red', name: 'Red', cost: 0, color: '#d63a30' },
@@ -43,6 +45,14 @@ export const FIGURES = [
   { id: 'sandmaid', name: 'From the Ribs', cost: 0, found: 'ribsfigure' },   // found, not bought (the sea chest)
   { id: 'skull', name: 'Skull', cost: 70, req: 'Sink a raider', ok: (s) => s.stats.sunk >= 1 },
 ];
+// found, not bought (owner, 2026-11-28: "make cosmetics be discovered or found like a treasure"): every paint, sailcloth, pennant and
+// carving that used to be sold is a find now. It turns up in a dug chest, a salvaged wreck or a taken raider's hold (chest.js findLook),
+// goes into the sea chest, and any shipyard fits it free. The carvings earned by deeds (req) stay earned, and cost nothing.
+for (const [g, list] of [['hull', HULLS], ['sail', SAILS], ['flag', FLAGS], ['flagshape', FLAG_SHAPES], ['figure', FIGURES]]) for (const x of list) {
+  if (x.cost && !x.found && !x.ok) x.found = `look_${g}_${x.id}`;
+  x.cost = 0;
+}
 export const GROUPS = [['hull', 'Hull paint', HULLS], ['sail', 'Sails', SAILS], ['flag', 'Pennant colour', FLAGS], ['flagshape', 'Pennant shape', FLAG_SHAPES], ['figure', 'Figurehead', FIGURES]];
+registerLooks(GROUPS);
 export const DEFAULT_CUSTOM = { hull: 'oak', sail: 'canvas', flag: 'red', flagshape: 'pennant', figure: 'none' };
 export const byId = (list, id) => list.find((o) => o.id === id) || list[0];

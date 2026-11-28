@@ -34,7 +34,7 @@ import { letterRumour, placeRumour } from './perrin.js';
 import { supperTarget, startSupper } from './lantern.js';
 import { raceHere, joinRace } from './race.js';
 import { pilotSaying } from './passes.js';
-import { chestAdd } from '../chest.js';
+import { chestAdd, findLook } from '../chest.js';
 import { actEvent } from './seaevents.js';
 import { rGreeting } from './rletters.js';
 import { gearInteract, gearAct, gearDock, aboard } from './gearplay.js';
@@ -42,7 +42,7 @@ import { voyageDock } from './voyage.js';
 import { REFUSE_AT, owed, payOwed, mark } from './standing.js';
 import { handOn } from './hands.js';
 import { dockBlocked, refuses, refuseAt, refuseLine, noQuestions } from './harbours.js';
-import { havenDock, havenOpen } from './foghaven.js';
+import { havenDock, havenOpen, worksDock } from './foghaven.js';
 import { crewBoarded } from './raiders.js';
 import { tradeRumour } from './trade.js';
 import { learn } from './news.js';
@@ -182,6 +182,7 @@ function doInteract(tg) {
       const gold = Math.round((70 + Math.random() * 90) * (s.scale || 1)), balls = 4 + Math.floor(Math.random() * 6);
       state.gold += gold; state.ammo += balls; state.stats.boarded = (state.stats.boarded || 0) + 1; state.stats.sunk++;
       G.audio.play('treasure'); toast(`Her crew put up their hands. Her hold: +${gold} gold, +${balls} cannonballs. She is left to drift.`, false, 6000);
+      setTimeout(() => findLook(0.35, regionAt(G.ship.pos.x, G.ship.pos.z, state.seed)), 2200);   // something for the ship in her hold (chest.js)
       { const cl = crewBoarded(s); if (cl) { state.notes.push({ text: cl, dark: false }); after(3, () => toast(cl, false, 8000)); } }   // a beat of her crew's story (raiders.js)
     } };
     return;
@@ -213,7 +214,8 @@ function doInteract(tg) {
     const d = tg.isl.desc, rep = repOf(state, d.id);
     rep.region = d.region;   // its water's name counts toward it (systems/standing.js)
     { const bl = window.__BUILD !== 'demo' && dockBlocked(d); if (bl) { toast(bl, false, 7000); backHint(); return; } }
-    if (havenDock(d)) { backHint(); return; }   // the fog harbour: her note, and nobody to take your line once she is gone (systems/foghaven.js)   // a blockade: nobody comes out (systems/harbours.js)
+    if (havenDock(d)) { backHint(); return; }
+    worksDock(d);   // the great works: the quay mends her, the bell's night cheers the crew (systems/foghaven.js)   // the fog harbour: her note, and nobody to take your line once she is gone (systems/foghaven.js)   // a blockade: nobody comes out (systems/harbours.js)
     if (window.__BUILD !== 'demo' && refuses(d, rep)) {   // the empty quay: nobody takes your line until what is owed is paid (a thriving harbour sooner, a dying one never: harbours.js refuseAt)
       if (rt.oweAsk === d.id && rt.tNow - (rt.oweAskT || 0) < 30) {   /* E again soon after being told: pay (a later visit is told again first) */ const g = payOwed(d.region); if (g) { rt.oweAsk = null; G.audio.play('buy'); toast(`You pay the harbourmaster ${g} gold. A boy comes down and takes your line.`, false, 6000); } else toast(`They want ${owed(d.region)} gold before anyone will take your line.`, false, 4000); return; }
       rt.oweAsk = d.id; rt.oweAskT = rt.tNow; toast(`${refuseLine(d)} (E again: pay what they say is owed, ${owed(d.region)} gold.)`, false, 7000); backHint(); return;
@@ -304,6 +306,7 @@ function doInteract(tg) {
           if (tier && tier.mult < 1) loot.name = `${loot.name} (water-damaged)`; else if (tier && tier.mult >= 2) loot.name = `${loot.name} (and more beneath it)`;
           state.stats.treasures++; state.stats.solved++; if (!first) life.news(state, 'treasure', { where: d.name });
           state.gold += loot.value; state.loot.push(loot);
+          if (!first) setTimeout(() => findLook(0.45, regionAt(G.ship.pos.x, G.ship.pos.z, state.seed)), 2600);   // under the coins, something for the ship (chest.js)
           toast(`Treasure! ${loot.name} (+${loot.value} gold)`, loot.dark, 7000);
           G.audio.play('treasure');
         };
@@ -345,6 +348,7 @@ function doInteract(tg) {
     rt.dig = { key: tg.key, t: 0, label: 'Salvaging the wreck...', need: 3.4 * G.ship.mods.digTime * (state.buffs.dig > 0 ? 0.7 : 1), done: () => {
       if (o.fixed) {   // a named wreck (systems/wrecks.js): its own find, once
         const f = o.fixed, g = Math.round(f.gold * G.ship.mods.lootMul); o.salvaged = true; state.collected.add(o.id); state.stats.wrecks++; state.gold += g;
+        setTimeout(() => findLook(0.55, regionAt(G.ship.pos.x, G.ship.pos.z, state.seed)), 3000);
         if (f.oil && state.oil < oilCap(state.upgrades)) state.oil = oilCap(state.upgrades);
         state.notes.push({ text: f.text, dark: !!f.dark }); toast(f.text + (g ? ` (+${g} gold)` : ''), !!f.dark, 9000);
         const rk = 'wreck:' + f.id; if (state.rumoured[rk]) state.rumoured[rk].found = true;
@@ -354,6 +358,7 @@ function doInteract(tg) {
       loot.value = Math.round(loot.value * 1.3 * G.ship.mods.lootMul * G.threads.salvageMul() * (SALVAGE_MUL[regionAt(o.x, o.z, state.seed)] || 1));   // the tide has uncovered more; the Reef keeps the ships that come (regions.js)
       loot.name = `From the wreck: ${loot.name}`;
       o.salvaged = true; if (!o.extra) state.collected.add(o.id); state.stats.wrecks++;
+      setTimeout(() => findLook(0.3, regionAt(G.ship.pos.x, G.ship.pos.z, state.seed)), 2600);
       state.gold += loot.value; state.loot.push(loot);
       toast(`Salvaged! ${loot.name} (+${loot.value} gold)`, loot.dark, 7000);
       { const x = G.threads.onSalvage(); if (x) after(1.5, () => toast(x, true, 6000)); }

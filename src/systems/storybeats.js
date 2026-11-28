@@ -1,5 +1,7 @@
 // Story beats at sea: the chapter notes, the fog wall and being lost in it, the sea gates, the seams and clues noticed by being somewhere,
 // lamp oil, torn sails, tacking, the hull (hurt, sinking), and the demo's end. Called from main.js frame() and the harbour screens.
+import { onRoad } from './charter.js';
+import { havenHome, HAVEN } from './foghaven.js';
 import * as THREE from 'three';
 import { clamp, smoothstep, angleDiff, mulberry32, hash2 } from '../util.js';
 import { setReach, bearingName, nearby } from '../jobs.js';
@@ -234,7 +236,7 @@ export function onHitEnemy(s, dmg, kind) {
   if (state.stats.sunk === 1) toast('Unlocked: skull figurehead (see the shipyard).', false, 5000);
 }
 export function sinkPlayer() {
-  if (foundersHere()) { founder(); return; }   // in the deepest water she founders, and the captain wakes at Tama (systems/deepseas.js)
+  if (foundersHere() && !onRoad(G.ship.pos.x, G.ship.pos.z)) { founder(); return; }   // on the Charter Road she is brought home instead (systems/charter.js)   // in the deepest water she founders, and the captain wakes at Tama (systems/deepseas.js)
   state.hp = G.ship.mods.maxHp;
   // what going under costs (owner, 2026-11-28: "a real cost for dying"): a third of the gold, everything in the hold, most of the stores,
   // and the crew's spirits
@@ -246,7 +248,8 @@ export function sinkPlayer() {
   rt.fire = 0; rt.boardT = 0;
   G.traffic.ships.filter((x) => x.hostile).forEach((x) => { x.hostile = false; x.engaged = false; });
   const hs = nearby(G.world, G.ship.pos.x, G.ship.pos.z, 0, 1500, 'harbour').sort((a, b) => a.dist - b.dist)[0];
-  const tgt = hs ? { x: hs.d.x, z: hs.d.z + hs.d.r * 1.7, name: hs.d.name } : { x: 0, z: 0, name: 'Tama' };
+  const home = havenHome() && Math.hypot(G.ship.pos.x - HAVEN.x, G.ship.pos.z - HAVEN.z) < 1200;   // Haven Hesk, once the works are done, is home port (systems/foghaven.js)
+  const tgt = home ? { x: HAVEN.x, z: HAVEN.z + HAVEN.r * 1.7, name: HAVEN.name } : hs ? { x: hs.d.x, z: hs.d.z + hs.d.r * 1.7, name: hs.d.name } : { x: 0, z: 0, name: 'Tama' };
   $('fade').classList.add('on');
   setTimeout(() => {
     G.ship.pos.set(tgt.x, 0, tgt.z); G.ship.heading = 0; G.ship.speed = 0; rt.camHeading = 0;

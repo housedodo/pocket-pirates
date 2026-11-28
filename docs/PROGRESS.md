@@ -2885,3 +2885,30 @@ frame and wide map; moon phases and the Eye's shape (not in the summary list).
   silver road on the water (`ocean.js`, `uMoonPath`); the fog bank shows as a low ragged band on the horizon from about 480 out and melts
   into the haze by 140 (`fogbank.js FogWall`).
 - **Checks**: `npm run smoke` runs the full game only (`SMOKE_DEMO=1` for the demo); RULES 39a.
+
+## Late-game goals, found cosmetics, the Drowned in marble, the Crown market, the Name Wall, the Ribs (2026-11-28)
+- **Haven Hesk's great works** (`systems/foghaven.js` WORKS): once the people are back, three works at Hesper's board, each paid in gold
+  and goods from other waters: a stone quay (600 and 3 coir: the Gull is made sound free when she ties up), new glass for the light
+  (350 and 4 lamp glass: the light burns steady, the bank's horizon band is gone), a bell for the chapel (800 and 2 Crown silver: a
+  night ashore cheers the crew more). All three: home port (going under within 1200 brings her here) and Hesper's gift, the
+  lamp-room canvas sail (sea chest). The quay and the bell show at the harbour. `__game.fogHaven.works()` for tests.
+- **The Captain's Charter** (`systems/charter.js`): four charters (Crown 1400, Cays 1000, Reef 1100, Guild 1200) at any harbour of
+  that water once known there (2 deliveries). Each: that water's fine goods sold at any of its harbours, thriving or not, and 8 % more
+  for what you sell there. All four: Ambrose Teague, charter master, comes aboard (two more crates of hold), and the Charter Road, red
+  and white lit buoys every 180 from Tama's waters to the Sunken Street; on it storms do half the harm and the Gull is not lost to
+  the deep. `__game.charter.all()` for tests.
+- **Cosmetics are found** (`customize.js`, `chest.js findLook`): every paint, sailcloth, pennant and carving that was sold is a find
+  now: a dug chest (45 %), a named wreck (55 %), any salvage (30 %), a taken raider (35 %). It goes in the sea chest; shipyards fit it
+  free. Earned figureheads stay earned. The side goal reads "Fit something you found".
+- **The Drowned in marble** (`housefamilies.js` classical; `world.js REGION_FAMILY.drowned`): weathered white marble, green bronze, old
+  tile. Houses with a portico and pediment (one in three roofless), a stoa tavern with lamps, a temple on a stepped podium with a
+  fallen column and a headless statue, a tholos with a green dome for the bell, an arched horreum with amphorae; tide lines and cracks.
+- **The Crown market filled** (`villagestyles.js fillMarket`): striped-awning stalls between the house fronts, iron lamps, a bronze
+  governor, orange trees in tubs, benches, goods and a handcart, two guns on the sea wall, and back streets of houses (with a stall now
+  and then) so the plateau is no longer bare.
+- **The Name Wall** (`landmarks.js`): a sheer white chalk cliff out of a low shelf of pale rock, taller than it is deep, a broken
+  skyline of buttresses, rain streaks, rows of tiny marks to the top (gaps where some were scraped away), weed and fallen blocks at
+  its foot.
+- **The Ribs' breakers**: the flat black boards are jagged wet rocks with a dry top and weed at the waterline, and the surf breaks
+  round them in broken foam.
+- Fixed while testing: a work or charter done on day 0 read as not done.
